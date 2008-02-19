@@ -264,6 +264,71 @@ ssl_Context_set_passwd_cb(ssl_ContextObj *self, PyObject *args)
     return Py_None;
 }
 
+static crypto_X509Obj *
+parse_certificate_argument(const char* format1, const char* format2, PyObject* args)
+{
+    static PyTypeObject *crypto_X509_type = NULL;
+    crypto_X509Obj *cert;
+
+    /* We need to check that cert really is an X509 object before
+       we deal with it. The problem is we can't just quickly verify
+       the type (since that comes from another module). This should
+       do the trick (reasonably well at least): Once we have one
+       verified object, we use it's type object for future
+       comparisons. */
+
+    if (!crypto_X509_type)
+    {
+	if (!PyArg_ParseTuple(args, format1, &cert))
+	    return NULL;
+
+	if (strcmp(cert->ob_type->tp_name, "X509") != 0 || 
+	    cert->ob_type->tp_basicsize != sizeof(crypto_X509Obj))
+	{
+	    PyErr_SetString(PyExc_TypeError, "Expected an X509 object");
+	    return NULL;
+	}
+
+	crypto_X509_type = cert->ob_type;
+    }
+    else
+	if (!PyArg_ParseTuple(args, format2, crypto_X509_type,
+			      &cert))
+	    return NULL;
+    return cert;
+}
+
+static char ssl_Context_add_extra_chain_cert_doc[] = "\n\
+Add certificate to chain\n\
+\n\
+Arguments: self - The Context object\n\
+           args - The Python argument tuple, should be:\n\
+             certobj - The X509 certificate object to add to the chain\n\
+Returns:   None\n\
+";
+
+static PyObject *
+ssl_Context_add_extra_chain_cert(ssl_ContextObj *self, PyObject *args)
+{
+    crypto_X509Obj *cert = parse_certificate_argument(
+        "O:add_extra_chain_cert", "O!:add_extra_chain_cert", args);
+    if (cert == NULL) {
+        return NULL;
+    }
+
+    if (!SSL_CTX_add_extra_chain_cert(self->ctx, cert->x509))
+    {
+        exception_from_error_queue();
+        return NULL;
+    }
+    else
+    {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+}
+
+
 static char ssl_Context_use_certificate_chain_file_doc[] = "\n\
 Load a certificate chain from a file\n\
 \n\
@@ -334,34 +399,11 @@ Returns:   None\n\
 static PyObject *
 ssl_Context_use_certificate(ssl_ContextObj *self, PyObject *args)
 {
-    static PyTypeObject *crypto_X509_type = NULL;
-    crypto_X509Obj *cert;
-
-    /* We need to check that cert really is an X509 object before
-       we deal with it. The problem is we can't just quickly verify
-       the type (since that comes from another module). This should
-       do the trick (reasonably well at least): Once we have one
-       verified object, we use it's type object for future
-       comparisons. */
-
-    if (!crypto_X509_type)
-    {
-	if (!PyArg_ParseTuple(args, "O:use_certificate", &cert))
-	    return NULL;
-
-	if (strcmp(cert->ob_type->tp_name, "X509") != 0 || 
-	    cert->ob_type->tp_basicsize != sizeof(crypto_X509Obj))
-	{
-	    PyErr_SetString(PyExc_TypeError, "Expected an X509 object");
-	    return NULL;
-	}
-
-	crypto_X509_type = cert->ob_type;
+    crypto_X509Obj *cert = parse_certificate_argument(
+        "O:use_certificate", "O!:use_certificate", args);
+    if (cert == NULL) {
+        return NULL;
     }
-    else
-	if (!PyArg_ParseTuple(args, "O!:use_certificate", crypto_X509_type,
-			      &cert))
-	    return NULL;
     
     if (!SSL_CTX_use_certificate(self->ctx, cert->x509))
     {
@@ -868,6 +910,7 @@ static PyMethodDef ssl_Context_methods[] = {
     ADD_METHOD(use_certificate_chain_file),
     ADD_METHOD(use_certificate_file),
     ADD_METHOD(use_certificate),
+    ADD_METHOD(add_extra_chain_cert),
     ADD_METHOD(use_privatekey_file),
     ADD_METHOD(use_privatekey),
     ADD_METHOD(check_privatekey),
