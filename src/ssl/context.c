@@ -310,14 +310,22 @@ Returns:   None\n\
 static PyObject *
 ssl_Context_add_extra_chain_cert(ssl_ContextObj *self, PyObject *args)
 {
+    X509* cert_original;
     crypto_X509Obj *cert = parse_certificate_argument(
         "O:add_extra_chain_cert", "O!:add_extra_chain_cert", args);
-    if (cert == NULL) {
+    if (cert == NULL)
+    {
         return NULL;
     }
-
-    if (!SSL_CTX_add_extra_chain_cert(self->ctx, cert->x509))
+    if (!(cert_original = X509_dup(cert->x509)))
     {
+        /* exception_from_error_queue(); */
+        PyErr_SetString(PyExc_RuntimeError, "X509_dup failed");
+        return NULL;
+    }
+    if (!SSL_CTX_add_extra_chain_cert(self->ctx, cert_original))
+    {
+        X509_free(cert_original);
         exception_from_error_queue();
         return NULL;
     }
