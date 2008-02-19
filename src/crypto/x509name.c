@@ -158,6 +158,7 @@ static int
 crypto_X509Name_setattr(crypto_X509NameObj *self, char *name, PyObject *value)
 {
     int nid;
+    int result;
     char *buffer;
 
     if ((nid = OBJ_txt2nid(name)) == NID_undef)
@@ -170,7 +171,9 @@ crypto_X509Name_setattr(crypto_X509NameObj *self, char *name, PyObject *value)
     if (!PyArg_Parse(value, "es:setattr", "utf-8", &buffer))
         return -1;
     
-    return set_name_by_nid(self->x509_name, nid, buffer);
+    result = set_name_by_nid(self->x509_name, nid, buffer);
+    PyMem_Free(buffer);
+    return result;
 }
 
 /*
