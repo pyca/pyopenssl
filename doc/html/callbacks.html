@@ -1,0 +1,127 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>4.2 Callbacks </title>
+<META NAME="description" CONTENT="4.2 Callbacks ">
+<META NAME="keywords" CONTENT="pyOpenSSL">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<link rel="STYLESHEET" href="pyOpenSSL.css">
+<LINK REL="next" href="socket-methods.html">
+<LINK REL="previous" href="exceptions.html">
+<LINK REL="up" href="internals.html">
+<LINK REL="next" href="socket-methods.html">
+</head>
+<body>
+<DIV CLASS="navigation">
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><A href="exceptions.html"><img src="previous.gif"
+border="0" height="32"
+  alt="Previous Page" width="32"></A></td>
+<td><A href="internals.html"><img src="up.gif"
+border="0" height="32"
+  alt="Up One Level" width="32"></A></td>
+<td><A href="socket-methods.html"><img src="next.gif"
+border="0" height="32"
+  alt="Next Page" width="32"></A></td>
+<td align="center" width="100%">Python OpenSSL Manual</td>
+<td><A href="contents.html"><img src="contents.gif"
+border="0" height="32"
+  alt="Contents" width="32"></A></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+</tr></table>
+<b class="navlabel">Previous:</b> <a class="sectref" href="exceptions.html">4.1 Exceptions</A>
+<b class="navlabel">Up:</b> <a class="sectref" href="internals.html">4 Internals</A>
+<b class="navlabel">Next:</b> <a class="sectref" href="socket-methods.html">4.3 Acessing Socket Methods</A>
+<br><hr>
+</DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000520000000000000000">&nbsp;</A>
+<BR>
+4.2 Callbacks 
+</H2>
+<P>
+<EM><EM><EM>There are a number of problems with callbacks. First of all, OpenSSL is written
+as a C library, it's not meant to have Python callbacks, so a way around that
+is needed. Another problem is thread support. A lot of the OpenSSL I/O
+functions can block if the socket is in blocking mode, and then you want other
+Python threads to be able to do other things. The real trouble is if you've
+released the thread lock to do a potentially blocking operation, and the
+operation calls a callback. Then we must take the thread lock back<A NAME="tex2html6"
+  HREF="#foot916"><SUP>5</SUP></A>.
+</EM></EM></EM>
+<P>
+<EM><EM><EM>There are two solutions to the first problem, both of which are necessary. The
+first solution to use is if the C callback allows ''userdata'' to be passed to
+it (an arbitrary pointer normally). This is great! We can set our Python
+function object as the real userdata and emulate userdata for the Python
+function in another way. The other solution can be used if an object with an
+''app_data'' system always is passed to the callback. For example, the SSL
+object in OpenSSL has app_data functions and in e.g. the verification
+callbacks, you can retrieve the related SSL object. What we do is to set our
+wrapper <tt class="class">Connection</tt> object as app_data for the SSL object, and we can
+easily find the Python callback.
+</EM></EM></EM>
+<P>
+<EM><EM><EM>The other problem is also partially solved by app_data. Since we're associating
+our wrapper objects with the ''real'' objects, we can easily access data from
+the <tt class="class">Connection</tt> object. The solution then is to simply include a
+<tt class="ctype">PyThreadState</tt> variable in the <tt class="class">Connection</tt> declaration, and write
+macros similar to <tt class="cfunction">Py_BEGIN_ALLOW_THREADS</tt> and
+<tt class="cfunction">Py_END_ALLOW_THREADS</tt> that allows specifying of the
+<tt class="ctype">PyThreadState</tt> variable to use. Now we can simply ''begin allow
+threads'' before a potentially blocking operation, and ''end allow threads''
+before calling a callback.
+</EM></EM></EM>
+<P>
+<BR><HR><H4>Footnotes</H4>
+<DL>
+<DT><A NAME="foot916">... back</A><A
+ href="callbacks.html#tex2html6"><SUP>5</SUP></A></DT>
+<DD>I'm
+not sure why this is necessary, but otherwise I get a segmentation violation on
+<tt class="cfunction">PyEval_CallObject</tt>
+
+</DD>
+</DL>
+<DIV CLASS="navigation">
+<p><hr>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><A href="exceptions.html"><img src="previous.gif"
+border="0" height="32"
+  alt="Previous Page" width="32"></A></td>
+<td><A href="internals.html"><img src="up.gif"
+border="0" height="32"
+  alt="Up One Level" width="32"></A></td>
+<td><A href="socket-methods.html"><img src="next.gif"
+border="0" height="32"
+  alt="Next Page" width="32"></A></td>
+<td align="center" width="100%">Python OpenSSL Manual</td>
+<td><A href="contents.html"><img src="contents.gif"
+border="0" height="32"
+  alt="Contents" width="32"></A></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+</tr></table>
+<b class="navlabel">Previous:</b> <a class="sectref" href="exceptions.html">4.1 Exceptions</A>
+<b class="navlabel">Up:</b> <a class="sectref" href="internals.html">4 Internals</A>
+<b class="navlabel">Next:</b> <a class="sectref" href="socket-methods.html">4.3 Acessing Socket Methods</A>
+<hr>
+<span class="release-info">Release 0.6.</span>
+</DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

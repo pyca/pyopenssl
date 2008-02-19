@@ -1,0 +1,145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>3.2 rand -- An interface to the OpenSSL pseudo random number generator </title>
+<META NAME="description" CONTENT="3.2 rand -- An interface to the OpenSSL pseudo random number generator ">
+<META NAME="keywords" CONTENT="pyOpenSSL">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<link rel="STYLESHEET" href="pyOpenSSL.css">
+<LINK REL="next" href="openssl-ssl.html">
+<LINK REL="previous" href="openssl-crypto.html">
+<LINK REL="up" href="openssl.html">
+<LINK REL="next" href="openssl-ssl.html">
+</head>
+<body>
+<DIV CLASS="navigation">
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><A href="openssl-netscape-spki.html"><img src="previous.gif"
+border="0" height="32"
+  alt="Previous Page" width="32"></A></td>
+<td><A href="openssl.html"><img src="up.gif"
+border="0" height="32"
+  alt="Up One Level" width="32"></A></td>
+<td><A href="openssl-ssl.html"><img src="next.gif"
+border="0" height="32"
+  alt="Next Page" width="32"></A></td>
+<td align="center" width="100%">Python OpenSSL Manual</td>
+<td><A href="contents.html"><img src="contents.gif"
+border="0" height="32"
+  alt="Contents" width="32"></A></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+</tr></table>
+<b class="navlabel">Previous:</b> <a class="sectref" href="openssl-netscape-spki.html">3.1.9 NetscapeSPKI objects</A>
+<b class="navlabel">Up:</b> <a class="sectref" href="openssl.html">3 OpenSSL  </A>
+<b class="navlabel">Next:</b> <a class="sectref" href="openssl-ssl.html">3.3 SSL  </A>
+<br><hr>
+</DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000420000000000000000">&nbsp;</A>
+<BR>
+3.2 <tt class="module">rand</tt> -- An interface to the OpenSSL pseudo random number generator 
+</H2>
+<P>
+<EM><EM><EM>
+</EM></EM></EM>
+<P>
+<EM><EM><EM>This module handles the OpenSSL pseudo random number generator (PRNG) and
+declares the following:
+</EM></EM></EM>
+<P>
+<dl><dt><b><a name='l2h-82'><tt class='function'>add</tt></a></b>(<var>string, entropy</var>)
+<dd>
+Mix bytes from <var>string</var> into the PRNG state. The <var>entropy</var> argument is
+(the lower bound of) an estimate of how much randomness is contained in
+<var>string</var>, measured in bytes. For more information, see e.g. <a class="rfc" name="rfcref-1785"
+href="http://www.ietf.org/rfc/rfc1750.txt">RFC 1750</a>.
+</dl>
+<P>
+<dl><dt><b><a name='l2h-83'><tt class='function'>egd</tt></a></b>(<var>path</var><big>[</big><var>, bytes</var><big>]</big>)
+<dd>
+Query the Entropy Gathering Daemon<A NAME="tex2html3"
+  HREF="#foot898"><SUP>3</SUP></A> on socket <var>path</var> for <var>bytes</var>
+bytes of random data and and uses <tt class="function">add</tt> to seed the PRNG. The default
+value of <var>bytes</var> is 255.
+</dl>
+<P>
+<dl><dt><b><a name='l2h-84'><tt class='function'>load_file</tt></a></b>(<var>path</var><big>[</big><var>, bytes</var><big>]</big>)
+<dd>
+Read <var>bytes</var> bytes (or all of it, if <var>bytes</var> is negative) of data from
+the file <var>path</var> to seed the PRNG. The default value of <var>bytes</var> is -1.
+</dl>
+<P>
+<dl><dt><b><a name='l2h-85'><tt class='function'>screen</tt></a></b>()
+<dd>
+Add the current contents of the screen to the PRNG state.
+Availability: Windows.
+</dl>
+<P>
+<dl><dt><b><a name='l2h-86'><tt class='function'>seed</tt></a></b>(<var>string</var>)
+<dd>
+This is equivalent to calling <tt class="function">add</tt> with <var>entropy</var> as the length
+of the string.
+</dl>
+<P>
+<dl><dt><b><a name='l2h-87'><tt class='function'>status</tt></a></b>()
+<dd>
+Returns true if the PRNG has been seeded with enough data, and false otherwise.
+</dl>
+<P>
+<dl><dt><b><a name='l2h-88'><tt class='function'>write_file</tt></a></b>(<var>path</var>)
+<dd>
+Write a number of random bytes (currently 1024) to the file <var>path</var>. This
+file can then be used with <tt class="function">load_file</tt> to seed the PRNG again.
+</dl>
+<P>
+<BR><HR><H4>Footnotes</H4>
+<DL>
+<DT><A NAME="foot898">... Daemon</A><A
+ href="openssl-rand.html#tex2html3"><SUP>3</SUP></A></DT>
+<DD>See
+<a class="url" href="http://www.lothar.com/tech/crypto/">http://www.lothar.com/tech/crypto/</a>
+
+</DD>
+</DL>
+<DIV CLASS="navigation">
+<p><hr>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><A href="openssl-netscape-spki.html"><img src="previous.gif"
+border="0" height="32"
+  alt="Previous Page" width="32"></A></td>
+<td><A href="openssl.html"><img src="up.gif"
+border="0" height="32"
+  alt="Up One Level" width="32"></A></td>
+<td><A href="openssl-ssl.html"><img src="next.gif"
+border="0" height="32"
+  alt="Next Page" width="32"></A></td>
+<td align="center" width="100%">Python OpenSSL Manual</td>
+<td><A href="contents.html"><img src="contents.gif"
+border="0" height="32"
+  alt="Contents" width="32"></A></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+</tr></table>
+<b class="navlabel">Previous:</b> <a class="sectref" href="openssl-netscape-spki.html">3.1.9 NetscapeSPKI objects</A>
+<b class="navlabel">Up:</b> <a class="sectref" href="openssl.html">3 OpenSSL  </A>
+<b class="navlabel">Next:</b> <a class="sectref" href="openssl-ssl.html">3.3 SSL  </A>
+<hr>
+<span class="release-info">Release 0.6.</span>
+</DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

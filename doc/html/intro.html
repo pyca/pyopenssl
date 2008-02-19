@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>1 Introduction </title>
+<META NAME="description" CONTENT="1 Introduction ">
+<META NAME="keywords" CONTENT="pyOpenSSL">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<link rel="STYLESHEET" href="pyOpenSSL.css">
+<LINK REL="next" href="building.html">
+<LINK REL="previous" href="contents.html">
+<LINK REL="up" HREF="pyOpenSSL.html">
+<LINK REL="next" href="building.html">
+</head>
+<body>
+<DIV CLASS="navigation">
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><A href="contents.html"><img src="previous.gif"
+border="0" height="32"
+  alt="Previous Page" width="32"></A></td>
+<td><A HREF="pyOpenSSL.html"><img src="up.gif"
+border="0" height="32"
+  alt="Up One Level" width="32"></A></td>
+<td><A href="building.html"><img src="next.gif"
+border="0" height="32"
+  alt="Next Page" width="32"></A></td>
+<td align="center" width="100%">Python OpenSSL Manual</td>
+<td><A href="contents.html"><img src="contents.gif"
+border="0" height="32"
+  alt="Contents" width="32"></A></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+</tr></table>
+<b class="navlabel">Previous:</b> <a class="sectref" href="contents.html">Contents</A>
+<b class="navlabel">Up:</b> <a class="sectref" HREF="pyOpenSSL.html">Python OpenSSL Manual</A>
+<b class="navlabel">Next:</b> <a class="sectref" href="building.html">2 Building and Installing</A>
+<br><hr>
+</DIV>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION000200000000000000000">&nbsp;</A>
+<BR>
+1 Introduction 
+</H1>
+
+<P>
+The reason this module exists at all is that the SSL support in the socket
+module in the Python 2.1 distribution (which is what we used, of course I
+cannot speak for later versions) is severely limited.
+
+<P>
+When asking about SSL on the comp.lang.python newsgroup (or on
+python-list@python.org) people usually pointed you to the M2Crypto package.
+The M2Crypto.SSL module does implement a lot of OpenSSL's functionality but
+unfortunately its error handling system does not seem to be finished,
+especially for non-blocking I/O.  I think that much of the reason for this
+is that M2Crypto<A NAME="tex2html1"
+  HREF="#foot876"><SUP>1</SUP></A> is
+developed using SWIG<A NAME="tex2html2"
+  HREF="#foot877"><SUP>2</SUP></A>.  This
+makes it awkward to create functions that e.g. can return both an integer and
+NULL since (as far as I know) you basically write C functions and SWIG makes
+wrapper functions that parses the Python argument list and calls your C
+function, and finally transforms your return value to a Python object.
+
+<P>
+<BR><HR><H4>Footnotes</H4>
+<DL>
+<DT><A NAME="foot876">... M2Crypto</A><A
+ href="intro.html#tex2html1"><SUP>1</SUP></A></DT>
+<DD>See <a class="url" href="http://www.post1.com/home/ngps/m2/">http://www.post1.com/home/ngps/m2/</a>
+
+</DD>
+<DT><A NAME="foot877">... SWIG</A><A
+ href="intro.html#tex2html2"><SUP>2</SUP></A></DT>
+<DD>See <a class="url" href="http://swig.sourceforge.net/">http://swig.sourceforge.net/</a>
+
+</DD>
+</DL>
+<DIV CLASS="navigation">
+<p><hr>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><A href="contents.html"><img src="previous.gif"
+border="0" height="32"
+  alt="Previous Page" width="32"></A></td>
+<td><A HREF="pyOpenSSL.html"><img src="up.gif"
+border="0" height="32"
+  alt="Up One Level" width="32"></A></td>
+<td><A href="building.html"><img src="next.gif"
+border="0" height="32"
+  alt="Next Page" width="32"></A></td>
+<td align="center" width="100%">Python OpenSSL Manual</td>
+<td><A href="contents.html"><img src="contents.gif"
+border="0" height="32"
+  alt="Contents" width="32"></A></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+</tr></table>
+<b class="navlabel">Previous:</b> <a class="sectref" href="contents.html">Contents</A>
+<b class="navlabel">Up:</b> <a class="sectref" HREF="pyOpenSSL.html">Python OpenSSL Manual</A>
+<b class="navlabel">Next:</b> <a class="sectref" href="building.html">2 Building and Installing</A>
+<hr>
+<span class="release-info">Release 0.6.</span>
+</DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

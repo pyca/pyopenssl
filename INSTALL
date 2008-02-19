@@ -1,0 +1,84 @@
+
+INSTALLATION INSTRUCTIONS FOR pyOpenSSL
+------------------------------------------------------------------------------
+
+I have tested this on Debian Linux systems (woody and sid), Solaris 2.6 and
+2.7. Others have successfully compiled it on Windows and NT.
+
+
+-- Building the Module on a Unix System --
+
+pyOpenSSL uses distutils, so there really shouldn't be any problems. To build
+the library:
+
+    python setup.py build
+
+If your OpenSSL header files aren't in /usr/include, you may need to supply
+the -I flag to let the setup script know where to look. The same goes for the
+libraries of course, use the -L flag. Note that build won't accept these
+flags, so you have to run first build_ext and then build! Example:
+
+    python setup.py build_ext -I/usr/local/ssl/include -L/usr/local/ssl/lib
+    python setup.py build
+
+Now you should have a directory called OpenSSL that contains e.g. SSL.so and
+__init__.py somewhere in the build dicrectory, so just:
+
+    python setup.py install
+
+If you, for some arcane reason, don't want the module to appear in the
+site-packages directory, use the --prefix option.
+
+You can, of course, do
+
+    python setup.py --help
+
+to find out more about how to use the script.
+
+
+-- Building the Module on a Windows System --
+
+Big thanks to Itamar Shtull-Trauring and Oleg Orlov for their help with
+Windows build instructions. Same as for Unix systems, we have to separate
+the build_ext and the build.
+
+Building the library:
+
+    setup.py build_ext -I ...\openssl\inc32 -L ...\openssl\out32dll
+    setup.py build
+
+Where ...\openssl is of course the location of your OpenSSL installation.
+
+Installation is the same as for Unix systems:
+
+    setup.py install
+
+And similarily, you can do
+
+    setup.py --help
+
+to get more information.
+
+
+-- Documentation --
+
+The documentation is written in LaTeX, using the standard Python templates,
+and tools to compile it into a number of forms are included.  You need to
+supply things like dvips, latex2html yourself of course!
+
+To build the text, html, postscript or dvi forms of the documentation, this is
+what you do:
+
+    cd doc
+    # To make the text-only documentation:
+    make text
+    # To make the dvi form:
+    make dvi
+
+It's as simple as that.  Note that since Python's mkhowto script is used, if
+you do first ``make dvi'' and then ``make ps'', the dvi file will disappear.
+I included a special build target ``make all'' that will build all the
+documentation in an order that won't let anything disappear.
+
+
+@(#) $Id: INSTALL,v 1.7 2002/06/14 12:14:19 martin Exp $

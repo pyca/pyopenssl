@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>2.2 Building the Module on a Windows System </title>
+<META NAME="description" CONTENT="2.2 Building the Module on a Windows System ">
+<META NAME="keywords" CONTENT="pyOpenSSL">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<link rel="STYLESHEET" href="pyOpenSSL.css">
+<LINK REL="previous" href="building-unix.html">
+<LINK REL="up" href="building.html">
+<LINK REL="next" href="openssl.html">
+</head>
+<body>
+<DIV CLASS="navigation">
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><A href="building-unix.html"><img src="previous.gif"
+border="0" height="32"
+  alt="Previous Page" width="32"></A></td>
+<td><A href="building.html"><img src="up.gif"
+border="0" height="32"
+  alt="Up One Level" width="32"></A></td>
+<td><A href="openssl.html"><img src="next.gif"
+border="0" height="32"
+  alt="Next Page" width="32"></A></td>
+<td align="center" width="100%">Python OpenSSL Manual</td>
+<td><A href="contents.html"><img src="contents.gif"
+border="0" height="32"
+  alt="Contents" width="32"></A></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+</tr></table>
+<b class="navlabel">Previous:</b> <a class="sectref" href="building-unix.html">2.1 Building the Module</A>
+<b class="navlabel">Up:</b> <a class="sectref" href="building.html">2 Building and Installing</A>
+<b class="navlabel">Next:</b> <a class="sectref" href="openssl.html">3 OpenSSL  </A>
+<br><hr>
+</DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000320000000000000000">&nbsp;</A>
+<BR>
+2.2 Building the Module on a Windows System 
+</H2>
+
+<P>
+Big thanks to Itamar Shtull-Trauring and Oleg Orlov for their help with
+Windows build instructions.  Same as for Unix systems, we have to separate
+the <code>build_ext</code> and the <code>build</code>.
+
+<P>
+Building the library:
+
+<P>
+<dl><dd><pre class="verbatim">
+setup.py build_ext -I ...\openssl\inc32 -L ...\openssl\out32dll
+setup.py build
+</pre></dl>
+
+<P>
+Where <code>...\openssl</code> is of course the location of your OpenSSL installation.
+
+<P>
+Installation is the same as for Unix systems:
+<dl><dd><pre class="verbatim">
+setup.py install
+</pre></dl>
+
+<P>
+And similarily, you can do
+<dl><dd><pre class="verbatim">
+setup.py --help
+</pre></dl>
+
+<P>
+to get more information.
+
+<P>
+
+<DIV CLASS="navigation">
+<p><hr>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><A href="building-unix.html"><img src="previous.gif"
+border="0" height="32"
+  alt="Previous Page" width="32"></A></td>
+<td><A href="building.html"><img src="up.gif"
+border="0" height="32"
+  alt="Up One Level" width="32"></A></td>
+<td><A href="openssl.html"><img src="next.gif"
+border="0" height="32"
+  alt="Next Page" width="32"></A></td>
+<td align="center" width="100%">Python OpenSSL Manual</td>
+<td><A href="contents.html"><img src="contents.gif"
+border="0" height="32"
+  alt="Contents" width="32"></A></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+</tr></table>
+<b class="navlabel">Previous:</b> <a class="sectref" href="building-unix.html">2.1 Building the Module</A>
+<b class="navlabel">Up:</b> <a class="sectref" href="building.html">2 Building and Installing</A>
+<b class="navlabel">Next:</b> <a class="sectref" href="openssl.html">3 OpenSSL  </A>
+<hr>
+<span class="release-info">Release 0.6.</span>
+</DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

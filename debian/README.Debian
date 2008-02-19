@@ -1,0 +1,13 @@
+Debian notes -- pyOpenSSL
+-------------------------
+
+The source package is split up over four binary packages:
+
+* python2.2-pyopenssl -- compiled for Python 2.2
+* python2.3-pyopenssl -- compiled for Python 2.3
+* python-pyopenssl    -- dummy package that depends on the default
+                         Python version (currently 2.3)
+* pyopenssl-doc       -- documentation for pyOpenSSL
+
+
+Martin Sjögren <sjogren@debian.org>

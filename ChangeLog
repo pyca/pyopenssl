@@ -1,0 +1,254 @@
+2004-08-13  Martin Sjögren  <msjogren@gmail.com>
+
+	* Released version 0.6.
+
+2004-08-11  Martin Sjögren  <msjogren@gmail.com>
+
+	* doc/pyOpenSSL.tex: Updates to the docs.
+
+2004-08-10  Martin Sjögren  <msjogren@gmail.com>
+
+	* src/crypto/x509.c: Add X509.add_extensions based on a patch
+	  from Han S. Lee.
+	* src/ssl/ssl.c: Add more SSL_OP_ constants. Patch from Mihai
+	  Ibanescu.
+
+2004-08-09  Martin Sjögren  <msjogren@gmail.com>
+
+	* setup.py src/crypto/: Add support for Netscape SPKI extensions
+	  based on a patch from Tollef Fog Heen.
+	* src/crypto/crypto.c: Add support for python passphrase callbacks
+	  based on a patch from Robert Olson.
+
+2004-08-03  Martin Sjögren  <msjogren@gmail.com>
+
+	* src/ssl/context.c: Applied patch from Frederic Peters to add
+	  Context.use_certificate_chain_file.
+	* src/crypto/x509.c: Applid patch from Tollef Fog Heen to add
+	  X509.subject_name_hash and X509.digest.
+
+2004-08-02  Martin Sjögren  <msjogren@gmail.com>
+
+	* src/crypto/crypto.c src/ssl/ssl.c: Applied patch from Bastian
+	  Kleineidam to fix full names of exceptions.
+
+2004-07-19  Martin Sjögren  <msjogren@gmail.com>
+
+	* doc/pyOpenSSL.tex: Fix the errors regarding X509Name's field names.
+	
+2004-07-18  Martin Sjögren  <msjogren@gmail.com>
+
+	* examples/certgen.py: Fixed wrong attributes in doc string, thanks
+	  Remy. (SFbug#913315)
+	* __init__.py, setup.py, version.py: Add __version__, as suggested by
+	  Ronald Oussoren in SFbug#888729.
+	* examples/proxy.py: Fix typos, thanks Mihai Ibanescu. (SFpatch#895820)
+
+2003-01-09  Martin Sjögren  <martin@strakt.com>
+
+	* Use cyclic GC protocol in SSL.Connection, SSL.Context, crypto.PKCS12
+	  and crypto.X509Name.
+
+2002-12-02  Martin Sjögren  <martin@strakt.com>
+
+	* tsafe.py: Add some missing methods.
+
+2002-10-06  Martin Sjögren  <martin@strakt.com>
+
+	* __init__.py: Import tsafe too!
+
+2002-10-05  Martin Sjögren  <martin@strakt.com>
+
+	* src/crypto/x509name.c: Use unicode strings instead of ordinary
+	  strings in getattr/setattr. Note that plain ascii strings should
+	  still work.
+
+2002-09-17  Martin Sjögren  <martin@strakt.com>
+
+	* Released version 0.5.1.
+
+2002-09-09  Martin Sjögren  <martin@strakt.com>
+
+	* setup.cfg: Fixed build requirements for rpms.
+
+2002-09-07  Martin Sjögren  <martin@strakt.com>
+
+	* src/ssl/connection.c: Fix sendall() method. It segfaulted because
+	  it was too generous about giving away the GIL.
+	* Added SecureXMLRPCServer example, contributed by Michal Wallace.
+
+2002-09-06  Martin Sjögren  <martin@strakt.com>
+
+	* setup.cfg: Updated the build requirements.
+	* src/ssl/connection.c: Fix includes for AIX.
+
+2002-09-04  Anders Hammarquist  <iko@strakt.com>
+
+	* Added type checks in all the other places where we expect
+	  specific types of objects passed.
+
+2002-09-04  Martin Sjögren  <martin@strakt.com>
+
+	* src/crypto/crypto.c: Added an explicit type check in the dump_*
+	  functions, so that they won't die when e.g. None is passed in.
+
+2002-08-25  Martin Sjögren  <martin@strakt.com>
+
+	* doc/pyOpenSSL.tex: Docs for PKCS12.
+
+2002-08-24  Martin Sjögren  <martin@strakt.com>
+
+	* src/crypto: Added basic PKCS12 support, thanks to Mark Welch
+	  <mark@collab.net>
+
+2002-08-16  Martin Sjögren  <martin@strakt.com>
+
+	* D'oh! Fixes for python 1.5 and python 2.1.
+
+2002-08-15  Martin Sjögren  <martin@strakt.com>
+
+	* Version 0.5. Yay!
+
+2002-07-25  Martin Sjögren  <martin@strakt.com>
+
+	* src/ssl/context.c: Added set_options method.
+	* src/ssl/ssl.c: Added constants for Context.set_options method.
+
+2002-07-23  Martin Sjögren  <martin@strakt.com>
+
+	* Updated docs
+	* src/ssl/connection.c: Changed the get_cipher_list method to actually
+	  return a list! WARNING: This change makes the API incompatible with
+	  earlier versions!
+
+2002-07-15  Martin Sjögren  <martin@strakt.com>
+
+	* src/ssl/connection.[ch]: Removed the fileno method, it uses the
+	  transport object's fileno instead.
+
+2002-07-09  Martin Sjögren  <martin@strakt.com>
+
+	* src/crypto/x509.c src/crypto/x509name.c: Fixed segfault bug where
+	  you used an X509Name after its X509 had been destroyed.
+	* src/crypto/crypto.[ch] src/crypto/x509req.c src/crypto/x509ext.[ch]:
+	  Added X509 Extension support. Thanks to maas-Maarten Zeeman
+	  <maas@awanim.com>
+	* src/crypto/pkey.c: Added bits() and type() methods.
+
+2002-07-08  Martin Sjögren  <martin@strakt.com>
+
+	* src/ssl/connection.c: Moved the contents of setup_ssl into the
+	  constructor, thereby fixing some segfault bugs :)
+	* src/ssl/connection.c: Added connect_ex and sendall methods.
+	* src/crypto/x509name.c: Cleaned up comparisons and NID lookup.
+	  Thank you Maas-Maarten Zeeman <maas@awanim.com>
+	* src/rand/rand.c: Fix RAND_screen import.
+	* src/crypto/crypto.c src/crypto/pkcs7.[ch]: Added PKCS7 management,
+	  courtesy of Maas-Maarten Zeeman <maas@awanim.com>
+	* src/crypto/x509req.c: Added verify method.
+
+2002-06-17  Martin Sjögren  <martin@strakt.com>
+
+	* rpm/, setup.cfg: Added improved RPM-building stuff, thanks to
+	  Mihai Ibanescu <misa@redhat.com>
+
+2002-06-14  Martin Sjögren  <martin@strakt.com>
+
+	* examples/proxy.py: Example code for using OpenSSL through a proxy
+	  contributed by Mihai Ibanescu <misa@redhat.com>
+	* Updated installation instruction and added them to the TeX manual.
+
+2002-06-13  Martin Sjögren  <martin@strakt.com>
+
+	* src/ssl/context.c: Changed global_verify_callback so that it uses
+	  PyObject_IsTrue instead of requring ints.
+	* Added pymemcompat.h to make the memory management uniform and
+	  backwards-compatible.
+	* src/util.h: Added conditional definition of PyModule_AddObject and
+	  PyModule_AddIntConstant
+	* src/ssl/connection.c: Socket methods are no longer explicitly
+	  wrapped. fileno() is the only method the transport layer object HAS
+	  to support, but if you want to use connect, accept or sock_shutdown,
+	  then the transport layer object has to supply connect, accept
+	  and shutdown respectively.
+
+2002-06-12  Martin Sjögren  <martin@strakt.com>
+
+	* Changed comments to docstrings that are visible in Python.
+	* src/ssl/connection.c: Added set_connect_state and set_accept_state
+	  methods. Thanks to Mark Welch <mark@collab.net> for this.
+
+2002-06-11  Martin Sjögren  <martin@strakt.com>
+
+	* src/ssl/connection.c: accept and connect now use SSL_set_accept_state
+	  and SSL_set_connect_state respectively, instead of SSL_accept and
+	  SSL_connect.
+	* src/ssl/connection.c: Added want_read and want_write methods.
+
+2002-06-05  Martin Sjögren  <martin@strakt.com>
+
+	* src/ssl/connection.c: Added error messages for windows. The code is
+	  copied from Python's socketmodule.c. Ick.
+	* src/ssl/connection.c: Changed the parameters to the SysCallError. It
+	  always has a tuple (number, string) now, even though the number
+	  might not always be useful.
+
+2002-04-05  Martin Sjögren  <md9ms@mdstud.chalmers.se>
+
+	* Worked more on the Debian packaging, hopefully the packages
+	  are getting into the main Debian archive soon.
+
+2002-01-10  Martin Sjögren  <martin@strakt.com>
+
+	* Worked some more on the Debian packaging, it's turning out real
+	  nice.
+	* Changed format on this file, I'm going to try to be a bit more
+	  verbose about my changes, and this format makes it easier.
+
+2002-01-08  Martin Sjögren  <martin@strakt.com>
+
+	* Version 0.4.1
+	* Added some example code
+	* Added the thread safe Connection object in the 'tsafe' submodule
+	* New Debian packaging
+
+2001-08-09  Martin Sjögren  <martin@strakt.com>
+
+	* Version 0.4
+	* Added a compare function for X509Name structures.
+	* Moved the submodules to separate .so files, with tiny C APIs so they
+	  can communicate
+	* Skeletal OpenSSL/__init__.py
+	* Removed the err submodule, use crypto.Error and SSL.Error instead
+
+2001-08-06  Martin Sjögren  <martin@strakt.com>
+
+	* Version 0.3
+	* Added more types for dealing with certificates (X509Store, X509Req,
+	  PKey)
+	* Functionality to load private keys, certificates and certificate
+	  requests from memory buffers, and store them too
+	* X509 and X509Name objects can now be modified as well, very neat when
+	  creating certificates ;)
+	* Added SSL_MODE_AUTO_RETRY to smooth things for blocking sockets
+	* Added a sock_shutdown() method to the Connection type
+	* I don't understand why, but I can't use Py_InitModule() to create
+	  submodules in Python 2.0, the interpreter segfaults on the cleanup
+	  process when I do. I added a conditional compile on the version
+	  number, falling back to my own routine. It would of course be nice to
+	  investigate what is happening, but I don't have the time to do so
+	* Do INCREF on the type objects before inserting them in the
+	  dictionary, so they will never reach refcount 0 (they are, after all,
+	  statically allocated)
+
+2001-07-30  Martin Sjögren  <martin@strakt.com>
+
+	* Version 0.2
+	* Lots of tweaking and comments in the code
+	* Now uses distutils instead of the stupid Setup file
+	* Hacked doc/tools/mkhowto, html generation should now work
+
+2001-07-16  Martin Sjögren  <martin@strakt.com>
+
+	* Initial release (0.1, don't expect much from this one :-)
+

@@ -1,0 +1,125 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>2.1 Building the Module on a Unix System </title>
+<META NAME="description" CONTENT="2.1 Building the Module on a Unix System ">
+<META NAME="keywords" CONTENT="pyOpenSSL">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<link rel="STYLESHEET" href="pyOpenSSL.css">
+<LINK REL="next" href="building-windows.html">
+<LINK REL="previous" href="building.html">
+<LINK REL="up" href="building.html">
+<LINK REL="next" href="building-windows.html">
+</head>
+<body>
+<DIV CLASS="navigation">
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><A href="building.html"><img src="previous.gif"
+border="0" height="32"
+  alt="Previous Page" width="32"></A></td>
+<td><A href="building.html"><img src="up.gif"
+border="0" height="32"
+  alt="Up One Level" width="32"></A></td>
+<td><A href="building-windows.html"><img src="next.gif"
+border="0" height="32"
+  alt="Next Page" width="32"></A></td>
+<td align="center" width="100%">Python OpenSSL Manual</td>
+<td><A href="contents.html"><img src="contents.gif"
+border="0" height="32"
+  alt="Contents" width="32"></A></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+</tr></table>
+<b class="navlabel">Previous:</b> <a class="sectref" href="building.html">2 Building and Installing</A>
+<b class="navlabel">Up:</b> <a class="sectref" href="building.html">2 Building and Installing</A>
+<b class="navlabel">Next:</b> <a class="sectref" href="building-windows.html">2.2 Building the Module</A>
+<br><hr>
+</DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000310000000000000000">&nbsp;</A>
+<BR>
+2.1 Building the Module on a Unix System 
+</H2>
+
+<P>
+pyOpenSSL uses distutils, so there really shouldn't be any problems. To build
+the library:
+<dl><dd><pre class="verbatim">
+python setup.py build
+</pre></dl>
+
+<P>
+If your OpenSSL header files aren't in <code>/usr/include</code>, you may need to
+supply the <code>-I</code> flag to let the setup script know where to look. The same
+goes for the libraries of course, use the <code>-L</code> flag. Note that
+<code>build</code> won't accept these flags, so you have to run first
+<code>build_ext</code> and then <code>build</code>! Example:
+<dl><dd><pre class="verbatim">
+python setup.py build_ext -I/usr/local/ssl/include -L/usr/local/ssl/lib
+python setup.py build
+</pre></dl>
+
+<P>
+Now you should have a directory called <code>OpenSSL</code> that contains e.g.
+<code>SSL.so</code> and <code>__init__.py</code> somewhere in the build dicrectory,
+so just:
+<dl><dd><pre class="verbatim">
+python setup.py install
+</pre></dl>
+
+<P>
+If you, for some arcane reason, don't want the module to appear in the
+<code>site-packages</code> directory, use the <code>--prefix</code> option.
+
+<P>
+You can, of course, do
+<dl><dd><pre class="verbatim">
+python setup.py --help
+</pre></dl>
+
+<P>
+to find out more about how to use the script.
+
+<P>
+
+<DIV CLASS="navigation">
+<p><hr>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><A href="building.html"><img src="previous.gif"
+border="0" height="32"
+  alt="Previous Page" width="32"></A></td>
+<td><A href="building.html"><img src="up.gif"
+border="0" height="32"
+  alt="Up One Level" width="32"></A></td>
+<td><A href="building-windows.html"><img src="next.gif"
+border="0" height="32"
+  alt="Next Page" width="32"></A></td>
+<td align="center" width="100%">Python OpenSSL Manual</td>
+<td><A href="contents.html"><img src="contents.gif"
+border="0" height="32"
+  alt="Contents" width="32"></A></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+</tr></table>
+<b class="navlabel">Previous:</b> <a class="sectref" href="building.html">2 Building and Installing</A>
+<b class="navlabel">Up:</b> <a class="sectref" href="building.html">2 Building and Installing</A>
+<b class="navlabel">Next:</b> <a class="sectref" href="building-windows.html">2.2 Building the Module</A>
+<hr>
+<span class="release-info">Release 0.6.</span>
+</DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

@@ -1,0 +1,40 @@
+Source: pyopenssl
+Section: python
+Priority: optional
+Maintainer: Ubuntu Core developers <ubuntu-devel-discuss@lists.ubuntu.com>
+XSBC-Original-Maintainer: Martin Sjogren <sjogren@debian.org>
+Build-Depends: debhelper (>= 5.0.37.2), python-all-dev (>= 2.3.5-11), python-all-dbg (>= 2.5-0ubuntu5),
+ python-support (>= 0.3), libssl-dev (>= 0.9.8)
+Standards-Version: 3.7.2
+
+Package: python-pyopenssl
+Architecture: any
+Depends: ${python:Depends}, ${shlibs:Depends}
+Provides: ${python:Provides}
+Suggests: pyopenssl-doc, python-pyopenssl-dbg
+Replaces: python2-pyopenssl, python2.3-pyopenssl (<< 0.6-2.3), python2.4-pyopenssl (<< 0.6-2.3)
+Conflicts: python2-pyopenssl, python2.3-pyopenssl (<< 0.6-2.3), python2.4-pyopenssl (<< 0.6-2.3)
+XB-Python-Version: ${python:Versions}
+Description: Python wrapper around the OpenSSL library
+ Includes: SSL Context objects, SSL Connection objects, using
+ Python sockets as transport layer. The Connection object
+ wraps all the socket methods and can therefore be used
+ interchangeably.
+
+Package: python-pyopenssl-dbg
+Priority: extra
+Architecture: any
+Depends: python-pyopenssl (= ${Source-Version}), python-dbg, ${shlibs:Depends}
+Description: Python wrapper around the OpenSSL library (debug extension)
+ Includes: SSL Context objects, SSL Connection objects, using
+ Python sockets as transport layer. The Connection object
+ wraps all the socket methods and can therefore be used
+ interchangeably.
+
+Package: pyopenssl-doc
+Section: doc
+Architecture: all
+Suggests: python-pyopenssl
+Description: Documentation for pyOpenSSL
+ This package provides documentation for the pyOpenSSL package,
+ in HTML, postscript and text formats.

@@ -1,0 +1,164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>3.1.1 X509 objects </title>
+<META NAME="description" CONTENT="3.1.1 X509 objects ">
+<META NAME="keywords" CONTENT="pyOpenSSL">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<link rel="STYLESHEET" href="pyOpenSSL.css">
+<LINK REL="next" href="openssl-x509name.html">
+<LINK REL="previous" href="openssl-crypto.html">
+<LINK REL="up" href="openssl-crypto.html">
+<LINK REL="next" href="openssl-x509name.html">
+</head>
+<body>
+<DIV CLASS="navigation">
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><A href="openssl-crypto.html"><img src="previous.gif"
+border="0" height="32"
+  alt="Previous Page" width="32"></A></td>
+<td><A href="openssl-crypto.html"><img src="up.gif"
+border="0" height="32"
+  alt="Up One Level" width="32"></A></td>
+<td><A href="openssl-x509name.html"><img src="next.gif"
+border="0" height="32"
+  alt="Next Page" width="32"></A></td>
+<td align="center" width="100%">Python OpenSSL Manual</td>
+<td><A href="contents.html"><img src="contents.gif"
+border="0" height="32"
+  alt="Contents" width="32"></A></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+</tr></table>
+<b class="navlabel">Previous:</b> <a class="sectref" href="openssl-crypto.html">3.1 crypto  </A>
+<b class="navlabel">Up:</b> <a class="sectref" href="openssl-crypto.html">3.1 crypto  </A>
+<b class="navlabel">Next:</b> <a class="sectref" href="openssl-x509name.html">3.1.2 X509Name objects</A>
+<br><hr>
+</DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000411000000000000000">&nbsp;</A>
+<BR>
+3.1.1 X509 objects 
+</H3>
+
+<P>
+X509 objects have the following methods:
+
+<P>
+<dl><dt><b><a name='l2h-34'><tt class='method'>get_issuer</tt></a></b>()
+<dd>
+Return a <EM>borrowed reference to a X509Name object representing the issuer
+of the certificate.  When the corresponding X509 or X509Req object is
+destroyed, this object will be invalid!
+</dl>
+</EM>
+<P><dl><dt><b><a name='l2h-35'><tt class='method'>get_pubkey</tt></a></b>()
+<dd>
+Return a PKey object representing the public key of the certificate.
+</dl>
+<P><dl><dt><b><a name='l2h-36'><tt class='method'>get_serial_number</tt></a></b>()
+<dd>
+Return the certificate serial number.
+</dl>
+<P><dl><dt><b><a name='l2h-37'><tt class='method'>get_subject</tt></a></b>()
+<dd>
+Return a <EM>borrowed reference to a X509Name object representing the subject
+of the certificate.  When the corresponding X509 or X509Req object is
+destroyed, this object will be invalid!
+</dl></EM>
+<P><dl><dt><b><a name='l2h-38'><tt class='method'>get_version</tt></a></b>()
+<dd>
+Return the certificate version.
+</dl>
+<P><dl><dt><b><a name='l2h-39'><tt class='method'>gmtime_adj_notBefore</tt></a></b>(<var>time</var>)
+<dd>
+Adjust the timestamp (in GMT) when the certificate starts being valid.
+</dl>
+<P><dl><dt><b><a name='l2h-40'><tt class='method'>gmtime_adj_notAfter</tt></a></b>(<var>time</var>)
+<dd>
+Adjust the timestamp (in GMT) when the certificate stops being valid.
+</dl>
+<P><dl><dt><b><a name='l2h-41'><tt class='method'>has_expired</tt></a></b>()
+<dd>
+Checks the certificate's time stamp against current time. Returns true if the
+certificate has expired and false otherwise.
+</dl>
+<P><dl><dt><b><a name='l2h-42'><tt class='method'>set_issuer</tt></a></b>(<var>issuer</var>)
+<dd>
+Set the issuer of the certificate to <var>issuer</var>.
+</dl>
+<P><dl><dt><b><a name='l2h-43'><tt class='method'>set_pubkey</tt></a></b>(<var>pkey</var>)
+<dd>
+Set the public key of the certificate to <var>pkey</var>.
+</dl>
+<P><dl><dt><b><a name='l2h-44'><tt class='method'>set_serial_number</tt></a></b>(<var>serialno</var>)
+<dd>
+Set the serial number of the certificate to <var>serialno</var>.
+</dl>
+<P><dl><dt><b><a name='l2h-45'><tt class='method'>set_subject</tt></a></b>(<var>subject</var>)
+<dd>
+Set the subject of the certificate to <var>subject</var>.
+</dl>
+<P><dl><dt><b><a name='l2h-46'><tt class='method'>set_version</tt></a></b>(<var>version</var>)
+<dd>
+Set the certificate version to <var>version</var>.
+</dl>
+<P><dl><dt><b><a name='l2h-47'><tt class='method'>sign</tt></a></b>(<var>pkey, digest</var>)
+<dd>
+Sign the certificate, using the key <var>pkey</var> and the message digest algorithm
+identified by the string <var>digest</var>.
+</dl>
+<P><dl><dt><b><a name='l2h-48'><tt class='method'>subject_name_hash</tt></a></b>()
+<dd>
+Return the hash of the certificate subject.
+</dl>
+<P><dl><dt><b><a name='l2h-49'><tt class='method'>digest</tt></a></b>(<var>digest_name</var>)
+<dd>
+Return a digest of the certificate, using the <var>digest_name</var> method.
+</dl>
+<P><dl><dt><b><a name='l2h-50'><tt class='method'>add_extensions</tt></a></b>(<var>extensions</var>)
+<dd>
+Add the extensions in the sequence <var>extensions</var> to the certificate.
+</dl>
+<P>
+<DIV CLASS="navigation">
+<p><hr>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><A href="openssl-crypto.html"><img src="previous.gif"
+border="0" height="32"
+  alt="Previous Page" width="32"></A></td>
+<td><A href="openssl-crypto.html"><img src="up.gif"
+border="0" height="32"
+  alt="Up One Level" width="32"></A></td>
+<td><A href="openssl-x509name.html"><img src="next.gif"
+border="0" height="32"
+  alt="Next Page" width="32"></A></td>
+<td align="center" width="100%">Python OpenSSL Manual</td>
+<td><A href="contents.html"><img src="contents.gif"
+border="0" height="32"
+  alt="Contents" width="32"></A></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+<td><img src="blank.gif"
+  border="0" height="32"
+  alt="" width="32"></td>
+</tr></table>
+<b class="navlabel">Previous:</b> <a class="sectref" href="openssl-crypto.html">3.1 crypto  </A>
+<b class="navlabel">Up:</b> <a class="sectref" href="openssl-crypto.html">3.1 crypto  </A>
+<b class="navlabel">Next:</b> <a class="sectref" href="openssl-x509name.html">3.1.2 X509Name objects</A>
+<hr>
+<span class="release-info">Release 0.6.</span>
+</DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

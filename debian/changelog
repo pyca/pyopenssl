@@ -1,0 +1,209 @@
+pyopenssl (0.6-2.3ubuntu1) feisty; urgency=low
+
+  * Build a python-twisted-dbg package.
+  * Bump debhelper compatibility to v5.
+  * Set Ubuntu maintainer address.
+
+ -- Matthias Klose <doko@ubuntu.com>  Sat, 17 Feb 2007 02:59:17 +0100
+
+pyopenssl (0.6-2.3build2) edgy; urgency=low
+
+  * Rebuild to add support for python2.5.
+
+ -- Matthias Klose <doko@ubuntu.com>  Fri,  8 Sep 2006 13:32:22 +0000
+
+pyopenssl (0.6-2.3build1) edgy; urgency=low
+
+  * Rebuild (using new python-defaults). Ubuntu #52320.
+
+ -- Matthias Klose <doko@ubuntu.com>  Sat,  8 Jul 2006 11:33:55 +0000
+
+pyopenssl (0.6-2.3) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Update Package for last python policy (Closes: #373548).
+
+ -- Pierre Habouzit <madcoder@debian.org>  Fri, 30 Jun 2006 13:31:10 +0200
+
+pyopenssl (0.6-2.2) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Include patch from Cyril Lacoux <clacoux@easter-eggs.com>,
+    fixing Segmentation fault when creating x509 extension.
+    (Closes: #355947)
+
+ -- Julien Danjou <acid@debian.org>  Fri, 12 May 2006 16:42:47 +0200
+
+pyopenssl (0.6-2.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Stop building modules for python2.2. (Closes: #351133)
+  * Also rebuild module using libssl0.9.8. (Closes: #347541)
+
+ -- Pierre Habouzit <madcoder@debian.org>  Sun,  9 Apr 2006 19:45:16 +0200
+
+pyopenssl (0.6-2) unstable; urgency=low
+
+  * Add support for python 2.4. (Closes: #297870)
+  * Build-depend on v0.9.7 of openssl.
+
+ -- Martin Sjogren <sjogren@debian.org>  Mon, 14 Mar 2005 08:56:27 +0100
+
+pyopenssl (0.6-1) unstable; urgency=low
+
+  * New upstream release, including:
+    - Add Netscape SPKI extensions. (Closes: #205132)
+    - Add X509.subject_name_hash, X509.digest. (Closes: #205136)
+    - Fix full names of exceptions. (Closes: #250342)
+    - Add SSL.Context.use_certificate_chain_file. (Closes: #260134)
+  * Docs are built upstream, so the build-deps have been trimmed.
+    This also means that HTML and text documentation are back.
+  * Bumped standards-version.
+  * Use dh_python.
+
+ -- Martin Sjogren <sjogren@debian.org>  Fri, 13 Aug 2004 20:53:27 +0200
+
+pyopenssl (0.5.1-4) unstable; urgency=low
+
+  * Drop HTML and text documentation since latex2html moved to non-free.
+    This is a temporary solution, until I can hack mkhowto to use something
+    else. (Closes: #221344)
+  * Fix the copyright file to mention the copyright holder.
+
+ -- Martin Sjogren <sjogren@debian.org>  Mon, 15 Dec 2003 20:16:25 +0100
+
+pyopenssl (0.5.1-3) unstable; urgency=low
+
+  * MANIFEST.in: Include the src/RATIONALE file. (Closes: #197401)
+  * doc/pyOpenSSL.tex: Fix typo. (Closes: #197435)
+  * Drop Python 1.5 and 2.1 support.
+  * Make python-pyopenssl depend on python2.3-pyopenssl, which is no longer
+    "experimental".
+
+ -- Martin Sjogren <sjogren@debian.org>  Mon, 11 Aug 2003 18:37:07 +0200
+
+pyopenssl (0.5.1-2) unstable; urgency=low
+
+  * Make sure names in control and changelog match. Stupid changelogs, bleh.
+  * Change section to 'python'.
+  * Rebuild with openssl 0.9.7. (Closes: #189826)
+  * __init__.py: Import tsafe module.
+  * tsafe.py: Add some missing methods.
+  * debian/copyright: Fix Author(s) boilerplate thingy to shut lintian up.
+
+ -- Martin Sjogren <sjogren@debian.org>  Sun, 20 Apr 2003 17:50:24 +0200
+
+pyopenssl (0.5.1-1) unstable; urgency=low
+
+  * New upstream version. (Closes: #159530)
+  * Added a python-pyopenssl dummy package.
+  * Added an experimental python2.3-pyopenssl package.
+
+ -- Martin Sjögren <martin@strakt.com>  Sun, 25 Aug 2002 12:08:31 +0200
+
+pyopenssl (0.5-1) unstable; urgency=low
+
+  * New upstream version
+  * Support for python1.5.
+  * Fix stupid mistakes for python 1.5 and python 2.1.
+
+ -- Martin Sjögren <martin@strakt.com>  Wed, 24 Jul 2002 09:05:28 +0200
+
+pyopenssl (0.4.1-8) unstable; urgency=low
+
+  * Added examples to pyopenssl-doc
+
+ -- Martin Sjögren <martin@strakt.com>  Wed,  5 Jun 2002 14:58:04 +0200
+
+pyopenssl (0.4.1-7) unstable; urgency=low
+
+  * The cute arrow icons in the HTML documentation should be there now too.
+
+ -- Martin Sjögren <martin@strakt.com>  Thu, 30 May 2002 00:53:44 +0200
+
+pyopenssl (0.4.1-6) unstable; urgency=low
+
+  * Commented out some unused things in debian/rules
+
+ -- Martin Sjögren <martin@strakt.com>  Wed, 29 May 2002 11:20:33 +0200
+
+pyopenssl (0.4.1-5) unstable; urgency=low
+
+  * Adding to the build-depends.
+  * Initial upload (Closes: #140687)
+
+ -- Martin Sjögren <martin@strakt.com>  Sat,  6 Apr 2002 14:15:49 +0200
+
+pyopenssl (0.4.1-4) unstable; urgency=low
+
+  * Fixes in packaging, it shouldn't be regarded a native package now.
+
+ -- Martin Sjögren <martin@strakt.com>  Sat,  6 Apr 2002 11:26:39 +0200
+
+pyopenssl (0.4.1-3) unstable; urgency=low
+
+  * Moved from non-US to main/devel
+
+ -- Martin Sjögren <martin@strakt.com>  Fri,  5 Apr 2002 22:44:10 +0200
+
+pyopenssl (0.4.1-2) unstable; urgency=low
+
+  * Fixes in the packaging, dependencies and build dependencies should be
+    all right now.
+
+ -- Martin Sjögren <martin@strakt.com>  Thu, 10 Jan 2002 10:00:06 +0100
+
+pyopenssl (0.4.1-1) unstable; urgency=low
+
+  * New "upstream" release
+  * New packaging, python2.1-pyopenssl, python2.2-pyopenssl, pyopenssl-doc
+
+ -- Martin Sjögren <martin@strakt.com>  Mon,  7 Jan 2002 15:38:51 +0100
+
+pyopenssl (0.4-4) unstable; urgency=low
+
+  * Grrr, this time then...
+
+ -- Martin Sjögren <martin@strakt.com>  Fri, 17 Aug 2001 14:53:19 +0200
+
+pyopenssl (0.4-3) unstable; urgency=low
+
+  * Fixed a big nasty bug
+
+ -- Martin Sjögren <martin@strakt.com>  Fri, 17 Aug 2001 14:33:06 +0200
+
+pyopenssl (0.4-2) unstable; urgency=low
+
+  * Fixes
+
+ -- Martin Sjögren <martin@strakt.com>  Fri, 17 Aug 2001 13:53:11 +0200
+
+pyopenssl (0.4-1) unstable; urgency=low
+
+  * New "upstream" version
+
+ -- Martin Sjögren <martin@strakt.com>  Thu,  9 Aug 2001 12:32:47 +0200
+
+pyopenssl (0.3-3) unstable; urgency=low
+
+  * X509 objects now has a has_expired method
+
+ -- Martin Sjögren <martin@strakt.com>  Tue,  7 Aug 2001 14:16:13 +0200
+
+pyopenssl (0.3-2) unstable; urgency=low
+
+  * X509Name objects now has a compare method 
+
+ -- Martin Sjögren <martin@strakt.com>  Tue,  7 Aug 2001 10:53:58 +0200
+
+pyopenssl (0.3-1) unstable; urgency=low
+
+  * New "upstream" version
+
+ -- Martin Sjögren <martin@strakt.com>  Fri,  3 Aug 2001 16:36:26 +0200
+
+pyopenssl (0.1-1) unstable; urgency=low
+
+  * Initial version.
+
+ -- Anders Hammarquist <iko@strakt.com>  Mon, 23 Jul 2001 15:17:38 +0200
