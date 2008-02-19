@@ -143,8 +143,11 @@ crypto_X509Name_getattr(crypto_X509NameObj *self, char *name)
         Py_INCREF(Py_None);
         return Py_None;
     }
-    else
-        return PyUnicode_Decode(utf8string, len, "utf-8", NULL);
+    else {
+	    PyObject* result = PyUnicode_Decode(utf8string, len, "utf-8", NULL);
+	    OPENSSL_free(utf8string);
+	    return result;
+    }
 }
 
 /*
@@ -170,7 +173,7 @@ crypto_X509Name_setattr(crypto_X509NameObj *self, char *name, PyObject *value)
     /* Something of a hack to get nice unicode behaviour */
     if (!PyArg_Parse(value, "es:setattr", "utf-8", &buffer))
         return -1;
-    
+
     result = set_name_by_nid(self->x509_name, nid, buffer);
     PyMem_Free(buffer);
     return result;
