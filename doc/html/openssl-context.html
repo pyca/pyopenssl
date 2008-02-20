@@ -120,9 +120,7 @@ more information (e.g. ciphers(1))
 <dd>
 Set the information callback to <var>callback</var>. This function will be called
 from time to time during SSL handshakes.
-</EM></EM></EM>
-<P>
-<EM><EM><EM><var>callback</var> should take three arguments: a Connection object and two
+<var>callback</var> should take three arguments: a Connection object and two
 integers. The first integer specifies where in the SSL handshake the function
 was called, and the other the return code from a (possibly failed) internal
 function call.
@@ -131,18 +129,14 @@ function call.
 <dl><dt><b><a name='l2h-126'><tt class='method'>set_options</tt></a></b>(<var>options</var>)
 <dd>
 Add SSL options. Options you have set before are not cleared!
-</EM></EM></EM>
-<P>
-<EM><EM><EM>This method should be used with the <tt class="constant">OP_*</tt> constants.
+This method should be used with the <tt class="constant">OP_*</tt> constants.
 </dl>
 <P>
 <dl><dt><b><a name='l2h-127'><tt class='method'>set_passwd_cb</tt></a></b>(<var>callback</var><big>[</big><var>, userdata</var><big>]</big>)
 <dd>
 Set the passphrase callback to <var>callback</var>. This function will be called
 when a private key with a passphrase is loaded.
-</EM></EM></EM>
-<P>
-<EM><EM><EM><var>callback</var> should take a boolean argument <var>repeat</var> and an arbitrary
+<var>callback</var> should take a boolean argument <var>repeat</var> and an arbitrary
 argument <var>data</var> and return the passphrase entered by the user. If
 <var>repeat</var> is true then <var>callback</var> should ask for the passphrase twice
 and make sure that the two entries are equal. The <var>data</var> argument is the
@@ -175,9 +169,7 @@ should be one of <tt class="constant">VERIFY_NONE</tt> and <tt class="constant">
 <tt class="constant">VERIFY_PEER</tt> is used, <var>mode</var> can be OR:ed with
 <tt class="constant">VERIFY_FAIL_IF_NO_PEER_CERT</tt> and <tt class="constant">VERIFY_CLIENT_ONCE</tt> to
 further control the behaviour.
-</EM></EM></EM>
-<P>
-<EM><EM><EM><var>callback</var> should take five arguments: A Connection object, an X509 object,
+<var>callback</var> should take five arguments: A Connection object, an X509 object,
 and three integer variables, which are in turn potential error number, error
 depth and return code. <var>callback</var> should return true if verification passes
 and false otherwise.

@@ -731,7 +731,6 @@ more information (e.g. ciphers(1))
 \begin{methoddesc}[Context]{set_info_callback}{callback}
 Set the information callback to \var{callback}. This function will be called
 from time to time during SSL handshakes.
-
 \var{callback} should take three arguments: a Connection object and two
 integers. The first integer specifies where in the SSL handshake the function
 was called, and the other the return code from a (possibly failed) internal
@@ -740,14 +739,12 @@ function call.
 
 \begin{methoddesc}[Context]{set_options}{options}
 Add SSL options. Options you have set before are not cleared!
-
 This method should be used with the \constant{OP_*} constants.
 \end{methoddesc}
 
 \begin{methoddesc}[Context]{set_passwd_cb}{callback\optional{, userdata}}
 Set the passphrase callback to \var{callback}. This function will be called
 when a private key with a passphrase is loaded.
-
 \var{callback} should take a boolean argument \var{repeat} and an arbitrary
 argument \var{data} and return the passphrase entered by the user. If
 \var{repeat} is true then \var{callback} should ask for the passphrase twice
@@ -778,7 +775,6 @@ should be one of \constant{VERIFY_NONE} and \constant{VERIFY_PEER}. If
 \constant{VERIFY_PEER} is used, \var{mode} can be OR:ed with
 \constant{VERIFY_FAIL_IF_NO_PEER_CERT} and \constant{VERIFY_CLIENT_ONCE} to
 further control the behaviour.
-
 \var{callback} should take five arguments: A Connection object, an X509 object,
 and three integer variables, which are in turn potential error number, error
 depth and return code. \var{callback} should return true if verification passes
