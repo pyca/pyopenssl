@@ -1,3 +1,9 @@
+2008-02-19  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* src/ssl/context.c: Expose SSL_CTX_add_extra_chain_cert.
+	* src/crypto/x509name.c: Fix memory leaks in __getattr__ and
+	  __setattr_ implementations.
+
 2004-08-13  Martin Sjögren  <msjogren@gmail.com>
 
 	* Released version 0.6.
