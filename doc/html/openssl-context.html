@@ -194,24 +194,30 @@ allowed for this Context object.
 Use the certificate <var>cert</var> which has to be a X509 object.
 </dl>
 <P>
-<dl><dt><b><a name='l2h-133'><tt class='method'>use_certificate_chain_file</tt></a></b>(<var>file</var>)
+<dl><dt><b><a name='l2h-133'><tt class='method'>add_extra_chain_cert</tt></a></b>(<var>cert</var>)
+<dd>
+Adds the certificate <var>cert</var>, which has to be a X509 object, to the
+certificate chain presented together with the certificate.
+</dl>
+<P>
+<dl><dt><b><a name='l2h-134'><tt class='method'>use_certificate_chain_file</tt></a></b>(<var>file</var>)
 <dd>
 Load a certificate chain from <var>file</var> which must be PEM encoded.
 </dl>
 <P>
-<dl><dt><b><a name='l2h-134'><tt class='method'>use_privatekey</tt></a></b>(<var>pkey</var>)
+<dl><dt><b><a name='l2h-135'><tt class='method'>use_privatekey</tt></a></b>(<var>pkey</var>)
 <dd>
 Use the private key <var>pkey</var> which has to be a PKey object.
 </dl>
 <P>
-<dl><dt><b><a name='l2h-135'><tt class='method'>use_certificate_file</tt></a></b>(<var>file</var><big>[</big><var>, format</var><big>]</big>)
+<dl><dt><b><a name='l2h-136'><tt class='method'>use_certificate_file</tt></a></b>(<var>file</var><big>[</big><var>, format</var><big>]</big>)
 <dd>
 Load the first certificate found in <var>file</var>. The certificate must be in the
 format specified by <var>format</var>, which is either <tt class="constant">FILETYPE_PEM</tt> or
 <tt class="constant">FILETYPE_ASN1</tt>. The default is <tt class="constant">FILETYPE_PEM</tt>.
 </dl>
 <P>
-<dl><dt><b><a name='l2h-136'><tt class='method'>use_privatekey_file</tt></a></b>(<var>file</var><big>[</big><var>, format</var><big>]</big>)
+<dl><dt><b><a name='l2h-137'><tt class='method'>use_privatekey_file</tt></a></b>(<var>file</var><big>[</big><var>, format</var><big>]</big>)
 <dd>
 Load the first private key found in <var>file</var>. The private key must be in the
 format specified by <var>format</var>, which is either <tt class="constant">FILETYPE_PEM</tt> or

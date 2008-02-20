@@ -794,6 +794,11 @@ allowed for this Context object.
 Use the certificate \var{cert} which has to be a X509 object.
 \end{methoddesc}
 
+\begin{methoddesc}[Context]{add_extra_chain_cert}{cert}
+Adds the certificate \var{cert}, which has to be a X509 object, to the
+certificate chain presented together with the certificate.
+\end{methoddesc}
+
 \begin{methoddesc}[Context]{use_certificate_chain_file}{file}
 Load a certificate chain from \var{file} which must be PEM encoded.
 \end{methoddesc}
