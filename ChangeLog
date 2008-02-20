@@ -3,6 +3,9 @@
 	* src/ssl/context.c: Expose SSL_CTX_add_extra_chain_cert.
 	* src/crypto/x509name.c: Fix memory leaks in __getattr__ and
 	  __setattr_ implementations.
+	* src/crypto/x509.c: Fix memory leak in X509.get_pubkey().
+	* leakcheck/: An attempt at a systematic approach to leak
+	  elimination.
 
 2004-08-13  Martin Sjögren  <msjogren@gmail.com>
 

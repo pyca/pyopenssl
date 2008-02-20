@@ -235,7 +235,7 @@ crypto_X509_get_pubkey(crypto_X509Obj *self, PyObject *args)
         return NULL;
     }
 
-    return (PyObject *)crypto_PKey_New(pkey, 0);
+    return (PyObject *)crypto_PKey_New(pkey, 1);
 }
 
 static char crypto_X509_set_pubkey_doc[] = "\n\
