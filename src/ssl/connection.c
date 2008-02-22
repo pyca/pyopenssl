@@ -9,9 +9,7 @@
  * Reviewed 2001-07-23
  */
 #include <Python.h>
-#define SSL_MODULE
-#include <openssl/err.h>
-#include "ssl.h"
+
 
 #ifndef MS_WINDOWS
 #  include <sys/socket.h>
@@ -21,7 +19,14 @@
 #  endif
 #else
 #  include <winsock.h>
+#  include <wincrypt.h>
 #endif
+
+#define SSL_MODULE
+#include <openssl/err.h>
+
+
+#include "ssl.h"
 
 static char *CVSid = "@(#) $Id: connection.c,v 1.28 2004/08/06 10:21:56 martin Exp $";
 

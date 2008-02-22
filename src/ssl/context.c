@@ -9,6 +9,20 @@
  * Reviewed 2001-07-23
  */
 #include <Python.h>
+
+
+
+#ifndef MS_WINDOWS
+#  include <sys/socket.h>
+#  include <netinet/in.h>
+#  if !(defined(__BEOS__) || defined(__CYGWIN__))
+#    include <netinet/tcp.h>
+#  endif
+#else
+#  include <winsock.h>
+#  include <wincrypt.h>
+#endif
+
 #define SSL_MODULE
 #include "ssl.h"
 
