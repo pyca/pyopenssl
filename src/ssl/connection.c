@@ -756,6 +756,43 @@ ssl_Connection_set_app_data(ssl_ConnectionObj *self, PyObject *args)
     return Py_None;
 }
 
+static char ssl_Connection_get_shutdown_doc[] = "\n\
+Get shutdown state\n\
+\n\
+Arguments: self - The Connection object\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   The shutdown state, a bitmask of SENT_SHUTDOWN, RECEIVED_SHUTDOWN.\n\
+";
+static PyObject *
+ssl_Connection_get_shutdown(ssl_ConnectionObj *self, PyObject *args)
+{
+    if (!PyArg_ParseTuple(args, ":get_shutdown"))
+        return NULL;
+
+    return PyInt_FromLong((long)SSL_get_shutdown(self->ssl));
+}
+
+static char ssl_Connection_set_shutdown_doc[] = "\n\
+Set shutdown state\n\
+\n\
+Arguments: self - The Connection object\n\
+           args - The Python argument tuple, should be\n\
+             shutdown state - bitmask of SENT_SHUTDOWN, RECEIVED_SHUTDOWN.\n\
+Returns:   None\n\
+";
+static PyObject *
+ssl_Connection_set_shutdown(ssl_ConnectionObj *self, PyObject *args)
+{
+    int shutdown;
+
+    if (!PyArg_ParseTuple(args, "i:set_shutdown", &shutdown))
+        return NULL;
+
+    SSL_set_shutdown(self->ssl, shutdown);
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static char ssl_Connection_state_string_doc[] = "\n\
 Get a verbose state description\n\
 \n\
@@ -888,6 +925,8 @@ static PyMethodDef ssl_Connection_methods[] =
     ADD_METHOD(makefile),
     ADD_METHOD(get_app_data),
     ADD_METHOD(set_app_data),
+    ADD_METHOD(get_shutdown),
+    ADD_METHOD(set_shutdown),
     ADD_METHOD(state_string),
     ADD_METHOD(sock_shutdown),
     ADD_METHOD(get_peer_certificate),

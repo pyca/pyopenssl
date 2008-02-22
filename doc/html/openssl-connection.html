@@ -205,23 +205,35 @@ message exchange is completed and false otherwise (in which case you call
 readable/writeable.
 </dl>
 <P>
-<dl><dt><b><a name='l2h-164'><tt class='method'>sock_shutdown</tt></a></b>(<var>how</var>)
+<dl><dt><b><a name='l2h-164'><tt class='method'>get_shutdown</tt></a></b>()
+<dd>
+Get the shutdown state of the Connection.  Returns a bitvector of either or
+both of <var>SENT_SHUTDOWN</var> and <var>RECEIVED_SHUTDOWN</var>.
+</dl>
+<P>
+<dl><dt><b><a name='l2h-165'><tt class='method'>set_shutdown</tt></a></b>(<var>state</var>)
+<dd>
+Set the shutdown state of the Connection.  <var>state</var> is a bitvector of
+either or both of <var>SENT_SHUTDOWN</var> and <var>RECEIVED_SHUTDOWN</var>.
+</dl>
+<P>
+<dl><dt><b><a name='l2h-166'><tt class='method'>sock_shutdown</tt></a></b>(<var>how</var>)
 <dd>
 Call the <tt class="method">shutdown</tt> method of the underlying socket.
 </dl>
 <P>
-<dl><dt><b><a name='l2h-165'><tt class='method'>state_string</tt></a></b>()
+<dl><dt><b><a name='l2h-167'><tt class='method'>state_string</tt></a></b>()
 <dd>
 Retrieve a verbose string detailing the state of the Connection.
 </dl>
 <P>
-<dl><dt><b><a name='l2h-166'><tt class='method'>want_read</tt></a></b>()
+<dl><dt><b><a name='l2h-168'><tt class='method'>want_read</tt></a></b>()
 <dd>
 Checks if more data has to be read from the transport layer to complete an
 operation.
 </dl>
 <P>
-<dl><dt><b><a name='l2h-167'><tt class='method'>want_write</tt></a></b>()
+<dl><dt><b><a name='l2h-169'><tt class='method'>want_write</tt></a></b>()
 <dd>
 Checks if there is data to write to the transport layer to complete an
 operation.

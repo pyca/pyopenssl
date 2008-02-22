@@ -949,6 +949,16 @@ message exchange is completed and false otherwise (in which case you call
 readable/writeable.
 \end{methoddesc}
 
+\begin{methoddesc}[Connection]{get_shutdown}{}
+Get the shutdown state of the Connection.  Returns a bitvector of either or
+both of \var{SENT_SHUTDOWN} and \var{RECEIVED_SHUTDOWN}.
+\end{methoddesc}
+
+\begin{methoddesc}[Connection]{set_shutdown}{state}
+Set the shutdown state of the Connection.  \var{state} is a bitvector of
+either or both of \var{SENT_SHUTDOWN} and \var{RECEIVED_SHUTDOWN}.
+\end{methoddesc}
+
 \begin{methoddesc}[Connection]{sock_shutdown}{how}
 Call the \method{shutdown} method of the underlying socket.
 \end{methoddesc}

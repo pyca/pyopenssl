@@ -1,3 +1,10 @@
+2008-02-21  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* src/ssl/connection.c: Expose SSL_get_shutdown and
+	  SSL_set_shutdown. (patch from James Knight)
+	* src/ssl/ssl.c: Expose SSL_SENT_SHUTDOWN and SSL_RECEIVED_SHUTDOWN.
+	  (patch from James Knight)
+
 2008-02-19  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* src/ssl/context.c: Expose SSL_CTX_add_extra_chain_cert.
