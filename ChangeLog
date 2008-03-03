@@ -1,3 +1,8 @@
+2008-03-03  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* src/crypto/crypto.c: Expose X509_verify_cert_error_string. (patch
+	  from Victor Stinner)
+
 2008-02-22  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* src/ssl/connection.c src/ssl/context.c src/ssl/ssl.c: Fix

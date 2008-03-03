@@ -647,6 +647,26 @@ crypto_NetscapeSPKI(PyObject *spam, PyObject *args)
     return (PyObject *)crypto_NetscapeSPKI_New(spki, 1);
 }
 
+static char crypto_X509_verify_cert_error_string_doc[] = "\n\
+Get X509 verify certificate error string.\n\
+\n\
+Arguments: errnum - Error number\n\
+Returns:   Error string as a Python string\n\
+";
+
+static PyObject *
+crypto_X509_verify_cert_error_string(PyObject *spam, PyObject *args)
+{
+    int errnum;
+    const char *str;
+
+    if (!PyArg_ParseTuple(args, "i", &errnum))
+        return NULL;
+
+    str = X509_verify_cert_error_string(errnum);
+    return PyString_FromString(str);
+}
+
 /* Methods in the OpenSSL.crypto module (i.e. none) */
 static PyMethodDef crypto_methods[] = {
     /* Module functions */
@@ -665,6 +685,7 @@ static PyMethodDef crypto_methods[] = {
     { "PKey",    (PyCFunction)crypto_PKey,    METH_VARARGS, crypto_PKey_doc },
     { "X509Extension", (PyCFunction)crypto_X509Extension, METH_VARARGS, crypto_X509Extension_doc },
     { "NetscapeSPKI", (PyCFunction)crypto_NetscapeSPKI, METH_VARARGS, crypto_NetscapeSPKI_doc },
+    { "X509_verify_cert_error_string", (PyCFunction)crypto_X509_verify_cert_error_string, METH_VARARGS, crypto_X509_verify_cert_error_string_doc },
     { NULL, NULL }
 };
 
