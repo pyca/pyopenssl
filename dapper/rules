@@ -1,0 +1,104 @@
+#!/usr/bin/make -f
+# Sample debian/rules that uses debhelper. 
+# GNU copyright 1997 by Joey Hess.
+#
+# This version is for a hypothetical package that builds an
+# architecture-dependant package, as well as an architecture-independent
+# package.
+
+# Uncomment this to turn on verbose mode. 
+#export DH_VERBOSE=1
+
+# This is the debhelper compatability version to use.
+export DH_COMPAT=3
+
+VERSIONS = 2.3 2.4
+VERSIONS = 2.4
+
+configure: configure-stamp
+configure-stamp:
+	dh_testdir
+
+	for ver in $(VERSIONS); do \
+	    cp debian/python-pyopenssl.docs debian/python$$ver-pyopenssl.docs; \
+	done
+
+	touch configure-stamp
+
+build: configure-stamp build-stamp
+build-stamp:
+	dh_testdir
+
+	for ver in $(VERSIONS); do \
+	    /usr/bin/python$$ver setup.py build; \
+	done
+
+	touch build-stamp
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp configure-stamp
+
+	for ver in $(VERSIONS); do \
+	    rm -f debian/python$$ver-pyopenssl.docs; \
+	done
+	rm -rf build
+
+	dh_clean
+
+install: DH_OPTIONS=
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+
+	for ver in $(VERSIONS); do \
+	    /usr/bin/python$$ver setup.py install --prefix=$(CURDIR)/debian/python$$ver-pyopenssl/usr; \
+	done
+
+# Build architecture-independent files here.
+# Pass -i to all debhelper commands in this target to reduce clutter.
+binary-indep: build install
+	dh_testdir -i
+	dh_testroot -i
+	dh_installdocs -i
+	dh_installexamples -i
+#	dh_installmenu -i
+#	dh_installcron -i
+#	dh_installinfo -i
+	dh_installchangelogs ChangeLog -i
+#	dh_link -i
+	dh_compress -i
+	dh_fixperms -i
+	dh_python -i
+	dh_installdeb -i
+	dh_gencontrol -i
+	dh_md5sums -i
+	dh_builddeb -i
+
+# Build architecture-dependent files here.
+binary-arch: build install
+	dh_testdir -a
+	dh_testroot -a
+	dh_installdocs -a
+	dh_installexamples -a
+#	dh_installmenu -a
+#	dh_installcron -a
+#	dh_installinfo -a
+	dh_installchangelogs ChangeLog -a
+	dh_strip -a
+#	dh_link -a
+	dh_compress -a
+	dh_fixperms -a
+	dh_python -a
+	dh_makeshlibs -a
+	dh_installdeb -a
+	dh_shlibdeps -a
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install configure
