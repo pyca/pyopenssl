@@ -1,0 +1,13 @@
+Document: pyopenssl-manual
+Title: Python OpenSSL Manual
+Author: Martin Sjögren
+Abstract: Manual for the pyOpenSSL package.
+  This module is a rather thin wrapper around (a subset of) the
+  OpenSSL library. With thin wrapper I mean that a lot of the
+  object methods do nothing more than calling a corresponding
+  function in the OpenSSL library.
+Section: Apps/programming
+
+Format: HTML
+Index: /usr/share/doc/pyopenssl-doc/html/index.html
+Files: /usr/share/doc/pyopenssl-doc/html/*
