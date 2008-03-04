@@ -12,8 +12,7 @@
 # This is the debhelper compatability version to use.
 export DH_COMPAT=3
 
-VERSIONS = 2.3 2.4
-VERSIONS = 2.4
+VERSIONS = 2.3 2.4 2.5
 
 configure: configure-stamp
 configure-stamp:
