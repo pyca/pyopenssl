@@ -29,7 +29,7 @@ if not has_dep:
         def __init__(self, name, sources, **kwargs):
             if kwargs.has_key('depends'):
                 del kwargs['depends']
-            apply(_Extension.__init__, (self, name, sources), kwargs)
+            _Extension.__init__(self, name, sources, **kwargs)
 
 
 crypto_src = ['src/crypto/crypto.c', 'src/crypto/x509.c',
@@ -65,10 +65,9 @@ if sys.platform == 'darwin':
     LibraryDirs = ['/sw/lib']
 
 def mkExtension(name):
-    import string
-    modname = 'OpenSSL.%s' % name
-    src = globals()['%s_src' % string.lower(name)]
-    dep = globals()['%s_dep' % string.lower(name)]
+    modname = 'OpenSSL.' + name
+    src = globals()[name.lower() + '_src']
+    dep = globals()[name.lower() + '_dep']
     return Extension(modname, src, libraries=Libraries, depends=dep,
                      include_dirs=IncludeDirs, library_dirs=LibraryDirs)
 
