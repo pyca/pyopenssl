@@ -27,8 +27,7 @@ if not has_dep:
     _Extension = Extension
     class Extension(_Extension):
         def __init__(self, name, sources, **kwargs):
-            if kwargs.has_key('depends'):
-                del kwargs['depends']
+            kwargs.pop('depends', None)
             _Extension.__init__(self, name, sources, **kwargs)
 
 
