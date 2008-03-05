@@ -69,8 +69,7 @@ crypto_PKey_generate_key(crypto_PKeyObj *self, PyObject *args)
     }
 
     PyErr_SetString(crypto_Error, "No such key type");
-    Py_INCREF(Py_None);
-    return Py_None;
+    return NULL;
 }
 
 static char crypto_PKey_bits_doc[] = "\n\
