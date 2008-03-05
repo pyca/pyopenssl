@@ -28,7 +28,7 @@
 
 static char ssl_doc[] = "\n\
 Main file of the SSL sub module.\n\
-See the file RATIONALE for a short explanation of hy this module was written.\n\
+See the file RATIONALE for a short explanation of why this module was written.\n\
 ";
 
 static char *CVSid = "@(#) $Id: ssl.c,v 1.12 2004/08/10 21:42:51 martin Exp $";
