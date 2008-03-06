@@ -1,4 +1,3 @@
-
 """
 Unit tests for L{OpenSSL.crypto}.
 """
@@ -6,6 +5,7 @@ Unit tests for L{OpenSSL.crypto}.
 from unittest import TestCase
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
+from OpenSSL.crypto import X509, X509Name, X509NameType
 
 
 class PKeyTests(TestCase):
@@ -50,7 +50,7 @@ class PKeyTests(TestCase):
         # XXX DSA generation seems happy with any number of bits.  The DSS
         # says bits must be between 512 and 1024 inclusive.  OpenSSL's DSA
         # generator doesn't seem to care about the upper limit at all.  For
-        # the lower limit, it uses 512 if anything smaller is specified. 
+        # the lower limit, it uses 512 if anything smaller is specified.
         # So, it doesn't seem possible to make generate_key fail for
         # TYPE_DSA with a bits argument which is at least an int.
 
@@ -94,3 +94,51 @@ class PKeyTests(TestCase):
              key.generate_key(type, bits)
              self.assertEqual(key.type(), type)
              self.assertEqual(key.bits(), bits)
+
+
+
+class X509NameTests(TestCase):
+    """
+    Unit tests for L{OpenSSL.crypto.X509Name}.
+    """
+    def test_attributes(self):
+        """
+        L{X509NameType} instances have attributes for each standard (?)
+        X509Name field.
+        """
+        # XXX There's no other way to get a new X509Name yet.
+        name = X509().get_subject()
+        name.commonName = "foo"
+        self.assertEqual(name.commonName, "foo")
+        self.assertEqual(name.CN, "foo")
+        name.CN = "baz"
+        self.assertEqual(name.commonName, "baz")
+        self.assertEqual(name.CN, "baz")
+        name.commonName = "bar"
+        self.assertEqual(name.commonName, "bar")
+        self.assertEqual(name.CN, "bar")
+        name.CN = "quux"
+        self.assertEqual(name.commonName, "quux")
+        self.assertEqual(name.CN, "quux")
+
+
+
+    def test_copy(self):
+        """
+        L{X509Name} creates a new L{X509NameType} instance with all the same
+        attributes as an existing L{X509NameType} instance when called with
+        one.
+        """
+        # XXX There's no other way to get a new X509Name yet.
+        name = X509().get_subject()
+        name.commonName = "foo"
+        name.emailAddress = "bar@example.com"
+
+        copy = X509Name(name)
+        self.assertEqual(copy.commonName, "foo")
+        self.assertEqual(copy.emailAddress, "bar@example.com")
+        copy.commonName = "baz"
+        self.assertEqual(name.commonName, "foo")
+        name.emailAddress = "quux@example.com"
+        self.assertEqual(copy.emailAddress, "bar@example.com")
+
