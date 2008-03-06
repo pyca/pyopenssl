@@ -35,17 +35,25 @@ class PKeyTests(TestCase):
 
     def test_failedGeneration(self):
         """
-        L{PKeyType.generate_key} takes two arguments, the first giving the
-        key type as one of L{TYPE_RSA} or L{TYPE_DSA} and the second giving
-        the number of bits to generate.  If an invalid type is specified or
-        generation fails, L{Error} is raised.
+        L{PKeyType.generate_key} takes two arguments, the first giving the key
+        type as one of L{TYPE_RSA} or L{TYPE_DSA} and the second giving the
+        number of bits to generate.  If an invalid type is specified or
+        generation fails, L{Error} is raised.  If an invalid number of bits is
+        specified, L{ValueError} or L{Error} is raised.
         """
         key = PKey()
         self.assertRaises(TypeError, key.generate_key)
         self.assertRaises(TypeError, key.generate_key, 1, 2, 3)
         self.assertRaises(TypeError, key.generate_key, "foo", "bar")
         self.assertRaises(Error, key.generate_key, -1, 0)
-        self.assertRaises(Error, key.generate_key, TYPE_RSA, 0)
+
+        # These are a bit magic.  -1 and 0 are caught by our explicit check
+        # before calling into OpenSSL.  OpenSSL seems to think 2 is an invalid
+        # number of bits for an RSA key, although it's perfectly happy with 1
+        # and 3.
+        self.assertRaises(ValueError, key.generate_key, TYPE_RSA, -1)
+        self.assertRaises(ValueError, key.generate_key, TYPE_RSA, 0)
+        self.assertRaises(Error, key.generate_key, TYPE_RSA, 2)
 
         # XXX DSA generation seems happy with any number of bits.  The DSS
         # says bits must be between 512 and 1024 inclusive.  OpenSSL's DSA

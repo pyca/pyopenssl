@@ -50,6 +50,10 @@ crypto_PKey_generate_key(crypto_PKeyObj *self, PyObject *args)
     switch (type)
     {
         case crypto_TYPE_RSA:
+            if (bits <= 0) {
+                PyErr_SetString(PyExc_ValueError, "Invalid number of bits");
+                return NULL;
+            }
             if ((rsa = RSA_generate_key(bits, 0x10001, NULL, NULL)) == NULL)
                 FAIL();
             if (!EVP_PKEY_assign_RSA(self->pkey, rsa))
