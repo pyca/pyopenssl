@@ -8,15 +8,16 @@ from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Name, X509NameType
 
 
-class PKeyTests(TestCase):
-    """
-    Unit tests for L{OpenSSL.crypto.PKey}.
-    """
+class _Python23TestCaseHelper:
     # Python 2.3 compatibility.
     def assertTrue(self, *a, **kw):
         return self.failUnless(*a, **kw)
 
 
+class PKeyTests(TestCase, _Python23TestCaseHelper):
+    """
+    Unit tests for L{OpenSSL.crypto.PKey}.
+    """
     def test_construction(self):
         """
         L{PKey} takes no arguments and returns a new L{PKeyType} instance.
@@ -113,7 +114,7 @@ class PKeyTests(TestCase):
 
 
 
-class X509NameTests(TestCase):
+class X509NameTests(TestCase, _Python23TestCaseHelper):
     """
     Unit tests for L{OpenSSL.crypto.X509Name}.
     """
