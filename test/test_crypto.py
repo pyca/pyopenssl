@@ -117,13 +117,23 @@ class X509NameTests(TestCase):
     """
     Unit tests for L{OpenSSL.crypto.X509Name}.
     """
+    def _x509name(self, **attrs):
+        # XXX There's no other way to get a new X509Name yet.
+        name = X509().get_subject()
+        attrs = attrs.items()
+        # Make the order stable - order matters!
+        attrs.sort(lambda (k1, v1), (k2, v2): cmp(v1, v2))
+        for k, v in attrs:
+            setattr(name, k, v)
+        return name
+
+
     def test_attributes(self):
         """
         L{X509NameType} instances have attributes for each standard (?)
         X509Name field.
         """
-        # XXX There's no other way to get a new X509Name yet.
-        name = X509().get_subject()
+        name = self._x509name()
         name.commonName = "foo"
         self.assertEqual(name.commonName, "foo")
         self.assertEqual(name.CN, "foo")
@@ -138,23 +148,109 @@ class X509NameTests(TestCase):
         self.assertEqual(name.CN, "quux")
 
 
-
     def test_copy(self):
         """
         L{X509Name} creates a new L{X509NameType} instance with all the same
         attributes as an existing L{X509NameType} instance when called with
         one.
         """
-        # XXX There's no other way to get a new X509Name yet.
-        name = X509().get_subject()
-        name.commonName = "foo"
-        name.emailAddress = "bar@example.com"
+        name = self._x509name(commonName="foo", emailAddress="bar@example.com")
 
         copy = X509Name(name)
         self.assertEqual(copy.commonName, "foo")
         self.assertEqual(copy.emailAddress, "bar@example.com")
+
+        # Mutate the copy and ensure the original is unmodified.
         copy.commonName = "baz"
         self.assertEqual(name.commonName, "foo")
+
+        # Mutate the original and ensure the copy is unmodified.
         name.emailAddress = "quux@example.com"
         self.assertEqual(copy.emailAddress, "bar@example.com")
 
+
+    def test_repr(self):
+        """
+        L{repr} passed an L{X509NameType} instance should return a string
+        containing a description of the type and the NIDs which have been set
+        on it.
+        """
+        name = self._x509name(commonName="foo", emailAddress="bar")
+        self.assertEqual(
+            repr(name),
+            "<X509Name object '/emailAddress=bar/CN=foo'>")
+
+
+    def test_comparison(self):
+        """
+        L{X509NameType} instances should compare based on their NIDs.
+        """
+        def _equality(a, b, assertTrue, assertFalse):
+            assertTrue(a == b, "(%r == %r) --> False" % (a, b))
+            assertFalse(a != b)
+            assertTrue(b == a)
+            assertFalse(b != a)
+
+        def assertEqual(a, b):
+            _equality(a, b, self.assertTrue, self.assertFalse)
+
+        # Instances compare equal to themselves.
+        name = self._x509name()
+        assertEqual(name, name)
+
+        # Empty instances should compare equal to each other.
+        assertEqual(self._x509name(), self._x509name())
+
+        # Instances with equal NIDs should compare equal to each other.
+        assertEqual(self._x509name(commonName="foo"),
+                    self._x509name(commonName="foo"))
+
+        # Instance with equal NIDs set using different aliases should compare
+        # equal to each other.
+        assertEqual(self._x509name(commonName="foo"),
+                    self._x509name(CN="foo"))
+
+        # Instances with more than one NID with the same values should compare
+        # equal to each other.
+        assertEqual(self._x509name(CN="foo", organizationalUnitName="bar"),
+                    self._x509name(commonName="foo", OU="bar"))
+
+        def assertNotEqual(a, b):
+            _equality(a, b, self.assertFalse, self.assertTrue)
+
+        # Instances with different values for the same NID should not compare
+        # equal to each other.
+        assertNotEqual(self._x509name(CN="foo"),
+                       self._x509name(CN="bar"))
+
+        # Instances with different NIDs should not compare equal to each other.
+        assertNotEqual(self._x509name(CN="foo"),
+                       self._x509name(OU="foo"))
+
+        def _inequality(a, b, assertTrue, assertFalse):
+            assertTrue(a < b)
+            assertTrue(a <= b)
+            assertTrue(b > a)
+            assertTrue(b >= a)
+            assertFalse(a > b)
+            assertFalse(a >= b)
+            assertFalse(b < a)
+            assertFalse(b <= a)
+
+        def assertLessThan(a, b):
+            _inequality(a, b, self.assertTrue, self.assertFalse)
+
+        # An X509Name with a NID with a value which sorts less than the value
+        # of the same NID on another X509Name compares less than the other
+        # X509Name.
+        assertLessThan(self._x509name(CN="abc"),
+                       self._x509name(CN="def"))
+
+        def assertGreaterThan(a, b):
+            _inequality(a, b, self.assertFalse, self.assertTrue)
+
+        # An X509Name with a NID with a value which sorts greater than the
+        # value of the same NID on another X509Name compares greater than the
+        # other X509Name.
+        assertGreaterThan(self._x509name(CN="def"),
+                          self._x509name(CN="abc"))

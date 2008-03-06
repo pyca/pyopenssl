@@ -189,7 +189,14 @@ crypto_X509Name_setattr(crypto_X509NameObj *self, char *name, PyObject *value)
 static int
 crypto_X509Name_compare(crypto_X509NameObj *n, crypto_X509NameObj *m)
 {
-    return X509_NAME_cmp(n->x509_name, m->x509_name);
+    int result = X509_NAME_cmp(n->x509_name, m->x509_name);
+    if (result < 0) {
+        return -1;
+    } else if (result > 0) {
+        return 1;
+    } else if (result == 0) {
+        return 0;
+    }
 }
 
 /*
