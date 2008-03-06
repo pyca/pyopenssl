@@ -14,6 +14,11 @@ class _Python23TestCaseHelper:
         return self.failUnless(*a, **kw)
 
 
+    def assertFalse(self, *a, **kw):
+        return self.failIf(*a, **kw)
+
+
+
 class PKeyTests(TestCase, _Python23TestCaseHelper):
     """
     Unit tests for L{OpenSSL.crypto.PKey}.
