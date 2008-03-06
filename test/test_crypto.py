@@ -12,6 +12,11 @@ class PKeyTests(TestCase):
     """
     Unit tests for L{OpenSSL.crypto.PKey}.
     """
+    # Python 2.3 compatibility.
+    def assertTrue(self, *a, **kw):
+        return self.failUnless(*a, **kw)
+
+
     def test_construction(self):
         """
         L{PKey} takes no arguments and returns a new L{PKeyType} instance.
