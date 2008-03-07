@@ -270,9 +270,7 @@ encrypted, a \var{passphrase} must be included.
 X509 objects have the following methods:
 
 \begin{methoddesc}[X509]{get_issuer}{}
-Return a \em{borrowed reference} to a X509Name object representing the issuer
-of the certificate.  When the corresponding X509 or X509Req object is
-destroyed, this object will be invalid!
+Return an X509Name object representing the issuer of the certificate.
 \end{methoddesc}
 
 \begin{methoddesc}[X509]{get_pubkey}{}
@@ -284,9 +282,7 @@ Return the certificate serial number.
 \end{methoddesc}
 
 \begin{methoddesc}[X509]{get_subject}{}
-Return a \em{borrowed reference} to a X509Name object representing the subject
-of the certificate.  When the corresponding X509 or X509Req object is
-destroyed, this object will be invalid!
+Return an X509Name object representing the subject of the certificate.
 \end{methoddesc}
 
 \begin{methoddesc}[X509]{get_version}{}
@@ -390,9 +386,7 @@ Return a PKey object representing the public key of the certificate request.
 \end{methoddesc}
 
 \begin{methoddesc}[X509Req]{get_subject}{}
-Return a \em{borrowed reference} to a X509Name object representing the subject
-of the certificate.  When the corresponding X509 or X509Req object is
-destroyed, this object will be invalid!
+Return an X509Name object representing the subject of the certificate.
 \end{methoddesc}
 
 \begin{methoddesc}[X509Req]{set_pubkey}{pkey}

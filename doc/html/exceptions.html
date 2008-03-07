@@ -47,17 +47,18 @@ border="0" height="32"
 <BR>
 4.1 Exceptions 
 </H2>
+
 <P>
-<EM><EM><EM>We realized early that most of the exceptions would be raised by the I/O
+We realized early that most of the exceptions would be raised by the I/O
 functions of OpenSSL, so it felt natural to mimic OpenSSL's error code system,
 translating them into Python exceptions. This naturally gives us the exceptions
 <tt class="exception">SSL.ZeroReturnError</tt>, <tt class="exception">SSL.WantReadError</tt>,
 <tt class="exception">SSL.WantWriteError</tt>, <tt class="exception">SSL.WantX509LookupError</tt> and
 <tt class="exception">SSL.SysCallError</tt>.
-</EM></EM></EM>
+
 <P>
-<EM><EM><EM>For more information about this, see section <A href="openssl-ssl.html#openssl-ssl">3.3</A>.
-</EM></EM></EM>
+For more information about this, see section <A href="openssl-ssl.html#openssl-ssl">3.3</A>.
+
 <P>
 
 <DIV CLASS="navigation">

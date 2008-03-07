@@ -46,8 +46,9 @@ border="0" height="32"
 <BR>
 4.3 Acessing Socket Methods 
 </H2>
+
 <P>
-<EM><EM><EM>We quickly saw the benefit of wrapping socket methods in the
+We quickly saw the benefit of wrapping socket methods in the
 <tt class="class">SSL.Connection</tt> class, for an easy transition into using SSL. The
 problem here is that the <tt class="module">socket</tt> module lacks a C API, and all the
 methods are declared static. One approach would be to have <tt class="module">OpenSSL</tt> as
@@ -58,9 +59,9 @@ importing the <tt class="module">socket</tt> module. The other approach is to so
 pointer to the method to be called, either the C function, or a callable Python
 object. This is not really a good solution either, since there's a lot of
 lookups involved.
-</EM></EM></EM>
+
 <P>
-<EM><EM><EM>The way it works is that you have to supply a ``<tt class="class">socket</tt>-like'' transport
+The way it works is that you have to supply a ``<tt class="class">socket</tt>-like'' transport
 object to the <tt class="class">SSL.Connection</tt>. The only requirement of this object is
 that it has a <tt class="method">fileno()</tt> method that returns a file descriptor that's
 valid at the C level (i.e. you can use the system calls read and write). If you
@@ -68,9 +69,9 @@ want to use the <tt class="method">connect()</tt> or <tt class="method">accept()
 <tt class="class">SSL.Connection</tt> object, the transport object has to supply such
 methods too. Apart from them, any method lookups in the <tt class="class">SSL.Connection</tt>
 object that fail are passed on to the underlying transport object.
-</EM></EM></EM>
+
 <P>
-<EM><EM><EM>Future changes might be to allow Python-level transport objects, that instead
+Future changes might be to allow Python-level transport objects, that instead
 of having <tt class="method">fileno()</tt> methods, have <tt class="method">read()</tt> and <tt class="method">write()</tt>
 methods, so more advanced features of Python can be used. This would probably
 entail some sort of OpenSSL ``BIOs'', but converting Python strings back and
@@ -79,7 +80,7 @@ things would be to be able to pass in different transport objects for reading
 and writing, but then the <tt class="method">fileno()</tt> method of <tt class="class">SSL.Connection</tt>
 becomes virtually useless. Also, should the method resolution be used on the
 read-transport or the write-transport?
-</EM></EM></EM>
+
 <P>
 
 <DIV CLASS="navigation">

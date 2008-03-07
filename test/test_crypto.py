@@ -6,7 +6,7 @@ from unittest import TestCase
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Name, X509NameType
-
+from OpenSSL.crypto import X509Req, X509ReqType
 
 class _Python23TestCaseHelper:
     # Python 2.3 compatibility.
@@ -260,3 +260,36 @@ class X509NameTests(TestCase, _Python23TestCaseHelper):
         # other X509Name.
         assertGreaterThan(self._x509name(CN="def"),
                           self._x509name(CN="abc"))
+
+
+
+class X509ReqTests(TestCase, _Python23TestCaseHelper):
+    """
+    Tests for L{OpenSSL.crypto.X509Req}.
+    """
+    def test_construction(self):
+        """
+        L{X509Req} takes no arguments and returns an L{X509ReqType} instance.
+        """
+        request = X509Req()
+        self.assertTrue(
+            isinstance(request, X509ReqType),
+            "%r is of type %r, should be %r" % (request, type(request), X509ReqType))
+
+
+    def test_get_subject(self):
+        """
+        L{X509ReqType.get_subject} returns an L{X509Name} for the subject of
+        the request and which is valid even after the request object is
+        otherwise dead.
+        """
+        request = X509Req()
+        subject = request.get_subject()
+        self.assertTrue(
+            isinstance(subject, X509NameType),
+            "%r is of type %r, should be %r" % (subject, type(subject), X509NameType))
+        subject.commonName = "foo"
+        self.assertEqual(request.get_subject().commonName, "foo")
+        del request
+        subject.commonName = "bar"
+        self.assertEqual(subject.commonName, "bar")

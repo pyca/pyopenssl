@@ -26,6 +26,7 @@ crypto_X509Req_get_subject(crypto_X509ReqObj *self, PyObject *args)
 {
     crypto_X509NameObj *crypto_X509Name_New(X509_NAME *, int);
     X509_NAME *name;
+    crypto_X509NameObj* pyname;
 
     if (!PyArg_ParseTuple(args, ":get_subject"))
         return NULL;
@@ -35,8 +36,11 @@ crypto_X509Req_get_subject(crypto_X509ReqObj *self, PyObject *args)
         exception_from_error_queue();
         return NULL;
     }
-
-    return (PyObject *)crypto_X509Name_New(name, 0);
+    if ((pyname = crypto_X509Name_New(name, 0)) != NULL) {
+	    pyname->parent_cert = (PyObject *)self;
+	    Py_INCREF(self);
+    }
+    return (PyObject *)pyname;
 }
 
 static char crypto_X509Req_get_pubkey_doc[] = "\n\

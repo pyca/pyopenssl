@@ -45,13 +45,14 @@ border="0" height="32"
 <BR>
 3.3 <tt class="module">SSL</tt> -- An interface to the SSL-specific parts of OpenSSL 
 </H2>
+
 <P>
-<EM><EM><EM>
-</EM></EM></EM>
+
+
 <P>
-<EM><EM><EM>This module handles things specific to SSL. There are two objects defined:
+This module handles things specific to SSL. There are two objects defined:
 Context, Connection.
-</EM></EM></EM>
+
 <P>
 <dl><dt><b><a name='l2h-90'><tt>SSLv2_METHOD</tt></a></b>
 <dd>
@@ -61,6 +62,7 @@ Context, Connection.
 These constants represent the different SSL methods to use when creating a
 context object.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-91'><tt>VERIFY_NONE</tt></a></b>
 <dd>
@@ -69,6 +71,7 @@ context object.
 These constants represent the verification mode used by the Context
 object's <tt class="method">set_verify</tt> method.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-92'><tt>FILETYPE_PEM</tt></a></b>
 <dd>
@@ -76,6 +79,7 @@ object's <tt class="method">set_verify</tt> method.
 File type constants used with the <tt class="method">use_certificate_file</tt> and
 <tt class="method">use_privatekey_file</tt> methods of Context objects.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-93'><tt>OP_SINGLE_DH_USE</tt></a></b>
 <dd>
@@ -91,11 +95,13 @@ when doing RSA operations. <tt class="constant">OP_NO_SSLv2</tt>, <tt class="con
 interesting if you're using e.g. <tt class="constant">SSLv23_METHOD</tt> to get an SSLv2-compatible
 handshake, but don't want to use SSLv2.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-94'><tt>ContextType</tt></a></b>
 <dd>
 A Python type object representing the Context object type.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-95'><tt class='function'>Context</tt></a></b>(<var>method</var>)
 <dd>
@@ -103,31 +109,35 @@ Factory function that creates a new Context object given an SSL method. The
 method should be <tt class="constant">SSLv2_METHOD</tt>, <tt class="constant">SSLv3_METHOD</tt>,
 <tt class="constant">SSLv23_METHOD</tt> or <tt class="constant">TLSv1_METHOD</tt>.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-96'><tt>ConnectionType</tt></a></b>
 <dd>
 A Python type object representing the Connection object type.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-97'><tt class='function'>Connection</tt></a></b>(<var>context, socket</var>)
 <dd>
 Factory fucnction that creates a new Connection object given an SSL context and
 a socket <A NAME="tex2html5"
-  HREF="#foot920"><SUP>4</SUP></A> object.
+  HREF="#foot917"><SUP>4</SUP></A> object.
 </dl>
+
 <P>
 <dl><dt><b>exception <a name='l2h-98'><tt class='exception'>Error</tt></a></b>
 <dd>
 This exception is used as a base class for the other SSL-related
 exceptions, but may also be raised directly.
-</EM></EM></EM>
+
 <P>
-<EM><EM><EM>Whenever this exception is raised directly, it has a list of error messages
+Whenever this exception is raised directly, it has a list of error messages
 from the OpenSSL error queue, where each item is a tuple <code>(<var>lib</var>,
 <var>function</var>, <var>reason</var>)</code>. Here <var>lib</var>, <var>function</var> and <var>reason</var>
 are all strings, describing where and what the problem is. See <span class='manpage'><i>err</i>(3)</span>
 for more information.
 </dl>
+
 <P>
 <dl><dt><b>exception <a name='l2h-99'><tt class='exception'>ZeroReturnError</tt></a></b>
 <dd>
@@ -136,11 +146,12 @@ is raised when the SSL Connection has been closed. In SSL 3.0 and TLS 1.0, this
 only occurs if a closure alert has occurred in the protocol, i.e. the
 connection has been closed cleanly. Note that this does not necessarily
 mean that the transport layer (e.g. a socket) has been closed.
-</EM></EM></EM>
+
 <P>
-<EM><EM><EM>It may seem a little strange that this is an exception, but it does match an
+It may seem a little strange that this is an exception, but it does match an
 <code>SSL_ERROR</code> code, and is very convenient.
 </dl>
+
 <P>
 <dl><dt><b>exception <a name='l2h-100'><tt class='exception'>WantReadError</tt></a></b>
 <dd>
@@ -148,11 +159,13 @@ The operation did not complete; the same I/O method should be called again
 later, with the same arguments. Any I/O method can lead to this since new
 handshakes can occur at any time.
 </dl>
+
 <P>
 <dl><dt><b>exception <a name='l2h-101'><tt class='exception'>WantWriteError</tt></a></b>
 <dd>
 See <tt class="exception">WantReadError</tt>.
 </dl>
+
 <P>
 <dl><dt><b>exception <a name='l2h-102'><tt class='exception'>WantX509LookupError</tt></a></b>
 <dd>
@@ -161,6 +174,7 @@ called again. The I/O method should be called again later, with the same
 arguments. Note: This won't occur in this version, as there are no such
 callbacks in this version.
 </dl>
+
 <P>
 <dl><dt><b>exception <a name='l2h-103'><tt class='exception'>SysCallError</tt></a></b>
 <dd>
@@ -170,10 +184,11 @@ error in the transport protocol, or an end of file that violates the protocol.
 The parameter to the exception is always a pair <code>(<var>errnum</var>,
 <var>errstr</var>)</code>.
 </dl>
+
 <P>
 <BR><HR><H4>Footnotes</H4>
 <DL>
-<DT><A NAME="foot920">... socket</A><A
+<DT><A NAME="foot917">... socket</A><A
  href="openssl-ssl.html#tex2html5"><SUP>4</SUP></A></DT>
 <DD>Actually, all that is required is an object that
 <i>behaves</i> like a socket, you could even use files, even though it'd be

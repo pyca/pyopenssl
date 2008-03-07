@@ -238,9 +238,8 @@ setup.py --help
    X509 objects have the following methods:
 
    get_issuer()
-          Return a borrowed reference to a X509Name object representing
-          the issuer of the certificate. When the corresponding X509 or
-          X509Req object is destroyed, this object will be invalid!
+          Return an X509Name object representing the issuer of the
+          certificate.
 
    get_pubkey()
           Return a PKey object representing the public key of the
@@ -250,9 +249,8 @@ setup.py --help
           Return the certificate serial number.
 
    get_subject()
-          Return a borrowed reference to a X509Name object representing
-          the subject of the certificate. When the corresponding X509 or
-          X509Req object is destroyed, this object will be invalid!
+          Return an X509Name object representing the subject of the
+          certificate.
 
    get_version()
           Return the certificate version.
@@ -341,9 +339,8 @@ setup.py --help
           certificate request.
 
    get_subject()
-          Return a borrowed reference to a X509Name object representing
-          the subject of the certificate. When the corresponding X509 or
-          X509Req object is destroyed, this object will be invalid!
+          Return an X509Name object representing the subject of the
+          certificate.
 
    set_pubkey(pkey)
           Set the public key of the certificate request to pkey.

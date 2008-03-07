@@ -47,18 +47,19 @@ border="0" height="32"
 <BR>
 4.2 Callbacks 
 </H2>
+
 <P>
-<EM><EM><EM>There are a number of problems with callbacks. First of all, OpenSSL is written
+There are a number of problems with callbacks. First of all, OpenSSL is written
 as a C library, it's not meant to have Python callbacks, so a way around that
 is needed. Another problem is thread support. A lot of the OpenSSL I/O
 functions can block if the socket is in blocking mode, and then you want other
 Python threads to be able to do other things. The real trouble is if you've
 released the thread lock to do a potentially blocking operation, and the
 operation calls a callback. Then we must take the thread lock back<A NAME="tex2html6"
-  HREF="#foot935"><SUP>5</SUP></A>.
-</EM></EM></EM>
+  HREF="#foot932"><SUP>5</SUP></A>.
+
 <P>
-<EM><EM><EM>There are two solutions to the first problem, both of which are necessary. The
+There are two solutions to the first problem, both of which are necessary. The
 first solution to use is if the C callback allows ''userdata'' to be passed to
 it (an arbitrary pointer normally). This is great! We can set our Python
 function object as the real userdata and emulate userdata for the Python
@@ -68,9 +69,9 @@ object in OpenSSL has app_data functions and in e.g. the verification
 callbacks, you can retrieve the related SSL object. What we do is to set our
 wrapper <tt class="class">Connection</tt> object as app_data for the SSL object, and we can
 easily find the Python callback.
-</EM></EM></EM>
+
 <P>
-<EM><EM><EM>The other problem is also partially solved by app_data. Since we're associating
+The other problem is also partially solved by app_data. Since we're associating
 our wrapper objects with the ''real'' objects, we can easily access data from
 the <tt class="class">Connection</tt> object. The solution then is to simply include a
 <tt class="ctype">PyThreadState</tt> variable in the <tt class="class">Connection</tt> declaration, and write
@@ -79,11 +80,11 @@ macros similar to <tt class="cfunction">Py_BEGIN_ALLOW_THREADS</tt> and
 <tt class="ctype">PyThreadState</tt> variable to use. Now we can simply ''begin allow
 threads'' before a potentially blocking operation, and ''end allow threads''
 before calling a callback.
-</EM></EM></EM>
+
 <P>
 <BR><HR><H4>Footnotes</H4>
 <DL>
-<DT><A NAME="foot935">... back</A><A
+<DT><A NAME="foot932">... back</A><A
  href="callbacks.html#tex2html6"><SUP>5</SUP></A></DT>
 <DD>I'm
 not sure why this is necessary, but otherwise I get a segmentation violation on

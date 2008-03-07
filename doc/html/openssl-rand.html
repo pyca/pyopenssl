@@ -47,62 +47,70 @@ border="0" height="32"
 <BR>
 3.2 <tt class="module">rand</tt> -- An interface to the OpenSSL pseudo random number generator 
 </H2>
+
 <P>
-<EM><EM><EM>
-</EM></EM></EM>
+
+
 <P>
-<EM><EM><EM>This module handles the OpenSSL pseudo random number generator (PRNG) and
+This module handles the OpenSSL pseudo random number generator (PRNG) and
 declares the following:
-</EM></EM></EM>
+
 <P>
 <dl><dt><b><a name='l2h-82'><tt class='function'>add</tt></a></b>(<var>string, entropy</var>)
 <dd>
 Mix bytes from <var>string</var> into the PRNG state. The <var>entropy</var> argument is
 (the lower bound of) an estimate of how much randomness is contained in
-<var>string</var>, measured in bytes. For more information, see e.g. <a class="rfc" name="rfcref-1802"
+<var>string</var>, measured in bytes. For more information, see e.g. <a class="rfc" name="rfcref-1793"
 href="http://www.ietf.org/rfc/rfc1750.txt">RFC 1750</a>.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-83'><tt class='function'>egd</tt></a></b>(<var>path</var><big>[</big><var>, bytes</var><big>]</big>)
 <dd>
 Query the Entropy Gathering Daemon<A NAME="tex2html3"
-  HREF="#foot917"><SUP>3</SUP></A> on socket <var>path</var> for <var>bytes</var>
+  HREF="#foot914"><SUP>3</SUP></A> on socket <var>path</var> for <var>bytes</var>
 bytes of random data and and uses <tt class="function">add</tt> to seed the PRNG. The default
 value of <var>bytes</var> is 255.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-84'><tt class='function'>load_file</tt></a></b>(<var>path</var><big>[</big><var>, bytes</var><big>]</big>)
 <dd>
 Read <var>bytes</var> bytes (or all of it, if <var>bytes</var> is negative) of data from
 the file <var>path</var> to seed the PRNG. The default value of <var>bytes</var> is -1.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-85'><tt class='function'>screen</tt></a></b>()
 <dd>
 Add the current contents of the screen to the PRNG state.
 Availability: Windows.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-86'><tt class='function'>seed</tt></a></b>(<var>string</var>)
 <dd>
 This is equivalent to calling <tt class="function">add</tt> with <var>entropy</var> as the length
 of the string.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-87'><tt class='function'>status</tt></a></b>()
 <dd>
 Returns true if the PRNG has been seeded with enough data, and false otherwise.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-88'><tt class='function'>write_file</tt></a></b>(<var>path</var>)
 <dd>
 Write a number of random bytes (currently 1024) to the file <var>path</var>. This
 file can then be used with <tt class="function">load_file</tt> to seed the PRNG again.
 </dl>
+
 <P>
 <BR><HR><H4>Footnotes</H4>
 <DL>
-<DT><A NAME="foot917">... Daemon</A><A
+<DT><A NAME="foot914">... Daemon</A><A
  href="openssl-rand.html#tex2html3"><SUP>3</SUP></A></DT>
 <DD>See
 <a class="url" href="http://www.lothar.com/tech/crypto/">http://www.lothar.com/tech/crypto/</a>

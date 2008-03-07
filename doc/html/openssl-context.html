@@ -47,9 +47,10 @@ border="0" height="32"
 <BR>
 3.3.1 Context objects 
 </H3>
+
 <P>
-<EM><EM><EM>Context objects have the following methods:
-</EM></EM></EM>
+Context objects have the following methods:
+
 <P>
 <dl><dt><b><a name='l2h-114'><tt class='method'>check_privatekey</tt></a></b>()
 <dd>
@@ -57,11 +58,13 @@ Check if the private key (loaded with <tt class="method">use_privatekey<big>[</b
 matches the certificate (loaded with <tt class="method">use_certificate<big>[</big>_file<big>]</big></tt>).
 Returns true if they match, false otherwise.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-115'><tt class='method'>get_app_data</tt></a></b>()
 <dd>
 Retrieve application data as set by <tt class="method">set_app_data</tt>.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-116'><tt class='method'>get_cert_store</tt></a></b>()
 <dd>
@@ -69,52 +72,61 @@ Retrieve the certificate store (a X509Store object) that the context uses.
 This can be used to add "trusted" certificates without using the.
 <tt class="method">load_verify_locations()</tt> method.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-117'><tt class='method'>get_timeout</tt></a></b>()
 <dd>
 Retrieve session timeout, as set by <tt class="method">set_timeout</tt>. The default is 300
 seconds.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-118'><tt class='method'>get_verify_depth</tt></a></b>()
 <dd>
 Retrieve the Context object's verify depth, as set by
 <tt class="method">set_verify_depth</tt>.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-119'><tt class='method'>get_verify_mode</tt></a></b>()
 <dd>
 Retrieve the Context object's verify mode, as set by <tt class="method">set_verify_mode</tt>.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-120'><tt class='method'>load_client_ca</tt></a></b>(<var>pemfile</var>)
 <dd>
 Read a file with PEM-formatted certificates that will be sent to the client
 when requesting a client certificate.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-121'><tt class='method'>load_verify_locations</tt></a></b>(<var>pemfile</var>)
 <dd>
 Specify where CA certificates for verification purposes are located. These are
 trusted certificates. Note that the certificates have to be in PEM format.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-122'><tt class='method'>load_tmp_dh</tt></a></b>(<var>dhfile</var>)
 <dd>
 Load parameters for Ephemeral Diffie-Hellman from <var>dhfile</var>.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-123'><tt class='method'>set_app_data</tt></a></b>(<var>data</var>)
 <dd>
 Associate <var>data</var> with this Context object. <var>data</var> can be retrieved
 later using the <tt class="method">get_app_data</tt> method.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-124'><tt class='method'>set_cipher_list</tt></a></b>(<var>ciphers</var>)
 <dd>
 Set the list of ciphers to be used in this context. See the OpenSSL manual for
 more information (e.g. ciphers(1))
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-125'><tt class='method'>set_info_callback</tt></a></b>(<var>callback</var>)
 <dd>
@@ -125,12 +137,14 @@ integers. The first integer specifies where in the SSL handshake the function
 was called, and the other the return code from a (possibly failed) internal
 function call.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-126'><tt class='method'>set_options</tt></a></b>(<var>options</var>)
 <dd>
 Add SSL options. Options you have set before are not cleared!
 This method should be used with the <tt class="constant">OP_*</tt> constants.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-127'><tt class='method'>set_passwd_cb</tt></a></b>(<var>callback</var><big>[</big><var>, userdata</var><big>]</big>)
 <dd>
@@ -144,6 +158,7 @@ and make sure that the two entries are equal. The <var>data</var> argument is th
 error occurs, <var>callback</var> should return a false value (e.g. an empty
 string).
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-128'><tt class='method'>set_session_id</tt></a></b>(<var>name</var>)
 <dd>
@@ -152,6 +167,7 @@ Context object. This is needed when doing session resumption, because there is
 no way for a stored session to know which Context object it is associated with.
 <var>name</var> may be any binary data.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-129'><tt class='method'>set_timeout</tt></a></b>(<var>timeout</var>)
 <dd>
@@ -160,6 +176,7 @@ Set the timeout for newly created sessions for this Context object to
 value is 300 seconds. See the OpenSSL manual for more information (e.g.
 SSL_CTX_set_timeout(3)).
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-130'><tt class='method'>set_verify</tt></a></b>(<var>mode, callback</var>)
 <dd>
@@ -174,33 +191,39 @@ and three integer variables, which are in turn potential error number, error
 depth and return code. <var>callback</var> should return true if verification passes
 and false otherwise.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-131'><tt class='method'>set_verify_depth</tt></a></b>(<var>depth</var>)
 <dd>
 Set the maximum depth for the certificate chain verification that shall be
 allowed for this Context object.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-132'><tt class='method'>use_certificate</tt></a></b>(<var>cert</var>)
 <dd>
 Use the certificate <var>cert</var> which has to be a X509 object.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-133'><tt class='method'>add_extra_chain_cert</tt></a></b>(<var>cert</var>)
 <dd>
 Adds the certificate <var>cert</var>, which has to be a X509 object, to the
 certificate chain presented together with the certificate.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-134'><tt class='method'>use_certificate_chain_file</tt></a></b>(<var>file</var>)
 <dd>
 Load a certificate chain from <var>file</var> which must be PEM encoded.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-135'><tt class='method'>use_privatekey</tt></a></b>(<var>pkey</var>)
 <dd>
 Use the private key <var>pkey</var> which has to be a PKey object.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-136'><tt class='method'>use_certificate_file</tt></a></b>(<var>file</var><big>[</big><var>, format</var><big>]</big>)
 <dd>
@@ -208,6 +231,7 @@ Load the first certificate found in <var>file</var>. The certificate must be in 
 format specified by <var>format</var>, which is either <tt class="constant">FILETYPE_PEM</tt> or
 <tt class="constant">FILETYPE_ASN1</tt>. The default is <tt class="constant">FILETYPE_PEM</tt>.
 </dl>
+
 <P>
 <dl><dt><b><a name='l2h-137'><tt class='method'>use_privatekey_file</tt></a></b>(<var>file</var><big>[</big><var>, format</var><big>]</big>)
 <dd>
@@ -215,6 +239,7 @@ Load the first private key found in <var>file</var>. The private key must be in 
 format specified by <var>format</var>, which is either <tt class="constant">FILETYPE_PEM</tt> or
 <tt class="constant">FILETYPE_ASN1</tt>. The default is <tt class="constant">FILETYPE_PEM</tt>.
 </dl>
+
 <P>
 
 <DIV CLASS="navigation">
