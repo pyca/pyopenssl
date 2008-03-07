@@ -5,7 +5,7 @@ Unit tests for L{OpenSSL.crypto}.
 from unittest import TestCase
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
-from OpenSSL.crypto import X509, X509Name, X509NameType
+from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
 from OpenSSL.crypto import X509Req, X509ReqType
 
 class _Python23TestCaseHelper:
@@ -293,3 +293,39 @@ class X509ReqTests(TestCase, _Python23TestCaseHelper):
         del request
         subject.commonName = "bar"
         self.assertEqual(subject.commonName, "bar")
+
+
+
+class X509Tests(TestCase, _Python23TestCaseHelper):
+    """
+    Tests for L{OpenSSL.crypto.X509}.
+    """
+    def test_construction(self):
+        """
+        L{X509} takes no arguments and returns an instance of L{X509Type}.
+        """
+        certificate = X509()
+        self.assertTrue(
+            isinstance(certificate, X509Type),
+            "%r is of type %r, should be %r" % (certificate,
+                                                type(certificate),
+                                                X509Type))
+
+
+    def test_serial_number(self):
+        """
+        The serial number of an L{X509Type} can be retrieved and modified with
+        L{X509Type.get_serial_number} and L{X509Type.set_serial_number}.
+        """
+        certificate = X509()
+        self.assertRaises(TypeError, certificate.set_serial_number)
+        self.assertRaises(TypeError, certificate.set_serial_number, 1, 2)
+        self.assertRaises(TypeError, certificate.set_serial_number, "1")
+        self.assertRaises(TypeError, certificate.set_serial_number, 5.5)
+        self.assertEqual(certificate.get_serial_number(), 0)
+        certificate.set_serial_number(1)
+        self.assertEqual(certificate.get_serial_number(), 1)
+        certificate.set_serial_number(2 ** 32 + 1)
+        self.assertEqual(certificate.get_serial_number(), 2 ** 32 + 1)
+        certificate.set_serial_number(2 ** 64 + 1)
+        self.assertEqual(certificate.get_serial_number(), 2 ** 64 + 1)

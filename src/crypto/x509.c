@@ -71,12 +71,20 @@ static PyObject *
 crypto_X509_get_serial_number(crypto_X509Obj *self, PyObject *args)
 {
     ASN1_INTEGER *asn1_i;
+    BIGNUM *bignum;
+    char *hex;
+    PyObject *res;
 
     if (!PyArg_ParseTuple(args, ":get_serial_number"))
         return NULL;
 
     asn1_i = X509_get_serialNumber(self->x509);
-    return PyInt_FromLong(ASN1_INTEGER_get(asn1_i));
+    bignum = ASN1_INTEGER_to_BN(asn1_i, NULL);
+    hex = BN_bn2hex(bignum);
+    res = PyLong_FromString(hex, NULL, 16);
+    BN_free(bignum);
+    free(hex);
+    return res;
 }
 
 static char crypto_X509_set_serial_number_doc[] = "\n\
@@ -91,15 +99,91 @@ Returns:   None\n\
 static PyObject *
 crypto_X509_set_serial_number(crypto_X509Obj *self, PyObject *args)
 {
-    long serial;
+    long small_serial;
+    PyObject *serial = NULL;
+    PyObject *hex = NULL;
+    PyObject *format = NULL;
+    PyObject *format_args = NULL;
+    ASN1_INTEGER *asn1_i = NULL;
+    BIGNUM *bignum = NULL;
 
-    if (!PyArg_ParseTuple(args, "l:set_serial_number", &serial))
+    if (!PyArg_ParseTuple(args, "O:set_serial_number", &serial)) {
         return NULL;
+    }
 
-    ASN1_INTEGER_set(X509_get_serialNumber(self->x509), serial);
+    if (!PyInt_Check(serial) && !PyLong_Check(serial)) {
+        PyErr_SetString(
+            PyExc_TypeError, "serial number must be integer");
+        goto err;
+    }
+
+    if ((format_args = Py_BuildValue("(O)", serial)) == NULL) {
+        goto err;
+    }
+
+    if ((format = PyString_FromString("%x")) == NULL) {
+        goto err;
+    }
+
+    if ((hex = PyString_Format(format, format_args)) == NULL) {
+        goto err;
+    }
+
+    /**
+     * BN_hex2bn stores the result in &bignum.  Unless it doesn't feel like
+     * it.  If bignum is still NULL after this call, then the return value
+     * is actually the result.  I hope.  -exarkun
+     */
+    small_serial = BN_hex2bn(&bignum, PyString_AsString(hex));
+
+    Py_DECREF(format_args);
+    format_args = NULL;
+    Py_DECREF(format);
+    format = NULL;
+    Py_DECREF(hex);
+    hex = NULL;
+
+    if (bignum == NULL) {
+        if (ASN1_INTEGER_set(X509_get_serialNumber(self->x509), small_serial)) {
+            exception_from_error_queue();
+            goto err;
+        }
+    } else {
+        asn1_i = BN_to_ASN1_INTEGER(bignum, NULL);
+        BN_free(bignum);
+        bignum = NULL;
+        if (asn1_i == NULL) {
+            exception_from_error_queue();
+            goto err;
+        }
+        if (!X509_set_serialNumber(self->x509, asn1_i)) {
+            exception_from_error_queue();
+            goto err;
+        }
+        ASN1_INTEGER_free(asn1_i);
+        asn1_i = NULL;
+    }
 
     Py_INCREF(Py_None);
     return Py_None;
+
+  err:
+    if (format_args) {
+        Py_DECREF(format_args);
+    }
+    if (format) {
+        Py_DECREF(format);
+    }
+    if (hex) {
+        Py_DECREF(hex);
+    }
+    if (bignum) {
+        BN_free(bignum);
+    }
+    if (asn1_i) {
+        ASN1_INTEGER_free(asn1_i);
+    }
+    return NULL;
 }
 
 static char crypto_X509_get_issuer_doc[] = "\n\
