@@ -141,7 +141,8 @@ Call the <tt class="method">getsockopt</tt> method of the underlying socket.
 <P>
 <dl><dt><b><a name='l2h-153'><tt class='method'>pending</tt></a></b>()
 <dd>
-Retrieve the number of bytes that can be safely read from the SSL buffer.
+Retrieve the number of bytes that can be safely read from the SSL buffer
+(<i>not</i> the underlying transport buffer).
 </dl>
 <P>
 <dl><dt><b><a name='l2h-154'><tt class='method'>recv</tt></a></b>(<var>bufsize</var>)

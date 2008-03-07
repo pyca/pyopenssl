@@ -1,12 +1,11 @@
+                            Python OpenSSL Manual
+     __________________________________________________________________
 
-                           Python OpenSSL Manual
-     _________________________________________________________________
-
-                           Python OpenSSL Manual
+                            Python OpenSSL Manual
 
                                Martin Sjögren
 
-                             martin@strakt.com
+                              martin@strakt.com
 
   Abstract:
 
@@ -17,36 +16,36 @@
 
 Contents
 
-     * 1 Introduction 
-     * 2 Building and Installing 
-          + 2.1 Building the Module on a Unix System 
-          + 2.2 Building the Module on a Windows System 
-     * 3 OpenSSL -- Python interface to OpenSSL 
-          + 3.1 crypto -- Generic cryptographic module 
+     * 1 Introduction
+     * 2 Building and Installing
+          + 2.1 Building the Module on a Unix System
+          + 2.2 Building the Module on a Windows System
+     * 3 OpenSSL -- Python interface to OpenSSL
+          + 3.1 crypto -- Generic cryptographic module
           + 3.2 rand -- An interface to the OpenSSL pseudo random number
-            generator 
-          + 3.3 SSL -- An interface to the SSL-specific parts of OpenSSL 
-     * 4 Internals 
-          + 4.1 Exceptions 
-          + 4.2 Callbacks 
-          + 4.3 Acessing Socket Methods 
+            generator
+          + 3.3 SSL -- An interface to the SSL-specific parts of OpenSSL
+     * 4 Internals
+          + 4.1 Exceptions
+          + 4.2 Callbacks
+          + 4.3 Acessing Socket Methods
 
 
-                                1 Introduction
+                                 1 Introduction
 
    The reason this module exists at all is that the SSL support in the
-   socket module in the Python 2.1 distribution (which is what we used,
-   of course I cannot speak for later versions) is severely limited.
+   socket module in the Python 2.1 distribution (which is what we used, of
+   course I cannot speak for later versions) is severely limited.
 
    When asking about SSL on the comp.lang.python newsgroup (or on
    python-list@python.org) people usually pointed you to the M2Crypto
    package. The M2Crypto.SSL module does implement a lot of OpenSSL's
-   functionality but unfortunately its error handling system does not
-   seem to be finished, especially for non-blocking I/O. I think that
-   much of the reason for this is that M2Crypto^1 is developed using
-   SWIG^2. This makes it awkward to create functions that e.g. can return
-   both an integer and NULL since (as far as I know) you basically write
-   C functions and SWIG makes wrapper functions that parses the Python
+   functionality but unfortunately its error handling system does not seem
+   to be finished, especially for non-blocking I/O. I think that much of
+   the reason for this is that M2Crypto^1 is developed using SWIG^2. This
+   makes it awkward to create functions that e.g. can return both an
+   integer and NULL since (as far as I know) you basically write C
+   functions and SWIG makes wrapper functions that parses the Python
    argument list and calls your C function, and finally transforms your
    return value to a Python object.
 
@@ -55,22 +54,22 @@ Contents
 
    These instructions can also be found in the file INSTALL.
 
-   I have tested this on Debian Linux systems (woody and sid), Solaris
-   2.6 and 2.7. Others have successfully compiled it on Windows and NT.
+   I have tested this on Debian Linux systems (woody and sid), Solaris 2.6
+   and 2.7. Others have successfully compiled it on Windows and NT.
 
 
 2.1 Building the Module on a Unix System
 
-   pyOpenSSL uses distutils, so there really shouldn't be any problems.
-   To build the library:
+   pyOpenSSL uses distutils, so there really shouldn't be any problems. To
+   build the library:
 
 python setup.py build
 
    If your OpenSSL header files aren't in /usr/include, you may need to
-   supply the -I flag to let the setup script know where to look. The
-   same goes for the libraries of course, use the -L flag. Note that
-   build won't accept these flags, so you have to run first build_ext and
-   then build! Example:
+   supply the -I flag to let the setup script know where to look. The same
+   goes for the libraries of course, use the -L flag. Note that build
+   won't accept these flags, so you have to run first build_ext and then
+   build! Example:
 
 python setup.py build_ext -I/usr/local/ssl/include -L/usr/local/ssl/lib
 python setup.py build
@@ -92,8 +91,8 @@ python setup.py --help
 
 2.2 Building the Module on a Windows System
 
-   Big thanks to Itamar Shtull-Trauring and Oleg Orlov for their help
-   with Windows build instructions. Same as for Unix systems, we have to
+   Big thanks to Itamar Shtull-Trauring and Oleg Orlov for their help with
+   Windows build instructions. Same as for Unix systems, we have to
    separate the build_ext and the build.
 
    Building the library:
@@ -115,7 +114,7 @@ setup.py --help
    to get more information.
 
 
-                   3 OpenSSL -- Python interface to OpenSSL
+                    3 OpenSSL -- Python interface to OpenSSL
 
    This package provides a high-level interface to the functions in the
    OpenSSL library. The following modules are defined:
@@ -167,8 +166,7 @@ setup.py --help
           A Python type object representing the PKCS12 object type.
 
    X509ExtensionType
-          A Python type object representing the X509Extension object
-          type.
+          A Python type object representing the X509Extension object type.
 
    X509Extension(typename, critical, value)
           Factory function that creates a X509Extension object.
@@ -231,8 +229,8 @@ setup.py --help
           type.
 
    load_pkcs12(buffer[, passphrase])
-          Load pkcs12 data from the string buffer. If the pkcs12
-          structure is encrypted, a passphrase must be included.
+          Load pkcs12 data from the string buffer. If the pkcs12 structure
+          is encrypted, a passphrase must be included.
 
 
   3.1.1 X509 objects
@@ -242,7 +240,7 @@ setup.py --help
    get_issuer()
           Return a borrowed reference to a X509Name object representing
           the issuer of the certificate. When the corresponding X509 or
-          X509Req object is destroyed, this object will be invalid! 
+          X509Req object is destroyed, this object will be invalid!
 
    get_pubkey()
           Return a PKey object representing the public key of the
@@ -254,7 +252,7 @@ setup.py --help
    get_subject()
           Return a borrowed reference to a X509Name object representing
           the subject of the certificate. When the corresponding X509 or
-          X509Req object is destroyed, this object will be invalid! 
+          X509Req object is destroyed, this object will be invalid!
 
    get_version()
           Return the certificate version.
@@ -269,8 +267,7 @@ setup.py --help
 
    has_expired()
           Checks the certificate's time stamp against current time.
-          Returns true if the certificate has expired and false
-          otherwise.
+          Returns true if the certificate has expired and false otherwise.
 
    set_issuer(issuer)
           Set the issuer of the certificate to issuer.
@@ -305,7 +302,7 @@ setup.py --help
 
   3.1.2 X509Name objects
 
-   X509Name objects have the following members: 
+   X509Name objects have the following members:
 
    countryName
           The country of the entity. C may be used as an alias for
@@ -337,7 +334,7 @@ setup.py --help
 
   3.1.3 X509Req objects
 
-   X509Req objects have the following methods: 
+   X509Req objects have the following methods:
 
    get_pubkey()
           Return a PKey object representing the public key of the
@@ -346,14 +343,14 @@ setup.py --help
    get_subject()
           Return a borrowed reference to a X509Name object representing
           the subject of the certificate. When the corresponding X509 or
-          X509Req object is destroyed, this object will be invalid! 
+          X509Req object is destroyed, this object will be invalid!
 
    set_pubkey(pkey)
           Set the public key of the certificate request to pkey.
 
    sign(pkey, digest)
-          Sign the certificate request, using the key pkey and the
-          message digest algorithm identified by the string digest.
+          Sign the certificate request, using the key pkey and the message
+          digest algorithm identified by the string digest.
 
    verify(pkey)
           Verify a certificate request using the public key pkey.
@@ -361,7 +358,7 @@ setup.py --help
 
   3.1.4 X509Store objects
 
-   The X509Store object has currently just one method: 
+   The X509Store object has currently just one method:
 
    add_cert(cert)
           Add the certificate cert to the certificate store.
@@ -369,7 +366,7 @@ setup.py --help
 
   3.1.5 PKey objects
 
-   The PKey object has the following methods: 
+   The PKey object has the following methods:
 
    bits()
           Return the number of bits of the key.
@@ -384,7 +381,7 @@ setup.py --help
 
   3.1.6 PKCS7 objects
 
-   PKCS7 objects have the following methods: 
+   PKCS7 objects have the following methods:
 
    type_is_signed()
           FIXME
@@ -404,7 +401,7 @@ setup.py --help
 
   3.1.7 PKCS12 objects
 
-   PKCS12 objects have the following methods: 
+   PKCS12 objects have the following methods:
 
    get_certificate()
           Return certificate portion of the PKCS12 structure.
@@ -419,7 +416,7 @@ setup.py --help
 
   3.1.8 X509Extension objects
 
-   X509Extension objects currently only have one method: 
+   X509Extension objects currently only have one method:
 
    get_critical()
           Return the critical field of the extension object.
@@ -427,7 +424,7 @@ setup.py --help
 
   3.1.9 NetscapeSPKI objects
 
-   NetscapeSPKI objects have the following methods: 
+   NetscapeSPKI objects have the following methods:
 
    b64_encode()
           Return a base64-encoded string representation of the object.
@@ -449,7 +446,7 @@ setup.py --help
 3.2 rand -- An interface to the OpenSSL pseudo random number generator
 
    This module handles the OpenSSL pseudo random number generator (PRNG)
-   and declares the following: 
+   and declares the following:
 
    add(string, entropy)
           Mix bytes from string into the PRNG state. The entropy argument
@@ -481,14 +478,14 @@ setup.py --help
 
    write_file(path)
           Write a number of random bytes (currently 1024) to the file
-          path. This file can then be used with load_file to seed the
-          PRNG again.
+          path. This file can then be used with load_file to seed the PRNG
+          again.
 
 
 3.3 SSL -- An interface to the SSL-specific parts of OpenSSL
 
    This module handles things specific to SSL. There are two objects
-   defined: Context, Connection. 
+   defined: Context, Connection.
 
    SSLv2_METHOD
 
@@ -548,25 +545,25 @@ setup.py --help
           SSL context and a socket ^4 object.
 
    exception Error
-          This exception is used as a base class for the other
-          SSL-related exceptions, but may also be raised directly.
+          This exception is used as a base class for the other SSL-related
+          exceptions, but may also be raised directly.
 
           Whenever this exception is raised directly, it has a list of
           error messages from the OpenSSL error queue, where each item is
           a tuple (lib, function, reason). Here lib, function and reason
           are all strings, describing where and what the problem is. See
-          err(3) for more information. 
+          err(3) for more information.
 
    exception ZeroReturnError
           This exception matches the error return code
-          SSL_ERROR_ZERO_RETURN, and is raised when the SSL Connection
-          has been closed. In SSL 3.0 and TLS 1.0, this only occurs if a
+          SSL_ERROR_ZERO_RETURN, and is raised when the SSL Connection has
+          been closed. In SSL 3.0 and TLS 1.0, this only occurs if a
           closure alert has occurred in the protocol, i.e. the connection
           has been closed cleanly. Note that this does not necessarily
           mean that the transport layer (e.g. a socket) has been closed.
 
           It may seem a little strange that this is an exception, but it
-          does match an SSL_ERROR code, and is very convenient. 
+          does match an SSL_ERROR code, and is very convenient.
 
    exception WantReadError
           The operation did not complete; the same I/O method should be
@@ -592,7 +589,7 @@ setup.py --help
 
   3.3.1 Context objects
 
-   Context objects have the following methods: 
+   Context objects have the following methods:
 
    check_privatekey()
           Check if the private key (loaded with use_privatekey[_file])
@@ -620,8 +617,8 @@ setup.py --help
           set_verify_mode.
 
    load_client_ca(pemfile)
-          Read a file with PEM-formatted certificates that will be sent
-          to the client when requesting a client certificate.
+          Read a file with PEM-formatted certificates that will be sent to
+          the client when requesting a client certificate.
 
    load_verify_locations(pemfile)
           Specify where CA certificates for verification purposes are
@@ -641,55 +638,51 @@ setup.py --help
 
    set_info_callback(callback)
           Set the information callback to callback. This function will be
-          called from time to time during SSL handshakes.
-
-          callback should take three arguments: a Connection object and
-          two integers. The first integer specifies where in the SSL
-          handshake the function was called, and the other the return
-          code from a (possibly failed) internal function call. 
+          called from time to time during SSL handshakes. callback should
+          take three arguments: a Connection object and two integers. The
+          first integer specifies where in the SSL handshake the function
+          was called, and the other the return code from a (possibly
+          failed) internal function call.
 
    set_options(options)
           Add SSL options. Options you have set before are not cleared!
-
-          This method should be used with the OP_* constants. 
+          This method should be used with the OP_* constants.
 
    set_passwd_cb(callback[, userdata])
           Set the passphrase callback to callback. This function will be
-          called when a private key with a passphrase is loaded.
-
-          callback should take a boolean argument repeat and an arbitrary
-          argument data and return the passphrase entered by the user. If
-          repeat is true then callback should ask for the passphrase
-          twice and make sure that the two entries are equal. The data
-          argument is the userdata variable passed to the set_passwd_cb
-          method. If an error occurs, callback should return a false
-          value (e.g. an empty string). 
+          called when a private key with a passphrase is loaded. callback
+          should take a boolean argument repeat and an arbitrary argument
+          data and return the passphrase entered by the user. If repeat is
+          true then callback should ask for the passphrase twice and make
+          sure that the two entries are equal. The data argument is the
+          userdata variable passed to the set_passwd_cb method. If an
+          error occurs, callback should return a false value (e.g. an
+          empty string).
 
    set_session_id(name)
           Set the context name within which a session can be reused for
           this Context object. This is needed when doing session
-          resumption, because there is no way for a stored session to
-          know which Context object it is associated with. name may be
-          any binary data.
+          resumption, because there is no way for a stored session to know
+          which Context object it is associated with. name may be any
+          binary data.
 
    set_timeout(timeout)
           Set the timeout for newly created sessions for this Context
-          object to timeout. timeout must be given in (whole) seconds.
-          The default value is 300 seconds. See the OpenSSL manual for
-          more information (e.g. SSL_CTX_set_timeout(3)).
+          object to timeout. timeout must be given in (whole) seconds. The
+          default value is 300 seconds. See the OpenSSL manual for more
+          information (e.g. SSL_CTX_set_timeout(3)).
 
    set_verify(mode, callback)
           Set the verification flags for this Context object to mode and
-          specify that callback should be used for verification
-          callbacks. mode should be one of VERIFY_NONE and VERIFY_PEER.
-          If VERIFY_PEER is used, mode can be OR:ed with
+          specify that callback should be used for verification callbacks.
+          mode should be one of VERIFY_NONE and VERIFY_PEER. If
+          VERIFY_PEER is used, mode can be OR:ed with
           VERIFY_FAIL_IF_NO_PEER_CERT and VERIFY_CLIENT_ONCE to further
-          control the behaviour.
-
-          callback should take five arguments: A Connection object, an
-          X509 object, and three integer variables, which are in turn
-          potential error number, error depth and return code. callback
-          should return true if verification passes and false otherwise. 
+          control the behaviour. callback should take five arguments: A
+          Connection object, an X509 object, and three integer variables,
+          which are in turn potential error number, error depth and return
+          code. callback should return true if verification passes and
+          false otherwise.
 
    set_verify_depth(depth)
           Set the maximum depth for the certificate chain verification
@@ -697,6 +690,10 @@ setup.py --help
 
    use_certificate(cert)
           Use the certificate cert which has to be a X509 object.
+
+   add_extra_chain_cert(cert)
+          Adds the certificate cert, which has to be a X509 object, to the
+          certificate chain presented together with the certificate.
 
    use_certificate_chain_file(file)
           Load a certificate chain from file which must be PEM encoded.
@@ -717,7 +714,7 @@ setup.py --help
 
   3.3.2 Connection objects
 
-   Connection objects have the following methods: 
+   Connection objects have the following methods:
 
    accept()
           Call the accept method of the underlying socket and set up SSL
@@ -743,13 +740,12 @@ setup.py --help
           Call the connect_ex method of the underlying socket and set up
           SSL on the socket, using the Context object supplied to this
           Connection object at creation. Note that if the connect_ex
-          method of the socket doesn't return 0, SSL won't be
-          initialized.
+          method of the socket doesn't return 0, SSL won't be initialized.
 
    do_handshake()
           Perform an SSL handshake (usually called after renegotiate or
-          one of set_accept_state or set_accept_state). This can raise
-          the same exceptions as send and recv.
+          one of set_accept_state or set_accept_state). This can raise the
+          same exceptions as send and recv.
 
    fileno()
           Retrieve the file descriptor number for the underlying socket.
@@ -783,12 +779,12 @@ setup.py --help
 
    pending()
           Retrieve the number of bytes that can be safely read from the
-          SSL buffer.
+          SSL buffer (not the underlying transport buffer).
 
    recv(bufsize)
           Receive data from the Connection. The return value is a string
-          representing the data received. The maximum amount of data to
-          be received at once, is specified by bufsize.
+          representing the data received. The maximum amount of data to be
+          received at once, is specified by bufsize.
 
    renegotiate()
           Renegotiate the SSL session. Call this if you wish to change
@@ -803,16 +799,16 @@ setup.py --help
           impossible to tell how much data has been sent.
 
    set_accept_state()
-          Set the connection to work in server mode. The handshake will
-          be handled automatically by read/write.
+          Set the connection to work in server mode. The handshake will be
+          handled automatically by read/write.
 
    set_app_data(data)
           Associate data with this Connection object. data can be
           retrieved later using the get_app_data method.
 
    set_connect_state()
-          Set the connection to work in client mode. The handshake will
-          be handled automatically by read/write.
+          Set the connection to work in client mode. The handshake will be
+          handled automatically by read/write.
 
    setblocking(flag)
           Call the setblocking method of the underlying socket.
@@ -821,17 +817,24 @@ setup.py --help
           Call the setsockopt method of the underlying socket.
 
    shutdown()
-          Send the shutdown message to the Connection. Returns true if
-          the shutdown message exchange is completed and false otherwise
-          (in which case you call recv() or send() when the connection
-          becomes readable/writeable.
+          Send the shutdown message to the Connection. Returns true if the
+          shutdown message exchange is completed and false otherwise (in
+          which case you call recv() or send() when the connection becomes
+          readable/writeable.
+
+   get_shutdown()
+          Get the shutdown state of the Connection. Returns a bitvector of
+          either or both of SENT_SHUTDOWN and RECEIVED_SHUTDOWN.
+
+   set_shutdown(state)
+          Set the shutdown state of the Connection. state is a bitvector
+          of either or both of SENT_SHUTDOWN and RECEIVED_SHUTDOWN.
 
    sock_shutdown(how)
           Call the shutdown method of the underlying socket.
 
    state_string()
-          Retrieve a verbose string detailing the state of the
-          Connection.
+          Retrieve a verbose string detailing the state of the Connection.
 
    want_read()
           Checks if more data has to be read from the transport layer to
@@ -845,7 +848,7 @@ setup.py --help
                                   4 Internals
 
    We ran into three main problems developing this: Exceptions, callbacks
-   and accessing socket methods. This is what this chapter is about. 
+   and accessing socket methods. This is what this chapter is about.
 
 
 4.1 Exceptions
@@ -854,33 +857,33 @@ setup.py --help
    I/O functions of OpenSSL, so it felt natural to mimic OpenSSL's error
    code system, translating them into Python exceptions. This naturally
    gives us the exceptions SSL.ZeroReturnError, SSL.WantReadError,
-   SSL.WantWriteError, SSL.WantX509LookupError and SSL.SysCallError. 
+   SSL.WantWriteError, SSL.WantX509LookupError and SSL.SysCallError.
 
-   For more information about this, see section 3.3. 
+   For more information about this, see section 3.3.
 
 
 4.2 Callbacks
 
-   There are a number of problems with callbacks. First of all, OpenSSL
-   is written as a C library, it's not meant to have Python callbacks, so
-   a way around that is needed. Another problem is thread support. A lot
-   of the OpenSSL I/O functions can block if the socket is in blocking
-   mode, and then you want other Python threads to be able to do other
-   things. The real trouble is if you've released the thread lock to do a
+   There are a number of problems with callbacks. First of all, OpenSSL is
+   written as a C library, it's not meant to have Python callbacks, so a
+   way around that is needed. Another problem is thread support. A lot of
+   the OpenSSL I/O functions can block if the socket is in blocking mode,
+   and then you want other Python threads to be able to do other things.
+   The real trouble is if you've released the thread lock to do a
    potentially blocking operation, and the operation calls a callback.
-   Then we must take the thread lock back^5. 
+   Then we must take the thread lock back^5.
 
    There are two solutions to the first problem, both of which are
    necessary. The first solution to use is if the C callback allows
    ''userdata'' to be passed to it (an arbitrary pointer normally). This
    is great! We can set our Python function object as the real userdata
    and emulate userdata for the Python function in another way. The other
-   solution can be used if an object with an ''app_data'' system always
-   is passed to the callback. For example, the SSL object in OpenSSL has
+   solution can be used if an object with an ''app_data'' system always is
+   passed to the callback. For example, the SSL object in OpenSSL has
    app_data functions and in e.g. the verification callbacks, you can
    retrieve the related SSL object. What we do is to set our wrapper
    Connection object as app_data for the SSL object, and we can easily
-   find the Python callback. 
+   find the Python callback.
 
    The other problem is also partially solved by app_data. Since we're
    associating our wrapper objects with the ''real'' objects, we can
@@ -890,7 +893,7 @@ setup.py --help
    Py_END_ALLOW_THREADS that allows specifying of the PyThreadState
    variable to use. Now we can simply ''begin allow threads'' before a
    potentially blocking operation, and ''end allow threads'' before
-   calling a callback. 
+   calling a callback.
 
 
 4.3 Acessing Socket Methods
@@ -898,34 +901,33 @@ setup.py --help
    We quickly saw the benefit of wrapping socket methods in the
    SSL.Connection class, for an easy transition into using SSL. The
    problem here is that the socket module lacks a C API, and all the
-   methods are declared static. One approach would be to have OpenSSL as
-   a submodule to the socket module, placing all the code in
-   socketmodule.c, but this is obviously not a good solution, since you
-   might not want to import tonnes of extra stuff you're not going to use
-   when importing the socket module. The other approach is to somehow get
-   a pointer to the method to be called, either the C function, or a
-   callable Python object. This is not really a good solution either,
-   since there's a lot of lookups involved. 
+   methods are declared static. One approach would be to have OpenSSL as a
+   submodule to the socket module, placing all the code in socketmodule.c,
+   but this is obviously not a good solution, since you might not want to
+   import tonnes of extra stuff you're not going to use when importing the
+   socket module. The other approach is to somehow get a pointer to the
+   method to be called, either the C function, or a callable Python
+   object. This is not really a good solution either, since there's a lot
+   of lookups involved.
 
-   The way it works is that you have to supply a ``socket-like''
-   transport object to the SSL.Connection. The only requirement of this
-   object is that it has a fileno() method that returns a file descriptor
-   that's valid at the C level (i.e. you can use the system calls read
-   and write). If you want to use the connect() or accept() methods of
-   the SSL.Connection object, the transport object has to supply such
-   methods too. Apart from them, any method lookups in the SSL.Connection
-   object that fail are passed on to the underlying transport object. 
+   The way it works is that you have to supply a ``socket-like'' transport
+   object to the SSL.Connection. The only requirement of this object is
+   that it has a fileno() method that returns a file descriptor that's
+   valid at the C level (i.e. you can use the system calls read and
+   write). If you want to use the connect() or accept() methods of the
+   SSL.Connection object, the transport object has to supply such methods
+   too. Apart from them, any method lookups in the SSL.Connection object
+   that fail are passed on to the underlying transport object.
 
    Future changes might be to allow Python-level transport objects, that
-   instead of having fileno() methods, have read() and write() methods,
-   so more advanced features of Python can be used. This would probably
+   instead of having fileno() methods, have read() and write() methods, so
+   more advanced features of Python can be used. This would probably
    entail some sort of OpenSSL ``BIOs'', but converting Python strings
    back and forth is expensive, so this shouldn't be used unless
    necessary. Other nice things would be to be able to pass in different
-   transport objects for reading and writing, but then the fileno()
-   method of SSL.Connection becomes virtually useless. Also, should the
-   method resolution be used on the read-transport or the
-   write-transport? 
+   transport objects for reading and writing, but then the fileno() method
+   of SSL.Connection becomes virtually useless. Also, should the method
+   resolution be used on the read-transport or the write-transport?
 
                             About this document ...
 
@@ -941,7 +943,7 @@ setup.py --help
    The application of LaTeX2HTML to the Python documentation has been
    heavily tailored by Fred L. Drake, Jr. Original navigation icons were
    contributed by Christopher Petrilli.
-     _________________________________________________________________
+     __________________________________________________________________
 
     Footnotes
 
@@ -962,9 +964,9 @@ setup.py --help
    ... back^5
           I'm not sure why this is necessary, but otherwise I get a
           segmentation violation on PyEval_CallObject
-     _________________________________________________________________
+     __________________________________________________________________
 
-                           Python OpenSSL Manual
-     _________________________________________________________________
+                            Python OpenSSL Manual
+     __________________________________________________________________
 
    Release 0.6.

@@ -895,7 +895,8 @@ Call the \method{getsockopt} method of the underlying socket.
 \end{methoddesc}
 
 \begin{methoddesc}[Connection]{pending}{}
-Retrieve the number of bytes that can be safely read from the SSL buffer.
+Retrieve the number of bytes that can be safely read from the SSL buffer
+(\emph{not} the underlying transport buffer).
 \end{methoddesc}
 
 \begin{methoddesc}[Connection]{recv}{bufsize}
