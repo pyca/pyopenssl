@@ -613,10 +613,12 @@ Set the verify mode and verify callback\n\
 \n\
 Arguments: self - The Context object\n\
            args - The Python argument tuple, should be:\n\
-             mode     - The verify mode, this is either SSL_VERIFY_NONE or\n\
-                        SSL_VERIFY_PEER combined with possible other flags\n\
+             mode     - The verify mode, this is either VERIFY_NONE or\n\
+                        VERIFY_PEER combined with possible other flags\n\
              callback - The Python callback to use\n\
 Returns:   None\n\
+\n\
+See SSL_CTX_set_verify(3SSL) for further details.\n\
 ";
 static PyObject *
 ssl_Context_set_verify(ssl_ContextObj *self, PyObject *args)
