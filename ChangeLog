@@ -1,3 +1,14 @@
+2008-03-06  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* src/crypto/x509name.c: Fix tp_compare so it only returns -1, 0, or
+	  1.  This eliminates a RuntimeWarning emitted by Python.
+	* src/crypto/x509req.c: Fix reference counting for X509Name returned
+	  by X509Req.get_subject.  This removes a segfault when the subject
+	  name outlives the request object.
+	* src/crypto/x509.c: Change get_serial_number and set_serial_number
+	  to accept Python longs.
+	* doc/pyOpenSSL.tex: A number of minor corrections.
+
 2008-03-03  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* src/crypto/crypto.c: Expose X509_verify_cert_error_string. (patch
