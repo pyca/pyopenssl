@@ -56,7 +56,7 @@ Context objects have the following methods:
 <dd>
 Check if the private key (loaded with <tt class="method">use_privatekey<big>[</big>_file<big>]</big></tt>)
 matches the certificate (loaded with <tt class="method">use_certificate<big>[</big>_file<big>]</big></tt>).
-Returns true if they match, false otherwise.
+Returns <code>None</code> if they match, raises <tt class="exception">Error</tt> otherwise.
 </dl>
 
 <P>

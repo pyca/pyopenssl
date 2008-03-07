@@ -671,7 +671,7 @@ Context objects have the following methods:
 \begin{methoddesc}[Context]{check_privatekey}{}
 Check if the private key (loaded with \method{use_privatekey\optional{_file}})
 matches the certificate (loaded with \method{use_certificate\optional{_file}}).
-Returns true if they match, false otherwise.
+Returns \code{None} if they match, raises \exception{Error} otherwise.
 \end{methoddesc}
 
 \begin{methoddesc}[Context]{get_app_data}{}
