@@ -55,9 +55,11 @@ LibraryDirs = None
 
 # Add more platforms here when needed
 if os.name == 'nt' or sys.platform == 'win32':
-    Libraries = ['libeay32', 'ssleay32', 'Ws2_32']
+    Libraries = ['eay32', 'Ws2_32']
+    ExtraObjects = [r"c:\Python25\libs\ssleay32.a"]
 else:
     Libraries = ['ssl', 'crypto']
+    ExtraObjects = []
 
 if sys.platform == 'darwin':
     IncludeDirs = ['/sw/include']
@@ -68,7 +70,8 @@ def mkExtension(name):
     src = globals()[name.lower() + '_src']
     dep = globals()[name.lower() + '_dep']
     return Extension(modname, src, libraries=Libraries, depends=dep,
-                     include_dirs=IncludeDirs, library_dirs=LibraryDirs)
+                     include_dirs=IncludeDirs, library_dirs=LibraryDirs,
+                     extra_objects=ExtraObjects)
 
 setup(name='pyOpenSSL', version=__version__,
       package_dir = { 'OpenSSL': '.' },
