@@ -343,6 +343,9 @@ class X509Tests(TestCase, _Python23TestCaseHelper):
         set = getattr(certificate, 'set_not' + which)
         get = getattr(certificate, 'get_not' + which)
 
+        # Starts with no value.
+        self.assertEqual(get(), None)
+
         # GMT (Or is it UTC?) -exarkun
         when = "20040203040506Z"
         set(when)

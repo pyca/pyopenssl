@@ -432,7 +432,10 @@ _get_asn1_time(char *format, ASN1_TIME* timestamp, crypto_X509Obj *self, PyObjec
 	 * There must be a way to do this without touching timestamp->data
 	 * directly. -exarkun
 	 */
-	if (timestamp->type == V_ASN1_GENERALIZEDTIME) {
+	if (timestamp->length == 0) {
+	    Py_INCREF(Py_None);
+	    return Py_None;
+	} else if (timestamp->type == V_ASN1_GENERALIZEDTIME) {
 		return PyString_FromString(timestamp->data);
 	} else {
 		ASN1_TIME_to_generalizedtime(timestamp, &gt_timestamp);
