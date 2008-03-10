@@ -152,7 +152,7 @@ crypto_X509Extension_New(char *type_name, int critical, char *value)
     }
     
     M_ASN1_OCTET_STRING_free(ext_oct);
-    //ext_method->ext_free(ext_struct);
+    /* ext_method->ext_free(ext_struct); */
 
     self->x509_extension = extension;
     self->dealloc = 1;

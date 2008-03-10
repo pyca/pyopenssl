@@ -255,6 +255,38 @@ setup.py --help
    get_version()
           Return the certificate version.
 
+   get_notBefore()
+          Return a string giving the time before which the certificate is
+          not valid. The string is formatted as an ASN1 GENERALIZEDTIME:
+
+                 YYYYMMDDhhmmssZ
+                 YYYYMMDDhhmmss+hhmm
+                 YYYYMMDDhhmmss-hhmm
+
+   get_notAfter()
+          Return a string giving the time after which the certificate is
+          not valid. The string is formatted as an ASN1 GENERALIZEDTIME:
+
+                 YYYYMMDDhhmmssZ
+                 YYYYMMDDhhmmss+hhmm
+                 YYYYMMDDhhmmss-hhmm
+
+   set_notBefore(when)
+          Change the time before which the certificate is not valid. when
+          is a string formatted as an ASN1 GENERALIZEDTIME:
+
+                 YYYYMMDDhhmmssZ
+                 YYYYMMDDhhmmss+hhmm
+                 YYYYMMDDhhmmss-hhmm
+
+   set_notAfter(when)
+          Change the time after which the certificate is not valid. when
+          is a string formatted as an ASN1 GENERALIZEDTIME:
+
+                 YYYYMMDDhhmmssZ
+                 YYYYMMDDhhmmss+hhmm
+                 YYYYMMDDhhmmss-hhmm
+
    gmtime_adj_notBefore(time)
           Adjust the timestamp (in GMT) when the certificate starts being
           valid.

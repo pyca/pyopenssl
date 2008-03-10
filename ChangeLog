@@ -1,3 +1,8 @@
+2008-03-09  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* src/crypto/x509.c: Add getters and setters for the notBefore and
+	  notAfter attributes of X509s.
+
 2008-03-06  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* src/crypto/x509name.c: Fix tp_compare so it only returns -1, 0, or

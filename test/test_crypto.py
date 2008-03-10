@@ -329,3 +329,52 @@ class X509Tests(TestCase, _Python23TestCaseHelper):
         self.assertEqual(certificate.get_serial_number(), 2 ** 32 + 1)
         certificate.set_serial_number(2 ** 64 + 1)
         self.assertEqual(certificate.get_serial_number(), 2 ** 64 + 1)
+        certificate.set_serial_number(2 ** 128 + 1)
+        self.assertEqual(certificate.get_serial_number(), 2 ** 128 + 1)
+
+
+    def _setBoundTest(self, which):
+        """
+        L{X509Type.set_notBefore} takes a string in the format of an ASN1
+        GENERALIZEDTIME and sets the beginning of the certificate's validity
+        period to it.
+        """
+        certificate = X509()
+        set = getattr(certificate, 'set_not' + which)
+        get = getattr(certificate, 'get_not' + which)
+
+        # GMT (Or is it UTC?) -exarkun
+        when = "20040203040506Z"
+        set(when)
+        self.assertEqual(get(), when)
+
+        # A plus two hours and thirty minutes offset
+        when = "20040203040506+0530"
+        set(when)
+        self.assertEqual(get(), when)
+
+        # A minus one hour fifteen minutes offset
+        when = "20040203040506-0115"
+        set(when)
+        self.assertEqual(get(), when)
+
+        # An invalid string results in a ValueError
+        self.assertRaises(ValueError, set, "foo bar")
+
+
+    def test_set_notBefore(self):
+        """
+        L{X509Type.set_notBefore} takes a string in the format of an ASN1
+        GENERALIZEDTIME and sets the beginning of the certificate's validity
+        period to it.
+        """
+        self._setBoundTest("Before")
+
+
+    def test_set_notAfter(self):
+        """
+        L{X509Type.set_notAfter} takes a string in the format of an ASN1
+        GENERALIZEDTIME and sets the end of the certificate's validity period
+        to it.
+        """
+        self._setBoundTest("After")

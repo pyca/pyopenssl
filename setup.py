@@ -74,10 +74,12 @@ def mkExtension(name):
                      extra_objects=ExtraObjects)
 
 setup(name='pyOpenSSL', version=__version__,
-      package_dir = { 'OpenSSL': '.' },
-      ext_modules = [mkExtension('crypto'), mkExtension('rand'), mkExtension('SSL')],
-      py_modules  = ['OpenSSL.__init__', 'OpenSSL.tsafe', 'OpenSSL.version',
-                     'OpenSSL.test.__init__', 'OpenSSL.test.test_crypto' ],
+      package_dir = {'OpenSSL': '.'},
+      ext_modules = [mkExtension('crypto'), mkExtension('rand'),
+                     mkExtension('SSL')],
+      py_modules  = ['OpenSSL.__init__', 'OpenSSL.tsafe',
+                     'OpenSSL.version', 'OpenSSL.test.__init__',
+                     'OpenSSL.test.test_crypto'],
       description = 'Python wrapper module around the OpenSSL library',
       author = 'Martin Sjögren, AB Strakt', author_email = 'msjogren@gmail.com',
       url = 'http://pyopenssl.sourceforge.net/',

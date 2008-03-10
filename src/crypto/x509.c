@@ -14,7 +14,7 @@
 
 static char *CVSid = "@(#) $Id: x509.c,v 1.20 2004/08/10 10:37:31 martin Exp $";
 
-/* 
+/*
  * X.509 is a standard for digital certificates.  See e.g. the OpenSSL homepage
  * http://www.openssl.org/ for more information
  */
@@ -349,8 +349,157 @@ crypto_X509_set_pubkey(crypto_X509Obj *self, PyObject *args)
     return Py_None;
 }
 
+static PyObject*
+_set_asn1_time(char *format, ASN1_TIME* timestamp, crypto_X509Obj *self, PyObject *args)
+{
+	char *when;
+
+	if (!PyArg_ParseTuple(args, format, &when))
+		return NULL;
+
+	if (ASN1_GENERALIZEDTIME_set_string(timestamp, when) == 0) {
+		ASN1_GENERALIZEDTIME dummy;
+		dummy.type = V_ASN1_GENERALIZEDTIME;
+		dummy.length = strlen(when);
+		dummy.data = when;
+		if (!ASN1_GENERALIZEDTIME_check(&dummy)) {
+			PyErr_SetString(PyExc_ValueError, "Invalid string");
+		} else {
+			PyErr_SetString(PyExc_RuntimeError, "Unknown ASN1_GENERALIZEDTIME_set_string failure");
+		}
+		return NULL;
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+static char crypto_X509_set_notBefore_doc[] = "\n\
+Set the time stamp for when the certificate starts being valid\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be:\n\
+             when - A string giving the timestamp, in the format:\n\
+\n\
+                 YYYYMMDDhhmmssZ\n\
+                 YYYYMMDDhhmmss+hhmm\n\
+                 YYYYMMDDhhmmss-hhmm\n\
+\n\
+Returns:   None\n\
+";
+
+static PyObject*
+crypto_X509_set_notBefore(crypto_X509Obj *self, PyObject *args)
+{
+	return _set_asn1_time(
+		"s:set_notBefore", X509_get_notBefore(self->x509), self, args);
+}
+
+static char crypto_X509_set_notAfter_doc[] = "\n\
+Set the time stamp for when the certificate stops being valid\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be:\n\
+             when - A string giving the timestamp, in the format:\n\
+\n\
+                 YYYYMMDDhhmmssZ\n\
+                 YYYYMMDDhhmmss+hhmm\n\
+                 YYYYMMDDhhmmss-hhmm\n\
+\n\
+Returns:   None\n\
+";
+
+static PyObject*
+crypto_X509_set_notAfter(crypto_X509Obj *self, PyObject *args)
+{
+	return _set_asn1_time(
+		"s:set_notAfter", X509_get_notAfter(self->x509), self, args);
+}
+
+static PyObject*
+_get_asn1_time(char *format, ASN1_TIME* timestamp, crypto_X509Obj *self, PyObject *args)
+{
+	ASN1_GENERALIZEDTIME *gt_timestamp = NULL;
+	PyObject *py_timestamp = NULL;
+
+	if (!PyArg_ParseTuple(args, format)) {
+		return NULL;
+	}
+
+	/*
+	 * http://www.columbia.edu/~ariel/ssleay/asn1-time.html
+	 */
+	/*
+	 * There must be a way to do this without touching timestamp->data
+	 * directly. -exarkun
+	 */
+	if (timestamp->type == V_ASN1_GENERALIZEDTIME) {
+		return PyString_FromString(timestamp->data);
+	} else {
+		ASN1_TIME_to_generalizedtime(timestamp, &gt_timestamp);
+		if (gt_timestamp != NULL) {
+			exception_from_error_queue();
+			return NULL;
+		} else {
+			py_timestamp = PyString_FromString(gt_timestamp->data);
+			ASN1_GENERALIZEDTIME_free(gt_timestamp);
+			return py_timestamp;
+		}
+	}
+}
+
+static char crypto_X509_get_notBefore_doc[] = "\n\
+Retrieve the time stamp for when the certificate starts being valid\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be empty.\n\
+\n\
+Returns:   A string giving the timestamp, in the format:\n\
+\n\
+                 YYYYMMDDhhmmssZ\n\
+                 YYYYMMDDhhmmss+hhmm\n\
+                 YYYYMMDDhhmmss-hhmm\n\
+           or None if there is no value set.\n\
+";
+
+static PyObject*
+crypto_X509_get_notBefore(crypto_X509Obj *self, PyObject *args)
+{
+	/*
+	 * X509_get_notBefore returns a borrowed reference.
+	 */
+	return _get_asn1_time(
+		":get_notBefore", X509_get_notBefore(self->x509), self, args);
+}
+
+
+static char crypto_X509_get_notAfter_doc[] = "\n\
+Retrieve the time stamp for when the certificate stops being valid\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be empty.\n\
+\n\
+Returns:   A string giving the timestamp, in the format:\n\
+\n\
+                 YYYYMMDDhhmmssZ\n\
+                 YYYYMMDDhhmmss+hhmm\n\
+                 YYYYMMDDhhmmss-hhmm\n\
+           or None if there is no value set.\n\
+";
+
+static PyObject*
+crypto_X509_get_notAfter(crypto_X509Obj *self, PyObject *args)
+{
+	/*
+	 * X509_get_notAfter returns a borrowed reference.
+	 */
+	return _get_asn1_time(
+		":get_notAfter", X509_get_notAfter(self->x509), self, args);
+}
+
+
 static char crypto_X509_gmtime_adj_notBefore_doc[] = "\n\
-Adjust the time stamp for when the certificate starts being valid\n\
+Change the timestamp for when the certificate starts being valid to the current\n\
+time plus an offset.\n \
 \n\
 Arguments: self - The X509 object\n\
            args - The Python argument tuple, should be:\n\
@@ -581,6 +730,10 @@ static PyMethodDef crypto_X509_methods[] =
     ADD_METHOD(set_subject),
     ADD_METHOD(get_pubkey),
     ADD_METHOD(set_pubkey),
+    ADD_METHOD(get_notBefore),
+    ADD_METHOD(set_notBefore),
+    ADD_METHOD(get_notAfter),
+    ADD_METHOD(set_notAfter),
     ADD_METHOD(gmtime_adj_notBefore),
     ADD_METHOD(gmtime_adj_notAfter),
     ADD_METHOD(sign),
