@@ -19,7 +19,29 @@ extern  PyTypeObject    crypto_PKey_Type;
 
 typedef struct {
     PyObject_HEAD
+
+    /*
+     * A pointer to the underlying OpenSSL structure.
+     */
     EVP_PKEY            *pkey;
+
+    /*
+     * A flag indicating the underlying pkey object has no private parts (so it
+     * can't sign, for example).  This is a bit of a temporary hack.
+     * Public-only should be represented as a different type. -exarkun
+     */
+    int                  only_public;
+
+    /*
+     * A flag indicating whether the underlying pkey object has no meaningful
+     * data in it whatsoever.  This is a temporary hack.  It should be
+     * impossible to create PKeys in an unusable state. -exarkun
+     */
+    int                  initialized;
+
+    /*
+     * A flag indicating whether pkey will be freed when this object is freed.
+     */
     int                  dealloc;
 } crypto_PKeyObj;
 

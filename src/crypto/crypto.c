@@ -584,10 +584,16 @@ Returns:   The PKey object\n\
 static PyObject *
 crypto_PKey(PyObject *spam, PyObject *args)
 {
+    crypto_PKeyObj *py_pkey;
+
     if (!PyArg_ParseTuple(args, ":PKey"))
         return NULL;
 
-    return (PyObject *)crypto_PKey_New(EVP_PKEY_new(), 1);
+    py_pkey = crypto_PKey_New(EVP_PKEY_new(), 1);
+    if (py_pkey) {
+	py_pkey->initialized = 0;
+    }
+    return py_pkey;
 }
 
 static char crypto_X509Extension_doc[] = "\n\

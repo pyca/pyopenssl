@@ -56,6 +56,7 @@ crypto_X509Req_get_pubkey(crypto_X509ReqObj *self, PyObject *args)
 {
     crypto_PKeyObj *crypto_PKey_New(EVP_PKEY *, int);
     EVP_PKEY *pkey;
+    crypto_PKeyObj *py_pkey;
 
     if (!PyArg_ParseTuple(args, ":get_pubkey"))
         return NULL;
@@ -66,7 +67,11 @@ crypto_X509Req_get_pubkey(crypto_X509ReqObj *self, PyObject *args)
         return NULL;
     }
 
-    return (PyObject *)crypto_PKey_New(pkey, 1);
+    py_pkey = crypto_PKey_New(pkey, 1);
+    if (py_pkey != NULL) {
+	py_pkey->only_public = 1;
+    }
+    return py_pkey;
 }
 
 static char crypto_X509Req_set_pubkey_doc[] = "\n\
@@ -116,6 +121,16 @@ crypto_X509Req_sign(crypto_X509ReqObj *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O!s:sign", &crypto_PKey_Type, &pkey,
 			  &digest_name))
         return NULL;
+
+    if (pkey->only_public) {
+	PyErr_SetString(PyExc_ValueError, "Key has only public part");
+	return NULL;
+    }
+
+    if (!pkey->initialized) {
+	PyErr_SetString(PyExc_ValueError, "Key is uninitialized");
+	return NULL;
+    }
 
     if ((digest = EVP_get_digestbyname(digest_name)) == NULL)
     {

@@ -2,6 +2,11 @@
 
 	* src/crypto/x509.c: Add getters and setters for the notBefore and
 	  notAfter attributes of X509s.
+	* src/crypto/pkey.h, src/crypto/pkey.c, src/crypto/x509req.c,
+	  src/crypto/x509.c: Track the initialized and public/private state
+	  of EVP_PKEY structures underlying the crypto_PKeyObj type and
+	  reject X509Req signature operations on keys not suitable for the
+	  task.
 
 2008-03-06  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 

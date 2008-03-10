@@ -58,8 +58,7 @@ crypto_PKey_generate_key(crypto_PKeyObj *self, PyObject *args)
                 FAIL();
             if (!EVP_PKEY_assign_RSA(self->pkey, rsa))
                 FAIL();
-            Py_INCREF(Py_None);
-            return Py_None;
+	    break;
 
         case crypto_TYPE_DSA:
             if ((dsa = DSA_generate_parameters(bits, NULL, 0, NULL, NULL, NULL, NULL)) == NULL)
@@ -68,12 +67,16 @@ crypto_PKey_generate_key(crypto_PKeyObj *self, PyObject *args)
                 FAIL();
             if (!EVP_PKEY_assign_DSA(self->pkey, dsa))
                 FAIL();
-            Py_INCREF(Py_None);
-            return Py_None;
-    }
+	    break;
 
-    PyErr_SetString(crypto_Error, "No such key type");
-    return NULL;
+        default:
+	    PyErr_SetString(crypto_Error, "No such key type");
+	    return NULL;
+
+    }
+    self->initialized = 1;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 static char crypto_PKey_bits_doc[] = "\n\
@@ -148,6 +151,14 @@ crypto_PKey_New(EVP_PKEY *pkey, int dealloc)
 
     self->pkey = pkey;
     self->dealloc = dealloc;
+    self->only_public = 0;
+
+    /*
+     * Heuristic.  Most call-sites pass an initialized EVP_PKEY.  Not
+     * necessarily the case that they will, though.  That's part of why this is
+     * a hack. -exarkun
+     */
+    self->initialized = 1;
 
     return self;
 }

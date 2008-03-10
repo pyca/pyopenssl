@@ -263,10 +263,51 @@ class X509NameTests(TestCase, _Python23TestCaseHelper):
 
 
 
-class X509ReqTests(TestCase, _Python23TestCaseHelper):
+class _PKeyInteractionTestsMixin:
+    """
+    Tests which involve another thing and a PKey.
+    """
+    def signable(self):
+        """
+        Return something with a C{set_pubkey}, C{set_pubkey}, and C{sign} method.
+        """
+        raise NotImplementedError()
+
+
+    def test_signWithUngenerated(self):
+        """
+        L{X509Req.sign} raises L{ValueError} when pass a L{PKey} with no parts.
+        """
+        request = self.signable()
+        key = PKey()
+        self.assertRaises(ValueError, request.sign, key, 'MD5')
+
+
+    def test_signWithPublicKey(self):
+        """
+        L{X509Req.sign} raises L{ValueError} when pass a L{PKey} with no
+        private part as the signing key.
+        """
+        request = self.signable()
+        key = PKey()
+        key.generate_key(TYPE_RSA, 512)
+        request.set_pubkey(key)
+        pub = request.get_pubkey()
+        self.assertRaises(ValueError, request.sign, pub, 'MD5')
+
+
+
+class X509ReqTests(TestCase, _PKeyInteractionTestsMixin, _Python23TestCaseHelper):
     """
     Tests for L{OpenSSL.crypto.X509Req}.
     """
+    def signable(self):
+        """
+        Create and return a new L{X509Req}.
+        """
+        return X509Req()
+
+
     def test_construction(self):
         """
         L{X509Req} takes no arguments and returns an L{X509ReqType} instance.
@@ -296,10 +337,17 @@ class X509ReqTests(TestCase, _Python23TestCaseHelper):
 
 
 
-class X509Tests(TestCase, _Python23TestCaseHelper):
+class X509Tests(TestCase, _PKeyInteractionTestsMixin, _Python23TestCaseHelper):
     """
     Tests for L{OpenSSL.crypto.X509}.
     """
+    def signable(self):
+        """
+        Create and return a new L{X509}.
+        """
+        return X509()
+
+
     def test_construction(self):
         """
         L{X509} takes no arguments and returns an instance of L{X509Type}.

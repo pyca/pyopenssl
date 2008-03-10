@@ -129,43 +129,36 @@ global_verify_callback(int ok, X509_STORE_CTX *x509_ctx)
     SSL *ssl;
     ssl_ConnectionObj *conn;
     crypto_X509Obj *cert;
-    int errnum, errdepth, c_ret;
-
+    int errnum, errdepth, c_ret, use_thread_state;
+        
+    // Get Connection object to check thread state
+    ssl = (SSL *)X509_STORE_CTX_get_app_data(x509_ctx);
+    conn = (ssl_ConnectionObj *)SSL_get_app_data(ssl);
+    
+    use_thread_state = conn->tstate != NULL;
+    if (use_thread_state)
+        MY_END_ALLOW_THREADS(conn->tstate);
+    
     cert = crypto_X509_New(X509_STORE_CTX_get_current_cert(x509_ctx), 0);
     errnum = X509_STORE_CTX_get_error(x509_ctx);
     errdepth = X509_STORE_CTX_get_error_depth(x509_ctx);
-    ssl = (SSL *)X509_STORE_CTX_get_app_data(x509_ctx);
-    conn = (ssl_ConnectionObj *)SSL_get_app_data(ssl);
-
+    
     argv = Py_BuildValue("(OOiii)", (PyObject *)conn, (PyObject *)cert,
                                     errnum, errdepth, ok);
     Py_DECREF(cert);
-    if (conn->tstate != NULL)
-    {
-        /* We need to get back our thread state before calling the callback */
-        MY_END_ALLOW_THREADS(conn->tstate);
-        ret = PyEval_CallObject(conn->context->verify_callback, argv);
-        MY_BEGIN_ALLOW_THREADS(conn->tstate);
-    }
-    else
-    {
-        ret = PyEval_CallObject(conn->context->verify_callback, argv);
-    }
+    ret = PyEval_CallObject(conn->context->verify_callback, argv);
     Py_DECREF(argv);
 
-    if (ret == NULL)
-        return 0;
-
-    if (PyObject_IsTrue(ret))
-    {
+    if (ret != NULL && PyObject_IsTrue(ret)) {
         X509_STORE_CTX_set_error(x509_ctx, X509_V_OK);
+        Py_DECREF(ret);
         c_ret = 1;
-    }
-    else
+    } else {
         c_ret = 0;
+    }
 
-    Py_DECREF(ret);
-
+    if (use_thread_state)
+        MY_BEGIN_ALLOW_THREADS(conn->tstate);
     return c_ret;
 }
 
