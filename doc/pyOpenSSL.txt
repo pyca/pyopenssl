@@ -263,6 +263,8 @@ setup.py --help
                  YYYYMMDDhhmmss+hhmm
                  YYYYMMDDhhmmss-hhmm
 
+          If no value exists for this field, None is returned.
+
    get_notAfter()
           Return a string giving the time after which the certificate is
           not valid. The string is formatted as an ASN1 GENERALIZEDTIME:
@@ -270,6 +272,8 @@ setup.py --help
                  YYYYMMDDhhmmssZ
                  YYYYMMDDhhmmss+hhmm
                  YYYYMMDDhhmmss-hhmm
+
+          If no value exists for this field, None is returned.
 
    set_notBefore(when)
           Change the time before which the certificate is not valid. when
