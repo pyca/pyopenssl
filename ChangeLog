@@ -1,3 +1,8 @@
+2008-03-12  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* Fix coding problems in examples/.  Remove keys and certificates
+	  and add a note about how to generate new ones.
+
 2008-03-09  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* src/crypto/x509.c: Add getters and setters for the notBefore and

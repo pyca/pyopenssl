@@ -1,4 +1,4 @@
-#
+# -*- coding: latin-1 -*-
 # certgen.py
 #
 # Copyright (C) Martin Sjögren and AB Strakt 2001, All rights reserved

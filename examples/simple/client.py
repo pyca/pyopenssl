@@ -1,4 +1,4 @@
-#
+# -*- coding: latin-1 -*-
 # client.py
 #
 # Copyright (C) 2001 Martin Sjögren and AB Strakt, All rights reserved
