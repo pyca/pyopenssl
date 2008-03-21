@@ -2,6 +2,7 @@
  * crypto.c
  *
  * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) Jean-Paul Calderone 2008, All rights reserved
  *
  * Main file of crypto sub module.
  * See the file RATIONALE for a short explanation of why this module was written.
@@ -16,8 +17,6 @@ static char crypto_doc[] = "\n\
 Main file of crypto sub module.\n\
 See the file RATIONALE for a short explanation of why this module was written.\n\
 ";
-
-static char *CVSid = "@(#) $Id: crypto.c,v 1.28 2004/08/09 14:56:05 martin Exp $";
 
 void **ssl_API;
 

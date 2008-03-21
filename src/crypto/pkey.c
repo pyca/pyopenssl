@@ -2,6 +2,7 @@
  * pkey.c
  *
  * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) Jean-Paul Calderone 2008, All rights reserved
  *
  * Public/rivate key handling code, mostly thin wrappers around OpenSSL.
  * See the file RATIONALE for a short explanation of why this module was written.
@@ -10,8 +11,6 @@
 #include <Python.h>
 #define crypto_MODULE
 #include "crypto.h"
-
-static char *CVSid = "@(#) $Id: pkey.c,v 1.9 2002/07/09 13:47:21 martin Exp $";
 
 /*
  * This is done every time something fails, so turning it into a macro is

@@ -1,10 +1,8 @@
 # -*- coding: latin-1 -*-
-# client.py
 #
 # Copyright (C) 2001 Martin Sjögren and AB Strakt, All rights reserved
-#
-# $Id: client.py,v 1.7 2002/08/15 12:20:46 martin Exp $
-#
+# Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+
 """
 Simple SSL client, using blocking I/O
 """

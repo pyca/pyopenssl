@@ -2,6 +2,7 @@
  * ssl.c
  *
  * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) Jean-Paul Calderone 2008, All rights reserved
  *
  * Main file of the SSL sub module.
  * See the file RATIONALE for a short explanation of why this module was written.
@@ -9,8 +10,6 @@
  * Reviewed 2001-07-23
  */
 #include <Python.h>
-
-
 
 #ifndef MS_WINDOWS
 #  include <sys/socket.h>
@@ -30,8 +29,6 @@ static char ssl_doc[] = "\n\
 Main file of the SSL sub module.\n\
 See the file RATIONALE for a short explanation of why this module was written.\n\
 ";
-
-static char *CVSid = "@(#) $Id: ssl.c,v 1.12 2004/08/10 21:42:51 martin Exp $";
 
 void **crypto_API;
 

@@ -1,3 +1,5 @@
+# Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+
 """
 Unit tests for L{OpenSSL.SSL}.
 """
@@ -33,4 +35,3 @@ class ContextTests(TestCase):
         ctx = Context(TLSv1_METHOD)
         ctx.use_privatekey(key)
         self.assertRaises(TypeError, ctx.use_privatekey, "")
-

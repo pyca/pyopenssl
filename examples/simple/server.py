@@ -1,10 +1,8 @@
 # -*- coding: latin-1 -*-
-# server.py
 #
 # Copyright (C) 2001 Martin Sjögren and AB Strakt, All rights reserved
-#
-# $Id: server.py,v 1.2 2002/07/25 08:26:34 martin Exp $
-#
+# Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+
 """
 Simple echo server, using nonblocking I/O
 """

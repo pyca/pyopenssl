@@ -2,6 +2,7 @@
  * x509name.c
  *
  * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) Jean-Paul Calderone 2008, All rights reserved
  *
  * X.509 Name handling, mostly thin wrapping.
  * See the file RATIONALE for a short explanation of why this module was written.
@@ -11,9 +12,6 @@
 #include <Python.h>
 #define crypto_MODULE
 #include "crypto.h"
-
-static char *CVSid = "@(#) $Id: x509name.c,v 1.16 2003/01/09 17:08:32 martin Exp $";
-
 
 /*
  * Constructor for X509Name, never called by Python code directly

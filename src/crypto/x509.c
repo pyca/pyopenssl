@@ -2,6 +2,7 @@
  * x509.c
  *
  * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) Jean-Paul Calderone 2008, All rights reserved
  *
  * Certificate (X.509) handling code, mostly thin wrappers around OpenSSL.
  * See the file RATIONALE for a short explanation of why this module was written.
@@ -11,8 +12,6 @@
 #include <Python.h>
 #define crypto_MODULE
 #include "crypto.h"
-
-static char *CVSid = "@(#) $Id: x509.c,v 1.20 2004/08/10 10:37:31 martin Exp $";
 
 /*
  * X.509 is a standard for digital certificates.  See e.g. the OpenSSL homepage

@@ -1,6 +1,8 @@
 /*
  * x509ext.c
  *
+ * Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+ *
  * Export X.509 extension functions and data structures.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
@@ -10,8 +12,6 @@
 #include <Python.h>
 #define crypto_MODULE
 #include "crypto.h"
-
-static char *CVSid = "@(#) $Id: x509ext.c,v 1.1 2002/07/09 13:34:46 martin Exp $";
 
 static char crypto_X509Extension_get_critical_doc[] = "\n\
 Returns the critical field of the X509Extension\n\

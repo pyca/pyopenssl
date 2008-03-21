@@ -2,6 +2,7 @@
  * pkey.h
  *
  * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) Jean-Paul Calderone 2008, All rights reserved
  *
  * Export pkey functions and data structure.
  * See the file RATIONALE for a short explanation of why this module was written.

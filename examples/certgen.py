@@ -1,10 +1,8 @@
 # -*- coding: latin-1 -*-
-# certgen.py
 #
 # Copyright (C) Martin Sjögren and AB Strakt 2001, All rights reserved
-#
-# $Id: certgen.py,v 1.2 2004/07/22 12:01:25 martin Exp $
-#
+# Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+
 """
 Certificate generation module.
 """
