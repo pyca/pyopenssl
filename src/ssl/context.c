@@ -498,7 +498,7 @@ ssl_Context_use_privatekey(ssl_ContextObj *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:use_privatekey", &pkey))
 	    return NULL;
 
-	if (strcmp(pkey->ob_type->tp_name, "PKey") != 0 || 
+	if (strcmp(pkey->ob_type->tp_name, "PKey") != 0 ||
 	    pkey->ob_type->tp_basicsize != sizeof(crypto_PKeyObj))
 	{
 	    PyErr_SetString(PyExc_TypeError, "Expected a PKey object");
