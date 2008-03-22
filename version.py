@@ -5,4 +5,4 @@
 pyOpenSSL - A simple wrapper around the OpenSSL library
 """
 
-__version__ = '0.7pre1'
+__version__ = '0.7a1'
