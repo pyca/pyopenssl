@@ -264,7 +264,6 @@ Load pkcs12 data from the string \var{buffer}. If the pkcs12 structure is
 encrypted, a \var{passphrase} must be included.
 \end{funcdesc}
 
-
 \subsubsection{X509 objects \label{openssl-x509}}
 
 X509 objects have the following methods:
@@ -382,6 +381,13 @@ Add the extensions in the sequence \var{extensions} to the certificate.
 \end{methoddesc}
 
 \subsubsection{X509Name objects \label{openssl-x509name}}
+
+X509Name objects have the following methods:
+
+\begin{methoddesc}[X509Name]{hash}{}
+Return an integer giving the first four bytes of the MD5 digest of the DER
+representation of the name.
+\end{methoddesc}
 
 X509Name objects have the following members:
 

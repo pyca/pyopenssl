@@ -336,6 +336,12 @@ setup.py --help
 
   3.1.2 X509Name objects
 
+   X509Name objects have the following methods:
+
+   hash()
+          Return an integer giving the first four bytes of the MD5 digest
+          of the DER representation of the name.
+
    X509Name objects have the following members:
 
    countryName

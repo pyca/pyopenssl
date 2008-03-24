@@ -60,9 +60,9 @@ The M2Crypto.SSL module does implement a lot of OpenSSL's functionality but
 unfortunately its error handling system does not seem to be finished,
 especially for non-blocking I/O.  I think that much of the reason for this
 is that M2Crypto<A NAME="tex2html1"
-  HREF="#foot922"><SUP>1</SUP></A> is
+  HREF="#foot926"><SUP>1</SUP></A> is
 developed using SWIG<A NAME="tex2html2"
-  HREF="#foot923"><SUP>2</SUP></A>.  This
+  HREF="#foot927"><SUP>2</SUP></A>.  This
 makes it awkward to create functions that e.g. can return both an integer and
 NULL since (as far as I know) you basically write C functions and SWIG makes
 wrapper functions that parses the Python argument list and calls your C
@@ -71,12 +71,12 @@ function, and finally transforms your return value to a Python object.
 <P>
 <BR><HR><H4>Footnotes</H4>
 <DL>
-<DT><A NAME="foot922">... M2Crypto</A><A
+<DT><A NAME="foot926">... M2Crypto</A><A
  href="intro.html#tex2html1"><SUP>1</SUP></A></DT>
 <DD>See <a class="url" href="http://www.post1.com/home/ngps/m2/">http://www.post1.com/home/ngps/m2/</a>
 
 </DD>
-<DT><A NAME="foot923">... SWIG</A><A
+<DT><A NAME="foot927">... SWIG</A><A
  href="intro.html#tex2html2"><SUP>2</SUP></A></DT>
 <DD>See <a class="url" href="http://swig.sourceforge.net/">http://swig.sourceforge.net/</a>
 
