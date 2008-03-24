@@ -265,6 +265,19 @@ class X509NameTests(TestCase, _Python23TestCaseHelper):
 
 
 
+    def test_hash(self):
+        """
+        L{X509Name.hash} returns an integer hash based on the value of the
+        name.
+        """
+        a = self._x509name(CN="foo")
+        b = self._x509name(CN="foo")
+        self.assertEqual(a.hash(), b.hash())
+        a.CN = "bar"
+        self.assertNotEqual(a.hash(), b.hash())
+
+
+
 class _PKeyInteractionTestsMixin:
     """
     Tests which involve another thing and a PKey.

@@ -13,6 +13,8 @@
 #define crypto_MODULE
 #include "crypto.h"
 
+static PyMethodDef crypto_X509Name_methods[];
+
 /*
  * Constructor for X509Name, never called by Python code directly
  *
@@ -129,8 +131,7 @@ crypto_X509Name_getattr(crypto_X509NameObj *self, char *name)
 
     if ((nid = OBJ_txt2nid(name)) == NID_undef)
     {
-        PyErr_SetString(PyExc_AttributeError, "No such attribute");
-        return NULL;
+        return Py_FindMethod(crypto_X509Name_methods, (PyObject *)self, name);
     }
 
     len = get_name_by_nid(self->x509_name, nid, &utf8string);
@@ -222,6 +223,33 @@ crypto_X509Name_repr(crypto_X509NameObj *self)
     }
 }
 
+static char crypto_X509Name_hash_doc[] = "\n\
+Return the has value of this name\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   None\n\
+";
+
+/*
+ * First four bytes of the MD5 digest of the DER form of an X509Name.
+ *
+ * Arguments: self - The X509Name object
+ * Returns:   An integer giving the hash.
+ */
+static PyObject *
+crypto_X509Name_hash(crypto_X509NameObj *self, PyObject* args)
+{
+    unsigned long hash;
+
+    if (!PyArg_ParseTuple(args, ":hash")) {
+        return NULL;
+    }
+    hash = X509_NAME_hash(self->x509_name);
+    return PyInt_FromLong(hash);
+}
+
+
 /*
  * Call the visitproc on all contained objects.
  *
@@ -274,6 +302,20 @@ crypto_X509Name_dealloc(crypto_X509NameObj *self)
     PyObject_GC_Del(self);
 }
 
+/*
+ * ADD_METHOD(name) expands to a correct PyMethodDef declaration
+ *   {  'name', (PyCFunction)crypto_X509_name, METH_VARARGS }
+ * for convenience
+ */
+#define ADD_METHOD(name)        \
+    { #name, (PyCFunction)crypto_X509Name_##name, METH_VARARGS, crypto_X509Name_##name##_doc }
+static PyMethodDef crypto_X509Name_methods[] =
+{
+    ADD_METHOD(hash),
+    { NULL, NULL }
+};
+#undef ADD_METHOD
+
 PyTypeObject crypto_X509Name_Type = {
     PyObject_HEAD_INIT(NULL)
     0,
@@ -295,12 +337,11 @@ PyTypeObject crypto_X509Name_Type = {
     NULL, /* getattro */
     NULL, /* setattro */
     NULL, /* as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
-    NULL, /* doc */
-    (traverseproc)crypto_X509Name_traverse,
-    (inquiry)crypto_X509Name_clear,
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC, /* tp_flags */
+    NULL, /* tp_doc */
+    (traverseproc)crypto_X509Name_traverse, /* tp_traverse */
+    (inquiry)crypto_X509Name_clear, /* tp_clear */
 };
-
 
 /*
  * Initialize the X509Name part of the crypto module
