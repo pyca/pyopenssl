@@ -431,3 +431,14 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin, _Python23TestCaseHelper):
         to it.
         """
         self._setBoundTest("After")
+
+
+    def test_digest(self):
+        """
+        L{X509.digest} returns a string giving ":"-separated hex-encoded words
+        of the digest of the certificate.
+        """
+        cert = X509()
+        self.assertEqual(
+            cert.digest("md5"),
+            "A8:EB:07:F8:53:25:0A:F2:56:05:C5:A5:C4:C4:C7:15")
