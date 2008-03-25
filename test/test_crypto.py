@@ -4,11 +4,14 @@
 Unit tests for L{OpenSSL.crypto}.
 """
 
+import os
+
 from unittest import TestCase
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
 from OpenSSL.crypto import X509Req, X509ReqType
+from OpenSSL.crypto import FILETYPE_PEM, load_certificate
 
 class _Python23TestCaseHelper:
     # Python 2.3 compatibility.
@@ -264,7 +267,6 @@ class X509NameTests(TestCase, _Python23TestCaseHelper):
                           self._x509name(CN="abc"))
 
 
-
     def test_hash(self):
         """
         L{X509Name.hash} returns an integer hash based on the value of the
@@ -444,6 +446,28 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin, _Python23TestCaseHelper):
         to it.
         """
         self._setBoundTest("After")
+
+
+    def test_get_notBefore(self):
+        """
+        L{X509Type.get_notBefore} returns a string in the format of an ASN1
+        GENERALIZEDTIME even for certificates which store it as UTCTIME
+        internally.
+        """
+        pem = os.path.join(os.path.split(__file__)[0], "server.pem")
+        cert = load_certificate(FILETYPE_PEM, file(pem, "r").read())
+        self.assertEqual(cert.get_notBefore(), "20080325190413Z")
+
+
+    def test_get_notAfter(self):
+        """
+        L{X509Type.get_notAfter} returns a string in the format of an ASN1
+        GENERALIZEDTIME even for certificates which store it as UTCTIME
+        internally.
+        """
+        pem = os.path.join(os.path.split(__file__)[0], "server.pem")
+        cert = load_certificate(FILETYPE_PEM, file(pem, "r").read())
+        self.assertEqual(cert.get_notAfter(), "20090325190413Z")
 
 
     def test_digest(self):

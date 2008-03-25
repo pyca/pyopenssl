@@ -443,7 +443,7 @@ _get_asn1_time(char *format, ASN1_TIME* timestamp, crypto_X509Obj *self, PyObjec
 		return PyString_FromString(timestamp->data);
 	} else {
 		ASN1_TIME_to_generalizedtime(timestamp, &gt_timestamp);
-		if (gt_timestamp != NULL) {
+		if (gt_timestamp == NULL) {
 			exception_from_error_queue();
 			return NULL;
 		} else {
