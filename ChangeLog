@@ -1,3 +1,7 @@
+2008-03-25  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* src/crypto/x509name.c: Add hash and der methods to X509Name.
+
 2008-03-12  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* Fix coding problems in examples/.  Remove keys and certificates
