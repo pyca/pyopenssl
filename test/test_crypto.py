@@ -4,8 +4,6 @@
 Unit tests for L{OpenSSL.crypto}.
 """
 
-import os
-
 from unittest import TestCase
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
@@ -369,6 +367,40 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin, _Python23TestCaseHelper):
     """
     Tests for L{OpenSSL.crypto.X509}.
     """
+    pemData = """
+-----BEGIN CERTIFICATE-----
+MIICfTCCAeYCAQEwDQYJKoZIhvcNAQEEBQAwgYYxCzAJBgNVBAYTAlVTMRkwFwYD
+VQQDExBweW9wZW5zc2wuc2YubmV0MREwDwYDVQQHEwhOZXcgWW9yazESMBAGA1UE
+ChMJUHlPcGVuU1NMMREwDwYDVQQIEwhOZXcgWW9yazEQMA4GCSqGSIb3DQEJARYB
+IDEQMA4GA1UECxMHVGVzdGluZzAeFw0wODAzMjUxOTA0MTNaFw0wOTAzMjUxOTA0
+MTNaMIGGMQswCQYDVQQGEwJVUzEZMBcGA1UEAxMQcHlvcGVuc3NsLnNmLm5ldDER
+MA8GA1UEBxMITmV3IFlvcmsxEjAQBgNVBAoTCVB5T3BlblNTTDERMA8GA1UECBMI
+TmV3IFlvcmsxEDAOBgkqhkiG9w0BCQEWASAxEDAOBgNVBAsTB1Rlc3RpbmcwgZ8w
+DQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBANp6Y17WzKSwBsUWkXdqg6tnXy8H8hA1
+msCMWpc+/2KJ4mbv5NyD6UD+/SqagQqulPbF/DFea9nAE0zhmHJELcM8gUTIlXv/
+cgDWnmK4xj8YkjVUiCdqKRAKeuzLG1pGmwwF5lGeJpXNxQn5ecR0UYSOWj6TTGXB
+9VyUMQzCClcBAgMBAAEwDQYJKoZIhvcNAQEEBQADgYEAmm0Vzvv1O91WLl2LnF2P
+q55LJdOnJbCCXIgxLdoVmvYAz1ZJq1eGKgKWI5QLgxiSzJLEU7KK//aVfiZzoCd5
+RipBiEEMEV4eAY317bHPwPP+4Bj9t0l8AsDLseC5vLRHgxrLEu3bn08DYx6imB5Q
+UBj849/xpszEM7BhwKE0GiQ=
+-----END CERTIFICATE-----
+-----BEGIN RSA PRIVATE KEY-----
+MIICXAIBAAKBgQDaemNe1syksAbFFpF3aoOrZ18vB/IQNZrAjFqXPv9iieJm7+Tc
+g+lA/v0qmoEKrpT2xfwxXmvZwBNM4ZhyRC3DPIFEyJV7/3IA1p5iuMY/GJI1VIgn
+aikQCnrsyxtaRpsMBeZRniaVzcUJ+XnEdFGEjlo+k0xlwfVclDEMwgpXAQIDAQAB
+AoGBALi0a7pMQqqgnriVAdpBVJveQtxSDVWi2/gZMKVZfzNheuSnv4amhtaKPKJ+
+CMZtHkcazsE2IFvxRN/kgato9H3gJqq8nq2CkdpdLNVKBoxiCtkLfutdY4SQLtoY
+USN7exk131pchsAJXYlR6mCW+ZP+E523cNwpPgsyKxVbmXSBAkEA9470fy2W0jFM
+taZFslpntKSzbvn6JmdtjtvWrM1bBaeeqFiGBuQFYg46VaCUaeRWYw02jmYAsDYh
+ZQavmXThaQJBAOHtlAQ0IJJEiMZr6vtVPH32fmbthSv1AUSYPzKqdlQrUnOXPQXu
+z70cFoLG1TvPF5rBxbOkbQ/s8/ka5ZjPfdkCQCeC7YsO36+UpsWnUCBzRXITh4AC
+7eYLQ/U1KUJTVF/GrQ/5cQrQgftwgecAxi9Qfmk4xqhbp2h4e0QAmS5I9WECQH02
+0QwrX8nxFeTytr8pFGezj4a4KVCdb2B3CL+p3f70K7RIo9d/7b6frJI6ZL/LHQf2
+UP4pKRDkgKsVDx7MELECQGm072/Z7vmb03h/uE95IYJOgY4nfmYs0QKA9Is18wUz
+DpjfE33p0Ha6GO1VZRIQoqE24F8o5oimy3BEjryFuw4=
+-----END RSA PRIVATE KEY-----
+"""
+
     def signable(self):
         """
         Create and return a new L{X509}.
@@ -465,8 +497,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin, _Python23TestCaseHelper):
         GENERALIZEDTIME even for certificates which store it as UTCTIME
         internally.
         """
-        pem = os.path.join(os.path.split(__file__)[0], "server.pem")
-        cert = load_certificate(FILETYPE_PEM, file(pem, "r").read())
+        cert = load_certificate(FILETYPE_PEM, self.pemData)
         self.assertEqual(cert.get_notBefore(), "20080325190413Z")
 
 
@@ -476,8 +507,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin, _Python23TestCaseHelper):
         GENERALIZEDTIME even for certificates which store it as UTCTIME
         internally.
         """
-        pem = os.path.join(os.path.split(__file__)[0], "server.pem")
-        cert = load_certificate(FILETYPE_PEM, file(pem, "r").read())
+        cert = load_certificate(FILETYPE_PEM, self.pemData)
         self.assertEqual(cert.get_notAfter(), "20090325190413Z")
 
 
