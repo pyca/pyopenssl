@@ -249,6 +249,30 @@ crypto_X509Name_hash(crypto_X509NameObj *self, PyObject* args)
     return PyInt_FromLong(hash);
 }
 
+static char crypto_X509Name_der_doc[] = "\n\
+Return the DER encodeing of this name\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   None\n\
+";
+
+/*
+ * Arguments: self - The X509Name object
+ * Returns:   The DER form of an X509Name.
+ */
+static PyObject *
+crypto_X509Name_der(crypto_X509NameObj *self, PyObject *args)
+{
+    if (!PyArg_ParseTuple(args, ":der")) {
+	return NULL;
+    }
+
+    i2d_X509_NAME(self->x509_name, 0);
+    return PyString_FromStringAndSize(self->x509_name->bytes->data,
+				      self->x509_name->bytes->length);
+}
+
 
 /*
  * Call the visitproc on all contained objects.
@@ -312,6 +336,7 @@ crypto_X509Name_dealloc(crypto_X509NameObj *self)
 static PyMethodDef crypto_X509Name_methods[] =
 {
     ADD_METHOD(hash),
+    ADD_METHOD(der),
     { NULL, NULL }
 };
 #undef ADD_METHOD

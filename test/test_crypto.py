@@ -279,6 +279,17 @@ class X509NameTests(TestCase, _Python23TestCaseHelper):
         self.assertNotEqual(a.hash(), b.hash())
 
 
+    def test_der(self):
+        """
+        L{X509Name.der} returns the DER encoded form of the name.
+        """
+        a = self._x509name(CN="foo", C="US")
+        self.assertEqual(
+            a.der(),
+            '0\x1b1\x0b0\t\x06\x03U\x04\x06\x13\x02US'
+            '1\x0c0\n\x06\x03U\x04\x03\x13\x03foo')
+
+
 
 class _PKeyInteractionTestsMixin:
     """
