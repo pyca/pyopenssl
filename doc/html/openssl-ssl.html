@@ -54,39 +54,39 @@ This module handles things specific to SSL. There are two objects defined:
 Context, Connection.
 
 <P>
-<dl><dt><b><a name='l2h-95'><tt>SSLv2_METHOD</tt></a></b>
+<dl><dt><b><a name='l2h-96'><tt>SSLv2_METHOD</tt></a></b>
 <dd>
-<dt><b><a name='l2h-109'><tt>SSLv3_METHOD</tt></a></b><dd>
-<dt><b><a name='l2h-110'><tt>SSLv23_METHOD</tt></a></b><dd>
-<dt><b><a name='l2h-111'><tt>TLSv1_METHOD</tt></a></b><dd>
+<dt><b><a name='l2h-110'><tt>SSLv3_METHOD</tt></a></b><dd>
+<dt><b><a name='l2h-111'><tt>SSLv23_METHOD</tt></a></b><dd>
+<dt><b><a name='l2h-112'><tt>TLSv1_METHOD</tt></a></b><dd>
 These constants represent the different SSL methods to use when creating a
 context object.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-96'><tt>VERIFY_NONE</tt></a></b>
+<dl><dt><b><a name='l2h-97'><tt>VERIFY_NONE</tt></a></b>
 <dd>
-<dt><b><a name='l2h-112'><tt>VERIFY_PEER</tt></a></b><dd>
-<dt><b><a name='l2h-113'><tt>VERIFY_FAIL_IF_NO_PEER_CERT</tt></a></b><dd>
+<dt><b><a name='l2h-113'><tt>VERIFY_PEER</tt></a></b><dd>
+<dt><b><a name='l2h-114'><tt>VERIFY_FAIL_IF_NO_PEER_CERT</tt></a></b><dd>
 These constants represent the verification mode used by the Context
 object's <tt class="method">set_verify</tt> method.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-97'><tt>FILETYPE_PEM</tt></a></b>
+<dl><dt><b><a name='l2h-98'><tt>FILETYPE_PEM</tt></a></b>
 <dd>
-<dt><b><a name='l2h-114'><tt>FILETYPE_ASN1</tt></a></b><dd>
+<dt><b><a name='l2h-115'><tt>FILETYPE_ASN1</tt></a></b><dd>
 File type constants used with the <tt class="method">use_certificate_file</tt> and
 <tt class="method">use_privatekey_file</tt> methods of Context objects.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-98'><tt>OP_SINGLE_DH_USE</tt></a></b>
+<dl><dt><b><a name='l2h-99'><tt>OP_SINGLE_DH_USE</tt></a></b>
 <dd>
-<dt><b><a name='l2h-115'><tt>OP_EPHEMERAL_RSA</tt></a></b><dd>
-<dt><b><a name='l2h-116'><tt>OP_NO_SSLv2</tt></a></b><dd>
-<dt><b><a name='l2h-117'><tt>OP_NO_SSLv3</tt></a></b><dd>
-<dt><b><a name='l2h-118'><tt>OP_NO_TLSv1</tt></a></b><dd>
+<dt><b><a name='l2h-116'><tt>OP_EPHEMERAL_RSA</tt></a></b><dd>
+<dt><b><a name='l2h-117'><tt>OP_NO_SSLv2</tt></a></b><dd>
+<dt><b><a name='l2h-118'><tt>OP_NO_SSLv3</tt></a></b><dd>
+<dt><b><a name='l2h-119'><tt>OP_NO_TLSv1</tt></a></b><dd>
 Constants used with <tt class="method">set_options</tt> of Context objects.
 <tt class="constant">OP_SINGLE_DH_USE</tt> means to always create a new key when using ephemeral
 Diffie-Hellman. <tt class="constant">OP_EPHEMERAL_RSA</tt> means to always use ephemeral RSA keys
@@ -97,13 +97,13 @@ handshake, but don't want to use SSLv2.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-99'><tt>ContextType</tt></a></b>
+<dl><dt><b><a name='l2h-100'><tt>ContextType</tt></a></b>
 <dd>
 A Python type object representing the Context object type.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-100'><tt class='function'>Context</tt></a></b>(<var>method</var>)
+<dl><dt><b><a name='l2h-101'><tt class='function'>Context</tt></a></b>(<var>method</var>)
 <dd>
 Factory function that creates a new Context object given an SSL method. The
 method should be <tt class="constant">SSLv2_METHOD</tt>, <tt class="constant">SSLv3_METHOD</tt>,
@@ -111,21 +111,21 @@ method should be <tt class="constant">SSLv2_METHOD</tt>, <tt class="constant">SS
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-101'><tt>ConnectionType</tt></a></b>
+<dl><dt><b><a name='l2h-102'><tt>ConnectionType</tt></a></b>
 <dd>
 A Python type object representing the Connection object type.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-102'><tt class='function'>Connection</tt></a></b>(<var>context, socket</var>)
+<dl><dt><b><a name='l2h-103'><tt class='function'>Connection</tt></a></b>(<var>context, socket</var>)
 <dd>
 Factory fucnction that creates a new Connection object given an SSL context and
 a socket <A NAME="tex2html5"
-  HREF="#foot951"><SUP>4</SUP></A> object.
+  HREF="#foot955"><SUP>4</SUP></A> object.
 </dl>
 
 <P>
-<dl><dt><b>exception <a name='l2h-103'><tt class='exception'>Error</tt></a></b>
+<dl><dt><b>exception <a name='l2h-104'><tt class='exception'>Error</tt></a></b>
 <dd>
 This exception is used as a base class for the other SSL-related
 exceptions, but may also be raised directly.
@@ -139,7 +139,7 @@ for more information.
 </dl>
 
 <P>
-<dl><dt><b>exception <a name='l2h-104'><tt class='exception'>ZeroReturnError</tt></a></b>
+<dl><dt><b>exception <a name='l2h-105'><tt class='exception'>ZeroReturnError</tt></a></b>
 <dd>
 This exception matches the error return code <code>SSL_ERROR_ZERO_RETURN</code>, and
 is raised when the SSL Connection has been closed. In SSL 3.0 and TLS 1.0, this
@@ -153,7 +153,7 @@ It may seem a little strange that this is an exception, but it does match an
 </dl>
 
 <P>
-<dl><dt><b>exception <a name='l2h-105'><tt class='exception'>WantReadError</tt></a></b>
+<dl><dt><b>exception <a name='l2h-106'><tt class='exception'>WantReadError</tt></a></b>
 <dd>
 The operation did not complete; the same I/O method should be called again
 later, with the same arguments. Any I/O method can lead to this since new
@@ -161,13 +161,13 @@ handshakes can occur at any time.
 </dl>
 
 <P>
-<dl><dt><b>exception <a name='l2h-106'><tt class='exception'>WantWriteError</tt></a></b>
+<dl><dt><b>exception <a name='l2h-107'><tt class='exception'>WantWriteError</tt></a></b>
 <dd>
 See <tt class="exception">WantReadError</tt>.
 </dl>
 
 <P>
-<dl><dt><b>exception <a name='l2h-107'><tt class='exception'>WantX509LookupError</tt></a></b>
+<dl><dt><b>exception <a name='l2h-108'><tt class='exception'>WantX509LookupError</tt></a></b>
 <dd>
 The operation did not complete because an application callback has asked to be
 called again. The I/O method should be called again later, with the same
@@ -176,7 +176,7 @@ callbacks in this version.
 </dl>
 
 <P>
-<dl><dt><b>exception <a name='l2h-108'><tt class='exception'>SysCallError</tt></a></b>
+<dl><dt><b>exception <a name='l2h-109'><tt class='exception'>SysCallError</tt></a></b>
 <dd>
 The <tt class="exception">SysCallError</tt> occurs when there's an I/O error and OpenSSL's
 error queue does not contain any information. This can mean two things: An
@@ -188,7 +188,7 @@ The parameter to the exception is always a pair <code>(<var>errnum</var>,
 <P>
 <BR><HR><H4>Footnotes</H4>
 <DL>
-<DT><A NAME="foot951">... socket</A><A
+<DT><A NAME="foot955">... socket</A><A
  href="openssl-ssl.html#tex2html5"><SUP>4</SUP></A></DT>
 <DD>Actually, all that is required is an object that
 <i>behaves</i> like a socket, you could even use files, even though it'd be
@@ -237,7 +237,7 @@ border="0" height="32"
 <b class="navlabel">Up:</b> <a class="sectref" href="openssl.html">3 OpenSSL  </A>
 <b class="navlabel">Next:</b> <a class="sectref" href="openssl-context.html">3.3.1 Context objects</A>
 <hr>
-<span class="release-info">Release 0.7a1.</span>
+<span class="release-info">Release 0.7a2.</span>
 </DIV>
 <!--End of Navigation Panel-->
 

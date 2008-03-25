@@ -342,6 +342,9 @@ setup.py --help
           Return an integer giving the first four bytes of the MD5 digest
           of the DER representation of the name.
 
+   der()
+          Return a string giving the DER representation of the name.
+
    X509Name objects have the following members:
 
    countryName
@@ -1008,4 +1011,4 @@ setup.py --help
                             Python OpenSSL Manual
      __________________________________________________________________
 
-   Release 0.7a1.
+   Release 0.7a2.
