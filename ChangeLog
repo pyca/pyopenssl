@@ -1,6 +1,9 @@
 2008-03-25  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* src/crypto/x509name.c: Add hash and der methods to X509Name.
+	* src/crypto/x509.c: Fix a bug in X509.get_notBefore and
+	  X509.get_notAfter preventing UTCTIME format timestamps from
+	  working.
 
 2008-03-12  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
