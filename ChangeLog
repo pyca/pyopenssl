@@ -1,3 +1,7 @@
+2008-03-26  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* src/crypto/x509name.c: Add X509Name.get_components
+
 2008-03-25  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* src/crypto/x509name.c: Add hash and der methods to X509Name.

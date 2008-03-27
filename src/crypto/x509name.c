@@ -274,6 +274,60 @@ crypto_X509Name_der(crypto_X509NameObj *self, PyObject *args)
 }
 
 
+static char crypto_X509Name_get_components_doc[] = "\n\
+Returns the split-up components of this name.\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   List of tuples (name, value).\n\
+";
+
+static PyObject *
+crypto_X509Name_get_components(crypto_X509NameObj *self, PyObject *args)
+{
+    int n, i;
+    X509_NAME *name = self->x509_name;
+    PyObject *list;
+
+    if (!PyArg_ParseTuple(args, ":get_components"))
+	return NULL;
+
+    n = X509_NAME_entry_count(name);
+    list = PyList_New(n);
+    for (i = 0; i < n; i++)
+    {
+	X509_NAME_ENTRY *ent;
+	ASN1_OBJECT *fname;
+	ASN1_STRING *fval;
+	int nid;
+	int l;
+	unsigned char buf[100];
+	unsigned char *str;
+	PyObject *tuple;
+
+	ent = X509_NAME_get_entry(name, i);
+
+	fname = X509_NAME_ENTRY_get_object(ent);
+	fval = X509_NAME_ENTRY_get_data(ent);
+
+	l = ASN1_STRING_length(fval);
+	str = ASN1_STRING_data(fval);
+
+	nid = OBJ_obj2nid(fname);
+
+	/* printf("fname is %s len=%d str=%s\n", OBJ_nid2sn(nid), l, str); */
+
+	tuple = PyTuple_New(2);
+	PyTuple_SetItem(tuple, 0, PyString_FromString(OBJ_nid2sn(nid)));
+	PyTuple_SetItem(tuple, 1, PyString_FromStringAndSize(str, l));
+
+	PyList_SetItem(list, i, tuple);
+    }
+
+    return list;
+}
+
+
 /*
  * Call the visitproc on all contained objects.
  *
@@ -337,6 +391,7 @@ static PyMethodDef crypto_X509Name_methods[] =
 {
     ADD_METHOD(hash),
     ADD_METHOD(der),
+    ADD_METHOD(get_components),
     { NULL, NULL }
 };
 #undef ADD_METHOD

@@ -288,6 +288,20 @@ class X509NameTests(TestCase, _Python23TestCaseHelper):
             '1\x0c0\n\x06\x03U\x04\x03\x13\x03foo')
 
 
+    def test_get_components(self):
+        """
+        L{X509Name.get_components} returns a C{list} of two-tuples of C{str}
+        giving the NIDs and associated values which make up the name.
+        """
+        a = self._x509name()
+        self.assertEqual(a.get_components(), [])
+        a.CN = "foo"
+        self.assertEqual(a.get_components(), [("CN", "foo")])
+        a.organizationalUnitName = "bar"
+        self.assertEqual(
+            a.get_components(),
+            [("CN", "foo"), ("OU", "bar")])
+
 
 class _PKeyInteractionTestsMixin:
     """

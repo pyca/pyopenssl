@@ -56,7 +56,7 @@ functions can block if the socket is in blocking mode, and then you want other
 Python threads to be able to do other things. The real trouble is if you've
 released the thread lock to do a potentially blocking operation, and the
 operation calls a callback. Then we must take the thread lock back<A NAME="tex2html6"
-  HREF="#foot970"><SUP>5</SUP></A>.
+  HREF="#foot974"><SUP>5</SUP></A>.
 
 <P>
 There are two solutions to the first problem, both of which are necessary. The
@@ -84,7 +84,7 @@ before calling a callback.
 <P>
 <BR><HR><H4>Footnotes</H4>
 <DL>
-<DT><A NAME="foot970">... back</A><A
+<DT><A NAME="foot974">... back</A><A
  href="callbacks.html#tex2html6"><SUP>5</SUP></A></DT>
 <DD>I'm
 not sure why this is necessary, but otherwise I get a segmentation violation on
