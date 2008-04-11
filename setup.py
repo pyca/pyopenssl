@@ -1,11 +1,12 @@
-# vim:fileencoding=UTF-8
 #
 # setup.py
 #
 # Copyright (C) AB Strakt 2001, All rights reserved
+# Copyright (C) Jean-Paul Calderone 2008, All rights reserved
 #
 # @(#) $Id: setup.py,v 1.28 2004/08/10 10:59:01 martin Exp $
 #
+
 """
 Installation script for the OpenSSL module
 """
@@ -82,7 +83,10 @@ setup(name='pyOpenSSL', version=__version__,
                      'OpenSSL.test.test_crypto',
                      'OpenSSL.test.test_ssl'],
       description = 'Python wrapper module around the OpenSSL library',
-      author = 'Martin Sjögren, AB Strakt', author_email = 'msjogren@gmail.com',
+      author = 'Martin Sjögren, AB Strakt',
+      author_email = 'msjogren@gmail.com',
+      maintainer = 'Jean-Paul Calderone',
+      maintainer_email = 'exarkun@twistedmatrix.com',
       url = 'http://pyopenssl.sourceforge.net/',
       license = 'LGPL',
       long_description = """\

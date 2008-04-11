@@ -1,3 +1,7 @@
+2008-04-11  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* Release 0.7
+
 2008-03-26  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* src/crypto/x509name.c: Add X509Name.get_components
