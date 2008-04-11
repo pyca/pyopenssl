@@ -1,5 +1,4 @@
-#
-# setup.py
+# -*- coding: utf-8 -*-
 #
 # Copyright (C) AB Strakt 2001, All rights reserved
 # Copyright (C) Jean-Paul Calderone 2008, All rights reserved
