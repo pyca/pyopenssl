@@ -1,3 +1,12 @@
+2008-04-26  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* src/ssl/context.c: Change global_passphrase_callback so that it
+	  acquires the GIL before invoking any CPython APIs and does not
+	  release it until after it is finished invoking all of them.
+	* test/test_crypto.py: Add tests for load_privatekey and
+	  dump_privatekey when a passphrase or a passphrase callback is
+	  supplied.
+
 2008-04-11  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* Release 0.7
@@ -102,7 +111,7 @@
 2004-07-19  Martin Sjögren  <msjogren@gmail.com>
 
 	* doc/pyOpenSSL.tex: Fix the errors regarding X509Name's field names.
-	
+
 2004-07-18  Martin Sjögren  <msjogren@gmail.com>
 
 	* examples/certgen.py: Fixed wrong attributes in doc string, thanks

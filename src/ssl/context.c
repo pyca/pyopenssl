@@ -51,7 +51,9 @@
  */
 
 /*
- * Globally defined passphrase callback.
+ * Globally defined passphrase callback.  This is called from OpenSSL
+ * internally.  The GIL will not be held when this function is invoked.  It
+ * must not be held when the function returns.
  *
  * Arguments: buf    - Buffer to store the returned passphrase in
  *            maxlen - Maximum length of the passphrase
@@ -64,49 +66,77 @@
 static int
 global_passphrase_callback(char *buf, int maxlen, int verify, void *arg)
 {
-    int len;
+    /*
+     * Initialize len here because we're always going to return it, and we
+     * might jump to the return before it gets initialized in any other way.
+     */
+    int len = 0;
     char *str;
     PyObject *argv, *ret = NULL;
     ssl_ContextObj *ctx = (ssl_ContextObj *)arg;
 
     /* The Python callback is called with a (maxlen,verify,userdata) tuple */
     argv = Py_BuildValue("(iiO)", maxlen, verify, ctx->passphrase_userdata);
-    if (ctx->tstate != NULL)
-    {
-        /* We need to get back our thread state before calling the callback */
-        MY_END_ALLOW_THREADS(ctx->tstate);
-        ret = PyEval_CallObject(ctx->passphrase_callback, argv);
-        MY_BEGIN_ALLOW_THREADS(ctx->tstate);
-    }
-    else
-    {
-        ret = PyEval_CallObject(ctx->passphrase_callback, argv);
-    }
+
+    /*
+     * GIL isn't held yet.  First things first - acquire it, or any Python API
+     * we invoke might segfault or blow up the sun.  The reverse will be done
+     * before returning.
+     */
+    MY_END_ALLOW_THREADS(ctx->tstate);
+
+    /*
+     * XXX Didn't check argv to see if it was NULL. -exarkun
+     */
+    ret = PyEval_CallObject(ctx->passphrase_callback, argv);
     Py_DECREF(argv);
 
-    if (ret == NULL)
-        return 0;
-
-    if (!PyObject_IsTrue(ret))
-    {
-        Py_DECREF(ret);
-	return 0;
+    if (ret == NULL) {
+        /*
+         * XXX The callback raised an exception.  At the very least, it should
+         * be printed out here.  An *actual* solution would be to raise it up
+         * through OpenSSL.  That might be a bit tricky, but it's probably
+         * possible. -exarkun
+         */
+        goto out;
     }
 
-    if (!PyString_Check(ret))
-    {
+    if (!PyObject_IsTrue(ret)) {
+        /*
+         * Returned "", or None, or something.  Treat it as no passphrase.
+         */
         Py_DECREF(ret);
-        return 0;
+	goto out;
+    }
+
+    if (!PyString_Check(ret)) {
+        /*
+         * XXX Returned something that wasn't a string.  This is bogus.  We
+         * should report an error or raise an exception (again, through OpenSSL
+         * - tricky). -exarkun
+         */
+        Py_DECREF(ret);
+        goto out;
     }
 
     len = PyString_Size(ret);
-    if (len > maxlen)
+    if (len > maxlen) {
+        /*
+         * XXX Returned more than we said they were allowed to return.  Report
+         * an error or raise an exception (tricky blah blah). -exarkun
+         */
         len = maxlen;
+    }
 
     str = PyString_AsString(ret);
     strncpy(buf, str, len);
     Py_XDECREF(ret);
 
+  out:
+    /*
+     * This function is returning into OpenSSL.  Release the GIL again.
+     */
+    MY_BEGIN_ALLOW_THREADS(ctx->tstate);
     return len;
 }
 
