@@ -12,10 +12,10 @@ from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, PKey, dump_privatekey, load_c
 from OpenSSL.SSL import WantReadError, Context, Connection
 from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
 
-from OpenSSL.test.test_crypto import cleartextCertificatePEM, cleartextPrivateKeyPEM
+from OpenSSL.test.test_crypto import _Python23TestCaseHelper, cleartextCertificatePEM, cleartextPrivateKeyPEM
 
 
-class ContextTests(TestCase):
+class ContextTests(TestCase, _Python23TestCaseHelper):
     """
     Unit tests for L{OpenSSL.SSL.Context}.
     """
