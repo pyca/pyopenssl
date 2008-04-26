@@ -694,6 +694,73 @@ static PyMethodDef crypto_methods[] = {
     { NULL, NULL }
 };
 
+
+#ifdef WITH_THREAD
+
+#include <pythread.h>
+
+/**
+ * This array will store all of the mutexes available to OpenSSL.
+ */
+static PyThread_type_lock *mutex_buf = NULL;
+
+
+/**
+ * Callback function supplied to OpenSSL to acquire or release a lock.
+ *
+ */
+static void locking_function(int mode, int n, const char * file, int line) {
+    if (mode & CRYPTO_LOCK) {
+        PyThread_acquire_lock(mutex_buf[n], WAIT_LOCK);
+    } else {
+        PyThread_release_lock(mutex_buf[n]);
+    }
+}
+
+
+/**
+ * Initialize OpenSSL for use from multiple threads.
+ *
+ * Returns: 0 if initialization fails, 1 otherwise.
+ */
+static int init_openssl_threads(void) {
+    int i;
+
+    mutex_buf = (PyThread_type_lock *)malloc(
+        CRYPTO_num_locks() * sizeof(PyThread_type_lock));
+    if (!mutex_buf) {
+        return 0;
+    }
+    for (i = 0; i < CRYPTO_num_locks(); ++i) {
+        mutex_buf[i] = PyThread_allocate_lock();
+    }
+    CRYPTO_set_id_callback(PyThread_get_thread_ident);
+    CRYPTO_set_locking_callback(locking_function);
+    return 1;
+}
+
+/* /\** */
+/*  * Clean up after OpenSSL thread initialization. */
+/*  *\/ */
+/* static int deinit_openssl_threads() { */
+/*     int i; */
+
+/*     if (!mutex_buf) { */
+/*         return 0; */
+/*     } */
+/*     CRYPTO_set_id_callback(NULL); */
+/*     CRYPTO_set_locking_callback(NULL); */
+/*     for (i = 0; i < CRYPTO_num_locks(); i++) { */
+/*         PyThread_free_lock(mutex_buf[i]); */
+/*     } */
+/*     free(mutex_buf); */
+/*     mutex_buf = NULL; */
+/*     return 1; */
+/* } */
+
+#endif
+
+
 /*
  * Initialize crypto sub module
  *
@@ -739,6 +806,10 @@ initcrypto(void)
     PyModule_AddIntConstant(module, "TYPE_DSA", crypto_TYPE_DSA);
 
     dict = PyModule_GetDict(module);
+#ifdef WITH_THREAD
+    if (!init_openssl_threads())
+        goto error;
+#endif
     if (!init_crypto_x509(dict))
         goto error;
     if (!init_crypto_x509name(dict))

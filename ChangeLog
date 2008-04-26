@@ -5,6 +5,9 @@
 	  invoking any CPython APIs and do not release it until after they
 	  are finished invoking all of them (based heavily on on patch
 	  from Dan Williams).
+	* src/ssl/crypto.c: Initialize OpenSSL thread support so that it
+	  is valid to use OpenSSL APIs from more than one thread (based on
+	  patch from Dan Williams).
 	* test/test_crypto.py: Add tests for load_privatekey and
 	  dump_privatekey when a passphrase or a passphrase callback is
 	  supplied.
