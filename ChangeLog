@@ -1,11 +1,15 @@
 2008-04-26  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
-	* src/ssl/context.c: Change global_passphrase_callback so that it
-	  acquires the GIL before invoking any CPython APIs and does not
-	  release it until after it is finished invoking all of them.
+	* src/ssl/context.c: Change global_passphrase_callback and
+	  global_info_callback so that they acquire the GIL before
+	  invoking any CPython APIs and do not release it until after they
+	  are finished invoking all of them (based heavily on on patch
+	  from Dan Williams).
 	* test/test_crypto.py: Add tests for load_privatekey and
 	  dump_privatekey when a passphrase or a passphrase callback is
 	  supplied.
+	* test/test_ssl.py: Add tests for Context.set_passwd_cb and
+	  Context.set_info_callback.
 
 2008-04-11  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 

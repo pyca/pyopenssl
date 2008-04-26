@@ -6,10 +6,13 @@ Unit tests for L{OpenSSL.SSL}.
 
 from unittest import TestCase
 from tempfile import mktemp
+from socket import socket
 
-from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, PKey, dump_privatekey
-from OpenSSL.SSL import Context
+from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, PKey, dump_privatekey, load_certificate, load_privatekey
+from OpenSSL.SSL import WantReadError, Context, Connection
 from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
+
+from OpenSSL.test.test_crypto import cleartextCertificatePEM, cleartextPrivateKeyPEM
 
 
 class ContextTests(TestCase):
@@ -69,3 +72,46 @@ class ContextTests(TestCase):
         self.assertTrue(isinstance(calledWith[0][0], int))
         self.assertTrue(isinstance(calledWith[0][1], int))
         self.assertEqual(calledWith[0][2], None)
+
+
+    def test_set_info_callback(self):
+        """
+        L{Context.set_info_callback} accepts a callable which will be invoked
+        when certain information about an SSL connection is available.
+        """
+        port = socket()
+        port.bind(('', 0))
+        port.listen(1)
+
+        client = socket()
+        client.setblocking(False)
+        client.connect_ex(port.getsockname())
+
+        clientSSL = Connection(Context(TLSv1_METHOD), client)
+        clientSSL.set_connect_state()
+
+        called = []
+        def info(conn, where, ret):
+            called.append((conn, where, ret))
+        context = Context(TLSv1_METHOD)
+        context.set_info_callback(info)
+        context.use_certificate(
+            load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
+        context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM))
+
+        server, ignored = port.accept()
+        server.setblocking(False)
+
+        serverSSL = Connection(context, server)
+        serverSSL.set_accept_state()
+
+        while not called:
+            for ssl in clientSSL, serverSSL:
+                try:
+                    ssl.do_handshake()
+                except WantReadError:
+                    pass
+
+        # Kind of lame.  Just make sure it got called somehow.
+        self.assertTrue(called)

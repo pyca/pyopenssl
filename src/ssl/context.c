@@ -75,15 +75,15 @@ global_passphrase_callback(char *buf, int maxlen, int verify, void *arg)
     PyObject *argv, *ret = NULL;
     ssl_ContextObj *ctx = (ssl_ContextObj *)arg;
 
-    /* The Python callback is called with a (maxlen,verify,userdata) tuple */
-    argv = Py_BuildValue("(iiO)", maxlen, verify, ctx->passphrase_userdata);
-
     /*
      * GIL isn't held yet.  First things first - acquire it, or any Python API
      * we invoke might segfault or blow up the sun.  The reverse will be done
      * before returning.
      */
     MY_END_ALLOW_THREADS(ctx->tstate);
+
+    /* The Python callback is called with a (maxlen,verify,userdata) tuple */
+    argv = Py_BuildValue("(iiO)", maxlen, verify, ctx->passphrase_userdata);
 
     /*
      * XXX Didn't check argv to see if it was NULL. -exarkun
@@ -157,19 +157,19 @@ global_verify_callback(int ok, X509_STORE_CTX *x509_ctx)
     ssl_ConnectionObj *conn;
     crypto_X509Obj *cert;
     int errnum, errdepth, c_ret, use_thread_state;
-        
+
     // Get Connection object to check thread state
     ssl = (SSL *)X509_STORE_CTX_get_app_data(x509_ctx);
     conn = (ssl_ConnectionObj *)SSL_get_app_data(ssl);
-    
+
     use_thread_state = conn->tstate != NULL;
     if (use_thread_state)
         MY_END_ALLOW_THREADS(conn->tstate);
-    
+
     cert = crypto_X509_New(X509_STORE_CTX_get_current_cert(x509_ctx), 0);
     errnum = X509_STORE_CTX_get_error(x509_ctx);
     errdepth = X509_STORE_CTX_get_error_depth(x509_ctx);
-    
+
     argv = Py_BuildValue("(OOiii)", (PyObject *)conn, (PyObject *)cert,
                                     errnum, errdepth, ok);
     Py_DECREF(cert);
@@ -190,7 +190,9 @@ global_verify_callback(int ok, X509_STORE_CTX *x509_ctx)
 }
 
 /*
- * Globally defined info callback
+ * Globally defined info callback.  This is called from OpenSSL internally.
+ * The GIL will not be held when this function is invoked.  It must not be held
+ * when the function returns.
  *
  * Arguments: ssl   - The Connection
  *            where - The part of the SSL code that called us
@@ -203,28 +205,30 @@ global_info_callback(SSL *ssl, int where, int _ret)
     ssl_ConnectionObj *conn = (ssl_ConnectionObj *)SSL_get_app_data(ssl);
     PyObject *argv, *ret;
 
+    /*
+     * GIL isn't held yet.  First things first - acquire it, or any Python API
+     * we invoke might segfault or blow up the sun.  The reverse will be done
+     * before returning.
+     */
+    MY_END_ALLOW_THREADS(conn->tstate);
+
     argv = Py_BuildValue("(Oii)", (PyObject *)conn, where, _ret);
-    if (conn->tstate != NULL)
-    {
-        /* We need to get back our thread state before calling the callback */
-        MY_END_ALLOW_THREADS(conn->tstate);
-        ret = PyEval_CallObject(conn->context->info_callback, argv);
-        if (ret == NULL)
-            PyErr_Clear();
-        else
-            Py_DECREF(ret);
-        MY_BEGIN_ALLOW_THREADS(conn->tstate);
-    }
-    else
-    {
-        ret = PyEval_CallObject(conn->context->info_callback, argv);
-        if (ret == NULL)
-            PyErr_Clear();
-        else
-            Py_DECREF(ret);
-    }
+    ret = PyEval_CallObject(conn->context->info_callback, argv);
     Py_DECREF(argv);
 
+    if (ret == NULL) {
+        /*
+         * XXX - This should be reported somehow. -exarkun
+         */
+        PyErr_Clear();
+    } else {
+        Py_DECREF(ret);
+    }
+
+    /*
+     * This function is returning into OpenSSL.  Release the GIL again.
+     */
+    MY_BEGIN_ALLOW_THREADS(conn->tstate);
     return;
 }
 
