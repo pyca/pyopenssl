@@ -566,7 +566,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin, _Python23TestCaseHelper):
 
 
 
-class FunctionTests(TestCase):
+class FunctionTests(TestCase, _Python23TestCaseHelper):
     """
     Tests for free-functions in the L{OpenSSL.crypto} module.
     """
