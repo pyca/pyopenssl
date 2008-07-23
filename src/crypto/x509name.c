@@ -301,7 +301,6 @@ crypto_X509Name_get_components(crypto_X509NameObj *self, PyObject *args)
 	ASN1_STRING *fval;
 	int nid;
 	int l;
-	unsigned char buf[100];
 	unsigned char *str;
 	PyObject *tuple;
 
