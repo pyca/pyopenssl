@@ -323,7 +323,7 @@ crypto_X509_get_pubkey(crypto_X509Obj *self, PyObject *args)
     if (py_pkey != NULL) {
 	py_pkey->only_public = 1;
     }
-    return py_pkey;
+    return (PyObject *)py_pkey;
 }
 
 static char crypto_X509_set_pubkey_doc[] = "\n\

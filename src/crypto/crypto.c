@@ -592,7 +592,7 @@ crypto_PKey(PyObject *spam, PyObject *args)
     if (py_pkey) {
 	py_pkey->initialized = 0;
     }
-    return py_pkey;
+    return (PyObject *)py_pkey;
 }
 
 static char crypto_X509Extension_doc[] = "\n\

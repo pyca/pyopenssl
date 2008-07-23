@@ -70,7 +70,7 @@ crypto_X509Req_get_pubkey(crypto_X509ReqObj *self, PyObject *args)
     if (py_pkey != NULL) {
 	py_pkey->only_public = 1;
     }
-    return py_pkey;
+    return (PyObject *)py_pkey;
 }
 
 static char crypto_X509Req_set_pubkey_doc[] = "\n\
