@@ -11,9 +11,6 @@
 #include <Python.h>
 #include "util.h"
 
-static char *CVSid = "@(#) $Id: util.c,v 1.5 2001/08/09 11:26:36 martin Exp $";
-
-
 /*
  * Flush OpenSSL's error queue and return a list of errors (a (library,
  * function, reason) string tuple)

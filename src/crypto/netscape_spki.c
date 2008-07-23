@@ -9,9 +9,6 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: netscape_spki.c,v 1.1 2004/08/09 13:41:25 martin Exp $";
-
-
 /*
  * Constructor for Nestcape_SPKI, never called by Python code directly
  *

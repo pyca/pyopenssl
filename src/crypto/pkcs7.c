@@ -11,8 +11,6 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: pkcs7.c,v 1.2 2002/07/09 12:55:13 martin Exp $";
-
 static char crypto_PKCS7_type_is_signed_doc[] = "\n\
 Check if this NID_pkcs7_signed object\n\
 \n\

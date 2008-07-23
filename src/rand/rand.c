@@ -25,8 +25,6 @@ PRNG management routines, thin wrappers.\n\
 See the file RATIONALE for a short explanation of why this module was written.\n\
 ";
 
-static char *CVSid = "@(#) $Id: rand.c,v 1.10 2002/07/08 11:06:01 martin Exp $";
-
 static char rand_add_doc[] = "\n\
 Add data with a given entropy to the PRNG\n\
 \n\

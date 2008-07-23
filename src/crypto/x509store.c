@@ -10,8 +10,6 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: x509store.c,v 1.9 2002/09/04 22:24:59 iko Exp $";
-
 static char crypto_X509Store_add_cert_doc[] = "\n\
 Add a certificate\n\
 \n\

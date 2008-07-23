@@ -14,8 +14,6 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: pkcs12.c,v 1.3 2003/01/09 17:08:32 martin Exp $";
-
 /* 
  * PKCS12 is a standard exchange format for digital certificates.  
  * See e.g. the OpenSSL homepage http://www.openssl.org/ for more information
