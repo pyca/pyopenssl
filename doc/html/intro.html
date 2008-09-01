@@ -49,36 +49,28 @@ border="0" height="32"
 </H1>
 
 <P>
-The reason this module exists at all is that the SSL support in the socket
-module in the Python 2.1 distribution (which is what we used, of course I
-cannot speak for later versions) is severely limited.
+The reason pyOpenSSL was created is that the SSL support in the socket module
+in Python 2.1 (the contemporary version of Python when the pyOpenSSL project
+was begun) was severely limited.  Other OpenSSL wrappers for Python at the time
+were also limited, though in different ways.  Unfortunately, Python's standard
+library SSL support has remained weak, although other packages (such as
+M2Crypto<A NAME="tex2html1"
+  HREF="#foot933"><SUP>1</SUP></A>)
+have made great advances and now equal or exceed pyOpenSSL's functionality.
 
 <P>
-When asking about SSL on the comp.lang.python newsgroup (or on
-python-list@python.org) people usually pointed you to the M2Crypto package.
-The M2Crypto.SSL module does implement a lot of OpenSSL's functionality but
-unfortunately its error handling system does not seem to be finished,
-especially for non-blocking I/O.  I think that much of the reason for this
-is that M2Crypto<A NAME="tex2html1"
-  HREF="#foot934"><SUP>1</SUP></A> is
-developed using SWIG<A NAME="tex2html2"
-  HREF="#foot935"><SUP>2</SUP></A>.  This
-makes it awkward to create functions that e.g. can return both an integer and
-NULL since (as far as I know) you basically write C functions and SWIG makes
-wrapper functions that parses the Python argument list and calls your C
-function, and finally transforms your return value to a Python object.
+The reason pyOpenSSL continues to be maintained is that there is a significant
+user community around it, as well as a large amount of software which depends
+on it.  It is a great benefit to many people for pyOpenSSL to continue to exist
+and advance.
 
 <P>
 <BR><HR><H4>Footnotes</H4>
 <DL>
-<DT><A NAME="foot934">... M2Crypto</A><A
+<DT><A NAME="foot933">...
+M2Crypto</A><A
  href="intro.html#tex2html1"><SUP>1</SUP></A></DT>
-<DD>See <a class="url" href="http://www.post1.com/home/ngps/m2/">http://www.post1.com/home/ngps/m2/</a>
-
-</DD>
-<DT><A NAME="foot935">... SWIG</A><A
- href="intro.html#tex2html2"><SUP>2</SUP></A></DT>
-<DD>See <a class="url" href="http://swig.sourceforge.net/">http://swig.sourceforge.net/</a>
+<DD>See <a class="url" href="http://chandlerproject.org/Projects/MeTooCrypto">http://chandlerproject.org/Projects/MeTooCrypto</a>
 
 </DD>
 </DL>
@@ -110,7 +102,7 @@ border="0" height="32"
 <b class="navlabel">Up:</b> <a class="sectref" HREF="pyOpenSSL.html">Python OpenSSL Manual</A>
 <b class="navlabel">Next:</b> <a class="sectref" href="building.html">2 Building and Installing</A>
 <hr>
-<span class="release-info">Release 0.7a2.</span>
+<span class="release-info">Release 0.7.</span>
 </DIV>
 <!--End of Navigation Panel-->
 

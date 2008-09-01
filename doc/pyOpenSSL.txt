@@ -33,21 +33,18 @@ Contents
 
                                  1 Introduction
 
-   The reason this module exists at all is that the SSL support in the
-   socket module in the Python 2.1 distribution (which is what we used, of
-   course I cannot speak for later versions) is severely limited.
+   The reason pyOpenSSL was created is that the SSL support in the socket
+   module in Python 2.1 (the contemporary version of Python when the
+   pyOpenSSL project was begun) was severely limited. Other OpenSSL
+   wrappers for Python at the time were also limited, though in different
+   ways. Unfortunately, Python's standard library SSL support has remained
+   weak, although other packages (such as M2Crypto^1) have made great
+   advances and now equal or exceed pyOpenSSL's functionality.
 
-   When asking about SSL on the comp.lang.python newsgroup (or on
-   python-list@python.org) people usually pointed you to the M2Crypto
-   package. The M2Crypto.SSL module does implement a lot of OpenSSL's
-   functionality but unfortunately its error handling system does not seem
-   to be finished, especially for non-blocking I/O. I think that much of
-   the reason for this is that M2Crypto^1 is developed using SWIG^2. This
-   makes it awkward to create functions that e.g. can return both an
-   integer and NULL since (as far as I know) you basically write C
-   functions and SWIG makes wrapper functions that parses the Python
-   argument list and calls your C function, and finally transforms your
-   return value to a Python object.
+   The reason pyOpenSSL continues to be maintained is that there is a
+   significant user community around it, as well as a large amount of
+   software which depends on it. It is a great benefit to many people for
+   pyOpenSSL to continue to exist and advance.
 
 
                            2 Building and Installing
@@ -501,7 +498,7 @@ setup.py --help
           see e.g. RFC 1750.
 
    egd(path[, bytes])
-          Query the Entropy Gathering Daemon^3 on socket path for bytes
+          Query the Entropy Gathering Daemon^2 on socket path for bytes
           bytes of random data and and uses add to seed the PRNG. The
           default value of bytes is 255.
 
@@ -588,7 +585,7 @@ setup.py --help
 
    Connection(context, socket)
           Factory fucnction that creates a new Connection object given an
-          SSL context and a socket ^4 object.
+          SSL context and a socket ^3 object.
 
    exception Error
           This exception is used as a base class for the other SSL-related
@@ -917,7 +914,7 @@ setup.py --help
    and then you want other Python threads to be able to do other things.
    The real trouble is if you've released the thread lock to do a
    potentially blocking operation, and the operation calls a callback.
-   Then we must take the thread lock back^5.
+   Then we must take the thread lock back^4.
 
    There are two solutions to the first problem, both of which are
    necessary. The first solution to use is if the C callback allows
@@ -994,20 +991,17 @@ setup.py --help
     Footnotes
 
    ... M2Crypto^1
-          See http://www.post1.com/home/ngps/m2/
+          See http://chandlerproject.org/Projects/MeTooCrypto
 
-   ... SWIG^2
-          See http://swig.sourceforge.net/
-
-   ... Daemon^3
+   ... Daemon^2
           See http://www.lothar.com/tech/crypto/
 
-   ... socket^4
+   ... socket^3
           Actually, all that is required is an object that behaves like a
           socket, you could even use files, even though it'd be tricky to
           get the handshakes right!
 
-   ... back^5
+   ... back^4
           I'm not sure why this is necessary, but otherwise I get a
           segmentation violation on PyEval_CallObject
      __________________________________________________________________
@@ -1015,4 +1009,4 @@ setup.py --help
                             Python OpenSSL Manual
      __________________________________________________________________
 
-   Release 0.7a2.
+   Release 0.7.
