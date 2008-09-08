@@ -280,7 +280,14 @@ ssl_Context_set_default_verify_paths(ssl_ContextObj *self, PyObject *args) {
         return NULL;
     }
 
-    SSL_CTX_set_default_verify_paths(self->ctx);
+    /*
+     * XXX Error handling for SSL_CTX_set_default_verify_paths is untested.
+     * -exarkun
+     */
+    if (!SSL_CTX_set_default_verify_paths(self->ctx)) {
+        exception_from_error_queue();
+        return NULL;
+    }
     Py_INCREF(Py_None);
     return Py_None;
 };
