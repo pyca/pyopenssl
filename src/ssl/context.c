@@ -241,18 +241,20 @@ chain\n\
 \n\
 Arguments: self - The Context object\n\
            args - The Python argument tuple, should be:\n\
-             cafile - Which file we can find the certificates\n\
+             cafile - In which file we can find the certificates\n\
+             capath - In which directory we can find the certificates\r\
 Returns:   None\n\
 ";
 static PyObject *
-ssl_Context_load_verify_locations(ssl_ContextObj *self, PyObject *args)
-{
-    char *cafile;
+ssl_Context_load_verify_locations(ssl_ContextObj *self, PyObject *args) {
+    char *cafile = NULL;
+    char *capath = NULL;
 
-    if (!PyArg_ParseTuple(args, "s:load_verify_locations", &cafile))
+    if (!PyArg_ParseTuple(args, "z|z:load_verify_locations", &cafile, &capath)) {
         return NULL;
+    }
 
-    if (!SSL_CTX_load_verify_locations(self->ctx, cafile, NULL))
+    if (!SSL_CTX_load_verify_locations(self->ctx, cafile, capath))
     {
         exception_from_error_queue();
         return NULL;
@@ -263,6 +265,22 @@ ssl_Context_load_verify_locations(ssl_ContextObj *self, PyObject *args)
         return Py_None;
     }
 }
+
+static char ssl_Context_set_default_verify_paths_doc[] = "\n\
+Use the platform-specific CA certificate locations\n\
+\n\
+Arguments: self - The Context object\n\
+           args - None\n\
+\n\
+Returns:   None\n\
+";
+static PyObject *
+ssl_Context_set_default_verify_paths(ssl_ContextObj *self, PyObject *args) {
+    SSL_CTX_set_default_verify_paths(self->ctx);
+    Py_INCREF(Py_None);
+    return Py_None;
+};
+
 
 static char ssl_Context_set_passwd_cb_doc[] = "\n\
 Set the passphrase callback\n\
@@ -955,6 +973,7 @@ ssl_Context_set_options(ssl_ContextObj *self, PyObject *args)
 static PyMethodDef ssl_Context_methods[] = {
     ADD_METHOD(load_verify_locations),
     ADD_METHOD(set_passwd_cb),
+    ADD_METHOD(set_default_verify_paths),
     ADD_METHOD(use_certificate_chain_file),
     ADD_METHOD(use_certificate_file),
     ADD_METHOD(use_certificate),
