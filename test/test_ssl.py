@@ -234,3 +234,14 @@ class ContextTests(TestCase, _Python23TestCaseHelper):
         clientSSL.do_handshake()
         clientSSL.send('GET / HTTP/1.0\r\n\r\n')
         self.assertTrue(clientSSL.recv(1024))
+
+
+    def test_set_default_verify_paths_signature(self):
+        """
+        L{Context.set_default_verify_paths} takes no arguments and raises
+        L{TypeError} if given any.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.set_default_verify_paths, None)
+        self.assertRaises(TypeError, context.set_default_verify_paths, 1)
+        self.assertRaises(TypeError, context.set_default_verify_paths, "")

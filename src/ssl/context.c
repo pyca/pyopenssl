@@ -276,6 +276,10 @@ Returns:   None\n\
 ";
 static PyObject *
 ssl_Context_set_default_verify_paths(ssl_ContextObj *self, PyObject *args) {
+    if (!PyArg_ParseTuple(args, ":set_default_verify_paths")) {
+        return NULL;
+    }
+
     SSL_CTX_set_default_verify_paths(self->ctx);
     Py_INCREF(Py_None);
     return Py_None;
