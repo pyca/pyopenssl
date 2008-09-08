@@ -9,7 +9,7 @@ from tempfile import mktemp
 from socket import socket
 
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, PKey, dump_privatekey, load_certificate, load_privatekey
-from OpenSSL.SSL import WantReadError, Context, Connection
+from OpenSSL.SSL import WantReadError, Context, Connection, Error
 from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
 from OpenSSL.SSL import VERIFY_PEER
 from OpenSSL.test.test_crypto import _Python23TestCaseHelper, cleartextCertificatePEM, cleartextPrivateKeyPEM
@@ -171,3 +171,13 @@ class ContextTests(TestCase, _Python23TestCaseHelper):
 
         cert = clientSSL.get_peer_certificate()
         self.assertEqual(cert.get_subject().CN, 'pyopenssl.sf.net')
+
+
+    def test_load_verify_invalid_file(self):
+        """
+        L{Context.load_verify_locations} raises L{Error} when passed a
+        non-existent cafile.
+        """
+        clientContext = Context(TLSv1_METHOD)
+        self.assertRaises(
+            Error, clientContext.load_verify_locations, self.mktemp())
