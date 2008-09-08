@@ -11,7 +11,7 @@ from socket import socket
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, PKey, dump_privatekey, load_certificate, load_privatekey
 from OpenSSL.SSL import WantReadError, Context, Connection
 from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
-
+from OpenSSL.SSL import VERIFY_PEER
 from OpenSSL.test.test_crypto import _Python23TestCaseHelper, cleartextCertificatePEM, cleartextPrivateKeyPEM
 
 
@@ -115,3 +115,59 @@ class ContextTests(TestCase, _Python23TestCaseHelper):
 
         # Kind of lame.  Just make sure it got called somehow.
         self.assertTrue(called)
+
+
+    def test_load_verify_file(self):
+        """
+        L{Context.load_verify_locations} accepts a file name and uses the
+        certificates within for verification purposes.
+        """
+        port = socket()
+        port.bind(('', 0))
+        port.listen(1)
+
+        client = socket()
+        client.setblocking(False)
+        client.connect_ex(port.getsockname())
+
+        cafile = self.mktemp()
+        fObj = file(cafile, 'w')
+        fObj.write(cleartextCertificatePEM)
+        fObj.close()
+
+        clientContext = Context(TLSv1_METHOD)
+        clientContext.load_verify_locations(cafile)
+        # Require that the server certificate verify properly or the
+        # connection will fail.
+        clientContext.set_verify(
+            VERIFY_PEER,
+            lambda conn, cert, errno, depth, preverify_ok: preverify_ok)
+
+        clientSSL = Connection(clientContext, client)
+        clientSSL.set_connect_state()
+
+        server, _ = port.accept()
+        server.setblocking(False)
+
+        serverContext = Context(TLSv1_METHOD)
+        serverContext.use_certificate(
+            load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
+        serverContext.use_privatekey(
+            load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM))
+
+        serverSSL = Connection(serverContext, server)
+        serverSSL.set_accept_state()
+
+        for i in range(3):
+            for ssl in clientSSL, serverSSL:
+                try:
+                    # Without load_verify_locations above, the handshake
+                    # will fail:
+                    # Error: [('SSL routines', 'SSL3_GET_SERVER_CERTIFICATE',
+                    #          'certificate verify failed')]
+                    ssl.do_handshake()
+                except WantReadError:
+                    pass
+
+        cert = clientSSL.get_peer_certificate()
+        self.assertEqual(cert.get_subject().CN, 'pyopenssl.sf.net')
