@@ -1,7 +1,7 @@
 %!PS-Adobe-2.0
 %%Creator: dvips(k) 5.96.1 Copyright 2007 Radical Eye Software
 %%Title: pyOpenSSL.dvi
-%%CreationDate: Mon Sep  1 12:05:06 2008
+%%CreationDate: Sun Sep  7 21:06:56 2008
 %%Pages: 15
 %%PageOrder: Ascend
 %%BoundingBox: 0 0 596 842
@@ -10,7 +10,7 @@
 %DVIPSWebPage: (www.radicaleye.com)
 %DVIPSCommandLine: dvips -N0 -o pyOpenSSL.ps pyOpenSSL
 %DVIPSParameters: dpi=600
-%DVIPSSource:  TeX output 2008.09.01:1205
+%DVIPSSource:  TeX output 2008.09.07:2106
 %%BeginProcSet: tex.pro 0 0
 %!
 /TeXDict 300 dict def TeXDict begin/N{def}def/B{bind def}N/S{exch}N/X{S
@@ -4569,7 +4569,7 @@ ifelse
 TeXDict begin 1 0 bop 0 83 3901 9 v 1890 451 a Fu(Python)64
 b(Op)5 b(enSSL)64 b(Manual)3443 619 y Ft(Release)33 b(0.7)3189
 974 y Fs(Ma)m(rtin)k(Sj\366gren)3231 1328 y Fr(Septem)n(b)r(er)28
-b(1,)f(2008)3301 1475 y Fq(ma)n(rtin@strakt.com)1781
+b(7,)f(2008)3301 1475 y Fq(ma)n(rtin@strakt.com)1781
 1697 y Fp(Abstract)208 1841 y Fo(This)32 b(mo)r(dule)f(is)h(a)g(rather)
 g(thin)f(wrapp)r(er)h(around)g(\(a)g(subset)f(of)6 b(\))32
 b(the)g(Op)r(enSSL)e(library)-6 b(.)52 b(With)32 b(thin)f(wrapp)r(er)
@@ -5174,377 +5174,384 @@ Fr(.)0 1169 y Fm(load_client_ca\()p Fd(p)l(em\034le)6
 b Fm(\))208 1268 y Fr(Read)33 b(a)g(\034le)h(with)g(PEM-formatted)g
 (certi\034cates)f(that)h(will)g(b)r(e)g(sen)n(t)f(to)h(the)g(clien)n(t)
 f(when)h(requesting)f(a)g(clien)n(t)208 1368 y(certi\034cate.)0
-1515 y Fm(load_verify_loca)o(ti)o(ons)o(\()p Fd(p)l(em\034le)6
-b Fm(\))208 1614 y Fr(Sp)r(ecify)24 b(where)f(CA)g(certi\034cates)g
-(for)g(v)n(eri\034cation)f(purp)r(oses)h(are)f(lo)r(cated.)35
-b(These)23 b(are)g(trusted)g(certi\034cates.)35 b(Note)208
-1714 y(that)27 b(the)h(certi\034cates)f(ha)n(v)n(e)f(to)i(b)r(e)g(in)g
-(PEM)g(format.)0 1861 y Fm(load_tmp_dh\()p Fd(dh\034le)6
-b Fm(\))208 1961 y Fr(Load)26 b(parameters)g(for)h(Ephemeral)g
-(Di\036e-Hellman)h(from)g Fd(dh\034le)6 b Fr(.)0 2107
-y Fm(set_app_data\()p Fd(data)g Fm(\))208 2207 y Fr(Asso)r(ciate)25
-b Fd(data)33 b Fr(with)27 b(this)f(Con)n(text)f(ob)5
-b(ject.)36 b Fd(data)e Fr(can)25 b(b)r(e)i(retriev)n(ed)d(later)i
-(using)f(the)i Fm(get_app_data)21 b Fr(metho)r(d.)0 2354
-y Fm(set_cipher_list\()o Fd(ciphers)7 b Fm(\))208 2454
-y Fr(Set)28 b(the)g(list)h(of)f(ciphers)f(to)h(b)r(e)g(used)g(in)g
+1515 y Fm(load_verify_loca)o(ti)o(ons)o(\()p Fd(p)l(em\034le,)24
+b(c)l(ap)l(ath)6 b Fm(\))208 1614 y Fr(Sp)r(ecify)24
+b(where)f(CA)g(certi\034cates)g(for)g(v)n(eri\034cation)f(purp)r(oses)h
+(are)f(lo)r(cated.)35 b(These)23 b(are)g(trusted)g(certi\034cates.)35
+b(Note)208 1714 y(that)c(the)g(certi\034cates)f(ha)n(v)n(e)f(to)i(b)r
+(e)g(in)g(PEM)h(format.)46 b(If)31 b(capath)f(is)h(passed,)f(it)i(m)n
+(ust)e(b)r(e)i(a)e(directory)f(prepared)208 1814 y(using)i(the)h
+Fm(c_rehash)c Fr(to)r(ol)j(included)h(with)g(Op)r(enSSL.)g(Either,)h
+(but)f(not)g(b)r(oth,)h(of)38 b Fd(p)l(em\034le)g Fr(or)31
+b Fd(c)l(ap)l(ath)39 b Fr(ma)n(y)31 b(b)r(e)208 1913
+y Fm(None)p Fr(.)0 2060 y Fm(set_default_veri)o(fy)o(_pa)o(th)o(s\()o
+(\))208 2160 y Fr(Sp)r(ecify)d(that)g(the)g(platform)f(pro)n(vided)f
+(CA)i(certi\034cates)f(are)f(to)i(b)r(e)g(used)f(for)g(v)n
+(eri\034cation)f(purp)r(oses.)0 2307 y Fm(load_tmp_dh\()p
+Fd(dh\034le)6 b Fm(\))208 2406 y Fr(Load)26 b(parameters)g(for)h
+(Ephemeral)g(Di\036e-Hellman)h(from)g Fd(dh\034le)6 b
+Fr(.)0 2553 y Fm(set_app_data\()p Fd(data)g Fm(\))208
+2653 y Fr(Asso)r(ciate)25 b Fd(data)33 b Fr(with)27 b(this)f(Con)n
+(text)f(ob)5 b(ject.)36 b Fd(data)e Fr(can)25 b(b)r(e)i(retriev)n(ed)d
+(later)i(using)f(the)i Fm(get_app_data)21 b Fr(metho)r(d.)0
+2800 y Fm(set_cipher_list\()o Fd(ciphers)7 b Fm(\))208
+2899 y Fr(Set)28 b(the)g(list)h(of)f(ciphers)f(to)h(b)r(e)g(used)g(in)g
 (this)h(con)n(text.)37 b(See)28 b(the)h(Op)r(enSSL)f(man)n(ual)f(for)h
-(more)f(information)g(\(e.g.)208 2553 y(ciphers\(1\)\))0
-2700 y Fm(set_info_callbac)o(k\()o Fd(c)l(al)t(lb)l(ack)9
-b Fm(\))208 2800 y Fr(Set)33 b(the)f(information)g(callbac)n(k)f(to)i
+(more)f(information)g(\(e.g.)208 2999 y(ciphers\(1\)\))0
+3146 y Fm(set_info_callbac)o(k\()o Fd(c)l(al)t(lb)l(ack)9
+b Fm(\))208 3245 y Fr(Set)33 b(the)f(information)g(callbac)n(k)f(to)i
 Fd(c)l(al)t(lb)l(ack)9 b Fr(.)54 b(This)32 b(function)h(will)g(b)r(e)g
 (called)f(from)g(time)h(to)g(time)g(during)f(SSL)208
-2899 y(handshak)n(es.)49 b Fd(c)l(al)t(lb)l(ack)43 b
+3345 y(handshak)n(es.)49 b Fd(c)l(al)t(lb)l(ack)43 b
 Fr(should)32 b(tak)n(e)g(three)g(argumen)n(ts:)45 b(a)32
 b(Connection)g(ob)5 b(ject)32 b(and)g(t)n(w)n(o)g(in)n(tegers.)50
-b(The)32 b(\034rst)208 2999 y(in)n(teger)f(sp)r(eci\034es)g(where)h(in)
+b(The)32 b(\034rst)208 3445 y(in)n(teger)f(sp)r(eci\034es)g(where)h(in)
 g(the)g(SSL)g(handshak)n(e)f(the)h(function)h(w)n(as)e(called,)h(and)g
-(the)g(other)g(the)g(return)f(co)r(de)208 3099 y(from)c(a)g(\(p)r
+(the)g(other)g(the)g(return)f(co)r(de)208 3544 y(from)c(a)g(\(p)r
 (ossibly)g(failed\))h(in)n(ternal)f(function)h(call.)0
-3245 y Fm(set_options\()p Fd(options)7 b Fm(\))208 3345
+3691 y Fm(set_options\()p Fd(options)7 b Fm(\))208 3791
 y Fr(A)n(dd)28 b(SSL)h(options.)38 b(Options)28 b(y)n(ou)f(ha)n(v)n(e)g
 (set)i(b)r(efore)f(are)f(not)h(cleared!)38 b(This)28
 b(metho)r(d)h(should)f(b)r(e)h(used)f(with)h(the)208
-3445 y Fm(OP_*)d Fr(constan)n(ts.)0 3591 y Fm(set_passwd_cb\()p
+3890 y Fm(OP_*)d Fr(constan)n(ts.)0 4037 y Fm(set_passwd_cb\()p
 Fd(c)l(al)t(lb)l(ack)9 b Fc([)p Fd(,)25 b(user)l(data)19
-b Fc(])p Fm(\))208 3691 y Fr(Set)42 b(the)g(passphrase)f(callbac)n(k)f
+b Fc(])p Fm(\))208 4137 y Fr(Set)42 b(the)g(passphrase)f(callbac)n(k)f
 (to)i Fd(c)l(al)t(lb)l(ack)9 b Fr(.)82 b(This)42 b(function)h(will)f(b)
 r(e)g(called)g(when)g(a)g(priv)-5 b(ate)42 b(k)n(ey)f(with)h(a)208
-3791 y(passphrase)37 b(is)i(loaded.)70 b Fd(c)l(al)t(lb)l(ack)50
+4237 y(passphrase)37 b(is)i(loaded.)70 b Fd(c)l(al)t(lb)l(ack)50
 b Fr(should)39 b(tak)n(e)f(a)g(b)r(o)r(olean)h(argumen)n(t)f
 Fd(r)l(ep)l(e)l(at)47 b Fr(and)39 b(an)f(arbitrary)f(argumen)n(t)208
-3890 y Fd(data)f Fr(and)28 b(return)g(the)h(passphrase)e(en)n(tered)h
+4336 y Fd(data)f Fr(and)28 b(return)g(the)h(passphrase)e(en)n(tered)h
 (b)n(y)g(the)h(user.)40 b(If)35 b Fd(r)l(ep)l(e)l(at)i
 Fr(is)28 b(true)h(then)g Fd(c)l(al)t(lb)l(ack)39 b Fr(should)29
-b(ask)f(for)g(the)208 3990 y(passphrase)j(t)n(wice)j(and)g(mak)n(e)f
+b(ask)f(for)g(the)208 4436 y(passphrase)j(t)n(wice)j(and)g(mak)n(e)f
 (sure)g(that)h(the)g(t)n(w)n(o)f(en)n(tries)g(are)g(equal.)55
 b(The)34 b Fd(data)41 b Fr(argumen)n(t)33 b(is)h(the)g
-Fd(user)l(data)208 4090 y Fr(v)-5 b(ariable)25 b(passed)h(to)h(the)g
+Fd(user)l(data)208 4535 y Fr(v)-5 b(ariable)25 b(passed)h(to)h(the)g
 Fm(set_passwd_cb)22 b Fr(metho)r(d.)37 b(If)27 b(an)g(error)e(o)r
 (ccurs,)h Fd(c)l(al)t(lb)l(ack)37 b Fr(should)27 b(return)f(a)h(false)f
-(v)-5 b(alue)208 4189 y(\(e.g.)36 b(an)28 b(empt)n(y)f(string\).)0
-4336 y Fm(set_session_id\()p Fd(n)o(ame)6 b Fm(\))208
-4436 y Fr(Set)33 b(the)h(con)n(text)f Fd(name)39 b Fr(within)34
+(v)-5 b(alue)208 4635 y(\(e.g.)36 b(an)28 b(empt)n(y)f(string\).)0
+4782 y Fm(set_session_id\()p Fd(n)o(ame)6 b Fm(\))208
+4882 y Fr(Set)33 b(the)h(con)n(text)f Fd(name)39 b Fr(within)34
 b(whic)n(h)f(a)g(session)f(can)h(b)r(e)h(reused)e(for)h(this)g(Con)n
-(text)g(ob)5 b(ject.)54 b(This)33 b(is)g(needed)208 4535
+(text)g(ob)5 b(ject.)54 b(This)33 b(is)g(needed)208 4981
 y(when)e(doing)g(session)g(resumption,)h(b)r(ecause)g(there)f(is)h(no)f
 (w)n(a)n(y)g(for)g(a)g(stored)g(session)f(to)i(kno)n(w)f(whic)n(h)g
-(Con)n(text)208 4635 y(ob)5 b(ject)27 b(it)h(is)f(asso)r(ciated)g
+(Con)n(text)208 5081 y(ob)5 b(ject)27 b(it)h(is)f(asso)r(ciated)g
 (with.)37 b Fd(name)d Fr(ma)n(y)27 b(b)r(e)h(an)n(y)e(binary)h(data.)0
-4782 y Fm(set_timeout\()p Fd(time)l(out)8 b Fm(\))208
-4882 y Fr(Set)29 b(the)g(timeout)h(for)e(newly)h(created)f(sessions)g
+5228 y Fm(set_timeout\()p Fd(time)l(out)8 b Fm(\))208
+5327 y Fr(Set)29 b(the)g(timeout)h(for)e(newly)h(created)f(sessions)g
 (for)h(this)g(Con)n(text)g(ob)5 b(ject)28 b(to)h Fd(time)l(out)8
-b Fr(.)41 b Fd(time)l(out)36 b Fr(m)n(ust)29 b(b)r(e)h(giv)n(en)208
-4981 y(in)f(\(whole\))f(seconds.)40 b(The)29 b(default)g(v)-5
-b(alue)28 b(is)h(300)e(seconds.)40 b(See)29 b(the)g(Op)r(enSSL)g(man)n
-(ual)f(for)g(more)g(information)208 5081 y(\(e.g.)36
-b(SSL_CTX_set_timeout\(3\)\).)0 5228 y Fm(set_verify\()p
-Fd(mo)l(de,)26 b(c)l(al)t(lb)l(ack)9 b Fm(\))208 5327
-y Fr(Set)36 b(the)h(v)n(eri\034cation)e(\035ags)g(for)h(this)h(Con)n
-(text)f(ob)5 b(ject)36 b(to)g Fd(mo)l(de)44 b Fr(and)36
-b(sp)r(ecify)g(that)h Fd(c)l(al)t(lb)l(ack)47 b Fr(should)36
-b(b)r(e)h(used)p 0 5549 3901 4 v 0 5649 a Fg(3.3)82 b
-Fm(SSL)26 b Fg(\026)i(An)g(interface)g(to)f(the)g(SSL-sp)r(eci\034c)h
-(pa)n(rts)f(of)h(Op)r(enSSL)1611 b(11)p eop end
+b Fr(.)41 b Fd(time)l(out)36 b Fr(m)n(ust)29 b(b)r(e)h(giv)n(en)p
+0 5549 3901 4 v 0 5649 a Fg(3.3)82 b Fm(SSL)26 b Fg(\026)i(An)g
+(interface)g(to)f(the)g(SSL-sp)r(eci\034c)h(pa)n(rts)f(of)h(Op)r(enSSL)
+1611 b(11)p eop end
 %%Page: 12 12
-TeXDict begin 12 11 bop 208 83 a Fr(for)30 b(v)n(eri\034cation)g
+TeXDict begin 12 11 bop 208 83 a Fr(in)29 b(\(whole\))f(seconds.)40
+b(The)29 b(default)g(v)-5 b(alue)28 b(is)h(300)e(seconds.)40
+b(See)29 b(the)g(Op)r(enSSL)g(man)n(ual)f(for)g(more)g(information)208
+183 y(\(e.g.)36 b(SSL_CTX_set_timeout\(3\)\).)0 330 y
+Fm(set_verify\()p Fd(mo)l(de,)26 b(c)l(al)t(lb)l(ack)9
+b Fm(\))208 429 y Fr(Set)36 b(the)h(v)n(eri\034cation)e(\035ags)g(for)h
+(this)h(Con)n(text)f(ob)5 b(ject)36 b(to)g Fd(mo)l(de)44
+b Fr(and)36 b(sp)r(ecify)g(that)h Fd(c)l(al)t(lb)l(ack)47
+b Fr(should)36 b(b)r(e)h(used)208 529 y(for)30 b(v)n(eri\034cation)g
 (callbac)n(ks.)45 b Fd(mo)l(de)38 b Fr(should)31 b(b)r(e)h(one)e(of)38
 b Fm(VERIFY_NONE)26 b Fr(and)31 b Fm(VERIFY_PEER)p Fr(.)c(If)38
-b Fm(VERIFY_PEER)26 b Fr(is)208 183 y(used,)j Fd(mo)l(de)36
+b Fm(VERIFY_PEER)26 b Fr(is)208 628 y(used,)j Fd(mo)l(de)36
 b Fr(can)29 b(b)r(e)g(OR:ed)g(with)g Fm(VERIFY_FAIL_IF_NO)o(_P)o(EE)o
 (R_C)o(ER)o(T)23 b Fr(and)29 b Fm(VERIFY_CLIENT_O)o(NCE)22
-b Fr(to)29 b(further)208 282 y(con)n(trol)23 b(the)j(b)r(eha)n(viour.)
+b Fr(to)29 b(further)208 728 y(con)n(trol)23 b(the)j(b)r(eha)n(viour.)
 34 b Fd(c)l(al)t(lb)l(ack)i Fr(should)25 b(tak)n(e)f(\034v)n(e)h
 (argumen)n(ts:)34 b(A)25 b(Connection)g(ob)5 b(ject,)25
-b(an)g(X509)f(ob)5 b(ject,)25 b(and)208 382 y(three)e(in)n(teger)g(v)-5
+b(an)g(X509)f(ob)5 b(ject,)25 b(and)208 828 y(three)e(in)n(teger)g(v)-5
 b(ariables,)23 b(whic)n(h)h(are)f(in)h(turn)g(p)r(oten)n(tial)g(error)d
 (n)n(um)n(b)r(er,)k(error)c(depth)k(and)f(return)f(co)r(de.)35
-b Fd(c)l(al)t(lb)l(ack)208 482 y Fr(should)27 b(return)g(true)g(if)h(v)
+b Fd(c)l(al)t(lb)l(ack)208 927 y Fr(should)27 b(return)g(true)g(if)h(v)
 n(eri\034cation)f(passes)f(and)h(false)h(otherwise.)0
-628 y Fm(set_verify_depth)o(\()p Fd(depth)6 b Fm(\))208
-728 y Fr(Set)36 b(the)g(maxim)n(um)f(depth)h(for)g(the)g(certi\034cate)
-f(c)n(hain)g(v)n(eri\034cation)f(that)i(shall)f(b)r(e)h(allo)n(w)n(ed)e
-(for)i(this)f(Con)n(text)208 828 y(ob)5 b(ject.)0 975
-y Fm(use_certificate\()o Fd(c)l(ert)j Fm(\))208 1074
-y Fr(Use)27 b(the)h(certi\034cate)f Fd(c)l(ert)35 b Fr(whic)n(h)28
-b(has)f(to)g(b)r(e)h(a)f(X509)g(ob)5 b(ject.)0 1221 y
-Fm(add_extra_chain_)o(ce)o(rt\()o Fd(c)l(ert)j Fm(\))208
-1321 y Fr(A)n(dds)32 b(the)h(certi\034cate)f Fd(c)l(ert)8
-b Fr(,)34 b(whic)n(h)f(has)f(to)g(b)r(e)i(a)e(X509)f(ob)5
+1074 y Fm(set_verify_depth)o(\()p Fd(depth)6 b Fm(\))208
+1174 y Fr(Set)36 b(the)g(maxim)n(um)f(depth)h(for)g(the)g
+(certi\034cate)f(c)n(hain)g(v)n(eri\034cation)f(that)i(shall)f(b)r(e)h
+(allo)n(w)n(ed)e(for)i(this)f(Con)n(text)208 1273 y(ob)5
+b(ject.)0 1420 y Fm(use_certificate\()o Fd(c)l(ert)j
+Fm(\))208 1520 y Fr(Use)27 b(the)h(certi\034cate)f Fd(c)l(ert)35
+b Fr(whic)n(h)28 b(has)f(to)g(b)r(e)h(a)f(X509)g(ob)5
+b(ject.)0 1667 y Fm(add_extra_chain_)o(ce)o(rt\()o Fd(c)l(ert)j
+Fm(\))208 1766 y Fr(A)n(dds)32 b(the)h(certi\034cate)f
+Fd(c)l(ert)8 b Fr(,)34 b(whic)n(h)f(has)f(to)g(b)r(e)i(a)e(X509)f(ob)5
 b(ject,)34 b(to)f(the)g(certi\034cate)f(c)n(hain)g(presen)n(ted)g
-(together)208 1420 y(with)c(the)g(certi\034cate.)0 1567
+(together)208 1866 y(with)c(the)g(certi\034cate.)0 2013
 y Fm(use_certificate_)o(ch)o(ain)o(_f)o(il)o(e\()p Fd(\034)o(le)6
-b Fm(\))208 1667 y Fr(Load)26 b(a)h(certi\034cate)g(c)n(hain)g(from)h
+b Fm(\))208 2113 y Fr(Load)26 b(a)h(certi\034cate)g(c)n(hain)g(from)h
 Fd(\034le)34 b Fr(whic)n(h)27 b(m)n(ust)h(b)r(e)g(PEM)g(enco)r(ded.)0
-1814 y Fm(use_privatekey\()p Fd(pkey)7 b Fm(\))208 1913
+2259 y Fm(use_privatekey\()p Fd(pkey)7 b Fm(\))208 2359
 y Fr(Use)27 b(the)h(priv)-5 b(ate)27 b(k)n(ey)h Fd(pkey)36
 b Fr(whic)n(h)28 b(has)f(to)g(b)r(e)h(a)f(PKey)h(ob)5
-b(ject.)0 2075 y Fm(use_certificate_)o(fi)o(le\()o Fd(\034le)h
-Fc([)p Fd(,)24 b(format)d Fc(])p Fm(\))208 2174 y Fr(Load)i(the)h
+b(ject.)0 2520 y Fm(use_certificate_)o(fi)o(le\()o Fd(\034le)h
+Fc([)p Fd(,)24 b(format)d Fc(])p Fm(\))208 2620 y Fr(Load)i(the)h
 (\034rst)g(certi\034cate)f(found)h(in)h Fd(\034le)6 b
 Fr(.)36 b(The)24 b(certi\034cate)f(m)n(ust)h(b)r(e)h(in)f(the)g(format)
 g(sp)r(eci\034ed)g(b)n(y)h Fd(format)8 b Fr(,)25 b(whic)n(h)208
-2274 y(is)i(either)g Fm(FILETYPE_PEM)c Fr(or)k Fm(FILETYPE_ASN1)p
+2720 y(is)i(either)g Fm(FILETYPE_PEM)c Fr(or)k Fm(FILETYPE_ASN1)p
 Fr(.)k(The)d(default)g(is)f Fm(FILETYPE_PEM)p Fr(.)0
-2421 y Fm(use_privatekey_f)o(il)o(e\()p Fd(\034)o(le)6
-b Fc([)p Fd(,)25 b(format)20 b Fc(])p Fm(\))208 2520
+2866 y Fm(use_privatekey_f)o(il)o(e\()p Fd(\034)o(le)6
+b Fc([)p Fd(,)25 b(format)20 b Fc(])p Fm(\))208 2966
 y Fr(Load)31 b(the)h(\034rst)g(priv)-5 b(ate)31 b(k)n(ey)g(found)i(in)f
 Fd(\034le)6 b Fr(.)50 b(The)32 b(priv)-5 b(ate)32 b(k)n(ey)f(m)n(ust)h
 (b)r(e)g(in)h(the)f(format)f(sp)r(eci\034ed)i(b)n(y)f
-Fd(format)8 b Fr(,)208 2620 y(whic)n(h)27 b(is)g(either)h
+Fd(format)8 b Fr(,)208 3066 y(whic)n(h)27 b(is)g(either)h
 Fm(FILETYPE_PEM)22 b Fr(or)27 b Fm(FILETYPE_ASN1)p Fr(.)32
-b(The)27 b(default)h(is)g Fm(FILETYPE_PEM)p Fr(.)0 2876
-y Fg(Connection)e(objects)0 3077 y Fr(Connection)h(ob)5
+b(The)27 b(default)h(is)g Fm(FILETYPE_PEM)p Fr(.)0 3329
+y Fg(Connection)e(objects)0 3529 y Fr(Connection)h(ob)5
 b(jects)27 b(ha)n(v)n(e)f(the)i(follo)n(wing)f(metho)r(ds:)0
-3224 y Fm(accept\(\))208 3323 y Fr(Call)33 b(the)g Fm(accept)e
+3676 y Fm(accept\(\))208 3776 y Fr(Call)33 b(the)g Fm(accept)e
 Fr(metho)r(d)j(of)f(the)h(underlying)f(so)r(c)n(k)n(et)f(and)h(set)h
 (up)g(SSL)f(on)g(the)h(returned)f(so)r(c)n(k)n(et,)h(using)f(the)208
-3423 y(Con)n(text)22 b(ob)5 b(ject)22 b(supplied)h(to)f(this)h
+3875 y(Con)n(text)22 b(ob)5 b(ject)22 b(supplied)h(to)f(this)h
 (Connection)f(ob)5 b(ject)22 b(at)h(creation.)34 b(Returns)22
 b(a)g(pair)g Fm(\()p Fd(c)l(onn)6 b Fm(,)43 b Fd(addr)l(ess)7
-b Fm(\))p Fr(.)36 b(where)208 3523 y Fd(c)l(onn)d Fr(is)28
+b Fm(\))p Fr(.)36 b(where)208 3975 y Fd(c)l(onn)d Fr(is)28
 b(the)g(new)f(Connection)g(ob)5 b(ject)28 b(created,)e(and)i
 Fd(addr)l(ess)35 b Fr(is)28 b(as)f(returned)g(b)n(y)g(the)h(so)r(c)n(k)
-n(et's)e Fm(accept)p Fr(.)0 3669 y Fm(bind\()p Fd(addr)l(ess)7
-b Fm(\))208 3769 y Fr(Call)27 b(the)h Fm(bind)e Fr(metho)r(d)i(of)f
-(the)h(underlying)f(so)r(c)n(k)n(et.)0 3916 y Fm(close\(\))208
-4016 y Fr(Call)i(the)h Fm(close)e Fr(metho)r(d)i(of)g(the)g(underlying)
+n(et's)e Fm(accept)p Fr(.)0 4122 y Fm(bind\()p Fd(addr)l(ess)7
+b Fm(\))208 4221 y Fr(Call)27 b(the)h Fm(bind)e Fr(metho)r(d)i(of)f
+(the)h(underlying)f(so)r(c)n(k)n(et.)0 4368 y Fm(close\(\))208
+4468 y Fr(Call)i(the)h Fm(close)e Fr(metho)r(d)i(of)g(the)g(underlying)
 f(so)r(c)n(k)n(et.)43 b(Note:)e(If)31 b(y)n(ou)e(w)n(an)n(t)g(correct)f
-(SSL)i(closure,)f(y)n(ou)g(need)h(to)208 4115 y(call)d(the)h
-Fm(shutdown)c Fr(metho)r(d)k(\034rst.)0 4262 y Fm(connect\()p
-Fd(addr)l(ess)7 b Fm(\))208 4362 y Fr(Call)31 b(the)h
+(SSL)i(closure,)f(y)n(ou)g(need)h(to)208 4567 y(call)d(the)h
+Fm(shutdown)c Fr(metho)r(d)k(\034rst.)0 4714 y Fm(connect\()p
+Fd(addr)l(ess)7 b Fm(\))208 4814 y Fr(Call)31 b(the)h
 Fm(connect)e Fr(metho)r(d)i(of)g(the)g(underlying)g(so)r(c)n(k)n(et)e
 (and)i(set)g(up)g(SSL)h(on)e(the)i(so)r(c)n(k)n(et,)f(using)f(the)h
-(Con)n(text)208 4461 y(ob)5 b(ject)27 b(supplied)h(to)f(this)h
-(Connection)f(ob)5 b(ject)27 b(at)h(creation.)0 4608
-y Fm(connect_ex\()p Fd(addr)l(ess)7 b Fm(\))208 4708
+(Con)n(text)208 4914 y(ob)5 b(ject)27 b(supplied)h(to)f(this)h
+(Connection)f(ob)5 b(ject)27 b(at)h(creation.)0 5060
+y Fm(connect_ex\()p Fd(addr)l(ess)7 b Fm(\))208 5160
 y Fr(Call)24 b(the)g Fm(connect_ex)c Fr(metho)r(d)25
 b(of)f(the)h(underlying)f(so)r(c)n(k)n(et)f(and)h(set)g(up)h(SSL)f(on)g
 (the)h(so)r(c)n(k)n(et,)f(using)g(the)g(Con)n(text)208
-4807 y(ob)5 b(ject)35 b(supplied)g(to)h(this)f(Connection)g(ob)5
+5260 y(ob)5 b(ject)35 b(supplied)g(to)h(this)f(Connection)g(ob)5
 b(ject)36 b(at)f(creation.)59 b(Note)36 b(that)f(if)h(the)g
-Fm(connect_ex)31 b Fr(metho)r(d)36 b(of)g(the)208 4907
+Fm(connect_ex)31 b Fr(metho)r(d)36 b(of)g(the)208 5359
 y(so)r(c)n(k)n(et)26 b(do)r(esn't)i(return)f(0,)g(SSL)h(w)n(on't)f(b)r
-(e)h(initialized.)0 5054 y Fm(do_handshake\(\))208 5154
-y Fr(P)n(erform)49 b(an)h(SSL)g(handshak)n(e)f(\(usually)h(called)g
-(after)f Fm(renegotiate)d Fr(or)j(one)h(of)57 b Fm(set_accept_stat)o(e)
-44 b Fr(or)208 5253 y Fm(set_accept_stat)o(e)p Fr(\).)31
-b(This)d(can)f(raise)f(the)i(same)f(exceptions)g(as)g
-Fm(send)f Fr(and)h Fm(recv)p Fr(.)0 5400 y Fm(fileno\(\))p
-0 5549 3901 4 v 0 5649 a Fg(12)2197 b(3)83 b Fm(OpenSSL)24
-b Fg(\026)k(Python)f(interface)h(to)f(Op)r(enSSL)p eop
-end
+(e)h(initialized.)p 0 5549 3901 4 v 0 5649 a Fg(12)2197
+b(3)83 b Fm(OpenSSL)24 b Fg(\026)k(Python)f(interface)h(to)f(Op)r
+(enSSL)p eop end
 %%Page: 13 13
-TeXDict begin 13 12 bop 208 83 a Fr(Retriev)n(e)26 b(the)i(\034le)g
-(descriptor)e(n)n(um)n(b)r(er)i(for)f(the)h(underlying)e(so)r(c)n(k)n
-(et.)0 230 y Fm(listen\()p Fd(b)l(acklo)l(g)7 b Fm(\))208
-330 y Fr(Call)27 b(the)h Fm(listen)d Fr(metho)r(d)j(of)f(the)h
-(underlying)f(so)r(c)n(k)n(et.)0 476 y Fm(get_app_data\(\))208
-576 y Fr(Retriev)n(e)f(application)h(data)g(as)g(set)h(b)n(y)g
-Fm(set_app_data)p Fr(.)0 723 y Fm(get_cipher_list\()o(\))208
-823 y Fr(Retriev)n(e)23 b(the)h(list)g(of)g(ciphers)g(used)g(b)n(y)f
-(the)i(Connection)e(ob)5 b(ject.)36 b(W)-9 b(ARNING:)25
-b(This)f(API)h(has)e(c)n(hanged.)35 b(It)24 b(used)208
-922 y(to)j(tak)n(e)g(an)g(optional)g(parameter)f(and)h(just)h(return)g
-(a)f(string,)g(but)h(not)f(it)h(returns)f(the)h(en)n(tire)f(list)h(in)g
-(one)f(go.)0 1069 y Fm(get_context\(\))208 1169 y Fr(Retriev)n(e)f(the)
-i(Con)n(text)f(ob)5 b(ject)28 b(asso)r(ciated)e(with)i(this)g
-(Connection.)0 1316 y Fm(get_peer_certifi)o(ca)o(te\()o(\))208
-1415 y Fr(Retriev)n(e)e(the)i(other)f(side's)g(certi\034cate)g(\(if)i
-(an)n(y\))0 1562 y Fm(getpeername\(\))208 1662 y Fr(Call)e(the)h
-Fm(getpeername)23 b Fr(metho)r(d)28 b(of)f(the)h(underlying)f(so)r(c)n
-(k)n(et.)0 1808 y Fm(getsockname\(\))208 1908 y Fr(Call)g(the)h
+TeXDict begin 13 12 bop 0 83 a Fm(do_handshake\(\))208
+183 y Fr(P)n(erform)49 b(an)h(SSL)g(handshak)n(e)f(\(usually)h(called)g
+(after)f Fm(renegotiate)d Fr(or)j(one)h(of)57 b Fm(set_accept_stat)o(e)
+44 b Fr(or)208 282 y Fm(set_accept_stat)o(e)p Fr(\).)31
+b(This)d(can)f(raise)f(the)i(same)f(exceptions)g(as)g
+Fm(send)f Fr(and)h Fm(recv)p Fr(.)0 429 y Fm(fileno\(\))208
+529 y Fr(Retriev)n(e)f(the)i(\034le)g(descriptor)e(n)n(um)n(b)r(er)i
+(for)f(the)h(underlying)e(so)r(c)n(k)n(et.)0 676 y Fm(listen\()p
+Fd(b)l(acklo)l(g)7 b Fm(\))208 775 y Fr(Call)27 b(the)h
+Fm(listen)d Fr(metho)r(d)j(of)f(the)h(underlying)f(so)r(c)n(k)n(et.)0
+922 y Fm(get_app_data\(\))208 1022 y Fr(Retriev)n(e)f(application)h
+(data)g(as)g(set)h(b)n(y)g Fm(set_app_data)p Fr(.)0 1169
+y Fm(get_cipher_list\()o(\))208 1268 y Fr(Retriev)n(e)23
+b(the)h(list)g(of)g(ciphers)g(used)g(b)n(y)f(the)i(Connection)e(ob)5
+b(ject.)36 b(W)-9 b(ARNING:)25 b(This)f(API)h(has)e(c)n(hanged.)35
+b(It)24 b(used)208 1368 y(to)j(tak)n(e)g(an)g(optional)g(parameter)f
+(and)h(just)h(return)g(a)f(string,)g(but)h(not)f(it)h(returns)f(the)h
+(en)n(tire)f(list)h(in)g(one)f(go.)0 1515 y Fm(get_context\(\))208
+1614 y Fr(Retriev)n(e)f(the)i(Con)n(text)f(ob)5 b(ject)28
+b(asso)r(ciated)e(with)i(this)g(Connection.)0 1761 y
+Fm(get_peer_certifi)o(ca)o(te\()o(\))208 1861 y Fr(Retriev)n(e)e(the)i
+(other)f(side's)g(certi\034cate)g(\(if)i(an)n(y\))0 2008
+y Fm(getpeername\(\))208 2107 y Fr(Call)e(the)h Fm(getpeername)23
+b Fr(metho)r(d)28 b(of)f(the)h(underlying)f(so)r(c)n(k)n(et.)0
+2254 y Fm(getsockname\(\))208 2354 y Fr(Call)g(the)h
 Fm(getsockname)23 b Fr(metho)r(d)28 b(of)f(the)h(underlying)f(so)r(c)n
-(k)n(et.)0 2072 y Fm(getsockopt\()p Fd(level,)f(optname)6
-b Fc([)p Fd(,)31 b(bu\035en)18 b Fc(])p Fm(\))208 2171
+(k)n(et.)0 2517 y Fm(getsockopt\()p Fd(level,)f(optname)6
+b Fc([)p Fd(,)31 b(bu\035en)18 b Fc(])p Fm(\))208 2617
 y Fr(Call)27 b(the)h Fm(getsockopt)23 b Fr(metho)r(d)28
-b(of)g(the)g(underlying)f(so)r(c)n(k)n(et.)0 2318 y Fm(pending\(\))208
-2418 y Fr(Retriev)n(e)22 b(the)h(n)n(um)n(b)r(er)g(of)g(b)n(ytes)g
+b(of)g(the)g(underlying)f(so)r(c)n(k)n(et.)0 2764 y Fm(pending\(\))208
+2864 y Fr(Retriev)n(e)22 b(the)h(n)n(um)n(b)r(er)g(of)g(b)n(ytes)g
 (that)h(can)e(b)r(e)i(safely)f(read)f(from)h(the)g(SSL)h(bu\033er)f(\()
-p Fd(not)g Fr(the)h(underlying)e(transp)r(ort)208 2517
-y(bu\033er\).)0 2664 y Fm(recv\()p Fd(bufsize)6 b Fm(\))208
-2764 y Fr(Receiv)n(e)30 b(data)h(from)g(the)h(Connection.)47
+p Fd(not)g Fr(the)h(underlying)e(transp)r(ort)208 2963
+y(bu\033er\).)0 3110 y Fm(recv\()p Fd(bufsize)6 b Fm(\))208
+3210 y Fr(Receiv)n(e)30 b(data)h(from)g(the)h(Connection.)47
 b(The)31 b(return)g(v)-5 b(alue)31 b(is)h(a)e(string)h(represen)n(ting)
-f(the)h(data)g(receiv)n(ed.)47 b(The)208 2864 y(maxim)n(um)27
+f(the)h(data)g(receiv)n(ed.)47 b(The)208 3309 y(maxim)n(um)27
 b(amoun)n(t)g(of)g(data)h(to)f(b)r(e)h(receiv)n(ed)e(at)i(once,)f(is)g
-(sp)r(eci\034ed)h(b)n(y)h Fd(bufsize)6 b Fr(.)0 3010
-y Fm(renegotiate\(\))208 3110 y Fr(Renegotiate)26 b(the)i(SSL)g
+(sp)r(eci\034ed)h(b)n(y)h Fd(bufsize)6 b Fr(.)0 3456
+y Fm(renegotiate\(\))208 3556 y Fr(Renegotiate)26 b(the)i(SSL)g
 (session.)36 b(Call)27 b(this)h(if)g(y)n(ou)f(wish)g(to)h(c)n(hange)e
 (cipher)h(suites)h(or)e(an)n(ything)h(lik)n(e)g(that.)0
-3257 y Fm(send\()p Fd(string)7 b Fm(\))208 3357 y Fr(Send)27
+3703 y Fm(send\()p Fd(string)7 b Fm(\))208 3802 y Fr(Send)27
 b(the)h Fd(string)35 b Fr(data)27 b(to)h(the)g(Connection.)0
-3503 y Fm(sendall\()p Fd(string)7 b Fm(\))208 3603 y
+3949 y Fm(sendall\()p Fd(string)7 b Fm(\))208 4049 y
 Fr(Send)30 b(all)f(of)h(the)g Fd(string)37 b Fr(data)29
 b(to)g(the)h(Connection.)43 b(This)30 b(calls)f Fm(send)f
 Fr(rep)r(eatedly)h(un)n(til)h(all)f(data)h(is)f(sen)n(t.)43
-b(If)30 b(an)208 3703 y(error)25 b(o)r(ccurs,)i(it's)h(imp)r(ossible)f
+b(If)30 b(an)208 4148 y(error)25 b(o)r(ccurs,)i(it's)h(imp)r(ossible)f
 (to)g(tell)h(ho)n(w)f(m)n(uc)n(h)h(data)f(has)g(b)r(een)h(sen)n(t.)0
-3850 y Fm(set_accept_state)o(\(\))208 3949 y Fr(Set)20
+4295 y Fm(set_accept_state)o(\(\))208 4395 y Fr(Set)20
 b(the)g(connection)f(to)h(w)n(ork)e(in)i(serv)n(er)e(mo)r(de.)34
 b(The)20 b(handshak)n(e)f(will)h(b)r(e)g(handled)g(automatically)e(b)n
-(y)i(read/write.)0 4096 y Fm(set_app_data\()p Fd(data)6
-b Fm(\))208 4196 y Fr(Asso)r(ciate)39 b Fd(data)47 b
+(y)i(read/write.)0 4542 y Fm(set_app_data\()p Fd(data)6
+b Fm(\))208 4641 y Fr(Asso)r(ciate)39 b Fd(data)47 b
 Fr(with)40 b(this)g(Connection)g(ob)5 b(ject.)73 b Fd(data)47
 b Fr(can)39 b(b)r(e)i(retriev)n(ed)d(later)h(using)h(the)g
-Fm(get_app_data)208 4295 y Fr(metho)r(d.)0 4442 y Fm(set_connect_stat)o
-(e\()o(\))208 4542 y Fr(Set)21 b(the)g(connection)g(to)g(w)n(ork)e(in)i
+Fm(get_app_data)208 4741 y Fr(metho)r(d.)0 4888 y Fm(set_connect_stat)o
+(e\()o(\))208 4988 y Fr(Set)21 b(the)g(connection)g(to)g(w)n(ork)e(in)i
 (clien)n(t)g(mo)r(de.)35 b(The)21 b(handshak)n(e)f(will)h(b)r(e)g
-(handled)g(automatically)f(b)n(y)h(read/write.)0 4689
-y Fm(setblocking\()p Fd(\035ag)7 b Fm(\))208 4788 y Fr(Call)27
+(handled)g(automatically)f(b)n(y)h(read/write.)0 5134
+y Fm(setblocking\()p Fd(\035ag)7 b Fm(\))208 5234 y Fr(Call)27
 b(the)h Fm(setblocking)23 b Fr(metho)r(d)28 b(of)f(the)h(underlying)f
-(so)r(c)n(k)n(et.)0 4935 y Fm(setsockopt\()p Fd(level,)f(optname,)31
-b(value)6 b Fm(\))208 5035 y Fr(Call)27 b(the)h Fm(setsockopt)23
-b Fr(metho)r(d)28 b(of)g(the)g(underlying)f(so)r(c)n(k)n(et.)0
-5182 y Fm(shutdown\(\))208 5281 y Fr(Send)35 b(the)h(sh)n(utdo)n(wn)f
-(message)f(to)h(the)h(Connection.)60 b(Returns)35 b(true)g(if)h(the)g
-(sh)n(utdo)n(wn)e(message)g(exc)n(hange)g(is)208 5381
-y(completed)25 b(and)g(false)h(otherwise)e(\(in)i(whic)n(h)g(case)e(y)n
-(ou)h(call)g Fm(recv\(\))e Fr(or)i Fm(send\(\))e Fr(when)j(the)g
-(connection)f(b)r(ecomes)p 0 5549 3901 4 v 0 5649 a Fg(3.3)82
+(so)r(c)n(k)n(et.)0 5381 y Fm(setsockopt\()p Fd(level,)f(optname,)31
+b(value)6 b Fm(\))p 0 5549 3901 4 v 0 5649 a Fg(3.3)82
 b Fm(SSL)26 b Fg(\026)i(An)g(interface)g(to)f(the)g(SSL-sp)r(eci\034c)h
 (pa)n(rts)f(of)h(Op)r(enSSL)1611 b(13)p eop end
 %%Page: 14 14
-TeXDict begin 14 13 bop 208 83 a Fr(readable/writeable.)0
-230 y Fm(get_shutdown\(\))208 330 y Fr(Get)70 b(the)g(sh)n(utdo)n(wn)f
+TeXDict begin 14 13 bop 208 83 a Fr(Call)27 b(the)h Fm(setsockopt)23
+b Fr(metho)r(d)28 b(of)g(the)g(underlying)f(so)r(c)n(k)n(et.)0
+230 y Fm(shutdown\(\))208 330 y Fr(Send)35 b(the)h(sh)n(utdo)n(wn)f
+(message)f(to)h(the)h(Connection.)60 b(Returns)35 b(true)g(if)h(the)g
+(sh)n(utdo)n(wn)e(message)g(exc)n(hange)g(is)208 429
+y(completed)25 b(and)g(false)h(otherwise)e(\(in)i(whic)n(h)g(case)e(y)n
+(ou)h(call)g Fm(recv\(\))e Fr(or)i Fm(send\(\))e Fr(when)j(the)g
+(connection)f(b)r(ecomes)208 529 y(readable/writeable.)0
+676 y Fm(get_shutdown\(\))208 775 y Fr(Get)70 b(the)g(sh)n(utdo)n(wn)f
 (state)g(of)h(the)g(Connection.)162 b(Returns)69 b(a)h(bitv)n(ector)e
-(of)i(either)f(or)g(b)r(oth)h(of)208 429 y Fd(SENT_SHUTDO)n(WN)39
-b Fr(and)27 b Fd(RECEIVED_SHUTDO)n(WN)14 b Fr(.)0 576
-y Fm(set_shutdown\()p Fd(state)6 b Fm(\))208 676 y Fr(Set)21
+(of)i(either)f(or)g(b)r(oth)h(of)208 875 y Fd(SENT_SHUTDO)n(WN)39
+b Fr(and)27 b Fd(RECEIVED_SHUTDO)n(WN)14 b Fr(.)0 1022
+y Fm(set_shutdown\()p Fd(state)6 b Fm(\))208 1121 y Fr(Set)21
 b(the)g(sh)n(utdo)n(wn)g(state)g(of)g(the)g(Connection.)34
 b Fd(state)27 b Fr(is)21 b(a)g(bitv)n(ector)f(of)h(either)g(or)f(b)r
-(oth)i(of)27 b Fd(SENT_SHUTDO)n(WN)208 775 y Fr(and)g
-Fd(RECEIVED_SHUTDO)n(WN)14 b Fr(.)0 922 y Fm(sock_shutdown\()p
-Fd(how)9 b Fm(\))208 1022 y Fr(Call)27 b(the)h Fm(shutdown)c
+(oth)i(of)27 b Fd(SENT_SHUTDO)n(WN)208 1221 y Fr(and)g
+Fd(RECEIVED_SHUTDO)n(WN)14 b Fr(.)0 1368 y Fm(sock_shutdown\()p
+Fd(how)9 b Fm(\))208 1468 y Fr(Call)27 b(the)h Fm(shutdown)c
 Fr(metho)r(d)k(of)g(the)g(underlying)e(so)r(c)n(k)n(et.)0
-1169 y Fm(state_string\(\))208 1268 y Fr(Retriev)n(e)g(a)i(v)n(erb)r
+1614 y Fm(state_string\(\))208 1714 y Fr(Retriev)n(e)g(a)i(v)n(erb)r
 (ose)e(string)g(detailing)i(the)g(state)f(of)h(the)f(Connection.)0
-1415 y Fm(want_read\(\))208 1515 y Fr(Chec)n(ks)f(if)i(more)f(data)g
+1861 y Fm(want_read\(\))208 1961 y Fr(Chec)n(ks)f(if)i(more)f(data)g
 (has)g(to)h(b)r(e)g(read)e(from)i(the)f(transp)r(ort)g(la)n(y)n(er)f
-(to)h(complete)h(an)f(op)r(eration.)0 1662 y Fm(want_write\(\))208
-1761 y Fr(Chec)n(ks)f(if)i(there)g(is)f(data)g(to)h(write)f(to)g(the)h
+(to)h(complete)h(an)f(op)r(eration.)0 2107 y Fm(want_write\(\))208
+2207 y Fr(Chec)n(ks)f(if)i(there)g(is)f(data)g(to)h(write)f(to)g(the)h
 (transp)r(ort)f(la)n(y)n(er)f(to)h(complete)h(an)f(op)r(eration.)0
-2083 y Fs(4)114 b(Internals)0 2312 y Fr(W)-7 b(e)25 b(ran)g(in)n(to)f
+2529 y Fs(4)114 b(Internals)0 2758 y Fr(W)-7 b(e)25 b(ran)g(in)n(to)f
 (three)h(main)g(problems)f(dev)n(eloping)g(this:)36 b(Exceptions,)25
 b(callbac)n(ks)f(and)h(accessing)e(so)r(c)n(k)n(et)h(metho)r(ds.)36
-b(This)0 2412 y(is)27 b(what)h(this)g(c)n(hapter)e(is)i(ab)r(out.)0
-2691 y Fk(4.1)97 b(Exceptions)0 2892 y Fr(W)-7 b(e)52
+b(This)0 2857 y(is)27 b(what)h(this)g(c)n(hapter)e(is)i(ab)r(out.)0
+3137 y Fk(4.1)97 b(Exceptions)0 3338 y Fr(W)-7 b(e)52
 b(realized)f(early)g(that)h(most)g(of)g(the)g(exceptions)f(w)n(ould)h
 (b)r(e)g(raised)f(b)n(y)h(the)g(I/O)f(functions)h(of)g(Op)r(enSSL,)0
-2991 y(so)d(it)i(felt)f(natural)f(to)h(mimic)g(Op)r(enSSL's)g(error)e
+3437 y(so)d(it)i(felt)f(natural)f(to)h(mimic)g(Op)r(enSSL's)g(error)e
 (co)r(de)i(system,)55 b(translating)48 b(them)j(in)n(to)e(Python)i
-(exceptions.)0 3091 y(This)30 b(naturally)e(giv)n(es)h(us)h(the)g
+(exceptions.)0 3537 y(This)30 b(naturally)e(giv)n(es)h(us)h(the)g
 (exceptions)f Fm(SSL.ZeroReturnEr)o(ro)o(r)p Fr(,)24
 b Fm(SSL.WantReadError)o Fr(,)h Fm(SSL.WantWriteEr)o(ro)o(r)p
-Fr(,)0 3191 y Fm(SSL.WantX509Look)o(up)o(Err)o(or)c Fr(and)27
-b Fm(SSL.SysCallError)p Fr(.)0 3338 y(F)-7 b(or)27 b(more)g
+Fr(,)0 3636 y Fm(SSL.WantX509Look)o(up)o(Err)o(or)c Fr(and)27
+b Fm(SSL.SysCallError)p Fr(.)0 3783 y(F)-7 b(or)27 b(more)g
 (information)g(ab)r(out)g(this,)h(see)f(section)g(3.3.)0
-3617 y Fk(4.2)97 b(Callbacks)0 3818 y Fr(There)34 b(are)f(a)h(n)n(um)n
+4063 y Fk(4.2)97 b(Callbacks)0 4263 y Fr(There)34 b(are)f(a)h(n)n(um)n
 (b)r(er)g(of)h(problems)e(with)i(callbac)n(ks.)56 b(First)34
 b(of)g(all,)i(Op)r(enSSL)f(is)f(written)h(as)e(a)h(C)h(library)-7
-b(,)34 b(it's)h(not)0 3917 y(mean)n(t)26 b(to)g(ha)n(v)n(e)e(Python)j
+b(,)34 b(it's)h(not)0 4363 y(mean)n(t)26 b(to)g(ha)n(v)n(e)e(Python)j
 (callbac)n(ks,)d(so)i(a)f(w)n(a)n(y)g(around)g(that)h(is)g(needed.)36
 b(Another)26 b(problem)f(is)h(thread)g(supp)r(ort.)36
-b(A)26 b(lot)0 4017 y(of)h(the)g(Op)r(enSSL)g(I/O)e(functions)i(can)g
+b(A)26 b(lot)0 4463 y(of)h(the)g(Op)r(enSSL)g(I/O)e(functions)i(can)g
 (blo)r(c)n(k)f(if)h(the)g(so)r(c)n(k)n(et)f(is)g(in)h(blo)r(c)n(king)f
 (mo)r(de,)h(and)g(then)g(y)n(ou)f(w)n(an)n(t)g(other)g(Python)0
-4117 y(threads)c(to)g(b)r(e)h(able)f(to)g(do)g(other)g(things.)35
+4562 y(threads)c(to)g(b)r(e)h(able)f(to)g(do)g(other)g(things.)35
 b(The)22 b(real)g(trouble)g(is)g(if)h(y)n(ou'v)n(e)e(released)g(the)h
 (thread)g(lo)r(c)n(k)g(to)g(do)g(a)g(p)r(oten)n(tially)0
-4216 y(blo)r(c)n(king)27 b(op)r(eration,)f(and)i(the)g(op)r(eration)e
+4662 y(blo)r(c)n(king)27 b(op)r(eration,)f(and)i(the)g(op)r(eration)e
 (calls)h(a)g(callbac)n(k.)35 b(Then)28 b(w)n(e)f(m)n(ust)h(tak)n(e)f
-(the)h(thread)f(lo)r(c)n(k)g(bac)n(k)3475 4186 y Fl(4)3511
-4216 y Fr(.)0 4363 y(There)d(are)f(t)n(w)n(o)g(solutions)h(to)g(the)h
+(the)h(thread)f(lo)r(c)n(k)g(bac)n(k)3475 4632 y Fl(4)3511
+4662 y Fr(.)0 4809 y(There)d(are)f(t)n(w)n(o)g(solutions)h(to)g(the)h
 (\034rst)f(problem,)g(b)r(oth)h(of)f(whic)n(h)g(are)f(necessary)-7
 b(.)34 b(The)25 b(\034rst)f(solution)f(to)h(use)h(is)f(if)g(the)h(C)0
-4463 y(callbac)n(k)i(allo)n(ws)f(\021userdata\021)33
+4908 y(callbac)n(k)i(allo)n(ws)f(\021userdata\021)33
 b(to)28 b(b)r(e)h(passed)e(to)h(it)g(\(an)g(arbitrary)e(p)r(oin)n(ter)i
 (normally\).)37 b(This)28 b(is)g(great!)37 b(W)-7 b(e)28
-b(can)g(set)g(our)0 4562 y(Python)i(function)g(ob)5 b(ject)29
+b(can)g(set)g(our)0 5008 y(Python)i(function)g(ob)5 b(ject)29
 b(as)f(the)i(real)f(userdata)f(and)h(em)n(ulate)g(userdata)f(for)h(the)
 h(Python)f(function)h(in)g(another)e(w)n(a)n(y)-7 b(.)0
-4662 y(The)24 b(other)g(solution)g(can)g(b)r(e)h(used)g(if)g(an)f(ob)5
+5108 y(The)24 b(other)g(solution)g(can)g(b)r(e)h(used)g(if)g(an)f(ob)5
 b(ject)24 b(with)h(an)f(\021app_data\021)29 b(system)c(alw)n(a)n(ys)d
 (is)j(passed)e(to)h(the)h(callbac)n(k.)35 b(F)-7 b(or)0
-4762 y(example,)26 b(the)h(SSL)f(ob)5 b(ject)26 b(in)h(Op)r(enSSL)f
+5207 y(example,)26 b(the)h(SSL)f(ob)5 b(ject)26 b(in)h(Op)r(enSSL)f
 (has)g(app_data)f(functions)i(and)f(in)h(e.g.)36 b(the)26
-b(v)n(eri\034cation)f(callbac)n(ks,)g(y)n(ou)g(can)0
-4861 y(retriev)n(e)i(the)i(related)f(SSL)h(ob)5 b(ject.)39
-b(What)29 b(w)n(e)g(do)f(is)g(to)h(set)f(our)g(wrapp)r(er)g
-Fm(Connection)c Fr(ob)5 b(ject)28 b(as)g(app_data)g(for)g(the)0
-4961 y(SSL)g(ob)5 b(ject,)27 b(and)h(w)n(e)f(can)g(easily)g(\034nd)h
-(the)g(Python)g(callbac)n(k.)0 5108 y(The)42 b(other)g(problem)g(is)g
-(also)f(partially)h(solv)n(ed)f(b)n(y)h(app_data.)80
-b(Since)43 b(w)n(e're)e(asso)r(ciating)g(our)g(wrapp)r(er)h(ob)5
-b(jects)0 5207 y(with)44 b(the)f(\021real\021)49 b(ob)5
-b(jects,)46 b(w)n(e)d(can)g(easily)f(access)g(data)g(from)h(the)h
-Fm(Connection)39 b Fr(ob)5 b(ject.)83 b(The)43 b(solution)g(then)g(is)p
-0 5277 1560 4 v 92 5330 a Fi(4)127 5354 y Fh(I'm)22 b(not)j(sure)f(wh)n
-(y)g(this)g(is)f(necessary)-6 b(,)25 b(but)f(otherwise)h(I)f(get)h(a)e
+b(v)n(eri\034cation)f(callbac)n(ks,)g(y)n(ou)g(can)p
+0 5280 1560 4 v 92 5333 a Fi(4)127 5357 y Fh(I'm)d(not)j(sure)f(wh)n(y)
+g(this)g(is)f(necessary)-6 b(,)25 b(but)f(otherwise)h(I)f(get)h(a)e
 (segmen)n(tation)i(violation)f(on)g Fa(PyEval_CallObject)p
 0 5549 3901 4 v 0 5649 a Fg(14)3368 b(4)83 b(Internals)p
 eop end
 %%Page: 15 15
-TeXDict begin 15 14 bop 0 83 a Fr(to)35 b(simply)h(include)g(a)f
-Fm(PyThreadState)c Fr(v)-5 b(ariable)34 b(in)i(the)g
-Fm(Connection)31 b Fr(declaration,)37 b(and)e(write)g(macros)f(similar)
-h(to)0 183 y Fm(Py_BEGIN_ALLOW_T)o(HR)o(EAD)o(S)26 b
-Fr(and)33 b Fm(Py_END_ALLOW_TH)o(REA)o(DS)26 b Fr(that)33
-b(allo)n(ws)e(sp)r(ecifying)h(of)h(the)g Fm(PyThreadState)27
-b Fr(v)-5 b(ari-)0 282 y(able)23 b(to)g(use.)35 b(No)n(w)23
-b(w)n(e)g(can)g(simply)g(\021b)r(egin)g(allo)n(w)f(threads\021)29
-b(b)r(efore)23 b(a)g(p)r(oten)n(tially)g(blo)r(c)n(king)f(op)r
-(eration,)h(and)g(\021end)g(allo)n(w)0 382 y(threads\021)33
-b(b)r(efore)28 b(calling)e(a)i(callbac)n(k.)0 662 y Fk(4.3)97
-b(A)m(cessing)35 b(So)s(ck)m(et)e(Metho)s(ds)0 862 y
-Fr(W)-7 b(e)27 b(quic)n(kly)e(sa)n(w)h(the)g(b)r(ene\034t)h(of)g
-(wrapping)e(so)r(c)n(k)n(et)g(metho)r(ds)h(in)h(the)g
-Fm(SSL.Connection)20 b Fr(class,)26 b(for)g(an)g(easy)f(transition)0
-962 y(in)n(to)e(using)f(SSL.)h(The)g(problem)f(here)h(is)f(that)h(the)h
-Fm(socket)c Fr(mo)r(dule)j(lac)n(ks)f(a)g(C)h(API,)h(and)e(all)h(the)g
-(metho)r(ds)g(are)f(declared)0 1061 y(static.)36 b(One)27
-b(approac)n(h)d(w)n(ould)i(b)r(e)h(to)f(ha)n(v)n(e)g
-Fm(OpenSSL)d Fr(as)j(a)g(submo)r(dule)h(to)f(the)h Fm(socket)d
-Fr(mo)r(dule,)j(placing)f(all)g(the)h(co)r(de)0 1161
-y(in)j(`)p Fq(so)r(ck)n(etmo)r(dule.c)p Fr(',)h(but)f(this)g(is)g(ob)n
-(viously)e(not)i(a)f(go)r(o)r(d)g(solution,)h(since)g(y)n(ou)f(migh)n
-(t)g(not)h(w)n(an)n(t)f(to)h(imp)r(ort)g(tonnes)f(of)0
-1261 y(extra)f(stu\033)h(y)n(ou're)e(not)i(going)e(to)i(use)f(when)h
+TeXDict begin 15 14 bop 0 83 a Fr(retriev)n(e)27 b(the)i(related)f(SSL)
+h(ob)5 b(ject.)39 b(What)29 b(w)n(e)g(do)f(is)g(to)h(set)f(our)g(wrapp)
+r(er)g Fm(Connection)c Fr(ob)5 b(ject)28 b(as)g(app_data)g(for)g(the)0
+183 y(SSL)g(ob)5 b(ject,)27 b(and)h(w)n(e)f(can)g(easily)g(\034nd)h
+(the)g(Python)g(callbac)n(k.)0 330 y(The)42 b(other)g(problem)g(is)g
+(also)f(partially)h(solv)n(ed)f(b)n(y)h(app_data.)80
+b(Since)43 b(w)n(e're)e(asso)r(ciating)g(our)g(wrapp)r(er)h(ob)5
+b(jects)0 429 y(with)44 b(the)f(\021real\021)49 b(ob)5
+b(jects,)46 b(w)n(e)d(can)g(easily)f(access)g(data)g(from)h(the)h
+Fm(Connection)39 b Fr(ob)5 b(ject.)83 b(The)43 b(solution)g(then)g(is)0
+529 y(to)35 b(simply)h(include)g(a)f Fm(PyThreadState)c
+Fr(v)-5 b(ariable)34 b(in)i(the)g Fm(Connection)31 b
+Fr(declaration,)37 b(and)e(write)g(macros)f(similar)h(to)0
+628 y Fm(Py_BEGIN_ALLOW_T)o(HR)o(EAD)o(S)26 b Fr(and)33
+b Fm(Py_END_ALLOW_TH)o(REA)o(DS)26 b Fr(that)33 b(allo)n(ws)e(sp)r
+(ecifying)h(of)h(the)g Fm(PyThreadState)27 b Fr(v)-5
+b(ari-)0 728 y(able)23 b(to)g(use.)35 b(No)n(w)23 b(w)n(e)g(can)g
+(simply)g(\021b)r(egin)g(allo)n(w)f(threads\021)29 b(b)r(efore)23
+b(a)g(p)r(oten)n(tially)g(blo)r(c)n(king)f(op)r(eration,)h(and)g
+(\021end)g(allo)n(w)0 828 y(threads\021)33 b(b)r(efore)28
+b(calling)e(a)i(callbac)n(k.)0 1107 y Fk(4.3)97 b(A)m(cessing)35
+b(So)s(ck)m(et)e(Metho)s(ds)0 1308 y Fr(W)-7 b(e)27 b(quic)n(kly)e(sa)n
+(w)h(the)g(b)r(ene\034t)h(of)g(wrapping)e(so)r(c)n(k)n(et)g(metho)r(ds)
+h(in)h(the)g Fm(SSL.Connection)20 b Fr(class,)26 b(for)g(an)g(easy)f
+(transition)0 1407 y(in)n(to)e(using)f(SSL.)h(The)g(problem)f(here)h
+(is)f(that)h(the)h Fm(socket)c Fr(mo)r(dule)j(lac)n(ks)f(a)g(C)h(API,)h
+(and)e(all)h(the)g(metho)r(ds)g(are)f(declared)0 1507
+y(static.)36 b(One)27 b(approac)n(h)d(w)n(ould)i(b)r(e)h(to)f(ha)n(v)n
+(e)g Fm(OpenSSL)d Fr(as)j(a)g(submo)r(dule)h(to)f(the)h
+Fm(socket)d Fr(mo)r(dule,)j(placing)f(all)g(the)h(co)r(de)0
+1607 y(in)j(`)p Fq(so)r(ck)n(etmo)r(dule.c)p Fr(',)h(but)f(this)g(is)g
+(ob)n(viously)e(not)i(a)f(go)r(o)r(d)g(solution,)h(since)g(y)n(ou)f
+(migh)n(t)g(not)h(w)n(an)n(t)f(to)h(imp)r(ort)g(tonnes)f(of)0
+1706 y(extra)f(stu\033)h(y)n(ou're)e(not)i(going)e(to)i(use)f(when)h
 (imp)r(orting)f(the)i Fm(socket)c Fr(mo)r(dule.)40 b(The)29
-b(other)f(approac)n(h)e(is)j(to)f(someho)n(w)0 1360 y(get)33
+b(other)f(approac)n(h)e(is)j(to)f(someho)n(w)0 1806 y(get)33
 b(a)g(p)r(oin)n(ter)g(to)h(the)f(metho)r(d)h(to)g(b)r(e)f(called,)i
 (either)e(the)h(C)g(function,)h(or)e(a)g(callable)f(Python)i(ob)5
-b(ject.)54 b(This)34 b(is)f(not)0 1460 y(really)26 b(a)i(go)r(o)r(d)f
+b(ject.)54 b(This)34 b(is)f(not)0 1906 y(really)26 b(a)i(go)r(o)r(d)f
 (solution)g(either,)g(since)g(there's)h(a)f(lot)g(of)h(lo)r(okups)f(in)
-n(v)n(olv)n(ed.)0 1607 y(The)h(w)n(a)n(y)f(it)h(w)n(orks)e(is)i(that)h
+n(v)n(olv)n(ed.)0 2052 y(The)h(w)n(a)n(y)f(it)h(w)n(orks)e(is)i(that)h
 (y)n(ou)e(ha)n(v)n(e)g(to)g(supply)h(a)g(\020)7 b Fm(socket)p
 Fr(-lik)n(e\021)31 b(transp)r(ort)c(ob)5 b(ject)28 b(to)f(the)i
-Fm(SSL.Connection)p Fr(.)j(The)0 1706 y(only)24 b(requiremen)n(t)f(of)i
+Fm(SSL.Connection)p Fr(.)j(The)0 2152 y(only)24 b(requiremen)n(t)f(of)i
 (this)f(ob)5 b(ject)24 b(is)h(that)f(it)h(has)f(a)g Fm(fileno\(\))d
 Fr(metho)r(d)k(that)f(returns)g(a)g(\034le)g(descriptor)f(that's)i(v)-5
-b(alid)24 b(at)0 1806 y(the)g(C)g(lev)n(el)f(\(i.e.)36
+b(alid)24 b(at)0 2252 y(the)g(C)g(lev)n(el)f(\(i.e.)36
 b(y)n(ou)23 b(can)h(use)f(the)i(system)e(calls)g(read)g(and)h(write\).)
 35 b(If)25 b(y)n(ou)e(w)n(an)n(t)g(to)h(use)f(the)h Fm(connect\(\))c
-Fr(or)j Fm(accept\(\))0 1906 y Fr(metho)r(ds)29 b(of)h(the)f
+Fr(or)j Fm(accept\(\))0 2351 y Fr(metho)r(ds)29 b(of)h(the)f
 Fm(SSL.Connection)24 b Fr(ob)5 b(ject,)29 b(the)h(transp)r(ort)e(ob)5
 b(ject)29 b(has)f(to)h(supply)h(suc)n(h)f(metho)r(ds)g(to)r(o.)41
-b(Apart)29 b(from)0 2005 y(them,)c(an)n(y)e(metho)r(d)h(lo)r(okups)f
+b(Apart)29 b(from)0 2451 y(them,)c(an)n(y)e(metho)r(d)h(lo)r(okups)f
 (in)h(the)f Fm(SSL.Connection)18 b Fr(ob)5 b(ject)24
 b(that)f(fail)h(are)f(passed)f(on)i(to)f(the)h(underlying)f(transp)r
-(ort)0 2105 y(ob)5 b(ject.)0 2252 y(F)-7 b(uture)25 b(c)n(hanges)f
+(ort)0 2551 y(ob)5 b(ject.)0 2697 y(F)-7 b(uture)25 b(c)n(hanges)f
 (migh)n(t)h(b)r(e)g(to)g(allo)n(w)f(Python-lev)n(el)g(transp)r(ort)g
 (ob)5 b(jects,)25 b(that)g(instead)g(of)g(ha)n(ving)g
-Fm(fileno\(\))d Fr(metho)r(ds,)0 2351 y(ha)n(v)n(e)h
+Fm(fileno\(\))d Fr(metho)r(ds,)0 2797 y(ha)n(v)n(e)h
 Fm(read\(\))g Fr(and)h Fm(write\(\))e Fr(metho)r(ds,)k(so)e(more)f(adv)
 -5 b(anced)24 b(features)h(of)f(Python)h(can)g(b)r(e)g(used.)35
-b(This)25 b(w)n(ould)f(probably)0 2451 y(en)n(tail)36
+b(This)25 b(w)n(ould)f(probably)0 2897 y(en)n(tail)36
 b(some)g(sort)g(of)g(Op)r(enSSL)h(\020BIOs\021,)g(but)g(con)n(v)n
 (erting)e(Python)i(strings)e(bac)n(k)h(and)g(forth)g(is)h(exp)r(ensiv)n
-(e,)h(so)e(this)0 2551 y(shouldn't)f(b)r(e)h(used)f(unless)g(necessary)
+(e,)h(so)e(this)0 2996 y(shouldn't)f(b)r(e)h(used)f(unless)g(necessary)
 -7 b(.)57 b(Other)35 b(nice)g(things)g(w)n(ould)g(b)r(e)g(to)g(b)r(e)h
 (able)e(to)h(pass)g(in)g(di\033eren)n(t)g(transp)r(ort)0
-2650 y(ob)5 b(jects)41 b(for)g(reading)f(and)h(writing,)j(but)e(then)g
+3096 y(ob)5 b(jects)41 b(for)g(reading)f(and)h(writing,)j(but)e(then)g
 (the)g Fm(fileno\(\))c Fr(metho)r(d)k(of)47 b Fm(SSL.Connection)36
-b Fr(b)r(ecomes)41 b(virtually)0 2750 y(useless.)36 b(Also,)27
+b Fr(b)r(ecomes)41 b(virtually)0 3196 y(useless.)36 b(Also,)27
 b(should)h(the)g(metho)r(d)g(resolution)e(b)r(e)i(used)g(on)f(the)h
 (read-transp)r(ort)d(or)i(the)h(write-transp)r(ort?)p
 0 5549 3901 4 v 0 5649 a Fg(4.3)82 b(A)n(cessing)26 b(So)r(ck)n(et)h

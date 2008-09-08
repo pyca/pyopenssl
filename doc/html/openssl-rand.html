@@ -60,7 +60,7 @@ declares the following:
 <dd>
 Mix bytes from <var>string</var> into the PRNG state. The <var>entropy</var> argument is
 (the lower bound of) an estimate of how much randomness is contained in
-<var>string</var>, measured in bytes. For more information, see e.g. <a class="rfc" name="rfcref-1852"
+<var>string</var>, measured in bytes. For more information, see e.g. <a class="rfc" name="rfcref-1862"
 href="http://www.ietf.org/rfc/rfc1750.txt">RFC 1750</a>.
 </dl>
 
@@ -68,7 +68,7 @@ href="http://www.ietf.org/rfc/rfc1750.txt">RFC 1750</a>.
 <dl><dt><b><a name='l2h-90'><tt class='function'>egd</tt></a></b>(<var>path</var><big>[</big><var>, bytes</var><big>]</big>)
 <dd>
 Query the Entropy Gathering Daemon<A NAME="tex2html2"
-  HREF="#foot954"><SUP>2</SUP></A> on socket <var>path</var> for <var>bytes</var>
+  HREF="#foot962"><SUP>2</SUP></A> on socket <var>path</var> for <var>bytes</var>
 bytes of random data and and uses <tt class="function">add</tt> to seed the PRNG. The default
 value of <var>bytes</var> is 255.
 </dl>
@@ -110,7 +110,7 @@ file can then be used with <tt class="function">load_file</tt> to seed the PRNG 
 <P>
 <BR><HR><H4>Footnotes</H4>
 <DL>
-<DT><A NAME="foot954">... Daemon</A><A
+<DT><A NAME="foot962">... Daemon</A><A
  href="openssl-rand.html#tex2html2"><SUP>2</SUP></A></DT>
 <DD>See
 <a class="url" href="http://www.lothar.com/tech/crypto/">http://www.lothar.com/tech/crypto/</a>

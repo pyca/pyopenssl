@@ -663,10 +663,17 @@ setup.py --help
           Read a file with PEM-formatted certificates that will be sent to
           the client when requesting a client certificate.
 
-   load_verify_locations(pemfile)
+   load_verify_locations(pemfile, capath)
           Specify where CA certificates for verification purposes are
           located. These are trusted certificates. Note that the
-          certificates have to be in PEM format.
+          certificates have to be in PEM format. If capath is passed, it
+          must be a directory prepared using the c_rehash tool included
+          with OpenSSL. Either, but not both, of pemfile or capath may be
+          None.
+
+   set_default_verify_paths()
+          Specify that the platform provided CA certificates are to be
+          used for verification purposes.
 
    load_tmp_dh(dhfile)
           Load parameters for Ephemeral Diffie-Hellman from dhfile.
