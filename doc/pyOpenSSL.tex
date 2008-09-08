@@ -755,9 +755,17 @@ Read a file with PEM-formatted certificates that will be sent to the client
 when requesting a client certificate.
 \end{methoddesc}
 
-\begin{methoddesc}[Context]{load_verify_locations}{pemfile}
-Specify where CA certificates for verification purposes are located. These are
-trusted certificates. Note that the certificates have to be in PEM format.
+\begin{methoddesc}[Context]{load_verify_locations}{pemfile, capath}
+Specify where CA certificates for verification purposes are located. These
+are trusted certificates. Note that the certificates have to be in PEM
+format.  If capath is passed, it must be a directory prepared using the
+\code{c_rehash} tool included with OpenSSL.  Either, but not both, of
+\var{pemfile} or \var{capath} may be \code{None}.
+\end{methoddesc}
+
+\begin{methoddesc}[Context]{set_default_verify_paths}{}
+Specify that the platform provided CA certificates are to be used for
+verification purposes.
 \end{methoddesc}
 
 \begin{methoddesc}[Context]{load_tmp_dh}{dhfile}
