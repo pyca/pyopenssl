@@ -14,6 +14,7 @@
 #define PyOpenSSL_SSL_H_
 
 #include <Python.h>
+#include <pythread.h>
 #include "context.h"
 #include "connection.h"
 #include "../util.h"
@@ -44,6 +45,10 @@ extern PyObject *ssl_Error,               /* Base class              */
 #define ssl_Connection_New_PROTO  (ssl_ContextObj *ctx, PyObject *sock)
 
 #define ssl_API_pointers          2
+
+#ifdef WITH_THREAD
+extern int _pyOpenSSL_tstate_key;
+#endif /* WITH_THREAD */
 
 #ifdef SSL_MODULE
 

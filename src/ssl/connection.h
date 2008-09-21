@@ -42,7 +42,7 @@ typedef struct {
     SSL                 *ssl;
     ssl_ContextObj      *context;
     PyObject            *socket;
-    PyThreadState       *tstate;
+    PyThreadState       *tstate; /* This field is no longer used. */
     PyObject            *app_data;
 } ssl_ConnectionObj;
 

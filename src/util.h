@@ -30,10 +30,21 @@ extern  void      flush_error_queue(void);
  * WHERE to save the thread state.
  */
 #ifdef WITH_THREAD
-#  define MY_BEGIN_ALLOW_THREADS(st)    \
-    { st = PyEval_SaveThread(); }
-#  define MY_END_ALLOW_THREADS(st)      \
-    { PyEval_RestoreThread(st); st = NULL; }
+
+/*
+ * Get the current Python threadstate and put it somewhere any code running
+ * in this thread can get it, if it needs to restore the threadstate to run
+ * some Python.
+ */
+#  define MY_BEGIN_ALLOW_THREADS(ignored)                               \
+    PyThread_set_key_value(_pyOpenSSL_tstate_key, PyEval_SaveThread());
+
+/*
+ * Get the previous Python threadstate and restore it.
+ */
+#  define MY_END_ALLOW_THREADS(ignored)                                 \
+    PyEval_RestoreThread(PyThread_get_key_value(_pyOpenSSL_tstate_key));
+
 #else
 #  define MY_BEGIN_ALLOW_THREADS(st)
 #  define MY_END_ALLOW_THREADS(st)      { st = NULL; }
