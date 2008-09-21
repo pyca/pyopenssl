@@ -912,9 +912,10 @@ setup.py --help
    way around that is needed. Another problem is thread support. A lot of
    the OpenSSL I/O functions can block if the socket is in blocking mode,
    and then you want other Python threads to be able to do other things.
-   The real trouble is if you've released the thread lock to do a
-   potentially blocking operation, and the operation calls a callback.
-   Then we must take the thread lock back^4.
+   The real trouble is if you've released the global CPython interpreter
+   lock to do a potentially blocking operation, and the operation calls a
+   callback. Then we must take the GIL back, since calling Python APIs
+   without holding it is not allowed.
 
    There are two solutions to the first problem, both of which are
    necessary. The first solution to use is if the C callback allows
@@ -928,15 +929,18 @@ setup.py --help
    Connection object as app_data for the SSL object, and we can easily
    find the Python callback.
 
-   The other problem is also partially solved by app_data. Since we're
-   associating our wrapper objects with the ''real'' objects, we can
-   easily access data from the Connection object. The solution then is to
-   simply include a PyThreadState variable in the Connection declaration,
-   and write macros similar to Py_BEGIN_ALLOW_THREADS and
-   Py_END_ALLOW_THREADS that allows specifying of the PyThreadState
-   variable to use. Now we can simply ''begin allow threads'' before a
-   potentially blocking operation, and ''end allow threads'' before
-   calling a callback.
+   The other problem is solved using thread local variables. Whenever the
+   GIL is released before calling into an OpenSSL API, the PyThreadState
+   pointer returned by PyEval_SaveState is stored in a global thread local
+   variable (using Python's own TLS API, PyThread_set_key_value). When it
+   is necessary to re-acquire the GIL, either after the OpenSSL API
+   returns or in a C callback invoked by that OpenSSL API, the value of
+   the thread local variable is retrieved (PyThread_get_key_value) and
+   used to re-acquire the GIL. This allows Python threads to execute while
+   OpenSSL APIs are running and allows use of any particular pyOpenSSL
+   object from any Python thread, since there is no per-thread state
+   associated with any of these objects and since OpenSSL is threadsafe
+   (as long as properly initialized, as pyOpenSSL initializes it).
 
 
 4.3 Acessing Socket Methods
@@ -1000,10 +1004,6 @@ setup.py --help
           Actually, all that is required is an object that behaves like a
           socket, you could even use files, even though it'd be tricky to
           get the handshakes right!
-
-   ... back^4
-          I'm not sure why this is necessary, but otherwise I get a
-          segmentation violation on PyEval_CallObject
      __________________________________________________________________
 
                             Python OpenSSL Manual
