@@ -1,3 +1,8 @@
+2008-09-22  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* tsafe.py: Deprecated the thread-safe Connection wrapper, since the
+	  basic connection class should be thread-safe now.
+
 2008-09-21  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* src/ssl/ssl.h, src/ssl/ssl.c: Add a thread-local storage key
