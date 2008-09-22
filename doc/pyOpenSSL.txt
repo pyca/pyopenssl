@@ -1009,4 +1009,4 @@ setup.py --help
                             Python OpenSSL Manual
      __________________________________________________________________
 
-   Release 0.7.
+   Release 0.8a1.
