@@ -162,9 +162,7 @@ global_verify_callback(int ok, X509_STORE_CTX *x509_ctx)
     ssl = (SSL *)X509_STORE_CTX_get_app_data(x509_ctx);
     conn = (ssl_ConnectionObj *)SSL_get_app_data(ssl);
 
-    use_thread_state = conn->tstate != NULL;
-    if (use_thread_state)
-        MY_END_ALLOW_THREADS(conn->tstate);
+    MY_END_ALLOW_THREADS(conn->tstate);
 
     cert = crypto_X509_New(X509_STORE_CTX_get_current_cert(x509_ctx), 0);
     errnum = X509_STORE_CTX_get_error(x509_ctx);
@@ -184,8 +182,7 @@ global_verify_callback(int ok, X509_STORE_CTX *x509_ctx)
         c_ret = 0;
     }
 
-    if (use_thread_state)
-        MY_BEGIN_ALLOW_THREADS(conn->tstate);
+    MY_BEGIN_ALLOW_THREADS(conn->tstate);
     return c_ret;
 }
 

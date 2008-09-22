@@ -32,6 +32,8 @@ See the file RATIONALE for a short explanation of why this module was written.\n
 
 void **crypto_API;
 
+int _pyOpenSSL_tstate_key;
+
 /* Exceptions defined by the SSL submodule */
 PyObject *ssl_Error,                   /* Base class              */
          *ssl_ZeroReturnError,         /* Used with SSL_get_error */
@@ -201,6 +203,13 @@ do {                                                                          \
     if (!init_ssl_connection(dict))
         goto error;
 
-error:
+#ifdef WITH_THREAD
+    /*
+     * Initialize this module's threading support structures.
+     */
+    _pyOpenSSL_tstate_key = PyThread_create_key();
+#endif
+
+  error:
     ;
 }

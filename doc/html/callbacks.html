@@ -54,9 +54,9 @@ as a C library, it's not meant to have Python callbacks, so a way around that
 is needed. Another problem is thread support. A lot of the OpenSSL I/O
 functions can block if the socket is in blocking mode, and then you want other
 Python threads to be able to do other things. The real trouble is if you've
-released the thread lock to do a potentially blocking operation, and the
-operation calls a callback. Then we must take the thread lock back<A NAME="tex2html5"
-  HREF="#foot972"><SUP>4</SUP></A>.
+released the global CPython interpreter lock to do a potentially blocking
+operation, and the operation calls a callback. Then we must take the GIL back,
+since calling Python APIs without holding it is not allowed.
 
 <P>
 There are two solutions to the first problem, both of which are necessary. The
@@ -71,27 +71,20 @@ wrapper <tt class="class">Connection</tt> object as app_data for the SSL object,
 easily find the Python callback.
 
 <P>
-The other problem is also partially solved by app_data. Since we're associating
-our wrapper objects with the ''real'' objects, we can easily access data from
-the <tt class="class">Connection</tt> object. The solution then is to simply include a
-<tt class="ctype">PyThreadState</tt> variable in the <tt class="class">Connection</tt> declaration, and write
-macros similar to <tt class="cfunction">Py_BEGIN_ALLOW_THREADS</tt> and
-<tt class="cfunction">Py_END_ALLOW_THREADS</tt> that allows specifying of the
-<tt class="ctype">PyThreadState</tt> variable to use. Now we can simply ''begin allow
-threads'' before a potentially blocking operation, and ''end allow threads''
-before calling a callback.
+The other problem is solved using thread local variables.  Whenever the GIL is
+released before calling into an OpenSSL API, the PyThreadState pointer returned
+by <tt class="cfunction">PyEval_SaveState</tt> is stored in a global thread local variable
+(using Python's own TLS API, <tt class="cfunction">PyThread_set_key_value</tt>).  When it is
+necessary to re-acquire the GIL, either after the OpenSSL API returns or in a C
+callback invoked by that OpenSSL API, the value of the thread local variable is
+retrieved (<tt class="cfunction">PyThread_get_key_value</tt>) and used to re-acquire the GIL.
+This allows Python threads to execute while OpenSSL APIs are running and allows
+use of any particular pyOpenSSL object from any Python thread, since there is
+no per-thread state associated with any of these objects and since OpenSSL is
+threadsafe (as long as properly initialized, as pyOpenSSL initializes it).
 
 <P>
-<BR><HR><H4>Footnotes</H4>
-<DL>
-<DT><A NAME="foot972">... back</A><A
- href="callbacks.html#tex2html5"><SUP>4</SUP></A></DT>
-<DD>I'm
-not sure why this is necessary, but otherwise I get a segmentation violation on
-<tt class="cfunction">PyEval_CallObject</tt>
 
-</DD>
-</DL>
 <DIV CLASS="navigation">
 <p><hr>
 <table align="center" width="100%" cellpadding="0" cellspacing="2">
