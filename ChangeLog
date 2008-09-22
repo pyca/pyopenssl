@@ -1,5 +1,9 @@
 2008-09-22  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
+	* Release 0.8a1
+
+2008-09-22  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
 	* tsafe.py: Deprecated the thread-safe Connection wrapper, since the
 	  basic connection class should be thread-safe now.
 
