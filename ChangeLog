@@ -4,6 +4,9 @@
 	  wrapper.  The Connection class should not segfault if used from
 	  multiple threads now, but it generally cannot be relied on to
 	  produce correct results if used without the thread-safe wrapper.
+	* doc/pyOpenSSL.tex: Correct the documentation for the set_passwd_cb
+	  callback parameter so that it accurately describes the required
+	  signature.
 
 2008-09-22  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 

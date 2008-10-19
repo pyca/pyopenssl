@@ -149,14 +149,14 @@ This method should be used with the <tt class="constant">OP_*</tt> constants.
 <dl><dt><b><a name='l2h-134'><tt class='method'>set_passwd_cb</tt></a></b>(<var>callback</var><big>[</big><var>, userdata</var><big>]</big>)
 <dd>
 Set the passphrase callback to <var>callback</var>. This function will be called
-when a private key with a passphrase is loaded.
-<var>callback</var> should take a boolean argument <var>repeat</var> and an arbitrary
-argument <var>data</var> and return the passphrase entered by the user. If
-<var>repeat</var> is true then <var>callback</var> should ask for the passphrase twice
-and make sure that the two entries are equal. The <var>data</var> argument is the
-<var>userdata</var> variable passed to the <tt class="method">set_passwd_cb</tt> method. If an
-error occurs, <var>callback</var> should return a false value (e.g. an empty
-string).
+when a private key with a passphrase is loaded. <var>callback</var> must accept
+three positional arguments.  First, an integer giving the maximum length of
+the passphrase it may return.  If the returned passphrase is longer than
+this, it will be truncated.  Second, a boolean value which will be true if
+the user should be prompted for the passphrase twice and the callback should
+verify that the two values supplied are equal. Third, the value given as the
+<var>userdata</var> parameter to <tt class="method">set_passwd_cb</tt>.  If an error occurs,
+<var>callback</var> should return a false value (e.g. an empty string).
 </dl>
 
 <P>

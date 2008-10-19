@@ -790,14 +790,14 @@ This method should be used with the \constant{OP_*} constants.
 
 \begin{methoddesc}[Context]{set_passwd_cb}{callback\optional{, userdata}}
 Set the passphrase callback to \var{callback}. This function will be called
-when a private key with a passphrase is loaded.
-\var{callback} should take a boolean argument \var{repeat} and an arbitrary
-argument \var{data} and return the passphrase entered by the user. If
-\var{repeat} is true then \var{callback} should ask for the passphrase twice
-and make sure that the two entries are equal. The \var{data} argument is the
-\var{userdata} variable passed to the \method{set_passwd_cb} method. If an
-error occurs, \var{callback} should return a false value (e.g. an empty
-string).
+when a private key with a passphrase is loaded. \var{callback} must accept
+three positional arguments.  First, an integer giving the maximum length of
+the passphrase it may return.  If the returned passphrase is longer than
+this, it will be truncated.  Second, a boolean value which will be true if
+the user should be prompted for the passphrase twice and the callback should
+verify that the two values supplied are equal. Third, the value given as the
+\var{userdata} parameter to \method{set_passwd_cb}.  If an error occurs,
+\var{callback} should return a false value (e.g. an empty string).
 \end{methoddesc}
 
 \begin{methoddesc}[Context]{set_session_id}{name}

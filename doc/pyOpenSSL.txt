@@ -694,13 +694,14 @@ setup.py --help
    set_passwd_cb(callback[, userdata])
           Set the passphrase callback to callback. This function will be
           called when a private key with a passphrase is loaded. callback
-          should take a boolean argument repeat and an arbitrary argument
-          data and return the passphrase entered by the user. If repeat is
-          true then callback should ask for the passphrase twice and make
-          sure that the two entries are equal. The data argument is the
-          userdata variable passed to the set_passwd_cb method. If an
-          error occurs, callback should return a false value (e.g. an
-          empty string).
+          must accept three positional arguments. First, an integer giving
+          the maximum length of the passphrase it may return. If the
+          returned passphrase is longer than this, it will be truncated.
+          Second, a boolean value which will be true if the user should be
+          prompted for the passphrase twice and the callback should verify
+          that the two values supplied are equal. Third, the value given
+          as the userdata parameter to set_passwd_cb. If an error occurs,
+          callback should return a false value (e.g. an empty string).
 
    set_session_id(name)
           Set the context name within which a session can be reused for
