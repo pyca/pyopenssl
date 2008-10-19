@@ -1,3 +1,7 @@
+2008-09-22  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* Release 0.8
+
 2008-10-19  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* tsafe.py: Revert the deprecation of the thread-safe Connection
