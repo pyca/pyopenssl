@@ -1,21 +1,23 @@
+2008-10-19  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* tsafe.py: Revert the deprecation of the thread-safe Connection
+	  wrapper.  The Connection class should not segfault if used from
+	  multiple threads now, but it generally cannot be relied on to
+	  produce correct results if used without the thread-safe wrapper.
+
 2008-09-22  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* Release 0.8a1
 
-2008-09-22  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
-
-	* tsafe.py: Deprecated the thread-safe Connection wrapper, since the
-	  basic connection class should be thread-safe now.
-
 2008-09-21  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* src/ssl/ssl.h, src/ssl/ssl.c: Add a thread-local storage key
-	which will be used to store and retrieve PyThreadState pointers
-	whenever it is necessary to release or re-acquire the GIL.
+	  which will be used to store and retrieve PyThreadState pointers
+	  whenever it is necessary to release or re-acquire the GIL.
 
 	* src/ssl/context.c: Change global_verify_callback so that it
-	unconditionally manipulates the Python threadstate, rather than
-	checking the tstate field which is now always NULL.
+	  unconditionally manipulates the Python threadstate, rather than
+	  checking the tstate field which is now always NULL.
 
 2008-04-26  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 

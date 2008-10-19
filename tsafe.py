@@ -8,11 +8,6 @@ del threading
 
 class Connection:
     def __init__(self, *args):
-        import warnings
-        warnings.warn(
-            "OpenSSL.SSL.Connection is thread-safe.  "
-            "OpenSSL.tsafe.Connection is no longer necessary.",
-            stacklevel=2)
         self._ssl_conn = apply(_ssl.Connection, args)
         self._lock = _RLock()
 
