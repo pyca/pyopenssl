@@ -11,7 +11,9 @@
 Installation script for the OpenSSL module
 """
 
-from distutils.core import setup, Extension
+# Use setuptools if it's available.
+from setuptools import Extension, setup
+from glob import glob
 import os, sys
 
 from version import __version__
@@ -66,6 +68,26 @@ if sys.platform == 'darwin':
     IncludeDirs = ['/sw/include']
     LibraryDirs = ['/sw/lib']
 
+# Use the SSL_LIB and SSL_INC environment variables to extend
+# the library and header directories we pass to the extensions.
+ssl_lib = os.environ.get('SSL_LIB', [])
+if ssl_lib:
+    if LibraryDirs:
+        LibraryDirs += [ssl_lib]
+    else:
+        LibraryDirs = [ssl_lib]
+ssl_inc = os.environ.get('SSL_INC', [])
+if ssl_inc:
+    if IncludeDirs:
+        IncludeDirs += [ssl_inc]
+    else:
+        IncludeDirs = [ssl_inc]
+
+# On Windows, make sure the necessary .dll's get added to the egg.
+data_files = []
+if sys.platform == 'win32':
+    data_files = [("OpenSSL", glob(os.path.join(ssl_lib, '*.dll')))]
+
 def mkExtension(name):
     modname = 'OpenSSL.' + name
     src = globals()[name.lower() + '_src']
@@ -82,6 +104,7 @@ setup(name='pyOpenSSL', version=__version__,
                      'OpenSSL.version', 'OpenSSL.test.__init__',
                      'OpenSSL.test.test_crypto',
                      'OpenSSL.test.test_ssl'],
+      data_files = data_files,
       description = 'Python wrapper module around the OpenSSL library',
       author = 'Martin Sjögren, AB Strakt',
       author_email = 'msjogren@gmail.com',
