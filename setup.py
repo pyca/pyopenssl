@@ -11,6 +11,13 @@
 Installation script for the OpenSSL module
 """
 
+try:
+    from ez_setup import use_setuptools
+except ImportError:
+    pass
+else:
+    use_setuptools(download_delay=0)
+
 import os, sys
 
 def pylibdir(prefixdir):
