@@ -295,4 +295,4 @@ class ConstantsTests(TestCase):
         """
         self.assertEqual(OP_NO_TICKET, 0x4000)
     if OP_NO_TICKET is None:
-        test_no_ticket.skip = "OP_NO_TICKET unavailable - OpenSSL version may be too old"
+        test_op_no_ticket.skip = "OP_NO_TICKET unavailable - OpenSSL version may be too old"
