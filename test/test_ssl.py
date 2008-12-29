@@ -13,8 +13,20 @@ from os.path import join
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, PKey, dump_privatekey, load_certificate, load_privatekey
 from OpenSSL.SSL import WantReadError, Context, Connection, Error
 from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
-from OpenSSL.SSL import VERIFY_PEER, OP_NO_QUERY_MTU, OP_COOKIE_EXCHANGE, OP_NO_TICKET
+from OpenSSL.SSL import VERIFY_PEER
 from OpenSSL.test.test_crypto import _Python23TestCaseHelper, cleartextCertificatePEM, cleartextPrivateKeyPEM
+try:
+    from OpenSSL.SSL import OP_NO_QUERY_MTU
+except ImportError:
+    OP_NO_QUERY_MTU = None
+try:
+    from OpenSSL.SSL import OP_COOKIE_EXCHANGE
+except ImportError:
+    OP_COOKIE_EXCHANGE = None
+try:
+    from OpenSSL.SSL import OP_NO_TICKET
+except ImportError:
+    OP_NO_TICKET = None
 
 
 class ContextTests(TestCase, _Python23TestCaseHelper):
@@ -262,6 +274,8 @@ class ConstantsTests(TestCase):
         I{SSL_OP_NO_QUERY_MTU} defined by I{openssl/ssl.h}.
         """
         self.assertEqual(OP_NO_QUERY_MTU, 0x1000)
+    if OP_NO_QUERY_MTU is None:
+        test_op_no_query_mtu.skip = "OP_NO_QUERY_MTU unavailable - OpenSSL version may be too old"
 
 
     def test_op_cookie_exchange(self):
@@ -270,6 +284,8 @@ class ConstantsTests(TestCase):
         of I{SSL_OP_COOKIE_EXCHANGE} defined by I{openssl/ssl.h}.
         """
         self.assertEqual(OP_COOKIE_EXCHANGE, 0x2000)
+    if OP_COOKIE_EXCHANGE is None:
+        test_op_cookie_exchange.skip = "OP_COOKIE_EXCHANGE unavailable - OpenSSL version may be too old"
 
 
     def test_op_no_ticket(self):
@@ -278,3 +294,5 @@ class ConstantsTests(TestCase):
         I{SSL_OP_NO_TICKET} defined by I{openssl/ssl.h}.
         """
         self.assertEqual(OP_NO_TICKET, 0x4000)
+    if OP_NO_TICKET is None:
+        test_no_ticket.skip = "OP_NO_TICKET unavailable - OpenSSL version may be too old"
