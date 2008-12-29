@@ -365,7 +365,7 @@ _set_asn1_time(char *format, ASN1_TIME* timestamp, crypto_X509Obj *self, PyObjec
 		ASN1_GENERALIZEDTIME dummy;
 		dummy.type = V_ASN1_GENERALIZEDTIME;
 		dummy.length = strlen(when);
-		dummy.data = when;
+		dummy.data = (unsigned char *)when;
 		if (!ASN1_GENERALIZEDTIME_check(&dummy)) {
 			PyErr_SetString(PyExc_ValueError, "Invalid string");
 		} else {
@@ -440,14 +440,14 @@ _get_asn1_time(char *format, ASN1_TIME* timestamp, crypto_X509Obj *self, PyObjec
 	    Py_INCREF(Py_None);
 	    return Py_None;
 	} else if (timestamp->type == V_ASN1_GENERALIZEDTIME) {
-		return PyString_FromString(timestamp->data);
+	    return PyString_FromString((char *)timestamp->data);
 	} else {
 		ASN1_TIME_to_generalizedtime(timestamp, &gt_timestamp);
 		if (gt_timestamp == NULL) {
 			exception_from_error_queue();
 			return NULL;
 		} else {
-			py_timestamp = PyString_FromString(gt_timestamp->data);
+		    py_timestamp = PyString_FromString((char *)gt_timestamp->data);
 			ASN1_GENERALIZEDTIME_free(gt_timestamp);
 			return py_timestamp;
 		}
@@ -652,7 +652,7 @@ crypto_X509_digest(crypto_X509Obj *self, PyObject *args)
     unsigned char fp[EVP_MAX_MD_SIZE];
     char *tmp;
     char *digest_name;
-    int len,i;
+    unsigned int len,i;
     PyObject *ret;
     const EVP_MD *digest;
 

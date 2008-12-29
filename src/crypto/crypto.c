@@ -734,7 +734,7 @@ static int init_openssl_threads(void) {
     for (i = 0; i < CRYPTO_num_locks(); ++i) {
         mutex_buf[i] = PyThread_allocate_lock();
     }
-    CRYPTO_set_id_callback(PyThread_get_thread_ident);
+    CRYPTO_set_id_callback((unsigned long (*)(void))PyThread_get_thread_ident);
     CRYPTO_set_locking_callback(locking_function);
     return 1;
 }
