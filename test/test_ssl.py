@@ -268,31 +268,35 @@ class ConstantsTests(TestCase):
     OpenSSL APIs.  The only assertions it seems can be made about them is
     their values.
     """
-    def test_op_no_query_mtu(self):
-        """
-        The value of L{OpenSSL.SSL.OP_NO_QUERY_MTU} is 0x1000, the value of
-        I{SSL_OP_NO_QUERY_MTU} defined by I{openssl/ssl.h}.
-        """
-        self.assertEqual(OP_NO_QUERY_MTU, 0x1000)
-    if OP_NO_QUERY_MTU is None:
-        test_op_no_query_mtu.skip = "OP_NO_QUERY_MTU unavailable - OpenSSL version may be too old"
+    # unittest.TestCase has no skip mechanism
+    if OP_NO_QUERY_MTU is not None:
+        def test_op_no_query_mtu(self):
+            """
+            The value of L{OpenSSL.SSL.OP_NO_QUERY_MTU} is 0x1000, the value of
+            I{SSL_OP_NO_QUERY_MTU} defined by I{openssl/ssl.h}.
+            """
+            self.assertEqual(OP_NO_QUERY_MTU, 0x1000)
+    else:
+        "OP_NO_QUERY_MTU unavailable - OpenSSL version may be too old"
 
 
-    def test_op_cookie_exchange(self):
-        """
-        The value of L{OpenSSL.SSL.OP_COOKIE_EXCHANGE} is 0x2000, the value
-        of I{SSL_OP_COOKIE_EXCHANGE} defined by I{openssl/ssl.h}.
-        """
-        self.assertEqual(OP_COOKIE_EXCHANGE, 0x2000)
-    if OP_COOKIE_EXCHANGE is None:
-        test_op_cookie_exchange.skip = "OP_COOKIE_EXCHANGE unavailable - OpenSSL version may be too old"
+    if OP_COOKIE_EXCHANGE is not None:
+        def test_op_cookie_exchange(self):
+            """
+            The value of L{OpenSSL.SSL.OP_COOKIE_EXCHANGE} is 0x2000, the value
+            of I{SSL_OP_COOKIE_EXCHANGE} defined by I{openssl/ssl.h}.
+            """
+            self.assertEqual(OP_COOKIE_EXCHANGE, 0x2000)
+    else:
+        "OP_COOKIE_EXCHANGE unavailable - OpenSSL version may be too old"
 
 
-    def test_op_no_ticket(self):
-        """
-        The value of L{OpenSSL.SSL.OP_NO_TICKET} is 0x4000, the value of
-        I{SSL_OP_NO_TICKET} defined by I{openssl/ssl.h}.
-        """
-        self.assertEqual(OP_NO_TICKET, 0x4000)
-    if OP_NO_TICKET is None:
-        test_op_no_ticket.skip = "OP_NO_TICKET unavailable - OpenSSL version may be too old"
+    if OP_NO_TICKET is not None:
+        def test_op_no_ticket(self):
+            """
+            The value of L{OpenSSL.SSL.OP_NO_TICKET} is 0x4000, the value of
+            I{SSL_OP_NO_TICKET} defined by I{openssl/ssl.h}.
+            """
+            self.assertEqual(OP_NO_TICKET, 0x4000)
+    else:
+        "OP_NO_TICKET unavailable - OpenSSL version may be too old"
