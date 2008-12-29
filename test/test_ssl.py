@@ -13,7 +13,7 @@ from os.path import join
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, PKey, dump_privatekey, load_certificate, load_privatekey
 from OpenSSL.SSL import WantReadError, Context, Connection, Error
 from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
-from OpenSSL.SSL import VERIFY_PEER
+from OpenSSL.SSL import VERIFY_PEER, OP_NO_QUERY_MTU, OP_COOKIE_EXCHANGE, OP_NO_TICKET
 from OpenSSL.test.test_crypto import _Python23TestCaseHelper, cleartextCertificatePEM, cleartextPrivateKeyPEM
 
 
@@ -245,3 +245,36 @@ class ContextTests(TestCase, _Python23TestCaseHelper):
         self.assertRaises(TypeError, context.set_default_verify_paths, None)
         self.assertRaises(TypeError, context.set_default_verify_paths, 1)
         self.assertRaises(TypeError, context.set_default_verify_paths, "")
+
+
+
+class ConstantsTests(TestCase):
+    """
+    Tests for the values of constants exposed in L{OpenSSL.SSL}.
+
+    These are values defined by OpenSSL intended only to be used as flags to
+    OpenSSL APIs.  The only assertions it seems can be made about them is
+    their values.
+    """
+    def test_op_no_query_mtu(self):
+        """
+        The value of L{OpenSSL.SSL.OP_NO_QUERY_MTU} is 0x1000, the value of
+        I{SSL_OP_NO_QUERY_MTU} defined by I{openssl/ssl.h}.
+        """
+        self.assertEqual(OP_NO_QUERY_MTU, 0x1000)
+
+
+    def test_op_cookie_exchange(self):
+        """
+        The value of L{OpenSSL.SSL.OP_COOKIE_EXCHANGE} is 0x2000, the value
+        of I{SSL_OP_COOKIE_EXCHANGE} defined by I{openssl/ssl.h}.
+        """
+        self.assertEqual(OP_COOKIE_EXCHANGE, 0x2000)
+
+
+    def test_op_no_ticket(self):
+        """
+        The value of L{OpenSSL.SSL.OP_NO_TICKET} is 0x4000, the value of
+        I{SSL_OP_NO_TICKET} defined by I{openssl/ssl.h}.
+        """
+        self.assertEqual(OP_NO_TICKET, 0x4000)

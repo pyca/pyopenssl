@@ -1,5 +1,10 @@
 2008-12-28  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
+	* test/test_ssl.py, src/ssl/ssl.c: Expose DTLS-related constants,
+	  OP_NO_QUERY_MTU, OP_COOKIE_EXCHANGE, and OP_NO_TICKET.
+
+2008-12-28  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
 	* src/ssl/context.c: Add a capath parameter to
 	  Context.load_verify_locations to allow Python code to specify
 	  either or both arguments to the underlying
