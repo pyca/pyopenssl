@@ -440,14 +440,14 @@ _get_asn1_time(char *format, ASN1_TIME* timestamp, crypto_X509Obj *self, PyObjec
 	    Py_INCREF(Py_None);
 	    return Py_None;
 	} else if (timestamp->type == V_ASN1_GENERALIZEDTIME) {
-	    return PyString_FromString((char *)timestamp->data);
+		return PyString_FromString((char *)timestamp->data);
 	} else {
 		ASN1_TIME_to_generalizedtime(timestamp, &gt_timestamp);
 		if (gt_timestamp == NULL) {
 			exception_from_error_queue();
 			return NULL;
 		} else {
-		    py_timestamp = PyString_FromString((char *)gt_timestamp->data);
+			py_timestamp = PyString_FromString((char *)gt_timestamp->data);
 			ASN1_GENERALIZEDTIME_free(gt_timestamp);
 			return py_timestamp;
 		}
