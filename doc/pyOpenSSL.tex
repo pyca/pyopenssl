@@ -370,6 +370,9 @@ Return the hash of the certificate subject.
 
 \begin{methoddesc}[X509]{digest}{digest_name}
 Return a digest of the certificate, using the \var{digest_name} method.
+\var{digest_name} must be a string describing a digest algorithm supported
+by OpenSSL (by EVP_get_digestbyname, specifically).  For example,
+\constant{"md5"} or \constant{"sha1"}.
 \end{methoddesc}
 
 \begin{methoddesc}[X509]{add_extensions}{extensions}
@@ -554,7 +557,10 @@ Set the public key of the object to \var{key}.
 \end{methoddesc}
 
 \begin{methoddesc}[NetscapeSPKI]{sign}{key, digest_name}
-Sign the NetscapeSPKI object using the given \var{key} and \var{digest_name}.
+Sign the NetscapeSPKI object using the given \var{key} and
+\var{digest_name}.  \var{digest_name} must be a string describing a digest
+algorithm supported by OpenSSL (by EVP_get_digestbyname, specifically).  For
+example, \constant{"md5"} or \constant{"sha1"}.
 \end{methoddesc}
 
 \begin{methoddesc}[NetscapeSPKI]{verify}{key}
