@@ -1,3 +1,9 @@
+2008-12-28  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* test/test_crypto.py, src/crypto/x509req.c: Added get_version and
+	  set_version_methods to X509ReqType based on patch from Wouter van
+	  Bommel.  Resolves LP#274418.
+
 2008-09-22  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* Release 0.8

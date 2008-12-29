@@ -239,6 +239,56 @@ crypto_X509Req_add_extensions(crypto_X509ReqObj *self, PyObject *args)
     return Py_None;
 }
 
+static char crypto_X509Req_set_version_doc[] = "\n\
+Set the version subfield (RFC 2459, section 4.1.2.1) of the certificate\n\
+request.\n\
+\n\
+Arguments: self - X509Req object\n\
+           args - The Python argument tuple, should be:\n\
+             version - The version number\n\
+Returns:   None\n\
+";
+
+static PyObject *
+crypto_X509Req_set_version(crypto_X509ReqObj *self, PyObject *args)
+{
+    long version;
+
+    if (!PyArg_ParseTuple(args, "l:set_version", &version)) {
+        return NULL;
+    }
+
+    if (!X509_REQ_set_version(self->x509_req, version)) {
+        return NULL;
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static char crypto_X509Req_get_version_doc[] = "\n\
+Get the version subfield (RFC 2459, section 4.1.2.1) of the certificate\n\
+request.\n\
+\n\
+Arguments: self - X509Req object\n\
+           args - The Python argument tuple, should be empty.\n\
+Returns:   an integer giving the value of the version subfield\n\
+";
+
+static PyObject *
+crypto_X509Req_get_version(crypto_X509ReqObj *self, PyObject *args)
+{
+    long version;
+
+    if (!PyArg_ParseTuple(args, ":get_version")) {
+        return NULL;
+    }
+
+    version = X509_REQ_get_version(self->x509_req);
+
+    return PyLong_FromLong(version);
+}
+
 /*
  * ADD_METHOD(name) expands to a correct PyMethodDef declaration
  *   {  'name', (PyCFunction)crypto_X509Req_name, METH_VARARGS }
@@ -254,6 +304,8 @@ static PyMethodDef crypto_X509Req_methods[] =
     ADD_METHOD(sign),
     ADD_METHOD(verify),
     ADD_METHOD(add_extensions),
+    ADD_METHOD(set_version),
+    ADD_METHOD(get_version),
     { NULL, NULL }
 };
 #undef ADD_METHOD

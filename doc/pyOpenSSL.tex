@@ -454,6 +454,15 @@ algorithm identified by the string \var{digest}.
 Verify a certificate request using the public key \var{pkey}.
 \end{methoddesc}
 
+\begin{methoddesc}[X509Req]{set_version}{version}
+Set the version (RFC 2459, 4.1.2.1) of the certificate request to
+\var{version}.
+\end{methoddesc}
+
+\begin{methoddesc}[X509Req]{get_version}{}
+Get the version (RFC 2459, 4.1.2.1) of the certificate request.
+\end{methoddesc}
+
 \subsubsection{X509Store objects \label{openssl-x509store}}
 
 The X509Store object has currently just one method:

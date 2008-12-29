@@ -419,6 +419,20 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin, _Python23TestCaseHelper
             "%r is of type %r, should be %r" % (request, type(request), X509ReqType))
 
 
+    def test_version(self):
+        """
+        L{X509ReqType.set_version} sets the X.509 version of the certificate
+        request.  L{X509ReqType.get_version} returns the X.509 version of
+        the certificate request.  The initial value of the version is 0.
+        """
+        request = X509Req()
+        self.assertEqual(request.get_version(), 0)
+        request.set_version(1)
+        self.assertEqual(request.get_version(), 1)
+        request.set_version(3)
+        self.assertEqual(request.get_version(), 3)
+
+
     def test_get_subject(self):
         """
         L{X509ReqType.get_subject} returns an L{X509Name} for the subject of
