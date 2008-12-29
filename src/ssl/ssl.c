@@ -193,15 +193,15 @@ do {                                                                          \
     PyModule_AddIntConstant(module, "OP_NETSCAPE_CA_DN_BUG", SSL_OP_NETSCAPE_CA_DN_BUG);
     PyModule_AddIntConstant(module, "OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG", SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG);
 
-    /* DTLS related options */
+    /* DTLS related options.  The first two of these were introduced in
+     * 2005, the third in 2007.  To accomodate systems which are still using
+     * older versions, make them optional. */
+#ifdef SSL_OP_NO_QUERY_MTU
     PyModule_AddIntConstant(module, "OP_NO_QUERY_MTU", SSL_OP_NO_QUERY_MTU);
+#endif
+#ifdef SSL_OP_COOKIE_EXCHANGE
     PyModule_AddIntConstant(module, "OP_COOKIE_EXCHANGE", SSL_OP_COOKIE_EXCHANGE);
-
-
-    /* SSL_OP_NO_TICKET was only added in August 2007.  On the outside
-     * chance anyone still cares about using pyOpenSSL with a version of
-     * OpenSSL as old as that (and that the rest of the codebase is free of
-     * impediments towards that goal), make this optional. */
+#endif
 #ifdef SSL_OP_NO_TICKET
     PyModule_AddIntConstant(module, "OP_NO_TICKET", SSL_OP_NO_TICKET);
 #endif
