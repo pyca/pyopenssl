@@ -194,8 +194,9 @@ crypto_X509Name_compare(crypto_X509NameObj *n, crypto_X509NameObj *m)
         return -1;
     } else if (result > 0) {
         return 1;
-    } else
+    } else {
         return 0;
+    }
 }
 
 /*
