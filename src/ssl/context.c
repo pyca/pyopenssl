@@ -11,6 +11,12 @@
  */
 #include <Python.h>
 
+#if PY_VERSION_HEX >= 0x02050000
+# define PYARG_PARSETUPLE_FORMAT const char
+#else
+# define PYARG_PARSETUPLE_FORMAT char
+#endif
+
 #ifndef MS_WINDOWS
 #  include <sys/socket.h>
 #  include <netinet/in.h>
@@ -156,7 +162,7 @@ global_verify_callback(int ok, X509_STORE_CTX *x509_ctx)
     SSL *ssl;
     ssl_ConnectionObj *conn;
     crypto_X509Obj *cert;
-    int errnum, errdepth, c_ret, use_thread_state;
+    int errnum, errdepth, c_ret;
 
     // Get Connection object to check thread state
     ssl = (SSL *)X509_STORE_CTX_get_app_data(x509_ctx);
@@ -197,7 +203,7 @@ global_verify_callback(int ok, X509_STORE_CTX *x509_ctx)
  * Returns:   None
  */
 static void
-global_info_callback(SSL *ssl, int where, int _ret)
+global_info_callback(const SSL *ssl, int where, int _ret)
 {
     ssl_ConnectionObj *conn = (ssl_ConnectionObj *)SSL_get_app_data(ssl);
     PyObject *argv, *ret;
@@ -343,7 +349,7 @@ parse_certificate_argument(const char* format1, const char* format2, PyObject* a
 
     if (!crypto_X509_type)
     {
-	if (!PyArg_ParseTuple(args, format1, &cert))
+	if (!PyArg_ParseTuple(args, (PYARG_PARSETUPLE_FORMAT *)format1, &cert))
 	    return NULL;
 
 	if (strcmp(cert->ob_type->tp_name, "X509") != 0 || 
@@ -356,7 +362,7 @@ parse_certificate_argument(const char* format1, const char* format2, PyObject* a
 	crypto_X509_type = cert->ob_type;
     }
     else
-	if (!PyArg_ParseTuple(args, format2, crypto_X509_type,
+	if (!PyArg_ParseTuple(args, (PYARG_PARSETUPLE_FORMAT *)format2, crypto_X509_type,
 			      &cert))
 	    return NULL;
     return cert;
@@ -640,8 +646,8 @@ Returns:   None\n\
 static PyObject *
 ssl_Context_set_session_id(ssl_ContextObj *self, PyObject *args)
 {
-    char *buf;
-    int len;
+    unsigned char *buf;
+    unsigned int len;
 
     if (!PyArg_ParseTuple(args, "s#:set_session_id", &buf, &len))
         return NULL;

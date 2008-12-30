@@ -15,8 +15,10 @@
  * WIN32 or WINDOWS needs to be defined, otherwise we get a
  * warning.
  */
-#ifdef MS_WINDOWS 
-#define WIN32
+#ifdef MS_WINDOWS
+#  ifndef WIN32
+#      define WIN32
+#  endif
 #endif
 #include <openssl/rand.h>
 

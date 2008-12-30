@@ -1,3 +1,10 @@
+2008-12-30  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* MANIFEST.in, src/crypto/crypto.c, src/crypto/x509.c,
+	  src/crypto/x509name.c, src/rand/rand.c, src/ssl/context.c: Changes
+	  which eliminate compiler warnings but should not change any
+	  behavior.
+
 2008-12-28  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* test/test_ssl.py, src/ssl/ssl.c: Expose DTLS-related constants,
