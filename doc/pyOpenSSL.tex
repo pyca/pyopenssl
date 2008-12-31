@@ -534,10 +534,14 @@ None if no CA certificates are present.
 
 \subsubsection{X509Extension objects \label{openssl-509ext}}
 
-X509Extension objects currently only have one method:
+X509Extension objects have several methods:
 
 \begin{methoddesc}[X509Extension]{get_critical}{}
 Return the critical field of the extension object.
+\end{methoddesc}
+
+\begin{methoddesc}[X509Extension]{get_short_name}{}
+Return the short type name of the extension object.
 \end{methoddesc}
 
 \subsubsection{NetscapeSPKI objects \label{openssl-netscape-spki}}

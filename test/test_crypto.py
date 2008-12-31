@@ -133,6 +133,17 @@ class X509ExtTests(TestCase, _Python23TestCaseHelper):
         self.assertFalse(ext.get_critical())
 
 
+    def test_get_short_name(self):
+        """
+        L{X509ExtensionType.get_short_name} returns a string giving the short
+        type name of the extension.
+        """
+        ext = X509Extension('basicConstraints', True, 'CA:true')
+        self.assertEqual(ext.get_short_name(), 'basicConstraints')
+        ext = X509Extension('nsComment', True, 'foo bar')
+        self.assertEqual(ext.get_short_name(), 'nsComment')
+
+
 
 class PKeyTests(TestCase, _Python23TestCaseHelper):
     """

@@ -1,5 +1,10 @@
 2008-12-31  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
+	* src/crypto/x509ext.c, test/test_crypto.py: Add the get_short_name
+	  method to X509Extension based on patch from Alex Stapleton.
+	
+2008-12-31  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
 	* src/crypto/x509ext.c, test/test_crypto.py: Fix X509Extension so
 	  that it is possible to instantiate extensions which use s2i or r2i
 	  instead of v2i (an extremely obscure extension implementation

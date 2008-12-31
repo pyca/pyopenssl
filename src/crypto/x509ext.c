@@ -30,6 +30,31 @@ crypto_X509Extension_get_critical(crypto_X509ExtensionObj *self, PyObject *args)
     return PyInt_FromLong(X509_EXTENSION_get_critical(self->x509_extension));
 }
 
+static char crypto_X509Extension_get_short_name_doc[] = "\n\
+Returns the short version of the type name of the X509Extension\n\
+\n\
+Arguments: self - The X509Extension object\n\
+           args - The argument tuple, should be empty\n\
+Returns: The short type name.\n\
+";
+
+static PyObject *
+crypto_X509Extension_get_short_name(crypto_X509ExtensionObj *self, PyObject *args) {
+	ASN1_OBJECT *obj;
+	const char *extname;
+
+	if (!PyArg_ParseTuple(args, ":get_short_name")) {
+		return NULL;
+	}
+
+	/* Returns an internal pointer to x509_extension, not a copy */
+	obj = X509_EXTENSION_get_object(self->x509_extension);
+
+	extname = OBJ_nid2sn(OBJ_obj2nid(obj));
+	return PyString_FromString(extname);
+}
+
+
 /*
  * ADD_METHOD(name) expands to a correct PyMethodDef declaration
  *   {  'name', (PyCFunction)crypto_X509Extension_name, METH_VARARGS }
@@ -40,6 +65,7 @@ crypto_X509Extension_get_critical(crypto_X509ExtensionObj *self, PyObject *args)
 static PyMethodDef crypto_X509Extension_methods[] =
 {
     ADD_METHOD(get_critical),
+    ADD_METHOD(get_short_name),
     { NULL, NULL }
 };
 #undef ADD_METHOD
