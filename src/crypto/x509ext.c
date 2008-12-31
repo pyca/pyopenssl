@@ -64,6 +64,8 @@ crypto_X509Extension_New(char *type_name, int critical, char *value)
         return NULL;
     }
 
+    self->dealloc = 0;
+
     /* There are other OpenSSL APIs which would let us pass in critical
      * separately, but they're harder to use, and since value is already a pile
      * of crappy junk smuggling a ton of utterly important structured data,
@@ -81,10 +83,16 @@ crypto_X509Extension_New(char *type_name, int critical, char *value)
 
     self->x509_extension = X509V3_EXT_nconf(
 	    NULL, NULL, type_name, value_with_critical);
-    self->dealloc = 1;
 
     free(value_with_critical);
 
+    if (!self->x509_extension) {
+	    PyObject_Free(self);
+	    exception_from_error_queue();
+	    return NULL;
+    }
+
+    self->dealloc = 1;
     return self;
 }
 

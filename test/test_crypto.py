@@ -83,6 +83,7 @@ class _Python23TestCaseHelper:
         return self.failIf(*a, **kw)
 
 
+
 class X509ExtTests(TestCase, _Python23TestCaseHelper):
     def test_construction(self):
         """
@@ -102,6 +103,17 @@ class X509ExtTests(TestCase, _Python23TestCaseHelper):
                 comment, type(comment), X509ExtensionType))
 
 
+    def test_invalid_extension(self):
+        """
+        L{X509Extension} raises something if it is passed a bad extension
+        name or value.
+        """
+        self.assertRaises(
+            Error, X509Extension, 'thisIsMadeUp', False, 'hi')
+        self.assertRaises(
+            Error, X509Extension, 'basicConstraints', False, 'blah blah')
+
+
     def test_get_critical(self):
         """
         L{X509ExtensionType.get_critical} returns the value of the
@@ -111,6 +123,7 @@ class X509ExtTests(TestCase, _Python23TestCaseHelper):
         self.assertTrue(ext.get_critical())
         ext = X509Extension('basicConstraints', 0, 'CA:true')
         self.assertFalse(ext.get_critical())
+
 
 
 class PKeyTests(TestCase, _Python23TestCaseHelper):
