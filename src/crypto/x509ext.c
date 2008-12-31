@@ -56,106 +56,34 @@ crypto_X509ExtensionObj *
 crypto_X509Extension_New(char *type_name, int critical, char *value)
 {
     crypto_X509ExtensionObj *self;
-    int ext_len, ext_nid;
-    unsigned char *ext_der;
-    X509V3_EXT_METHOD *ext_method = NULL;
-    ASN1_OCTET_STRING *ext_oct;
-    STACK_OF(CONF_VALUE) *nval;
-    void * ext_struct;
-    X509_EXTENSION *extension = NULL;
+    char* value_with_critical = NULL;
 
     self = PyObject_New(crypto_X509ExtensionObj, &crypto_X509Extension_Type);
 
-    if (self == NULL)
-        return NULL;
-
-    /* Try to get a NID for the name */
-    if ((ext_nid = OBJ_sn2nid(type_name)) == NID_undef)
-    {
-        PyErr_SetString(PyExc_ValueError, "Unknown extension name");
+    if (self == NULL) {
         return NULL;
     }
 
-    /* Lookup the extension method structure */
-    if (!(ext_method = X509V3_EXT_get_nid(ext_nid)))
-    {
-        PyErr_SetString(PyExc_ValueError, "Unknown extension");
-        return NULL;
-    }
-
-    /* Look if it has a function to convert value to an 
-     * internal structure.
-     */
-    if (!ext_method->v2i)
-    {
-        PyErr_SetString(PyExc_ValueError, "Can't initialize exception");
-        return NULL;
-    }
-
-    /* Parse the value */
-    nval = X509V3_parse_list(value);
-    if (!nval)
-    {
-        PyErr_SetString(PyExc_ValueError, "Invalid extension string");
-        return NULL;
-    }
-
-    /* And use it to get the internal structure */
-    if(!(ext_struct = ext_method->v2i(ext_method, NULL, nval))) {
-        exception_from_error_queue();
-        return NULL;
-    }
-
-    /* Deallocate the configuration value stack */
-    sk_CONF_VALUE_pop_free(nval, X509V3_conf_free);
-        
-    /* Find out how much memory we need */
-
-
-    /* Convert internal representation to DER */
-    /* and Allocate */
-    if (ext_method->it) {
-        ext_der = NULL;
-        ext_len = ASN1_item_i2d(ext_struct, &ext_der, ASN1_ITEM_ptr(ext_method->it));
-        if (ext_len < 0) {
-            PyErr_SetString(PyExc_MemoryError, "Could not allocate memory");
-            return NULL;
-        }
+    /* There are other OpenSSL APIs which would let us pass in critical
+     * separately, but they're harder to use, and since value is already a pile
+     * of crappy junk smuggling a ton of utterly important structured data,
+     * what's the point of trying to avoid nasty stuff with strings? (However,
+     * X509V3_EXT_i2d in particular seems like it would be a better API to
+     * invoke.  I do not know where to get the ext_struc it desires for its
+     * last parameter, though.) */
+    value_with_critical = malloc(strlen("critical,") + strlen(value) + 1);
+    if (critical) {
+	    strcpy(value_with_critical, "critical,");
+	    strcpy(value_with_critical + strlen("critical,"), value);
     } else {
-        unsigned char *p;
-        ext_len = ext_method->i2d(ext_struct, NULL);
-        if(!(ext_der = malloc(ext_len))) {
-            PyErr_SetString(PyExc_MemoryError, "Could not allocate memory");
-            return NULL;
-        }
-        p = ext_der;
-        ext_method->i2d(ext_struct, &p);
+	    strcpy(value_with_critical, value);
     }
 
-    /* And create the ASN1_OCTET_STRING */
-    if(!(ext_oct = M_ASN1_OCTET_STRING_new())) {
-        exception_from_error_queue();
-        return NULL;
-    }
-        
-    ext_oct->data = ext_der;
-    ext_oct->length = ext_len;
-
-    /* Now that we got all ingredients, make the extension */
-    extension = X509_EXTENSION_create_by_NID(NULL, ext_nid, critical, ext_oct);
-    if (extension == NULL)
-    {
-        exception_from_error_queue();
-        M_ASN1_OCTET_STRING_free(ext_oct);
-        ext_method->ext_free(ext_struct);
-        return NULL;
-    }
-    
-    M_ASN1_OCTET_STRING_free(ext_oct);
-    /* ext_method->ext_free(ext_struct); */
-
-    self->x509_extension = extension;
+    self->x509_extension = X509V3_EXT_nconf(
+	    NULL, NULL, type_name, value_with_critical);
     self->dealloc = 1;
+
+    free(value_with_critical);
 
     return self;
 }

@@ -9,6 +9,7 @@ from unittest import TestCase
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
 from OpenSSL.crypto import X509Req, X509ReqType
+from OpenSSL.crypto import X509Extension, X509ExtensionType
 from OpenSSL.crypto import FILETYPE_PEM, load_certificate, load_privatekey
 from OpenSSL.crypto import dump_privatekey
 
@@ -81,6 +82,35 @@ class _Python23TestCaseHelper:
     def assertFalse(self, *a, **kw):
         return self.failIf(*a, **kw)
 
+
+class X509ExtTests(TestCase, _Python23TestCaseHelper):
+    def test_construction(self):
+        """
+        L{X509Extension} accepts an extension type name, a critical flag,
+        and an extension value and returns an L{X509ExtensionType} instance.
+        """
+        basic = X509Extension('basicConstraints', 1, 'CA:true')
+        self.assertTrue(
+            isinstance(basic, X509ExtensionType),
+            "%r is of type %r, should be %r" % (
+                basic, type(basic), X509ExtensionType))
+
+        comment = X509Extension('nsComment', 0, 'pyOpenSSL unit test')
+        self.assertTrue(
+            isinstance(comment, X509ExtensionType),
+            "%r is of type %r, should be %r" % (
+                comment, type(comment), X509ExtensionType))
+
+
+    def test_get_critical(self):
+        """
+        L{X509ExtensionType.get_critical} returns the value of the
+        extension's critical flag.
+        """
+        ext = X509Extension('basicConstraints', 1, 'CA:true')
+        self.assertTrue(ext.get_critical())
+        ext = X509Extension('basicConstraints', 0, 'CA:true')
+        self.assertFalse(ext.get_critical())
 
 
 class PKeyTests(TestCase, _Python23TestCaseHelper):
