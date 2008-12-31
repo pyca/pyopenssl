@@ -55,13 +55,19 @@ static PyMethodDef crypto_X509Extension_methods[] =
 crypto_X509ExtensionObj *
 crypto_X509Extension_New(char *type_name, int critical, char *value)
 {
+    X509V3_CTX ctx;
     crypto_X509ExtensionObj *self;
     char* value_with_critical = NULL;
+
+    /* We have no configuration database - but perhaps we should.  Anyhow, the
+     * context is necessary for any extension which uses the r2i conversion
+     * method.  That is, X509V3_EXT_nconf may segfault if passed a NULL ctx. */
+    X509V3_set_ctx_nodb(&ctx);
 
     self = PyObject_New(crypto_X509ExtensionObj, &crypto_X509Extension_Type);
 
     if (self == NULL) {
-        return NULL;
+	    goto error;
     }
 
     self->dealloc = 0;
@@ -74,6 +80,10 @@ crypto_X509Extension_New(char *type_name, int critical, char *value)
      * invoke.  I do not know where to get the ext_struc it desires for its
      * last parameter, though.) */
     value_with_critical = malloc(strlen("critical,") + strlen(value) + 1);
+    if (!value_with_critical) {
+	    goto critical_malloc_error;
+    }
+
     if (critical) {
 	    strcpy(value_with_critical, "critical,");
 	    strcpy(value_with_critical + strlen("critical,"), value);
@@ -82,18 +92,26 @@ crypto_X509Extension_New(char *type_name, int critical, char *value)
     }
 
     self->x509_extension = X509V3_EXT_nconf(
-	    NULL, NULL, type_name, value_with_critical);
+	    NULL, &ctx, type_name, value_with_critical);
 
     free(value_with_critical);
 
     if (!self->x509_extension) {
-	    PyObject_Free(self);
-	    exception_from_error_queue();
-	    return NULL;
+	    goto nconf_error;
     }
 
     self->dealloc = 1;
     return self;
+
+  nconf_error:
+    exception_from_error_queue();
+
+  critical_malloc_error:
+    PyObject_Free(self);
+
+  error:
+    return NULL;
+
 }
 
 /*

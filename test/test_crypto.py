@@ -90,13 +90,13 @@ class X509ExtTests(TestCase, _Python23TestCaseHelper):
         L{X509Extension} accepts an extension type name, a critical flag,
         and an extension value and returns an L{X509ExtensionType} instance.
         """
-        basic = X509Extension('basicConstraints', 1, 'CA:true')
+        basic = X509Extension('basicConstraints', True, 'CA:true')
         self.assertTrue(
             isinstance(basic, X509ExtensionType),
             "%r is of type %r, should be %r" % (
                 basic, type(basic), X509ExtensionType))
 
-        comment = X509Extension('nsComment', 0, 'pyOpenSSL unit test')
+        comment = X509Extension('nsComment', False, 'pyOpenSSL unit test')
         self.assertTrue(
             isinstance(comment, X509ExtensionType),
             "%r is of type %r, should be %r" % (
@@ -113,15 +113,23 @@ class X509ExtTests(TestCase, _Python23TestCaseHelper):
         self.assertRaises(
             Error, X509Extension, 'basicConstraints', False, 'blah blah')
 
+        # Exercise a weird one (an extension which uses the r2i method).  This
+        # exercises the codepath that requires a non-NULL ctx to be passed to
+        # X509V3_EXT_nconf.  It can't work now because we provide no
+        # configuration database.  It might be made to work in the future.
+        self.assertRaises(
+            Error, X509Extension, 'proxyCertInfo', True,
+            'language:id-ppl-anyLanguage,pathlen:1,policy:text:AB')
+
 
     def test_get_critical(self):
         """
         L{X509ExtensionType.get_critical} returns the value of the
         extension's critical flag.
         """
-        ext = X509Extension('basicConstraints', 1, 'CA:true')
+        ext = X509Extension('basicConstraints', True, 'CA:true')
         self.assertTrue(ext.get_critical())
-        ext = X509Extension('basicConstraints', 0, 'CA:true')
+        ext = X509Extension('basicConstraints', False, 'CA:true')
         self.assertFalse(ext.get_critical())
 
 
