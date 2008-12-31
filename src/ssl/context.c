@@ -11,6 +11,12 @@
  */
 #include <Python.h>
 
+#if PY_VERSION_HEX >= 0x02050000
+# define PYARG_PARSETUPLE_FORMAT const char
+#else
+# define PYARG_PARSETUPLE_FORMAT char
+#endif
+
 #ifndef MS_WINDOWS
 #  include <sys/socket.h>
 #  include <netinet/in.h>
@@ -156,7 +162,7 @@ global_verify_callback(int ok, X509_STORE_CTX *x509_ctx)
     SSL *ssl;
     ssl_ConnectionObj *conn;
     crypto_X509Obj *cert;
-    int errnum, errdepth, c_ret, use_thread_state;
+    int errnum, errdepth, c_ret;
 
     // Get Connection object to check thread state
     ssl = (SSL *)X509_STORE_CTX_get_app_data(x509_ctx);
@@ -197,7 +203,7 @@ global_verify_callback(int ok, X509_STORE_CTX *x509_ctx)
  * Returns:   None
  */
 static void
-global_info_callback(SSL *ssl, int where, int _ret)
+global_info_callback(const SSL *ssl, int where, int _ret)
 {
     ssl_ConnectionObj *conn = (ssl_ConnectionObj *)SSL_get_app_data(ssl);
     PyObject *argv, *ret;
@@ -238,18 +244,20 @@ chain\n\
 \n\
 Arguments: self - The Context object\n\
            args - The Python argument tuple, should be:\n\
-             cafile - Which file we can find the certificates\n\
+             cafile - In which file we can find the certificates\n\
+             capath - In which directory we can find the certificates\r\
 Returns:   None\n\
 ";
 static PyObject *
-ssl_Context_load_verify_locations(ssl_ContextObj *self, PyObject *args)
-{
-    char *cafile;
+ssl_Context_load_verify_locations(ssl_ContextObj *self, PyObject *args) {
+    char *cafile = NULL;
+    char *capath = NULL;
 
-    if (!PyArg_ParseTuple(args, "s:load_verify_locations", &cafile))
+    if (!PyArg_ParseTuple(args, "z|z:load_verify_locations", &cafile, &capath)) {
         return NULL;
+    }
 
-    if (!SSL_CTX_load_verify_locations(self->ctx, cafile, NULL))
+    if (!SSL_CTX_load_verify_locations(self->ctx, cafile, capath))
     {
         exception_from_error_queue();
         return NULL;
@@ -260,6 +268,33 @@ ssl_Context_load_verify_locations(ssl_ContextObj *self, PyObject *args)
         return Py_None;
     }
 }
+
+static char ssl_Context_set_default_verify_paths_doc[] = "\n\
+Use the platform-specific CA certificate locations\n\
+\n\
+Arguments: self - The Context object\n\
+           args - None\n\
+\n\
+Returns:   None\n\
+";
+static PyObject *
+ssl_Context_set_default_verify_paths(ssl_ContextObj *self, PyObject *args) {
+    if (!PyArg_ParseTuple(args, ":set_default_verify_paths")) {
+        return NULL;
+    }
+
+    /*
+     * XXX Error handling for SSL_CTX_set_default_verify_paths is untested.
+     * -exarkun
+     */
+    if (!SSL_CTX_set_default_verify_paths(self->ctx)) {
+        exception_from_error_queue();
+        return NULL;
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+};
+
 
 static char ssl_Context_set_passwd_cb_doc[] = "\n\
 Set the passphrase callback\n\
@@ -314,7 +349,7 @@ parse_certificate_argument(const char* format1, const char* format2, PyObject* a
 
     if (!crypto_X509_type)
     {
-	if (!PyArg_ParseTuple(args, format1, &cert))
+	if (!PyArg_ParseTuple(args, (PYARG_PARSETUPLE_FORMAT *)format1, &cert))
 	    return NULL;
 
 	if (strcmp(cert->ob_type->tp_name, "X509") != 0 || 
@@ -327,7 +362,7 @@ parse_certificate_argument(const char* format1, const char* format2, PyObject* a
 	crypto_X509_type = cert->ob_type;
     }
     else
-	if (!PyArg_ParseTuple(args, format2, crypto_X509_type,
+	if (!PyArg_ParseTuple(args, (PYARG_PARSETUPLE_FORMAT *)format2, crypto_X509_type,
 			      &cert))
 	    return NULL;
     return cert;
@@ -611,8 +646,8 @@ Returns:   None\n\
 static PyObject *
 ssl_Context_set_session_id(ssl_ContextObj *self, PyObject *args)
 {
-    char *buf;
-    int len;
+    unsigned char *buf;
+    unsigned int len;
 
     if (!PyArg_ParseTuple(args, "s#:set_session_id", &buf, &len))
         return NULL;
@@ -952,6 +987,7 @@ ssl_Context_set_options(ssl_ContextObj *self, PyObject *args)
 static PyMethodDef ssl_Context_methods[] = {
     ADD_METHOD(load_verify_locations),
     ADD_METHOD(set_passwd_cb),
+    ADD_METHOD(set_default_verify_paths),
     ADD_METHOD(use_certificate_chain_file),
     ADD_METHOD(use_certificate_file),
     ADD_METHOD(use_certificate),

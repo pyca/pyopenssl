@@ -13,7 +13,7 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static PyMethodDef crypto_X509Name_methods[];
+static PyMethodDef crypto_X509Name_methods[4];
 
 /*
  * Constructor for X509Name, never called by Python code directly
@@ -102,8 +102,9 @@ set_name_by_nid(X509_NAME *name, int nid, char *utf8string)
     }
 
     /* Add the new entry */
-    if (!X509_NAME_add_entry_by_NID(name, nid, MBSTRING_UTF8, utf8string,
-                -1, -1, 0))
+    if (!X509_NAME_add_entry_by_NID(name, nid, MBSTRING_UTF8, 
+				    (unsigned char *)utf8string,
+				    -1, -1, 0))
     {
         exception_from_error_queue();
         return -1;
@@ -193,7 +194,7 @@ crypto_X509Name_compare(crypto_X509NameObj *n, crypto_X509NameObj *m)
         return -1;
     } else if (result > 0) {
         return 1;
-    } else if (result == 0) {
+    } else {
         return 0;
     }
 }
@@ -318,7 +319,7 @@ crypto_X509Name_get_components(crypto_X509NameObj *self, PyObject *args)
 
 	tuple = PyTuple_New(2);
 	PyTuple_SetItem(tuple, 0, PyString_FromString(OBJ_nid2sn(nid)));
-	PyTuple_SetItem(tuple, 1, PyString_FromStringAndSize(str, l));
+	PyTuple_SetItem(tuple, 1, PyString_FromStringAndSize((char *)str, l));
 
 	PyList_SetItem(list, i, tuple);
     }

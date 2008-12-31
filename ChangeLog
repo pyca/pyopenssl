@@ -1,3 +1,42 @@
+2008-12-31  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* src/crypto/x509ext.c, test/test_crypto.py: Add the get_short_name
+	  method to X509Extension based on patch from Alex Stapleton.
+	
+2008-12-31  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* src/crypto/x509ext.c, test/test_crypto.py: Fix X509Extension so
+	  that it is possible to instantiate extensions which use s2i or r2i
+	  instead of v2i (an extremely obscure extension implementation
+	  detail).
+
+2008-12-30  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* MANIFEST.in, src/crypto/crypto.c, src/crypto/x509.c,
+	  src/crypto/x509name.c, src/rand/rand.c, src/ssl/context.c: Changes
+	  which eliminate compiler warnings but should not change any
+	  behavior.
+
+2008-12-28  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* test/test_ssl.py, src/ssl/ssl.c: Expose DTLS-related constants,
+	  OP_NO_QUERY_MTU, OP_COOKIE_EXCHANGE, and OP_NO_TICKET.
+
+2008-12-28  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* src/ssl/context.c: Add a capath parameter to
+	  Context.load_verify_locations to allow Python code to specify
+	  either or both arguments to the underlying
+	  SSL_CTX_load_verify_locations API.
+	* src/ssl/context.c: Add Context.set_default_verify_paths, a wrapper
+	  around SSL_CTX_set_default_verify_paths.
+
+2008-12-28  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* test/test_crypto.py, src/crypto/x509req.c: Added get_version and
+	  set_version_methods to X509ReqType based on patch from Wouter van
+	  Bommel.  Resolves LP#274418.
+
 2008-09-22  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* Release 0.8

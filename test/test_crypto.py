@@ -9,6 +9,7 @@ from unittest import TestCase
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
 from OpenSSL.crypto import X509Req, X509ReqType
+from OpenSSL.crypto import X509Extension, X509ExtensionType
 from OpenSSL.crypto import FILETYPE_PEM, load_certificate, load_privatekey
 from OpenSSL.crypto import dump_privatekey
 
@@ -80,6 +81,67 @@ class _Python23TestCaseHelper:
 
     def assertFalse(self, *a, **kw):
         return self.failIf(*a, **kw)
+
+
+
+class X509ExtTests(TestCase, _Python23TestCaseHelper):
+    def test_construction(self):
+        """
+        L{X509Extension} accepts an extension type name, a critical flag,
+        and an extension value and returns an L{X509ExtensionType} instance.
+        """
+        basic = X509Extension('basicConstraints', True, 'CA:true')
+        self.assertTrue(
+            isinstance(basic, X509ExtensionType),
+            "%r is of type %r, should be %r" % (
+                basic, type(basic), X509ExtensionType))
+
+        comment = X509Extension('nsComment', False, 'pyOpenSSL unit test')
+        self.assertTrue(
+            isinstance(comment, X509ExtensionType),
+            "%r is of type %r, should be %r" % (
+                comment, type(comment), X509ExtensionType))
+
+
+    def test_invalid_extension(self):
+        """
+        L{X509Extension} raises something if it is passed a bad extension
+        name or value.
+        """
+        self.assertRaises(
+            Error, X509Extension, 'thisIsMadeUp', False, 'hi')
+        self.assertRaises(
+            Error, X509Extension, 'basicConstraints', False, 'blah blah')
+
+        # Exercise a weird one (an extension which uses the r2i method).  This
+        # exercises the codepath that requires a non-NULL ctx to be passed to
+        # X509V3_EXT_nconf.  It can't work now because we provide no
+        # configuration database.  It might be made to work in the future.
+        self.assertRaises(
+            Error, X509Extension, 'proxyCertInfo', True,
+            'language:id-ppl-anyLanguage,pathlen:1,policy:text:AB')
+
+
+    def test_get_critical(self):
+        """
+        L{X509ExtensionType.get_critical} returns the value of the
+        extension's critical flag.
+        """
+        ext = X509Extension('basicConstraints', True, 'CA:true')
+        self.assertTrue(ext.get_critical())
+        ext = X509Extension('basicConstraints', False, 'CA:true')
+        self.assertFalse(ext.get_critical())
+
+
+    def test_get_short_name(self):
+        """
+        L{X509ExtensionType.get_short_name} returns a string giving the short
+        type name of the extension.
+        """
+        ext = X509Extension('basicConstraints', True, 'CA:true')
+        self.assertEqual(ext.get_short_name(), 'basicConstraints')
+        ext = X509Extension('nsComment', True, 'foo bar')
+        self.assertEqual(ext.get_short_name(), 'nsComment')
 
 
 
@@ -417,6 +479,20 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin, _Python23TestCaseHelper
         self.assertTrue(
             isinstance(request, X509ReqType),
             "%r is of type %r, should be %r" % (request, type(request), X509ReqType))
+
+
+    def test_version(self):
+        """
+        L{X509ReqType.set_version} sets the X.509 version of the certificate
+        request.  L{X509ReqType.get_version} returns the X.509 version of
+        the certificate request.  The initial value of the version is 0.
+        """
+        request = X509Req()
+        self.assertEqual(request.get_version(), 0)
+        request.set_version(1)
+        self.assertEqual(request.get_version(), 1)
+        request.set_version(3)
+        self.assertEqual(request.get_version(), 3)
 
 
     def test_get_subject(self):

@@ -370,6 +370,9 @@ Return the hash of the certificate subject.
 
 \begin{methoddesc}[X509]{digest}{digest_name}
 Return a digest of the certificate, using the \var{digest_name} method.
+\var{digest_name} must be a string describing a digest algorithm supported
+by OpenSSL (by EVP_get_digestbyname, specifically).  For example,
+\constant{"md5"} or \constant{"sha1"}.
 \end{methoddesc}
 
 \begin{methoddesc}[X509]{add_extensions}{extensions}
@@ -454,6 +457,15 @@ algorithm identified by the string \var{digest}.
 Verify a certificate request using the public key \var{pkey}.
 \end{methoddesc}
 
+\begin{methoddesc}[X509Req]{set_version}{version}
+Set the version (RFC 2459, 4.1.2.1) of the certificate request to
+\var{version}.
+\end{methoddesc}
+
+\begin{methoddesc}[X509Req]{get_version}{}
+Get the version (RFC 2459, 4.1.2.1) of the certificate request.
+\end{methoddesc}
+
 \subsubsection{X509Store objects \label{openssl-x509store}}
 
 The X509Store object has currently just one method:
@@ -522,10 +534,14 @@ None if no CA certificates are present.
 
 \subsubsection{X509Extension objects \label{openssl-509ext}}
 
-X509Extension objects currently only have one method:
+X509Extension objects have several methods:
 
 \begin{methoddesc}[X509Extension]{get_critical}{}
 Return the critical field of the extension object.
+\end{methoddesc}
+
+\begin{methoddesc}[X509Extension]{get_short_name}{}
+Return the short type name of the extension object.
 \end{methoddesc}
 
 \subsubsection{NetscapeSPKI objects \label{openssl-netscape-spki}}
@@ -545,7 +561,10 @@ Set the public key of the object to \var{key}.
 \end{methoddesc}
 
 \begin{methoddesc}[NetscapeSPKI]{sign}{key, digest_name}
-Sign the NetscapeSPKI object using the given \var{key} and \var{digest_name}.
+Sign the NetscapeSPKI object using the given \var{key} and
+\var{digest_name}.  \var{digest_name} must be a string describing a digest
+algorithm supported by OpenSSL (by EVP_get_digestbyname, specifically).  For
+example, \constant{"md5"} or \constant{"sha1"}.
 \end{methoddesc}
 
 \begin{methoddesc}[NetscapeSPKI]{verify}{key}
@@ -747,7 +766,7 @@ Retrieve the Context object's verify depth, as set by
 \end{methoddesc}
 
 \begin{methoddesc}[Context]{get_verify_mode}{}
-Retrieve the Context object's verify mode, as set by \method{set_verify_mode}.
+Retrieve the Context object's verify mode, as set by \method{set_verify}.
 \end{methoddesc}
 
 \begin{methoddesc}[Context]{load_client_ca}{pemfile}
@@ -755,9 +774,17 @@ Read a file with PEM-formatted certificates that will be sent to the client
 when requesting a client certificate.
 \end{methoddesc}
 
-\begin{methoddesc}[Context]{load_verify_locations}{pemfile}
-Specify where CA certificates for verification purposes are located. These are
-trusted certificates. Note that the certificates have to be in PEM format.
+\begin{methoddesc}[Context]{load_verify_locations}{pemfile, capath}
+Specify where CA certificates for verification purposes are located. These
+are trusted certificates. Note that the certificates have to be in PEM
+format.  If capath is passed, it must be a directory prepared using the
+\code{c_rehash} tool included with OpenSSL.  Either, but not both, of
+\var{pemfile} or \var{capath} may be \code{None}.
+\end{methoddesc}
+
+\begin{methoddesc}[Context]{set_default_verify_paths}{}
+Specify that the platform provided CA certificates are to be used for
+verification purposes.
 \end{methoddesc}
 
 \begin{methoddesc}[Context]{load_tmp_dh}{dhfile}

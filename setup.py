@@ -102,7 +102,13 @@ LibraryDirs = None
 # Add more platforms here when needed
 if os.name == 'nt' or sys.platform == 'win32':
     Libraries = ['eay32', 'Ws2_32']
-    ExtraObjects = [r"c:\Python25\libs\ssleay32.a"]
+    # Try to find it...
+    for path in ["c:/Python25/libs/", "C:/Python26/libs/", "C:/OpenSSL/lib/MinGW/"]:
+        if os.path.exists(os.path.join(path, "ssleay32.a")):
+            ExtraObjects = [os.path.join(path, "ssleay32.a")]
+            break
+    else:
+        raise SystemExit("Cannot find ssleay32.a, aborting")
 else:
     Libraries = ['ssl', 'crypto']
     ExtraObjects = []

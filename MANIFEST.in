@@ -4,7 +4,4 @@ include     doc/pyOpenSSL.tex doc/Makefile
 recursive-include   doc/tools   *
 recursive-include   examples    *
 recursive-include   rpm         *
-global-exclude  .cvsignore
 global-exclude  *.pyc
-
-# @(#) $Id: MANIFEST.in,v 1.11 2003/06/15 09:51:19 martin Exp $
