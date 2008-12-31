@@ -11,52 +11,16 @@
 Installation script for the OpenSSL module
 """
 
-try:
-    from ez_setup import use_setuptools
-except ImportError:
-    pass
+import sys, os
+
+if 'bdist_egg' in sys.argv:
+    # If we're probably trying to do something that only setuptools can do,
+    # then try to use setuptools.
+    from setuptools import Extension, setup
 else:
-    use_setuptools(download_delay=0)
+    # Otherwise, prefer distutils, it's better.
+    from distutils.core import Extension, setup
 
-import os, sys
-
-def pylibdir(prefixdir):
-    pyver = "python%d.%d" % (sys.version_info[:2])
-    if sys.platform == "win32":
-        return os.path.join(prefixdir, "Lib", "site-packages")
-    else:
-        return os.path.join(prefixdir, "lib", pyver, "site-packages")
-    
-for i in range(len(sys.argv)):
-    arg = sys.argv[i]
-    prefixdir = None
-    if arg.startswith("--prefix="):
-        prefixdir = arg[len("--prefix="):]
-    if arg == "--prefix":
-        if len(sys.argv) > i+1:
-            prefixdir = sys.argv[i+1]
-        
-    if prefixdir:
-        libdir = pylibdir(prefixdir)
-        try:
-            os.makedirs(libdir)
-        except EnvironmentError, le:
-            # Okay, maybe the dir was already there.
-            pass
-        sys.path.append(libdir)
-        print "os.environ.get('PYTHONPATH') is now ", os.environ.get('PYTHONPATH')
-        pp = os.environ.get('PYTHONPATH','').split(':')
-        pp.append(libdir)
-        os.environ['PYTHONPATH'] = ':'.join(pp)
-        print "os.environ.get('PYTHONPATH') is now ", os.environ.get('PYTHONPATH')
-
-        
-        
-        
-    
-
-# Use setuptools if it's available.
-from setuptools import Extension, setup
 from glob import glob
 
 from version import __version__
