@@ -72,8 +72,7 @@ def mkExtension(name):
     dep = globals()[name.lower() + '_dep']
     return Extension(modname, src, libraries=Libraries, depends=dep,
                      include_dirs=IncludeDirs, library_dirs=LibraryDirs,
-                     extra_objects=ExtraObjects,
-                     extra_compile_args=["-O0"])
+                     extra_objects=ExtraObjects)
 
 setup(name='pyOpenSSL', version=__version__,
       package_dir = {'OpenSSL': '.'},
