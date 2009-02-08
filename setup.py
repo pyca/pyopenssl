@@ -59,21 +59,6 @@ if sys.platform == 'darwin':
     IncludeDirs = ['/sw/include']
     LibraryDirs = ['/sw/lib']
 
-# Use the SSL_LIB and SSL_INC environment variables to extend
-# the library and header directories we pass to the extensions.
-ssl_lib = os.environ.get('SSL_LIB', [])
-if ssl_lib:
-    if LibraryDirs:
-        LibraryDirs += [ssl_lib]
-    else:
-        LibraryDirs = [ssl_lib]
-ssl_inc = os.environ.get('SSL_INC', [])
-if ssl_inc:
-    if IncludeDirs:
-        IncludeDirs += [ssl_inc]
-    else:
-        IncludeDirs = [ssl_inc]
-
 # On Windows, make sure the necessary .dll's get added to the egg.
 data_files = []
 if sys.platform == 'win32':
