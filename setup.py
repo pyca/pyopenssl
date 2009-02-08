@@ -12,34 +12,11 @@ Installation script for the OpenSSL module
 """
 
 import sys, os
-
-if 'bdist_egg' in sys.argv:
-    # If we're probably trying to do something that only setuptools can do,
-    # then try to use setuptools.
-    from setuptools import Extension, setup
-else:
-    # Otherwise, prefer distutils, it's better.
-    from distutils.core import Extension, setup
+from distutils.core import Extension, setup
 
 from glob import glob
 
 from version import __version__
-
-# A hack to determine if Extension objects support the depends keyword arg.
-try:
-    init_func = Extension.__init__.func_code
-    has_dep = 'depends' in init_func.co_varnames
-except:
-    has_dep = 0
-if not has_dep:
-    # If it doesn't, create a local replacement that removes depends
-    # from the kwargs before calling the regular constructor.
-    _Extension = Extension
-    class Extension(_Extension):
-        def __init__(self, name, sources, **kwargs):
-            kwargs.pop('depends', None)
-            _Extension.__init__(self, name, sources, **kwargs)
-
 
 crypto_src = ['src/crypto/crypto.c', 'src/crypto/x509.c',
               'src/crypto/x509name.c', 'src/crypto/pkey.c',
@@ -67,7 +44,7 @@ LibraryDirs = None
 if os.name == 'nt' or sys.platform == 'win32':
     Libraries = ['eay32', 'Ws2_32']
     # Try to find it...
-    for path in ["c:/Python25/libs/", "C:/Python26/libs/", "C:/OpenSSL/lib/MinGW/"]:
+    for path in ["C:/Python25/libs/", "C:/Python26/libs/", "C:/OpenSSL/lib/MinGW/"]:
         if os.path.exists(os.path.join(path, "ssleay32.a")):
             ExtraObjects = [os.path.join(path, "ssleay32.a")]
             break
@@ -99,7 +76,8 @@ if ssl_inc:
 # On Windows, make sure the necessary .dll's get added to the egg.
 data_files = []
 if sys.platform == 'win32':
-    data_files = [("OpenSSL", glob(os.path.join(ssl_lib, '*.dll')))]
+    data_files = [("OpenSSL", ExtraObjects)]
+
 
 def mkExtension(name):
     modname = 'OpenSSL.' + name
