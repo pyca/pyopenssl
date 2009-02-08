@@ -44,9 +44,10 @@ LibraryDirs = None
 if os.name == 'nt' or sys.platform == 'win32':
     Libraries = ['eay32', 'Ws2_32']
     # Try to find it...
-    for path in ["C:/Python25/libs/", "C:/Python26/libs/", "C:/OpenSSL/lib/MinGW/"]:
-        if os.path.exists(os.path.join(path, "ssleay32.a")):
-            ExtraObjects = [os.path.join(path, "ssleay32.a")]
+    for path in ["C:\\Python25\\libs\\", "C:\\Python26\\libs\\", "C:\\OpenSSL\\lib\\MinGW\\"]:
+        ssleay32 = os.path.join(path, "ssleay32.a")
+        if os.path.exists(ssleay32):
+            ExtraObjects = [ssleay32]
             break
     else:
         raise SystemExit("Cannot find ssleay32.a, aborting")
