@@ -51,7 +51,7 @@ if sys.platform == 'darwin':
     LibraryDirs = ['/sw/lib']
 
 # On Windows, make sure the necessary .dll's get added to the egg.
-# data_files = []
+data_files = []
 # if sys.platform == 'win32':
 #     data_files = [("OpenSSL", ExtraObjects)]
 
