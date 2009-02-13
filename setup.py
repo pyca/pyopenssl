@@ -43,26 +43,17 @@ LibraryDirs = None
 # Add more platforms here when needed
 if os.name == 'nt' or sys.platform == 'win32':
     Libraries = ['eay32', 'Ws2_32']
-    # Try to find it...
-    for path in ["C:\\Python25\\libs\\", "C:\\Python26\\libs\\", "C:\\OpenSSL\\lib\\MinGW\\"]:
-        ssleay32 = os.path.join(path, "ssleay32.a")
-        if os.path.exists(ssleay32):
-            ExtraObjects = [ssleay32]
-            break
-    else:
-        raise SystemExit("Cannot find ssleay32.a, aborting")
 else:
     Libraries = ['ssl', 'crypto']
-    ExtraObjects = []
 
 if sys.platform == 'darwin':
     IncludeDirs = ['/sw/include']
     LibraryDirs = ['/sw/lib']
 
 # On Windows, make sure the necessary .dll's get added to the egg.
-data_files = []
-if sys.platform == 'win32':
-    data_files = [("OpenSSL", ExtraObjects)]
+# data_files = []
+# if sys.platform == 'win32':
+#     data_files = [("OpenSSL", ExtraObjects)]
 
 
 def mkExtension(name):
@@ -70,8 +61,7 @@ def mkExtension(name):
     src = globals()[name.lower() + '_src']
     dep = globals()[name.lower() + '_dep']
     return Extension(modname, src, libraries=Libraries, depends=dep,
-                     include_dirs=IncludeDirs, library_dirs=LibraryDirs,
-                     extra_objects=ExtraObjects)
+                     include_dirs=IncludeDirs, library_dirs=LibraryDirs)
 
 setup(name='pyOpenSSL', version=__version__,
       package_dir = {'OpenSSL': '.'},
