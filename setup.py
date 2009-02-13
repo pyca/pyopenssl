@@ -44,7 +44,10 @@ LibraryDirs = None
 if os.name == 'nt' or sys.platform == 'win32':
     Libraries = ['eay32', 'Ws2_32']
     # Try to find it...
-    for path in ["C:\\Python25\\libs\\", "C:\\Python26\\libs\\", "C:\\OpenSSL\\lib\\MinGW\\"]:
+    for path in ["C:\\OpenSSL\\lib\\MinGW", "C:\\Python23\\libs",
+                 "C:\\Python24\\libs", "C:\\Python25\\libs", "C:\\Python26\\libs"]:
+        # The .a is the "export library".  It's the thing we need to link
+        # against to let us use the .dll.
         ssleay32 = os.path.join(path, "ssleay32.a")
         if os.path.exists(ssleay32):
             ExtraObjects = [ssleay32]
@@ -62,7 +65,11 @@ if sys.platform == 'darwin':
 # On Windows, make sure the necessary .dll's get added to the egg.
 data_files = []
 if sys.platform == 'win32':
-    data_files = [("OpenSSL", ExtraObjects)]
+    import ctypes
+    libeay32 = ctypes.util.find_library("libeay32")
+    if libeay32 is None:
+        raise SystemExit("Cannot find libeay32.dll, aborting")
+    data_files = [("OpenSSL", [libeay32])]
 
 
 def mkExtension(name):
