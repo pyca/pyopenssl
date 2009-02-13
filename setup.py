@@ -65,7 +65,7 @@ if sys.platform == 'darwin':
 # On Windows, make sure the necessary .dll's get added to the egg.
 data_files = []
 if sys.platform == 'win32':
-    import ctypes
+    import ctypes.util
     libeay32 = ctypes.util.find_library("libeay32")
     if libeay32 is None:
         raise SystemExit("Cannot find libeay32.dll, aborting")
