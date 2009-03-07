@@ -4,6 +4,7 @@
 Unit tests for L{OpenSSL.SSL}.
 """
 
+from sys import platform
 from unittest import TestCase
 from tempfile import mktemp
 from socket import socket
@@ -246,7 +247,7 @@ class ContextTests(TestCase, _Python23TestCaseHelper):
         clientSSL.do_handshake()
         clientSSL.send('GET / HTTP/1.0\r\n\r\n')
         self.assertTrue(clientSSL.recv(1024))
-    if sys.platform == "darwin":
+    if platform == "darwin":
         test_set_default_verify_paths.todo = (
             "set_default_verify_paths appears not to work on OS X - a "
             "problem with the supplied OpenSSL, perhaps?")
