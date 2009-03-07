@@ -5,11 +5,17 @@ Unit tests for L{OpenSSL.SSL}.
 """
 
 from sys import platform
-from unittest import TestCase
 from tempfile import mktemp
 from socket import socket
 from os import makedirs, symlink
 from os.path import join
+
+try:
+    # Prefer Twisted's TestCase, since it supports things like skips.
+    from twisted.trial.unittest import TestCase
+except ImportError:
+    # Fall back to the stdlib TestCase though, since it kind of works.
+    from unittest import TestCase
 
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, PKey, dump_privatekey, load_certificate, load_privatekey
 from OpenSSL.SSL import WantReadError, Context, Connection, Error
