@@ -11,26 +11,12 @@
 Installation script for the OpenSSL module
 """
 
-from distutils.core import setup, Extension
-import os, sys
+import sys, os
+from distutils.core import Extension, setup
+
+from glob import glob
 
 from version import __version__
-
-# A hack to determine if Extension objects support the depends keyword arg.
-try:
-    init_func = Extension.__init__.func_code
-    has_dep = 'depends' in init_func.co_varnames
-except:
-    has_dep = 0
-if not has_dep:
-    # If it doesn't, create a local replacement that removes depends
-    # from the kwargs before calling the regular constructor.
-    _Extension = Extension
-    class Extension(_Extension):
-        def __init__(self, name, sources, **kwargs):
-            kwargs.pop('depends', None)
-            _Extension.__init__(self, name, sources, **kwargs)
-
 
 crypto_src = ['src/crypto/crypto.c', 'src/crypto/x509.c',
               'src/crypto/x509name.c', 'src/crypto/pkey.c',
@@ -58,9 +44,13 @@ LibraryDirs = None
 if os.name == 'nt' or sys.platform == 'win32':
     Libraries = ['eay32', 'Ws2_32']
     # Try to find it...
-    for path in ["c:/Python25/libs/", "C:/Python26/libs/", "C:/OpenSSL/lib/MinGW/"]:
-        if os.path.exists(os.path.join(path, "ssleay32.a")):
-            ExtraObjects = [os.path.join(path, "ssleay32.a")]
+    for path in ["C:\\OpenSSL\\lib\\MinGW", "C:\\Python23\\libs",
+                 "C:\\Python24\\libs", "C:\\Python25\\libs", "C:\\Python26\\libs"]:
+        # The .a is the "export library".  It's the thing we need to link
+        # against to let us use the .dll.
+        ssleay32 = os.path.join(path, "ssleay32.a")
+        if os.path.exists(ssleay32):
+            ExtraObjects = [ssleay32]
             break
     else:
         raise SystemExit("Cannot find ssleay32.a, aborting")
@@ -71,6 +61,16 @@ else:
 if sys.platform == 'darwin':
     IncludeDirs = ['/sw/include']
     LibraryDirs = ['/sw/lib']
+
+# On Windows, make sure the necessary .dll's get added to the egg.
+data_files = []
+if sys.platform == 'win32':
+    import ctypes.util
+    libeay32 = ctypes.util.find_library("libeay32")
+    if libeay32 is None:
+        raise SystemExit("Cannot find libeay32.dll, aborting")
+    data_files = [("OpenSSL", [libeay32])]
+
 
 def mkExtension(name):
     modname = 'OpenSSL.' + name
@@ -88,6 +88,7 @@ setup(name='pyOpenSSL', version=__version__,
                      'OpenSSL.version', 'OpenSSL.test.__init__',
                      'OpenSSL.test.test_crypto',
                      'OpenSSL.test.test_ssl'],
+      data_files = data_files,
       description = 'Python wrapper module around the OpenSSL library',
       author = 'Martin Sjögren, AB Strakt',
       author_email = 'msjogren@gmail.com',
