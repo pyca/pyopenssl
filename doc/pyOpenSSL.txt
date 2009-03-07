@@ -324,7 +324,9 @@ setup.py --help
 
    digest(digest_name)
           Return a digest of the certificate, using the digest_name
-          method.
+          method. digest_name must be a string describing a digest
+          algorithm supported by OpenSSL (by EVP_get_digestbyname,
+          specifically). For example, "md5" or "sha1".
 
    add_extensions(extensions)
           Add the extensions in the sequence extensions to the
@@ -398,6 +400,13 @@ setup.py --help
    verify(pkey)
           Verify a certificate request using the public key pkey.
 
+   set_version(version)
+          Set the version (RFC 2459, 4.1.2.1) of the certificate request
+          to version.
+
+   get_version()
+          Get the version (RFC 2459, 4.1.2.1) of the certificate request.
+
 
   3.1.4 X509Store objects
 
@@ -459,10 +468,13 @@ setup.py --help
 
   3.1.8 X509Extension objects
 
-   X509Extension objects currently only have one method:
+   X509Extension objects have several methods:
 
    get_critical()
           Return the critical field of the extension object.
+
+   get_short_name()
+          Return the short type name of the extension object.
 
 
   3.1.9 NetscapeSPKI objects
@@ -480,7 +492,9 @@ setup.py --help
 
    sign(key, digest_name)
           Sign the NetscapeSPKI object using the given key and
-          digest_name.
+          digest_name. digest_name must be a string describing a digest
+          algorithm supported by OpenSSL (by EVP_get_digestbyname,
+          specifically). For example, "md5" or "sha1".
 
    verify(key)
           Verify the NetscapeSPKI object using the given key.
@@ -656,17 +670,24 @@ setup.py --help
           set_verify_depth.
 
    get_verify_mode()
-          Retrieve the Context object's verify mode, as set by
-          set_verify_mode.
+          Retrieve the Context object's verify mode, as set by set_verify.
 
    load_client_ca(pemfile)
           Read a file with PEM-formatted certificates that will be sent to
           the client when requesting a client certificate.
 
-   load_verify_locations(pemfile)
+   load_verify_locations(pemfile, capath)
           Specify where CA certificates for verification purposes are
           located. These are trusted certificates. Note that the
-          certificates have to be in PEM format.
+          certificates have to be in PEM format. If capath is passed, it
+          must be a directory prepared using the c_rehash tool included
+          with OpenSSL. Either, but not both, of pemfile or capath may be
+          None.
+
+   set_default_verify_paths()
+          Specify that the platform provided CA certificates are to be
+          used for verification purposes. This method may not work
+          properly on OS X.
 
    load_tmp_dh(dhfile)
           Load parameters for Ephemeral Diffie-Hellman from dhfile.

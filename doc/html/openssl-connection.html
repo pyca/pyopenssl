@@ -51,7 +51,7 @@ border="0" height="32"
 Connection objects have the following methods:
 
 <P>
-<dl><dt><b><a name='l2h-145'><tt class='method'>accept</tt></a></b>()
+<dl><dt><b><a name='l2h-149'><tt class='method'>accept</tt></a></b>()
 <dd>
 Call the <tt class="method">accept</tt> method of the underlying socket and set up SSL on the
 returned socket, using the Context object supplied to this Connection object at
@@ -61,20 +61,20 @@ socket's <tt class="method">accept</tt>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-146'><tt class='method'>bind</tt></a></b>(<var>address</var>)
+<dl><dt><b><a name='l2h-150'><tt class='method'>bind</tt></a></b>(<var>address</var>)
 <dd>
 Call the <tt class="method">bind</tt> method of the underlying socket.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-147'><tt class='method'>close</tt></a></b>()
+<dl><dt><b><a name='l2h-151'><tt class='method'>close</tt></a></b>()
 <dd>
 Call the <tt class="method">close</tt> method of the underlying socket. Note: If you want
 correct SSL closure, you need to call the <tt class="method">shutdown</tt> method first.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-148'><tt class='method'>connect</tt></a></b>(<var>address</var>)
+<dl><dt><b><a name='l2h-152'><tt class='method'>connect</tt></a></b>(<var>address</var>)
 <dd>
 Call the <tt class="method">connect</tt> method of the underlying socket and set up SSL on the
 socket, using the Context object supplied to this Connection object at
@@ -82,7 +82,7 @@ creation.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-149'><tt class='method'>connect_ex</tt></a></b>(<var>address</var>)
+<dl><dt><b><a name='l2h-153'><tt class='method'>connect_ex</tt></a></b>(<var>address</var>)
 <dd>
 Call the <tt class="method">connect_ex</tt> method of the underlying socket and set up SSL on
 the socket, using the Context object supplied to this Connection object at
@@ -91,7 +91,7 @@ return 0, SSL won't be initialized.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-150'><tt class='method'>do_handshake</tt></a></b>()
+<dl><dt><b><a name='l2h-154'><tt class='method'>do_handshake</tt></a></b>()
 <dd>
 Perform an SSL handshake (usually called after <tt class="method">renegotiate</tt> or one of
 <tt class="method">set_accept_state</tt> or <tt class="method">set_accept_state</tt>). This can raise the
@@ -99,25 +99,25 @@ same exceptions as <tt class="method">send</tt> and <tt class="method">recv</tt>
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-151'><tt class='method'>fileno</tt></a></b>()
+<dl><dt><b><a name='l2h-155'><tt class='method'>fileno</tt></a></b>()
 <dd>
 Retrieve the file descriptor number for the underlying socket.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-152'><tt class='method'>listen</tt></a></b>(<var>backlog</var>)
+<dl><dt><b><a name='l2h-156'><tt class='method'>listen</tt></a></b>(<var>backlog</var>)
 <dd>
 Call the <tt class="method">listen</tt> method of the underlying socket.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-153'><tt class='method'>get_app_data</tt></a></b>()
+<dl><dt><b><a name='l2h-157'><tt class='method'>get_app_data</tt></a></b>()
 <dd>
 Retrieve application data as set by <tt class="method">set_app_data</tt>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-154'><tt class='method'>get_cipher_list</tt></a></b>()
+<dl><dt><b><a name='l2h-158'><tt class='method'>get_cipher_list</tt></a></b>()
 <dd>
 Retrieve the list of ciphers used by the Connection object. WARNING: This API
 has changed. It used to take an optional parameter and just return a string,
@@ -125,44 +125,44 @@ but not it returns the entire list in one go.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-155'><tt class='method'>get_context</tt></a></b>()
+<dl><dt><b><a name='l2h-159'><tt class='method'>get_context</tt></a></b>()
 <dd>
 Retrieve the Context object associated with this Connection.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-156'><tt class='method'>get_peer_certificate</tt></a></b>()
+<dl><dt><b><a name='l2h-160'><tt class='method'>get_peer_certificate</tt></a></b>()
 <dd>
 Retrieve the other side's certificate (if any)
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-157'><tt class='method'>getpeername</tt></a></b>()
+<dl><dt><b><a name='l2h-161'><tt class='method'>getpeername</tt></a></b>()
 <dd>
 Call the <tt class="method">getpeername</tt> method of the underlying socket.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-158'><tt class='method'>getsockname</tt></a></b>()
+<dl><dt><b><a name='l2h-162'><tt class='method'>getsockname</tt></a></b>()
 <dd>
 Call the <tt class="method">getsockname</tt> method of the underlying socket.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-159'><tt class='method'>getsockopt</tt></a></b>(<var>level, optname</var><big>[</big><var>, buflen</var><big>]</big>)
+<dl><dt><b><a name='l2h-163'><tt class='method'>getsockopt</tt></a></b>(<var>level, optname</var><big>[</big><var>, buflen</var><big>]</big>)
 <dd>
 Call the <tt class="method">getsockopt</tt> method of the underlying socket.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-160'><tt class='method'>pending</tt></a></b>()
+<dl><dt><b><a name='l2h-164'><tt class='method'>pending</tt></a></b>()
 <dd>
 Retrieve the number of bytes that can be safely read from the SSL buffer
 (<i>not</i> the underlying transport buffer).
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-161'><tt class='method'>recv</tt></a></b>(<var>bufsize</var>)
+<dl><dt><b><a name='l2h-165'><tt class='method'>recv</tt></a></b>(<var>bufsize</var>)
 <dd>
 Receive data from the Connection. The return value is a string representing the
 data received. The maximum amount of data to be received at once, is specified
@@ -170,20 +170,20 @@ by <var>bufsize</var>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-162'><tt class='method'>renegotiate</tt></a></b>()
+<dl><dt><b><a name='l2h-166'><tt class='method'>renegotiate</tt></a></b>()
 <dd>
 Renegotiate the SSL session. Call this if you wish to change cipher suites or
 anything like that.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-163'><tt class='method'>send</tt></a></b>(<var>string</var>)
+<dl><dt><b><a name='l2h-167'><tt class='method'>send</tt></a></b>(<var>string</var>)
 <dd>
 Send the <var>string</var> data to the Connection.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-164'><tt class='method'>sendall</tt></a></b>(<var>string</var>)
+<dl><dt><b><a name='l2h-168'><tt class='method'>sendall</tt></a></b>(<var>string</var>)
 <dd>
 Send all of the <var>string</var> data to the Connection. This calls <tt class="method">send</tt>
 repeatedly until all data is sent. If an error occurs, it's impossible to tell
@@ -191,40 +191,40 @@ how much data has been sent.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-165'><tt class='method'>set_accept_state</tt></a></b>()
+<dl><dt><b><a name='l2h-169'><tt class='method'>set_accept_state</tt></a></b>()
 <dd>
 Set the connection to work in server mode. The handshake will be handled
 automatically by read/write.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-166'><tt class='method'>set_app_data</tt></a></b>(<var>data</var>)
+<dl><dt><b><a name='l2h-170'><tt class='method'>set_app_data</tt></a></b>(<var>data</var>)
 <dd>
 Associate <var>data</var> with this Connection object. <var>data</var> can be retrieved
 later using the <tt class="method">get_app_data</tt> method.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-167'><tt class='method'>set_connect_state</tt></a></b>()
+<dl><dt><b><a name='l2h-171'><tt class='method'>set_connect_state</tt></a></b>()
 <dd>
 Set the connection to work in client mode. The handshake will be handled
 automatically by read/write.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-168'><tt class='method'>setblocking</tt></a></b>(<var>flag</var>)
+<dl><dt><b><a name='l2h-172'><tt class='method'>setblocking</tt></a></b>(<var>flag</var>)
 <dd>
 Call the <tt class="method">setblocking</tt> method of the underlying socket.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-169'><tt class='method'>setsockopt</tt></a></b>(<var>level, optname, value</var>)
+<dl><dt><b><a name='l2h-173'><tt class='method'>setsockopt</tt></a></b>(<var>level, optname, value</var>)
 <dd>
 Call the <tt class="method">setsockopt</tt> method of the underlying socket.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-170'><tt class='method'>shutdown</tt></a></b>()
+<dl><dt><b><a name='l2h-174'><tt class='method'>shutdown</tt></a></b>()
 <dd>
 Send the shutdown message to the Connection. Returns true if the shutdown
 message exchange is completed and false otherwise (in which case you call
@@ -233,40 +233,40 @@ readable/writeable.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-171'><tt class='method'>get_shutdown</tt></a></b>()
+<dl><dt><b><a name='l2h-175'><tt class='method'>get_shutdown</tt></a></b>()
 <dd>
 Get the shutdown state of the Connection.  Returns a bitvector of either or
 both of <var>SENT_SHUTDOWN</var> and <var>RECEIVED_SHUTDOWN</var>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-172'><tt class='method'>set_shutdown</tt></a></b>(<var>state</var>)
+<dl><dt><b><a name='l2h-176'><tt class='method'>set_shutdown</tt></a></b>(<var>state</var>)
 <dd>
 Set the shutdown state of the Connection.  <var>state</var> is a bitvector of
 either or both of <var>SENT_SHUTDOWN</var> and <var>RECEIVED_SHUTDOWN</var>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-173'><tt class='method'>sock_shutdown</tt></a></b>(<var>how</var>)
+<dl><dt><b><a name='l2h-177'><tt class='method'>sock_shutdown</tt></a></b>(<var>how</var>)
 <dd>
 Call the <tt class="method">shutdown</tt> method of the underlying socket.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-174'><tt class='method'>state_string</tt></a></b>()
+<dl><dt><b><a name='l2h-178'><tt class='method'>state_string</tt></a></b>()
 <dd>
 Retrieve a verbose string detailing the state of the Connection.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-175'><tt class='method'>want_read</tt></a></b>()
+<dl><dt><b><a name='l2h-179'><tt class='method'>want_read</tt></a></b>()
 <dd>
 Checks if more data has to be read from the transport layer to complete an
 operation.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-176'><tt class='method'>want_write</tt></a></b>()
+<dl><dt><b><a name='l2h-180'><tt class='method'>want_write</tt></a></b>()
 <dd>
 Checks if there is data to write to the transport layer to complete an
 operation.

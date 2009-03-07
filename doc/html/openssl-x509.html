@@ -197,6 +197,9 @@ Return the hash of the certificate subject.
 <dl><dt><b><a name='l2h-53'><tt class='method'>digest</tt></a></b>(<var>digest_name</var>)
 <dd>
 Return a digest of the certificate, using the <var>digest_name</var> method.
+<var>digest_name</var> must be a string describing a digest algorithm supported
+by OpenSSL (by EVP_get_digestbyname, specifically).  For example,
+<tt class="constant">"md5"</tt> or <tt class="constant">"sha1"</tt>.
 </dl>
 
 <P>
