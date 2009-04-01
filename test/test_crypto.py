@@ -5,20 +5,16 @@ Unit tests for L{OpenSSL.crypto}.
 """
 
 from unittest import TestCase, main
+from subprocess import Popen, PIPE 
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
 from OpenSSL.crypto import X509Req, X509ReqType
 from OpenSSL.crypto import X509Extension, X509ExtensionType
-from OpenSSL.crypto import FILETYPE_PEM, load_certificate, load_privatekey
-from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1 
-from OpenSSL.crypto import FILETYPE_TEXT 
 from OpenSSL.crypto import load_certificate, load_privatekey
-from OpenSSL.crypto import load_certificate_request 
-from OpenSSL.crypto import dump_certificate, dump_privatekey
-from OpenSSL.crypto import dump_certificate_request 
-from subprocess import Popen, PIPE 
-from OpenSSL.crypto import dump_privatekey
+from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT 
+from OpenSSL.crypto import dump_certificate, load_certificate_request
+from OpenSSL.crypto import dump_certificate_request, dump_privatekey
 
 
 cleartextCertificatePEM = """-----BEGIN CERTIFICATE-----
