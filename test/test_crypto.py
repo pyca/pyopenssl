@@ -5,7 +5,7 @@ Unit tests for L{OpenSSL.crypto}.
 """
 
 from unittest import TestCase, main
-from subprocess import Popen, PIPE
+from os import popen2
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
@@ -732,10 +732,10 @@ class FunctionTests(TestCase, _Python23TestCaseHelper):
         Run the command line openssl tool with the given arguments and write
         the given PEM to its stdin.
         """
-        process = Popen(
-            ("openssl",) + args,
-            stdin=PIPE, stdout=PIPE)
-        return process.communicate(input=str(pem))[0]
+        write, read = popen2(" ".join(("openssl",) + args))
+        write.write(pem)
+        write.close()
+        return read.read()
 
 
     def test_dump_certificate(self):
