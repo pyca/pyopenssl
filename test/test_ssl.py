@@ -15,7 +15,7 @@ try:
     from twisted.trial.unittest import TestCase
 except ImportError:
     # Fall back to the stdlib TestCase though, since it kind of works.
-    from unittest import TestCase
+    from unittest import TestCase, main
 
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, PKey, dump_privatekey, load_certificate, load_privatekey
 from OpenSSL.SSL import WantReadError, Context, Connection, Error
@@ -311,3 +311,8 @@ class ConstantsTests(TestCase):
             self.assertEqual(OP_NO_TICKET, 0x4000)
     else:
         "OP_NO_TICKET unavailable - OpenSSL version may be too old"
+
+
+if __name__ == '__main__':
+    main()
+

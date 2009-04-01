@@ -147,6 +147,7 @@ crypto_dump_privatekey(PyObject *spam, PyObject *args)
     pem_password_cb *cb = NULL;
     void *cb_arg = NULL;
     BIO *bio;
+    RSA *rsa;
     crypto_PKeyObj *pkey;
 
     if (!PyArg_ParseTuple(args, "iO!|sO:dump_privatekey", &type,
@@ -199,8 +200,14 @@ crypto_dump_privatekey(PyObject *spam, PyObject *args)
             ret = i2d_PrivateKey_bio(bio, pkey->pkey);
             break;
 
+        case X509_FILETYPE_TEXT:
+            rsa = EVP_PKEY_get1_RSA(pkey->pkey);
+            ret = RSA_print(bio, rsa, 0);
+            RSA_free(rsa); 
+            break;
+
         default:
-            PyErr_SetString(PyExc_ValueError, "type argument must be FILETYPE_PEM or FILETYPE_ASN1");
+            PyErr_SetString(PyExc_ValueError, "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or FILETYPE_TEXT");
             BIO_free(bio);
             return NULL;
     }
@@ -302,8 +309,12 @@ crypto_dump_certificate(PyObject *spam, PyObject *args)
             ret = i2d_X509_bio(bio, cert->x509);
             break;
 
+        case X509_FILETYPE_TEXT:
+            ret = X509_print_ex(bio, cert->x509, 0, 0);
+            break;
+
         default:
-            PyErr_SetString(PyExc_ValueError, "type argument must be FILETYPE_PEM or FILETYPE_ASN1");
+            PyErr_SetString(PyExc_ValueError, "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or FILETYPE_TEXT");
             BIO_free(bio);
             return NULL;
     }
@@ -405,8 +416,12 @@ crypto_dump_certificate_request(PyObject *spam, PyObject *args)
             ret = i2d_X509_REQ_bio(bio, req->x509_req);
             break;
 
+        case X509_FILETYPE_TEXT:
+            ret = X509_REQ_print_ex(bio, req->x509_req, 0, 0);
+            break;
+
         default:
-            PyErr_SetString(PyExc_ValueError, "type argument must be FILETYPE_PEM or FILETYPE_ASN1");
+            PyErr_SetString(PyExc_ValueError, "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or FILETYPE_TEXT");
             BIO_free(bio);
             return NULL;
     }
@@ -801,6 +816,7 @@ initcrypto(void)
 
     PyModule_AddIntConstant(module, "FILETYPE_PEM",  X509_FILETYPE_PEM);
     PyModule_AddIntConstant(module, "FILETYPE_ASN1", X509_FILETYPE_ASN1);
+    PyModule_AddIntConstant(module, "FILETYPE_TEXT", X509_FILETYPE_TEXT);
 
     PyModule_AddIntConstant(module, "TYPE_RSA", crypto_TYPE_RSA);
     PyModule_AddIntConstant(module, "TYPE_DSA", crypto_TYPE_DSA);
