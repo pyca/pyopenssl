@@ -182,7 +182,7 @@ class ContextTests(TestCase, _Python23TestCaseHelper):
                     pass
 
         cert = clientSSL.get_peer_certificate()
-        self.assertEqual(cert.get_subject().CN, 'pyopenssl.sf.net')
+        self.assertEqual(cert.get_subject().CN, 'Testing Root CA')
 
     def test_load_verify_file(self):
         """
@@ -221,7 +221,7 @@ class ContextTests(TestCase, _Python23TestCaseHelper):
 
         # Hash value computed manually with c_rehash to avoid depending on
         # c_rehash in the test suite.
-        symlink('cert.pem', join(capath, '07497d9e.0'))
+        symlink('cert.pem', join(capath, 'c7adac82.0'))
 
         self._load_verify_locations_test(None, capath)
 
