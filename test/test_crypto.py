@@ -4,14 +4,17 @@
 Unit tests for L{OpenSSL.crypto}.
 """
 
-from unittest import TestCase
+from unittest import TestCase, main
+from os import popen2
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
 from OpenSSL.crypto import X509Req, X509ReqType
 from OpenSSL.crypto import X509Extension, X509ExtensionType
-from OpenSSL.crypto import FILETYPE_PEM, load_certificate, load_privatekey
-from OpenSSL.crypto import dump_privatekey
+from OpenSSL.crypto import load_certificate, load_privatekey
+from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT
+from OpenSSL.crypto import dump_certificate, load_certificate_request
+from OpenSSL.crypto import dump_certificate_request, dump_privatekey
 
 
 cleartextCertificatePEM = """-----BEGIN CERTIFICATE-----
@@ -50,6 +53,19 @@ ttXigLnCqR486JDPTi9ZscoZkZ+w7y6e/hH8t6d5Vjt48JVyfjPIaJY+km58LcN3
 cbvAhow217X9V0dVerEOKxnNYspXRrh36h7k4mQA+sDq
 -----END RSA PRIVATE KEY-----
 """
+
+cleartextCertificateRequestPEM = (
+    "-----BEGIN CERTIFICATE REQUEST-----\n"
+    "MIIBnjCCAQcCAQAwXjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQH\n"
+    "EwdDaGljYWdvMRcwFQYDVQQKEw5NeSBDb21wYW55IEx0ZDEXMBUGA1UEAxMORnJl\n"
+    "ZGVyaWNrIERlYW4wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBANp6Y17WzKSw\n"
+    "BsUWkXdqg6tnXy8H8hA1msCMWpc+/2KJ4mbv5NyD6UD+/SqagQqulPbF/DFea9nA\n"
+    "E0zhmHJELcM8gUTIlXv/cgDWnmK4xj8YkjVUiCdqKRAKeuzLG1pGmwwF5lGeJpXN\n"
+    "xQn5ecR0UYSOWj6TTGXB9VyUMQzCClcBAgMBAAGgADANBgkqhkiG9w0BAQUFAAOB\n"
+    "gQAAJGuF/R/GGbeC7FbFW+aJgr9ee0Xbl6nlhu7pTe67k+iiKT2dsl2ti68MVTnu\n"
+    "Vrb3HUNqOkiwsJf6kCtq5oPn3QVYzTa76Dt2y3Rtzv6boRSlmlfrgS92GNma8JfR\n"
+    "oICQk3nAudi6zl1Dix3BCv1pUp5KMtGn3MeDEi6QFGy2rA==\n"
+    "-----END CERTIFICATE REQUEST-----\n")
 
 encryptedPrivateKeyPEM = """-----BEGIN RSA PRIVATE KEY-----
 Proc-Type: 4,ENCRYPTED
@@ -711,6 +727,73 @@ class FunctionTests(TestCase, _Python23TestCaseHelper):
         self.assertEqual(loadedKey.bits(), key.bits())
 
 
+    def _runopenssl(self, pem, *args):
+        """
+        Run the command line openssl tool with the given arguments and write
+        the given PEM to its stdin.
+        """
+        write, read = popen2(" ".join(("openssl",) + args))
+        write.write(pem)
+        write.close()
+        return read.read()
+
+
+    def test_dump_certificate(self):
+        """
+        L{dump_certificate} writes PEM, DER, and text.
+        """
+        pemData = cleartextCertificatePEM + cleartextPrivateKeyPEM
+        cert = load_certificate(FILETYPE_PEM, pemData)
+        dumped_pem = dump_certificate(FILETYPE_PEM, cert)
+        self.assertEqual(dumped_pem, cleartextCertificatePEM)
+        dumped_der = dump_certificate(FILETYPE_ASN1, cert)
+        good_der = self._runopenssl(dumped_pem, "x509", "-outform", "DER")
+        self.assertEqual(dumped_der, good_der)
+        cert2 = load_certificate(FILETYPE_ASN1, dumped_der)
+        dumped_pem2 = dump_certificate(FILETYPE_PEM, cert2)
+        self.assertEqual(dumped_pem2, cleartextCertificatePEM)
+        dumped_text = dump_certificate(FILETYPE_TEXT, cert)
+        good_text = self._runopenssl(dumped_pem, "x509", "-noout", "-text")
+        self.assertEqual(dumped_text, good_text)
+
+
+    def test_dump_privatekey(self):
+        """
+        L{dump_privatekey} writes a PEM, DER, and text.
+        """
+        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        dumped_pem = dump_privatekey(FILETYPE_PEM, key)
+        self.assertEqual(dumped_pem, cleartextPrivateKeyPEM)
+        dumped_der = dump_privatekey(FILETYPE_ASN1, key)
+        # XXX This OpenSSL call writes "writing RSA key" to standard out.  Sad.
+        good_der = self._runopenssl(dumped_pem, "rsa", "-outform", "DER")
+        self.assertEqual(dumped_der, good_der)
+        key2 = load_privatekey(FILETYPE_ASN1, dumped_der)
+        dumped_pem2 = dump_privatekey(FILETYPE_PEM, key2)
+        self.assertEqual(dumped_pem2, cleartextPrivateKeyPEM)
+        dumped_text = dump_privatekey(FILETYPE_TEXT, key)
+        good_text = self._runopenssl(dumped_pem, "rsa", "-noout", "-text")
+        self.assertEqual(dumped_text, good_text)
+
+
+    def test_dump_certificate_request(self):
+        """
+        L{dump_certificate_request} writes a PEM, DER, and text.
+        """
+        req = load_certificate_request(FILETYPE_PEM, cleartextCertificateRequestPEM)
+        dumped_pem = dump_certificate_request(FILETYPE_PEM, req)
+        self.assertEqual(dumped_pem, cleartextCertificateRequestPEM)
+        dumped_der = dump_certificate_request(FILETYPE_ASN1, req)
+        good_der = self._runopenssl(dumped_pem, "req", "-outform", "DER")
+        self.assertEqual(dumped_der, good_der)
+        req2 = load_certificate_request(FILETYPE_ASN1, dumped_der)
+        dumped_pem2 = dump_certificate_request(FILETYPE_PEM, req2)
+        self.assertEqual(dumped_pem2, cleartextCertificateRequestPEM)
+        dumped_text = dump_certificate_request(FILETYPE_TEXT, req)
+        good_text = self._runopenssl(dumped_pem, "req", "-noout", "-text")
+        self.assertEqual(dumped_text, good_text)
+
+
     def test_dump_privatekey_passphraseCallback(self):
         """
         L{dump_privatekey} writes an encrypted PEM when given a callback which
@@ -729,3 +812,7 @@ class FunctionTests(TestCase, _Python23TestCaseHelper):
         self.assertTrue(isinstance(loadedKey, PKeyType))
         self.assertEqual(loadedKey.type(), key.type())
         self.assertEqual(loadedKey.bits(), key.bits())
+
+
+if __name__ == '__main__':
+    main()

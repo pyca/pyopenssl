@@ -117,4 +117,12 @@ extern void **crypto_API;
 
 #endif /* crypto_MODULE */
 
+/* Define a new type for emitting text.  Hopefully these don't collide with
+ * future official OpenSSL constants, but the switch statement of
+ * dump_certificate() will alert us if it matters.
+ */
+#ifndef X509_FILETYPE_TEXT 
+#define X509_FILETYPE_TEXT  (58)
+#endif
+
 #endif /* PyOpenSSL_CRYPTO_H_ */

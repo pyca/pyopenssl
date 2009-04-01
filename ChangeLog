@@ -1,3 +1,8 @@
+2009-04-01  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* src/crypto/crypto.c: Add FILETYPE_TEXT for dumping keys and
+	  certificates and certificate signature requests to a text format.
+
 2008-12-31  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* src/crypto/x509ext.c, test/test_crypto.py: Add the get_short_name
