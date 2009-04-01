@@ -5,14 +5,14 @@ Unit tests for L{OpenSSL.crypto}.
 """
 
 from unittest import TestCase, main
-from subprocess import Popen, PIPE 
+from subprocess import Popen, PIPE
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
 from OpenSSL.crypto import X509Req, X509ReqType
 from OpenSSL.crypto import X509Extension, X509ExtensionType
 from OpenSSL.crypto import load_certificate, load_privatekey
-from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT 
+from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT
 from OpenSSL.crypto import dump_certificate, load_certificate_request
 from OpenSSL.crypto import dump_certificate_request, dump_privatekey
 
@@ -726,24 +726,34 @@ class FunctionTests(TestCase, _Python23TestCaseHelper):
         self.assertEqual(loadedKey.type(), key.type())
         self.assertEqual(loadedKey.bits(), key.bits())
 
+
+    def _runopenssl(self, pem, *args):
+        """
+        Run the command line openssl tool with the given arguments and write
+        the given PEM to its stdin.
+        """
+        process = Popen(
+            ("openssl",) + args,
+            stdin=PIPE, stdout=PIPE)
+        return process.communicate(input=str(pem))[0]
+
+
     def test_dump_certificate(self):
         """
         L{dump_certificate} writes PEM, DER, and text.
         """
-        pemData = cleartextCertificatePEM + cleartextPrivateKeyPEM  
+        pemData = cleartextCertificatePEM + cleartextPrivateKeyPEM
         cert = load_certificate(FILETYPE_PEM, pemData)
         dumped_pem = dump_certificate(FILETYPE_PEM, cert)
         self.assertEqual(dumped_pem, cleartextCertificatePEM)
         dumped_der = dump_certificate(FILETYPE_ASN1, cert)
-        good_der = Popen(["openssl", "x509", "-outform", "DER"], \
-           stdin=PIPE, stdout=PIPE).communicate(input=str(dumped_pem))[0]
+        good_der = self._runopenssl(dumped_pem, "x509", "-outform", "DER")
         self.assertEqual(dumped_der, good_der)
         cert2 = load_certificate(FILETYPE_ASN1, dumped_der)
         dumped_pem2 = dump_certificate(FILETYPE_PEM, cert2)
         self.assertEqual(dumped_pem2, cleartextCertificatePEM)
         dumped_text = dump_certificate(FILETYPE_TEXT, cert)
-        good_text = Popen(["openssl", "x509", "-noout", "-text"], \
-           stdin=PIPE, stdout=PIPE).communicate(input=str(dumped_pem))[0]
+        good_text = self._runopenssl(dumped_pem, "x509", "-noout", "-text")
         self.assertEqual(dumped_text, good_text)
 
 
@@ -755,16 +765,16 @@ class FunctionTests(TestCase, _Python23TestCaseHelper):
         dumped_pem = dump_privatekey(FILETYPE_PEM, key)
         self.assertEqual(dumped_pem, cleartextPrivateKeyPEM)
         dumped_der = dump_privatekey(FILETYPE_ASN1, key)
-        good_der = Popen(["openssl", "rsa", "-outform", "DER"], \
-           stdin=PIPE, stdout=PIPE).communicate(input=str(dumped_pem))[0]
+        # XXX This OpenSSL call writes "writing RSA key" to standard out.  Sad.
+        good_der = self._runopenssl(dumped_pem, "rsa", "-outform", "DER")
         self.assertEqual(dumped_der, good_der)
         key2 = load_privatekey(FILETYPE_ASN1, dumped_der)
         dumped_pem2 = dump_privatekey(FILETYPE_PEM, key2)
         self.assertEqual(dumped_pem2, cleartextPrivateKeyPEM)
         dumped_text = dump_privatekey(FILETYPE_TEXT, key)
-        good_text = Popen(["openssl", "rsa", "-noout", "-text"], \
-           stdin=PIPE, stdout=PIPE).communicate(input=str(dumped_pem))[0]
+        good_text = self._runopenssl(dumped_pem, "rsa", "-noout", "-text")
         self.assertEqual(dumped_text, good_text)
+
 
     def test_dump_certificate_request(self):
         """
@@ -774,15 +784,13 @@ class FunctionTests(TestCase, _Python23TestCaseHelper):
         dumped_pem = dump_certificate_request(FILETYPE_PEM, req)
         self.assertEqual(dumped_pem, cleartextCertificateRequestPEM)
         dumped_der = dump_certificate_request(FILETYPE_ASN1, req)
-        good_der = Popen(["openssl", "req", "-outform", "DER"], \
-           stdin=PIPE, stdout=PIPE).communicate(input=str(dumped_pem))[0]
+        good_der = self._runopenssl(dumped_pem, "req", "-outform", "DER")
         self.assertEqual(dumped_der, good_der)
         req2 = load_certificate_request(FILETYPE_ASN1, dumped_der)
         dumped_pem2 = dump_certificate_request(FILETYPE_PEM, req2)
         self.assertEqual(dumped_pem2, cleartextCertificateRequestPEM)
         dumped_text = dump_certificate_request(FILETYPE_TEXT, req)
-        good_text = Popen(["openssl", "req", "-noout", "-text"], \
-           stdin=PIPE, stdout=PIPE).communicate(input=str(dumped_pem))[0]
+        good_text = self._runopenssl(dumped_pem, "req", "-noout", "-text")
         self.assertEqual(dumped_text, good_text)
 
 
@@ -808,4 +816,3 @@ class FunctionTests(TestCase, _Python23TestCaseHelper):
 
 if __name__ == '__main__':
     main()
-
