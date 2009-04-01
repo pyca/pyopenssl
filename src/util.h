@@ -37,6 +37,7 @@ extern  void      flush_error_queue(void);
  * some Python.
  */
 #  define MY_BEGIN_ALLOW_THREADS(ignored)                               \
+    PyThread_delete_key_value(_pyOpenSSL_tstate_key);			\
     PyThread_set_key_value(_pyOpenSSL_tstate_key, PyEval_SaveThread());
 
 /*
