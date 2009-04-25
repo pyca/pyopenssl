@@ -3,9 +3,9 @@
 
                             Python OpenSSL Manual
 
-                               Martin Sjögren
+                             Jean-Paul Calderone
 
-                              martin@strakt.com
+                          exarkun@twistedmatrix.com
 
   Abstract:
 
