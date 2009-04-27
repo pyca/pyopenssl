@@ -490,7 +490,7 @@ class BioTests(TestCase):
         self.assertEqual(client_conn.server_random(), server_conn.server_random())
 
 
-    def test_connect(self):
+    def test_socketOverridesMemory(self):
         """
         Test that L{OpenSSL.SSL.bio_read} and L{OpenSSL.SSL.bio_write} don't
         work on L{OpenSSL.SSL.Connection}() that use sockets.

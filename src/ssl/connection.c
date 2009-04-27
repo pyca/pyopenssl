@@ -260,7 +260,7 @@ ssl_Connection_bio_write(ssl_ConnectionObj *self, PyObject *args)
             return NULL;
     }
 
-    if (!PyArg_ParseTuple(args, "s#|i:bio_read", &buf, &len))
+    if (!PyArg_ParseTuple(args, "s#|i:bio_write", &buf, &len))
         return NULL;
 
     ret = BIO_write(self->into_ssl, buf, len);
@@ -1126,6 +1126,8 @@ ssl_Connection_New(ssl_ContextObj *ctx, PyObject *sock)
     self->socket = sock;
 
     self->ssl = NULL;
+    self->from_ssl = NULL;
+    self->into_ssl = NULL;
 
     Py_INCREF(Py_None);
     self->app_data = Py_None;
