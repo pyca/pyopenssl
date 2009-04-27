@@ -44,6 +44,7 @@ typedef struct {
     PyObject            *socket;
     PyThreadState       *tstate; /* This field is no longer used. */
     PyObject            *app_data;
+    BIO                 *into_ssl, *from_ssl;  /* for connections without file descriptors */
 } ssl_ConnectionObj;
 
 

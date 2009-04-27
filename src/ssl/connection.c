@@ -239,6 +239,50 @@ ssl_Connection_pending(ssl_ConnectionObj *self, PyObject *args)
     return PyInt_FromLong((long)ret);
 }
     
+static char ssl_Connection_bio_write_doc[] = "\n\
+When using non-socket connections this function sends\n\
+\"dirty\" data that would have traveled in on the network.\n\
+\n\
+Arguments: self - The Connection object\n\
+           args - The Python argument tuple, should be:\n\
+             buf   - The string to bio_write\n\
+Returns:   The number of bytes written\n\
+";
+static PyObject *
+ssl_Connection_bio_write(ssl_ConnectionObj *self, PyObject *args)
+{
+    char *buf;
+    int len, ret, err;
+
+    if(self->into_ssl == NULL) 
+    {
+            PyErr_SetString(PyExc_TypeError, "Connection sock was not None");
+            return NULL;
+    }
+
+    if (!PyArg_ParseTuple(args, "s#|i:bio_read", &buf, &len))
+        return NULL;
+
+    ret = BIO_write(self->into_ssl, buf, len);
+
+    if (PyErr_Occurred())
+    {
+        flush_error_queue();
+        return NULL;
+    }
+
+    err = SSL_get_error(self->ssl, ret);
+    if (err == SSL_ERROR_NONE)
+    {
+        return PyInt_FromLong((long)ret);
+    }
+    else
+    {
+        handle_ssl_errors(self->ssl, err, ret);
+        return NULL;
+    }
+}
+
 static char ssl_Connection_send_doc[] = "\n\
 Send data on the connection. NOTE: If you get one of the WantRead,\n\
 WantWrite or WantX509Lookup exceptions on this, you have to call the\n\
@@ -361,6 +405,58 @@ ssl_Connection_recv(ssl_ConnectionObj *self, PyObject *args)
     MY_BEGIN_ALLOW_THREADS(self->tstate)
     ret = SSL_read(self->ssl, PyString_AsString(buf), bufsiz);
     MY_END_ALLOW_THREADS(self->tstate)
+
+    if (PyErr_Occurred())
+    {
+        Py_DECREF(buf);
+        flush_error_queue();
+        return NULL;
+    }
+
+    err = SSL_get_error(self->ssl, ret);
+    if (err == SSL_ERROR_NONE)
+    {
+        if (ret != bufsiz && _PyString_Resize(&buf, ret) < 0)
+            return NULL;
+        return buf;
+    }
+    else
+    {
+        handle_ssl_errors(self->ssl, err, ret);
+        Py_DECREF(buf);
+        return NULL;
+    }
+}
+
+static char ssl_Connection_bio_read_doc[] = "\n\
+When using non-socket connections this function reads\n\
+the \"dirty\" data that would have traveled away on the network.\n\
+\n\
+Arguments: self - The Connection object\n\
+           args - The Python argument tuple, should be:\n\
+             bufsiz - The maximum number of bytes to read\n\
+Returns:   The string read.\n\
+";
+static PyObject *
+ssl_Connection_bio_read(ssl_ConnectionObj *self, PyObject *args)
+{
+    int bufsiz, ret, err;
+    PyObject *buf;
+
+    if(self->from_ssl == NULL) 
+    {
+            PyErr_SetString(PyExc_TypeError, "Connection sock was not None");
+            return NULL;
+    }
+
+    if (!PyArg_ParseTuple(args, "i:bio_read", &bufsiz))
+        return NULL;
+
+    buf = PyString_FromStringAndSize(NULL, bufsiz);
+    if (buf == NULL)
+        return NULL;
+
+    ret = BIO_read(self->from_ssl, PyString_AsString(buf), bufsiz);
 
     if (PyErr_Occurred())
     {
@@ -810,6 +906,66 @@ ssl_Connection_state_string(ssl_ConnectionObj *self, PyObject *args)
     return PyString_FromString(SSL_state_string_long(self->ssl));
 }
 
+static char ssl_Connection_client_random_doc[] = "\n\
+Get a copy of the client hello nonce.\n\
+\n\
+Arguments: self - The Connection object\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   A string representing the state\n\
+";
+static PyObject *
+ssl_Connection_client_random(ssl_ConnectionObj *self, PyObject *args)
+{
+    if (!PyArg_ParseTuple(args, ":client_random"))
+        return NULL;
+
+    if( self->ssl->session == NULL) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+    return PyString_FromStringAndSize( (const char *) self->ssl->s3->client_random, SSL3_RANDOM_SIZE);
+}
+
+static char ssl_Connection_server_random_doc[] = "\n\
+Get a copy of the server hello nonce.\n\
+\n\
+Arguments: self - The Connection object\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   A string representing the state\n\
+";
+static PyObject *
+ssl_Connection_server_random(ssl_ConnectionObj *self, PyObject *args)
+{
+    if (!PyArg_ParseTuple(args, ":server_random"))
+        return NULL;
+
+    if( self->ssl->session == NULL) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+    return PyString_FromStringAndSize( (const char *) self->ssl->s3->server_random, SSL3_RANDOM_SIZE);
+}
+
+static char ssl_Connection_master_key_doc[] = "\n\
+Get a copy of the master key.\n\
+\n\
+Arguments: self - The Connection object\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   A string representing the state\n\
+";
+static PyObject *
+ssl_Connection_master_key(ssl_ConnectionObj *self, PyObject *args)
+{
+    if (!PyArg_ParseTuple(args, ":master_key"))
+        return NULL;
+
+    if( self->ssl->session == NULL) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+    return PyString_FromStringAndSize( (const char *) self->ssl->session->master_key, self->ssl->session->master_key_length);
+}
+
 static char ssl_Connection_sock_shutdown_doc[] = "\n\
 See shutdown(2)\n\
 \n\
@@ -912,6 +1068,8 @@ static PyMethodDef ssl_Connection_methods[] =
     ADD_METHOD(sendall),
     ADD_METHOD(recv),
     ADD_ALIAS (read, recv),
+    ADD_METHOD(bio_read),
+    ADD_METHOD(bio_write),
     ADD_METHOD(renegotiate),
     ADD_METHOD(do_handshake),
 #if defined(OPENSSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= 0x00907000L
@@ -929,6 +1087,9 @@ static PyMethodDef ssl_Connection_methods[] =
     ADD_METHOD(get_shutdown),
     ADD_METHOD(set_shutdown),
     ADD_METHOD(state_string),
+    ADD_METHOD(server_random),
+    ADD_METHOD(client_random),
+    ADD_METHOD(master_key),
     ADD_METHOD(sock_shutdown),
     ADD_METHOD(get_peer_certificate),
     ADD_METHOD(want_read),
@@ -971,20 +1132,42 @@ ssl_Connection_New(ssl_ContextObj *ctx, PyObject *sock)
 
     self->tstate = NULL;
 
-    fd = PyObject_AsFileDescriptor(self->socket);
-    if (fd < 0)
-    {
-        Py_DECREF(self);
-        return NULL;
-    }
-
     self->ssl = SSL_new(self->context->ctx);
     SSL_set_app_data(self->ssl, self);
-    SSL_set_fd(self->ssl, (SOCKET_T)fd);
+
+    if(self->socket == Py_None)
+    {
+        /* If it's not a socket or file, treat it like a memory buffer, 
+         * so crazy people can do things like EAP-TLS. */
+        self->into_ssl = BIO_new(BIO_s_mem());
+        self->from_ssl = BIO_new(BIO_s_mem());
+        if(self->into_ssl == NULL || self->from_ssl == NULL)
+            goto error;
+        SSL_set_bio(self->ssl, self->into_ssl, self->from_ssl);
+    } 
+    else 
+    {
+        fd = PyObject_AsFileDescriptor(self->socket);
+        if (fd < 0)
+        {
+            Py_DECREF(self);
+            return NULL;
+        } 
+        else 
+        {
+            SSL_set_fd(self->ssl, (SOCKET_T)fd);
+        }
+    }
 
     PyObject_GC_Track(self);
 
     return self;
+
+error:
+    BIO_free(self->into_ssl);  /* NULL safe */
+    BIO_free(self->from_ssl);  /* NULL safe */
+    Py_DECREF(self);
+    return NULL;
 }
 
 /*
@@ -1050,6 +1233,8 @@ ssl_Connection_clear(ssl_ConnectionObj *self)
     self->socket = NULL;
     Py_XDECREF(self->app_data);
     self->app_data = NULL;
+    self->into_ssl = NULL; /* was cleaned up by SSL_free() */
+    self->from_ssl = NULL; /* was cleaned up by SSL_free() */
     return 0;
 }
 
