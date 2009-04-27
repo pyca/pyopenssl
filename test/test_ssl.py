@@ -425,6 +425,40 @@ class MemoryBIOTests(TestCase):
     """
     Tests for L{OpenSSL.SSL.Connection} using a memory BIO.
     """
+    def _server(self):
+        # Create the server side Connection.  This is mostly setup boilerplate
+        # - use TLSv1, use a particular certificate, etc.
+        server_ctx = Context(TLSv1_METHOD)
+        server_ctx.set_options(OP_NO_SSLv2 | OP_NO_SSLv3 | OP_SINGLE_DH_USE )
+        server_ctx.set_verify(VERIFY_PEER|VERIFY_FAIL_IF_NO_PEER_CERT|VERIFY_CLIENT_ONCE, verify_cb)
+        server_store = server_ctx.get_cert_store()
+        server_ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
+        server_ctx.check_privatekey()
+        server_store.add_cert(load_certificate(FILETYPE_PEM, root_cert_pem))
+        # Here the Connection is actually created.  None is passed as the 2nd
+        # parameter, indicating a memory BIO should be created.
+        server_conn = Connection(server_ctx, None)
+        server_conn.set_accept_state()
+        return server_conn
+
+
+    def _client(self):
+        # Now create the client side Connection.  Similar boilerplate to the above.
+        client_ctx = Context(TLSv1_METHOD)
+        client_ctx.set_options(OP_NO_SSLv2 | OP_NO_SSLv3 | OP_SINGLE_DH_USE )
+        client_ctx.set_verify(VERIFY_PEER|VERIFY_FAIL_IF_NO_PEER_CERT|VERIFY_CLIENT_ONCE, verify_cb)
+        client_store = client_ctx.get_cert_store()
+        client_ctx.use_privatekey(load_privatekey(FILETYPE_PEM, client_key_pem))
+        client_ctx.use_certificate(load_certificate(FILETYPE_PEM, client_cert_pem))
+        client_ctx.check_privatekey()
+        client_store.add_cert(load_certificate(FILETYPE_PEM, root_cert_pem))
+        # Again, None to create a new memory BIO.
+        client_conn = Connection(client_ctx, None)
+        client_conn.set_connect_state()
+        return client_conn
+
+
     def _loopback(self, client_conn, server_conn):
         """
         Try to read application bytes from each of the two L{Connection}
@@ -447,7 +481,7 @@ class MemoryBIOTests(TestCase):
                 # Give the side a chance to generate some more bytes, or
                 # succeed.
                 try:
-                    bytes = read.recv(1024)
+                    bytes = read.recv(2 ** 16)
                 except WantReadError:
                     # It didn't succeed, so we'll hope it generated some
                     # output.
@@ -479,33 +513,8 @@ class MemoryBIOTests(TestCase):
         the other and in this way establish a connection and exchange
         application-level bytes with each other.
         """
-        # Create the server side Connection.  This is mostly setup boilerplate
-        # - use TLSv1, use a particular certificate, etc.
-        server_ctx = Context(TLSv1_METHOD)
-        server_ctx.set_options(OP_NO_SSLv2 | OP_NO_SSLv3 | OP_SINGLE_DH_USE )
-        server_ctx.set_verify(VERIFY_PEER|VERIFY_FAIL_IF_NO_PEER_CERT|VERIFY_CLIENT_ONCE, verify_cb)
-        server_store = server_ctx.get_cert_store()
-        server_ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
-        server_ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
-        server_ctx.check_privatekey()
-        server_store.add_cert(load_certificate(FILETYPE_PEM, root_cert_pem))
-        # Here the Connection is actually created.  None is passed as the 2nd
-        # parameter, indicating a memory BIO should be created.
-        server_conn = Connection(server_ctx, None)
-        server_conn.set_accept_state()
-
-        # Now create the client side Connection.  Similar boilerplate to the above.
-        client_ctx = Context(TLSv1_METHOD)
-        client_ctx.set_options(OP_NO_SSLv2 | OP_NO_SSLv3 | OP_SINGLE_DH_USE )
-        client_ctx.set_verify(VERIFY_PEER|VERIFY_FAIL_IF_NO_PEER_CERT|VERIFY_CLIENT_ONCE, verify_cb)
-        client_store = client_ctx.get_cert_store()
-        client_ctx.use_privatekey(load_privatekey(FILETYPE_PEM, client_key_pem))
-        client_ctx.use_certificate(load_certificate(FILETYPE_PEM, client_cert_pem))
-        client_ctx.check_privatekey()
-        client_store.add_cert(load_certificate(FILETYPE_PEM, root_cert_pem))
-        # Again, None to create a new memory BIO.
-        client_conn = Connection(client_ctx, None)
-        client_conn.set_connect_state()
+        server_conn = self._server()
+        client_conn = self._client()
 
         # There should be no key or nonces yet.
         self.assertIdentical(server_conn.master_key(), None)
@@ -548,3 +557,30 @@ class MemoryBIOTests(TestCase):
         clientSSL = Connection(context, client)
         self.assertRaises( TypeError, clientSSL.bio_read, 100)
         self.assertRaises( TypeError, clientSSL.bio_write, "foo")
+
+
+    def test_outgoingOverflow(self):
+        """
+        If more bytes than can be written to the memory BIO are passed to
+        L{Connection.send} at once, the number of bytes which were written is
+        returned and that many bytes from the beginning of the input can be
+        read from the other end of the connection.
+        """
+        server = self._server()
+        client = self._client()
+
+        self._loopback(client, server)
+
+        size = 2 ** 15
+        sent = client.send("x" * size)
+        # Sanity check.  We're trying to test what happens when the entire
+        # input can't be sent.  If the entire input was sent, this test is
+        # meaningless.
+        self.assertTrue(sent < size)
+
+        receiver, received = self._loopback(client, server)
+        self.assertIdentical(receiver, server)
+
+        # We can rely on all of these bytes being received at once because
+        # _loopback passes 2 ** 16 to recv - more than 2 ** 15.
+        self.assertEquals(len(received), sent)

@@ -125,6 +125,50 @@ syscall_from_errno(void)
 }
 
 /*
+ * Handle errors raised by BIO functions.
+ *
+ * Arguments: bio - The BIO object
+ *            ret - The return value of the BIO_ function.
+ * Returns: None, the calling function should return NULL;
+ */
+static void
+handle_bio_errors(BIO* bio, int ret)
+{
+    if (BIO_should_retry(bio)) {
+        if (BIO_should_read(bio)) {
+            PyErr_SetNone(ssl_WantReadError);
+        } else if (BIO_should_write(bio)) {
+            PyErr_SetNone(ssl_WantWriteError);
+        } else if (BIO_should_io_special(bio)) {
+            /*
+             * It's somewhat unclear what this means.  From the OpenSSL source,
+             * it seems like it should not be triggered by the memory BIO, so
+             * for the time being, this case shouldn't come up.  The SSL BIO
+             * (which I think should be named the socket BIO) may trigger this
+             * case if its socket is not yet connected or it is busy doing
+             * something related to x509.
+             */
+            PyErr_SetString(PyExc_ValueError, "BIO_should_io_special");
+        } else {
+            /*
+             * I hope this is dead code.  The BIO documentation suggests that
+             * one of the above three checks should always be true.
+             */
+            PyErr_SetString(PyExc_ValueError, "unknown bio failure");
+        }
+    } else {
+        /*
+         * If we aren't to retry, it's really an error, so fall back to the
+         * normal error reporting code.  However, the BIO interface does not
+         * specify a uniform error reporting mechanism.  We can only hope that
+         * the code which triggered the error also kindly pushed something onto
+         * the error stack.
+         */
+        exception_from_error_queue();
+    }
+}
+
+/*
  * Handle errors raised by SSL I/O functions. NOTE: Not SSL_shutdown ;)
  *
  * Arguments: ssl - The SSL object
@@ -252,7 +296,7 @@ static PyObject *
 ssl_Connection_bio_write(ssl_ConnectionObj *self, PyObject *args)
 {
     char *buf;
-    int len, ret, err;
+    int len, ret;
 
     if(self->into_ssl == NULL) 
     {
@@ -271,16 +315,15 @@ ssl_Connection_bio_write(ssl_ConnectionObj *self, PyObject *args)
         return NULL;
     }
 
-    err = SSL_get_error(self->ssl, ret);
-    if (err == SSL_ERROR_NONE)
-    {
-        return PyInt_FromLong((long)ret);
-    }
-    else
-    {
-        handle_ssl_errors(self->ssl, err, ret);
+    if (ret <= 0) {
+        /*
+         * There was a problem with the BIO_write of some sort.
+         */
+        handle_bio_errors(self->from_ssl, ret);
         return NULL;
     }
+
+    return PyInt_FromLong((long)ret);
 }
 
 static char ssl_Connection_send_doc[] = "\n\
@@ -440,7 +483,7 @@ Returns:   The string read.\n\
 static PyObject *
 ssl_Connection_bio_read(ssl_ConnectionObj *self, PyObject *args)
 {
-    int bufsiz, ret, err;
+    int bufsiz, ret;
     PyObject *buf;
 
     if(self->from_ssl == NULL) 
@@ -465,19 +508,24 @@ ssl_Connection_bio_read(ssl_ConnectionObj *self, PyObject *args)
         return NULL;
     }
 
-    err = SSL_get_error(self->ssl, ret);
-    if (err == SSL_ERROR_NONE)
-    {
-        if (ret != bufsiz && _PyString_Resize(&buf, ret) < 0)
-            return NULL;
-        return buf;
-    }
-    else
-    {
-        handle_ssl_errors(self->ssl, err, ret);
+    if (ret <= 0) {
+        /*
+         * There was a problem with the BIO_read of some sort.
+         */
+        handle_bio_errors(self->from_ssl, ret);
         Py_DECREF(buf);
         return NULL;
     }
+
+    /*
+     * Shrink the string to match the number of bytes we actually read.
+     */
+    if (ret != bufsiz && _PyString_Resize(&buf, ret) < 0)
+    {
+        Py_DECREF(buf);
+        return NULL;
+    }
+    return buf;
 }
 
 static char ssl_Connection_renegotiate_doc[] = "\n\
