@@ -584,3 +584,16 @@ class MemoryBIOTests(TestCase):
         # We can rely on all of these bytes being received at once because
         # _loopback passes 2 ** 16 to recv - more than 2 ** 15.
         self.assertEquals(len(received), sent)
+
+
+    def test_shutdown(self):
+        """
+        L{Connection.bio_shutdown} signals the end of the data stream from
+        which the L{Connection} reads.
+        """
+        server = self._server()
+        server.bio_shutdown()
+        e = self.assertRaises(Error, server.recv, 1024)
+        # We don't want WantReadError or ZeroReturnError or anything - it's a
+        # handshake failure.
+        self.assertEquals(e.__class__, Error)

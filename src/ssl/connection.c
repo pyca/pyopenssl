@@ -23,8 +23,8 @@
 #endif
 
 #define SSL_MODULE
+#include <openssl/bio.h>
 #include <openssl/err.h>
-
 #include "ssl.h"
 
 /**
@@ -319,7 +319,7 @@ ssl_Connection_bio_write(ssl_ConnectionObj *self, PyObject *args)
         /*
          * There was a problem with the BIO_write of some sort.
          */
-        handle_bio_errors(self->from_ssl, ret);
+        handle_bio_errors(self->into_ssl, ret);
         return NULL;
     }
 
@@ -770,6 +770,25 @@ ssl_Connection_accept(ssl_ConnectionObj *self, PyObject *args)
     return tuple;
 }
 
+static char ssl_Connection_bio_shutdown_doc[] = "\n\
+When using non-socket connections this function signals end of\n\
+data on the input for this connection.\n\
+\n\
+Arguments: self - The Connection object\n\
+           args - The Python argument tuple, should be empty.\n\
+Returns:   Nothing\n\
+";
+
+static PyObject *
+ssl_Connection_bio_shutdown(ssl_ConnectionObj *self, PyObject *args)
+{
+    BIO_set_mem_eof_return(self->into_ssl, 0);
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
+
 static char ssl_Connection_shutdown_doc[] = "\n\
 Send closure alert\n\
 \n\
@@ -1127,6 +1146,7 @@ static PyMethodDef ssl_Connection_methods[] =
     ADD_METHOD(connect),
     ADD_METHOD(connect_ex),
     ADD_METHOD(accept),
+    ADD_METHOD(bio_shutdown),
     ADD_METHOD(shutdown),
     ADD_METHOD(get_cipher_list),
     ADD_METHOD(makefile),
