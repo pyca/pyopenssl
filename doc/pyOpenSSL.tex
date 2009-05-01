@@ -681,10 +681,12 @@ A Python type object representing the Connection object type.
 \end{datadesc}
 
 \begin{funcdesc}{Connection}{context, socket}
-Factory fucnction that creates a new Connection object given an SSL context and
+Factory function that creates a new Connection object given an SSL context and
 a socket \footnote{Actually, all that is required is an object that
-\emph{behaves} like a socket, you could even use files, even though it'd be
-tricky to get the handshakes right!} object.
+  \emph{behaves} like a socket, you could even use files, even though it'd be
+  tricky to get the handshakes right!} object.  \var{socket} may be \var{None};
+in this case, the Connection is created with a memory BIO: see the
+\method{bio_read}, \method{bio_write}, and \method{bio_shutdown} methods.
 \end{funcdesc}
 
 \begin{excdesc}{Error}
@@ -978,6 +980,12 @@ data received. The maximum amount of data to be received at once, is specified
 by \var{bufsize}.
 \end{methoddesc}
 
+\begin{methoddesc}[Connection]{bio_write}{bytes}
+If the Connection was created with a memory BIO, this method can be used to add
+bytes to the read end of that memory BIO.  The Connection can then read the
+bytes (for example, in response to a call to \method{recv}).
+\end{methoddesc}
+
 \begin{methoddesc}[Connection]{renegotiate}{}
 Renegotiate the SSL session. Call this if you wish to change cipher suites or
 anything like that.
@@ -985,6 +993,13 @@ anything like that.
 
 \begin{methoddesc}[Connection]{send}{string}
 Send the \var{string} data to the Connection.
+\end{methoddesc}
+
+\begin{methoddesc}[Connection]{bio_read}{bufsize}
+If the Connection was created with a memory BIO, this method can be used to
+read bytes from the write end of that memory BIO.  Many Connection methods will
+add bytes which must be read in this manner or the buffer will eventually fill
+up and the Connection will be able to take no further actions.
 \end{methoddesc}
 
 \begin{methoddesc}[Connection]{sendall}{string}
@@ -1035,6 +1050,12 @@ either or both of \var{SENT_SHUTDOWN} and \var{RECEIVED_SHUTDOWN}.
 
 \begin{methoddesc}[Connection]{sock_shutdown}{how}
 Call the \method{shutdown} method of the underlying socket.
+\end{methoddesc}
+
+\begin{methoddesc}[Connection]{bio_shutdown}{}
+If the Connection was created with a memory BIO, this method can be used to
+indicate that ``end of file'' has been reached on the read end of that memory
+BIO.
 \end{methoddesc}
 
 \begin{methoddesc}[Connection]{state_string}{}
