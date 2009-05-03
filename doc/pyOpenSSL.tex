@@ -1062,6 +1062,18 @@ BIO.
 Retrieve a verbose string detailing the state of the Connection.
 \end{methoddesc}
 
+\begin{methoddesc}[Connection]{client_random}{}
+Retrieve the random value used with the client hello message.
+\end{methoddesc}
+
+\begin{methoddesc}[Connection]{server_random}{}
+Retrieve the random value used with the server hello message.
+\end{methoddesc}
+
+\begin{methoddesc}[Connection]{master_key}{}
+Retrieve the value of the master key for this session.
+\end{methoddesc}
+
 \begin{methoddesc}[Connection]{want_read}{}
 Checks if more data has to be read from the transport layer to complete an
 operation.
