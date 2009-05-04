@@ -732,7 +732,7 @@ class FunctionTests(TestCase, _Python23TestCaseHelper):
         Run the command line openssl tool with the given arguments and write
         the given PEM to its stdin.
         """
-        write, read = popen2(" ".join(("openssl",) + args))
+        write, read = popen2(" ".join(("openssl",) + args), "b")
         write.write(pem)
         write.close()
         return read.read()
