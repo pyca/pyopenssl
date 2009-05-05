@@ -557,6 +557,7 @@ class MemoryBIOTests(TestCase):
         clientSSL = Connection(context, client)
         self.assertRaises( TypeError, clientSSL.bio_read, 100)
         self.assertRaises( TypeError, clientSSL.bio_write, "foo")
+        self.assertRaises( TypeError, clientSSL.bio_shutdown )
 
 
     def test_outgoingOverflow(self):

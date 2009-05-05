@@ -298,7 +298,7 @@ ssl_Connection_bio_write(ssl_ConnectionObj *self, PyObject *args)
     char *buf;
     int len, ret;
 
-    if(self->into_ssl == NULL) 
+    if (self->into_ssl == NULL) 
     {
             PyErr_SetString(PyExc_TypeError, "Connection sock was not None");
             return NULL;
@@ -486,7 +486,7 @@ ssl_Connection_bio_read(ssl_ConnectionObj *self, PyObject *args)
     int bufsiz, ret;
     PyObject *buf;
 
-    if(self->from_ssl == NULL) 
+    if (self->from_ssl == NULL) 
     {
             PyErr_SetString(PyExc_TypeError, "Connection sock was not None");
             return NULL;
@@ -782,6 +782,12 @@ Returns:   Nothing\n\
 static PyObject *
 ssl_Connection_bio_shutdown(ssl_ConnectionObj *self, PyObject *args)
 {
+    if (self->from_ssl == NULL) 
+    {
+            PyErr_SetString(PyExc_TypeError, "Connection sock was not None");
+            return NULL;
+    }
+
     BIO_set_mem_eof_return(self->into_ssl, 0);
     Py_INCREF(Py_None);
     return Py_None;
@@ -986,7 +992,7 @@ ssl_Connection_client_random(ssl_ConnectionObj *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":client_random"))
         return NULL;
 
-    if( self->ssl->session == NULL) {
+    if (self->ssl->session == NULL) {
         Py_INCREF(Py_None);
         return Py_None;
     }
@@ -1006,7 +1012,7 @@ ssl_Connection_server_random(ssl_ConnectionObj *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":server_random"))
         return NULL;
 
-    if( self->ssl->session == NULL) {
+    if (self->ssl->session == NULL) {
         Py_INCREF(Py_None);
         return Py_None;
     }
@@ -1026,7 +1032,7 @@ ssl_Connection_master_key(ssl_ConnectionObj *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":master_key"))
         return NULL;
 
-    if( self->ssl->session == NULL) {
+    if (self->ssl->session == NULL) {
         Py_INCREF(Py_None);
         return Py_None;
     }
@@ -1205,13 +1211,13 @@ ssl_Connection_New(ssl_ContextObj *ctx, PyObject *sock)
     self->ssl = SSL_new(self->context->ctx);
     SSL_set_app_data(self->ssl, self);
 
-    if(self->socket == Py_None)
+    if (self->socket == Py_None)
     {
         /* If it's not a socket or file, treat it like a memory buffer, 
          * so crazy people can do things like EAP-TLS. */
         self->into_ssl = BIO_new(BIO_s_mem());
         self->from_ssl = BIO_new(BIO_s_mem());
-        if(self->into_ssl == NULL || self->from_ssl == NULL)
+        if (self->into_ssl == NULL || self->from_ssl == NULL)
             goto error;
         SSL_set_bio(self->ssl, self->into_ssl, self->from_ssl);
     } 
