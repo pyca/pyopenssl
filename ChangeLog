@@ -1,3 +1,16 @@
+2009-05-11  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* test/test_crypto.py: Use binary mode for the pipe to talk to the
+	  external openssl binary.  The data being transported over this
+	  pipe is indeed binary, so previously it would often be truncated
+	  or otherwise mangled.
+
+	* src/ssl/connection.h, src/ssl/connection.c, test/test_ssl.py:
+	  Extend the Connection class with support for in-memory BIOs.  This
+	  allows SSL to be run without a real socket, useful for
+	  implementing EAP-TLS or using SSL with Windows IO completion
+	  ports, for example.
+
 2009-04-25  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* Release 0.9
