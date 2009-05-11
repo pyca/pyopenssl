@@ -9,7 +9,8 @@
 	  Extend the Connection class with support for in-memory BIOs.  This
 	  allows SSL to be run without a real socket, useful for
 	  implementing EAP-TLS or using SSL with Windows IO completion
-	  ports, for example.
+	  ports, for example.  Based heavily on contributions from Rick
+	  Dean.
 
 2009-04-25  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
