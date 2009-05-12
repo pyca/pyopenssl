@@ -42,7 +42,7 @@ LibraryDirs = None
 
 # Add more platforms here when needed
 if os.name == 'nt' or sys.platform == 'win32':
-    Libraries = ['eay32', 'Ws2_32']
+    Libraries = ['libeay32', 'ssleay32', 'Ws2_32']
     # Try to find it...
     for path in ["C:\\OpenSSL\\lib\\MinGW", "C:\\Python23\\libs",
                  "C:\\Python24\\libs", "C:\\Python25\\libs", "C:\\Python26\\libs"]:
@@ -50,7 +50,7 @@ if os.name == 'nt' or sys.platform == 'win32':
         # against to let us use the .dll.
         ssleay32 = os.path.join(path, "ssleay32.a")
         if os.path.exists(ssleay32):
-            ExtraObjects = [ssleay32]
+            ExtraObjects = [] # ssleay32]
             break
     else:
         raise SystemExit("Cannot find ssleay32.a, aborting")
