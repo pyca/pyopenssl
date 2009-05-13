@@ -564,6 +564,7 @@ class PKeyTests(TestCase):
         key.generate_key(TYPE_RSA, bits)
         self.assertEqual(key.type(), TYPE_RSA)
         self.assertEqual(key.bits(), bits)
+        self.assertTrue(key.check())
 
 
     def test_dsaGeneration(self):
@@ -579,6 +580,7 @@ class PKeyTests(TestCase):
         key.generate_key(TYPE_DSA, bits)
         self.assertEqual(key.type(), TYPE_DSA)
         self.assertEqual(key.bits(), bits)
+        self.assertRaises(TypeError, key.check)
 
 
     def test_regeneration(self):
@@ -2077,6 +2079,7 @@ class FunctionTests(TestCase):
         L{dump_privatekey} writes a PEM, DER, and text.
         """
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        self.assertTrue(key.check())
         dumped_pem = dump_privatekey(FILETYPE_PEM, key)
         self.assertEqual(dumped_pem, cleartextPrivateKeyPEM)
         dumped_der = dump_privatekey(FILETYPE_ASN1, key)
