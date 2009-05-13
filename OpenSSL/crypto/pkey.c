@@ -123,13 +123,10 @@ crypto_PKey_check(crypto_PKeyObj *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, ":check"))
         return NULL;
-    pkey = self->pkey;
-    if(pkey == NULL)
-        return NULL;
 
-    if(pkey->type == EVP_PKEY_RSA) {
+    if(self->pkey->type == EVP_PKEY_RSA) {
         RSA *rsa;
-        rsa = EVP_PKEY_get1_RSA(pkey);
+        rsa = EVP_PKEY_get1_RSA(self->pkey);
         r = RSA_check_key(rsa);
         if (r == 1)
             return PyInt_FromLong(1L);
