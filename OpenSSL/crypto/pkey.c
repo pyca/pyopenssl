@@ -119,7 +119,6 @@ static PyObject *
 crypto_PKey_check(crypto_PKeyObj *self, PyObject *args)
 {
     int r;
-    EVP_PKEY *pkey;
 
     if (!PyArg_ParseTuple(args, ":check"))
         return NULL;
@@ -129,9 +128,9 @@ crypto_PKey_check(crypto_PKeyObj *self, PyObject *args)
         rsa = EVP_PKEY_get1_RSA(self->pkey);
         r = RSA_check_key(rsa);
         if (r == 1)
-            return PyInt_FromLong(1L);
+            return PyBool_FromLong(1L);
         else
-            return PyInt_FromLong(0L);
+            return PyBool_FromLong(0L);
     } else {
         PyErr_SetString( PyExc_TypeError, "key type unsupported");
         return NULL;
