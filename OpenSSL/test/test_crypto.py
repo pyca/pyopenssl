@@ -618,7 +618,7 @@ class PKeyTests(TestCase):
         L{PKeyType.check} returns C{False} if the key is not consistent.
         """
         key = load_privatekey(FILETYPE_PEM, inconsistentPrivateKeyPEM)
-        self.assertFalse(key.check())
+        self.assertRaises(Error, key.check)
 
 
 class X509NameTests(TestCase):

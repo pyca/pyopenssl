@@ -112,7 +112,10 @@ Check the consistency of an RSA private key.\n\
 \n\
 Arguments: self - The PKey object\n\
            args - The Python argument tuple, should be empty\n\
-Returns: True if key is consistent.  False if not.\n\
+Returns: True if key is consistent.\n\
+Raises: Error if the key is inconsistent.\n\
+        TypeError if the key is of a type which cannot be checked.  Only RSA\n\
+        keys can currently be checked.\n\
 ";
 
 static PyObject *
@@ -127,10 +130,11 @@ crypto_PKey_check(crypto_PKeyObj *self, PyObject *args)
         RSA *rsa;
         rsa = EVP_PKEY_get1_RSA(self->pkey);
         r = RSA_check_key(rsa);
-        if (r == 1)
+        if (r == 1) {
             return PyBool_FromLong(1L);
-        else
-            return PyBool_FromLong(0L);
+        } else {
+            FAIL();
+        }
     } else {
         PyErr_SetString( PyExc_TypeError, "key type unsupported");
         return NULL;
