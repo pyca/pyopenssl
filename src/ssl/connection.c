@@ -1107,23 +1107,24 @@ static PyMethodDef ssl_Connection_methods[] =
 #undef ADD_ALIAS
 #undef ADD_METHOD
 
+static char ssl_Connection_doc[] = "\n\
+Connection(context, socket) -> Connection instance\n\
+\n\
+Create a new Connection object, using the given OpenSSL.SSL.Context instance\n\
+and socket.\n\
+\n\
+@param context: An SSL Context to use for this connection\n\
+@param socket: The socket to use for transport layer\n\
+";
 
 /*
- * Constructor for Connection objects
- *
- * Arguments: ctx  - An SSL Context to use for this connection
- *            sock - The socket to use for transport layer
- * Returns:   The newly created Connection object
+ * Initializer used by ssl_Connection_new and ssl_Connection_New.  *Not*
+ * tp_init.  This takes an already allocated ssl_ConnectionObj, a context, and
+ * a optionally a socket, and glues them all together.
  */
-ssl_ConnectionObj *
-ssl_Connection_New(ssl_ContextObj *ctx, PyObject *sock)
-{
-    ssl_ConnectionObj *self;
+static ssl_ConnectionObj*
+ssl_Connection_init(ssl_ConnectionObj *self, ssl_ContextObj *ctx, PyObject *sock) {
     int fd;
-
-    self = PyObject_GC_New(ssl_ConnectionObj, &ssl_Connection_Type);
-    if (self == NULL)
-        return NULL;
 
     Py_INCREF(ctx);
     self->context = ctx;
@@ -1166,9 +1167,6 @@ ssl_Connection_New(ssl_ContextObj *ctx, PyObject *sock)
             SSL_set_fd(self->ssl, (SOCKET_T)fd);
         }
     }
-
-    PyObject_GC_Track(self);
-
     return self;
 
 error:
@@ -1176,6 +1174,49 @@ error:
     BIO_free(self->from_ssl);  /* NULL safe */
     Py_DECREF(self);
     return NULL;
+}
+
+/*
+ * Constructor for Connection objects
+ *
+ * Arguments: ctx  - An SSL Context to use for this connection
+ *            sock - The socket to use for transport layer
+ * Returns:   The newly created Connection object
+ */
+ssl_ConnectionObj *
+ssl_Connection_New(ssl_ContextObj *ctx, PyObject *sock) {
+    ssl_ConnectionObj *self;
+
+    self = PyObject_GC_New(ssl_ConnectionObj, &ssl_Connection_Type);
+    if (self == NULL) {
+        return NULL;
+    }
+    self = ssl_Connection_init(self, ctx, sock);
+    if (self == NULL) {
+        return NULL;
+    }
+    PyObject_GC_Track((PyObject *)self);
+    return self;
+}
+
+static PyObject*
+ssl_Connection_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs) {
+    ssl_ConnectionObj *self;
+    ssl_ContextObj *ctx;
+    PyObject *sock;
+    static char *kwlist[] = {"context", "socket", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O:Connection", kwlist,
+                                     &ssl_Context_Type, &ctx, &sock)) {
+        return NULL;
+    }
+
+    self = (ssl_ConnectionObj *)subtype->tp_alloc(subtype, 1);
+    if (self == NULL) {
+        return NULL;
+    }
+
+    return (PyObject *)ssl_Connection_init(self, ctx, sock);
 }
 
 /*
@@ -1265,12 +1306,12 @@ ssl_Connection_dealloc(ssl_ConnectionObj *self)
 PyTypeObject ssl_Connection_Type = {
     PyObject_HEAD_INIT(NULL)
     0,
-    "Connection",
+    "OpenSSL.SSL.Connection",
     sizeof(ssl_ConnectionObj),
     0,
     (destructor)ssl_Connection_dealloc,
     NULL, /* print */
-    (getattrfunc)ssl_Connection_getattr,
+    (getattrfunc)ssl_Connection_getattr, /* tp_getattr */
     NULL, /* setattr */
     NULL, /* compare */
     NULL, /* repr */
@@ -1284,25 +1325,47 @@ PyTypeObject ssl_Connection_Type = {
     NULL, /* setattro */
     NULL, /* as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
-    NULL, /* doc */
+    ssl_Connection_doc, /* doc */
     (traverseproc)ssl_Connection_traverse,
     (inquiry)ssl_Connection_clear,
+    NULL, /* tp_richcompare */
+    0, /* tp_weaklistoffset */
+    NULL, /* tp_iter */
+    NULL, /* tp_iternext */
+    ssl_Connection_methods, /* tp_methods */
+    NULL, /* tp_members */
+    NULL, /* tp_getset */
+    NULL, /* tp_base */
+    NULL, /* tp_dict */
+    NULL, /* tp_descr_get */
+    NULL, /* tp_descr_set */
+    0, /* tp_dictoffset */
+    NULL, /* tp_init */
+    NULL, /* tp_alloc */
+    ssl_Connection_new, /* tp_new */
 };
 
 
 /*
  * Initiailze the Connection part of the SSL sub module
  *
- * Arguments: dict - Dictionary of the OpenSSL.SSL module
+ * Arguments: dict - The OpenSSL.SSL module
  * Returns:   1 for success, 0 otherwise
  */
 int
-init_ssl_connection(PyObject *dict)
-{
-    ssl_Connection_Type.ob_type = &PyType_Type;
-    Py_INCREF(&ssl_Connection_Type);
-    if (PyDict_SetItemString(dict, "ConnectionType", (PyObject *)&ssl_Connection_Type) != 0)
+init_ssl_connection(PyObject *module) {
+
+    if (PyType_Ready(&ssl_Connection_Type) < 0) {
         return 0;
+    }
+
+    if (PyModule_AddObject(module, "Connection", (PyObject *)&ssl_Connection_Type) != 0) {
+        return 0;
+    }
+
+    if (PyModule_AddObject(module, "ConnectionType", (PyObject *)&ssl_Connection_Type) != 0) {
+        return 0;
+    }
 
     return 1;
 }

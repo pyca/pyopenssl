@@ -236,14 +236,22 @@ global_info_callback(const SSL *ssl, int where, int _ret)
 }
 
 
-
+static char ssl_Context_doc[] = "\n\
+Context(method) -> Context instance\n\
+\n\
+OpenSSL.SSL.Context instances define the parameters for setting up new SSL\n\
+connections.\n\
+\n\
+@param method: One of SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, or\n\
+               TLSv1_METHOD.\n\
+";
 
 static char ssl_Context_load_verify_locations_doc[] = "\n\
 Let SSL know where we can find trusted certificates for the certificate\n\
 chain\n\
 \n\
 @param cafile: In which file we can find the certificates\n\
-@param capath: In which directory we can find the certificates\r\
+@param capath: In which directory we can find the certificates\n\
 @return: None\n\
 ";
 static PyObject *
@@ -963,37 +971,32 @@ static PyMethodDef ssl_Context_methods[] = {
 };
 #undef ADD_METHOD
 
-
-/* Constructor, takes an int specifying which method to use */
 /*
- * Constructor for Context objects
- *
- * Arguments: i_method - The SSL method to use, one of the SSLv2_METHOD,
- *                       SSLv3_METHOD, SSLv23_METHOD and TLSv1_METHOD
- *                       constants.
- * Returns:   The newly created Context object
+ * Despite the name which might suggest otherwise, this is not the tp_init for
+ * the Context type.  It's just the common initialization code shared by the
+ * two _{Nn}ew functions below.
  */
-ssl_ContextObj *
-ssl_Context_New(int i_method)
-{
+static ssl_ContextObj*
+ssl_Context_init(ssl_ContextObj *self, int i_method) {
     SSL_METHOD *method;
-    ssl_ContextObj *self;
 
-    switch (i_method)
-    {
-        /* Too bad TLSv1 servers can't accept SSLv3 clients */
-        case ssl_SSLv2_METHOD:    method = SSLv2_method();  break;
-        case ssl_SSLv23_METHOD:   method = SSLv23_method(); break;
-        case ssl_SSLv3_METHOD:    method = SSLv3_method();  break;
-        case ssl_TLSv1_METHOD:    method = TLSv1_method();  break;
+    switch (i_method) {
+        case ssl_SSLv2_METHOD:
+            method = SSLv2_method();
+            break;
+        case ssl_SSLv23_METHOD:
+            method = SSLv23_method();
+            break;
+        case ssl_SSLv3_METHOD:
+            method = SSLv3_method();
+            break;
+        case ssl_TLSv1_METHOD:
+            method = TLSv1_method();
+            break;
         default:
             PyErr_SetString(PyExc_ValueError, "No such protocol");
             return NULL;
     }
-
-    self = PyObject_GC_New(ssl_ContextObj, &ssl_Context_Type);
-    if (self == NULL)
-        return (ssl_ContextObj *)PyErr_NoMemory();
 
     self->ctx = SSL_CTX_new(method);
     Py_INCREF(Py_None);
@@ -1016,23 +1019,46 @@ ssl_Context_New(int i_method)
                                 SSL_MODE_AUTO_RETRY);
 
     self->tstate = NULL;
-    PyObject_GC_Track((PyObject *)self);
 
     return self;
 }
 
 /*
- * Find attribute
- *
- * Arguments: self - The Context object
- *            name - The attribute name
- * Returns:   A Python object for the attribute, or NULL if something went
- *            wrong
+ * This one is exposed in the CObject API.  I want to deprecate it.
  */
-static PyObject *
-ssl_Context_getattr(ssl_ContextObj *self, char *name)
-{
-    return Py_FindMethod(ssl_Context_methods, (PyObject *)self, name);
+ssl_ContextObj*
+ssl_Context_New(int i_method) {
+    ssl_ContextObj *self;
+
+    self = PyObject_GC_New(ssl_ContextObj, &ssl_Context_Type);
+    if (self == NULL) {
+       return (ssl_ContextObj *)PyErr_NoMemory();
+    }
+    self = ssl_Context_init(self, i_method);
+    PyObject_GC_Track((PyObject *)self);
+    return self;
+}
+
+
+/*
+ * This one is the tp_new of the Context type.  It's great.
+ */
+static PyObject*
+ssl_Context_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs) {
+    int i_method;
+    ssl_ContextObj *self;
+    static char *kwlist[] = {"method", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i:Context", kwlist, &i_method)) {
+        return NULL;
+    }
+
+    self = (ssl_ContextObj *)subtype->tp_alloc(subtype, 1);
+    if (self == NULL) {
+        return NULL;
+    }
+
+    return (PyObject *)ssl_Context_init(self, i_method);
 }
 
 /*
@@ -1103,12 +1129,12 @@ ssl_Context_dealloc(ssl_ContextObj *self)
 PyTypeObject ssl_Context_Type = {
     PyObject_HEAD_INIT(NULL)
     0,
-    "Context",
+    "OpenSSL.SSL.Context",
     sizeof(ssl_ContextObj),
     0,
-    (destructor)ssl_Context_dealloc,
+    (destructor)ssl_Context_dealloc, /* tp_dealloc */
     NULL, /* print */
-    (getattrfunc)ssl_Context_getattr,
+    NULL, /* tp_getattr */
     NULL, /* setattr */
     NULL, /* compare */
     NULL, /* repr */
@@ -1121,26 +1147,48 @@ PyTypeObject ssl_Context_Type = {
     NULL, /* getattro */
     NULL, /* setattro */
     NULL, /* as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
-    NULL, /* doc */
-    (traverseproc)ssl_Context_traverse,
-    (inquiry)ssl_Context_clear,
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE, /* tp_flags */
+    ssl_Context_doc, /* tp_doc */
+    (traverseproc)ssl_Context_traverse, /* tp_traverse */
+    (inquiry)ssl_Context_clear, /* tp_clear */
+    NULL, /* tp_richcompare */
+    0, /* tp_weaklistoffset */
+    NULL, /* tp_iter */
+    NULL, /* tp_iternext */
+    ssl_Context_methods, /* tp_methods */
+    NULL, /* tp_members */
+    NULL, /* tp_getset */
+    NULL, /* tp_base */
+    NULL, /* tp_dict */
+    NULL, /* tp_descr_get */
+    NULL, /* tp_descr_set */
+    0, /* tp_dictoffset */
+    NULL, /* tp_init */
+    NULL, /* tp_alloc */
+    ssl_Context_new, /* tp_new */
 };
 
 
 /*
  * Initialize the Context part of the SSL sub module
  *
- * Arguments: dict - Dictionary of the OpenSSL.SSL module
+ * Arguments: dict - The OpenSSL.SSL module
  * Returns:   1 for success, 0 otherwise
  */
 int
-init_ssl_context(PyObject *dict)
-{
-    ssl_Context_Type.ob_type = &PyType_Type;
-    Py_INCREF(&ssl_Context_Type);
-    if (PyDict_SetItemString(dict, "ContextType", (PyObject *)&ssl_Context_Type) != 0)
+init_ssl_context(PyObject *module) {
+
+    if (PyType_Ready(&ssl_Context_Type) < 0) {
         return 0;
+    }
+
+    if (PyModule_AddObject(module, "Context", (PyObject *)&ssl_Context_Type) < 0) {
+        return 0;
+    }
+
+    if (PyModule_AddObject(module, "ContextType", (PyObject *)&ssl_Context_Type) < 0) {
+        return 0;
+    }
 
     return 1;
 }
