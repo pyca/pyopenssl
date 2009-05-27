@@ -133,7 +133,7 @@ crypto_X509Extension_New(char *type_name, int critical, char *value)
     exception_from_error_queue();
 
   critical_malloc_error:
-    PyObject_Free(self);
+    Py_XDECREF(self);
 
   error:
     return NULL;

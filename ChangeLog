@@ -1,3 +1,9 @@
+2009-05-27  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* src/crypto/x509ext.c: Correctly deallocate the new Extension
+	  instance when there is an error initializing it and it is not
+	  going to be returned.  Resolves LP#368043.
+
 2009-05-11  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* test/test_crypto.py: Use binary mode for the pipe to talk to the
