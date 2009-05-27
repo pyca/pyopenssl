@@ -15,9 +15,7 @@
 static char crypto_X509Req_get_subject_doc[] = "\n\
 Create an X509Name object for the subject of the certificate request\n\
 \n\
-Arguments: self - The X509Req object\n\
-           args - The Python argument tuple, should be empty\n\
-Returns:   An X509Name object\n\
+@return: An X509Name object\n\
 ";
 
 static PyObject *
@@ -45,9 +43,7 @@ crypto_X509Req_get_subject(crypto_X509ReqObj *self, PyObject *args)
 static char crypto_X509Req_get_pubkey_doc[] = "\n\
 Get the public key from the certificate request\n\
 \n\
-Arguments: self - The X509Req object\n\
-           args - The Python argument tuple, should be empty\n\
-Returns:   The public key\n\
+@return: The public key\n\
 ";
 
 static PyObject *
@@ -76,10 +72,8 @@ crypto_X509Req_get_pubkey(crypto_X509ReqObj *self, PyObject *args)
 static char crypto_X509Req_set_pubkey_doc[] = "\n\
 Set the public key of the certificate request\n\
 \n\
-Arguments: self - The X509Req object\n\
-           args - The Python argument tuple, should be:\n\
-             pkey - The public key to use\n\
-Returns:   None\n\
+@param pkey: The public key to use\n\
+@return: None\n\
 ";
 
 static PyObject *
@@ -103,11 +97,9 @@ crypto_X509Req_set_pubkey(crypto_X509ReqObj *self, PyObject *args)
 static char crypto_X509Req_sign_doc[] = "\n\
 Sign the certificate request using the supplied key and digest\n\
 \n\
-Arguments: self - The X509Req object\n\
-           args - The Python argument tuple, should be:\n\
-             pkey   - The key to sign with\n\
-             digest - The message digest to use\n\
-Returns:   None\n\
+@param pkey: The key to sign with\n\
+@param digest: The message digest to use\n\
+@return: None\n\
 ";
 
 static PyObject *
@@ -149,11 +141,9 @@ crypto_X509Req_sign(crypto_X509ReqObj *self, PyObject *args)
  
 static char crypto_X509Req_verify_doc[] = "\n\
 Verifies a certificate request using the supplied public key\n\
- \n\
-Arguments: self - X509Req object\n\
-           args - The Python argument tuple, should be:\n\
-             key - a public key\n\
-Returns:   True, if the signature is correct, 0 otherwise.\n\
+\n\
+@param key: a public key\n\
+@return: True if the signature is correct, False otherwise.\n\
 ";
 
 PyObject *
@@ -180,10 +170,8 @@ crypto_X509Req_verify(crypto_X509ReqObj *self, PyObject *args)
 static char crypto_X509Req_add_extensions_doc[] = "\n\
 Add extensions to the request.\n\
 \n\
-Arguments: self - X509Req object\n\
-           args - The Python argument tuple, should be:\n\
-             extensions - a sequence of X509Extension objects\n\
-Returns:   None\n\
+@param extensions: a sequence of X509Extension objects\n\
+@return: None\n\
 ";
 
 static PyObject *
@@ -243,10 +231,8 @@ static char crypto_X509Req_set_version_doc[] = "\n\
 Set the version subfield (RFC 2459, section 4.1.2.1) of the certificate\n\
 request.\n\
 \n\
-Arguments: self - X509Req object\n\
-           args - The Python argument tuple, should be:\n\
-             version - The version number\n\
-Returns:   None\n\
+@param version: The version number\n\
+@return: None\n\
 ";
 
 static PyObject *
@@ -270,9 +256,7 @@ static char crypto_X509Req_get_version_doc[] = "\n\
 Get the version subfield (RFC 2459, section 4.1.2.1) of the certificate\n\
 request.\n\
 \n\
-Arguments: self - X509Req object\n\
-           args - The Python argument tuple, should be empty.\n\
-Returns:   an integer giving the value of the version subfield\n\
+@return: an integer giving the value of the version subfield\n\
 ";
 
 static PyObject *

@@ -52,11 +52,9 @@ crypto_NetscapeSPKI_dealloc(crypto_NetscapeSPKIObj *self)
 static char crypto_NetscapeSPKI_sign_doc[] = "\n\
 Sign the certificate request using the supplied key and digest\n\
 \n\
-Arguments: self - The NetscapeSPKI object\n\
-           args - The Python argument tuple, should be:\n\
-             pkey   - The key to sign with\n\
-             digest - The message digest to use\n\
-Returns:   None\n\
+@param pkey: The key to sign with\n\
+@param digest: The message digest to use\n\
+@return: None\n\
 ";
 
 static PyObject *
@@ -88,11 +86,9 @@ crypto_NetscapeSPKI_sign(crypto_NetscapeSPKIObj *self, PyObject *args)
 
 static char crypto_NetscapeSPKI_verify_doc[] = "\n\
 Verifies a certificate request using the supplied public key\n\
- \n\
-Arguments: self - NetscapeSPKI object\n\
-           args - The Python argument tuple, should be:\n\
-             key - a public key\n\
-Returns:   True, if the signature is correct, 0 otherwise.\n\
+\n\
+@param key: a public key\n\
+@return: True if the signature is correct, False otherwise.\n\
 ";
 
 PyObject *
@@ -115,10 +111,8 @@ crypto_NetscapeSPKI_verify(crypto_NetscapeSPKIObj *self, PyObject *args)
 
 static char crypto_NetscapeSPKI_b64_encode_doc[] = "\n\
 Generate a base64 encoded string from an SPKI\n\
- \n\
-Arguments: self - NetscapeSPKI object\n\
-           args - The Python argument tuple, should be empty\n\
-Returns:   The base64 encoded string\n\
+\n\
+@return: The base64 encoded string\n\
 ";
 
 PyObject *
@@ -137,9 +131,7 @@ crypto_NetscapeSPKI_b64_encode(crypto_NetscapeSPKIObj *self, PyObject *args)
 static char crypto_NetscapeSPKI_get_pubkey_doc[] = "\n\
 Get the public key of the certificate\n\
 \n\
-Arguments: self - The NETSCAPE_SPKI object\n\
-           args - The Python argument tuple, should be empty\n\
-Returns:   The public key\n\
+@return: The public key\n\
 ";
 
 static PyObject *
@@ -163,10 +155,8 @@ crypto_NetscapeSPKI_get_pubkey(crypto_NetscapeSPKIObj *self, PyObject *args)
 static char crypto_NetscapeSPKI_set_pubkey_doc[] = "\n\
 Set the public key of the certificate\n\
 \n\
-Arguments: self - The Netscape SPKI object\n\
-           args - The Python argument tuple, should be:\n\
-             pkey - The public key\n\
-Returns:   None\n\
+@param pkey: The public key\n\
+@return: None\n\
 ";
 
 static PyObject *

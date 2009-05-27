@@ -225,11 +225,9 @@ crypto_X509Name_repr(crypto_X509NameObj *self)
 }
 
 static char crypto_X509Name_hash_doc[] = "\n\
-Return the has value of this name\n\
+Return the hash value of this name\n\
 \n\
-Arguments: self - The X509 object\n\
-           args - The Python argument tuple, should be empty\n\
-Returns:   None\n\
+@return: None\n\
 ";
 
 /*
@@ -251,11 +249,9 @@ crypto_X509Name_hash(crypto_X509NameObj *self, PyObject* args)
 }
 
 static char crypto_X509Name_der_doc[] = "\n\
-Return the DER encodeing of this name\n\
+Return the DER encoding of this name\n\
 \n\
-Arguments: self - The X509 object\n\
-           args - The Python argument tuple, should be empty\n\
-Returns:   None\n\
+@return: None\n\
 ";
 
 /*
@@ -278,9 +274,7 @@ crypto_X509Name_der(crypto_X509NameObj *self, PyObject *args)
 static char crypto_X509Name_get_components_doc[] = "\n\
 Returns the split-up components of this name.\n\
 \n\
-Arguments: self - The X509 object\n\
-           args - The Python argument tuple, should be empty\n\
-Returns:   List of tuples (name, value).\n\
+@return: List of tuples (name, value).\n\
 ";
 
 static PyObject *

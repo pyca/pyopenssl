@@ -1,5 +1,10 @@
 2009-05-27  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
+	* Changed all docstrings in extension modules to be friendlier
+	  towards Python programmers.  Fixes LP#312787.
+
+2009-05-27  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
 	* src/crypto/x509ext.c: Correctly deallocate the new Extension
 	  instance when there is an error initializing it and it is not
 	  going to be returned.  Resolves LP#368043.

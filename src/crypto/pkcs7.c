@@ -14,9 +14,7 @@
 static char crypto_PKCS7_type_is_signed_doc[] = "\n\
 Check if this NID_pkcs7_signed object\n\
 \n\
-Arguments: self - The PKCS7 object\n\
-           args - An empty argument tuple\n\
-Returns:   True if the PKCS7 is of type signed\n\
+@return: True if the PKCS7 is of type signed\n\
 ";
 
 static PyObject *
@@ -34,9 +32,7 @@ crypto_PKCS7_type_is_signed(crypto_PKCS7Obj *self, PyObject *args)
 static char crypto_PKCS7_type_is_enveloped_doc[] = "\n\
 Check if this NID_pkcs7_enveloped object\n\
 \n\
-Arguments: self - The PKCS7 object\n\
-           args - An empty argument tuple\n\
-Returns:   True if the PKCS7 is of type enveloped\n\
+@returns: True if the PKCS7 is of type enveloped\n\
 ";
 
 static PyObject *
@@ -54,9 +50,7 @@ crypto_PKCS7_type_is_enveloped(crypto_PKCS7Obj *self, PyObject *args)
 static char crypto_PKCS7_type_is_signedAndEnveloped_doc[] = "\n\
 Check if this NID_pkcs7_signedAndEnveloped object\n\
 \n\
-Arguments: self - The PKCS7 object\n\
-           args - An empty argument tuple\n\
-Returns:   True if the PKCS7 is of type signedAndEnveloped\n\
+@returns: True if the PKCS7 is of type signedAndEnveloped\n\
 ";
 
 static PyObject *
@@ -74,9 +68,7 @@ crypto_PKCS7_type_is_signedAndEnveloped(crypto_PKCS7Obj *self, PyObject *args)
 static char crypto_PKCS7_type_is_data_doc[] = "\n\
 Check if this NID_pkcs7_data object\n\
 \n\
-Arguments: self - The PKCS7 object\n\
-           args - An empty argument tuple\n\
-Returns:   True if the PKCS7 is of type data\n\
+@return: True if the PKCS7 is of type data\n\
 ";
 
 static PyObject *
@@ -94,9 +86,7 @@ crypto_PKCS7_type_is_data(crypto_PKCS7Obj *self, PyObject *args)
 static char crypto_PKCS7_get_type_name_doc[] = "\n\
 Returns the type name of the PKCS7 structure\n\
 \n\
-Arguments: self - The PKCS7 object\n\
-           args - An empty argument tuple\n\
-Returns:   A string with the typename\n\
+@return: A string with the typename\n\
 ";
 
 static PyObject *

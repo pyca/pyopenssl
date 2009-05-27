@@ -13,10 +13,8 @@
 static char crypto_X509Store_add_cert_doc[] = "\n\
 Add a certificate\n\
 \n\
-Arguments: self - The X509Store object\n\
-           args - The Python argument tuple, should be:\n\
-             cert - The certificate to add\n\
-Returns:   None\n\
+@param cert: The certificate to add\n\
+@return: None\n\
 ";
 
 static PyObject *

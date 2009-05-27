@@ -46,10 +46,8 @@ static char ssl_Context_doc[] = "\n\
 The factory function inserted in the module dictionary to create Context\n\
 objects\n\
 \n\
-Arguments: spam - Always NULL\n\
-           args - The Python argument tuple, should be:\n\
-             method - The SSL method to use\n\
-Returns:   The Context object\n\
+@param method: The SSL method to use\n\
+@return: The Context object\n\
 ";
 
 static PyObject *
@@ -67,11 +65,9 @@ static char ssl_Connection_doc[] = "\n\
 The factory function inserted in the module dictionary to create Connection\n\
 objects\n\
 \n\
-Arguments: spam - Always NULL\n\
-           args - The Python argument tuple, should be:\n\
-             ctx  - An SSL Context to use for this connection\n\
-             sock - The socket to use for transport layer\n\
-Returns:   The Connection object\n\
+@param ctx: An SSL Context to use for this connection\n\
+@param sock: The socket to use for transport layer\n\
+@return: The Connection object\n\
 ";
 
 static PyObject *

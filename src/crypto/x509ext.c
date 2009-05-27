@@ -16,9 +16,7 @@
 static char crypto_X509Extension_get_critical_doc[] = "\n\
 Returns the critical field of the X509Extension\n\
 \n\
-Arguments: self - The X509Extension object\n\
-           args - The argument tuple, should be empty\n\
-Returns: The critical field.\n\
+@return: The critical field.\n\
 ";
 
 static PyObject *
@@ -33,9 +31,7 @@ crypto_X509Extension_get_critical(crypto_X509ExtensionObj *self, PyObject *args)
 static char crypto_X509Extension_get_short_name_doc[] = "\n\
 Returns the short version of the type name of the X509Extension\n\
 \n\
-Arguments: self - The X509Extension object\n\
-           args - The argument tuple, should be empty\n\
-Returns: The short type name.\n\
+@return: The short type name.\n\
 ";
 
 static PyObject *

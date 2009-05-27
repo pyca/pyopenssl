@@ -29,11 +29,9 @@ do {                                    \
 static char crypto_PKey_generate_key_doc[] = "\n\
 Generate a key of a given type, with a given number of a bits\n\
 \n\
-Arguments: self - The PKey object\n\
-           args - The Python argument tuple, should be:\n\
-             type - The key type (TYPE_RSA or TYPE_DSA)\n\
-             bits - The number of bits\n\
-Returns:   None\n\
+@param type: The key type (TYPE_RSA or TYPE_DSA)\n\
+@param bits: The number of bits\n\
+@return: None\n\
 ";
 
 static PyObject *
@@ -81,9 +79,7 @@ crypto_PKey_generate_key(crypto_PKeyObj *self, PyObject *args)
 static char crypto_PKey_bits_doc[] = "\n\
 Returns the number of bits of the key\n\
 \n\
-Arguments: self - The PKey object\n\
-           args - The Python argument tuple, should be empty\n\
-Returns: The number of bits of the key.\n\
+@return: The number of bits of the key.\n\
 ";
 
 static PyObject *
@@ -98,9 +94,7 @@ crypto_PKey_bits(crypto_PKeyObj *self, PyObject *args)
 static char crypto_PKey_type_doc[] = "\n\
 Returns the type of the key\n\
 \n\
-Arguments: self - The PKey object\n\
-           args - The Python argument tuple, should be empty\n\
-Returns: The type of the key.\n\
+@return: The type of the key.\n\
 ";
 
 static PyObject *

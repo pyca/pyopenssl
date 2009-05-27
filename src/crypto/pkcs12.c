@@ -24,9 +24,7 @@ static void crypto_PKCS12_dealloc(crypto_PKCS12Obj *self);
 static char crypto_PKCS12_get_certificate_doc[] = "\n\
 Return certificate portion of the PKCS12 structure\n\
 \n\
-Arguments: self - The PKCS12 object\n\
-           args - The Python argument tuple, should be empty\n\
-Returns:   X509 object containing the certificate\n\
+@return: X509 object containing the certificate\n\
 ";
 static PyObject *
 crypto_PKCS12_get_certificate(crypto_PKCS12Obj *self, PyObject *args)
@@ -41,9 +39,7 @@ crypto_PKCS12_get_certificate(crypto_PKCS12Obj *self, PyObject *args)
 static char crypto_PKCS12_get_privatekey_doc[] = "\n\
 Return private key portion of the PKCS12 structure\n\
 \n\
-Arguments: self - The PKCS12 object\n\
-           args - The Python argument tuple, should be empty\n\
-Returns:   PKey object containing the private key\n\
+@returns: PKey object containing the private key\n\
 ";
 static PyObject *
 crypto_PKCS12_get_privatekey(crypto_PKCS12Obj *self, PyObject *args)
@@ -58,10 +54,8 @@ crypto_PKCS12_get_privatekey(crypto_PKCS12Obj *self, PyObject *args)
 static char crypto_PKCS12_get_ca_certificates_doc[] = "\n\
 Return CA certificates within of the PKCS12 object\n\
 \n\
-Arguments: self - The PKCS12 object\n\
-           args - The Python argument tuple, should be empty\n\
-Returns:   A newly created tuple containing the CA certificates in the chain,\n\
-           if any are present, or None if no CA certificates are present.\n\
+@return: A newly created tuple containing the CA certificates in the chain,\n\
+         if any are present, or None if no CA certificates are present.\n\
 ";
 static PyObject *
 crypto_PKCS12_get_ca_certificates(crypto_PKCS12Obj *self, PyObject *args)

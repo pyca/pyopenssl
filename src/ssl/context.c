@@ -242,11 +242,9 @@ static char ssl_Context_load_verify_locations_doc[] = "\n\
 Let SSL know where we can find trusted certificates for the certificate\n\
 chain\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be:\n\
-             cafile - In which file we can find the certificates\n\
-             capath - In which directory we can find the certificates\r\
-Returns:   None\n\
+@param cafile: In which file we can find the certificates\n\
+@param capath: In which directory we can find the certificates\r\
+@return: None\n\
 ";
 static PyObject *
 ssl_Context_load_verify_locations(ssl_ContextObj *self, PyObject *args) {
@@ -272,10 +270,7 @@ ssl_Context_load_verify_locations(ssl_ContextObj *self, PyObject *args) {
 static char ssl_Context_set_default_verify_paths_doc[] = "\n\
 Use the platform-specific CA certificate locations\n\
 \n\
-Arguments: self - The Context object\n\
-           args - None\n\
-\n\
-Returns:   None\n\
+@return: None\n\
 ";
 static PyObject *
 ssl_Context_set_default_verify_paths(ssl_ContextObj *self, PyObject *args) {
@@ -299,12 +294,10 @@ ssl_Context_set_default_verify_paths(ssl_ContextObj *self, PyObject *args) {
 static char ssl_Context_set_passwd_cb_doc[] = "\n\
 Set the passphrase callback\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be:\n\
-             callback - The Python callback to use\n\
-             userdata - (optional) A Python object which will be given as\n\
-                        argument to the callback\n\
-Returns:   None\n\
+@param callback: The Python callback to use\n\
+@param userdata: (optional) A Python object which will be given as\n\
+                 argument to the callback\n\
+@return: None\n\
 ";
 static PyObject *
 ssl_Context_set_passwd_cb(ssl_ContextObj *self, PyObject *args)
@@ -371,10 +364,8 @@ parse_certificate_argument(const char* format1, const char* format2, PyObject* a
 static char ssl_Context_add_extra_chain_cert_doc[] = "\n\
 Add certificate to chain\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be:\n\
-             certobj - The X509 certificate object to add to the chain\n\
-Returns:   None\n\
+@param certobj: The X509 certificate object to add to the chain\n\
+@return: None\n\
 ";
 
 static PyObject *
@@ -410,10 +401,8 @@ ssl_Context_add_extra_chain_cert(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_use_certificate_chain_file_doc[] = "\n\
 Load a certificate chain from a file\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be:\n\
-             certfile - The name of the certificate chain file\n\
-Returns:   None\n\
+@param certfile: The name of the certificate chain file\n\
+@return: None\n\
 ";
 static PyObject *
 ssl_Context_use_certificate_chain_file(ssl_ContextObj *self, PyObject *args)
@@ -439,11 +428,9 @@ ssl_Context_use_certificate_chain_file(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_use_certificate_file_doc[] = "\n\
 Load a certificate from a file\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be:\n\
-             certfile - The name of the certificate file\n\
-             filetype - (optional) The encoding of the file, default is PEM\n\
-Returns:   None\n\
+@param certfile: The name of the certificate file\n\
+@param filetype: (optional) The encoding of the file, default is PEM\n\
+@return: None\n\
 ";
 static PyObject *
 ssl_Context_use_certificate_file(ssl_ContextObj *self, PyObject *args)
@@ -469,10 +456,8 @@ ssl_Context_use_certificate_file(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_use_certificate_doc[] = "\n\
 Load a certificate from a X509 object\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be:\n\
-             cert - The X509 object\n\
-Returns:   None\n\
+@param cert: The X509 object\n\
+@return: None\n\
 ";
 static PyObject *
 ssl_Context_use_certificate(ssl_ContextObj *self, PyObject *args)
@@ -498,11 +483,9 @@ ssl_Context_use_certificate(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_use_privatekey_file_doc[] = "\n\
 Load a private key from a file\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be:\n\
-             keyfile  - The name of the key file\n\
-             filetype - (optional) The encoding of the file, default is PEM\n\
-Returns:   None\n\
+@param keyfile: The name of the key file\n\
+@param filetype: (optional) The encoding of the file, default is PEM\n\
+@return: None\n\
 ";
 static PyObject *
 ssl_Context_use_privatekey_file(ssl_ContextObj *self, PyObject *args)
@@ -538,10 +521,8 @@ ssl_Context_use_privatekey_file(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_use_privatekey_doc[] = "\n\
 Load a private key from a PKey object\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be:\n\
-             pkey - The PKey object\n\
-Returns:   None\n\
+@param pkey: The PKey object\n\
+@return: None\n\
 ";
 static PyObject *
 ssl_Context_use_privatekey(ssl_ContextObj *self, PyObject *args)
@@ -589,9 +570,7 @@ ssl_Context_use_privatekey(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_check_privatekey_doc[] = "\n\
 Check that the private key and certificate match up\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be empty\n\
-Returns:   None (raises an exception if something's wrong)\n\
+@return: None (raises an exception if something's wrong)\n\
 ";
 static PyObject *
 ssl_Context_check_privatekey(ssl_ContextObj *self, PyObject *args)
@@ -615,10 +594,8 @@ static char ssl_Context_load_client_ca_doc[] = "\n\
 Load the trusted certificates that will be sent to the client (basically\n\
 telling the client \"These are the guys I trust\")\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be:\n\
-             cafile - The name of the certificates file\n\
-Returns:   None\n\
+@param cafile: The name of the certificates file\n\
+@return: None\n\
 ";
 static PyObject *
 ssl_Context_load_client_ca(ssl_ContextObj *self, PyObject *args)
@@ -638,10 +615,8 @@ static char ssl_Context_set_session_id_doc[] = "\n\
 Set the session identifier, this is needed if you want to do session\n\
 resumption (which, ironically, isn't implemented yet)\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be:\n\
-             buf - A Python object that can be safely converted to a string\n\
-Returns:   None\n\
+@param buf: A Python object that can be safely converted to a string\n\
+@returns: None\n\
 ";
 static PyObject *
 ssl_Context_set_session_id(ssl_ContextObj *self, PyObject *args)
@@ -667,12 +642,10 @@ ssl_Context_set_session_id(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_set_verify_doc[] = "\n\
 Set the verify mode and verify callback\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be:\n\
-             mode     - The verify mode, this is either VERIFY_NONE or\n\
-                        VERIFY_PEER combined with possible other flags\n\
-             callback - The Python callback to use\n\
-Returns:   None\n\
+@param mode: The verify mode, this is either VERIFY_NONE or\n\
+             VERIFY_PEER combined with possible other flags\n\
+@param callback: The Python callback to use\n\
+@return: None\n\
 \n\
 See SSL_CTX_set_verify(3SSL) for further details.\n\
 ";
@@ -703,10 +676,8 @@ ssl_Context_set_verify(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_set_verify_depth_doc[] = "\n\
 Set the verify depth\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be:\n\
-             depth - An integer specifying the verify depth\n\
-Returns:   None\n\
+@param depth: An integer specifying the verify depth\n\
+@return: None\n\
 ";
 static PyObject *
 ssl_Context_set_verify_depth(ssl_ContextObj *self, PyObject *args)
@@ -724,9 +695,7 @@ ssl_Context_set_verify_depth(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_get_verify_mode_doc[] = "\n\
 Get the verify mode\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be empty\n\
-Returns:   The verify mode\n\
+@return: The verify mode\n\
 ";
 static PyObject *
 ssl_Context_get_verify_mode(ssl_ContextObj *self, PyObject *args)
@@ -743,9 +712,7 @@ ssl_Context_get_verify_mode(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_get_verify_depth_doc[] = "\n\
 Get the verify depth\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be empty\n\
-Returns:   The verify depth\n\
+@return: The verify depth\n\
 ";
 static PyObject *
 ssl_Context_get_verify_depth(ssl_ContextObj *self, PyObject *args)
@@ -762,10 +729,8 @@ ssl_Context_get_verify_depth(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_load_tmp_dh_doc[] = "\n\
 Load parameters for Ephemeral Diffie-Hellman\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be:\n\
-             dhfile - The file to load EDH parameters from\n\
-Returns:   None\n\
+@param dhfile: The file to load EDH parameters from\n\
+@return: None\n\
 ";
 static PyObject *
 ssl_Context_load_tmp_dh(ssl_ContextObj *self, PyObject *args)
@@ -793,10 +758,8 @@ ssl_Context_load_tmp_dh(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_set_cipher_list_doc[] = "\n\
 Change the cipher list\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be:\n\
-             cipher_list - A cipher list, see ciphers(1)\n\
-Returns:   None\n\
+@param cipher_list: A cipher list, see ciphers(1)\n\
+@return: None\n\
 ";
 static PyObject *
 ssl_Context_set_cipher_list(ssl_ContextObj *self, PyObject *args)
@@ -821,10 +784,8 @@ ssl_Context_set_cipher_list(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_set_timeout_doc[] = "\n\
 Set session timeout\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be:\n\
-             t - The timeout in seconds\n\
-Returns:   The previous session timeout\n\
+@param timeout: The timeout in seconds\n\
+@return: The previous session timeout\n\
 ";
 static PyObject *
 ssl_Context_set_timeout(ssl_ContextObj *self, PyObject *args)
@@ -841,9 +802,7 @@ ssl_Context_set_timeout(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_get_timeout_doc[] = "\n\
 Get the session timeout\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be empty\n\
-Returns:   The session timeout\n\
+@return: The session timeout\n\
 ";
 static PyObject *
 ssl_Context_get_timeout(ssl_ContextObj *self, PyObject *args)
@@ -860,10 +819,8 @@ ssl_Context_get_timeout(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_set_info_callback_doc[] = "\n\
 Set the info callback\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be:\n\
-             callback - The Python callback to use\n\
-Returns:   None\n\
+@param callback: The Python callback to use\n\
+@return: None\n\
 ";
 static PyObject *
 ssl_Context_set_info_callback(ssl_ContextObj *self, PyObject *args)
@@ -891,9 +848,7 @@ ssl_Context_set_info_callback(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_get_app_data_doc[] = "\n\
 Get the application data (supplied via set_app_data())\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be empty\n\
-Returns:   The application data\n\
+@return: The application data\n\
 ";
 static PyObject *
 ssl_Context_get_app_data(ssl_ContextObj *self, PyObject *args)
@@ -908,10 +863,8 @@ ssl_Context_get_app_data(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_set_app_data_doc[] = "\n\
 Set the application data (will be returned from get_app_data())\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be:\n\
-             data - Any Python object\n\
-Returns:   None\n\
+@param data: Any Python object\n\
+@return: None\n\
 ";
 static PyObject *
 ssl_Context_set_app_data(ssl_ContextObj *self, PyObject *args)
@@ -932,9 +885,7 @@ ssl_Context_set_app_data(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_get_cert_store_doc[] = "\n\
 Get the certificate store for the context\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be empty\n\
-Returns:   A X509Store object\n\
+@return: A X509Store object\n\
 ";
 static PyObject *
 ssl_Context_get_cert_store(ssl_ContextObj *self, PyObject *args)
@@ -958,10 +909,8 @@ ssl_Context_get_cert_store(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_set_options_doc[] = "\n\
 Add options. Options set before are not cleared!\n\
 \n\
-Arguments: self - The Context object\n\
-           args - The Python argument tuple, should be:\n\
-             options - The options to add.\n\
-Returns:   The new option bitmask.\n\
+@param options: The options to add.\n\
+@return: The new option bitmask.\n\
 ";
 static PyObject *
 ssl_Context_set_options(ssl_ContextObj *self, PyObject *args)
