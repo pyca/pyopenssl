@@ -747,6 +747,26 @@ crypto_X509_New(X509 *cert, int dealloc)
     return self;
 }
 
+
+static char crypto_X509_doc[] = "\n\
+X509() -> X509 instance\n\
+\n\
+Create a new X509 object.\n\
+\n\
+@returns: The X509 object\n\
+";
+
+static PyObject *
+crypto_X509_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs)
+{
+    if (!PyArg_ParseTuple(args, ":X509")) {
+        return NULL;
+    }
+
+    return (PyObject *)crypto_X509_New(X509_new(), 1);
+}
+
+
 /*
  * Deallocate the memory used by the X509 object
  *
@@ -786,20 +806,60 @@ PyTypeObject crypto_X509_Type = {
     (destructor)crypto_X509_dealloc,
     NULL, /* print */
     (getattrfunc)crypto_X509_getattr,
+    NULL, /* setattr */
+    NULL, /* compare */
+    NULL, /* repr */
+    NULL, /* as_number */
+    NULL, /* as_sequence */
+    NULL, /* as_mapping */
+    NULL, /* hash */
+    NULL, /* call */
+    NULL, /* str */
+    NULL, /* getattro */
+    NULL, /* setattro */
+    NULL, /* as_buffer */
+    Py_TPFLAGS_DEFAULT,
+    crypto_X509_doc, /* doc */
+    NULL, /* traverse */
+    NULL, /* clear */
+    NULL, /* tp_richcompare */
+    0, /* tp_weaklistoffset */
+    NULL, /* tp_iter */
+    NULL, /* tp_iternext */
+    crypto_X509_methods, /* tp_methods */
+    NULL, /* tp_members */
+    NULL, /* tp_getset */
+    NULL, /* tp_base */
+    NULL, /* tp_dict */
+    NULL, /* tp_descr_get */
+    NULL, /* tp_descr_set */
+    0, /* tp_dictoffset */
+    NULL, /* tp_init */
+    NULL, /* tp_alloc */
+    crypto_X509_new, /* tp_new */
 };
 
 /*
  * Initialize the X509 part of the crypto sub module
  *
- * Arguments: dict - The crypto module dictionary
+ * Arguments: module - The crypto module
  * Returns:   None
  */
 int
-init_crypto_x509(PyObject *dict)
+init_crypto_x509(PyObject *module)
 {
-    crypto_X509_Type.ob_type = &PyType_Type;
-    Py_INCREF(&crypto_X509_Type);
-    PyDict_SetItemString(dict, "X509Type", (PyObject *)&crypto_X509_Type);
+    if (PyType_Ready(&crypto_X509_Type) < 0) {
+        return 0;
+    }
+
+    if (PyModule_AddObject(module, "X509", (PyObject *)&crypto_X509_Type) != 0) {
+        return 0;
+    }
+
+    if (PyModule_AddObject(module, "X509Type", (PyObject *)&crypto_X509_Type) != 0) {
+        return 0;
+    }
+
     return 1;
 }
 

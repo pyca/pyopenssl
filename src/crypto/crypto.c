@@ -515,22 +515,6 @@ crypto_load_pkcs12(PyObject *spam, PyObject *args)
 }
 
 
-static char crypto_X509_doc[] = "\n\
-The factory function inserted in the module dictionary to create X509\n\
-objects\n\
-\n\
-@returns: The X509 object\n\
-";
-
-static PyObject *
-crypto_X509(PyObject *spam, PyObject *args)
-{
-    if (!PyArg_ParseTuple(args, ":X509"))
-        return NULL;
-
-    return (PyObject *)crypto_X509_New(X509_new(), 1);
-}
-
 static char crypto_X509Name_doc[] = "\n\
 The factory function inserted in the module dictionary as a copy\n\
 constructor for X509Name objects.\n\
@@ -655,7 +639,6 @@ static PyMethodDef crypto_methods[] = {
     { "load_pkcs7_data", (PyCFunction)crypto_load_pkcs7_data, METH_VARARGS, crypto_load_pkcs7_data_doc },
     { "load_pkcs12", (PyCFunction)crypto_load_pkcs12, METH_VARARGS, crypto_load_pkcs12_doc },
     /* Factory functions */
-    { "X509",    (PyCFunction)crypto_X509,    METH_VARARGS, crypto_X509_doc },
     { "X509Name",(PyCFunction)crypto_X509Name,METH_VARARGS, crypto_X509Name_doc },
     { "X509Req", (PyCFunction)crypto_X509Req, METH_VARARGS, crypto_X509Req_doc },
     { "X509Extension", (PyCFunction)crypto_X509Extension, METH_VARARGS, crypto_X509Extension_doc },
