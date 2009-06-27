@@ -566,27 +566,6 @@ crypto_X509Req(PyObject *spam, PyObject *args)
     return (PyObject *)crypto_X509Req_New(X509_REQ_new(), 1);
 }
 
-static char crypto_PKey_doc[] = "\n\
-The factory function inserted in the module dictionary to create PKey\n\
-objects\n\
-\n\
-@return: The PKey object\n\
-";
-
-static PyObject *
-crypto_PKey(PyObject *spam, PyObject *args)
-{
-    crypto_PKeyObj *py_pkey;
-
-    if (!PyArg_ParseTuple(args, ":PKey"))
-        return NULL;
-
-    py_pkey = crypto_PKey_New(EVP_PKEY_new(), 1);
-    if (py_pkey) {
-	py_pkey->initialized = 0;
-    }
-    return (PyObject *)py_pkey;
-}
 
 static char crypto_X509Extension_doc[] = "\n\
 The factory function inserted in the module dictionary to create\n\
@@ -679,7 +658,6 @@ static PyMethodDef crypto_methods[] = {
     { "X509",    (PyCFunction)crypto_X509,    METH_VARARGS, crypto_X509_doc },
     { "X509Name",(PyCFunction)crypto_X509Name,METH_VARARGS, crypto_X509Name_doc },
     { "X509Req", (PyCFunction)crypto_X509Req, METH_VARARGS, crypto_X509Req_doc },
-    { "PKey",    (PyCFunction)crypto_PKey,    METH_VARARGS, crypto_PKey_doc },
     { "X509Extension", (PyCFunction)crypto_X509Extension, METH_VARARGS, crypto_X509Extension_doc },
     { "NetscapeSPKI", (PyCFunction)crypto_NetscapeSPKI, METH_VARARGS, crypto_NetscapeSPKI_doc },
     { "X509_verify_cert_error_string", (PyCFunction)crypto_X509_verify_cert_error_string, METH_VARARGS, crypto_X509_verify_cert_error_string_doc },
@@ -803,7 +781,7 @@ initcrypto(void)
     if (!init_openssl_threads())
         goto error;
 #endif
-    if (!init_crypto_x509(dict))
+    if (!init_crypto_x509(module))
         goto error;
     if (!init_crypto_x509name(dict))
         goto error;
@@ -811,7 +789,7 @@ initcrypto(void)
         goto error;
     if (!init_crypto_x509req(dict))
         goto error;
-    if (!init_crypto_pkey(dict))
+    if (!init_crypto_pkey(module))
         goto error;
     if (!init_crypto_x509extension(dict))
         goto error;
