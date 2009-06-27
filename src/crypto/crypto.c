@@ -515,23 +515,6 @@ crypto_load_pkcs12(PyObject *spam, PyObject *args)
 }
 
 
-static char crypto_X509Req_doc[] = "\n\
-The factory function inserted in the module dictionary to create X509Req\n\
-objects\n\
-\n\
-@returns: The X509Req object\n\
-";
-
-static PyObject *
-crypto_X509Req(PyObject *spam, PyObject *args)
-{
-    if (!PyArg_ParseTuple(args, ":X509Req"))
-        return NULL;
-
-    return (PyObject *)crypto_X509Req_New(X509_REQ_new(), 1);
-}
-
-
 static char crypto_X509Extension_doc[] = "\n\
 The factory function inserted in the module dictionary to create\n\
 X509Extension objects.\n\
@@ -620,7 +603,6 @@ static PyMethodDef crypto_methods[] = {
     { "load_pkcs7_data", (PyCFunction)crypto_load_pkcs7_data, METH_VARARGS, crypto_load_pkcs7_data_doc },
     { "load_pkcs12", (PyCFunction)crypto_load_pkcs12, METH_VARARGS, crypto_load_pkcs12_doc },
     /* Factory functions */
-    { "X509Req", (PyCFunction)crypto_X509Req, METH_VARARGS, crypto_X509Req_doc },
     { "X509Extension", (PyCFunction)crypto_X509Extension, METH_VARARGS, crypto_X509Extension_doc },
     { "NetscapeSPKI", (PyCFunction)crypto_NetscapeSPKI, METH_VARARGS, crypto_NetscapeSPKI_doc },
     { "X509_verify_cert_error_string", (PyCFunction)crypto_X509_verify_cert_error_string, METH_VARARGS, crypto_X509_verify_cert_error_string_doc },
@@ -750,7 +732,7 @@ initcrypto(void)
         goto error;
     if (!init_crypto_x509store(dict))
         goto error;
-    if (!init_crypto_x509req(dict))
+    if (!init_crypto_x509req(module))
         goto error;
     if (!init_crypto_pkey(module))
         goto error;
