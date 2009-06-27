@@ -33,6 +33,37 @@ crypto_NetscapeSPKI_New(NETSCAPE_SPKI *name, int dealloc)
     return self;
 }
 
+
+static char crypto_NetscapeSPKI_doc[] = "\n\
+NetscapeSPKI([enc]) -> NetscapeSPKI instance\n\
+\n\
+@param enc: Base64 encoded NetscapeSPKI object.\n\
+@type enc: C{str}\n\
+@return: The NetscapeSPKI object\n\
+";
+
+static PyObject *
+crypto_NetscapeSPKI_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs) {
+    char *enc = NULL;
+    int enc_len = -1;
+    NETSCAPE_SPKI *spki;
+
+    if (!PyArg_ParseTuple(args, "|s#:NetscapeSPKI", &enc, &enc_len))
+        return NULL;
+
+    if (enc_len >= 0)
+        spki = NETSCAPE_SPKI_b64_decode(enc, enc_len);
+    else
+        spki = NETSCAPE_SPKI_new();
+    if (spki == NULL)
+    {
+        exception_from_error_queue();
+        return NULL;
+    }
+    return (PyObject *)crypto_NetscapeSPKI_New(spki, 1);
+}
+
+
 /*
  * Deallocate the memory used by the NetscapeSPKI object
  *
@@ -224,21 +255,53 @@ PyTypeObject crypto_NetscapeSPKI_Type = {
     NULL, /* as_number */
     NULL, /* as_sequence */
     NULL, /* as_mapping */
-    NULL  /* hash */
+    NULL,  /* hash */
+    NULL, /* call */
+    NULL, /* str */
+    NULL, /* getattro */
+    NULL, /* setattro */
+    NULL, /* as_buffer */
+    Py_TPFLAGS_DEFAULT,
+    crypto_NetscapeSPKI_doc, /* doc */
+    NULL, /* traverse */
+    NULL, /* clear */
+    NULL, /* tp_richcompare */
+    0, /* tp_weaklistoffset */
+    NULL, /* tp_iter */
+    NULL, /* tp_iternext */
+    crypto_NetscapeSPKI_methods, /* tp_methods */
+    NULL, /* tp_members */
+    NULL, /* tp_getset */
+    NULL, /* tp_base */
+    NULL, /* tp_dict */
+    NULL, /* tp_descr_get */
+    NULL, /* tp_descr_set */
+    0, /* tp_dictoffset */
+    NULL, /* tp_init */
+    NULL, /* tp_alloc */
+    crypto_NetscapeSPKI_new, /* tp_new */
 };
 
 
 /*
  * Initialize the X509Name part of the crypto module
  *
- * Arguments: dict - The crypto module dictionary
+ * Arguments: module - The crypto module
  * Returns:   None
  */
 int
-init_crypto_netscape_spki(PyObject *dict)
-{
-    crypto_NetscapeSPKI_Type.ob_type = &PyType_Type;
-    Py_INCREF(&crypto_NetscapeSPKI_Type);
-    PyDict_SetItemString(dict, "NetscapeSPKIType", (PyObject *)&crypto_NetscapeSPKI_Type);
+init_crypto_netscape_spki(PyObject *module) {
+    if (PyType_Ready(&crypto_NetscapeSPKI_Type) < 0) {
+        return 0;
+    }
+
+    if (PyModule_AddObject(module, "NetscapeSPKI", (PyObject *)&crypto_NetscapeSPKI_Type) != 0) {
+        return 0;
+    }
+
+    if (PyModule_AddObject(module, "NetscapeSPKIType", (PyObject *)&crypto_NetscapeSPKI_Type) != 0) {
+        return 0;
+    }
+
     return 1;
 }

@@ -515,37 +515,6 @@ crypto_load_pkcs12(PyObject *spam, PyObject *args)
 }
 
 
-static char crypto_NetscapeSPKI_doc[] = "\n\
-The factory function inserted in the module dictionary to create NetscapeSPKI\n\
-objects\n\
-\n\
-@param enc: Base64 encoded NetscapeSPKI object.\n\
-@type enc: C{str}\n\
-@return: The NetscapeSPKI object\n\
-";
-
-static PyObject *
-crypto_NetscapeSPKI(PyObject *spam, PyObject *args)
-{
-    char *enc = NULL;
-    int enc_len = -1;
-    NETSCAPE_SPKI *spki;
-
-    if (!PyArg_ParseTuple(args, "|s#:NetscapeSPKI", &enc, &enc_len))
-        return NULL;
-
-    if (enc_len >= 0)
-        spki = NETSCAPE_SPKI_b64_decode(enc, enc_len);
-    else
-        spki = NETSCAPE_SPKI_new();
-    if (spki == NULL)
-    {
-        exception_from_error_queue();
-        return NULL;
-    }
-    return (PyObject *)crypto_NetscapeSPKI_New(spki, 1);
-}
-
 static char crypto_X509_verify_cert_error_string_doc[] = "\n\
 Get X509 verify certificate error string.\n\
 \n\
@@ -577,8 +546,6 @@ static PyMethodDef crypto_methods[] = {
     { "dump_certificate_request", (PyCFunction)crypto_dump_certificate_request, METH_VARARGS, crypto_dump_certificate_request_doc },
     { "load_pkcs7_data", (PyCFunction)crypto_load_pkcs7_data, METH_VARARGS, crypto_load_pkcs7_data_doc },
     { "load_pkcs12", (PyCFunction)crypto_load_pkcs12, METH_VARARGS, crypto_load_pkcs12_doc },
-    /* Factory functions */
-    { "NetscapeSPKI", (PyCFunction)crypto_NetscapeSPKI, METH_VARARGS, crypto_NetscapeSPKI_doc },
     { "X509_verify_cert_error_string", (PyCFunction)crypto_X509_verify_cert_error_string, METH_VARARGS, crypto_X509_verify_cert_error_string_doc },
     { NULL, NULL }
 };
@@ -712,11 +679,11 @@ initcrypto(void)
         goto error;
     if (!init_crypto_x509extension(module))
         goto error;
-    if (!init_crypto_pkcs7(dict))
+    if (!init_crypto_pkcs7(module))
         goto error;
-    if (!init_crypto_pkcs12(dict))
+    if (!init_crypto_pkcs12(module))
         goto error;
-    if (!init_crypto_netscape_spki(dict))
+    if (!init_crypto_netscape_spki(module))
         goto error;
 
 error:
