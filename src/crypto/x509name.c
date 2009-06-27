@@ -41,6 +41,29 @@ crypto_X509Name_New(X509_NAME *name, int dealloc)
     return self;
 }
 
+
+static char crypto_X509Name_doc[] = "\n\
+X509Name(name) -> New X509Name object\n\
+\n\
+Create a new X509Name, copying the given X509Name instance.\n\
+\n\
+@param name: An X509Name object to copy\n\
+@return: The X509Name object\n\
+";
+
+static PyObject *
+crypto_X509Name_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs)
+{
+    crypto_X509NameObj *name;
+
+    if (!PyArg_ParseTuple(args, "O!:X509Name", &crypto_X509Name_Type, &name)) {
+        return NULL;
+    }
+
+    return (PyObject *)crypto_X509Name_New(X509_NAME_dup(name->x509_name), 1);
+}
+
+
 /*
  * Return a name string given a X509_NAME object and a name identifier. Used
  * by the getattr function.
@@ -412,22 +435,46 @@ PyTypeObject crypto_X509Name_Type = {
     NULL, /* setattro */
     NULL, /* as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC, /* tp_flags */
-    NULL, /* tp_doc */
+    crypto_X509Name_doc, /* tp_doc */
     (traverseproc)crypto_X509Name_traverse, /* tp_traverse */
     (inquiry)crypto_X509Name_clear, /* tp_clear */
+    NULL, /* tp_richcompare */
+    0, /* tp_weaklistoffset */
+    NULL, /* tp_iter */
+    NULL, /* tp_iternext */
+    crypto_X509Name_methods, /* tp_methods */
+    NULL, /* tp_members */
+    NULL, /* tp_getset */
+    NULL, /* tp_base */
+    NULL, /* tp_dict */
+    NULL, /* tp_descr_get */
+    NULL, /* tp_descr_set */
+    0, /* tp_dictoffset */
+    NULL, /* tp_init */
+    NULL, /* tp_alloc */
+    crypto_X509Name_new, /* tp_new */
 };
 
 /*
  * Initialize the X509Name part of the crypto module
  *
- * Arguments: dict - The crypto module dictionary
+ * Arguments: module - The crypto module
  * Returns:   None
  */
 int
-init_crypto_x509name(PyObject *dict)
+init_crypto_x509name(PyObject *module)
 {
-    crypto_X509Name_Type.ob_type = &PyType_Type;
-    Py_INCREF(&crypto_X509Name_Type);
-    PyDict_SetItemString(dict, "X509NameType", (PyObject *)&crypto_X509Name_Type);
+    if (PyType_Ready(&crypto_X509Name_Type) < 0) {
+        return 0;
+    }
+
+    if (PyModule_AddObject(module, "X509Name", (PyObject *)&crypto_X509Name_Type) != 0) {
+        return 0;
+    }
+
+    if (PyModule_AddObject(module, "X509NameType", (PyObject *)&crypto_X509Name_Type) != 0) {
+        return 0;
+    }
+
     return 1;
 }
