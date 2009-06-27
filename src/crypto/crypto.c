@@ -515,31 +515,6 @@ crypto_load_pkcs12(PyObject *spam, PyObject *args)
 }
 
 
-static char crypto_X509Extension_doc[] = "\n\
-The factory function inserted in the module dictionary to create\n\
-X509Extension objects.\n\
-\n\
-@param typename: The name of the extension to create.\n\
-@type typename: C{str}\n\
-@param critical: A flag indicating whether this is a critical extension.\n\
-@param value: The value of the extension.\n\
-@type value: C{str}\n\
-@return: The X509Extension object\n\
-";
-
-static PyObject *
-crypto_X509Extension(PyObject *spam, PyObject *args)
-{
-    char *type_name, *value;
-    int critical;
-
-    if (!PyArg_ParseTuple(args, "sis:X509Extension", &type_name, &critical,
-                &value))
-        return NULL;
-
-    return (PyObject *)crypto_X509Extension_New(type_name, critical, value);
-}
-
 static char crypto_NetscapeSPKI_doc[] = "\n\
 The factory function inserted in the module dictionary to create NetscapeSPKI\n\
 objects\n\
@@ -603,7 +578,6 @@ static PyMethodDef crypto_methods[] = {
     { "load_pkcs7_data", (PyCFunction)crypto_load_pkcs7_data, METH_VARARGS, crypto_load_pkcs7_data_doc },
     { "load_pkcs12", (PyCFunction)crypto_load_pkcs12, METH_VARARGS, crypto_load_pkcs12_doc },
     /* Factory functions */
-    { "X509Extension", (PyCFunction)crypto_X509Extension, METH_VARARGS, crypto_X509Extension_doc },
     { "NetscapeSPKI", (PyCFunction)crypto_NetscapeSPKI, METH_VARARGS, crypto_NetscapeSPKI_doc },
     { "X509_verify_cert_error_string", (PyCFunction)crypto_X509_verify_cert_error_string, METH_VARARGS, crypto_X509_verify_cert_error_string_doc },
     { NULL, NULL }
@@ -736,7 +710,7 @@ initcrypto(void)
         goto error;
     if (!init_crypto_pkey(module))
         goto error;
-    if (!init_crypto_x509extension(dict))
+    if (!init_crypto_x509extension(module))
         goto error;
     if (!init_crypto_pkcs7(dict))
         goto error;
@@ -748,4 +722,3 @@ initcrypto(void)
 error:
     ;
 }
-
