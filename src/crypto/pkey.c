@@ -231,7 +231,7 @@ PyTypeObject crypto_PKey_Type = {
     NULL, /* getattro */
     NULL, /* setattro */
     NULL, /* as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
+    Py_TPFLAGS_DEFAULT,
     crypto_PKey_doc, /* doc */
     NULL, /* traverse */
     NULL, /* clear */
