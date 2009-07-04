@@ -128,14 +128,19 @@ PyTypeObject crypto_X509Store_Type = {
 /*
  * Initialize the X509Store part of the crypto module
  *
- * Arguments: dict - The crypto module dictionary
+ * Arguments: module - The crypto module
  * Returns:   None
  */
 int
-init_crypto_x509store(PyObject *dict)
+init_crypto_x509store(PyObject *module)
 {
-    crypto_X509Store_Type.ob_type = &PyType_Type;
-    Py_INCREF(&crypto_X509Store_Type);
-    PyDict_SetItemString(dict, "X509StoreType", (PyObject *)&crypto_X509Store_Type);
+    if (PyType_Ready(&crypto_X509Store_Type) < 0) {
+        return 0;
+    }
+
+    if (PyModule_AddObject(module, "X509StoreType", (PyObject *)&crypto_X509Store_Type) != 0) {
+        return 0;
+    }
+
     return 1;
 }

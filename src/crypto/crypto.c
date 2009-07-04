@@ -628,7 +628,7 @@ initcrypto(void)
 {
     static void *crypto_API[crypto_API_pointers];
     PyObject *c_api_object;
-    PyObject *module, *dict;
+    PyObject *module;
 
     ERR_load_crypto_strings();
     OpenSSL_add_all_algorithms();
@@ -662,7 +662,6 @@ initcrypto(void)
     PyModule_AddIntConstant(module, "TYPE_RSA", crypto_TYPE_RSA);
     PyModule_AddIntConstant(module, "TYPE_DSA", crypto_TYPE_DSA);
 
-    dict = PyModule_GetDict(module);
 #ifdef WITH_THREAD
     if (!init_openssl_threads())
         goto error;
@@ -671,7 +670,7 @@ initcrypto(void)
         goto error;
     if (!init_crypto_x509name(module))
         goto error;
-    if (!init_crypto_x509store(dict))
+    if (!init_crypto_x509store(module))
         goto error;
     if (!init_crypto_x509req(module))
         goto error;
