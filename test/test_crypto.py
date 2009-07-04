@@ -15,6 +15,9 @@ from OpenSSL.crypto import load_certificate, load_privatekey
 from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT
 from OpenSSL.crypto import dump_certificate, load_certificate_request
 from OpenSSL.crypto import dump_certificate_request, dump_privatekey
+from OpenSSL.crypto import PKCS7Type, load_pkcs7_data
+from OpenSSL.crypto import PKCS12Type, load_pkcs12
+from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 
 
 cleartextCertificatePEM = """-----BEGIN CERTIFICATE-----
@@ -87,6 +90,85 @@ MbzjS007Oe4qqBnCWaFPSnJX6uLApeTbqAxAeyCql56ULW5x6vDMNC3dwjvS/CEh
 -----END RSA PRIVATE KEY-----
 """
 encryptedPrivateKeyPEMPassphrase = "foobar"
+
+# Some PKCS12 data, base64 encoded.  The data itself was constructed using the
+# openssl command line:
+#
+#    openssl pkcs12 -export -in s.pem -out o.p12 -inkey s.pem -certfile s.pem
+#
+# With s.pem containing a private key and certificate.  The contents of the
+# generated file, o.p12, were then base64 encoded to produce this value.
+pkcs12Data = """\
+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
+""".decode('base64')
+
+# Some PKCS#7 stuff.  Generated with the openssl command line:
+#
+#    openssl crl2pkcs7 -inform pem -outform pem -certfile s.pem -nocrl
+#
+# with a certificate and key (but the key should be irrelevant) in s.pem
+pkcs7Data = """\
+-----BEGIN PKCS7-----
+MIIDNwYJKoZIhvcNAQcCoIIDKDCCAyQCAQExADALBgkqhkiG9w0BBwGgggMKMIID
+BjCCAm+gAwIBAgIBATANBgkqhkiG9w0BAQQFADB7MQswCQYDVQQGEwJTRzERMA8G
+A1UEChMITTJDcnlwdG8xFDASBgNVBAsTC00yQ3J5cHRvIENBMSQwIgYDVQQDExtN
+MkNyeXB0byBDZXJ0aWZpY2F0ZSBNYXN0ZXIxHTAbBgkqhkiG9w0BCQEWDm5ncHNA
+cG9zdDEuY29tMB4XDTAwMDkxMDA5NTEzMFoXDTAyMDkxMDA5NTEzMFowUzELMAkG
+A1UEBhMCU0cxETAPBgNVBAoTCE0yQ3J5cHRvMRIwEAYDVQQDEwlsb2NhbGhvc3Qx
+HTAbBgkqhkiG9w0BCQEWDm5ncHNAcG9zdDEuY29tMFwwDQYJKoZIhvcNAQEBBQAD
+SwAwSAJBAKy+e3dulvXzV7zoTZWc5TzgApr8DmeQHTYC8ydfzH7EECe4R1Xh5kwI
+zOuuFfn178FBiS84gngaNcrFi0Z5fAkCAwEAAaOCAQQwggEAMAkGA1UdEwQCMAAw
+LAYJYIZIAYb4QgENBB8WHU9wZW5TU0wgR2VuZXJhdGVkIENlcnRpZmljYXRlMB0G
+A1UdDgQWBBTPhIKSvnsmYsBVNWjj0m3M2z0qVTCBpQYDVR0jBIGdMIGagBT7hyNp
+65w6kxXlxb8pUU/+7Sg4AaF/pH0wezELMAkGA1UEBhMCU0cxETAPBgNVBAoTCE0y
+Q3J5cHRvMRQwEgYDVQQLEwtNMkNyeXB0byBDQTEkMCIGA1UEAxMbTTJDcnlwdG8g
+Q2VydGlmaWNhdGUgTWFzdGVyMR0wGwYJKoZIhvcNAQkBFg5uZ3BzQHBvc3QxLmNv
+bYIBADANBgkqhkiG9w0BAQQFAAOBgQA7/CqT6PoHycTdhEStWNZde7M/2Yc6BoJu
+VwnW8YxGO8Sn6UJ4FeffZNcYZddSDKosw8LtPOeWoK3JINjAk5jiPQ2cww++7QGG
+/g5NDjxFZNDJP1dGiLAxPW6JXwov4v0FmdzfLOZ01jDcgQQZqEpYlgpuI5JEWUQ9
+Ho4EzbYCOaEAMQA=
+-----END PKCS7-----
+"""
 
 
 class _Python23TestCaseHelper:
@@ -812,6 +894,38 @@ class FunctionTests(TestCase, _Python23TestCaseHelper):
         self.assertTrue(isinstance(loadedKey, PKeyType))
         self.assertEqual(loadedKey.type(), key.type())
         self.assertEqual(loadedKey.bits(), key.bits())
+
+
+    def test_load_pkcs7_data(self):
+        """
+        L{load_pkcs7_data} accepts a PKCS#7 string and returns an instance of
+        L{PKCS7Type}.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertTrue(isinstance(pkcs7, PKCS7Type))
+
+
+    def test_load_pkcs12(self):
+        """
+        L{load_pkcs12} accepts a PKCS#12 string and returns an instance of
+        L{PKCS12Type}.
+        """
+        pkcs12 = load_pkcs12(pkcs12Data)
+        self.assertTrue(isinstance(pkcs12, PKCS12Type))
+
+
+
+class NetscapeSPKITests(TestCase):
+    """
+    Tests for L{OpenSSL.crypto.NetscapeSPKI}.
+    """
+    def test_construction(self):
+        """
+        L{NetscapeSPKI} returns an instance of L{NetscapeSPKIType}.
+        """
+        nspki = NetscapeSPKI()
+        self.assertTrue(isinstance(nspki, NetscapeSPKIType))
+
 
 
 if __name__ == '__main__':

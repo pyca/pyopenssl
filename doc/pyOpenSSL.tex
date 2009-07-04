@@ -138,40 +138,43 @@ An interface to the SSL-specific parts of OpenSSL.
 \modulesynopsis{Generic cryptographic module}
 
 \begin{datadesc}{X509Type}
-A Python type object representing the X509 object type.
+See \class{X509}.
 \end{datadesc}
 
-\begin{funcdesc}{X509}{}
-Factory function that creates an X509 object.
-\end{funcdesc}
+\begin{classdesc}{X509}{}
+A class representing X.509 certificates.
+\end{classdesc}
 
 \begin{datadesc}{X509NameType}
-A Python type object representing the X509Name object type.
+See \class{X509Name}.
 \end{datadesc}
 
-\begin{funcdesc}{X509Name}{x509name}
-Factory function that creates a copy of \var{x509name}.
-\end{funcdesc}
+\begin{classdesc}{X509Name}{x509name}
+A class representing X.509 Distinguished Names.
+
+This constructor creates a copy of \var{x509name} which should be an
+instance of \class{X509Name}.
+\end{classdesc}
 
 \begin{datadesc}{X509ReqType}
-A Python type object representing the X509Req object type.
+See \class{X509Req}.
 \end{datadesc}
 
-\begin{funcdesc}{X509Req}{}
-Factory function that creates an X509Req object.
-\end{funcdesc}
+\begin{classdesc}{X509Req}{}
+A class representing X.509 certificate requests.
+\end{classdesc}
 
 \begin{datadesc}{X509StoreType}
 A Python type object representing the X509Store object type.
 \end{datadesc}
 
 \begin{datadesc}{PKeyType}
-A Python type object representing the PKey object type.
+See \class{PKey}.
 \end{datadesc}
 
-\begin{funcdesc}{PKey}{}
-Factory function that creates a PKey object.
-\end{funcdesc}
+\begin{classdesc}{PKey}{}
+A class representing DSA or RSA keys.
+\end{classdesc}
 
 \begin{datadesc}{PKCS7Type}
 A Python type object representing the PKCS7 object type.
@@ -182,22 +185,24 @@ A Python type object representing the PKCS12 object type.
 \end{datadesc}
 
 \begin{datadesc}{X509ExtensionType}
-A Python type object representing the X509Extension object type.
+See \class{X509Extension}.
 \end{datadesc}
 
-\begin{funcdesc}{X509Extension}{typename, critical, value}
-Factory function that creates a X509Extension object.
-\end{funcdesc}
+\begin{classdesc}{X509Extension}{typename, critical, value}
+A class representing an X.509 v3 certificate extensions.
+\end{classdesc}
 
 \begin{datadesc}{NetscapeSPKIType}
-A Python type object representing the NetscapeSPKI object type.
+See \class{NetscapeSPKI}.
 \end{datadesc}
 
-\begin{funcdesc}{NetscapeSPKI}{\optional{enc}}
-Factory function that creates a NetscapeSPKI object. If the \var{enc} argument
-is present, it should be a base64-encoded string representing a NetscapeSPKI
-object, as returned by the \method{b64_encode} method.
-\end{funcdesc}
+\begin{classdesc}{NetscapeSPKI}{\optional{enc}}
+A class representing Netscape SPKI objects.
+
+If the \var{enc} argument is present, it should be a base64-encoded string
+representing a NetscapeSPKI object, as returned by the \method{b64_encode}
+method.
+\end{classdesc}
 
 \begin{datadesc}{FILETYPE_PEM}
 \dataline{FILETYPE_ASN1}
@@ -667,27 +672,32 @@ handshake, but don't want to use SSLv2.
 \end{datadesc}
 
 \begin{datadesc}{ContextType}
-A Python type object representing the Context object type.
+See \class{Context}.
 \end{datadesc}
 
-\begin{funcdesc}{Context}{method}
-Factory function that creates a new Context object given an SSL method. The
-method should be \constant{SSLv2_METHOD}, \constant{SSLv3_METHOD},
+\begin{classdesc}{Context}{method}
+A class representing SSL contexts.  Contexts define the parameters of one or
+more SSL connections.
+
+\var{method} should be \constant{SSLv2_METHOD}, \constant{SSLv3_METHOD},
 \constant{SSLv23_METHOD} or \constant{TLSv1_METHOD}.
-\end{funcdesc}
+\end{classdesc}
 
 \begin{datadesc}{ConnectionType}
-A Python type object representing the Connection object type.
+See \class{Connection}.
 \end{datadesc}
 
-\begin{funcdesc}{Connection}{context, socket}
-Factory function that creates a new Connection object given an SSL context and
-a socket \footnote{Actually, all that is required is an object that
-  \emph{behaves} like a socket, you could even use files, even though it'd be
-  tricky to get the handshakes right!} object.  \var{socket} may be \var{None};
-in this case, the Connection is created with a memory BIO: see the
-\method{bio_read}, \method{bio_write}, and \method{bio_shutdown} methods.
-\end{funcdesc}
+\begin{classdesc}{Connection}{context, socket}
+A class representing SSL connections.
+
+\var{context} should be an instance of \class{Context} and \var{socket}
+should be a socket \footnote{Actually, all that is required is an object
+that \emph{behaves} like a socket, you could even use files, even though
+it'd be tricky to get the handshakes right!} object.  \var{socket} may be
+\var{None}; in this case, the Connection is created with a memory BIO: see
+the \method{bio_read}, \method{bio_write}, and \method{bio_shutdown}
+methods.
+\end{classdesc}
 
 \begin{excdesc}{Error}
 This exception is used as a base class for the other SSL-related

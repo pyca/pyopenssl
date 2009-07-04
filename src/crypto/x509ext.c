@@ -136,6 +136,30 @@ crypto_X509Extension_New(char *type_name, int critical, char *value)
 
 }
 
+static char crypto_X509Extension_doc[] = "\n\
+X509Extension(typename, critical, value) -> X509Extension instance\n\
+\n\
+@param typename: The name of the extension to create.\n\
+@type typename: C{str}\n\
+@param critical: A flag indicating whether this is a critical extension.\n\
+@param value: The value of the extension.\n\
+@type value: C{str}\n\
+@return: The X509Extension object\n\
+";
+
+static PyObject *
+crypto_X509Extension_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs) {
+    char *type_name, *value;
+    int critical;
+
+    if (!PyArg_ParseTuple(args, "sis:X509Extension", &type_name, &critical,
+                          &value)) {
+        return NULL;
+    }
+
+    return (PyObject *)crypto_X509Extension_New(type_name, critical, value);
+}
+
 /*
  * Deallocate the memory used by the X509Extension object
  *
@@ -209,22 +233,53 @@ PyTypeObject crypto_X509Extension_Type = {
     NULL, /* as_mapping */
     NULL, /* hash */
     NULL, /* call */
-    (reprfunc)crypto_X509Extension_str /* str */
+    (reprfunc)crypto_X509Extension_str, /* str */
+    NULL, /* getattro */
+    NULL, /* setattro */
+    NULL, /* as_buffer */
+    Py_TPFLAGS_DEFAULT,
+    crypto_X509Extension_doc, /* doc */
+    NULL, /* traverse */
+    NULL, /* clear */
+    NULL, /* tp_richcompare */
+    0, /* tp_weaklistoffset */
+    NULL, /* tp_iter */
+    NULL, /* tp_iternext */
+    crypto_X509Extension_methods, /* tp_methods */
+    NULL, /* tp_members */
+    NULL, /* tp_getset */
+    NULL, /* tp_base */
+    NULL, /* tp_dict */
+    NULL, /* tp_descr_get */
+    NULL, /* tp_descr_set */
+    0, /* tp_dictoffset */
+    NULL, /* tp_init */
+    NULL, /* tp_alloc */
+    crypto_X509Extension_new, /* tp_new */
 };
 
 /*
  * Initialize the X509Extension part of the crypto module
  *
- * Arguments: dict - The crypto module dictionary
+ * Arguments: dict - The crypto module
  * Returns:   None
  */
 int
-init_crypto_x509extension(PyObject *dict)
+init_crypto_x509extension(PyObject *module)
 {
-    crypto_X509Extension_Type.ob_type = &PyType_Type;
-    Py_INCREF(&crypto_X509Extension_Type);
-    PyDict_SetItemString(dict, "X509ExtensionType",
-            (PyObject *)&crypto_X509Extension_Type);
+    if (PyType_Ready(&crypto_X509Extension_Type) < 0) {
+        return 0;
+    }
+
+    if (PyModule_AddObject(module, "X509Extension",
+                           (PyObject *)&crypto_X509Extension_Type) != 0) {
+        return 0;
+    }
+
+    if (PyModule_AddObject(module, "X509ExtensionType",
+                           (PyObject *)&crypto_X509Extension_Type) != 0) {
+        return 0;
+    }
+
     return 1;
 }
-

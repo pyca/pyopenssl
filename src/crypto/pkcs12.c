@@ -253,15 +253,19 @@ PyTypeObject crypto_PKCS12_Type = {
 /*
  * Initialize the PKCS12 part of the crypto sub module
  *
- * Arguments: dict - The crypto module dictionary
+ * Arguments: module - The crypto module
  * Returns:   None
  */
 int
-init_crypto_pkcs12(PyObject *dict)
-{
-    crypto_PKCS12_Type.ob_type = &PyType_Type;
-    Py_INCREF(&crypto_PKCS12_Type);
-    PyDict_SetItemString(dict, "PKCS12Type", (PyObject *)&crypto_PKCS12_Type);
+init_crypto_pkcs12(PyObject *module) {
+    if (PyType_Ready(&crypto_PKCS12_Type) < 0) {
+        return 0;
+    }
+
+    if (PyModule_AddObject(module, "PKCS12Type", (PyObject *)&crypto_PKCS12_Type) != 0) {
+        return 0;
+    }
+
     return 1;
 }
 

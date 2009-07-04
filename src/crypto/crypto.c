@@ -515,135 +515,6 @@ crypto_load_pkcs12(PyObject *spam, PyObject *args)
 }
 
 
-static char crypto_X509_doc[] = "\n\
-The factory function inserted in the module dictionary to create X509\n\
-objects\n\
-\n\
-@returns: The X509 object\n\
-";
-
-static PyObject *
-crypto_X509(PyObject *spam, PyObject *args)
-{
-    if (!PyArg_ParseTuple(args, ":X509"))
-        return NULL;
-
-    return (PyObject *)crypto_X509_New(X509_new(), 1);
-}
-
-static char crypto_X509Name_doc[] = "\n\
-The factory function inserted in the module dictionary as a copy\n\
-constructor for X509Name objects.\n\
-\n\
-@param name: An X509Name object to copy\n\
-@return: The X509Name object\n\
-";
-
-static PyObject *
-crypto_X509Name(PyObject *spam, PyObject *args)
-{
-    crypto_X509NameObj *name;
-
-    if (!PyArg_ParseTuple(args, "O!:X509Name", &crypto_X509Name_Type, &name))
-        return NULL;
-
-    return (PyObject *)crypto_X509Name_New(X509_NAME_dup(name->x509_name), 1);
-}
-
-static char crypto_X509Req_doc[] = "\n\
-The factory function inserted in the module dictionary to create X509Req\n\
-objects\n\
-\n\
-@returns: The X509Req object\n\
-";
-
-static PyObject *
-crypto_X509Req(PyObject *spam, PyObject *args)
-{
-    if (!PyArg_ParseTuple(args, ":X509Req"))
-        return NULL;
-
-    return (PyObject *)crypto_X509Req_New(X509_REQ_new(), 1);
-}
-
-static char crypto_PKey_doc[] = "\n\
-The factory function inserted in the module dictionary to create PKey\n\
-objects\n\
-\n\
-@return: The PKey object\n\
-";
-
-static PyObject *
-crypto_PKey(PyObject *spam, PyObject *args)
-{
-    crypto_PKeyObj *py_pkey;
-
-    if (!PyArg_ParseTuple(args, ":PKey"))
-        return NULL;
-
-    py_pkey = crypto_PKey_New(EVP_PKEY_new(), 1);
-    if (py_pkey) {
-	py_pkey->initialized = 0;
-    }
-    return (PyObject *)py_pkey;
-}
-
-static char crypto_X509Extension_doc[] = "\n\
-The factory function inserted in the module dictionary to create\n\
-X509Extension objects.\n\
-\n\
-@param typename: The name of the extension to create.\n\
-@type typename: C{str}\n\
-@param critical: A flag indicating whether this is a critical extension.\n\
-@param value: The value of the extension.\n\
-@type value: C{str}\n\
-@return: The X509Extension object\n\
-";
-
-static PyObject *
-crypto_X509Extension(PyObject *spam, PyObject *args)
-{
-    char *type_name, *value;
-    int critical;
-
-    if (!PyArg_ParseTuple(args, "sis:X509Extension", &type_name, &critical,
-                &value))
-        return NULL;
-
-    return (PyObject *)crypto_X509Extension_New(type_name, critical, value);
-}
-
-static char crypto_NetscapeSPKI_doc[] = "\n\
-The factory function inserted in the module dictionary to create NetscapeSPKI\n\
-objects\n\
-\n\
-@param enc: Base64 encoded NetscapeSPKI object.\n\
-@type enc: C{str}\n\
-@return: The NetscapeSPKI object\n\
-";
-
-static PyObject *
-crypto_NetscapeSPKI(PyObject *spam, PyObject *args)
-{
-    char *enc = NULL;
-    int enc_len = -1;
-    NETSCAPE_SPKI *spki;
-
-    if (!PyArg_ParseTuple(args, "|s#:NetscapeSPKI", &enc, &enc_len))
-        return NULL;
-
-    if (enc_len >= 0)
-        spki = NETSCAPE_SPKI_b64_decode(enc, enc_len);
-    else
-        spki = NETSCAPE_SPKI_new();
-    if (spki == NULL)
-    {
-        exception_from_error_queue();
-        return NULL;
-    }
-    return (PyObject *)crypto_NetscapeSPKI_New(spki, 1);
-}
-
 static char crypto_X509_verify_cert_error_string_doc[] = "\n\
 Get X509 verify certificate error string.\n\
 \n\
@@ -675,13 +546,6 @@ static PyMethodDef crypto_methods[] = {
     { "dump_certificate_request", (PyCFunction)crypto_dump_certificate_request, METH_VARARGS, crypto_dump_certificate_request_doc },
     { "load_pkcs7_data", (PyCFunction)crypto_load_pkcs7_data, METH_VARARGS, crypto_load_pkcs7_data_doc },
     { "load_pkcs12", (PyCFunction)crypto_load_pkcs12, METH_VARARGS, crypto_load_pkcs12_doc },
-    /* Factory functions */
-    { "X509",    (PyCFunction)crypto_X509,    METH_VARARGS, crypto_X509_doc },
-    { "X509Name",(PyCFunction)crypto_X509Name,METH_VARARGS, crypto_X509Name_doc },
-    { "X509Req", (PyCFunction)crypto_X509Req, METH_VARARGS, crypto_X509Req_doc },
-    { "PKey",    (PyCFunction)crypto_PKey,    METH_VARARGS, crypto_PKey_doc },
-    { "X509Extension", (PyCFunction)crypto_X509Extension, METH_VARARGS, crypto_X509Extension_doc },
-    { "NetscapeSPKI", (PyCFunction)crypto_NetscapeSPKI, METH_VARARGS, crypto_NetscapeSPKI_doc },
     { "X509_verify_cert_error_string", (PyCFunction)crypto_X509_verify_cert_error_string, METH_VARARGS, crypto_X509_verify_cert_error_string_doc },
     { NULL, NULL }
 };
@@ -764,7 +628,7 @@ initcrypto(void)
 {
     static void *crypto_API[crypto_API_pointers];
     PyObject *c_api_object;
-    PyObject *module, *dict;
+    PyObject *module;
 
     ERR_load_crypto_strings();
     OpenSSL_add_all_algorithms();
@@ -798,31 +662,29 @@ initcrypto(void)
     PyModule_AddIntConstant(module, "TYPE_RSA", crypto_TYPE_RSA);
     PyModule_AddIntConstant(module, "TYPE_DSA", crypto_TYPE_DSA);
 
-    dict = PyModule_GetDict(module);
 #ifdef WITH_THREAD
     if (!init_openssl_threads())
         goto error;
 #endif
-    if (!init_crypto_x509(dict))
+    if (!init_crypto_x509(module))
         goto error;
-    if (!init_crypto_x509name(dict))
+    if (!init_crypto_x509name(module))
         goto error;
-    if (!init_crypto_x509store(dict))
+    if (!init_crypto_x509store(module))
         goto error;
-    if (!init_crypto_x509req(dict))
+    if (!init_crypto_x509req(module))
         goto error;
-    if (!init_crypto_pkey(dict))
+    if (!init_crypto_pkey(module))
         goto error;
-    if (!init_crypto_x509extension(dict))
+    if (!init_crypto_x509extension(module))
         goto error;
-    if (!init_crypto_pkcs7(dict))
+    if (!init_crypto_pkcs7(module))
         goto error;
-    if (!init_crypto_pkcs12(dict))
+    if (!init_crypto_pkcs12(module))
         goto error;
-    if (!init_crypto_netscape_spki(dict))
+    if (!init_crypto_netscape_spki(module))
         goto error;
 
 error:
     ;
 }
-

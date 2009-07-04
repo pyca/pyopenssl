@@ -42,51 +42,9 @@ PyObject *ssl_Error,                   /* Base class              */
          *ssl_WantX509LookupError,     /* ...                     */
          *ssl_SysCallError;            /* Uses (errno,errstr)     */
 
-static char ssl_Context_doc[] = "\n\
-The factory function inserted in the module dictionary to create Context\n\
-objects\n\
-\n\
-@param method: The SSL method to use\n\
-@return: The Context object\n\
-";
-
-static PyObject *
-ssl_Context(PyObject *spam, PyObject *args)
-{
-    int method;
-
-    if (!PyArg_ParseTuple(args, "i:Context", &method))
-        return NULL;
-
-    return (PyObject *)ssl_Context_New(method);
-}
-
-static char ssl_Connection_doc[] = "\n\
-The factory function inserted in the module dictionary to create Connection\n\
-objects\n\
-\n\
-@param ctx: An SSL Context to use for this connection\n\
-@param sock: The socket to use for transport layer\n\
-@return: The Connection object\n\
-";
-
-static PyObject *
-ssl_Connection(PyObject *spam, PyObject *args)
-{
-    ssl_ContextObj *ctx;
-    PyObject *sock;
-
-    if (!PyArg_ParseTuple(args, "O!O:Connection", &ssl_Context_Type, &ctx, &sock))
-        return NULL;
-
-    return (PyObject *)ssl_Connection_New(ctx, sock);
-}
-
 
 /* Methods in the OpenSSL.SSL module */
 static PyMethodDef ssl_methods[] = {
-    { "Context",        ssl_Context,    METH_VARARGS, ssl_Context_doc },
-    { "Connection",     ssl_Connection, METH_VARARGS, ssl_Connection_doc },
     { NULL, NULL }
 };
 
@@ -101,15 +59,16 @@ initSSL(void)
 {
     static void *ssl_API[ssl_API_pointers];
     PyObject *ssl_api_object;
-    PyObject *module, *dict;
+    PyObject *module;
 
     SSL_library_init();
     ERR_load_SSL_strings();
 
     import_crypto();
 
-    if ((module = Py_InitModule3("SSL", ssl_methods, ssl_doc)) == NULL)
+    if ((module = Py_InitModule3("SSL", ssl_methods, ssl_doc)) == NULL) {
         return;
+    }
 
     /* Initialize the C API pointer array */
     ssl_API[ssl_Context_New_NUM]    = (void *)ssl_Context_New;
@@ -206,10 +165,9 @@ do {                                                                          \
     PyModule_AddIntConstant(module, "SENT_SHUTDOWN", SSL_SENT_SHUTDOWN);
     PyModule_AddIntConstant(module, "RECEIVED_SHUTDOWN", SSL_RECEIVED_SHUTDOWN);
 
-    dict = PyModule_GetDict(module);
-    if (!init_ssl_context(dict))
+    if (!init_ssl_context(module))
         goto error;
-    if (!init_ssl_connection(dict))
+    if (!init_ssl_connection(module))
         goto error;
 
 #ifdef WITH_THREAD

@@ -156,6 +156,30 @@ crypto_PKey_New(EVP_PKEY *pkey, int dealloc)
     return self;
 }
 
+static char crypto_PKey_doc[] = "\n\
+PKey() -> PKey instance\n\
+\n\
+Create a new PKey object.\n\
+\n\
+@return: The PKey object\n\
+";
+static PyObject*
+crypto_PKey_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs) {
+    crypto_PKeyObj *self;
+
+    if (!PyArg_ParseTuple(args, ":PKey")) {
+        return NULL;
+    }
+
+    self = crypto_PKey_New(EVP_PKEY_new(), 1);
+    if (self) {
+	self->initialized = 0;
+    }
+
+    return (PyObject *)self;
+}
+
+
 /*
  * Deallocate the memory used by the PKey object
  *
@@ -189,7 +213,7 @@ crypto_PKey_getattr(crypto_PKeyObj *self, char *name)
 PyTypeObject crypto_PKey_Type = {
     PyObject_HEAD_INIT(NULL)
     0,
-    "PKey",
+    "OpenSSL.crypto.PKey",
     sizeof(crypto_PKeyObj),
     0,
     (destructor)crypto_PKey_dealloc,
@@ -202,21 +226,54 @@ PyTypeObject crypto_PKey_Type = {
     NULL, /* as_sequence */
     NULL, /* as_mapping */
     NULL, /* hash */
+    NULL, /* call */
+    NULL, /* str */
+    NULL, /* getattro */
+    NULL, /* setattro */
+    NULL, /* as_buffer */
+    Py_TPFLAGS_DEFAULT,
+    crypto_PKey_doc, /* doc */
+    NULL, /* traverse */
+    NULL, /* clear */
+    NULL, /* tp_richcompare */
+    0, /* tp_weaklistoffset */
+    NULL, /* tp_iter */
+    NULL, /* tp_iternext */
+    crypto_PKey_methods, /* tp_methods */
+    NULL, /* tp_members */
+    NULL, /* tp_getset */
+    NULL, /* tp_base */
+    NULL, /* tp_dict */
+    NULL, /* tp_descr_get */
+    NULL, /* tp_descr_set */
+    0, /* tp_dictoffset */
+    NULL, /* tp_init */
+    NULL, /* tp_alloc */
+    crypto_PKey_new, /* tp_new */
 };
 
 
 /*
  * Initialize the PKey part of the crypto sub module
  *
- * Arguments: dict - The crypto module dictionary
+ * Arguments: module - The crypto module
  * Returns:   None
  */
 int
-init_crypto_pkey(PyObject *dict)
+init_crypto_pkey(PyObject *module)
 {
-    crypto_PKey_Type.ob_type = &PyType_Type;
-    Py_INCREF(&crypto_PKey_Type);
-    PyDict_SetItemString(dict, "PKeyType", (PyObject *)&crypto_PKey_Type);
+    if (PyType_Ready(&crypto_PKey_Type) < 0) {
+        return 0;
+    }
+
+    if (PyModule_AddObject(module, "PKey", (PyObject *)&crypto_PKey_Type) != 0) {
+        return 0;
+    }
+
+    if (PyModule_AddObject(module, "PKeyType", (PyObject *)&crypto_PKey_Type) != 0) {
+        return 0;
+    }
+
     return 1;
 }
 
