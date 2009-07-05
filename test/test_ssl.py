@@ -5,7 +5,6 @@ Unit tests for L{OpenSSL.SSL}.
 """
 
 from sys import platform
-from tempfile import mktemp
 from socket import socket
 from os import makedirs, symlink
 from os.path import join
@@ -36,13 +35,6 @@ class ContextTests(TestCase):
     """
     Unit tests for L{OpenSSL.SSL.Context}.
     """
-    def mktemp(self):
-        """
-        Pathetic substitute for twisted.trial.unittest.TestCase.mktemp.
-        """
-        return mktemp(dir=".")
-
-
     def test_method(self):
         """
         L{Context} can be instantiated with one of L{SSLv2_METHOD},
