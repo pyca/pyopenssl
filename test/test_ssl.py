@@ -517,8 +517,10 @@ class MemoryBIOTests(TestCase):
         self.assertNotIdentical(server_conn.master_key(), None)
         self.assertNotIdentical(server_conn.client_random(), None)
         self.assertNotIdentical(server_conn.server_random(), None)
-        self.assertNotIdentical(server_conn.client_random(), client_conn.client_random())
-        self.assertNotIdentical(server_conn.server_random(), client_conn.server_random())
+        self.assertEquals(server_conn.client_random(), client_conn.client_random())
+        self.assertEquals(server_conn.server_random(), client_conn.server_random())
+        self.assertNotEquals(server_conn.client_random(), server_conn.server_random())
+        self.assertNotEquals(client_conn.client_random(), client_conn.server_random())
 
         # Here are the bytes we'll try to send.
         important_message = 'One if by land, two if by sea.'
