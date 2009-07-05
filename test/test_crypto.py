@@ -4,7 +4,8 @@
 Unit tests for L{OpenSSL.crypto}.
 """
 
-from unittest import TestCase, main
+from unittest import main
+
 from os import popen2
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
@@ -18,6 +19,7 @@ from OpenSSL.crypto import dump_certificate_request, dump_privatekey
 from OpenSSL.crypto import PKCS7Type, load_pkcs7_data
 from OpenSSL.crypto import PKCS12Type, load_pkcs12
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
+from OpenSSL.test.util import TestCase
 
 
 cleartextCertificatePEM = """-----BEGIN CERTIFICATE-----

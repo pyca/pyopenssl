@@ -9,19 +9,14 @@ from tempfile import mktemp
 from socket import socket
 from os import makedirs, symlink
 from os.path import join
-
-try:
-    # Prefer Twisted's TestCase, since it supports things like skips.
-    from twisted.trial.unittest import TestCase
-except ImportError:
-    # Fall back to the stdlib TestCase though, since it kind of works.
-    from unittest import TestCase
+from unittest import main
 
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, PKey, dump_privatekey, load_certificate, load_privatekey
 from OpenSSL.SSL import WantReadError, Context, Connection, Error
 from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
 from OpenSSL.SSL import OP_NO_SSLv2, OP_NO_SSLv3, OP_SINGLE_DH_USE 
 from OpenSSL.SSL import VERIFY_PEER, VERIFY_FAIL_IF_NO_PEER_CERT, VERIFY_CLIENT_ONCE
+from OpenSSL.test.util import TestCase
 from OpenSSL.test.test_crypto import _Python23TestCaseHelper, cleartextCertificatePEM, cleartextPrivateKeyPEM
 try:
     from OpenSSL.SSL import OP_NO_QUERY_MTU
@@ -598,3 +593,8 @@ class MemoryBIOTests(TestCase):
         # We don't want WantReadError or ZeroReturnError or anything - it's a
         # handshake failure.
         self.assertEquals(e.__class__, Error)
+
+
+
+if __name__ == '__main__':
+    main()
