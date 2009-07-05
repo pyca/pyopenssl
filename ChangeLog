@@ -1,5 +1,11 @@
 2009-07-05  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
+	* test/util.py, test/test_ssl.py, test/test_crypto.py: Fold the
+	  Python 2.3 compatibility TestCase mixin into the TestCase defined
+	  in util.py.
+
+2009-07-05  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
 	* test/util.py, test/test_ssl.py, test/test_crypto.py: Stop trying
 	  to use Twisted's TestCase even when it's available.  Instead,
 	  always use the stdlib TestCase with a few enhancements.

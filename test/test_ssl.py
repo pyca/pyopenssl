@@ -17,7 +17,7 @@ from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
 from OpenSSL.SSL import OP_NO_SSLv2, OP_NO_SSLv3, OP_SINGLE_DH_USE 
 from OpenSSL.SSL import VERIFY_PEER, VERIFY_FAIL_IF_NO_PEER_CERT, VERIFY_CLIENT_ONCE
 from OpenSSL.test.util import TestCase
-from OpenSSL.test.test_crypto import _Python23TestCaseHelper, cleartextCertificatePEM, cleartextPrivateKeyPEM
+from OpenSSL.test.test_crypto import cleartextCertificatePEM, cleartextPrivateKeyPEM
 try:
     from OpenSSL.SSL import OP_NO_QUERY_MTU
 except ImportError:
@@ -32,7 +32,7 @@ except ImportError:
     OP_NO_TICKET = None
 
 
-class ContextTests(TestCase, _Python23TestCaseHelper):
+class ContextTests(TestCase):
     """
     Unit tests for L{OpenSSL.SSL.Context}.
     """

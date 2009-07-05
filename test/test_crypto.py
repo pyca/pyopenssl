@@ -173,18 +173,8 @@ Ho4EzbYCOaEAMQA=
 """
 
 
-class _Python23TestCaseHelper:
-    # Python 2.3 compatibility.
-    def assertTrue(self, *a, **kw):
-        return self.failUnless(*a, **kw)
 
-
-    def assertFalse(self, *a, **kw):
-        return self.failIf(*a, **kw)
-
-
-
-class X509ExtTests(TestCase, _Python23TestCaseHelper):
+class X509ExtTests(TestCase):
     def test_construction(self):
         """
         L{X509Extension} accepts an extension type name, a critical flag,
@@ -245,7 +235,7 @@ class X509ExtTests(TestCase, _Python23TestCaseHelper):
 
 
 
-class PKeyTests(TestCase, _Python23TestCaseHelper):
+class PKeyTests(TestCase):
     """
     Unit tests for L{OpenSSL.crypto.PKey}.
     """
@@ -345,7 +335,7 @@ class PKeyTests(TestCase, _Python23TestCaseHelper):
 
 
 
-class X509NameTests(TestCase, _Python23TestCaseHelper):
+class X509NameTests(TestCase):
     """
     Unit tests for L{OpenSSL.crypto.X509Name}.
     """
@@ -560,7 +550,7 @@ class _PKeyInteractionTestsMixin:
 
 
 
-class X509ReqTests(TestCase, _PKeyInteractionTestsMixin, _Python23TestCaseHelper):
+class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
     """
     Tests for L{OpenSSL.crypto.X509Req}.
     """
@@ -614,7 +604,7 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin, _Python23TestCaseHelper
 
 
 
-class X509Tests(TestCase, _PKeyInteractionTestsMixin, _Python23TestCaseHelper):
+class X509Tests(TestCase, _PKeyInteractionTestsMixin):
     """
     Tests for L{OpenSSL.crypto.X509}.
     """
@@ -742,7 +732,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin, _Python23TestCaseHelper):
 
 
 
-class FunctionTests(TestCase, _Python23TestCaseHelper):
+class FunctionTests(TestCase):
     """
     Tests for free-functions in the L{OpenSSL.crypto} module.
     """
