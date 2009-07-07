@@ -593,6 +593,10 @@ Mix bytes from \var{string} into the PRNG state. The \var{entropy} argument is
 \var{string}, measured in bytes. For more information, see e.g. \rfc{1750}.
 \end{funcdesc}
 
+\begin{funcdesc}{cleanup}{}
+Erase the memory used by the PRNG.  It's a wrapper of the C function \function{RAND_cleanup}.
+\end{funcdesc}
+
 \begin{funcdesc}{egd}{path\optional{, bytes}}
 Query the Entropy Gathering Daemon\footnote{See
 \url{http://www.lothar.com/tech/crypto/}} on socket \var{path} for \var{bytes}
@@ -603,6 +607,10 @@ value of \var{bytes} is 255.
 \begin{funcdesc}{load_file}{path\optional{, bytes}}
 Read \var{bytes} bytes (or all of it, if \var{bytes} is negative) of data from
 the file \var{path} to seed the PRNG. The default value of \var{bytes} is -1.
+\end{funcdesc}
+
+\begin{funcdesc}{bytes}{num_bytes}
+Get some random bytes as a string.  It's a wrapper of the C function \function{RAND_bytes}.
 \end{funcdesc}
 
 \begin{funcdesc}{screen}{}

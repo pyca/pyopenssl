@@ -188,6 +188,36 @@ rand_write_file(PyObject *spam, PyObject *args)
     return PyInt_FromLong((long)RAND_write_file(filename));
 }
 
+static char rand_bytes_doc[] = "\n\
+Get some randomm bytes as a string.\n\
+\n\
+@param num_bytes: The number of bytes to fetch\n\
+@return: A string of random bytes\n\
+";
+
+static PyObject *
+rand_bytes(PyObject *spam, PyObject *args, PyObject *keywds)
+{
+    int num_bytes;
+    static char *kwlist[] = {"num_bytes", NULL};
+    char *buf;
+    PyObject *obj;
+
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "i:bytes", kwlist, &num_bytes))
+        return NULL;
+    if(num_bytes < 0) {
+        PyErr_SetString(PyExc_ValueError, "num_bytes must not be negative");
+        return NULL;
+    }
+    buf = malloc(num_bytes);
+    if (buf == NULL)   /* out of memory  */
+        return NULL;
+    RAND_bytes(buf, num_bytes);
+    obj = PyString_FromStringAndSize(buf, num_bytes);
+    free(buf);
+    return obj;
+}
+
 
 /* Methods in the OpenSSL.rand module */
 static PyMethodDef rand_methods[] = {
@@ -201,6 +231,7 @@ static PyMethodDef rand_methods[] = {
     { "cleanup",   (PyCFunction)rand_cleanup,      METH_VARARGS, rand_cleanup_doc },
     { "load_file", (PyCFunction)rand_load_file,    METH_VARARGS, rand_load_file_doc },
     { "write_file",(PyCFunction)rand_write_file,   METH_VARARGS, rand_write_file_doc },
+    { "bytes",     (PyCFunction)rand_bytes,        METH_VARARGS|METH_KEYWORDS, rand_bytes_doc },
     { NULL, NULL }
 };
 
