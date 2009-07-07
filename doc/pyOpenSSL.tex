@@ -594,7 +594,9 @@ Mix bytes from \var{string} into the PRNG state. The \var{entropy} argument is
 \end{funcdesc}
 
 \begin{funcdesc}{cleanup}{}
-Erase the memory used by the PRNG.  It's a wrapper of the C function \function{RAND_cleanup}.
+Erase the memory used by the PRNG.
+
+This is a wrapper for the C function \function{RAND_cleanup}.
 \end{funcdesc}
 
 \begin{funcdesc}{egd}{path\optional{, bytes}}
@@ -610,7 +612,9 @@ the file \var{path} to seed the PRNG. The default value of \var{bytes} is -1.
 \end{funcdesc}
 
 \begin{funcdesc}{bytes}{num_bytes}
-Get some random bytes as a string.  It's a wrapper of the C function \function{RAND_bytes}.
+Get some random bytes as a string.
+
+This is a wrapper for the C function \function{RAND_bytes}.
 \end{funcdesc}
 
 \begin{funcdesc}{screen}{}
