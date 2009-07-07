@@ -8,10 +8,11 @@ use a command of ...
 
 
 To build the documentation you will need to have
-latex2html and lynx installed.  On fedora both can
-be obtained with...
+latex2html and lynx installed.  On Fedora both can
+be obtained with ...
 
   sudo yum install latex2html lynx
 
+Or on Debian or Ubuntu ...
 
-
+  sudo apt-get install latex2html lynx
