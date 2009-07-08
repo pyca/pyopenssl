@@ -7,6 +7,7 @@ Unit tests for L{OpenSSL.crypto}.
 from unittest import main
 
 from os import popen2
+from datetime import datetime, timedelta
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
@@ -232,6 +233,51 @@ class X509ExtTests(TestCase):
         self.assertEqual(ext.get_short_name(), 'basicConstraints')
         ext = X509Extension('nsComment', True, 'foo bar')
         self.assertEqual(ext.get_short_name(), 'nsComment')
+
+
+    def test_issuer_and_subject(self):
+        """
+        Use L{X509Extension} to create a root cert with X509v3 
+        extensions, which requires the "subject" or "issuer" optional args.
+        """
+        # Basic setup stuff to generate a certificate
+        pkey = PKey()
+        pkey.generate_key(TYPE_RSA, 1024)
+        req = X509Req()
+        req.set_pubkey(pkey)
+        req.get_subject().commonName = "Yoda root CA"  # Authority good you have.
+        x509 = X509()
+        subject = x509.get_subject()
+        subject.commonName = req.get_subject().commonName
+        x509.set_issuer(subject)
+        x509.set_pubkey(pkey)
+        now = datetime.now().strftime("%Y%m%d%H%M%SZ")
+        expire  = (datetime.now() + timedelta(days=100)).strftime("%Y%m%d%H%M%SZ")
+        x509.set_notBefore(now)
+        x509.set_notAfter(expire)
+        # Test "subject" as a unneeded parameter
+        ext1 = X509Extension('basicConstraints', False, 'CA:TRUE', subject=x509)
+        x509.add_extensions( (ext1, ) )
+        # Correct use of "subject" and "issuer"
+        ext3 = X509Extension('subjectKeyIdentifier', False, 'hash', subject=x509, )
+        x509.add_extensions( (ext3, ) )
+        ext2 = X509Extension('authorityKeyIdentifier', False, 'keyid:always,issuer:always', issuer=x509, )
+        x509.add_extensions( (ext2, ) )
+        # Test missing issuer
+        self.assertRaises(Error, X509Extension, 'authorityKeyIdentifier', False, 'keyid:always,issuer:always', )
+        # Test missing subject
+        self.assertRaises(Error, X509Extension, 'subjectKeyIdentifier', False, 'hash', )
+        # Test bad type of issuer and subject
+        self.assertRaises(TypeError, eval, 
+               "OpenSSL.crypto.X509Extension('basicConstraints', False, 'CA:TRUE', subject=True)", ())
+        self.assertRaises(TypeError, eval, 
+               "OpenSSL.crypto.X509Extension('basicConstraints', False, 'CA:TRUE', issuer=3)", ())
+        # Complete the certificate
+        x509.sign(pkey, 'sha1')
+        # Verify the certificate
+        text = dump_certificate(FILETYPE_TEXT, x509)
+        self.assertTrue( text.index('X509v3 Subject Key Identifier') > 100 )
+        self.assertTrue( text.index('X509v3 Authority Key Identifier') > 100 )
 
 
 

@@ -11,6 +11,7 @@ import shutil
 import os, os.path
 from tempfile import mktemp
 from unittest import TestCase
+import sys
 
 
 class TestCase(TestCase):
@@ -81,10 +82,10 @@ class TestCase(TestCase):
         except exception, inst:
             return inst
         except:
-            raise self.failureException('%s raised instead of %s:\n %s'
+            raise self.failureException('%s raised instead of %s'
                                         % (sys.exc_info()[0],
                                            exception.__name__,
-                                           failure.Failure().getTraceback()))
+                                          ))
         else:
             raise self.failureException('%s not raised (%r returned)'
                                         % (exception.__name__, result))
