@@ -21,6 +21,9 @@
 #  endif
 #endif
 #include <openssl/rand.h>
+#include "../util.h"
+
+PyObject *rand_Error;
 
 static char rand_doc[] = "\n\
 PRNG management routines, thin wrappers.\n\
@@ -201,7 +204,8 @@ rand_bytes(PyObject *spam, PyObject *args, PyObject *keywds)
     int num_bytes;
     static char *kwlist[] = {"num_bytes", NULL};
     char *buf;
-    PyObject *obj;
+    unsigned int rc;
+    PyObject *obj = NULL;
 
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "i:bytes", kwlist, &num_bytes))
         return NULL;
@@ -212,8 +216,13 @@ rand_bytes(PyObject *spam, PyObject *args, PyObject *keywds)
     buf = malloc(num_bytes);
     if (buf == NULL)   /* out of memory  */
         return NULL;
-    RAND_bytes(buf, num_bytes);
-    obj = PyString_FromStringAndSize(buf, num_bytes);
+    rc = RAND_bytes((unsigned char *) buf, num_bytes);
+    if(rc != 1) {  /* if unsuccessful */
+        exception_from_error_queue(rand_Error);
+        goto done;
+    }
+    obj = PyString_FromStringAndSize(buf, (unsigned) num_bytes);
+ done:
     free(buf);
     return obj;
 }
@@ -251,5 +260,13 @@ initrand(void)
 
     if ((module = Py_InitModule3("rand", rand_methods, rand_doc)) == NULL)
         return;
+
+    rand_Error = PyErr_NewException("OpenSSL.rand.Error", NULL, NULL);
+    if (rand_Error == NULL)
+        goto error;
+    if (PyModule_AddObject(module, "Error", rand_Error) != 0)
+        goto error;
+ error:
+    ;
 }
 

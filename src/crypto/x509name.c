@@ -88,7 +88,7 @@ get_name_by_nid(X509_NAME *name, int nid, char **utf8string)
     data = X509_NAME_ENTRY_get_data(entry);
     if ((len = ASN1_STRING_to_UTF8((unsigned char **)utf8string, data)) < 0)
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return -1;
     }
 
@@ -129,7 +129,7 @@ set_name_by_nid(X509_NAME *name, int nid, char *utf8string)
 				    (unsigned char *)utf8string,
 				    -1, -1, 0))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return -1;
     }
     return 0;
@@ -236,7 +236,7 @@ crypto_X509Name_repr(crypto_X509NameObj *self)
 
     if (X509_NAME_oneline(self->x509_name, tmpbuf, 512) == NULL)
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
     else

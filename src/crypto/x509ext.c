@@ -126,7 +126,7 @@ crypto_X509Extension_New(char *type_name, int critical, char *value)
     return self;
 
   nconf_error:
-    exception_from_error_queue();
+    exception_from_error_queue(crypto_Error);
 
   critical_malloc_error:
     Py_XDECREF(self);
@@ -204,7 +204,7 @@ crypto_X509Extension_str(crypto_X509ExtensionObj *self)
     if (!X509V3_EXT_print(bio, self->x509_extension, 0, 0))
     {
         BIO_free(bio);
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 

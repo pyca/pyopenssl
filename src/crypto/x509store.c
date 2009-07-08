@@ -27,7 +27,7 @@ crypto_X509Store_add_cert(crypto_X509StoreObj *self, PyObject *args)
 
     if (!X509_STORE_add_cert(self->x509_store, cert->x509))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 

@@ -57,7 +57,7 @@ crypto_NetscapeSPKI_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs)
         spki = NETSCAPE_SPKI_new();
     if (spki == NULL)
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
     return (PyObject *)crypto_NetscapeSPKI_New(spki, 1);
@@ -107,7 +107,7 @@ crypto_NetscapeSPKI_sign(crypto_NetscapeSPKIObj *self, PyObject *args)
 
     if (!NETSCAPE_SPKI_sign(self->netscape_spki, pkey->pkey, digest))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -133,7 +133,7 @@ crypto_NetscapeSPKI_verify(crypto_NetscapeSPKIObj *self, PyObject *args)
 
     if ((answer = NETSCAPE_SPKI_verify(self->netscape_spki, pkey->pkey)) < 0)
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -176,7 +176,7 @@ crypto_NetscapeSPKI_get_pubkey(crypto_NetscapeSPKIObj *self, PyObject *args)
 
     if ((pkey = NETSCAPE_SPKI_get_pubkey(self->netscape_spki)) == NULL)
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -200,7 +200,7 @@ crypto_NetscapeSPKI_set_pubkey(crypto_NetscapeSPKIObj *self, PyObject *args)
 
     if (!NETSCAPE_SPKI_set_pubkey(self->netscape_spki, pkey->pkey))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
