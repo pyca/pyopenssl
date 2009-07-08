@@ -268,7 +268,7 @@ initrand(void)
     if ((module = Py_InitModule3("rand", rand_methods, rand_doc)) == NULL)
         return;
 
-    rand_Error = PyErr_NewException("OpenSSL.SSL.Error", NULL, NULL);
+    rand_Error = PyErr_NewException("OpenSSL.rand.Error", NULL, NULL);
     if (rand_Error == NULL)
         goto error;
     if (PyModule_AddObject(module, "Error", rand_Error) != 0)
