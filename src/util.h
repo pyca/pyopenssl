@@ -23,6 +23,7 @@
 #include "pymemcompat.h"
 
 extern  PyObject *error_queue_to_list(void);
+extern void exception_from_error_queue(PyObject *the_Error);
 extern  void      flush_error_queue(void);
 
 /*

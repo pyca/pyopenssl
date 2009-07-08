@@ -27,15 +27,6 @@ extern PyObject *ssl_Error,               /* Base class              */
                 *ssl_WantX509LookupError, /* ...                     */
                 *ssl_SysCallError;        /* Uses (errno,errstr)     */
 
-#ifdef exception_from_error_queue
-#  undef exception_from_error_queue
-#endif
-#define exception_from_error_queue()    do { \
-    PyObject *errlist = error_queue_to_list(); \
-    PyErr_SetObject(ssl_Error, errlist); \
-    Py_DECREF(errlist); \
-} while (0)
-
 #define ssl_Context_New_NUM       0
 #define ssl_Context_New_RETURN    ssl_ContextObj *
 #define ssl_Context_New_PROTO     (int method)

@@ -25,13 +25,6 @@
 
 PyObject *rand_Error;
 
-static void exception_from_error_queue(void)    
-{ 
-    PyObject *errlist = error_queue_to_list();
-    PyErr_SetObject(rand_Error, errlist);
-    Py_DECREF(errlist);
-} 
-
 static char rand_doc[] = "\n\
 PRNG management routines, thin wrappers.\n\
 See the file RATIONALE for a short explanation of why this module was written.\n\
@@ -225,7 +218,7 @@ rand_bytes(PyObject *spam, PyObject *args, PyObject *keywds)
         return NULL;
     rc = RAND_bytes((unsigned char *) buf, num_bytes);
     if(rc != 1) {  /* if unsuccessful */
-        exception_from_error_queue();
+        exception_from_error_queue(rand_Error);
         goto done;
     }
     obj = PyString_FromStringAndSize(buf, (unsigned) num_bytes);
