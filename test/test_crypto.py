@@ -191,6 +191,9 @@ class X509ExtTests(TestCase):
             isinstance(comment, X509ExtensionType),
             "%r is of type %r, should be %r" % (
                 comment, type(comment), X509ExtensionType))
+        self.assertEqual(type(X509ExtensionType).__name__, 'type')
+        self.assertEqual(type(basic).__name__, 'X509Extension')
+        self.assertEqual(type(basic), X509ExtensionType)
 
 
     def test_invalid_extension(self):
@@ -248,6 +251,9 @@ class PKeyTests(TestCase):
         self.assertTrue(
             isinstance(key, PKeyType),
             "%r is of type %r, should be %r" % (key, type(key), PKeyType))
+        self.assertEqual(type(PKeyType).__name__, 'type')
+        self.assertEqual(type(key).__name__, 'PKey')
+        self.assertEqual(type(key), PKeyType)
 
 
     def test_pregeneration(self):
@@ -348,6 +354,21 @@ class X509NameTests(TestCase):
         for k, v in attrs:
             setattr(name, k, v)
         return name
+
+
+    def test_type(self):
+        """
+        L{X509NameType} is a type, and matches the type of a
+        X509Name.
+        """
+        name = self._x509name()
+        self.assertTrue(
+            isinstance(name, X509NameType),
+            "%r is of type %r, should be %r" % (
+                name, type(name), X509NameType))
+        self.assertEqual(type(X509NameType).__name__, 'type')
+        self.assertEqual(type(name).__name__, 'X509Name')
+        self.assertEqual(type(name), X509NameType)
 
 
     def test_attributes(self):
@@ -558,7 +579,11 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
         """
         Create and return a new L{X509Req}.
         """
-        return X509Req()
+        req = X509Req()
+        self.assertEqual(type(X509ReqType).__name__, 'type')
+        self.assertEqual(type(req).__name__, 'X509Req')
+        self.assertEqual(type(req), X509ReqType)
+        return req
 
 
     def test_construction(self):
@@ -627,6 +652,9 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
             "%r is of type %r, should be %r" % (certificate,
                                                 type(certificate),
                                                 X509Type))
+        self.assertEqual(type(X509Type).__name__, 'type')
+        self.assertEqual(type(certificate).__name__, 'X509')
+        self.assertEqual(type(certificate), X509Type)
 
 
     def test_serial_number(self):
@@ -895,6 +923,9 @@ class FunctionTests(TestCase):
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertTrue(isinstance(pkcs7, PKCS7Type))
+        self.assertEqual(type(PKCS7Type).__name__, 'type')
+        self.assertEqual(type(pkcs7).__name__, 'PKCS7')
+        self.assertEqual(type(pkcs7), PKCS7Type)
 
 
     def test_load_pkcs12(self):
@@ -904,6 +935,9 @@ class FunctionTests(TestCase):
         """
         pkcs12 = load_pkcs12(pkcs12Data)
         self.assertTrue(isinstance(pkcs12, PKCS12Type))
+        self.assertEqual(type(PKCS12Type).__name__, 'type')
+        self.assertEqual(type(pkcs12).__name__, 'PKCS12')
+        self.assertEqual(type(pkcs12), PKCS12Type)
 
 
 
@@ -917,6 +951,9 @@ class NetscapeSPKITests(TestCase):
         """
         nspki = NetscapeSPKI()
         self.assertTrue(isinstance(nspki, NetscapeSPKIType))
+        self.assertEqual(type(NetscapeSPKIType).__name__, 'type')
+        self.assertEqual(type(nspki).__name__, 'NetscapeSPKI')
+        self.assertEqual(type(nspki), NetscapeSPKIType)
 
 
 

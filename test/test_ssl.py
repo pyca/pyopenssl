@@ -11,7 +11,7 @@ from os.path import join
 from unittest import main
 
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, PKey, dump_privatekey, load_certificate, load_privatekey
-from OpenSSL.SSL import WantReadError, Context, Connection, Error
+from OpenSSL.SSL import WantReadError, Context, ContextType, Connection, ConnectionType, Error
 from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
 from OpenSSL.SSL import OP_NO_SSLv2, OP_NO_SSLv3, OP_SINGLE_DH_USE 
 from OpenSSL.SSL import VERIFY_PEER, VERIFY_FAIL_IF_NO_PEER_CERT, VERIFY_CLIENT_ONCE
@@ -44,6 +44,17 @@ class ContextTests(TestCase):
             Context(meth)
         self.assertRaises(TypeError, Context, "")
         self.assertRaises(ValueError, Context, 10)
+
+
+    def test_type(self):
+        """
+        L{Context} must be of type L{ContextType}.
+        """
+        ctx = Context(TLSv1_METHOD)
+        self.assertTrue(isinstance(ctx, ContextType))
+        self.assertEqual(type(ContextType).__name__, 'type')
+        self.assertEqual(type(ctx).__name__, 'Context')
+        self.assertEqual(type(ctx), ContextType)
 
 
     def test_use_privatekey(self):
@@ -256,6 +267,26 @@ class ContextTests(TestCase):
         self.assertRaises(TypeError, context.set_default_verify_paths, None)
         self.assertRaises(TypeError, context.set_default_verify_paths, 1)
         self.assertRaises(TypeError, context.set_default_verify_paths, "")
+
+
+
+class ConnectionTests(TestCase):
+    """
+    Unit tests for L{OpenSSL.SSL.Connection}.
+    """
+    def test_type(self):
+        """
+        L{Connection} must be of type L{ConnectionType}.
+        """
+        ctx = Context(TLSv1_METHOD)
+        conn = Connection(ctx, None)
+        self.assertTrue(isinstance(conn, ConnectionType))
+        self.assertEqual(type(ConnectionType).__name__, 'type')
+        self.assertEqual(type(conn).__name__, 'Connection')
+        self.assertEqual(type(conn), ConnectionType)
+
+        self.assertEqual(Error.__name__, 'Error')
+        self.assertEqual(type(Error).__name__, 'type')
 
 
 
