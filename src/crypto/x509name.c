@@ -153,8 +153,15 @@ crypto_X509Name_getattr(crypto_X509NameObj *self, char *name)
     int nid, len;
     char *utf8string;
 
-    if ((nid = OBJ_txt2nid(name)) == NID_undef)
-    {
+    if ((nid = OBJ_txt2nid(name)) == NID_undef) {
+        /*
+         * This is a bit weird.  OBJ_txt2nid indicated failure, but it seems
+         * a lower level function, a2d_ASN1_OBJECT, also feels the need to
+         * push something onto the error queue.  If we don't clean that up
+         * now, someone else will bump into it later and be quite confused. 
+         * See lp#314814.
+         */
+        flush_error_queue();
         return Py_FindMethod(crypto_X509Name_methods, (PyObject *)self, name);
     }
 
