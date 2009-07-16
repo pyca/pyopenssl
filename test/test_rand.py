@@ -11,6 +11,7 @@ import stat
 from OpenSSL.test.util import TestCase
 from OpenSSL import rand
 
+
 class RandTests(TestCase):
     def test_bytes(self):
         """
@@ -24,20 +25,33 @@ class RandTests(TestCase):
         self.assertNotEqual(b1, b2)  #  Hip, Hip, Horay! FIPS complaince
         b3 = rand.bytes(num_bytes=0) 
         self.assertEqual(len(b3), 0)
-        try:
-            b4 = rand.bytes(-1) 
-            self.assertTrue(False)  # We shouldn't get here
-        except ValueError, v:
-            self.assertTrue(v.message == "num_bytes must not be negative")
+        exc = self.assertRaises(ValueError, rand.bytes, -1)
+        self.assertEqual(exc.message, "num_bytes must not be negative")
 
 
     def test_add(self):
         """
-        Test adding of entropy to the PRNG.
+        L{OpenSSL.rand.add} adds entropy to the PRNG.
         """
         rand.add('hamburger', 3)
+
+
+    def test_seed(self):
+        """
+        L{OpenSSL.rand.seed} adds entropy to the PRNG.
+        """
         rand.seed('milk shake')
-        self.assertTrue(rand.status())
+
+
+    def test_status(self):
+        """
+        L{OpenSSL.rand.status} returns C{True} if the PRNG has sufficient
+        entropy, C{False} otherwise.
+        """
+        # It's hard to know what it is actually going to return.  Different
+        # OpenSSL random engines decide differently whether they have enough
+        # entropy or not.
+        self.assertTrue(rand.status() in (1, 2))
 
 
     def test_files(self):
@@ -59,5 +73,3 @@ class RandTests(TestCase):
 
 if __name__ == '__main__':
     main()
-
-
