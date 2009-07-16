@@ -1,3 +1,10 @@
+2009-07-16  Rick Dean  <rick@fdd.com>
+
+	* src/rand.c: Added OpenSSL.rand.bytes to get random bytes directly.
+	* src/util.c: Added generic exceptions_from_error_queue to replace
+	  the various other implementations of this function.  Also updated
+	  the rest of the codebase to use this version instead.
+
 2009-07-05  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* test/util.py, test/test_ssl.py, test/test_crypto.py: Fold the
