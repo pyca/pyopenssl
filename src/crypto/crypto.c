@@ -2,7 +2,7 @@
  * crypto.c
  *
  * Copyright (C) AB Strakt 2001, All rights reserved
- * Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+ * Copyright (C) Jean-Paul Calderone 2008-2009, All rights reserved
  *
  * Main file of crypto sub module.
  * See the file RATIONALE for a short explanation of why this module was written.
@@ -535,6 +535,17 @@ crypto_X509_verify_cert_error_string(PyObject *spam, PyObject *args)
     return PyString_FromString(str);
 }
 
+static char crypto_exception_from_error_queue_doc[] = "\n\
+Raise an exception from the current OpenSSL error queue.\n\
+";
+
+static PyObject *
+crypto_exception_from_error_queue(PyObject *spam, PyObject *eggs) {
+    exception_from_error_queue(crypto_Error);
+    return NULL;
+}
+
+
 /* Methods in the OpenSSL.crypto module (i.e. none) */
 static PyMethodDef crypto_methods[] = {
     /* Module functions */
@@ -547,6 +558,7 @@ static PyMethodDef crypto_methods[] = {
     { "load_pkcs7_data", (PyCFunction)crypto_load_pkcs7_data, METH_VARARGS, crypto_load_pkcs7_data_doc },
     { "load_pkcs12", (PyCFunction)crypto_load_pkcs12, METH_VARARGS, crypto_load_pkcs12_doc },
     { "X509_verify_cert_error_string", (PyCFunction)crypto_X509_verify_cert_error_string, METH_VARARGS, crypto_X509_verify_cert_error_string_doc },
+    { "_exception_from_error_queue", (PyCFunction)crypto_exception_from_error_queue, METH_NOARGS, crypto_exception_from_error_queue_doc },
     { NULL, NULL }
 };
 

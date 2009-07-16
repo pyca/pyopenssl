@@ -1,3 +1,14 @@
+2009-07-16  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* test/util.py: Changed the base TestCase's tearDown to assert that
+	  no errors were left in the OpenSSL error queue by the test.
+	* src/crypto/crypto.c: Add a private helper in support of the
+	  TestCase.tearDown change.
+	* src/crypto/x509name.c: Changed X509Name's getattr implementation
+	  to clean up the error queue.  Fixes LP#314814.
+	* test/util.c: Changed flush_error_queue to avoid a reference
+	  counting bug caused by macro expansion.
+
 2009-07-16  Rick Dean  <rick@fdd.com>
 
 	* src/rand.c: Added OpenSSL.rand.bytes to get random bytes directly.

@@ -2,6 +2,7 @@
  * util.c
  *
  * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) Jean-Paul Calderone 2009, All rights reserved
  *
  * Utility functions.
  * See the file RATIONALE for a short explanation of why this module was written.
@@ -19,15 +20,13 @@
  * Returns:   A list of errors (new reference)
  */
 PyObject *
-error_queue_to_list(void)
-{
+error_queue_to_list(void) {
     PyObject *errlist, *tuple;
     long err;
 
     errlist = PyList_New(0);
 
-    while ((err = ERR_get_error()) != 0)
-    {
+    while ((err = ERR_get_error()) != 0) {
 	tuple = Py_BuildValue("(sss)", ERR_lib_error_string(err),
 		                       ERR_func_error_string(err),
 				       ERR_reason_error_string(err));
@@ -38,8 +37,7 @@ error_queue_to_list(void)
     return errlist;
 }
 
-void exception_from_error_queue(PyObject *the_Error)
-{ 
+void exception_from_error_queue(PyObject *the_Error) { 
     PyObject *errlist = error_queue_to_list();
     PyErr_SetObject(the_Error, errlist);
     Py_DECREF(errlist);
@@ -52,8 +50,12 @@ void exception_from_error_queue(PyObject *the_Error)
  * Returns:   None
  */
 void
-flush_error_queue(void)
-{
-    Py_DECREF(error_queue_to_list());
+flush_error_queue(void) {
+    /*
+     * Make sure to save the errors to a local.  Py_DECREF might expand such
+     * that it evaluates its argument more than once, which would lead to
+     * very nasty things if we just invoked it with error_queue_to_list().
+     */
+    PyObject *list = error_queue_to_list();
+    Py_DECREF(list);
 }
-

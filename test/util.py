@@ -12,6 +12,8 @@ import os, os.path
 from tempfile import mktemp
 from unittest import TestCase
 
+from OpenSSL.crypto import Error, _exception_from_error_queue
+
 
 class TestCase(TestCase):
     """
@@ -30,7 +32,12 @@ class TestCase(TestCase):
                     shutil.rmtree(temp)
                 elif os.path.exists(temp):
                     os.unlink(temp)
-        
+        try:
+            _exception_from_error_queue()
+        except Error, e:
+            if e.args != ([],):
+                self.fail("Left over errors in OpenSSL error queue: " + repr(e))
+
 
     def failUnlessIdentical(self, first, second, msg=None):
         """
