@@ -51,6 +51,11 @@ void exception_from_error_queue(PyObject *the_Error) {
  */
 void
 flush_error_queue(void) {
+    /*
+     * Make sure to save the errors to a local.  Py_DECREF might expand such
+     * that it evaluates its argument more than once, which would lead to
+     * very nasty things if we just invoked it with error_queue_to_list().
+     */
     PyObject *list = error_queue_to_list();
     Py_DECREF(list);
 }
