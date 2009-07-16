@@ -617,12 +617,6 @@ Read \var{bytes} bytes (or all of it, if \var{bytes} is negative) of data from
 the file \var{path} to seed the PRNG. The default value of \var{bytes} is -1.
 \end{funcdesc}
 
-\begin{funcdesc}{bytes}{num_bytes}
-Get some random bytes as a string.
-
-This is a wrapper for the C function \function{RAND_bytes}.
-\end{funcdesc}
-
 \begin{funcdesc}{screen}{}
 Add the current contents of the screen to the PRNG state.
 Availability: Windows.
