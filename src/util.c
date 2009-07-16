@@ -54,6 +54,7 @@ void exception_from_error_queue(PyObject *the_Error)
 void
 flush_error_queue(void)
 {
-    Py_DECREF(error_queue_to_list());
+    PyObject *list = error_queue_to_list();
+    Py_DECREF(list);
 }
 
