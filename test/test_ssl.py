@@ -43,8 +43,8 @@ def socket_pair():
     client = socket()
     client.setblocking(False)
     client.connect_ex(port.getsockname())
+    client.setblocking(True)
     server = port.accept()[0]
-    server.setblocking(False)
 
     # Let's pass some unencrypted data to make sure our socket connection is
     # fine.  Just one byte, so we don't have to worry about buffers getting
@@ -54,7 +54,12 @@ def socket_pair():
     client.send("y")
     assert server.recv(1024) == "y"
 
+    # All our callers want non-blocking sockets, make it easy for them.
+    server.setblocking(False)
+    client.setblocking(False)
+
     return (server, client)
+
 
 
 class ContextTests(TestCase):
