@@ -420,7 +420,11 @@ class MemoryBIOTests(TestCase):
     """
     Tests for L{OpenSSL.SSL.Connection} using a memory BIO.
     """
-    def _server(self, sock=None):
+    def _server(self, sock):
+        """
+        Create a new server-side SSL L{Connection} object wrapped around
+        C{sock}.
+        """
         # Create the server side Connection.  This is mostly setup boilerplate
         # - use TLSv1, use a particular certificate, etc.
         server_ctx = Context(TLSv1_METHOD)
@@ -438,8 +442,13 @@ class MemoryBIOTests(TestCase):
         return server_conn
 
 
-    def _client(self, sock=None):
-        # Now create the client side Connection.  Similar boilerplate to the above.
+    def _client(self, sock):
+        """
+        Create a new client-side SSL L{Connection} object wrapped around
+        C{sock}.
+        """
+        # Now create the client side Connection.  Similar boilerplate to the
+        # above.
         client_ctx = Context(TLSv1_METHOD)
         client_ctx.set_options(OP_NO_SSLv2 | OP_NO_SSLv3 | OP_SINGLE_DH_USE )
         client_ctx.set_verify(VERIFY_PEER|VERIFY_FAIL_IF_NO_PEER_CERT|VERIFY_CLIENT_ONCE, verify_cb)
@@ -500,15 +509,15 @@ class MemoryBIOTests(TestCase):
                         write.bio_write(dirty)
 
 
-    def test_connect(self):
+    def test_memoryConnect(self):
         """
         Two L{Connection}s which use memory BIOs can be manually connected by
         reading from the output of each and writing those bytes to the input of
         the other and in this way establish a connection and exchange
         application-level bytes with each other.
         """
-        server_conn = self._server()
-        client_conn = self._client()
+        server_conn = self._server(None)
+        client_conn = self._client(None)
 
         # There should be no key or nonces yet.
         self.assertIdentical(server_conn.master_key(), None)
@@ -543,9 +552,15 @@ class MemoryBIOTests(TestCase):
             (server_conn, important_message[::-1]))
 
 
-    def test_socket_connect(self):
+    def test_socketConnect(self):
         """
-        Just like test_connect() but with an actual socket.
+        Just like L{test_memoryConnect} but with an actual socket.
+
+        This is primarily to rule out the memory BIO code as the source of
+        any problems encountered while passing data over a L{Connection} (if
+        this test fails, there must be a problem outside the memory BIO
+        code, as no memory BIO is involved here).  Even though this isn't a
+        memory BIO test, it's convenient to have it here.
         """
         (server, client) = socket_pair()
 
@@ -599,8 +614,8 @@ class MemoryBIOTests(TestCase):
         returned and that many bytes from the beginning of the input can be
         read from the other end of the connection.
         """
-        server = self._server()
-        client = self._client()
+        server = self._server(None)
+        client = self._client(None)
 
         self._loopback(client, server)
 
@@ -624,7 +639,7 @@ class MemoryBIOTests(TestCase):
         L{Connection.bio_shutdown} signals the end of the data stream from
         which the L{Connection} reads.
         """
-        server = self._server()
+        server = self._server(None)
         server.bio_shutdown()
         e = self.assertRaises(Error, server.recv, 1024)
         # We don't want WantReadError or ZeroReturnError or anything - it's a
