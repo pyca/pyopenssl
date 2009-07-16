@@ -55,6 +55,7 @@ class ContextTests(TestCase):
         self.assertEqual(type(ContextType).__name__, 'type')
         self.assertEqual(type(ctx).__name__, 'Context')
         self.assertEqual(type(ctx), ContextType)
+        self.assertEqual(type(ctx), Context)
 
 
     def test_use_privatekey(self):
@@ -284,6 +285,7 @@ class ConnectionTests(TestCase):
         self.assertEqual(type(ConnectionType).__name__, 'type')
         self.assertEqual(type(conn).__name__, 'Connection')
         self.assertEqual(type(conn), ConnectionType)
+        self.assertEqual(type(conn), Connection)
 
         self.assertEqual(Error.__name__, 'Error')
         self.assertEqual(type(Error).__name__, 'type')
