@@ -2,7 +2,7 @@
  * x509name.c
  *
  * Copyright (C) AB Strakt 2001, All rights reserved
- * Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+ * Copyright (C) Jean-Paul Calderone 2008-2009, All rights reserved
  *
  * X.509 Name handling, mostly thin wrapping.
  * See the file RATIONALE for a short explanation of why this module was written.

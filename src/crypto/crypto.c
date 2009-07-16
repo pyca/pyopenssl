@@ -2,7 +2,7 @@
  * crypto.c
  *
  * Copyright (C) AB Strakt 2001, All rights reserved
- * Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+ * Copyright (C) Jean-Paul Calderone 2008-2009, All rights reserved
  *
  * Main file of crypto sub module.
  * See the file RATIONALE for a short explanation of why this module was written.
