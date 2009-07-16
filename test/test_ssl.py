@@ -566,9 +566,8 @@ class MemoryBIOTests(TestCase):
 
         # Let the encryption begin...
         client_conn = self._client(client)
-        client_conn.set_connect_state()
         server_conn = self._server(server)
-        server_conn.set_accept_state()
+
         # Establish the connection
         established = False
         while not established:
