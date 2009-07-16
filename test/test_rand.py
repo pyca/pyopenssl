@@ -60,15 +60,20 @@ class RandTests(TestCase):
         """
         # Write random bytes to a file 
         tmpfile = self.mktemp()
-        rand.write_file(tmpfile)
-        # Verify length of written file
-        size = os.stat(tmpfile)[stat.ST_SIZE]
-        self.assertEquals(size, 1024)
-        # Read random bytes from file 
-        rand.load_file(tmpfile)
-        rand.load_file(tmpfile, 4)  # specify a length
-        # Cleanup
-        os.unlink(tmpfile)
+        # Make sure it exists (so cleanup definitely succeeds)
+        fObj = file(tmpfile, 'w')
+        fObj.close()
+        try:
+            rand.write_file(tmpfile)
+            # Verify length of written file
+            size = os.stat(tmpfile)[stat.ST_SIZE]
+            self.assertEquals(size, 1024)
+            # Read random bytes from file 
+            rand.load_file(tmpfile)
+            rand.load_file(tmpfile, 4)  # specify a length
+        finally:
+            # Cleanup
+            os.unlink(tmpfile)
 
 
 if __name__ == '__main__':
