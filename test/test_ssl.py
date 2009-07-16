@@ -32,9 +32,11 @@ except ImportError:
 
 
 def socket_pair():
-    ''' Establish and return a pair of network sockets connected 
-        to each other. '''
-    #  Connect a pair of sockets
+    """
+    Establish and return a pair of network sockets connected 
+    to each other.
+    """
+    # Connect a pair of sockets
     port = socket()
     port.bind(('', 0))
     port.listen(1)
@@ -44,14 +46,13 @@ def socket_pair():
     server = port.accept()[0]
     server.setblocking(False)
 
-    #  Let's pass some unencrypted data to make sure our
-    #  socket connection is fine.  
-    stuff = "I've got a bad feeling about this."
-    server.send(stuff)
-    assert client.recv(1024) == stuff
-    stuff = "What?!?! The First Bank of Alderaan!"
-    client.send(stuff)
-    assert server.recv(1024) == stuff
+    # Let's pass some unencrypted data to make sure our socket connection is
+    # fine.  Just one byte, so we don't have to worry about buffers getting
+    # filled up or fragmentation.
+    server.send("x")
+    assert client.recv(1024) == "x"
+    client.send("y")
+    assert server.recv(1024) == "y"
 
     return (server, client)
 
