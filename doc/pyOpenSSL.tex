@@ -726,18 +726,17 @@ The operation did not complete; the same I/O method should be called again
 later, with the same arguments. Any I/O method can lead to this since new
 handshakes can occur at any time.
 
-The wanted read is for "dirty" data sent over the network, not the 
-"clean" data inside the tunnel.  For a socket based SSL connection, 
-"read" means data coming at us over the network.  Until
-that read succeeds, the attempted 
-\method{OpenSSL.SSL.Connection.recv}, 
+The wanted read is for \emph{dirty} data sent over the network, not the
+\emph{clean} data inside the tunnel.  For a socket based SSL connection,
+\emph{read} means data coming at us over the network.  Until that read
+succeeds, the attempted \method{OpenSSL.SSL.Connection.recv},
 \method{OpenSSL.SSL.Connection.send}, or
-\method{OpenSSL.SSL.Connection.do_handshake} is prevented or incomplete.
-You probably want to \method{select()} on the socket before trying again.
+\method{OpenSSL.SSL.Connection.do_handshake} is prevented or incomplete. You
+probably want to \method{select()} on the socket before trying again.
 \end{excdesc}
 
 \begin{excdesc}{WantWriteError}
-See \exception{WantReadError}.  The socket may be too full to
+See \exception{WantReadError}.  The socket send buffer may be too full to
 write more data.
 \end{excdesc}
 
