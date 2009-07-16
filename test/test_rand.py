@@ -26,7 +26,7 @@ class RandTests(TestCase):
         b3 = rand.bytes(num_bytes=0) 
         self.assertEqual(len(b3), 0)
         exc = self.assertRaises(ValueError, rand.bytes, -1)
-        self.assertEqual(exc.message, "num_bytes must not be negative")
+        self.assertEqual(str(exc), "num_bytes must not be negative")
 
 
     def test_add(self):
