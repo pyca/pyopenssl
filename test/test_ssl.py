@@ -31,6 +31,32 @@ except ImportError:
     OP_NO_TICKET = None
 
 
+def socket_pair():
+    """
+    Establish and return a pair of network sockets connected 
+    to each other.
+    """
+    # Connect a pair of sockets
+    port = socket()
+    port.bind(('', 0))
+    port.listen(1)
+    client = socket()
+    client.setblocking(False)
+    client.connect_ex(port.getsockname())
+    server = port.accept()[0]
+    server.setblocking(False)
+
+    # Let's pass some unencrypted data to make sure our socket connection is
+    # fine.  Just one byte, so we don't have to worry about buffers getting
+    # filled up or fragmentation.
+    server.send("x")
+    assert client.recv(1024) == "x"
+    client.send("y")
+    assert server.recv(1024) == "y"
+
+    return (server, client)
+
+
 class ContextTests(TestCase):
     """
     Unit tests for L{OpenSSL.SSL.Context}.
@@ -88,13 +114,7 @@ class ContextTests(TestCase):
         L{Context.set_info_callback} accepts a callable which will be invoked
         when certain information about an SSL connection is available.
         """
-        port = socket()
-        port.bind(('', 0))
-        port.listen(1)
-
-        client = socket()
-        client.setblocking(False)
-        client.connect_ex(port.getsockname())
+        (server, client) = socket_pair()
 
         clientSSL = Connection(Context(TLSv1_METHOD), client)
         clientSSL.set_connect_state()
@@ -108,9 +128,6 @@ class ContextTests(TestCase):
             load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
         context.use_privatekey(
             load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM))
-
-        server, ignored = port.accept()
-        server.setblocking(False)
 
         serverSSL = Connection(context, server)
         serverSSL.set_accept_state()
@@ -127,13 +144,7 @@ class ContextTests(TestCase):
 
 
     def _load_verify_locations_test(self, *args):
-        port = socket()
-        port.bind(('', 0))
-        port.listen(1)
-
-        client = socket()
-        client.setblocking(False)
-        client.connect_ex(port.getsockname())
+        (server, client) = socket_pair()
 
         clientContext = Context(TLSv1_METHOD)
         clientContext.load_verify_locations(*args)
@@ -145,9 +156,6 @@ class ContextTests(TestCase):
 
         clientSSL = Connection(clientContext, client)
         clientSSL.set_connect_state()
-
-        server, _ = port.accept()
-        server.setblocking(False)
 
         serverContext = Context(TLSv1_METHOD)
         serverContext.use_certificate(
@@ -412,7 +420,11 @@ class MemoryBIOTests(TestCase):
     """
     Tests for L{OpenSSL.SSL.Connection} using a memory BIO.
     """
-    def _server(self):
+    def _server(self, sock):
+        """
+        Create a new server-side SSL L{Connection} object wrapped around
+        C{sock}.
+        """
         # Create the server side Connection.  This is mostly setup boilerplate
         # - use TLSv1, use a particular certificate, etc.
         server_ctx = Context(TLSv1_METHOD)
@@ -423,15 +435,20 @@ class MemoryBIOTests(TestCase):
         server_ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
         server_ctx.check_privatekey()
         server_store.add_cert(load_certificate(FILETYPE_PEM, root_cert_pem))
-        # Here the Connection is actually created.  None is passed as the 2nd
-        # parameter, indicating a memory BIO should be created.
-        server_conn = Connection(server_ctx, None)
+        # Here the Connection is actually created.  If None is passed as the 2nd
+        # parameter, it indicates a memory BIO should be created.
+        server_conn = Connection(server_ctx, sock)
         server_conn.set_accept_state()
         return server_conn
 
 
-    def _client(self):
-        # Now create the client side Connection.  Similar boilerplate to the above.
+    def _client(self, sock):
+        """
+        Create a new client-side SSL L{Connection} object wrapped around
+        C{sock}.
+        """
+        # Now create the client side Connection.  Similar boilerplate to the
+        # above.
         client_ctx = Context(TLSv1_METHOD)
         client_ctx.set_options(OP_NO_SSLv2 | OP_NO_SSLv3 | OP_SINGLE_DH_USE )
         client_ctx.set_verify(VERIFY_PEER|VERIFY_FAIL_IF_NO_PEER_CERT|VERIFY_CLIENT_ONCE, verify_cb)
@@ -440,8 +457,7 @@ class MemoryBIOTests(TestCase):
         client_ctx.use_certificate(load_certificate(FILETYPE_PEM, client_cert_pem))
         client_ctx.check_privatekey()
         client_store.add_cert(load_certificate(FILETYPE_PEM, root_cert_pem))
-        # Again, None to create a new memory BIO.
-        client_conn = Connection(client_ctx, None)
+        client_conn = Connection(client_ctx, sock)
         client_conn.set_connect_state()
         return client_conn
 
@@ -493,15 +509,15 @@ class MemoryBIOTests(TestCase):
                         write.bio_write(dirty)
 
 
-    def test_connect(self):
+    def test_memoryConnect(self):
         """
         Two L{Connection}s which use memory BIOs can be manually connected by
         reading from the output of each and writing those bytes to the input of
         the other and in this way establish a connection and exchange
         application-level bytes with each other.
         """
-        server_conn = self._server()
-        client_conn = self._client()
+        server_conn = self._server(None)
+        client_conn = self._client(None)
 
         # There should be no key or nonces yet.
         self.assertIdentical(server_conn.master_key(), None)
@@ -536,6 +552,47 @@ class MemoryBIOTests(TestCase):
             (server_conn, important_message[::-1]))
 
 
+    def test_socketConnect(self):
+        """
+        Just like L{test_memoryConnect} but with an actual socket.
+
+        This is primarily to rule out the memory BIO code as the source of
+        any problems encountered while passing data over a L{Connection} (if
+        this test fails, there must be a problem outside the memory BIO
+        code, as no memory BIO is involved here).  Even though this isn't a
+        memory BIO test, it's convenient to have it here.
+        """
+        (server, client) = socket_pair()
+
+        # Let the encryption begin...
+        client_conn = self._client(client)
+        server_conn = self._server(server)
+
+        # Establish the connection
+        established = False
+        while not established:
+            established = True  # assume the best
+            for ssl in client_conn, server_conn:
+                try:
+                    # Generally a recv() or send() could also work instead 
+                    # of do_handshake(), and we would stop on the first 
+                    # non-exception.
+                    ssl.do_handshake()
+                except WantReadError:
+                    established = False
+
+        important_message = "Help me Obi Wan Kenobi, you're my only hope."
+        client_conn.send(important_message)
+        msg = server_conn.recv(1024)
+        self.assertEqual(msg, important_message)
+
+        # Again in the other direction, just for fun.
+        important_message = important_message[::-1]
+        server_conn.send(important_message)
+        msg = client_conn.recv(1024)
+        self.assertEqual(msg, important_message)
+
+
     def test_socketOverridesMemory(self):
         """
         Test that L{OpenSSL.SSL.bio_read} and L{OpenSSL.SSL.bio_write} don't
@@ -556,8 +613,8 @@ class MemoryBIOTests(TestCase):
         returned and that many bytes from the beginning of the input can be
         read from the other end of the connection.
         """
-        server = self._server()
-        client = self._client()
+        server = self._server(None)
+        client = self._client(None)
 
         self._loopback(client, server)
 
@@ -581,7 +638,7 @@ class MemoryBIOTests(TestCase):
         L{Connection.bio_shutdown} signals the end of the data stream from
         which the L{Connection} reads.
         """
-        server = self._server()
+        server = self._server(None)
         server.bio_shutdown()
         e = self.assertRaises(Error, server.recv, 1024)
         # We don't want WantReadError or ZeroReturnError or anything - it's a
