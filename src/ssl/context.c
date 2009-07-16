@@ -265,7 +265,7 @@ ssl_Context_load_verify_locations(ssl_ContextObj *self, PyObject *args) {
 
     if (!SSL_CTX_load_verify_locations(self->ctx, cafile, capath))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(ssl_Error);
         return NULL;
     }
     else
@@ -291,7 +291,7 @@ ssl_Context_set_default_verify_paths(ssl_ContextObj *self, PyObject *args) {
      * -exarkun
      */
     if (!SSL_CTX_set_default_verify_paths(self->ctx)) {
-        exception_from_error_queue();
+        exception_from_error_queue(ssl_Error);
         return NULL;
     }
     Py_INCREF(Py_None);
@@ -388,14 +388,14 @@ ssl_Context_add_extra_chain_cert(ssl_ContextObj *self, PyObject *args)
     }
     if (!(cert_original = X509_dup(cert->x509)))
     {
-        /* exception_from_error_queue(); */
+        /* exception_from_error_queue(ssl_Error); */
         PyErr_SetString(PyExc_RuntimeError, "X509_dup failed");
         return NULL;
     }
     if (!SSL_CTX_add_extra_chain_cert(self->ctx, cert_original))
     {
         X509_free(cert_original);
-        exception_from_error_queue();
+        exception_from_error_queue(ssl_Error);
         return NULL;
     }
     else
@@ -422,7 +422,7 @@ ssl_Context_use_certificate_chain_file(ssl_ContextObj *self, PyObject *args)
 
     if (!SSL_CTX_use_certificate_chain_file(self->ctx, certfile))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(ssl_Error);
         return NULL;
     }
     else
@@ -451,7 +451,7 @@ ssl_Context_use_certificate_file(ssl_ContextObj *self, PyObject *args)
 
     if (!SSL_CTX_use_certificate_file(self->ctx, certfile, filetype))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(ssl_Error);
         return NULL;
     }
     else
@@ -478,7 +478,7 @@ ssl_Context_use_certificate(ssl_ContextObj *self, PyObject *args)
     
     if (!SSL_CTX_use_certificate(self->ctx, cert->x509))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(ssl_Error);
         return NULL;
     }
     else
@@ -516,7 +516,7 @@ ssl_Context_use_privatekey_file(ssl_ContextObj *self, PyObject *args)
 
     if (!ret)
     {
-        exception_from_error_queue();
+        exception_from_error_queue(ssl_Error);
         return NULL;
     }
     else
@@ -565,7 +565,7 @@ ssl_Context_use_privatekey(ssl_ContextObj *self, PyObject *args)
 
     if (!SSL_CTX_use_PrivateKey(self->ctx, pkey->pkey))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(ssl_Error);
         return NULL;
     }
     else
@@ -588,7 +588,7 @@ ssl_Context_check_privatekey(ssl_ContextObj *self, PyObject *args)
 
     if (!SSL_CTX_check_private_key(self->ctx))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(ssl_Error);
         return NULL;
     }
     else
@@ -637,7 +637,7 @@ ssl_Context_set_session_id(ssl_ContextObj *self, PyObject *args)
 
     if (!SSL_CTX_set_session_id_context(self->ctx, buf, len))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(ssl_Error);
         return NULL;
     }
     else
@@ -779,7 +779,7 @@ ssl_Context_set_cipher_list(ssl_ContextObj *self, PyObject *args)
 
     if (!SSL_CTX_set_cipher_list(self->ctx, cipher_list))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(ssl_Error);
         return NULL;
     }
     else

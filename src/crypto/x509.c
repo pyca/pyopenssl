@@ -136,7 +136,7 @@ crypto_X509_set_serial_number(crypto_X509Obj *self, PyObject *args)
 
     if (bignum == NULL) {
         if (ASN1_INTEGER_set(X509_get_serialNumber(self->x509), small_serial)) {
-            exception_from_error_queue();
+            exception_from_error_queue(crypto_Error);
             goto err;
         }
     } else {
@@ -144,11 +144,11 @@ crypto_X509_set_serial_number(crypto_X509Obj *self, PyObject *args)
         BN_free(bignum);
         bignum = NULL;
         if (asn1_i == NULL) {
-            exception_from_error_queue();
+            exception_from_error_queue(crypto_Error);
             goto err;
         }
         if (!X509_set_serialNumber(self->x509, asn1_i)) {
-            exception_from_error_queue();
+            exception_from_error_queue(crypto_Error);
             goto err;
         }
         ASN1_INTEGER_free(asn1_i);
@@ -221,7 +221,7 @@ crypto_X509_set_issuer(crypto_X509Obj *self, PyObject *args)
 
     if (!X509_set_issuer_name(self->x509, issuer->x509_name))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -273,7 +273,7 @@ crypto_X509_set_subject(crypto_X509Obj *self, PyObject *args)
 
     if (!X509_set_subject_name(self->x509, subject->x509_name))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -299,7 +299,7 @@ crypto_X509_get_pubkey(crypto_X509Obj *self, PyObject *args)
 
     if ((pkey = X509_get_pubkey(self->x509)) == NULL)
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -327,7 +327,7 @@ crypto_X509_set_pubkey(crypto_X509Obj *self, PyObject *args)
 
     if (!X509_set_pubkey(self->x509, pkey->pkey))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -422,7 +422,7 @@ _get_asn1_time(char *format, ASN1_TIME* timestamp, crypto_X509Obj *self, PyObjec
 	} else {
 		ASN1_TIME_to_generalizedtime(timestamp, &gt_timestamp);
 		if (gt_timestamp == NULL) {
-			exception_from_error_queue();
+			exception_from_error_queue(crypto_Error);
 			return NULL;
 		} else {
 			py_timestamp = PyString_FromString((char *)gt_timestamp->data);
@@ -558,7 +558,7 @@ crypto_X509_sign(crypto_X509Obj *self, PyObject *args)
 
     if (!X509_sign(self->x509, pkey->pkey, digest))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -629,7 +629,7 @@ crypto_X509_digest(crypto_X509Obj *self, PyObject *args)
 
     if (!X509_digest(self->x509,digest,fp,&len))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
     }
     tmp = malloc(3*len+1);
     memset(tmp, 0, 3*len+1);
@@ -679,7 +679,7 @@ crypto_X509_add_extensions(crypto_X509Obj *self, PyObject *args)
         if (!X509_add_ext(self->x509, ext->x509_extension, -1))
         {
             Py_DECREF(seq);
-            exception_from_error_queue();
+            exception_from_error_queue(crypto_Error);
             return NULL;
         }
     }

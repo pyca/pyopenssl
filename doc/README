@@ -1,0 +1,18 @@
+
+Only the .tex format documentation is original,
+because the others are derived from it, so don't
+edit them directly.  To build the other formats
+use a command of ...
+
+  make all
+
+
+To build the documentation you will need to have
+latex2html and lynx installed.  On Fedora both can
+be obtained with ...
+
+  sudo yum install latex2html lynx
+
+Or on Debian or Ubuntu ...
+
+  sudo apt-get install latex2html lynx

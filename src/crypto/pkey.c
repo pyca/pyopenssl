@@ -21,7 +21,7 @@
  */
 #define FAIL() \
 do {                                    \
-    exception_from_error_queue();       \
+    exception_from_error_queue(crypto_Error); \
     return NULL;                        \
 } while (0)
     

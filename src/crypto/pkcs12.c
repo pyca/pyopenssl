@@ -110,7 +110,7 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
     /* parse the PKCS12 lump */
     if (!(cacerts && PKCS12_parse(p12, passphrase, &pkey, &cert, &cacerts)))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 

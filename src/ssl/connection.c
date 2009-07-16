@@ -164,7 +164,7 @@ handle_bio_errors(BIO* bio, int ret)
          * the code which triggered the error also kindly pushed something onto
          * the error stack.
          */
-        exception_from_error_queue();
+        exception_from_error_queue(ssl_Error);
     }
 }
 
@@ -238,7 +238,7 @@ handle_ssl_errors(SSL *ssl, int err, int ret)
         case SSL_ERROR_SSL:
             ;
         default:
-	    exception_from_error_queue();
+	    exception_from_error_queue(ssl_Error);
             break;
     }
 }
@@ -788,7 +788,7 @@ ssl_Connection_shutdown(ssl_ConnectionObj *self, PyObject *args)
 
     if (ret < 0)
     {
-        exception_from_error_queue();
+        exception_from_error_queue(ssl_Error);
         return NULL;
     }
     else if (ret > 0)

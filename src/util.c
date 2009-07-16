@@ -38,6 +38,13 @@ error_queue_to_list(void)
     return errlist;
 }
 
+void exception_from_error_queue(PyObject *the_Error)
+{ 
+    PyObject *errlist = error_queue_to_list();
+    PyErr_SetObject(the_Error, errlist);
+    Py_DECREF(errlist);
+} 
+
 /*
  * Flush OpenSSL's error queue and ignore the result
  *

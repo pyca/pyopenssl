@@ -112,7 +112,7 @@ crypto_load_privatekey(PyObject *spam, PyObject *args)
 
     if (pkey == NULL)
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -213,7 +213,7 @@ crypto_dump_privatekey(PyObject *spam, PyObject *args)
     if (ret == 0)
     {
         BIO_free(bio);
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -264,7 +264,7 @@ crypto_load_certificate(PyObject *spam, PyObject *args)
 
     if (cert == NULL)
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -316,7 +316,7 @@ crypto_dump_certificate(PyObject *spam, PyObject *args)
     if (ret == 0)
     {
         BIO_free(bio);
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -367,7 +367,7 @@ crypto_load_certificate_request(PyObject *spam, PyObject *args)
 
     if (req == NULL)
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -419,7 +419,7 @@ crypto_dump_certificate_request(PyObject *spam, PyObject *args)
     if (ret == 0)
     {
         BIO_free(bio);
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -475,7 +475,7 @@ crypto_load_pkcs7_data(PyObject *spam, PyObject *args)
      */
     if (pkcs7 == NULL)
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -506,7 +506,7 @@ crypto_load_pkcs12(PyObject *spam, PyObject *args)
     if ((p12 = d2i_PKCS12_bio(bio, NULL)) == NULL)
     {
       BIO_free(bio);
-      exception_from_error_queue();
+      exception_from_error_queue(crypto_Error);
       return NULL;
     }
     BIO_free(bio);

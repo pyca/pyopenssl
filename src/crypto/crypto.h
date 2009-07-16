@@ -27,15 +27,6 @@
 
 extern PyObject *crypto_Error;
 
-#ifdef exception_from_error_queue
-#  undef exception_from_error_queue
-#endif
-#define exception_from_error_queue()    do { \
-    PyObject *errlist = error_queue_to_list(); \
-    PyErr_SetObject(crypto_Error, errlist); \
-    Py_DECREF(errlist); \
-} while (0)
-
 #define crypto_X509_New_NUM             0
 #define crypto_X509_New_RETURN          crypto_X509Obj *
 #define crypto_X509_New_PROTO           (X509 *, int)

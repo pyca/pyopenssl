@@ -593,6 +593,18 @@ Mix bytes from \var{string} into the PRNG state. The \var{entropy} argument is
 \var{string}, measured in bytes. For more information, see e.g. \rfc{1750}.
 \end{funcdesc}
 
+\begin{funcdesc}{bytes}{num_bytes}
+Get some random bytes from the PRNG as a string.
+
+This is a wrapper for the C function \function{RAND_bytes}.
+\end{funcdesc}
+
+\begin{funcdesc}{cleanup}{}
+Erase the memory used by the PRNG.
+
+This is a wrapper for the C function \function{RAND_cleanup}.
+\end{funcdesc}
+
 \begin{funcdesc}{egd}{path\optional{, bytes}}
 Query the Entropy Gathering Daemon\footnote{See
 \url{http://www.lothar.com/tech/crypto/}} on socket \var{path} for \var{bytes}
@@ -624,6 +636,16 @@ Write a number of random bytes (currently 1024) to the file \var{path}. This
 file can then be used with \function{load_file} to seed the PRNG again.
 \end{funcdesc}
 
+\begin{excdesc}{Error}
+If the current RAND method supports any errors, this is raised when needed.  
+The default method does not raise this when the entropy pool is depleted.
+
+Whenever this exception is raised directly, it has a list of error messages
+from the OpenSSL error queue, where each item is a tuple \code{(\var{lib},
+\var{function}, \var{reason})}. Here \var{lib}, \var{function} and \var{reason}
+are all strings, describing where and what the problem is. See \manpage{err}{3}
+for more information.
+\end{excdesc}
 
 
 % % % SSL module

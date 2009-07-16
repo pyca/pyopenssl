@@ -30,7 +30,7 @@ crypto_X509Req_get_subject(crypto_X509ReqObj *self, PyObject *args)
 
     if ((name = X509_REQ_get_subject_name(self->x509_req)) == NULL)
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
     if ((pyname = crypto_X509Name_New(name, 0)) != NULL) {
@@ -58,7 +58,7 @@ crypto_X509Req_get_pubkey(crypto_X509ReqObj *self, PyObject *args)
 
     if ((pkey = X509_REQ_get_pubkey(self->x509_req)) == NULL)
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -86,7 +86,7 @@ crypto_X509Req_set_pubkey(crypto_X509ReqObj *self, PyObject *args)
 
     if (!X509_REQ_set_pubkey(self->x509_req, pkey->pkey))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -131,7 +131,7 @@ crypto_X509Req_sign(crypto_X509ReqObj *self, PyObject *args)
 
     if (!X509_REQ_sign(self->x509_req, pkey->pkey, digest))
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -160,7 +160,7 @@ crypto_X509Req_verify(crypto_X509ReqObj *self, PyObject *args)
 
     if ((answer = X509_REQ_verify(self->x509_req, key->pkey)) < 0)
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -194,7 +194,7 @@ crypto_X509Req_add_extensions(crypto_X509ReqObj *self, PyObject *args)
     /* Make a STACK_OF(X509_EXTENSION) from sequence */
     if ((exts = sk_X509_EXTENSION_new_null()) == NULL)
     {
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
@@ -217,7 +217,7 @@ crypto_X509Req_add_extensions(crypto_X509ReqObj *self, PyObject *args)
     if (!X509_REQ_add_extensions(self->x509_req, exts))
     {
         sk_X509_EXTENSION_free(exts);
-        exception_from_error_queue();
+        exception_from_error_queue(crypto_Error);
         return NULL;
     }
 
