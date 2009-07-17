@@ -12,6 +12,7 @@
 #include <Python.h>
 #define crypto_MODULE
 #include "crypto.h"
+#include "pkcs12.h"
 
 static char crypto_doc[] = "\n\
 Main file of crypto sub module.\n\
@@ -493,7 +494,6 @@ Load a PKCS12 object from a buffer\n\
 static PyObject *
 crypto_load_pkcs12(PyObject *spam, PyObject *args)
 {
-    crypto_PKCS12Obj *crypto_PKCS12_New(PKCS12 *, char *);
     int len;
     char *buffer, *passphrase = NULL;
     BIO *bio;
@@ -514,6 +514,23 @@ crypto_load_pkcs12(PyObject *spam, PyObject *args)
     return (PyObject *)crypto_PKCS12_New(p12, passphrase);
 }
 
+
+static char crypto_PKCS12_doc[] = "\n\
+The factory function inserted in the module dictionary to create PKCS12\n\
+objects\n\
+\n\
+Arguments: spam - Always NULL\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   The PKCS12 object\n\
+";
+
+static crypto_PKCS12Obj *
+crypto_PKCS12(PyObject *spam, PyObject *args)
+{
+    if (!PyArg_ParseTuple(args, ":PKCS12"))
+        return NULL;
+    return crypto_PKCS12_New(NULL, NULL);
+}
 
 static char crypto_X509_verify_cert_error_string_doc[] = "\n\
 Get X509 verify certificate error string.\n\
@@ -559,6 +576,7 @@ static PyMethodDef crypto_methods[] = {
     { "load_pkcs12", (PyCFunction)crypto_load_pkcs12, METH_VARARGS, crypto_load_pkcs12_doc },
     { "X509_verify_cert_error_string", (PyCFunction)crypto_X509_verify_cert_error_string, METH_VARARGS, crypto_X509_verify_cert_error_string_doc },
     { "_exception_from_error_queue", (PyCFunction)crypto_exception_from_error_queue, METH_NOARGS, crypto_exception_from_error_queue_doc },
+    { "PKCS12",    (PyCFunction)crypto_PKCS12, METH_VARARGS|METH_VARARGS, crypto_PKCS12_doc },
     { NULL, NULL }
 };
 

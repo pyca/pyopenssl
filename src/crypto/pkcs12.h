@@ -27,4 +27,7 @@ typedef struct {
     PyObject            *cacerts;
 } crypto_PKCS12Obj;
 
+crypto_PKCS12Obj *
+crypto_PKCS12_New(PKCS12 *p12, char *passphrase);
+
 #endif
