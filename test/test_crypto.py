@@ -833,6 +833,11 @@ class PKCS12Tests(TestCase):
         self.assertEqual(recovered_key[-len(server_key_pem):], server_key_pem)
         #  We can't load PKCS12 without MAC, because we use PCKS_parse()
         #p12 = load_pkcs12(dumped_p12, passwd)
+        # Test export without any args
+        dumped_p12 = p12.export()
+        recovered_key = Popen(["openssl", "pkcs12", '-nodes', '-passin', 'pass:' ], \
+           stdin=PIPE, stdout=PIPE).communicate(input=str(dumped_p12))[0]
+        self.assertEqual(recovered_key[-len(server_key_pem):], server_key_pem)
 
 
     def test_get_notAfter(self):

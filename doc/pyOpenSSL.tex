@@ -524,6 +524,19 @@ Get the type name of the PKCS7.
 
 PKCS12 objects have the following methods:
 
+\begin{methoddesc}[PKCS12]{export}{\optional{passphrase=None}\optional{, friendly_name=None}\optional{, iter=2000}\optional{, maciter=0}}
+Returns a PKCS12 object as a string.
+
+The optional \var{passphrase} must be a string not a callback.
+
+See also the man page for the C function \function{PKCS12_create}.
+\end{methoddesc}
+
+\begin{methoddesc}[PKCS12]{get_ca_certificates}{}
+Return CA certificates within the PKCS12 object as a tuple. Returns
+\constant{None} if no CA certificates are present.
+\end{methoddesc}
+
 \begin{methoddesc}[PKCS12]{get_certificate}{}
 Return certificate portion of the PKCS12 structure.
 \end{methoddesc}
@@ -532,9 +545,18 @@ Return certificate portion of the PKCS12 structure.
 Return private key portion of the PKCS12 structure
 \end{methoddesc}
 
-\begin{methoddesc}[PKCS12]{get_ca_certificates}{}
-Return CA certificates within the PKCS12 object as a tuple. Returns
-None if no CA certificates are present.
+\begin{methoddesc}[PKCS12]{set_ca_certificates}{cacerts}
+Replace or set the CA certificates within the PKCS12 object with the sequence \var{cacerts}.
+
+Set \var{cacerts} to \constant{None} to remove all CA certificates.
+\end{methoddesc}
+
+\begin{methoddesc}[PKCS12]{set_certificate}{cert}
+Replace or set the certificate portion of the PKCS12 structure.
+\end{methoddesc}
+
+\begin{methoddesc}[PKCS12]{set_privatekey}{pkey}
+Replace or set private key portion of the PKCS12 structure
 \end{methoddesc}
 
 \subsubsection{X509Extension objects \label{openssl-509ext}}
