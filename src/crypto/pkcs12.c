@@ -81,7 +81,7 @@ crypto_PKCS12_get_privatekey(crypto_PKCS12Obj *self, PyObject *args)
         return NULL;
 
     Py_INCREF(self->key);
-    return (PyObject *) self->key;
+    return (crypto_PKeyObj *) self->key;
 }
 
 static char crypto_PKCS12_set_privatekey_doc[] = "\n\
@@ -144,7 +144,7 @@ crypto_PKCS12_set_ca_certificates(crypto_PKCS12Obj *self, PyObject *args, PyObje
 {
     PyObject *cacerts;
     static char *kwlist[] = {"cacerts", NULL};
-    int i;
+    int i; /* Py_ssize_t for Python 2.5+ */
 
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "O:set_ca_certificates", 
         kwlist, &cacerts))
@@ -218,7 +218,7 @@ crypto_PKCS12_export(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
     }
     cacerts = sk_X509_new_null();
     if (self->cacerts && self->cacerts != Py_None) {
-        int i;
+        int i; /* Py_ssize_t for Python 2.5+ */
         PyObject *obj;
         for(i = 0;i < PySequence_Length(self->cacerts);i++) {  /* For each CA cert */
             obj = PySequence_GetItem(self->cacerts, i);
