@@ -349,6 +349,23 @@ error:
     return NULL;
 }
 
+static char crypto_PKCS12_doc[] = "\n\
+PKCS12() -> PKCS12 instance\n\
+\n\
+Create a new PKCS12 object.\n\
+\n\
+@returns: The PKCS12 object\n\
+";
+static PyObject *
+crypto_PKCS12_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs)
+{
+    if (!PyArg_ParseTuple(args, ":PKCS12")) {
+        return NULL;
+    }
+
+    return (PyObject *)crypto_PKCS12_New(NULL, NULL);
+}
+
 /*
  * Find attribute
  *
@@ -440,9 +457,24 @@ PyTypeObject crypto_PKCS12_Type = {
     NULL, /* setattro */
     NULL, /* as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
-    NULL, /* doc */
+    crypto_PKCS12_doc, 
     (traverseproc)crypto_PKCS12_traverse,
     (inquiry)crypto_PKCS12_clear,
+    NULL, /* tp_richcompare */
+    0, /* tp_weaklistoffset */
+    NULL, /* tp_iter */
+    NULL, /* tp_iternext */
+    crypto_PKCS12_methods, /* tp_methods */
+    NULL, /* tp_members */
+    NULL, /* tp_getset */
+    NULL, /* tp_base */
+    NULL, /* tp_dict */
+    NULL, /* tp_descr_get */
+    NULL, /* tp_descr_set */
+    0, /* tp_dictoffset */
+    NULL, /* tp_init */
+    NULL, /* tp_alloc */
+    crypto_PKCS12_new, /* tp_new */
 };
 
 /*
@@ -454,6 +486,10 @@ PyTypeObject crypto_PKCS12_Type = {
 int
 init_crypto_pkcs12(PyObject *module) {
     if (PyType_Ready(&crypto_PKCS12_Type) < 0) {
+        return 0;
+    }
+
+    if (PyModule_AddObject(module, "PKCS12", (PyObject *)&crypto_PKCS12_Type) != 0) {
         return 0;
     }
 
