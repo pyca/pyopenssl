@@ -72,24 +72,28 @@ static PyMethodDef crypto_X509Extension_methods[] =
  * Arguments: type_name - ???
  *            critical  - ???
  *            value     - ???
+ *            subject   - An x509v3 certificate which is the subject for this extension.
+ *            issuer    - An x509v3 certificate which is the issuer for this extension.
  * Returns:   The newly created X509Extension object
  */
 crypto_X509ExtensionObj *
 crypto_X509Extension_New(char *type_name, int critical, char *value,
-                         crypto_X509Obj *subject, crypto_X509Obj  *issuer)
-{
+                         crypto_X509Obj *subject, crypto_X509Obj  *issuer) {
     X509V3_CTX ctx;
     crypto_X509ExtensionObj *self;
     char* value_with_critical = NULL;
 
+
     /*
-     * Initialize most of the fields to NULL.
+     * A context is necessary for any extension which uses the r2i conversion
+     * method.  That is, X509V3_EXT_nconf may segfault if passed a NULL ctx.
+     * Start off by initializing most of the fields to NULL.
      */
     X509V3_set_ctx(&ctx, NULL, NULL, NULL, NULL, 0);
 
-    /* We have no configuration database - but perhaps we should.  Anyhow, the
-     * context is necessary for any extension which uses the r2i conversion
-     * method.  That is, X509V3_EXT_nconf may segfault if passed a NULL ctx.
+    /*
+     * We have no configuration database - but perhaps we should (some
+     * extensions may require it).
      */
     X509V3_set_ctx_nodb(&ctx);
 
@@ -173,19 +177,19 @@ X509Extension(typename, critical, value[, subject][, issuer]) -> \n\
 ";
 
 static PyObject *
-crypto_X509Extension_new(PyTypeObject *subtype, PyObject *args, 
+crypto_X509Extension_new(PyTypeObject *subtype, PyObject *args,
                          PyObject *kwargs) {
     char *type_name, *value;
     int critical = 0;
     crypto_X509Obj * subject = NULL;
     crypto_X509Obj * issuer = NULL;
-    static char *kwlist[] = {"type_name", "critical", "value", "subject", 
+    static char *kwlist[] = {"type_name", "critical", "value", "subject",
                              "issuer", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sis|O!O!:X509Extension", 
-                kwlist, &type_name, &critical, &value, 
-                &crypto_X509_Type, &subject,
-                &crypto_X509_Type, &issuer )) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sis|O!O!:X509Extension",
+                                     kwlist, &type_name, &critical, &value,
+                                     &crypto_X509_Type, &subject,
+                                     &crypto_X509_Type, &issuer )) {
         return NULL;
     }
 
