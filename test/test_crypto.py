@@ -176,6 +176,33 @@ Ho4EzbYCOaEAMQA=
 
 
 class X509ExtTests(TestCase):
+    """
+    Tests for L{OpenSSL.crypto.X509Extension}.
+    """
+
+    def setUp(self):
+        """
+        Create a new private key and start a certificate request (for a test
+        method to finish in one way or another).
+        """
+        # Basic setup stuff to generate a certificate
+        self.pkey = PKey()
+        self.pkey.generate_key(TYPE_RSA, 384)
+        self.req = X509Req()
+        self.req.set_pubkey(self.pkey)
+        # Authority good you have.
+        self.req.get_subject().commonName = "Yoda root CA"
+        self.x509 = X509()
+        self.subject = self.x509.get_subject()
+        self.subject.commonName = self.req.get_subject().commonName
+        self.x509.set_issuer(self.subject)
+        self.x509.set_pubkey(self.pkey)
+        now = datetime.now().strftime("%Y%m%d%H%M%SZ")
+        expire  = (datetime.now() + timedelta(days=100)).strftime("%Y%m%d%H%M%SZ")
+        self.x509.set_notBefore(now)
+        self.x509.set_notAfter(expire)
+
+
     def test_construction(self):
         """
         L{X509Extension} accepts an extension type name, a critical flag,
@@ -235,49 +262,103 @@ class X509ExtTests(TestCase):
         self.assertEqual(ext.get_short_name(), 'nsComment')
 
 
-    def test_issuer_and_subject(self):
+    def test_unused_subject(self):
         """
-        Use L{X509Extension} to create a root cert with X509v3 
-        extensions, which requires the "subject" or "issuer" optional args.
+        The C{subject} parameter to L{X509Extension} may be provided for an
+        extension which does not use it and is ignored in this case.
         """
-        # Basic setup stuff to generate a certificate
-        pkey = PKey()
-        pkey.generate_key(TYPE_RSA, 1024)
-        req = X509Req()
-        req.set_pubkey(pkey)
-        req.get_subject().commonName = "Yoda root CA"  # Authority good you have.
-        x509 = X509()
-        subject = x509.get_subject()
-        subject.commonName = req.get_subject().commonName
-        x509.set_issuer(subject)
-        x509.set_pubkey(pkey)
-        now = datetime.now().strftime("%Y%m%d%H%M%SZ")
-        expire  = (datetime.now() + timedelta(days=100)).strftime("%Y%m%d%H%M%SZ")
-        x509.set_notBefore(now)
-        x509.set_notAfter(expire)
-        # Test "subject" as a unneeded parameter
-        ext1 = X509Extension('basicConstraints', False, 'CA:TRUE', subject=x509)
-        x509.add_extensions( (ext1, ) )
-        # Correct use of "subject" and "issuer"
-        ext3 = X509Extension('subjectKeyIdentifier', False, 'hash', subject=x509, )
-        x509.add_extensions( (ext3, ) )
-        ext2 = X509Extension('authorityKeyIdentifier', False, 'keyid:always,issuer:always', issuer=x509, )
-        x509.add_extensions( (ext2, ) )
-        # Test missing issuer
-        self.assertRaises(Error, X509Extension, 'authorityKeyIdentifier', False, 'keyid:always,issuer:always', )
-        # Test missing subject
-        self.assertRaises(Error, X509Extension, 'subjectKeyIdentifier', False, 'hash', )
-        # Test bad type of issuer and subject
-        self.assertRaises(TypeError, eval, 
-               "OpenSSL.crypto.X509Extension('basicConstraints', False, 'CA:TRUE', subject=True)", ())
-        self.assertRaises(TypeError, eval, 
-               "OpenSSL.crypto.X509Extension('basicConstraints', False, 'CA:TRUE', issuer=3)", ())
-        # Complete the certificate
-        x509.sign(pkey, 'sha1')
-        # Verify the certificate
-        text = dump_certificate(FILETYPE_TEXT, x509)
-        self.assertTrue( text.index('X509v3 Subject Key Identifier') > 100 )
-        self.assertTrue( text.index('X509v3 Authority Key Identifier') > 100 )
+        ext1 = X509Extension('basicConstraints', False, 'CA:TRUE', subject=self.x509)
+        self.x509.add_extensions([ext1])
+        self.x509.sign(self.pkey, 'sha1')
+        # This is a little lame.  Can we think of a better way?
+        text = dump_certificate(FILETYPE_TEXT, self.x509)
+        self.assertTrue('X509v3 Basic Constraints:' in text)
+        self.assertTrue('CA:TRUE' in text)
+
+
+    def test_subject(self):
+        """
+        If an extension requires a subject, the C{subject} parameter to
+        L{X509Extension} provides its value.
+        """
+        ext3 = X509Extension('subjectKeyIdentifier', False, 'hash', subject=self.x509)
+        self.x509.add_extensions([ext3])
+        self.x509.sign(self.pkey, 'sha1')
+        text = dump_certificate(FILETYPE_TEXT, self.x509)
+        self.assertTrue('X509v3 Subject Key Identifier:' in text)
+
+
+    def test_missing_subject(self):
+        """
+        If an extension requires a subject and the C{subject} parameter is
+        given no value, something happens.
+        """
+        self.assertRaises(
+            Error, X509Extension, 'subjectKeyIdentifier', False, 'hash')
+
+
+    def test_invalid_subject(self):
+        """
+        If the C{subject} parameter is given a value which is not an L{X509}
+        instance, L{TypeError} is raised.
+        """
+        for badObj in [True, object(), "hello", [], self]:
+            self.assertRaises(
+                TypeError,
+                X509Extension,
+                'basicConstraints', False, 'CA:TRUE', subject=badObj)
+
+
+    def test_unused_issuer(self):
+        """
+        The C{issuer} parameter to L{X509Extension} may be provided for an
+        extension which does not use it and is ignored in this case.
+        """
+        ext1 = X509Extension('basicConstraints', False, 'CA:TRUE', issuer=self.x509)
+        self.x509.add_extensions([ext1])
+        self.x509.sign(self.pkey, 'sha1')
+        text = dump_certificate(FILETYPE_TEXT, self.x509)
+        self.assertTrue('X509v3 Basic Constraints:' in text)
+        self.assertTrue('CA:TRUE' in text)
+
+
+    def test_issuer(self):
+        """
+        If an extension requires a issuer, the C{issuer} parameter to
+        L{X509Extension} provides its value.
+        """
+        ext2 = X509Extension(
+            'authorityKeyIdentifier', False, 'issuer:always',
+            issuer=self.x509)
+        self.x509.add_extensions([ext2])
+        self.x509.sign(self.pkey, 'sha1')
+        text = dump_certificate(FILETYPE_TEXT, self.x509)
+        self.assertTrue('X509v3 Authority Key Identifier:' in text)
+        self.assertTrue('DirName:/CN=Yoda root CA' in text)
+
+
+    def test_missing_issuer(self):
+        """
+        If an extension requires an issue and the C{issuer} parameter is given
+        no value, something happens.
+        """
+        self.assertRaises(
+            Error,
+            X509Extension,
+            'authorityKeyIdentifier', False, 'keyid:always,issuer:always')
+
+
+    def test_invalid_issuer(self):
+        """
+        If the C{issuer} parameter is given a value which is not an L{X509}
+        instance, L{TypeError} is raised.
+        """
+        for badObj in [True, object(), "hello", [], self]:
+            self.assertRaises(
+                TypeError,
+                X509Extension,
+                'authorityKeyIdentifier', False, 'keyid:always,issuer:always',
+                issuer=badObj)
 
 
 
