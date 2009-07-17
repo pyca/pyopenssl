@@ -17,12 +17,9 @@ from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT
 from OpenSSL.crypto import dump_certificate, load_certificate_request
 from OpenSSL.crypto import dump_certificate_request, dump_privatekey
 from OpenSSL.crypto import PKCS7Type, load_pkcs7_data
-from OpenSSL.crypto import PKCS12Type, load_pkcs12
+from OpenSSL.crypto import PKCS12Type, load_pkcs12, PKCS12
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.test.util import TestCase
-
-from OpenSSL.crypto import load_pkcs12, PKCS12
-from subprocess import Popen, PIPE
 
 cleartextCertificatePEM = """-----BEGIN CERTIFICATE-----
 MIIC7TCCAlagAwIBAgIIPQzE4MbeufQwDQYJKoZIhvcNAQEFBQAwWDELMAkGA1UE
@@ -774,8 +771,7 @@ class PKCS12Tests(TestCase):
         from OpenSSL.test.test_ssl import client_cert_pem, client_key_pem, server_cert_pem, server_key_pem, root_cert_pem
         passwd = 'whatever'
         pem = client_key_pem + client_cert_pem
-        p12_str = Popen(["openssl", "pkcs12", '-export', '-clcerts', '-passout', 'pass:'+passwd], \
-           stdin=PIPE, stdout=PIPE).communicate(input=str(pem))[0]
+        p12_str = _runopenssl(pem, "pkcs12", '-export', '-clcerts', '-passout', 'pass:'+passwd)
         p12 = load_pkcs12(p12_str, passwd)
         # verify p12 using pkcs12 get_* functions
         cert_pem = dump_certificate(FILETYPE_PEM, p12.get_certificate())
@@ -785,11 +781,9 @@ class PKCS12Tests(TestCase):
         self.assertEqual(None, p12.get_ca_certificates())
         # dump cert and verify it using the openssl program
         dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=0, friendly_name='blueberry')
-        recovered_key = Popen(["openssl", "pkcs12", '-nocerts', '-nodes', '-passin', 'pass:'+passwd ], \
-           stdin=PIPE, stdout=PIPE).communicate(input=str(dumped_p12))[0]
+        recovered_key = _runopenssl(dumped_p12, "pkcs12", '-nocerts', '-nodes', '-passin', 'pass:'+passwd)
         self.assertEqual(recovered_key[-len(client_key_pem):], client_key_pem)
-        recovered_cert = Popen(["openssl", "pkcs12", '-clcerts', '-nodes', '-passin', 'pass:'+passwd, '-nokeys' ], \
-           stdin=PIPE, stdout=PIPE).communicate(input=str(dumped_p12))[0]
+        recovered_cert = _runopenssl(dumped_p12, "pkcs12", '-clcerts', '-nodes', '-passin', 'pass:'+passwd, '-nokeys')
         self.assertEqual(recovered_cert[-len(client_cert_pem):], client_cert_pem)
         # change the cert and key
         p12.set_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
@@ -801,26 +795,20 @@ class PKCS12Tests(TestCase):
         self.assertEqual(root_cert, p12.get_ca_certificates()[0])
         # recover changed cert and key using the openssl program
         dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=0, friendly_name='Serverlicious')
-        recovered_key = Popen(["openssl", "pkcs12", '-nocerts', '-nodes', '-passin', 'pass:'+passwd ], \
-           stdin=PIPE, stdout=PIPE).communicate(input=str(dumped_p12))[0]
+        recovered_key = _runopenssl(dumped_p12, "pkcs12", '-nocerts', '-nodes', '-passin', 'pass:'+passwd)
         self.assertEqual(recovered_key[-len(server_key_pem):], server_key_pem)
-        recovered_cert = Popen(["openssl", "pkcs12", '-clcerts', '-nodes', '-passin', 'pass:'+passwd, '-nokeys' ], \
-           stdin=PIPE, stdout=PIPE).communicate(input=str(dumped_p12))[0]
+        recovered_cert = _runopenssl(dumped_p12, "pkcs12", '-clcerts', '-nodes', '-passin', 'pass:'+passwd, '-nokeys')
         self.assertEqual(recovered_cert[-len(server_cert_pem):], server_cert_pem)
-        recovered_cert = Popen(["openssl", "pkcs12", '-cacerts', '-nodes', '-passin', 'pass:'+passwd, '-nokeys' ], \
-           stdin=PIPE, stdout=PIPE).communicate(input=str(dumped_p12))[0]
+        recovered_cert = _runopenssl(dumped_p12, "pkcs12", '-cacerts', '-nodes', '-passin', 'pass:'+passwd, '-nokeys')
         self.assertEqual(recovered_cert[-len(root_cert_pem):], root_cert_pem)
         #  Test other forms of no password
         passwd = ''
         dumped_p12_empty = p12.export(passphrase=passwd, iter=2, maciter=0, friendly_name='Sewer')
         dumped_p12_none  = p12.export(passphrase=None,   iter=2, maciter=0, friendly_name='Sewer')
         dumped_p12_nopw  = p12.export(                   iter=2, maciter=0, friendly_name='Sewer')
-        recovered_empty = Popen(["openssl", "pkcs12", '-nodes', '-passin', 'pass:'+passwd ], \
-           stdin=PIPE, stdout=PIPE).communicate(input=str(dumped_p12_empty))[0]
-        recovered_none  = Popen(["openssl", "pkcs12", '-nodes', '-passin', 'pass:'+passwd ], \
-           stdin=PIPE, stdout=PIPE).communicate(input=str(dumped_p12_none))[0]
-        recovered_nopw  = Popen(["openssl", "pkcs12", '-nodes', '-passin', 'pass:'+passwd ], \
-           stdin=PIPE, stdout=PIPE).communicate(input=str(dumped_p12_nopw))[0]
+        recovered_empty = _runopenssl(dumped_p12_empty, "pkcs12", '-nodes', '-passin', 'pass:'+passwd )
+        recovered_none  = _runopenssl(dumped_p12_none, "pkcs12", '-nodes', '-passin', 'pass:'+passwd )
+        recovered_nopw  = _runopenssl(dumped_p12_nopw, "pkcs12", '-nodes', '-passin', 'pass:'+passwd )
         self.assertEqual(recovered_none, recovered_nopw)
         self.assertEqual(recovered_none, recovered_empty)
         #  Test removing CA certs
@@ -828,15 +816,13 @@ class PKCS12Tests(TestCase):
         self.assertEqual(None, p12.get_ca_certificates())
         #  Test without MAC
         dumped_p12 = p12.export(maciter=-1, passphrase=passwd, iter=2)
-        recovered_key = Popen(["openssl", "pkcs12", '-nocerts', '-nodes', '-passin', 'pass:'+passwd, '-nomacver' ], \
-           stdin=PIPE, stdout=PIPE).communicate(input=str(dumped_p12))[0]
+        recovered_key = _runopenssl(dumped_p12, "pkcs12", '-nocerts', '-nodes', '-passin', 'pass:'+passwd, '-nomacver' )
         self.assertEqual(recovered_key[-len(server_key_pem):], server_key_pem)
         #  We can't load PKCS12 without MAC, because we use PCKS_parse()
         #p12 = load_pkcs12(dumped_p12, passwd)
         # Test export without any args
         dumped_p12 = p12.export()
-        recovered_key = Popen(["openssl", "pkcs12", '-nodes', '-passin', 'pass:' ], \
-           stdin=PIPE, stdout=PIPE).communicate(input=str(dumped_p12))[0]
+        recovered_key = _runopenssl(dumped_p12, "pkcs12", '-nodes', '-passin', 'pass:' )
         self.assertEqual(recovered_key[-len(server_key_pem):], server_key_pem)
 
 
@@ -859,6 +845,18 @@ class PKCS12Tests(TestCase):
         self.assertEqual(
             cert.digest("md5"),
             "A8:EB:07:F8:53:25:0A:F2:56:05:C5:A5:C4:C4:C7:15")
+
+
+
+def _runopenssl(pem, *args):
+    """
+    Run the command line openssl tool with the given arguments and write
+    the given PEM to its stdin.
+    """
+    write, read = popen2(" ".join(("openssl",) + args), "b")
+    write.write(pem)
+    write.close()
+    return read.read()
 
 
 
@@ -931,17 +929,6 @@ class FunctionTests(TestCase):
         self.assertEqual(loadedKey.bits(), key.bits())
 
 
-    def _runopenssl(self, pem, *args):
-        """
-        Run the command line openssl tool with the given arguments and write
-        the given PEM to its stdin.
-        """
-        write, read = popen2(" ".join(("openssl",) + args), "b")
-        write.write(pem)
-        write.close()
-        return read.read()
-
-
     def test_dump_certificate(self):
         """
         L{dump_certificate} writes PEM, DER, and text.
@@ -951,13 +938,13 @@ class FunctionTests(TestCase):
         dumped_pem = dump_certificate(FILETYPE_PEM, cert)
         self.assertEqual(dumped_pem, cleartextCertificatePEM)
         dumped_der = dump_certificate(FILETYPE_ASN1, cert)
-        good_der = self._runopenssl(dumped_pem, "x509", "-outform", "DER")
+        good_der = _runopenssl(dumped_pem, "x509", "-outform", "DER")
         self.assertEqual(dumped_der, good_der)
         cert2 = load_certificate(FILETYPE_ASN1, dumped_der)
         dumped_pem2 = dump_certificate(FILETYPE_PEM, cert2)
         self.assertEqual(dumped_pem2, cleartextCertificatePEM)
         dumped_text = dump_certificate(FILETYPE_TEXT, cert)
-        good_text = self._runopenssl(dumped_pem, "x509", "-noout", "-text")
+        good_text = _runopenssl(dumped_pem, "x509", "-noout", "-text")
         self.assertEqual(dumped_text, good_text)
 
 
@@ -970,13 +957,13 @@ class FunctionTests(TestCase):
         self.assertEqual(dumped_pem, cleartextPrivateKeyPEM)
         dumped_der = dump_privatekey(FILETYPE_ASN1, key)
         # XXX This OpenSSL call writes "writing RSA key" to standard out.  Sad.
-        good_der = self._runopenssl(dumped_pem, "rsa", "-outform", "DER")
+        good_der = _runopenssl(dumped_pem, "rsa", "-outform", "DER")
         self.assertEqual(dumped_der, good_der)
         key2 = load_privatekey(FILETYPE_ASN1, dumped_der)
         dumped_pem2 = dump_privatekey(FILETYPE_PEM, key2)
         self.assertEqual(dumped_pem2, cleartextPrivateKeyPEM)
         dumped_text = dump_privatekey(FILETYPE_TEXT, key)
-        good_text = self._runopenssl(dumped_pem, "rsa", "-noout", "-text")
+        good_text = _runopenssl(dumped_pem, "rsa", "-noout", "-text")
         self.assertEqual(dumped_text, good_text)
 
 
@@ -988,13 +975,13 @@ class FunctionTests(TestCase):
         dumped_pem = dump_certificate_request(FILETYPE_PEM, req)
         self.assertEqual(dumped_pem, cleartextCertificateRequestPEM)
         dumped_der = dump_certificate_request(FILETYPE_ASN1, req)
-        good_der = self._runopenssl(dumped_pem, "req", "-outform", "DER")
+        good_der = _runopenssl(dumped_pem, "req", "-outform", "DER")
         self.assertEqual(dumped_der, good_der)
         req2 = load_certificate_request(FILETYPE_ASN1, dumped_der)
         dumped_pem2 = dump_certificate_request(FILETYPE_PEM, req2)
         self.assertEqual(dumped_pem2, cleartextCertificateRequestPEM)
         dumped_text = dump_certificate_request(FILETYPE_TEXT, req)
-        good_text = self._runopenssl(dumped_pem, "req", "-noout", "-text")
+        good_text = _runopenssl(dumped_pem, "req", "-noout", "-text")
         self.assertEqual(dumped_text, good_text)
 
 
