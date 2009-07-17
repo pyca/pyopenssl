@@ -75,22 +75,36 @@ static PyMethodDef crypto_X509Extension_methods[] =
  * Returns:   The newly created X509Extension object
  */
 crypto_X509ExtensionObj *
-crypto_X509Extension_New(char *type_name, int critical, char *value, 
+crypto_X509Extension_New(char *type_name, int critical, char *value,
                          crypto_X509Obj *subject, crypto_X509Obj  *issuer)
 {
     X509V3_CTX ctx;
     crypto_X509ExtensionObj *self;
     char* value_with_critical = NULL;
 
+    /*
+     * Initialize most of the fields to NULL.
+     */
+    X509V3_set_ctx(&ctx, NULL, NULL, NULL, NULL, 0);
+
     /* We have no configuration database - but perhaps we should.  Anyhow, the
      * context is necessary for any extension which uses the r2i conversion
-     * method.  That is, X509V3_EXT_nconf may segfault if passed a NULL ctx. */
-    X509V3_set_ctx(&ctx, NULL, NULL, NULL, NULL, 0);
+     * method.  That is, X509V3_EXT_nconf may segfault if passed a NULL ctx.
+     */
     X509V3_set_ctx_nodb(&ctx);
-    if(subject)
+
+    /*
+     * Initialize the subject and issuer, if appropriate.  ctx is a local, and
+     * as far as I can tell none of the X509V3_* APIs invoked here steal any
+     * references, so no need to incref subject or issuer.
+     */
+    if (subject) {
             ctx.subject_cert = subject->x509;
-    if(issuer)
+    }
+
+    if (issuer) {
             ctx.issuer_cert = issuer->x509;
+    }
 
     self = PyObject_New(crypto_X509ExtensionObj, &crypto_X509Extension_Type);
 
