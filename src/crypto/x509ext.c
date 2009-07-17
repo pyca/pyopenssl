@@ -72,19 +72,43 @@ static PyMethodDef crypto_X509Extension_methods[] =
  * Arguments: type_name - ???
  *            critical  - ???
  *            value     - ???
+ *            subject   - An x509v3 certificate which is the subject for this extension.
+ *            issuer    - An x509v3 certificate which is the issuer for this extension.
  * Returns:   The newly created X509Extension object
  */
 crypto_X509ExtensionObj *
-crypto_X509Extension_New(char *type_name, int critical, char *value)
-{
+crypto_X509Extension_New(char *type_name, int critical, char *value,
+                         crypto_X509Obj *subject, crypto_X509Obj  *issuer) {
     X509V3_CTX ctx;
     crypto_X509ExtensionObj *self;
     char* value_with_critical = NULL;
 
-    /* We have no configuration database - but perhaps we should.  Anyhow, the
-     * context is necessary for any extension which uses the r2i conversion
-     * method.  That is, X509V3_EXT_nconf may segfault if passed a NULL ctx. */
+
+    /*
+     * A context is necessary for any extension which uses the r2i conversion
+     * method.  That is, X509V3_EXT_nconf may segfault if passed a NULL ctx.
+     * Start off by initializing most of the fields to NULL.
+     */
+    X509V3_set_ctx(&ctx, NULL, NULL, NULL, NULL, 0);
+
+    /*
+     * We have no configuration database - but perhaps we should (some
+     * extensions may require it).
+     */
     X509V3_set_ctx_nodb(&ctx);
+
+    /*
+     * Initialize the subject and issuer, if appropriate.  ctx is a local, and
+     * as far as I can tell none of the X509V3_* APIs invoked here steal any
+     * references, so no need to incref subject or issuer.
+     */
+    if (subject) {
+            ctx.subject_cert = subject->x509;
+    }
+
+    if (issuer) {
+            ctx.issuer_cert = issuer->x509;
+    }
 
     self = PyObject_New(crypto_X509ExtensionObj, &crypto_X509Extension_Type);
 
@@ -137,27 +161,40 @@ crypto_X509Extension_New(char *type_name, int critical, char *value)
 }
 
 static char crypto_X509Extension_doc[] = "\n\
-X509Extension(typename, critical, value) -> X509Extension instance\n\
+X509Extension(typename, critical, value[, subject][, issuer]) -> \n\
+                X509Extension instance\n\
 \n\
 @param typename: The name of the extension to create.\n\
 @type typename: C{str}\n\
 @param critical: A flag indicating whether this is a critical extension.\n\
 @param value: The value of the extension.\n\
 @type value: C{str}\n\
+@param subject: Optional X509 cert to use as subject.\n\
+@type subject: C{X509}\n\
+@param issuer: Optional X509 cert to use as issuer.\n\
+@type issuer: C{X509}\n\
 @return: The X509Extension object\n\
 ";
 
 static PyObject *
-crypto_X509Extension_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs) {
+crypto_X509Extension_new(PyTypeObject *subtype, PyObject *args,
+                         PyObject *kwargs) {
     char *type_name, *value;
-    int critical;
+    int critical = 0;
+    crypto_X509Obj * subject = NULL;
+    crypto_X509Obj * issuer = NULL;
+    static char *kwlist[] = {"type_name", "critical", "value", "subject",
+                             "issuer", NULL};
 
-    if (!PyArg_ParseTuple(args, "sis:X509Extension", &type_name, &critical,
-                          &value)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sis|O!O!:X509Extension",
+                                     kwlist, &type_name, &critical, &value,
+                                     &crypto_X509_Type, &subject,
+                                     &crypto_X509_Type, &issuer )) {
         return NULL;
     }
 
-    return (PyObject *)crypto_X509Extension_New(type_name, critical, value);
+    return (PyObject *)crypto_X509Extension_New(type_name, critical, value,
+                                                subject, issuer);
 }
 
 /*
