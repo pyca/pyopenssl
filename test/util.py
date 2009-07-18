@@ -118,3 +118,22 @@ class TestCase(TestCase):
 
     def assertFalse(self, *a, **kw):
         return self.failIf(*a, **kw)
+
+
+    # Other stuff
+    def assertConsistentType(self, theType, name, *constructionArgs):
+        """
+        Perform various assertions about C{theType} to ensure that it is a
+        well-defined type.  This is useful for extension types, where it's
+        pretty easy to do something wacky.  If something about the type is
+        unusual, an exception will be raised.
+
+        @param theType: The type object about which to make assertions.
+        @param name: A string giving the name of the type.
+        @param constructionArgs: Positional arguments to use with C{theType} to
+            create an instance of it.
+        """
+        self.assertEqual(theType.__name__, name)
+        self.assertTrue(isinstance(theType, type))
+        instance = theType(*constructionArgs)
+        self.assertIdentical(type(instance), theType)

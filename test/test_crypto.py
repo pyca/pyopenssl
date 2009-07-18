@@ -174,7 +174,6 @@ Ho4EzbYCOaEAMQA=
 """
 
 
-
 class X509ExtTests(TestCase):
     """
     Tests for L{OpenSSL.crypto.X509Extension}.
@@ -201,6 +200,16 @@ class X509ExtTests(TestCase):
         expire  = (datetime.now() + timedelta(days=100)).strftime("%Y%m%d%H%M%SZ")
         self.x509.set_notBefore(now)
         self.x509.set_notAfter(expire)
+
+
+    def test_type(self):
+        """
+        L{X509Extension} and L{X509ExtensionType} refer to the same type object
+        and can be used to create instances of that type.
+        """
+        self.assertIdentical(X509Extension, X509ExtensionType)
+        self.assertConsistentType(
+            X509Extension, 'X509Extension', 'basicConstraints', True, 'CA:true')
 
 
     def test_construction(self):
@@ -366,9 +375,18 @@ class PKeyTests(TestCase):
     """
     Unit tests for L{OpenSSL.crypto.PKey}.
     """
+    def test_type(self):
+        """
+        L{PKey} and L{PKeyType} refer to the same type object and can be used
+        to create instances of that type.
+        """
+        self.assertIdentical(PKey, PKeyType)
+        self.assertConsistentType(PKey, 'PKey')
+
+
     def test_construction(self):
         """
-        L{PKey} takes no arguments and returns a new L{PKeyType} instance.
+        L{PKey} takes no arguments and returns a new L{PKey} instance.
         """
         self.assertRaises(TypeError, PKey, None)
         key = PKey()
@@ -475,6 +493,21 @@ class X509NameTests(TestCase):
         for k, v in attrs:
             setattr(name, k, v)
         return name
+
+
+    def test_type(self):
+        """
+        The type of X509Name objects is L{X509NameType}.
+        """
+        self.assertIdentical(X509Name, X509NameType)
+        self.assertEqual(X509NameType.__name__, 'X509Name')
+        self.assertTrue(isinstance(X509NameType, type))
+
+        name = self._x509name()
+        self.assertTrue(
+            isinstance(name, X509NameType),
+            "%r is of type %r, should be %r" % (
+                name, type(name), X509NameType))
 
 
     def test_attributes(self):
@@ -688,6 +721,15 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
         return X509Req()
 
 
+    def test_type(self):
+        """
+        L{X509Req} and L{X509ReqType} refer to the same type object and can be
+        used to create instances of that type.
+        """
+        self.assertIdentical(X509Req, X509ReqType)
+        self.assertConsistentType(X509Req, 'X509Req')
+
+
     def test_construction(self):
         """
         L{X509Req} takes no arguments and returns an L{X509ReqType} instance.
@@ -744,6 +786,15 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         return X509()
 
 
+    def test_type(self):
+        """
+        L{X509} and L{X509Type} refer to the same type object and can be used
+        to create instances of that type.
+        """
+        self.assertIdentical(X509, X509Type)
+        self.assertConsistentType(X509, 'X509')
+
+
     def test_construction(self):
         """
         L{X509} takes no arguments and returns an instance of L{X509Type}.
@@ -754,6 +805,10 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
             "%r is of type %r, should be %r" % (certificate,
                                                 type(certificate),
                                                 X509Type))
+        self.assertEqual(type(X509Type).__name__, 'type')
+        self.assertEqual(type(certificate).__name__, 'X509')
+        self.assertEqual(type(certificate), X509Type)
+        self.assertEqual(type(certificate), X509)
 
 
     def test_serial_number(self):
@@ -1034,10 +1089,51 @@ class FunctionTests(TestCase):
 
 
 
+class PKCS7Tests(TestCase):
+    """
+    Tests for L{PKCS7Type}.
+    """
+    def test_type(self):
+        """
+        L{PKCS7Type} is a type object.
+        """
+        self.assertTrue(isinstance(PKCS7Type, type))
+        self.assertEqual(PKCS7Type.__name__, 'PKCS7')
+
+        # XXX This doesn't currently work.
+        # self.assertIdentical(PKCS7, PKCS7Type)
+
+
+
+class PKCS12Tests(TestCase):
+    """
+    Tests for L{PKCS12Type}.
+    """
+    def test_type(self):
+        """
+        L{PKCS12Type} is a type object.
+        """
+        self.assertTrue(isinstance(PKCS12Type, type))
+        self.assertEqual(PKCS12Type.__name__, 'PKCS12')
+
+        # XXX This doesn't currently work.
+        # self.assertIdentical(PKCS12, PKCS12Type)
+
+
+
 class NetscapeSPKITests(TestCase):
     """
     Tests for L{OpenSSL.crypto.NetscapeSPKI}.
     """
+    def test_type(self):
+        """
+        L{NetscapeSPKI} and L{NetscapeSPKIType} refer to the same type object
+        and can be used to create instances of that type.
+        """
+        self.assertIdentical(NetscapeSPKI, NetscapeSPKIType)
+        self.assertConsistentType(NetscapeSPKI, 'NetscapeSPKI')
+
+
     def test_construction(self):
         """
         L{NetscapeSPKI} returns an instance of L{NetscapeSPKIType}.

@@ -11,9 +11,9 @@ from os.path import join
 from unittest import main
 
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, PKey, dump_privatekey, load_certificate, load_privatekey
-from OpenSSL.SSL import WantReadError, Context, Connection, Error
+from OpenSSL.SSL import WantReadError, Context, ContextType, Connection, ConnectionType, Error
 from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
-from OpenSSL.SSL import OP_NO_SSLv2, OP_NO_SSLv3, OP_SINGLE_DH_USE 
+from OpenSSL.SSL import OP_NO_SSLv2, OP_NO_SSLv3, OP_SINGLE_DH_USE
 from OpenSSL.SSL import VERIFY_PEER, VERIFY_FAIL_IF_NO_PEER_CERT, VERIFY_CLIENT_ONCE
 from OpenSSL.test.util import TestCase
 from OpenSSL.test.test_crypto import cleartextCertificatePEM, cleartextPrivateKeyPEM
@@ -33,8 +33,7 @@ except ImportError:
 
 def socket_pair():
     """
-    Establish and return a pair of network sockets connected 
-    to each other.
+    Establish and return a pair of network sockets connected to each other.
     """
     # Connect a pair of sockets
     port = socket()
@@ -75,6 +74,15 @@ class ContextTests(TestCase):
             Context(meth)
         self.assertRaises(TypeError, Context, "")
         self.assertRaises(ValueError, Context, 10)
+
+
+    def test_type(self):
+        """
+        L{Context} and L{ContextType} refer to the same type object and can be
+        used to create instances of that type.
+        """
+        self.assertIdentical(Context, ContextType)
+        self.assertConsistentType(Context, 'Context', TLSv1_METHOD)
 
 
     def test_use_privatekey(self):
@@ -269,6 +277,34 @@ class ContextTests(TestCase):
         self.assertRaises(TypeError, context.set_default_verify_paths, None)
         self.assertRaises(TypeError, context.set_default_verify_paths, 1)
         self.assertRaises(TypeError, context.set_default_verify_paths, "")
+
+
+
+class ConnectionTests(TestCase):
+    """
+    Unit tests for L{OpenSSL.SSL.Connection}.
+    """
+    def test_type(self):
+        """
+        L{Connection} and L{ConnectionType} refer to the same type object and
+        can be used to create instances of that type.
+        """
+        self.assertIdentical(Connection, ConnectionType)
+        ctx = Context(TLSv1_METHOD)
+        self.assertConsistentType(Connection, 'Connection', ctx, None)
+
+
+
+class ErrorTests(TestCase):
+    """
+    Unit tests for L{OpenSSL.SSL.Error}.
+    """
+    def test_type(self):
+        """
+        L{Error} is an exception type.
+        """
+        self.assertTrue(issubclass(Error, Exception))
+        self.assertEqual(Error.__name__, 'Error')
 
 
 
