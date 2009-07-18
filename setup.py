@@ -15,8 +15,9 @@ import sys, os
 from distutils.core import Extension, setup
 
 print "DEBUG:"
-for name in os.listdir("C:\\OpenSSL\\lib\\MinGW"):
-    print name, os.stat(name).st_size
+d = "C:\\OpenSSL\\lib\\MinGW"
+for name in os.listdir(d):
+    print os.path.join(d, name), os.stat(os.path.join(d, name)).st_size
 
 from glob import glob
 
