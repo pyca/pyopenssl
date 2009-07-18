@@ -59,9 +59,7 @@ crypto_PKCS12_set_certificate(crypto_PKCS12Obj *self, PyObject *args, PyObject *
     }
 
     Py_INCREF(cert);  /* Make consistent before calling Py_DECREF() */
-    if(self->cert) {
-        Py_DECREF(self->cert);
-    }
+    Py_DECREF(self->cert);
     self->cert = cert;
 
     Py_INCREF(Py_None);
@@ -106,9 +104,7 @@ crypto_PKCS12_set_privatekey(crypto_PKCS12Obj *self, PyObject *args, PyObject *k
     }
 
     Py_INCREF(pkey);  /* Make consistent before calling Py_DECREF() */
-    if(self->key) {
-        Py_DECREF(self->key);
-    }
+    Py_DECREF(self->key);
     self->key = pkey;
 
     Py_INCREF(Py_None);
@@ -167,9 +163,7 @@ crypto_PKCS12_set_ca_certificates(crypto_PKCS12Obj *self, PyObject *args, PyObje
     }
 
     Py_INCREF(cacerts); /* Make consistent before calling Py_DECREF() */
-    if(self->cacerts) {
-        Py_DECREF(self->cacerts);
-    }
+    Py_DECREF(self->cacerts);
     self->cacerts = cacerts;
 
     Py_INCREF(Py_None);
@@ -209,14 +203,14 @@ crypto_PKCS12_export(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
         kwlist, &passphrase, &friendly_name, &iter, &maciter))
         return NULL;
 
-    if (self->key && self->key != Py_None) {
+    if (self->key != Py_None) {
         pkey = ((crypto_PKeyObj*) self->key)->pkey;
     }
-    if (self->cert && self->cert != Py_None) {
+    if (self->cert != Py_None) {
         x509 = ((crypto_X509Obj*) self->cert)->x509;
     }
     cacerts = sk_X509_new_null();
-    if (self->cacerts && self->cacerts != Py_None) {
+    if (self->cacerts != Py_None) {
         int i; /* Py_ssize_t for Python 2.5+ */
         PyObject *obj;
         for(i = 0;i < PySequence_Length(self->cacerts);i++) {  /* For each CA cert */
@@ -299,8 +293,6 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
     if (!(self = PyObject_GC_New(crypto_PKCS12Obj, &crypto_PKCS12_Type)))
         return NULL;
 
-    self->cert = NULL;
-    self->key = NULL;
     Py_INCREF(Py_None);
     self->cacerts = Py_None;
 

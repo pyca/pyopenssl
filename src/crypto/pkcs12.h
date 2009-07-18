@@ -22,8 +22,8 @@ extern  PyTypeObject      crypto_PKCS12_Type;
 
 typedef struct {
     PyObject_HEAD
-    PyObject            *cert;
-    PyObject            *key;
+    PyObject            *cert;  /* never NULL */
+    PyObject            *key;   /* never NULL */
     PyObject            *cacerts;
 } crypto_PKCS12Obj;
 
