@@ -14,7 +14,9 @@ Installation script for the OpenSSL module
 import sys, os
 from distutils.core import Extension, setup
 
-print "DEBUG:", os.listdir("C:\\OpenSSL\\lib\\MinGW")
+print "DEBUG:"
+for name in os.listdir("C:\\OpenSSL\\lib\\MinGW"):
+    print name, os.stat(name).st_size
 
 from glob import glob
 
