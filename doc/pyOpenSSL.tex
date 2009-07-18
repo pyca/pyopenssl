@@ -262,7 +262,8 @@ Load pkcs7 data from the string \var{buffer} encoded with the type \var{type}.
 
 \begin{funcdesc}{load_pkcs12}{buffer\optional{, passphrase}}
 Load pkcs12 data from the string \var{buffer}. If the pkcs12 structure is
-encrypted, a \var{passphrase} must be included.
+encrypted, a \var{passphrase} must be included.  The MAC is always
+checked and thus required.
 \end{funcdesc}
 
 \subsubsection{X509 objects \label{openssl-x509}}
