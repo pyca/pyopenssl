@@ -43,7 +43,7 @@ Replace the certificate portion of the PKCS12 structure\n\
 @type cert: L{X509}\n\
 @return: X509 object containing the certificate\n\
 ";
-static crypto_PKCS12Obj *
+static PyObject *
 crypto_PKCS12_set_certificate(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
 {
     PyObject *cert = NULL;
@@ -64,8 +64,8 @@ crypto_PKCS12_set_certificate(crypto_PKCS12Obj *self, PyObject *args, PyObject *
     }
     self->cert = cert;
 
-    Py_INCREF(self);
-    return self;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 static char crypto_PKCS12_get_privatekey_doc[] = "\n\
@@ -73,7 +73,6 @@ Return private key portion of the PKCS12 structure\n\
 \n\
 @returns: PKey object containing the private key\n\
 ";
-//static PyObject *
 static crypto_PKeyObj *
 crypto_PKCS12_get_privatekey(crypto_PKCS12Obj *self, PyObject *args)
 {
@@ -91,7 +90,7 @@ Replace or set the certificate portion of the PKCS12 structure\n\
 @type pkey: L{PKey}\n\
 @return: None\n\
 ";
-static crypto_PKCS12Obj *
+static PyObject *
 crypto_PKCS12_set_privatekey(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
 {
     PyObject *pkey = NULL;
@@ -112,8 +111,8 @@ crypto_PKCS12_set_privatekey(crypto_PKCS12Obj *self, PyObject *args, PyObject *k
     }
     self->key = pkey;
 
-    Py_INCREF(self);
-    return self;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 static char crypto_PKCS12_get_ca_certificates_doc[] = "\n\
@@ -139,7 +138,7 @@ Replace or set the CA certificates withing the PKCS12 object.\n\
 @type cacerts: Sequence of L{X509}\n\
 @return: None\n\
 ";
-static crypto_PKCS12Obj *
+static PyObject *
 crypto_PKCS12_set_ca_certificates(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
 {
     PyObject *cacerts;
@@ -173,8 +172,8 @@ crypto_PKCS12_set_ca_certificates(crypto_PKCS12Obj *self, PyObject *args, PyObje
     }
     self->cacerts = cacerts;
 
-    Py_INCREF(self);
-    return self;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 static char crypto_PKCS12_export_doc[] = "\n\

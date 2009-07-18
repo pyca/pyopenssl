@@ -708,6 +708,29 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         cert = load_certificate(FILETYPE_PEM, self.pemData)
         self.assertEqual(cert.get_notBefore(), "20090325123658Z")
 
+
+    def test_get_notAfter(self):
+        """
+        L{X509Type.get_notAfter} returns a string in the format of an ASN1
+        GENERALIZEDTIME even for certificates which store it as UTCTIME
+        internally.
+        """
+        cert = load_certificate(FILETYPE_PEM, self.pemData)
+        self.assertEqual(cert.get_notAfter(), "20170611123658Z")
+
+
+    def test_digest(self):
+        """
+        L{X509.digest} returns a string giving ":"-separated hex-encoded words
+        of the digest of the certificate.
+        """
+        cert = X509()
+        self.assertEqual(
+            cert.digest("md5"),
+            "A8:EB:07:F8:53:25:0A:F2:56:05:C5:A5:C4:C4:C7:15")
+
+
+
 class PKCS12Tests(TestCase):
     """
     Tests functions in the L{OpenSSL.crypto.PKCS12} module.
@@ -715,12 +738,22 @@ class PKCS12Tests(TestCase):
     pemData = cleartextCertificatePEM + cleartextPrivateKeyPEM
 
     def test_construction(self):
+        """
+        Confirm L{OpenSSL.crypto.PKCS12} returs a PKCS12.  Confirm
+        that the new PKCS12 is empty.
+        """
         p12 = PKCS12() 
+        self.assertTrue(isinstance(p12, PKCS12))
         self.assertEqual(None, p12.get_certificate())
         self.assertEqual(None, p12.get_privatekey())
         self.assertEqual(None, p12.get_ca_certificates())
 
+
     def test_type_errors(self):
+        """
+        Try the set functions L{OpenSSL.crypto.PKCS12} with bad
+        types to see they raise TypeError.
+        """
         p12 = PKCS12() 
         self.assertRaises(TypeError, p12.set_certificate, 3)
         self.assertRaises(TypeError, p12.set_privatekey, 3)
@@ -728,14 +761,18 @@ class PKCS12Tests(TestCase):
         self.assertRaises(TypeError, p12.set_ca_certificates, X509())
         self.assertRaises(TypeError, p12.set_ca_certificates, (3, 4))
 
+
     def test_key_only(self):
         """
-        L{OpenSSL.crypto.PKCS12.export} and load a PKCS without a key
+        Run L{OpenSSL.crypto.PKCS12.export} and 
+        L{OpenSSL.crypto.load_pkcs12} without any certs, only
+        a private key.
         """
         passwd = 'blah'
         p12 = PKCS12()
         pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM) 
-        p12.set_privatekey( pkey )
+        ret = p12.set_privatekey( pkey )
+        self.assertEqual(ret, None)
         self.assertEqual(None, p12.get_certificate())
         self.assertEqual(pkey, p12.get_privatekey())
         dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=3)
@@ -745,15 +782,18 @@ class PKCS12Tests(TestCase):
         #  It's actually in the pkcs12, but we silently don't find it (a key without a cert)
         #self.assertEqual(cleartextPrivateKeyPEM, dump_privatekey(FILETYPE_PEM, p12.get_privatekey()))
 
+
     def test_cert_only(self):
         """
-        L{OpenSSL.crypto.PKCS12.export} and load a PKCS without a key.
+        Run L{OpenSSL.crypto.PKCS12.export} and 
+        L{OpenSSL.crypto.load_pkcs12} without a private key.
         Strangely, OpenSSL converts it to a CA cert.
         """
         passwd = 'blah'
         p12 = PKCS12()
         cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM) 
-        p12.set_certificate( cert )
+        ret = p12.set_certificate( cert )
+        self.assertEqual(ret, None)
         self.assertEqual(cert, p12.get_certificate())
         self.assertEqual(None, p12.get_privatekey())
         dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=3)
@@ -765,10 +805,10 @@ class PKCS12Tests(TestCase):
 
     def test_export_and_load(self):
         """
-        L{OpenSSL.crypto.PKCS12.export} and others
+        This monster will be divided up.
         """
-        # use openssl program to create a p12 then load it
         from OpenSSL.test.test_ssl import client_cert_pem, client_key_pem, server_cert_pem, server_key_pem, root_cert_pem
+        # use openssl program to create a p12 then load it
         passwd = 'whatever'
         pem = client_key_pem + client_cert_pem
         p12_str = _runopenssl(pem, "pkcs12", '-export', '-clcerts', '-passout', 'pass:'+passwd)
@@ -790,7 +830,8 @@ class PKCS12Tests(TestCase):
         p12.set_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
         root_cert = load_certificate(FILETYPE_PEM, root_cert_pem) 
         p12.set_ca_certificates( [ root_cert ] )
-        p12.set_ca_certificates( ( root_cert, ) )
+        ret = p12.set_ca_certificates( ( root_cert, ) )
+        self.assertEqual(ret, None)
         self.assertEqual(1, len(p12.get_ca_certificates()))
         self.assertEqual(root_cert, p12.get_ca_certificates()[0])
         # recover changed cert and key using the openssl program
@@ -826,25 +867,13 @@ class PKCS12Tests(TestCase):
         self.assertEqual(recovered_key[-len(server_key_pem):], server_key_pem)
 
 
-    def test_get_notAfter(self):
+    def test_load_pkcs12(self):
         """
-        L{X509Type.get_notAfter} returns a string in the format of an ASN1
-        GENERALIZEDTIME even for certificates which store it as UTCTIME
-        internally.
+        L{load_pkcs12} accepts a PKCS#12 string and returns an instance of
+        L{PKCS12Type}.
         """
-        cert = load_certificate(FILETYPE_PEM, self.pemData)
-        self.assertEqual(cert.get_notAfter(), "20170611123658Z")
-
-
-    def test_digest(self):
-        """
-        L{X509.digest} returns a string giving ":"-separated hex-encoded words
-        of the digest of the certificate.
-        """
-        cert = X509()
-        self.assertEqual(
-            cert.digest("md5"),
-            "A8:EB:07:F8:53:25:0A:F2:56:05:C5:A5:C4:C4:C7:15")
+        pkcs12 = load_pkcs12(pkcs12Data)
+        self.assertTrue(isinstance(pkcs12, PKCS12Type))
 
 
 
@@ -1012,15 +1041,6 @@ class FunctionTests(TestCase):
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertTrue(isinstance(pkcs7, PKCS7Type))
-
-
-    def test_load_pkcs12(self):
-        """
-        L{load_pkcs12} accepts a PKCS#12 string and returns an instance of
-        L{PKCS12Type}.
-        """
-        pkcs12 = load_pkcs12(pkcs12Data)
-        self.assertTrue(isinstance(pkcs12, PKCS12Type))
 
 
 
