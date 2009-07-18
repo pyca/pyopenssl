@@ -14,11 +14,6 @@ Installation script for the OpenSSL module
 import sys, os
 from distutils.core import Extension, setup
 
-print "DEBUG:"
-d = "C:\\OpenSSL\\lib\\MinGW"
-for name in os.listdir(d):
-    print os.path.join(d, name), os.stat(os.path.join(d, name)).st_size
-
 from glob import glob
 
 from version import __version__
@@ -49,7 +44,7 @@ LibraryDirs = None
 if os.name == 'nt' or sys.platform == 'win32':
     Libraries = ['eay32', 'Ws2_32']
     LibraryDirs = ["C:\\OpenSSL\\lib\\MinGW"]
-    ExtraObjects = ["ssleay32"]
+    ExtraObjects = ["C:\\OpenSSL\\lib\\MinGW\\ssleay32.a"]
 else:
     Libraries = ['ssl', 'crypto']
     ExtraObjects = []
