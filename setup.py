@@ -47,7 +47,7 @@ LibraryDirs = None
 
 # Add more platforms here when needed
 if os.name == 'nt' or sys.platform == 'win32':
-    Libraries = ['libeay32', 'ssleay32', 'Ws2_32']
+    Libraries = ['eay32', 'ssleay32', 'Ws2_32']
     LibraryDirs = ["C:\\OpenSSL\\lib\\MinGW"]
     # Try to find it...
     for path in ["C:\\OpenSSL\\lib\\MinGW", "C:\\Python23\\libs",
