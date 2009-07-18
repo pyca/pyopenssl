@@ -47,19 +47,9 @@ LibraryDirs = None
 
 # Add more platforms here when needed
 if os.name == 'nt' or sys.platform == 'win32':
-    Libraries = ['eay32', 'ssleay32', 'Ws2_32']
+    Libraries = ['eay32', 'Ws2_32']
     LibraryDirs = ["C:\\OpenSSL\\lib\\MinGW"]
-    # Try to find it...
-    for path in ["C:\\OpenSSL\\lib\\MinGW", "C:\\Python23\\libs",
-                 "C:\\Python24\\libs", "C:\\Python25\\libs", "C:\\Python26\\libs"]:
-        # The .a is the "export library".  It's the thing we need to link
-        # against to let us use the .dll.
-        ssleay32 = os.path.join(path, "ssleay32.a")
-        if os.path.exists(ssleay32):
-            ExtraObjects = [] # ssleay32]
-            break
-    else:
-        raise SystemExit("Cannot find ssleay32.a, aborting")
+    ExtraObjects = ["ssleay32"]
 else:
     Libraries = ['ssl', 'crypto']
     ExtraObjects = []
@@ -67,16 +57,6 @@ else:
 if sys.platform == 'darwin':
     IncludeDirs = ['/sw/include']
     LibraryDirs = ['/sw/lib']
-
-# On Windows, make sure the necessary .dll's get added to the egg.
-data_files = []
-if sys.platform == 'win32':
-    import ctypes.util
-    libeay32 = ctypes.util.find_library("libeay32")
-    if libeay32 is None:
-        raise SystemExit("Cannot find libeay32.dll, aborting")
-    data_files = [("OpenSSL", [libeay32])]
-
 
 def mkExtension(name):
     modname = 'OpenSSL.' + name
@@ -94,7 +74,6 @@ setup(name='pyOpenSSL', version=__version__,
                      'OpenSSL.version', 'OpenSSL.test.__init__',
                      'OpenSSL.test.test_crypto',
                      'OpenSSL.test.test_ssl'],
-      data_files = data_files,
       description = 'Python wrapper module around the OpenSSL library',
       author = 'Martin Sjögren, AB Strakt',
       author_email = 'msjogren@gmail.com',
