@@ -6,7 +6,7 @@ Unit tests for L{OpenSSL.SSL}.
 
 from sys import platform
 from socket import socket
-from os import makedirs, symlink
+from os import makedirs
 from os.path import join
 from unittest import main
 
@@ -223,14 +223,12 @@ class ContextTests(TestCase):
         """
         capath = self.mktemp()
         makedirs(capath)
-        cafile = join(capath, 'cert.pem')
+        # Hash value computed manually with c_rehash to avoid depending on
+        # c_rehash in the test suite.
+        cafile = join(capath, 'c7adac82.0')
         fObj = file(cafile, 'w')
         fObj.write(cleartextCertificatePEM)
         fObj.close()
-
-        # Hash value computed manually with c_rehash to avoid depending on
-        # c_rehash in the test suite.
-        symlink('cert.pem', join(capath, 'c7adac82.0'))
 
         self._load_verify_locations_test(None, capath)
 
