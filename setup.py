@@ -43,7 +43,6 @@ LibraryDirs = None
 # Add more platforms here when needed
 if os.name == 'nt' or sys.platform == 'win32':
     Libraries = ['Ws2_32']
-    LibraryDirs = ["C:\\OpenSSL\\lib\\MinGW"]
     ExtraObjects = ["C:\\OpenSSL\\lib\\MinGW\\ssleay32.a", "C:\\OpenSSL\\lib\\MinGW\\libeay32.a"]
 else:
     Libraries = ['ssl', 'crypto']
