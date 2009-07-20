@@ -14,6 +14,9 @@ Installation script for the OpenSSL module
 import sys, os
 from distutils.core import Extension, setup
 
+for dirpath, dirnames, filenames in os.walk('.'):
+    print dirpath, dirnames, dirfilenames
+
 from glob import glob
 
 from version import __version__
