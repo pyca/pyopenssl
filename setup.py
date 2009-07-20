@@ -14,6 +14,7 @@ Installation script for the OpenSSL module
 import sys, os
 from distutils.core import Extension, setup
 
+
 from glob import glob
 
 from version import __version__
@@ -42,7 +43,20 @@ LibraryDirs = None
 
 # Add more platforms here when needed
 if os.name == 'nt' or sys.platform == 'win32':
-    Libraries = ['eay32', 'ssl32', 'Ws2_32']
+
+    Libraries = ['Ws2_32']
+    def makeTellMeIf(original, what):
+        class tellMeIf(original):
+            def __init__(*a, **kw):
+                Libraries.extend(what)
+                return original.__init__(*a, **kw)
+        return tellMeIf
+
+    from distutils import cygwinccompiler
+    cygwinccompiler.Mingw32CCompiler = makeTellMeIf(cygwinccompiler.Mingw32CCompiler, ['eay32', 'ssl32'])
+    from distutils import msvccompiler
+    msvccompiler.MSVCCompiler = makeTellMeIf(msvccompiler.MSVCCompiler, ['libeay32', 'ssleay32'])
+
     data_files = [('Lib\\site-packages\\OpenSSL', ['C:\\OpenSSL\\ssleay32.dll', 'C:\\OpenSSL\\libeay32.dll'])]
 else:
     Libraries = ['ssl', 'crypto']
