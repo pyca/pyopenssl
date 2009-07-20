@@ -139,18 +139,21 @@ crypto_PKCS12_set_ca_certificates(crypto_PKCS12Obj *self, PyObject *args, PyObje
 {
     PyObject *cacerts;
     static char *kwlist[] = {"cacerts", NULL};
-    int i; /* Py_ssize_t for Python 2.5+ */
+    int i, len; /* Py_ssize_t for Python 2.5+ */
 
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "O:set_ca_certificates", 
         kwlist, &cacerts))
         return NULL;
     if (cacerts == Py_None) {
         /* We are good. */
-    } else if (PySequence_Check(cacerts)) {  /* is iterable */
+    } else if ((len = PySequence_Length(cacerts)) >= 0) {  /* is iterable */
         /* Check is's a simple list filled only with X509 objects. */
-        for(i = 0;i < PySequence_Length(cacerts);i++) {  /* For each CA cert */
+        for(i = 0;i < len;i++) {  /* For each CA cert */
             PyObject *obj;
             obj = PySequence_GetItem(cacerts, i);
+            if(obj == NULL) {
+                break;
+            }
             if (PyObject_Type(obj) != (PyObject *) &crypto_X509_Type) {
                 Py_DECREF(obj);
                 PyErr_SetString(PyExc_TypeError, "cacerts iterable must only contain X509Type");
