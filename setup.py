@@ -14,9 +14,6 @@ Installation script for the OpenSSL module
 import sys, os
 from distutils.core import Extension, setup
 
-for dirpath, dirnames, filenames in os.walk(os.path.abspath('..')):
-    print dirpath, dirnames, filenames
-
 from glob import glob
 
 from version import __version__
@@ -45,23 +42,19 @@ LibraryDirs = None
 
 # Add more platforms here when needed
 if os.name == 'nt' or sys.platform == 'win32':
-    Libraries = ['Ws2_32']
-    ExtraObjects = ["C:\\OpenSSL\\lib\\MinGW\\ssleay32.a", "C:\\OpenSSL\\lib\\MinGW\\libeay32.a"]
+    Libraries = ['eay32', 'ssl32', 'Ws2_32']
+    data_files = [('Lib\\site-packages\\OpenSSL', ['C:\\OpenSSL\\ssleay32.dll', 'C:\\OpenSSL\\libeay32.dll'])]
 else:
     Libraries = ['ssl', 'crypto']
-    ExtraObjects = []
+    data_files = []
 
-if sys.platform == 'darwin':
-    IncludeDirs = ['/sw/include']
-    LibraryDirs = ['/sw/lib']
 
 def mkExtension(name):
     modname = 'OpenSSL.' + name
     src = globals()[name.lower() + '_src']
     dep = globals()[name.lower() + '_dep']
     return Extension(modname, src, libraries=Libraries, depends=dep,
-                     include_dirs=IncludeDirs, library_dirs=LibraryDirs,
-                     extra_objects=ExtraObjects)
+                     include_dirs=IncludeDirs, library_dirs=LibraryDirs)
 
 setup(name='pyOpenSSL', version=__version__,
       package_dir = {'OpenSSL': '.'},
@@ -71,6 +64,7 @@ setup(name='pyOpenSSL', version=__version__,
                      'OpenSSL.version', 'OpenSSL.test.__init__',
                      'OpenSSL.test.test_crypto',
                      'OpenSSL.test.test_ssl'],
+      data_files = data_files,
       description = 'Python wrapper module around the OpenSSL library',
       author = 'Martin Sjögren, AB Strakt',
       author_email = 'msjogren@gmail.com',
