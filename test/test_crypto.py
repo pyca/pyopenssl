@@ -801,6 +801,7 @@ class PKCS12Tests(TestCase):
         self.assertEqual(None, p12.get_certificate())
         self.assertEqual(None, p12.get_privatekey())
         self.assertEqual(None, p12.get_ca_certificates())
+        self.assertEqual(None, p12.get_friendlyname())
 
 
     def test_type_errors(self):
@@ -819,6 +820,8 @@ class PKCS12Tests(TestCase):
         self.assertRaises(TypeError, p12.set_ca_certificates, X509())
         self.assertRaises(TypeError, p12.set_ca_certificates, (3, 4))
         self.assertRaises(TypeError, p12.set_ca_certificates, ( PKey(), ))
+        self.assertRaises(TypeError, p12.set_friendlyname, 6)
+        self.assertRaises(TypeError, p12.set_friendlyname, ('foo', 'bar'))
 
 
     def test_key_only(self):
@@ -860,7 +863,7 @@ class PKCS12Tests(TestCase):
         self.assertEqual(cleartextCertificatePEM, dump_certificate(FILETYPE_PEM, p12.get_ca_certificates()[0]))
 
 
-    def gen_pkcs12( self, cert_pem, key_pem, ca_pem ):
+    def gen_pkcs12( self, cert_pem=None, key_pem=None, ca_pem=None, fn=None ):
         """
         Generate a PKCS12 object with components from PEM.
         Verify that the set functions return None.
@@ -874,6 +877,9 @@ class PKCS12Tests(TestCase):
             self.assertEqual(ret, None)
         if ca_pem:
             ret = p12.set_ca_certificates( ( load_certificate(FILETYPE_PEM, ca_pem), ) )
+            self.assertEqual(ret, None)
+        if fn:
+            ret = p12.set_friendlyname( fn )
             self.assertEqual(ret, None)
         return p12
 
@@ -939,13 +945,24 @@ class PKCS12Tests(TestCase):
 
     def test_friendly_name(self):
         """
-        Test that we can export a L{PKCS12} with a friendly name.
+        Test that we can get and set a friendlyName on a PKCS12.
+        Test that we can export a L{PKCS12} with a friendly name,
+        and confirm we can load the PKCS12 and find the friendly name.
+        Use the openssl program to also verify the certs in the PKCS12.
         """
-        p12 = self.gen_pkcs12( server_cert_pem, server_key_pem, root_cert_pem )
         passwd = 'Dogmeat[]{}!@#$%^&*()~`?/.,<>-_+=";:'
-        for friendly_name in ('Serverlicious', None, '', '###'):
-            dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=3, 
-                                friendly_name=friendly_name)
+        p12 = self.gen_pkcs12( server_cert_pem, server_key_pem, root_cert_pem )
+        for friendly_name in ('Serverlicious', None, '###'):
+            p12.set_friendlyname(friendly_name)
+            self.assertEqual(p12.get_friendlyname(), friendly_name)
+            dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=3) 
+            reloaded_p12 = load_pkcs12(dumped_p12, passwd)
+            self.assertEqual(p12.get_friendlyname(), 
+                    reloaded_p12.get_friendlyname())
+            # We would use the openssl program to confirm the friendly 
+            # name, but it is not possible.  The pkcs12 command 
+            # does not store the friendly name in the cert's 
+            # alias, which we could then extract.
             self.check_recovery(dumped_p12, key=server_key_pem, 
                     cert=server_cert_pem, ca=root_cert_pem, passwd=passwd)
 

@@ -24,7 +24,8 @@ typedef struct {
     PyObject_HEAD
     PyObject            *cert;  /* never NULL */
     PyObject            *key;   /* never NULL */
-    PyObject            *cacerts;
+    PyObject            *cacerts; /* never NULL */
+    PyObject            *friendlyname; /* never NULL */
 } crypto_PKCS12Obj;
 
 crypto_PKCS12Obj *

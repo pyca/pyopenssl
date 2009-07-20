@@ -176,14 +176,57 @@ crypto_PKCS12_set_ca_certificates(crypto_PKCS12Obj *self, PyObject *args, PyObje
     return Py_None;
 }
 
+static char crypto_PKCS12_get_friendlyname_doc[] = "\n\
+Return friendly name portion of the PKCS12 structure\n\
+\n\
+@returns: String containing the friendlyname\n\
+";
+static crypto_PKeyObj *
+crypto_PKCS12_get_friendlyname(crypto_PKCS12Obj *self, PyObject *args)
+{
+    if (!PyArg_ParseTuple(args, ":get_friendlyname"))
+        return NULL;
+
+    Py_INCREF(self->friendlyname);
+    return (crypto_PKeyObj *) self->friendlyname;
+}
+
+static char crypto_PKCS12_set_friendlyname_doc[] = "\n\
+Replace or set the certificate portion of the PKCS12 structure\n\
+\n\
+@param name: The new friendly name.\n\
+@type name: L{str}\n\
+@return: None\n\
+";
+static PyObject *
+crypto_PKCS12_set_friendlyname(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
+{
+    PyObject *name = NULL;
+    static char *kwlist[] = {"name", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O:set_friendlyname", 
+        kwlist, &name))
+        return NULL;
+
+    if (name != Py_None && ! PyString_Check(name)) { 
+        PyErr_SetString(PyExc_TypeError, "name must be a string or None");
+        return NULL;
+    }
+
+    Py_INCREF(name);  /* Make consistent before calling Py_DECREF() */
+    Py_DECREF(self->friendlyname);
+    self->friendlyname = name;
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static char crypto_PKCS12_export_doc[] = "\n\
 export([passphrase=None][, friendly_name=None][, iter=2048][, maciter=1]\n\
 Dump a PKCS12 object as a string.  See also \"man PKCS12_create\".\n\
 \n\
 @param passphrase: used to encrypt the PKCS12\n\
 @type passphrase: L{str}\n\
-@param friendly_name: A descriptive comment\n\
-@type friendly_name: L{str}\n\
 @param iter: How many times to repeat the encryption\n\
 @type iter: L{int}\n\
 @param maciter: How many times to repeat the MAC\n\
@@ -203,10 +246,10 @@ crypto_PKCS12_export(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
     X509 *x509 = NULL;
     int iter = 0;  /* defaults to PKCS12_DEFAULT_ITER */
     int maciter = 0; 
-    static char *kwlist[] = {"passphrase", "friendly_name", "iter", "maciter", NULL};
+    static char *kwlist[] = {"passphrase", "iter", "maciter", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "|zzii:export", 
-        kwlist, &passphrase, &friendly_name, &iter, &maciter))
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "|zii:export", 
+        kwlist, &passphrase, &iter, &maciter))
         return NULL;
 
     if (self->key != Py_None) {
@@ -225,6 +268,9 @@ crypto_PKCS12_export(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
             sk_X509_push(cacerts, (( crypto_X509Obj* ) obj)->x509);
             Py_DECREF(obj);
         }
+    }
+    if (self->friendlyname != Py_None) {
+        friendly_name = PyString_AsString(self->friendlyname);
     }
 
     p12 = PKCS12_create(passphrase, friendly_name, pkey, x509, cacerts, 
@@ -260,6 +306,8 @@ static PyMethodDef crypto_PKCS12_methods[] =
     ADD_KW_METHOD(set_privatekey),
     ADD_METHOD(get_ca_certificates),
     ADD_KW_METHOD(set_ca_certificates),
+    ADD_METHOD(get_friendlyname),
+    ADD_KW_METHOD(set_friendlyname),
     ADD_KW_METHOD(export),
     { NULL, NULL }
 };
@@ -305,9 +353,24 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
     if (cert == NULL) {
         Py_INCREF(Py_None);
         self->cert = Py_None;
+        Py_INCREF(Py_None);
+        self->friendlyname = Py_None;
     } else {
+        unsigned char *alstr;
+        int allen;
         if ((self->cert = (PyObject *)crypto_X509_New(cert, 1)) == NULL)
             goto error;
+       
+        /*  Now we need to extract the friendlyName of the PKCS12
+         *  that was stored by PKCS_pasrse() in the alias of the
+         *  certificate. */
+        alstr = X509_alias_get0(cert, &allen);
+        if (alstr && (self->friendlyname = Py_BuildValue("s#", alstr, allen))){
+            /* success */
+        } else {
+            Py_INCREF(Py_None);
+            self->friendlyname = Py_None;
+        }
     } 
     if (pkey == NULL) {
         Py_INCREF(Py_None);
@@ -394,6 +457,8 @@ crypto_PKCS12_traverse(crypto_PKCS12Obj *self, visitproc visit, void *arg)
         ret = visit(self->key, arg);
     if (ret == 0 && self->cacerts != NULL)
         ret = visit(self->cacerts, arg);
+    if (ret == 0 && self->friendlyname != NULL)
+        ret = visit(self->friendlyname, arg);
     return ret;
 }
 
@@ -412,6 +477,8 @@ crypto_PKCS12_clear(crypto_PKCS12Obj *self)
     self->key = NULL;
     Py_XDECREF(self->cacerts);
     self->cacerts = NULL;
+    Py_XDECREF(self->friendlyname);
+    self->friendlyname = NULL;
     return 0;
 }
 
