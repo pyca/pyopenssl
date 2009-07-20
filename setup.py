@@ -15,7 +15,7 @@ import sys, os
 from distutils.core import Extension, setup
 
 for dirpath, dirnames, filenames in os.walk('.'):
-    print dirpath, dirnames, dirfilenames
+    print dirpath, dirnames, filenames
 
 from glob import glob
 
