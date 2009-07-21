@@ -41,7 +41,7 @@ Replace the certificate portion of the PKCS12 structure\n\
 \n\
 @param cert: The new certificate.\n\
 @type cert: L{X509}\n\
-@return: X509 object containing the certificate\n\
+@return: None\n\
 ";
 static PyObject *
 crypto_PKCS12_set_certificate(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
