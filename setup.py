@@ -14,7 +14,6 @@ Installation script for the OpenSSL module
 import sys, os
 from distutils.core import Extension, setup
 
-
 from glob import glob
 
 from version import __version__
@@ -57,10 +56,13 @@ if os.name == 'nt' or sys.platform == 'win32':
     from distutils import msvccompiler
     msvccompiler.MSVCCompiler = makeTellMeIf(msvccompiler.MSVCCompiler, ['libeay32', 'ssleay32'])
 
-    data_files = [('Lib\\site-packages\\OpenSSL', ['C:\\OpenSSL\\ssleay32.dll', 'C:\\OpenSSL\\libeay32.dll'])]
+    import shutil
+    shutil.copy("C:\\OpenSSL\\ssleay32.dll", os.path.split(os.path.abspath(__file__))[0])
+    shutil.copy("C:\\OpenSSL\\libeay32.dll", os.path.split(os.path.abspath(__file__))[0])
+    package_data = {'': ['ssleay32.dll', 'libeay32.dll']}
 else:
     Libraries = ['ssl', 'crypto']
-    data_files = []
+    package_data = {}
 
 
 def mkExtension(name):
@@ -70,7 +72,9 @@ def mkExtension(name):
     return Extension(modname, src, libraries=Libraries, depends=dep,
                      include_dirs=IncludeDirs, library_dirs=LibraryDirs)
 
+
 setup(name='pyOpenSSL', version=__version__,
+      packages = ['OpenSSL'],
       package_dir = {'OpenSSL': '.'},
       ext_modules = [mkExtension('crypto'), mkExtension('rand'),
                      mkExtension('SSL')],
@@ -78,7 +82,7 @@ setup(name='pyOpenSSL', version=__version__,
                      'OpenSSL.version', 'OpenSSL.test.__init__',
                      'OpenSSL.test.test_crypto',
                      'OpenSSL.test.test_ssl'],
-      data_files = data_files,
+      package_data = package_data,
       description = 'Python wrapper module around the OpenSSL library',
       author = 'Martin Sjögren, AB Strakt',
       author_email = 'msjogren@gmail.com',
