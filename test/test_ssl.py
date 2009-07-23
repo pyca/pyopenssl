@@ -41,7 +41,7 @@ def socket_pair():
     port.listen(1)
     client = socket()
     client.setblocking(False)
-    client.connect_ex(port.getsockname())
+    client.connect_ex(("127.0.0.1", port.getsockname()[1]))
     client.setblocking(True)
     server = port.accept()[0]
 
