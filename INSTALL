@@ -11,47 +11,59 @@ I have tested this on Debian Linux systems (woody and sid), Solaris 2.6 and
 pyOpenSSL uses distutils, so there really shouldn't be any problems. To build
 the library:
 
-    python setup.py build
+  $ python setup.py build
 
 If your OpenSSL header files aren't in /usr/include, you may need to supply
 the -I flag to let the setup script know where to look. The same goes for the
 libraries of course, use the -L flag. Note that build won't accept these
 flags, so you have to run first build_ext and then build! Example:
 
-    python setup.py build_ext -I/usr/local/ssl/include -L/usr/local/ssl/lib
-    python setup.py build
+  $ python setup.py build_ext -I/usr/local/ssl/include -L/usr/local/ssl/lib
+  $ python setup.py build
 
 Now you should have a directory called OpenSSL that contains e.g. SSL.so and
 __init__.py somewhere in the build dicrectory, so just:
 
-    python setup.py install
+  $ python setup.py install
 
 If you, for some arcane reason, don't want the module to appear in the
 site-packages directory, use the --prefix option.
 
 You can, of course, do
 
-    python setup.py --help
+  $ python setup.py --help
 
 to find out more about how to use the script.
 
 
 -- Building the Module on a Windows System --
 
-Big thanks to Itamar Shtull-Trauring and Oleg Orlov for their help with
-Windows build instructions. Same as for Unix systems, we have to separate
-the build_ext and the build.
+pyOpenSSL is known to build with mingw32 for Python 2.3 through Python 2.5. 
+For Python 2.6, the official Windows installer of which is built with
+Microsoft Visual Studio 2008 (version 9.0), Microsoft Visual Studio 2008
+(version 9.0) is required.  You can specify that mingw32 be used by passing
+the --compiler argument to build_ext.  You will also need to specify the
+location of the OpenSSL headers and libraries:
 
-Building the library:
+  C:\pyOpenSSL-X.Y> setup.py build_ext -c mingw32 -I C:\OpenSSL\include ^
+                      -L C:\OpenSSL bdist_msi
 
-    setup.py build_ext -I ...\openssl\inc32 -L ...\openssl\out32dll
-    setup.py build
+The correct header and library paths depend on how you have OpenSSL
+installed.  The above paths are correct for the default installation of
+(<http://www.slproweb.com/products/Win32OpenSSL.html>).
 
-Where ...\openssl is of course the location of your OpenSSL installation.
+The bdist_msi command will build an MSI installer.  It can be substituted
+with another bdist command if another kind of installer is desired.
 
-Installation is the same as for Unix systems:
+To build with MSVC instead, omit the -c option and pass a slightly different
+library directory:
 
-    setup.py install
+  C:\pyOpenSSL-X.Y> setup.py build_ext -I C:\OpenSSL\include ^
+                      -L C:\OpenSSL\lib bdist_msi
+
+The resulting binary distribution will be placed in the dist directory. To
+install it, dDepending on what kind of distribution you create, run it,
+unzip it, or copy it to Python installation's site-packages.
 
 And similarily, you can do
 
@@ -59,6 +71,9 @@ And similarily, you can do
 
 to get more information.
 
+Big thanks to Itamar Shtull-Trauring, Oleg Orlov, Zooko O'Whielacronx, Chris
+Galvan, and #python and #distutils on FreeNode for their help with Windows
+build instructions.
 
 -- Documentation --
 
