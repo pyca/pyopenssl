@@ -344,11 +344,11 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
     if (p12 && !(cacerts && PKCS12_parse(p12, passphrase, &pkey, &cert, &cacerts)))
     {
         exception_from_error_queue(crypto_Error);
-        return NULL;
+        goto error;
     }
 
     if (!(self = PyObject_GC_New(crypto_PKCS12Obj, &crypto_PKCS12_Type)))
-        return NULL;
+        goto error;
 
     Py_INCREF(Py_None);
     self->cacerts = Py_None;
@@ -400,11 +400,13 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
         }
     }
 
-    sk_X509_free(cacerts); /* don't free the certs, just the stack */
     PyObject_GC_Track(self);
 
     return self;
+
 error:
+    if(cacerts)
+        sk_X509_free(cacerts); /* don't free the certs, just the stack */
     crypto_PKCS12_dealloc(self);
     return NULL;
 }

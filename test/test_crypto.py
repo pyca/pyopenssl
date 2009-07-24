@@ -923,7 +923,17 @@ class PKCS12Tests(TestCase):
         self.assertEqual(key_pem, client_key_pem)
         self.assertEqual(None, p12.get_ca_certificates())
 
- 
+
+    def test_load_pkcs12_garbage(self):
+        """
+        Use L{load_pkcs12} on a string of garbage.
+        """
+        passwd = 'whatever'
+        e = self.assertRaises(Error, load_pkcs12, 'fruit loops', passwd)
+        self.assertEqual( e[0][0][0], 'asn1 encoding routines')
+        self.assertEqual( len(e[0][0]), 3)
+
+
     def test_replace(self):
         """
         Test replacing components of a L{PKCS12} object.  Test multiple
