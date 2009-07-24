@@ -280,6 +280,7 @@ crypto_PKCS12_export(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
                         NID_pbe_WithSHA1And3_Key_TripleDES_CBC,
                         NID_pbe_WithSHA1And3_Key_TripleDES_CBC,
                         iter, maciter, 0);
+    sk_X509_free(cacerts); /* don't free the certs, just the stack */
     if( p12 == NULL ) {
         exception_from_error_queue(crypto_Error);
         return NULL;
