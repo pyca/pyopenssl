@@ -211,8 +211,8 @@ crypto_PKCS12_set_friendlyname(crypto_PKCS12Obj *self, PyObject *args, PyObject 
         kwlist, &name))
         return NULL;
 
-    if (name != Py_None && ! PyString_Check(name)) { 
-        PyErr_SetString(PyExc_TypeError, "name must be a string or None");
+    if (name != Py_None && ! PyString_CheckExact(name)) { 
+        PyErr_SetString(PyExc_TypeError, "name must be a str or None");
         return NULL;
     }
 
