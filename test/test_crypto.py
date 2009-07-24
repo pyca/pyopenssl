@@ -1051,13 +1051,13 @@ class PKCS12Tests(TestCase):
 
 
 
-def _runopenssl(pem, *args):
+def _runopenssl(stdin, *args):
     """
     Run the command line openssl tool with the given arguments and write
-    the given PEM to its stdin.  Not safe for single quotes.
+    the given string to its stdin.  Args are not safe for single quotes.
     """
     write, read = popen2("'" + "' '".join(("openssl",) + args) + "'", "b")
-    write.write(pem)
+    write.write(stdin)
     write.close()
     return read.read()
 
