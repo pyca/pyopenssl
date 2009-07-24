@@ -3,9 +3,9 @@
  *
  * Copyright (C) AB Strakt 2001, All rights reserved
  *
- * Certificate transport (PKCS12) handling code, 
+ * Certificate transport (PKCS12) handling code,
  * mostly thin wrappers around OpenSSL.
- * See the file RATIONALE for a short explanation of why 
+ * See the file RATIONALE for a short explanation of why
  * this module was written.
  *
  * Reviewed 2001-07-23
@@ -14,8 +14,8 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-/* 
- * PKCS12 is a standard exchange format for digital certificates.  
+/*
+ * PKCS12 is a standard exchange format for digital certificates.
  * See e.g. the OpenSSL homepage http://www.openssl.org/ for more information
  */
 
@@ -49,11 +49,11 @@ crypto_PKCS12_set_certificate(crypto_PKCS12Obj *self, PyObject *args, PyObject *
     PyObject *cert = NULL;
     static char *kwlist[] = {"cert", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O:set_certificate", 
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O:set_certificate",
         kwlist, &cert))
         return NULL;
 
-    if (cert != Py_None && ! PyObject_IsInstance(cert, (PyObject *) &crypto_X509_Type)) { 
+    if (cert != Py_None && ! PyObject_IsInstance(cert, (PyObject *) &crypto_X509_Type)) {
         PyErr_SetString(PyExc_TypeError, "cert must be type X509 or None");
         return NULL;
     }
@@ -94,11 +94,11 @@ crypto_PKCS12_set_privatekey(crypto_PKCS12Obj *self, PyObject *args, PyObject *k
     PyObject *pkey = NULL;
     static char *kwlist[] = {"pkey", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O:set_privatekey", 
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O:set_privatekey",
         kwlist, &pkey))
         return NULL;
 
-    if (pkey != Py_None && ! PyObject_IsInstance(pkey, (PyObject *) &crypto_PKey_Type)) { 
+    if (pkey != Py_None && ! PyObject_IsInstance(pkey, (PyObject *) &crypto_PKey_Type)) {
         PyErr_SetString(PyExc_TypeError, "pkey must be type X509 or None");
         return NULL;
     }
@@ -141,7 +141,7 @@ crypto_PKCS12_set_ca_certificates(crypto_PKCS12Obj *self, PyObject *args, PyObje
     static char *kwlist[] = {"cacerts", NULL};
     int i, len; /* Py_ssize_t for Python 2.5+ */
 
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O:set_ca_certificates", 
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O:set_ca_certificates",
         kwlist, &cacerts))
         return NULL;
     if (cacerts == Py_None) {
@@ -149,7 +149,7 @@ crypto_PKCS12_set_ca_certificates(crypto_PKCS12Obj *self, PyObject *args, PyObje
     } else if ((len = PySequence_Length(cacerts)) >= 0) {  /* is iterable */
         cacerts = PySequence_Tuple(cacerts);
         if(cacerts == NULL) {
-            PyErr_SetString(PyExc_TypeError, "untupleable" /* failed to convert cacerts to a tuple */); 
+            PyErr_SetString(PyExc_TypeError, "untupleable" /* failed to convert cacerts to a tuple */);
             return NULL;
         }
         /* Check is's a simple list filled only with X509 objects. */
@@ -207,11 +207,11 @@ crypto_PKCS12_set_friendlyname(crypto_PKCS12Obj *self, PyObject *args, PyObject 
     PyObject *name = NULL;
     static char *kwlist[] = {"name", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O:set_friendlyname", 
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O:set_friendlyname",
         kwlist, &name))
         return NULL;
 
-    if (name != Py_None && ! PyString_CheckExact(name)) { 
+    if (name != Py_None && ! PyString_CheckExact(name)) {
         PyErr_SetString(PyExc_TypeError, "name must be a str or None");
         return NULL;
     }
@@ -244,14 +244,14 @@ crypto_PKCS12_export(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
     char *temp, *passphrase = NULL, *friendly_name = NULL;
     BIO *bio;
     PKCS12 *p12;
-    EVP_PKEY *pkey = NULL; 
+    EVP_PKEY *pkey = NULL;
     STACK_OF(X509) *cacerts = NULL;
     X509 *x509 = NULL;
     int iter = 0;  /* defaults to PKCS12_DEFAULT_ITER */
-    int maciter = 0; 
+    int maciter = 0;
     static char *kwlist[] = {"passphrase", "iter", "maciter", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "|zii:export", 
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "|zii:export",
         kwlist, &passphrase, &iter, &maciter))
         return NULL;
 
@@ -276,7 +276,7 @@ crypto_PKCS12_export(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
         friendly_name = PyString_AsString(self->friendlyname);
     }
 
-    p12 = PKCS12_create(passphrase, friendly_name, pkey, x509, cacerts, 
+    p12 = PKCS12_create(passphrase, friendly_name, pkey, x509, cacerts,
                         NID_pbe_WithSHA1And3_Key_TripleDES_CBC,
                         NID_pbe_WithSHA1And3_Key_TripleDES_CBC,
                         iter, maciter, 0);
@@ -363,7 +363,7 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
         int allen;
         if ((self->cert = (PyObject *)crypto_X509_New(cert, 1)) == NULL)
             goto error;
-       
+
         /*  Now we need to extract the friendlyName of the PKCS12
          *  that was stored by PKCS_pasrse() in the alias of the
          *  certificate. */
@@ -374,7 +374,7 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
             Py_INCREF(Py_None);
             self->friendlyname = Py_None;
         }
-    } 
+    }
 
     /* private key */
     if (pkey == NULL) {
@@ -527,7 +527,7 @@ PyTypeObject crypto_PKCS12_Type = {
     NULL, /* setattro */
     NULL, /* as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
-    crypto_PKCS12_doc, 
+    crypto_PKCS12_doc,
     (traverseproc)crypto_PKCS12_traverse,
     (inquiry)crypto_PKCS12_clear,
     NULL, /* tp_richcompare */
@@ -569,4 +569,3 @@ init_crypto_pkcs12(PyObject *module) {
 
     return 1;
 }
-
