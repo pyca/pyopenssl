@@ -261,10 +261,10 @@ crypto_PKCS12_export(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
     if (self->cert != Py_None) {
         x509 = ((crypto_X509Obj*) self->cert)->x509;
     }
-    cacerts = sk_X509_new_null();
     if (self->cacerts != Py_None) {
         int i; /* Py_ssize_t for Python 2.5+ */
         PyObject *obj;
+        cacerts = sk_X509_new_null();
         for(i = 0;i < PySequence_Length(self->cacerts);i++) {  /* For each CA cert */
             obj = PySequence_GetItem(self->cacerts, i);
             /* assert(PyObject_IsInstance(obj, (PyObject *) &crypto_X509_Type )); */
@@ -280,7 +280,7 @@ crypto_PKCS12_export(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
                         NID_pbe_WithSHA1And3_Key_TripleDES_CBC,
                         NID_pbe_WithSHA1And3_Key_TripleDES_CBC,
                         iter, maciter, 0);
-    sk_X509_free(cacerts); /* don't free the certs, just the stack */
+    sk_X509_free(cacerts); /* NULL safe.  Free just the container. */
     if( p12 == NULL ) {
         exception_from_error_queue(crypto_Error);
         return NULL;
@@ -352,7 +352,7 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
     if (!(self = PyObject_GC_New(crypto_PKCS12Obj, &crypto_PKCS12_Type)))
         goto error;
 
-
+    /* client certificate and friendlyName */
     if (cert == NULL) {
         Py_INCREF(Py_None);
         self->cert = Py_None;
@@ -375,6 +375,8 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
             self->friendlyname = Py_None;
         }
     } 
+
+    /* private key */
     if (pkey == NULL) {
         Py_INCREF(Py_None);
         self->key = Py_None;
@@ -383,7 +385,7 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
             goto error;
     }
 
-    /* Make a tuple for the CA certs */
+    /* CA certs */
     cacert_count = sk_X509_num(cacerts);
     if (cacert_count <= 0)
     {
@@ -402,14 +404,13 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
         }
     }
 
-    sk_X509_free(cacerts); /* don't free the certs, just the container */
+    sk_X509_free(cacerts); /* Don't free the certs, just the container. */
     PyObject_GC_Track(self);
 
     return self;
 
 error:
-    if(cacerts)
-        sk_X509_free(cacerts); /* don't free the certs, just the container */
+    sk_X509_free(cacerts); /* NULL safe. Free just the container. */
     crypto_PKCS12_dealloc(self);
     return NULL;
 }
