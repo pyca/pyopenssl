@@ -339,10 +339,11 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
     int i, cacert_count = 0;
 
     /* allocate space for the CA cert stack */
-    cacerts = sk_X509_new_null();
+    if((cacerts = sk_X509_new_null()) == NULL)
+        goto error;   /* out of memory? */
 
     /* parse the PKCS12 lump */
-    if (p12 && !(cacerts && PKCS12_parse(p12, passphrase, &pkey, &cert, &cacerts)))
+    if (p12 && !PKCS12_parse(p12, passphrase, &pkey, &cert, &cacerts))
     {
         exception_from_error_queue(crypto_Error);
         goto error;
@@ -351,8 +352,6 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
     if (!(self = PyObject_GC_New(crypto_PKCS12Obj, &crypto_PKCS12_Type)))
         goto error;
 
-    Py_INCREF(Py_None);
-    self->cacerts = Py_None;
 
     if (cert == NULL) {
         Py_INCREF(Py_None);
@@ -386,9 +385,11 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
 
     /* Make a tuple for the CA certs */
     cacert_count = sk_X509_num(cacerts);
-    if (cacert_count > 0)
+    if (cacert_count <= 0)
     {
-        Py_DECREF(self->cacerts);
+        Py_INCREF(Py_None);
+        self->cacerts = Py_None;
+    } else {
         if ((self->cacerts = PyTuple_New(cacert_count)) == NULL)
             goto error;
 
@@ -401,13 +402,14 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
         }
     }
 
+    sk_X509_free(cacerts); /* don't free the certs, just the container */
     PyObject_GC_Track(self);
 
     return self;
 
 error:
     if(cacerts)
-        sk_X509_free(cacerts); /* don't free the certs, just the stack */
+        sk_X509_free(cacerts); /* don't free the certs, just the container */
     crypto_PKCS12_dealloc(self);
     return NULL;
 }
