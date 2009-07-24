@@ -42,34 +42,27 @@ LibraryDirs = None
 
 # Add more platforms here when needed
 if os.name == 'nt' or sys.platform == 'win32':
-    Libraries = ['eay32', 'Ws2_32']
-    # Try to find it...
-    for path in ["C:\\OpenSSL\\lib\\MinGW", "C:\\Python23\\libs",
-                 "C:\\Python24\\libs", "C:\\Python25\\libs", "C:\\Python26\\libs"]:
-        # The .a is the "export library".  It's the thing we need to link
-        # against to let us use the .dll.
-        ssleay32 = os.path.join(path, "ssleay32.a")
-        if os.path.exists(ssleay32):
-            ExtraObjects = [ssleay32]
-            break
-    else:
-        raise SystemExit("Cannot find ssleay32.a, aborting")
+
+    Libraries = ['Ws2_32']
+    def makeTellMeIf(original, what):
+        class tellMeIf(original):
+            def __init__(*a, **kw):
+                Libraries.extend(what)
+                return original.__init__(*a, **kw)
+        return tellMeIf
+
+    from distutils import cygwinccompiler
+    cygwinccompiler.Mingw32CCompiler = makeTellMeIf(cygwinccompiler.Mingw32CCompiler, ['eay32', 'ssl32'])
+    from distutils import msvccompiler
+    msvccompiler.MSVCCompiler = makeTellMeIf(msvccompiler.MSVCCompiler, ['libeay32', 'ssleay32'])
+
+    import shutil
+    shutil.copy("C:\\OpenSSL\\ssleay32.dll", os.path.split(os.path.abspath(__file__))[0])
+    shutil.copy("C:\\OpenSSL\\libeay32.dll", os.path.split(os.path.abspath(__file__))[0])
+    package_data = {'': ['ssleay32.dll', 'libeay32.dll']}
 else:
     Libraries = ['ssl', 'crypto']
-    ExtraObjects = []
-
-if sys.platform == 'darwin':
-    IncludeDirs = ['/sw/include']
-    LibraryDirs = ['/sw/lib']
-
-# On Windows, make sure the necessary .dll's get added to the egg.
-data_files = []
-if sys.platform == 'win32':
-    import ctypes.util
-    libeay32 = ctypes.util.find_library("libeay32")
-    if libeay32 is None:
-        raise SystemExit("Cannot find libeay32.dll, aborting")
-    data_files = [("OpenSSL", [libeay32])]
+    package_data = {}
 
 
 def mkExtension(name):
@@ -77,10 +70,11 @@ def mkExtension(name):
     src = globals()[name.lower() + '_src']
     dep = globals()[name.lower() + '_dep']
     return Extension(modname, src, libraries=Libraries, depends=dep,
-                     include_dirs=IncludeDirs, library_dirs=LibraryDirs,
-                     extra_objects=ExtraObjects)
+                     include_dirs=IncludeDirs, library_dirs=LibraryDirs)
+
 
 setup(name='pyOpenSSL', version=__version__,
+      packages = ['OpenSSL'],
       package_dir = {'OpenSSL': '.'},
       ext_modules = [mkExtension('crypto'), mkExtension('rand'),
                      mkExtension('SSL')],
@@ -90,7 +84,8 @@ setup(name='pyOpenSSL', version=__version__,
                      'OpenSSL.test.test_crypto',
                      'OpenSSL.test.test_rand',
                      'OpenSSL.test.test_ssl'],
-      data_files = data_files,
+      zip_safe = False,
+      package_data = package_data,
       description = 'Python wrapper module around the OpenSSL library',
       author = 'Martin Sjögren, AB Strakt',
       author_email = 'msjogren@gmail.com',
