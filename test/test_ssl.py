@@ -6,7 +6,7 @@ Unit tests for L{OpenSSL.SSL}.
 
 from sys import platform
 from socket import socket
-from os import makedirs, symlink
+from os import makedirs
 from os.path import join
 from unittest import main
 
@@ -41,7 +41,7 @@ def socket_pair():
     port.listen(1)
     client = socket()
     client.setblocking(False)
-    client.connect_ex(port.getsockname())
+    client.connect_ex(("127.0.0.1", port.getsockname()[1]))
     client.setblocking(True)
     server = port.accept()[0]
 
@@ -223,49 +223,47 @@ class ContextTests(TestCase):
         """
         capath = self.mktemp()
         makedirs(capath)
-        cafile = join(capath, 'cert.pem')
+        # Hash value computed manually with c_rehash to avoid depending on
+        # c_rehash in the test suite.
+        cafile = join(capath, 'c7adac82.0')
         fObj = file(cafile, 'w')
         fObj.write(cleartextCertificatePEM)
         fObj.close()
 
-        # Hash value computed manually with c_rehash to avoid depending on
-        # c_rehash in the test suite.
-        symlink('cert.pem', join(capath, 'c7adac82.0'))
-
         self._load_verify_locations_test(None, capath)
 
 
-    def test_set_default_verify_paths(self):
-        """
-        L{Context.set_default_verify_paths} causes the platform-specific CA
-        certificate locations to be used for verification purposes.
-        """
-        # Testing this requires a server with a certificate signed by one of
-        # the CAs in the platform CA location.  Getting one of those costs
-        # money.  Fortunately (or unfortunately, depending on your
-        # perspective), it's easy to think of a public server on the
-        # internet which has such a certificate.  Connecting to the network
-        # in a unit test is bad, but it's the only way I can think of to
-        # really test this. -exarkun
+    if platform in ("darwin", "win32"):
+        "set_default_verify_paths appears not to work on OS X or Windows"
+        "See LP#404343 and LP#404344."
+    else:
+        def test_set_default_verify_paths(self):
+            """
+            L{Context.set_default_verify_paths} causes the platform-specific CA
+            certificate locations to be used for verification purposes.
+            """
+            # Testing this requires a server with a certificate signed by one of
+            # the CAs in the platform CA location.  Getting one of those costs
+            # money.  Fortunately (or unfortunately, depending on your
+            # perspective), it's easy to think of a public server on the
+            # internet which has such a certificate.  Connecting to the network
+            # in a unit test is bad, but it's the only way I can think of to
+            # really test this. -exarkun
 
-        # Arg, verisign.com doesn't speak TLSv1
-        context = Context(SSLv3_METHOD)
-        context.set_default_verify_paths()
-        context.set_verify(
-            VERIFY_PEER, 
-            lambda conn, cert, errno, depth, preverify_ok: preverify_ok)
+            # Arg, verisign.com doesn't speak TLSv1
+            context = Context(SSLv3_METHOD)
+            context.set_default_verify_paths()
+            context.set_verify(
+                VERIFY_PEER, 
+                lambda conn, cert, errno, depth, preverify_ok: preverify_ok)
 
-        client = socket()
-        client.connect(('verisign.com', 443))
-        clientSSL = Connection(context, client)
-        clientSSL.set_connect_state()
-        clientSSL.do_handshake()
-        clientSSL.send('GET / HTTP/1.0\r\n\r\n')
-        self.assertTrue(clientSSL.recv(1024))
-    if platform == "darwin":
-        test_set_default_verify_paths.todo = (
-            "set_default_verify_paths appears not to work on OS X - a "
-            "problem with the supplied OpenSSL, perhaps?")
+            client = socket()
+            client.connect(('verisign.com', 443))
+            clientSSL = Connection(context, client)
+            clientSSL.set_connect_state()
+            clientSSL.do_handshake()
+            clientSSL.send('GET / HTTP/1.0\r\n\r\n')
+            self.assertTrue(clientSSL.recv(1024))
 
 
     def test_set_default_verify_paths_signature(self):
