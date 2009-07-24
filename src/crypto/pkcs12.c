@@ -145,8 +145,13 @@ crypto_PKCS12_set_ca_certificates(crypto_PKCS12Obj *self, PyObject *args, PyObje
         kwlist, &cacerts))
         return NULL;
     if (cacerts == Py_None) {
-        /* We are good. */
+        Py_INCREF(cacerts);
     } else if ((len = PySequence_Length(cacerts)) >= 0) {  /* is iterable */
+        cacerts = PySequence_Tuple(cacerts);
+        if(cacerts == NULL) {
+            PyErr_SetString(PyExc_TypeError, "untupleable" /* failed to convert cacerts to a tuple */); 
+            return NULL;
+        }
         /* Check is's a simple list filled only with X509 objects. */
         for(i = 0;i < len;i++) {  /* For each CA cert */
             PyObject *obj;
@@ -155,23 +160,18 @@ crypto_PKCS12_set_ca_certificates(crypto_PKCS12Obj *self, PyObject *args, PyObje
                 break;
             }
             if (PyObject_Type(obj) != (PyObject *) &crypto_X509_Type) {
+                Py_DECREF(cacerts);
                 Py_DECREF(obj);
-                PyErr_SetString(PyExc_TypeError, "cacerts iterable must only contain X509Type");
+                PyErr_SetString(PyExc_TypeError, "iterable must only contain X509Type");
                 return NULL;
             }
             Py_DECREF(obj);
         }
-        cacerts = PySequence_Tuple(cacerts);
-        if(cacerts == NULL) {
-            PyErr_SetString(PyExc_TypeError, "" /* "failed to convert cacerts to a tuple" */); 
-            return NULL;
-        }
     } else {
-        PyErr_SetString(PyExc_TypeError, "cacerts must be an iterable or None");
+        PyErr_SetString(PyExc_TypeError, "must be iterable or None");
         return NULL;
     }
 
-    Py_INCREF(cacerts); /* Make consistent before calling Py_DECREF() */
     Py_DECREF(self->cacerts);
     self->cacerts = cacerts;
 
