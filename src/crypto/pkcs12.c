@@ -184,14 +184,14 @@ Return friendly name portion of the PKCS12 structure\n\
 \n\
 @returns: String containing the friendlyname\n\
 ";
-static crypto_PKeyObj *
+static PyObject *
 crypto_PKCS12_get_friendlyname(crypto_PKCS12Obj *self, PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ":get_friendlyname"))
         return NULL;
 
     Py_INCREF(self->friendlyname);
-    return (crypto_PKeyObj *) self->friendlyname;
+    return (PyObject *) self->friendlyname;
 }
 
 static char crypto_PKCS12_set_friendlyname_doc[] = "\n\
