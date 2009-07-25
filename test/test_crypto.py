@@ -786,7 +786,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
 
 class PKCS12Tests(TestCase):
     """
-    Tests functions in the L{OpenSSL.crypto.PKCS12} module.
+    Test for L{OpenSSL.crypto.PKCS12} and L{OpenSSL.crypto.load_pkcs12}.
     """
     pemData = cleartextCertificatePEM + cleartextPrivateKeyPEM
 
