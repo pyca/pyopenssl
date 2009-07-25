@@ -356,10 +356,16 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase) {
         }
 
         /*  Now we need to extract the friendlyName of the PKCS12
-         *  that was stored by PKCS_pasrse() in the alias of the
+         *  that was stored by PKCS_parse() in the alias of the
          *  certificate. */
         alias_str = X509_alias_get0(cert, &alias_len);
-        if (alias_str && (self->friendlyname = Py_BuildValue("s#", alias_str, alias_len))){
+        if (alias_str) {
+            if (!(self->friendlyname = Py_BuildValue("s#", alias_str, alias_len))) {
+                /*
+                 * XXX Untested
+                 */
+                goto error;
+            }
             /* success */
         } else {
             Py_INCREF(Py_None);
@@ -378,19 +384,19 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase) {
 
     /* CA certs */
     cacert_count = sk_X509_num(cacerts);
-    if (cacert_count <= 0)
-    {
+    if (cacert_count <= 0) {
         Py_INCREF(Py_None);
         self->cacerts = Py_None;
     } else {
-        if ((self->cacerts = PyTuple_New(cacert_count)) == NULL)
+        if ((self->cacerts = PyTuple_New(cacert_count)) == NULL) {
             goto error;
+        }
 
-        for (i = 0; i < cacert_count; i++)
-        {
+        for (i = 0; i < cacert_count; i++) {
             cert = sk_X509_value(cacerts, i);
-            if ((cacertobj = (PyObject *)crypto_X509_New(cert, 1)) == NULL)
+            if ((cacertobj = (PyObject *)crypto_X509_New(cert, 1)) == NULL) {
                 goto error;
+            }
             PyTuple_SET_ITEM(self->cacerts, i, cacertobj);
         }
     }
