@@ -420,8 +420,7 @@ Create a new empty PKCS12 object.\n\
 @returns: The PKCS12 object\n\
 ";
 static PyObject *
-crypto_PKCS12_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs)
-{
+crypto_PKCS12_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs) {
     if (!PyArg_ParseTuple(args, ":PKCS12")) {
         return NULL;
     }

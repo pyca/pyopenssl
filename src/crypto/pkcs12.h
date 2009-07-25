@@ -22,10 +22,15 @@ extern  PyTypeObject      crypto_PKCS12_Type;
 
 typedef struct {
     PyObject_HEAD
-    PyObject            *cert;  /* never NULL */
-    PyObject            *key;   /* never NULL */
-    PyObject            *cacerts; /* never NULL */
-    PyObject            *friendlyname; /* never NULL */
+    /*
+     * These either refer to a PyObject* of the appropriate type, or Py_None if
+     * they don't have a value.  They aren't set to NULL except during
+     * finalization.
+     */
+    PyObject            *cert;
+    PyObject            *key;
+    PyObject            *cacerts;
+    PyObject            *friendlyname;
 } crypto_PKCS12Obj;
 
 crypto_PKCS12Obj *
