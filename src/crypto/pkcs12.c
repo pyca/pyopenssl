@@ -131,7 +131,7 @@ static char crypto_PKCS12_set_ca_certificates_doc[] = "\n\
 Replace or set the CA certificates withing the PKCS12 object.\n\
 \n\
 @param cacerts: The new CA certificates.\n\
-@type cacerts: Sequence of L{X509}\n\
+@type cacerts: Sequence of L{X509} or L{NoneType}\n\
 @return: None\n\
 ";
 static PyObject *
@@ -158,7 +158,7 @@ crypto_PKCS12_set_ca_certificates(crypto_PKCS12Obj *self, PyObject *args, PyObje
         /* Check is's a simple list filled only with X509 objects. */
         for (i = 0; i < len; i++) {
             obj = PyTuple_GetItem(cacerts, i);
-            if (PyObject_Type(obj) != (PyObject *) &crypto_X509_Type) {
+            if (!crypto_X509_Check(obj)) {
                 Py_DECREF(cacerts);
                 PyErr_SetString(PyExc_TypeError, "iterable must only contain X509Type");
                 return NULL;
