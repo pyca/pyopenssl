@@ -311,15 +311,17 @@ static PyMethodDef crypto_PKCS12_methods[] =
  * The strategy for this object is to create all the Python objects
  * corresponding to the cert/key/CA certs right away
  *
- * Arguments: p12        - A "real" PKCS12 object
+ * Arguments: p12        - A "real" PKCS12 object or NULL
  *            passphrase - Passphrase to use when decrypting the PKCS12 object
  * Returns:   The newly created PKCS12 object
  */
 crypto_PKCS12Obj *
-crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
-{
+crypto_PKCS12_New(PKCS12 *p12, char *passphrase) {
     crypto_PKCS12Obj *self = NULL;
     PyObject *cacertobj = NULL;
+
+    unsigned char *alstr;
+    int allen;
 
     X509 *cert = NULL;
     EVP_PKEY *pkey = NULL;
@@ -328,18 +330,19 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
     int i, cacert_count = 0;
 
     /* allocate space for the CA cert stack */
-    if((cacerts = sk_X509_new_null()) == NULL)
+    if((cacerts = sk_X509_new_null()) == NULL) {
         goto error;   /* out of memory? */
+    }
 
     /* parse the PKCS12 lump */
-    if (p12 && !PKCS12_parse(p12, passphrase, &pkey, &cert, &cacerts))
-    {
+    if (p12 && !PKCS12_parse(p12, passphrase, &pkey, &cert, &cacerts)) {
         exception_from_error_queue(crypto_Error);
         goto error;
     }
 
-    if (!(self = PyObject_GC_New(crypto_PKCS12Obj, &crypto_PKCS12_Type)))
+    if (!(self = PyObject_GC_New(crypto_PKCS12Obj, &crypto_PKCS12_Type))) {
         goto error;
+    }
 
     /* client certificate and friendlyName */
     if (cert == NULL) {
@@ -348,10 +351,9 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
         Py_INCREF(Py_None);
         self->friendlyname = Py_None;
     } else {
-        unsigned char *alstr;
-        int allen;
-        if ((self->cert = (PyObject *)crypto_X509_New(cert, 1)) == NULL)
+        if ((self->cert = (PyObject *)crypto_X509_New(cert, 1)) == NULL) {
             goto error;
+        }
 
         /*  Now we need to extract the friendlyName of the PKCS12
          *  that was stored by PKCS_pasrse() in the alias of the
