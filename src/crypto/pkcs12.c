@@ -177,8 +177,7 @@ Return friendly name portion of the PKCS12 structure\n\
 @returns: String containing the friendlyname\n\
 ";
 static PyObject *
-crypto_PKCS12_get_friendlyname(crypto_PKCS12Obj *self, PyObject *args)
-{
+crypto_PKCS12_get_friendlyname(crypto_PKCS12Obj *self, PyObject *args) {
     if (!PyArg_ParseTuple(args, ":get_friendlyname"))
         return NULL;
 
@@ -194,8 +193,7 @@ Replace or set the certificate portion of the PKCS12 structure\n\
 @return: None\n\
 ";
 static PyObject *
-crypto_PKCS12_set_friendlyname(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
-{
+crypto_PKCS12_set_friendlyname(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds) {
     PyObject *name = NULL;
     static char *kwlist[] = {"name", NULL};
 
@@ -229,8 +227,9 @@ Dump a PKCS12 object as a string.  See also \"man PKCS12_create\".\n\
 @return: The string containing the PKCS12\n\
 ";
 static PyObject *
-crypto_PKCS12_export(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
-{
+crypto_PKCS12_export(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds) {
+    int i; /* Py_ssize_t for Python 2.5+ */
+    PyObject *obj;
     int buf_len;
     PyObject *buffer;
     char *temp, *passphrase = NULL, *friendly_name = NULL;
@@ -254,10 +253,8 @@ crypto_PKCS12_export(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
         x509 = ((crypto_X509Obj*) self->cert)->x509;
     }
     if (self->cacerts != Py_None) {
-        int i; /* Py_ssize_t for Python 2.5+ */
-        PyObject *obj;
         cacerts = sk_X509_new_null();
-        for(i = 0;i < PySequence_Length(self->cacerts);i++) {  /* For each CA cert */
+        for (i = 0; i < PyTuple_Size(self->cacerts); i++) {  /* For each CA cert */
             obj = PySequence_GetItem(self->cacerts, i);
             /* assert(PyObject_IsInstance(obj, (PyObject *) &crypto_X509_Type )); */
             sk_X509_push(cacerts, (( crypto_X509Obj* ) obj)->x509);
@@ -273,7 +270,7 @@ crypto_PKCS12_export(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
                         NID_pbe_WithSHA1And3_Key_TripleDES_CBC,
                         iter, maciter, 0);
     sk_X509_free(cacerts); /* NULL safe.  Free just the container. */
-    if( p12 == NULL ) {
+    if (p12 == NULL) {
         exception_from_error_queue(crypto_Error);
         return NULL;
     }
