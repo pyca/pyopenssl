@@ -329,7 +329,7 @@ static PyMethodDef crypto_PKCS12_methods[] =
 crypto_PKCS12Obj *
 crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
 {
-    crypto_PKCS12Obj *self;
+    crypto_PKCS12Obj *self = NULL;
     PyObject *cacertobj = NULL;
 
     X509 *cert = NULL;
