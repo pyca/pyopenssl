@@ -335,8 +335,8 @@ crypto_X509_set_pubkey(crypto_X509Obj *self, PyObject *args)
     return Py_None;
 }
 
-static PyObject*
-_set_asn1_time(char *format, ASN1_TIME* timestamp, crypto_X509Obj *self, PyObject *args)
+PyObject*
+_set_asn1_time(char *format, ASN1_TIME* timestamp, PyObject *args)
 {
 	char *when;
 
@@ -375,7 +375,7 @@ static PyObject*
 crypto_X509_set_notBefore(crypto_X509Obj *self, PyObject *args)
 {
 	return _set_asn1_time(
-		"s:set_notBefore", X509_get_notBefore(self->x509), self, args);
+		"s:set_notBefore", X509_get_notBefore(self->x509), args);
 }
 
 static char crypto_X509_set_notAfter_doc[] = "\n\
@@ -394,11 +394,11 @@ static PyObject*
 crypto_X509_set_notAfter(crypto_X509Obj *self, PyObject *args)
 {
 	return _set_asn1_time(
-		"s:set_notAfter", X509_get_notAfter(self->x509), self, args);
+		"s:set_notAfter", X509_get_notAfter(self->x509), args);
 }
 
-static PyObject*
-_get_asn1_time(char *format, ASN1_TIME* timestamp, crypto_X509Obj *self, PyObject *args)
+PyObject*
+_get_asn1_time(char *format, ASN1_TIME* timestamp, PyObject *args)
 {
 	ASN1_GENERALIZEDTIME *gt_timestamp = NULL;
 	PyObject *py_timestamp = NULL;
@@ -450,7 +450,7 @@ crypto_X509_get_notBefore(crypto_X509Obj *self, PyObject *args)
 	 * X509_get_notBefore returns a borrowed reference.
 	 */
 	return _get_asn1_time(
-		":get_notBefore", X509_get_notBefore(self->x509), self, args);
+		":get_notBefore", X509_get_notBefore(self->x509), args);
 }
 
 
@@ -472,7 +472,7 @@ crypto_X509_get_notAfter(crypto_X509Obj *self, PyObject *args)
 	 * X509_get_notAfter returns a borrowed reference.
 	 */
 	return _get_asn1_time(
-		":get_notAfter", X509_get_notAfter(self->x509), self, args);
+		":get_notAfter", X509_get_notAfter(self->x509), args);
 }
 
 

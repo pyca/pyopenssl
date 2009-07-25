@@ -430,6 +430,53 @@ crypto_dump_certificate_request(PyObject *spam, PyObject *args)
     return buffer;
 }
 
+static char crypto_load_crl_doc[] = "\n\
+Load a certificate revocation list from a buffer\n\
+\n\
+@param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)\n\
+@param buffer: The buffer the CRL is stored in\n\
+\n\
+@return: The PKey object\n\
+";
+
+static PyObject *
+crypto_load_crl(PyObject *spam, PyObject *args)
+{
+    int type, len;
+    char *buffer;
+    BIO *bio;
+    X509_CRL *crl;
+
+    if (!PyArg_ParseTuple(args, "is#:load_crl", &type, &buffer, &len))
+        return NULL;
+
+    bio = BIO_new_mem_buf(buffer, len);
+    switch (type)
+    {
+        case X509_FILETYPE_PEM:
+            crl = PEM_read_bio_X509_CRL(bio, NULL, NULL, NULL);
+            break;
+
+        case X509_FILETYPE_ASN1:
+            crl = d2i_X509_CRL_bio(bio, NULL);
+            break;
+
+        default:
+            PyErr_SetString(PyExc_ValueError, "type argument must be FILETYPE_PEM or FILETYPE_ASN1");
+            BIO_free(bio);
+            return NULL;
+    }
+    BIO_free(bio);
+
+    if (crl == NULL)
+    {
+        exception_from_error_queue(crypto_Error);
+        return NULL;
+    }
+
+    return (PyObject *)crypto_CRL_New(crl);
+}
+
 static char crypto_load_pkcs7_data_doc[] = "\n\
 Load pkcs7 data from a buffer\n\
 \n\
@@ -555,6 +602,7 @@ static PyMethodDef crypto_methods[] = {
     { "dump_certificate", (PyCFunction)crypto_dump_certificate, METH_VARARGS, crypto_dump_certificate_doc },
     { "load_certificate_request", (PyCFunction)crypto_load_certificate_request, METH_VARARGS, crypto_load_certificate_request_doc },
     { "dump_certificate_request", (PyCFunction)crypto_dump_certificate_request, METH_VARARGS, crypto_dump_certificate_request_doc },
+    { "load_crl",         (PyCFunction)crypto_load_crl,         METH_VARARGS, crypto_load_crl_doc },
     { "load_pkcs7_data", (PyCFunction)crypto_load_pkcs7_data, METH_VARARGS, crypto_load_pkcs7_data_doc },
     { "load_pkcs12", (PyCFunction)crypto_load_pkcs12, METH_VARARGS, crypto_load_pkcs12_doc },
     { "X509_verify_cert_error_string", (PyCFunction)crypto_X509_verify_cert_error_string, METH_VARARGS, crypto_X509_verify_cert_error_string_doc },
@@ -696,7 +744,10 @@ initcrypto(void)
         goto error;
     if (!init_crypto_netscape_spki(module))
         goto error;
-
+    if (!init_crypto_crl(module))
+        goto error;
+    if (!init_crypto_revoked(module))
+        goto error;
 error:
     ;
 }

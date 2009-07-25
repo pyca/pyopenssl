@@ -19,6 +19,7 @@ from OpenSSL.crypto import dump_certificate, load_certificate_request
 from OpenSSL.crypto import dump_certificate_request, dump_privatekey
 from OpenSSL.crypto import PKCS7Type, load_pkcs7_data
 from OpenSSL.crypto import PKCS12Type, load_pkcs12
+from OpenSSL.crypto import CRL, Revoked, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.test.util import TestCase
 
@@ -1140,6 +1141,177 @@ class NetscapeSPKITests(TestCase):
         """
         nspki = NetscapeSPKI()
         self.assertTrue(isinstance(nspki, NetscapeSPKIType))
+
+
+def _runopenssl(pem, *args):
+    """
+    Run the command line openssl tool with the given arguments and write
+    the given PEM to its stdin.
+    """
+    write, read = popen2(" ".join(("openssl",) + args), "b")
+    write.write(pem)
+    write.close()
+    return read.read()
+
+
+class RevokedTests(TestCase):
+    """
+    Tests for L{OpenSSL.crypto.Revoked}
+    """
+    def test_construction(self):
+        """
+        Confirm we can create L{OpenSSL.crypto.Revoked}.  Check
+        that it is empty.
+        """
+        revoked = Revoked()
+        self.assertTrue( isinstance(revoked, Revoked) )
+        self.assertEqual( type(revoked), Revoked )
+        self.assertEqual( revoked.get_serial(), '00' )
+        self.assertEqual( revoked.get_rev_date(), None )
+
+
+    def test_serial(self):
+        """
+        Confirm we can set and get serial numbers from 
+        L{OpenSSL.crypto.Revoked}.  Confirm errors are handled
+        with grace.
+        """
+        revoked = Revoked()
+        ret = revoked.set_serial('10b')
+        self.assertEqual( ret, None )
+        ser = revoked.get_serial()
+        self.assertEqual( ser, '010B' )
+
+        revoked.set_serial('31ppp')  # a type error would be nice
+        ser = revoked.get_serial()
+        self.assertEqual( ser, '31' )
+
+        self.assertRaises(TypeError, revoked.set_serial, 'pqrst')
+        self.assertRaises(TypeError, revoked.set_serial, 100)
+
+
+    def test_date(self):
+        """
+        Confirm we can set and get revocation dates from 
+        L{OpenSSL.crypto.Revoked}.  Confirm errors are handled
+        with grace.
+        """
+        revoked = Revoked()
+        date = revoked.get_rev_date()
+        self.assertEqual( date, None )
+
+        now = datetime.now().strftime("%Y%m%d%H%M%SZ")
+        ret = revoked.set_rev_date(now)
+        self.assertEqual( ret, None )
+        date = revoked.get_rev_date()
+        self.assertEqual( date, now )
+
+
+
+class CRLTests(TestCase):
+    """
+    Tests for L{OpenSSL.crypto.CRL}
+    """
+    cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+    pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+
+    def test_construction(self):
+        """
+        Confirm we can create L{OpenSSL.crypto.CRL}.  Check
+        that it is empty
+        """
+        crl = CRL()
+        self.assertTrue( isinstance(crl, CRL) )
+        self.assertEqual(crl.get_revoked(), None)
+
+
+    def test_export(self):
+        """
+        Use python to create a simple CRL with a revocation, and export
+        the CRL in formats of PEM, DER and text.  Those outputs are verified
+        with the openssl program.
+        """
+        crl = CRL()
+        revoked = Revoked()
+        now = datetime.now().strftime("%Y%m%d%H%M%SZ")
+        revoked.set_rev_date(now)
+        revoked.set_serial('3ab')
+        crl.add_revoked(revoked)
+
+        # PEM format
+        dumped_crl = crl.export(self.cert, self.pkey, days=20)
+        text = _runopenssl(dumped_crl, "crl", "-noout", "-text")
+        text.index('Serial Number: 03AB')
+        text.index('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA')
+
+        # DER format
+        dumped_crl = crl.export(self.cert, self.pkey, FILETYPE_ASN1)
+        text = _runopenssl(dumped_crl, "crl", "-noout", "-text", "-inform", "DER")
+        text.index('Serial Number: 03AB')
+        text.index('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA')
+
+        # text format
+        dumped_text = crl.export(self.cert, self.pkey, type=FILETYPE_TEXT)
+        self.assertEqual(text, dumped_text)
+
+
+    def test_get_revoked(self):
+        """
+        Use python to create a simple CRL with two revocations.  
+        Get back the L{Revoked} using L{OpenSSL.CRL.get_revoked} and 
+        verify them.
+        """
+        crl = CRL()
+
+        revoked = Revoked()
+        now = datetime.now().strftime("%Y%m%d%H%M%SZ")
+        revoked.set_rev_date(now)
+        revoked.set_serial('3ab')
+        crl.add_revoked(revoked)
+        revoked.set_serial('100')
+        crl.add_revoked(revoked)
+
+        revs = crl.get_revoked()
+        self.assertEqual(len(revs), 2)
+        self.assertEqual(type(revs[0]), Revoked)
+        self.assertEqual(type(revs[1]), Revoked)
+        self.assertEqual(revs[0].get_serial(), '03AB')
+        self.assertEqual(revs[1].get_serial(), '0100')
+        self.assertEqual(revs[0].get_rev_date(), now)
+        self.assertEqual(revs[1].get_rev_date(), now)
+
+
+    def test_load_crl(self):
+        """
+        Load a known CRL and inspect its revocations.  Both
+        PEM and DER formats are loaded.
+        """
+
+        crl_txt = """
+-----BEGIN X509 CRL-----
+MIIBTTCBtzANBgkqhkiG9w0BAQQFADBYMQswCQYDVQQGEwJVUzELMAkGA1UECBMC
+SUwxEDAOBgNVBAcTB0NoaWNhZ28xEDAOBgNVBAoTB1Rlc3RpbmcxGDAWBgNVBAMT
+D1Rlc3RpbmcgUm9vdCBDQRcNMDkwNzI1MDIxMjE0WhcNMDkxMTAyMDIxMjE0WjAu
+MBUCAgOrGA8yMDA5MDcyNDIxMTIxNFowFQICAQAYDzIwMDkwNzI0MjExMjE0WjAN
+BgkqhkiG9w0BAQQFAAOBgQApflU91pdbbSXNMLxRHAwz+2M2vzhmpFDYsX8gPe76
+GgrEY475v1CGJTdmKQnwosUx1tJ6HgoueAfTvzLGgVhqfeeR6BTjhnJH69rW+L6A
+w47xSB7rmUglsn3HlAdZl4tIex+SlH7AB1mEsWNJ0VA0mDEF01eOaBwBfEmK3zGd
+ng==
+-----END X509 CRL-----
+"""
+        crl = load_crl(FILETYPE_PEM, crl_txt) 
+        revs = crl.get_revoked()
+        self.assertEqual(len(revs), 2)
+        self.assertEqual(revs[0].get_serial(), '03AB')
+        self.assertEqual(revs[1].get_serial(), '0100')
+
+        der = _runopenssl(crl_txt, "crl", "-outform", "DER")
+        crl = load_crl(FILETYPE_ASN1, der) 
+        revs = crl.get_revoked()
+        self.assertEqual(len(revs), 2)
+        self.assertEqual(revs[0].get_serial(), '03AB')
+        self.assertEqual(revs[1].get_serial(), '0100')
+
 
 
 

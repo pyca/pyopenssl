@@ -23,12 +23,14 @@ crypto_src = ['src/crypto/crypto.c', 'src/crypto/x509.c',
               'src/crypto/x509store.c', 'src/crypto/x509req.c',
               'src/crypto/x509ext.c', 'src/crypto/pkcs7.c',
               'src/crypto/pkcs12.c', 'src/crypto/netscape_spki.c',
+              'src/crypto/revoked.c', 'src/crypto/crl.c',
               'src/util.c']
 crypto_dep = ['src/crypto/crypto.h', 'src/crypto/x509.h',
               'src/crypto/x509name.h', 'src/crypto/pkey.h',
               'src/crypto/x509store.h', 'src/crypto/x509req.h',
               'src/crypto/x509ext.h', 'src/crypto/pkcs7.h',
               'src/crypto/pkcs12.h', 'src/crypto/netscape_spki.h',
+              'src/crypto/revoked.h', 'src/crypto/crl.h',
               'src/util.h']
 rand_src = ['src/rand/rand.c', 'src/util.c']
 rand_dep = ['src/util.h']
