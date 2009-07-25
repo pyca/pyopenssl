@@ -162,7 +162,7 @@ crypto_CRL_export(crypto_CRLObj *self, PyObject *args, PyObject *keywds)
 
             default:
                 PyErr_SetString(PyExc_ValueError,
-                        "type argument must be FILETYPE_PEM or FILETYPE_ASN1");
+                        "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or FILETYPE_TEXT");
                 return NULL;
         };
         if( ! ret )
