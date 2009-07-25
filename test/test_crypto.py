@@ -972,6 +972,14 @@ class PKCS12Tests(TestCase):
     """
     pemData = cleartextCertificatePEM + cleartextPrivateKeyPEM
 
+    def test_type(self):
+        """
+        L{PKCS12Type} is a type object.
+        """
+        self.assertIdentical(PKCS12, PKCS12Type)
+        self.assertConsistentType(PKCS12, 'PKCS12')
+
+
     def test_empty_construction(self):
         """
         L{PKCS12} returns a new instance of L{PKCS12} with no certificate,
@@ -1413,22 +1421,6 @@ class PKCS7Tests(TestCase):
 
         # XXX This doesn't currently work.
         # self.assertIdentical(PKCS7, PKCS7Type)
-
-
-
-class PKCS12Tests(TestCase):
-    """
-    Tests for L{PKCS12Type}.
-    """
-    def test_type(self):
-        """
-        L{PKCS12Type} is a type object.
-        """
-        self.assertTrue(isinstance(PKCS12Type, type))
-        self.assertEqual(PKCS12Type.__name__, 'PKCS12')
-
-        # XXX This doesn't currently work.
-        # self.assertIdentical(PKCS12, PKCS12Type)
 
 
 
