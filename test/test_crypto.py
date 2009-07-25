@@ -792,8 +792,8 @@ class PKCS12Tests(TestCase):
 
     def test_empty_construction(self):
         """
-        Confirm L{OpenSSL.crypto.PKCS12} returs a PKCS12.  Confirm
-        that the new PKCS12 is empty.
+        L{PKCS12} returns a new instance of L{PKCS12} with no certificate,
+        private key, CA certificates, or friendly name.
         """
         self.assertTrue(type(PKCS12).__name__, 'PKCS12')
         p12 = PKCS12()
