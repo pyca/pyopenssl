@@ -88,8 +88,7 @@ Replace or set the certificate portion of the PKCS12 structure\n\
 @return: None\n\
 ";
 static PyObject *
-crypto_PKCS12_set_privatekey(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
-{
+crypto_PKCS12_set_privatekey(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds) {
     PyObject *pkey = NULL;
     static char *kwlist[] = {"pkey", NULL};
 
@@ -97,7 +96,7 @@ crypto_PKCS12_set_privatekey(crypto_PKCS12Obj *self, PyObject *args, PyObject *k
         kwlist, &pkey))
         return NULL;
 
-    if (pkey != Py_None && ! PyObject_IsInstance(pkey, (PyObject *) &crypto_PKey_Type)) {
+    if (pkey != Py_None && ! crypto_PKey_Check(pkey)) {
         PyErr_SetString(PyExc_TypeError, "pkey must be type X509 or None");
         return NULL;
     }
@@ -130,7 +129,7 @@ static char crypto_PKCS12_set_ca_certificates_doc[] = "\n\
 Replace or set the CA certificates withing the PKCS12 object.\n\
 \n\
 @param cacerts: The new CA certificates.\n\
-@type cacerts: Sequence of L{X509} or L{NoneType}\n\
+@type cacerts: Iterable of L{X509} or L{NoneType}\n\
 @return: None\n\
 ";
 static PyObject *
