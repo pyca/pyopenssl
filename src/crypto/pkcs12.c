@@ -137,6 +137,7 @@ Replace or set the CA certificates withing the PKCS12 object.\n\
 static PyObject *
 crypto_PKCS12_set_ca_certificates(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
 {
+    PyObject *obj;
     PyObject *cacerts;
     static char *kwlist[] = {"cacerts", NULL};
     int i, len; /* Py_ssize_t for Python 2.5+ */
@@ -154,7 +155,6 @@ crypto_PKCS12_set_ca_certificates(crypto_PKCS12Obj *self, PyObject *args, PyObje
         }
         /* Check is's a simple list filled only with X509 objects. */
         for(i = 0;i < len;i++) {  /* For each CA cert */
-            PyObject *obj;
             obj = PySequence_GetItem(cacerts, i);
             if(obj == NULL) {
                 break;
