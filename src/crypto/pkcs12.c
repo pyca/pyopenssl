@@ -320,8 +320,8 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase) {
     crypto_PKCS12Obj *self = NULL;
     PyObject *cacertobj = NULL;
 
-    unsigned char *alstr;
-    int allen;
+    unsigned char *alias_str;
+    int alias_len;
 
     X509 *cert = NULL;
     EVP_PKEY *pkey = NULL;
@@ -358,8 +358,8 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase) {
         /*  Now we need to extract the friendlyName of the PKCS12
          *  that was stored by PKCS_pasrse() in the alias of the
          *  certificate. */
-        alstr = X509_alias_get0(cert, &allen);
-        if (alstr && (self->friendlyname = Py_BuildValue("s#", alstr, allen))){
+        alias_str = X509_alias_get0(cert, &alias_len);
+        if (alias_str && (self->friendlyname = Py_BuildValue("s#", alias_str, alias_len))){
             /* success */
         } else {
             Py_INCREF(Py_None);
