@@ -7,6 +7,7 @@ Unit tests for L{OpenSSL.crypto}.
 from unittest import main
 
 from os import popen2
+from datetime import datetime, timedelta
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
@@ -225,8 +226,44 @@ Ho4EzbYCOaEAMQA=
 """
 
 
-
 class X509ExtTests(TestCase):
+    """
+    Tests for L{OpenSSL.crypto.X509Extension}.
+    """
+
+    def setUp(self):
+        """
+        Create a new private key and start a certificate request (for a test
+        method to finish in one way or another).
+        """
+        # Basic setup stuff to generate a certificate
+        self.pkey = PKey()
+        self.pkey.generate_key(TYPE_RSA, 384)
+        self.req = X509Req()
+        self.req.set_pubkey(self.pkey)
+        # Authority good you have.
+        self.req.get_subject().commonName = "Yoda root CA"
+        self.x509 = X509()
+        self.subject = self.x509.get_subject()
+        self.subject.commonName = self.req.get_subject().commonName
+        self.x509.set_issuer(self.subject)
+        self.x509.set_pubkey(self.pkey)
+        now = datetime.now().strftime("%Y%m%d%H%M%SZ")
+        expire  = (datetime.now() + timedelta(days=100)).strftime("%Y%m%d%H%M%SZ")
+        self.x509.set_notBefore(now)
+        self.x509.set_notAfter(expire)
+
+
+    def test_type(self):
+        """
+        L{X509Extension} and L{X509ExtensionType} refer to the same type object
+        and can be used to create instances of that type.
+        """
+        self.assertIdentical(X509Extension, X509ExtensionType)
+        self.assertConsistentType(
+            X509Extension, 'X509Extension', 'basicConstraints', True, 'CA:true')
+
+
     def test_construction(self):
         """
         L{X509Extension} accepts an extension type name, a critical flag,
@@ -286,14 +323,122 @@ class X509ExtTests(TestCase):
         self.assertEqual(ext.get_short_name(), 'nsComment')
 
 
+    def test_unused_subject(self):
+        """
+        The C{subject} parameter to L{X509Extension} may be provided for an
+        extension which does not use it and is ignored in this case.
+        """
+        ext1 = X509Extension('basicConstraints', False, 'CA:TRUE', subject=self.x509)
+        self.x509.add_extensions([ext1])
+        self.x509.sign(self.pkey, 'sha1')
+        # This is a little lame.  Can we think of a better way?
+        text = dump_certificate(FILETYPE_TEXT, self.x509)
+        self.assertTrue('X509v3 Basic Constraints:' in text)
+        self.assertTrue('CA:TRUE' in text)
+
+
+    def test_subject(self):
+        """
+        If an extension requires a subject, the C{subject} parameter to
+        L{X509Extension} provides its value.
+        """
+        ext3 = X509Extension('subjectKeyIdentifier', False, 'hash', subject=self.x509)
+        self.x509.add_extensions([ext3])
+        self.x509.sign(self.pkey, 'sha1')
+        text = dump_certificate(FILETYPE_TEXT, self.x509)
+        self.assertTrue('X509v3 Subject Key Identifier:' in text)
+
+
+    def test_missing_subject(self):
+        """
+        If an extension requires a subject and the C{subject} parameter is
+        given no value, something happens.
+        """
+        self.assertRaises(
+            Error, X509Extension, 'subjectKeyIdentifier', False, 'hash')
+
+
+    def test_invalid_subject(self):
+        """
+        If the C{subject} parameter is given a value which is not an L{X509}
+        instance, L{TypeError} is raised.
+        """
+        for badObj in [True, object(), "hello", [], self]:
+            self.assertRaises(
+                TypeError,
+                X509Extension,
+                'basicConstraints', False, 'CA:TRUE', subject=badObj)
+
+
+    def test_unused_issuer(self):
+        """
+        The C{issuer} parameter to L{X509Extension} may be provided for an
+        extension which does not use it and is ignored in this case.
+        """
+        ext1 = X509Extension('basicConstraints', False, 'CA:TRUE', issuer=self.x509)
+        self.x509.add_extensions([ext1])
+        self.x509.sign(self.pkey, 'sha1')
+        text = dump_certificate(FILETYPE_TEXT, self.x509)
+        self.assertTrue('X509v3 Basic Constraints:' in text)
+        self.assertTrue('CA:TRUE' in text)
+
+
+    def test_issuer(self):
+        """
+        If an extension requires a issuer, the C{issuer} parameter to
+        L{X509Extension} provides its value.
+        """
+        ext2 = X509Extension(
+            'authorityKeyIdentifier', False, 'issuer:always',
+            issuer=self.x509)
+        self.x509.add_extensions([ext2])
+        self.x509.sign(self.pkey, 'sha1')
+        text = dump_certificate(FILETYPE_TEXT, self.x509)
+        self.assertTrue('X509v3 Authority Key Identifier:' in text)
+        self.assertTrue('DirName:/CN=Yoda root CA' in text)
+
+
+    def test_missing_issuer(self):
+        """
+        If an extension requires an issue and the C{issuer} parameter is given
+        no value, something happens.
+        """
+        self.assertRaises(
+            Error,
+            X509Extension,
+            'authorityKeyIdentifier', False, 'keyid:always,issuer:always')
+
+
+    def test_invalid_issuer(self):
+        """
+        If the C{issuer} parameter is given a value which is not an L{X509}
+        instance, L{TypeError} is raised.
+        """
+        for badObj in [True, object(), "hello", [], self]:
+            self.assertRaises(
+                TypeError,
+                X509Extension,
+                'authorityKeyIdentifier', False, 'keyid:always,issuer:always',
+                issuer=badObj)
+
+
 
 class PKeyTests(TestCase):
     """
     Unit tests for L{OpenSSL.crypto.PKey}.
     """
+    def test_type(self):
+        """
+        L{PKey} and L{PKeyType} refer to the same type object and can be used
+        to create instances of that type.
+        """
+        self.assertIdentical(PKey, PKeyType)
+        self.assertConsistentType(PKey, 'PKey')
+
+
     def test_construction(self):
         """
-        L{PKey} takes no arguments and returns a new L{PKeyType} instance.
+        L{PKey} takes no arguments and returns a new L{PKey} instance.
         """
         self.assertRaises(TypeError, PKey, None)
         key = PKey()
@@ -400,6 +545,21 @@ class X509NameTests(TestCase):
         for k, v in attrs:
             setattr(name, k, v)
         return name
+
+
+    def test_type(self):
+        """
+        The type of X509Name objects is L{X509NameType}.
+        """
+        self.assertIdentical(X509Name, X509NameType)
+        self.assertEqual(X509NameType.__name__, 'X509Name')
+        self.assertTrue(isinstance(X509NameType, type))
+
+        name = self._x509name()
+        self.assertTrue(
+            isinstance(name, X509NameType),
+            "%r is of type %r, should be %r" % (
+                name, type(name), X509NameType))
 
 
     def test_attributes(self):
@@ -613,6 +773,15 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
         return X509Req()
 
 
+    def test_type(self):
+        """
+        L{X509Req} and L{X509ReqType} refer to the same type object and can be
+        used to create instances of that type.
+        """
+        self.assertIdentical(X509Req, X509ReqType)
+        self.assertConsistentType(X509Req, 'X509Req')
+
+
     def test_construction(self):
         """
         L{X509Req} takes no arguments and returns an L{X509ReqType} instance.
@@ -669,6 +838,15 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         return X509()
 
 
+    def test_type(self):
+        """
+        L{X509} and L{X509Type} refer to the same type object and can be used
+        to create instances of that type.
+        """
+        self.assertIdentical(X509, X509Type)
+        self.assertConsistentType(X509, 'X509')
+
+
     def test_construction(self):
         """
         L{X509} takes no arguments and returns an instance of L{X509Type}.
@@ -679,6 +857,10 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
             "%r is of type %r, should be %r" % (certificate,
                                                 type(certificate),
                                                 X509Type))
+        self.assertEqual(type(X509Type).__name__, 'type')
+        self.assertEqual(type(certificate).__name__, 'X509')
+        self.assertEqual(type(certificate), X509Type)
+        self.assertEqual(type(certificate), X509)
 
 
     def test_serial_number(self):
@@ -1218,10 +1400,51 @@ class FunctionTests(TestCase):
 
 
 
+class PKCS7Tests(TestCase):
+    """
+    Tests for L{PKCS7Type}.
+    """
+    def test_type(self):
+        """
+        L{PKCS7Type} is a type object.
+        """
+        self.assertTrue(isinstance(PKCS7Type, type))
+        self.assertEqual(PKCS7Type.__name__, 'PKCS7')
+
+        # XXX This doesn't currently work.
+        # self.assertIdentical(PKCS7, PKCS7Type)
+
+
+
+class PKCS12Tests(TestCase):
+    """
+    Tests for L{PKCS12Type}.
+    """
+    def test_type(self):
+        """
+        L{PKCS12Type} is a type object.
+        """
+        self.assertTrue(isinstance(PKCS12Type, type))
+        self.assertEqual(PKCS12Type.__name__, 'PKCS12')
+
+        # XXX This doesn't currently work.
+        # self.assertIdentical(PKCS12, PKCS12Type)
+
+
+
 class NetscapeSPKITests(TestCase):
     """
     Tests for L{OpenSSL.crypto.NetscapeSPKI}.
     """
+    def test_type(self):
+        """
+        L{NetscapeSPKI} and L{NetscapeSPKIType} refer to the same type object
+        and can be used to create instances of that type.
+        """
+        self.assertIdentical(NetscapeSPKI, NetscapeSPKIType)
+        self.assertConsistentType(NetscapeSPKI, 'NetscapeSPKI')
+
+
     def test_construction(self):
         """
         L{NetscapeSPKI} returns an instance of L{NetscapeSPKIType}.

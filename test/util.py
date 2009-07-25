@@ -11,6 +11,7 @@ import shutil
 import os, os.path
 from tempfile import mktemp
 from unittest import TestCase
+import sys
 
 from OpenSSL.crypto import Error, _exception_from_error_queue
 
@@ -88,10 +89,10 @@ class TestCase(TestCase):
         except exception, inst:
             return inst
         except:
-            raise self.failureException('%s raised instead of %s:\n %s'
+            raise self.failureException('%s raised instead of %s'
                                         % (sys.exc_info()[0],
                                            exception.__name__,
-                                           failure.Failure().getTraceback()))
+                                          ))
         else:
             raise self.failureException('%s not raised (%r returned)'
                                         % (exception.__name__, result))
@@ -117,3 +118,22 @@ class TestCase(TestCase):
 
     def assertFalse(self, *a, **kw):
         return self.failIf(*a, **kw)
+
+
+    # Other stuff
+    def assertConsistentType(self, theType, name, *constructionArgs):
+        """
+        Perform various assertions about C{theType} to ensure that it is a
+        well-defined type.  This is useful for extension types, where it's
+        pretty easy to do something wacky.  If something about the type is
+        unusual, an exception will be raised.
+
+        @param theType: The type object about which to make assertions.
+        @param name: A string giving the name of the type.
+        @param constructionArgs: Positional arguments to use with C{theType} to
+            create an instance of it.
+        """
+        self.assertEqual(theType.__name__, name)
+        self.assertTrue(isinstance(theType, type))
+        instance = theType(*constructionArgs)
+        self.assertIdentical(type(instance), theType)

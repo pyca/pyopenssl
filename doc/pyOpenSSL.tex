@@ -188,8 +188,11 @@ A Python type object representing the PKCS12 object type.
 See \class{X509Extension}.
 \end{datadesc}
 
-\begin{classdesc}{X509Extension}{typename, critical, value}
-A class representing an X.509 v3 certificate extensions.
+\begin{classdesc}{X509Extension}{typename, critical, value\optional{, subject}\optional{, issuer}}
+A class representing an X.509 v3 certificate extensions.  
+See \url{http://openssl.org/docs/apps/x509v3_config.html\#STANDARD_EXTENSIONS} 
+for \var{typename} strings and their options.
+Optional parameters \var{subject} and \var{issuer} must be X509 objects.
 \end{classdesc}
 
 \begin{datadesc}{NetscapeSPKIType}
