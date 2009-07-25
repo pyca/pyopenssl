@@ -40,12 +40,11 @@ static char crypto_PKCS12_set_certificate_doc[] = "\n\
 Replace the certificate portion of the PKCS12 structure\n\
 \n\
 @param cert: The new certificate.\n\
-@type cert: L{X509}\n\
+@type cert: L{X509} or L{NoneType}\n\
 @return: None\n\
 ";
 static PyObject *
-crypto_PKCS12_set_certificate(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
-{
+crypto_PKCS12_set_certificate(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds) {
     PyObject *cert = NULL;
     static char *kwlist[] = {"cert", NULL};
 
@@ -53,7 +52,7 @@ crypto_PKCS12_set_certificate(crypto_PKCS12Obj *self, PyObject *args, PyObject *
         kwlist, &cert))
         return NULL;
 
-    if (cert != Py_None && ! PyObject_IsInstance(cert, (PyObject *) &crypto_X509_Type)) {
+    if (cert != Py_None && ! crypto_X509_Check(cert)) {
         PyErr_SetString(PyExc_TypeError, "cert must be type X509 or None");
         return NULL;
     }
