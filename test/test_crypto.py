@@ -1232,37 +1232,35 @@ class PKCS12Tests(TestCase):
 
     def test_zero_len_list_for_ca(self):
         """
-        Export a PKCS12 with a zero length list for CA.
-        Verify it with the openssl program.
+        A PKCS12 with an empty CA certificates list can be exported.
         """
         passwd = 'Hobie 18'
-        p12 = self.gen_pkcs12( server_cert_pem, server_key_pem )
-        p12.set_ca_certificates( [] )
+        p12 = self.gen_pkcs12(server_cert_pem, server_key_pem)
+        p12.set_ca_certificates([])
         self.assertEqual((), p12.get_ca_certificates())
         dumped_p12 = p12.export(passphrase=passwd, iter=3)
-        self.check_recovery(dumped_p12, key=server_key_pem,
-                cert=server_cert_pem, passwd=passwd, )
+        self.check_recovery(
+            dumped_p12, key=server_key_pem, cert=server_cert_pem,
+            passwd=passwd)
 
 
     def test_export_without_args(self):
         """
-        Run L{OpenSSL.crypto.PKCS12.export} without any
-        args to show they are all truely optional.  Confirm
-        with openssl program.
+        All the arguments to L{PKCS12.export} are optional.
         """
-        p12 = self.gen_pkcs12( server_cert_pem, server_key_pem, root_cert_pem )
+        p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
         dumped_p12 = p12.export()  # no args
-        self.check_recovery( dumped_p12, key=server_key_pem,
-                cert=server_cert_pem, passwd='')
+        self.check_recovery(
+            dumped_p12, key=server_key_pem, cert=server_cert_pem, passwd='')
 
 
     def test_key_cert_mismatch(self):
         """
-        Verify L{OpenSSL.crypto.PKCS12.export} raises an exception when a
-        key and certificate mismatch.
+        L{PKCS12.export} raises an exception when a key and certificate
+        mismatch.
         """
-        p12 = self.gen_pkcs12( server_cert_pem, client_key_pem, root_cert_pem )
-        self.assertRaises( Error, p12.export )
+        p12 = self.gen_pkcs12(server_cert_pem, client_key_pem, root_cert_pem)
+        self.assertRaises(Error, p12.export)
 
 
 
