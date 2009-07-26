@@ -20,6 +20,7 @@
  */
 
 static void crypto_PKCS12_dealloc(crypto_PKCS12Obj *self);
+static int crypto_PKCS12_clear(crypto_PKCS12Obj *self);
 
 static char crypto_PKCS12_get_certificate_doc[] = "\n\
 Return certificate portion of the PKCS12 structure\n\
@@ -414,7 +415,10 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase) {
 
 error:
     sk_X509_free(cacerts); /* NULL safe. Free just the container. */
-    crypto_PKCS12_dealloc(self);
+    if (self) {
+        crypto_PKCS12_clear(self);
+        PyObject_GC_Del(self);
+    }
     return NULL;
 }
 

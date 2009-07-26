@@ -1227,9 +1227,7 @@ class PKCS12Tests(TestCase):
         passwd = 'Lake Michigan'
         p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
         dumped_p12 = p12.export(maciter=-1, passphrase=passwd, iter=2)
-        # Unfortunately, we can't load the dumped PKCS12 back into memory
-        # because PKCS12_parse doesn't work on such PKCS12 data.
-        p12 = load_pkcs12(dumped_p12, passwd)
+        self.assertRaises(Error, load_pkcs12, dumped_p12, passwd)
 
 
     def test_zero_len_list_for_ca(self):
