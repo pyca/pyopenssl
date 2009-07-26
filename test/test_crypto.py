@@ -985,9 +985,7 @@ class PKCS12Tests(TestCase):
         L{PKCS12} returns a new instance of L{PKCS12} with no certificate,
         private key, CA certificates, or friendly name.
         """
-        self.assertTrue(type(PKCS12).__name__, 'PKCS12')
         p12 = PKCS12()
-        self.assertTrue(isinstance(p12, PKCS12))
         self.assertEqual(None, p12.get_certificate())
         self.assertEqual(None, p12.get_privatekey())
         self.assertEqual(None, p12.get_ca_certificates())
@@ -996,8 +994,9 @@ class PKCS12Tests(TestCase):
 
     def test_type_errors(self):
         """
-        Try the set functions L{OpenSSL.crypto.PKCS12} with bad
-        types to see them raise TypeError.
+        The L{PKCS12} setter functions (C{set_certificate}, C{set_privatekey},
+        C{set_ca_certificates}, and C{set_friendlyname}) raise L{TypeError}
+        when passed objects of types other than those expected.
         """
         p12 = PKCS12()
         self.assertRaises(TypeError, p12.set_certificate, 3)
@@ -1016,97 +1015,110 @@ class PKCS12Tests(TestCase):
 
     def test_key_only(self):
         """
-        Run L{OpenSSL.crypto.PKCS12.export} and
-        L{OpenSSL.crypto.load_pkcs12} without any certs, only
-        a private key.
+        A L{PKCS12} with only a private key can be exported using
+        L{PKCS12.export} and loaded again using L{load_pkcs12}.
         """
         passwd = 'blah'
         p12 = PKCS12()
         pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
-        p12.set_privatekey( pkey )
+        p12.set_privatekey(pkey)
         self.assertEqual(None, p12.get_certificate())
         self.assertEqual(pkey, p12.get_privatekey())
         dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=3)
         p12 = load_pkcs12(dumped_p12, passwd)
         self.assertEqual(None, p12.get_ca_certificates())
         self.assertEqual(None, p12.get_certificate())
-        #  It's actually in the pkcs12, but we silently don't find it (a key without a cert)
-        #self.assertEqual(cleartextPrivateKeyPEM, dump_privatekey(FILETYPE_PEM, p12.get_privatekey()))
+
+        # OpenSSL fails to bring the key back to us.  So sad.  Perhaps in the
+        # future this will be improved.
+        self.assertTrue(isinstance(p12.get_privatekey(), (PKey, type(None))))
 
 
     def test_cert_only(self):
         """
-        Run L{OpenSSL.crypto.PKCS12.export} and
-        L{OpenSSL.crypto.load_pkcs12} without a private key.
-        Strangely, OpenSSL converts it to a CA cert.
+        A L{PKCS12} with only a certificate can be exported using
+        L{PKCS12.export} and loaded again using L{load_pkcs12}.
         """
         passwd = 'blah'
         p12 = PKCS12()
         cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
-        p12.set_certificate( cert )
+        p12.set_certificate(cert)
         self.assertEqual(cert, p12.get_certificate())
         self.assertEqual(None, p12.get_privatekey())
         dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=3)
         p12 = load_pkcs12(dumped_p12, passwd)
         self.assertEqual(None, p12.get_privatekey())
-        self.assertEqual(None, p12.get_certificate())
-        self.assertEqual(cleartextCertificatePEM, dump_certificate(FILETYPE_PEM, p12.get_ca_certificates()[0]))
+
+        # OpenSSL fails to bring the cert back to us.  Groany mcgroan.
+        self.assertTrue(isinstance(p12.get_certificate(), (X509, type(None))))
+
+        # Oh ho.  It puts the certificate into the ca certificates list, in
+        # fact.  Totally bogus, I would think.  Nevertheless, let's exploit
+        # that to check to see if it reconstructed the certificate we expected
+        # it to.  At some point, hopefully this will change so that
+        # p12.get_certificate() is actually what returns the loaded
+        # certificate.
+        self.assertEqual(
+            cleartextCertificatePEM,
+            dump_certificate(FILETYPE_PEM, p12.get_ca_certificates()[0]))
 
 
-    def gen_pkcs12( self, cert_pem=None, key_pem=None, ca_pem=None, fn=None ):
+    def gen_pkcs12(self, cert_pem=None, key_pem=None, ca_pem=None, friendly_name=None):
         """
-        Generate a PKCS12 object with components from PEM.
-        Verify that the set functions return None.
+        Generate a PKCS12 object with components from PEM.  Verify that the set
+        functions return None.
         """
         p12 = PKCS12()
         if cert_pem:
             ret = p12.set_certificate(load_certificate(FILETYPE_PEM, cert_pem))
             self.assertEqual(ret, None)
         if key_pem:
-            ret = p12.set_privatekey( load_privatekey(FILETYPE_PEM, key_pem) )
+            ret = p12.set_privatekey(load_privatekey(FILETYPE_PEM, key_pem))
             self.assertEqual(ret, None)
         if ca_pem:
-            ret = p12.set_ca_certificates( ( load_certificate(FILETYPE_PEM, ca_pem), ) )
+            ret = p12.set_ca_certificates((load_certificate(FILETYPE_PEM, ca_pem),))
             self.assertEqual(ret, None)
-        if fn:
-            ret = p12.set_friendlyname( fn )
+        if friendly_name:
+            ret = p12.set_friendlyname(friendly_name)
             self.assertEqual(ret, None)
         return p12
 
 
-    def check_recovery(self, p12_str, key=None, cert=None, ca=None,
-                       passwd='', extra=()):
+    def check_recovery(self, p12_str, key=None, cert=None, ca=None, passwd='',
+                       extra=()):
         """
-        Use openssl program to confirm three components are recoverable
-        from a PKCS12 string.
+        Use openssl program to confirm three components are recoverable from a
+        PKCS12 string.
         """
         if key:
-            recovered_key = _runopenssl(p12_str, "pkcs12", '-nocerts', '-nodes',
-                                '-passin', 'pass:'+passwd, *extra )
+            recovered_key = _runopenssl(
+                p12_str, "pkcs12", '-nocerts', '-nodes', '-passin',
+                'pass:' + passwd, *extra)
             self.assertEqual(recovered_key[-len(key):], key)
         if cert:
-            recovered_cert = _runopenssl(p12_str, "pkcs12", '-clcerts', '-nodes',
-                               '-passin', 'pass:'+passwd, '-nokeys', *extra)
+            recovered_cert = _runopenssl(
+                p12_str, "pkcs12", '-clcerts', '-nodes', '-passin',
+                'pass:' + passwd, '-nokeys', *extra)
             self.assertEqual(recovered_cert[-len(cert):], cert)
         if ca:
-            recovered_cert = _runopenssl(p12_str, "pkcs12", '-cacerts', '-nodes',
-                                '-passin', 'pass:'+passwd, '-nokeys', *extra)
+            recovered_cert = _runopenssl(
+                p12_str, "pkcs12", '-cacerts', '-nodes', '-passin',
+                'pass:' + passwd, '-nokeys', *extra)
             self.assertEqual(recovered_cert[-len(ca):], ca)
 
 
     def test_load_pkcs12(self):
         """
-        Generate a PKCS12 string using openssl, then load it with
-        L{load_pkcs12} and verify the returned object.
+        A PKCS12 string generated using the openssl command line can be loaded
+        with L{load_pkcs12} and its components extracted and examined.
         """
         passwd = 'whatever'
         pem = client_key_pem + client_cert_pem
-        p12_str = _runopenssl(pem, "pkcs12", '-export', '-clcerts',
-                                   '-passout', 'pass:'+passwd)
+        p12_str = _runopenssl(
+            pem, "pkcs12", '-export', '-clcerts', '-passout', 'pass:' + passwd)
         p12 = load_pkcs12(p12_str, passwd)
         # verify
         self.assertTrue(isinstance(p12, PKCS12))
-        self.assertTrue(isinstance(p12, PKCS12Type))
         cert_pem = dump_certificate(FILETYPE_PEM, p12.get_certificate())
         self.assertEqual(cert_pem, client_cert_pem)
         key_pem = dump_privatekey(FILETYPE_PEM, p12.get_privatekey())
@@ -1116,7 +1128,8 @@ class PKCS12Tests(TestCase):
 
     def test_load_pkcs12_garbage(self):
         """
-        Use L{load_pkcs12} on a string of garbage.
+        L{load_pkcs12} raises L{OpenSSL.crypto.Error} when passed a string
+        which is not a PKCS12 dump.
         """
         passwd = 'whatever'
         e = self.assertRaises(Error, load_pkcs12, 'fruit loops', passwd)
@@ -1126,18 +1139,19 @@ class PKCS12Tests(TestCase):
 
     def test_replace(self):
         """
-        Test replacing components of a L{PKCS12} object.  Test multiple
-        CA certificates.
+        L{PKCS12.set_certificate} replaces the certificate in a PKCS12 cluster.
+        L{PKCS12.set_privatekey} replaces the private key.
+        L{PKCS12.set_ca_certificates} replaces the CA certificates.
         """
-        p12 = self.gen_pkcs12( client_cert_pem, client_key_pem, root_cert_pem )
-        p12.set_certificate( load_certificate(FILETYPE_PEM, server_cert_pem) )
-        p12.set_privatekey( load_privatekey(FILETYPE_PEM, server_key_pem) )
+        p12 = self.gen_pkcs12(client_cert_pem, client_key_pem, root_cert_pem)
+        p12.set_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
+        p12.set_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
         root_cert = load_certificate(FILETYPE_PEM, root_cert_pem)
         client_cert = load_certificate(FILETYPE_PEM, client_cert_pem)
-        p12.set_ca_certificates( [ root_cert, ] )  # not a tuple
+        p12.set_ca_certificates([root_cert]) # not a tuple
         self.assertEqual(1, len(p12.get_ca_certificates()))
         self.assertEqual(root_cert, p12.get_ca_certificates()[0])
-        p12.set_ca_certificates( [ client_cert, root_cert ] )
+        p12.set_ca_certificates([client_cert, root_cert])
         self.assertEqual(2, len(p12.get_ca_certificates()))
         self.assertEqual(client_cert, p12.get_ca_certificates()[0])
         self.assertEqual(root_cert, p12.get_ca_certificates()[1])
@@ -1145,64 +1159,77 @@ class PKCS12Tests(TestCase):
 
     def test_friendly_name(self):
         """
-        Test that we can get and set a friendlyName on a PKCS12.
-        Test that we can export a L{PKCS12} with a friendly name,
-        and confirm we can load the PKCS12 and find the friendly name.
-        Use the openssl program to also verify the certs in the PKCS12.
+        The I{friendlyName} of a PKCS12 can be set and retrieved via
+        L{PKCS12.get_friendlyname} and L{PKCS12_set_friendlyname}, and a
+        L{PKCS12} with a friendly name set can be dumped with L{PKCS12.export}.
         """
         passwd = 'Dogmeat[]{}!@#$%^&*()~`?/.,<>-_+=";:'
-        p12 = self.gen_pkcs12( server_cert_pem, server_key_pem, root_cert_pem )
-        for friendly_name in ('Serverlicious', None, '###'):
+        p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
+        for friendly_name in ['Serverlicious', None, '###']:
             p12.set_friendlyname(friendly_name)
             self.assertEqual(p12.get_friendlyname(), friendly_name)
             dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=3)
             reloaded_p12 = load_pkcs12(dumped_p12, passwd)
-            self.assertEqual(p12.get_friendlyname(),
-                    reloaded_p12.get_friendlyname())
+            self.assertEqual(
+                p12.get_friendlyname(),reloaded_p12.get_friendlyname())
             # We would use the openssl program to confirm the friendly
             # name, but it is not possible.  The pkcs12 command
             # does not store the friendly name in the cert's
             # alias, which we could then extract.
-            self.check_recovery(dumped_p12, key=server_key_pem,
-                    cert=server_cert_pem, ca=root_cert_pem, passwd=passwd)
+            self.check_recovery(
+                dumped_p12, key=server_key_pem, cert=server_cert_pem,
+                ca=root_cert_pem, passwd=passwd)
 
 
     def test_various_empty_passphrases(self):
         """
-        Test that missing, None, and '' passphrases are identical
-        for PKCS12 export.
+        Test that missing, None, and '' passphrases are identical for PKCS12
+        export.
         """
-        p12 = self.gen_pkcs12( client_cert_pem, client_key_pem, root_cert_pem )
+        p12 = self.gen_pkcs12(client_cert_pem, client_key_pem, root_cert_pem)
         passwd = ''
-        dumped_p12_empty = p12.export(passphrase=passwd, iter=2, maciter=0)
-        dumped_p12_none  = p12.export(passphrase=None,   iter=3, maciter=2)
-        dumped_p12_nopw  = p12.export(                   iter=9, maciter=4)
-        for dumped_p12 in ( dumped_p12_empty, dumped_p12_none, dumped_p12_nopw ):
-            self.check_recovery( dumped_p12, key=client_key_pem,
-                    cert=client_cert_pem, ca=root_cert_pem, passwd=passwd)
+        dumped_p12_empty = p12.export(iter=2, maciter=0, passphrase=passwd)
+        dumped_p12_none = p12.export(iter=3, maciter=2, passphrase=None)
+        dumped_p12_nopw = p12.export(iter=9, maciter=4)
+        for dumped_p12 in [dumped_p12_empty, dumped_p12_none, dumped_p12_nopw]:
+            self.check_recovery(
+                dumped_p12, key=client_key_pem, cert=client_cert_pem,
+                ca=root_cert_pem, passwd=passwd)
 
 
     def test_removing_ca_cert(self):
         """
-        Test that we can remove a CA cert from a PKCS12 object.
+        Passing C{None} to L{PKCS12.set_ca_certificates} removes all CA
+        certificates.
         """
-        p12 = self.gen_pkcs12( server_cert_pem, server_key_pem, root_cert_pem )
-        p12.set_ca_certificates( None )
+        p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
+        p12.set_ca_certificates(None)
         self.assertEqual(None, p12.get_ca_certificates())
 
 
     def test_export_without_mac(self):
         """
-        Export a PKCS12 without a MAC (message integrity checksum).
-        Verify it with the openssl program.
+        Exporting a PKCS12 with a C{maciter} of C{-1} excludes the MAC
+        entirely.
         """
         passwd = 'Lake Michigan'
-        p12 = self.gen_pkcs12( server_cert_pem, server_key_pem, root_cert_pem )
+        p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
         dumped_p12 = p12.export(maciter=-1, passphrase=passwd, iter=2)
-        self.check_recovery(dumped_p12, key=server_key_pem,
-                cert=server_cert_pem, passwd=passwd, extra=( '-nomacver', ))
-        #  We can't load PKCS12 without MAC, because we use PCKS_parse()
-        #p12 = load_pkcs12(dumped_p12, passwd)
+        self.check_recovery(
+            dumped_p12, key=server_key_pem, cert=server_cert_pem,
+            passwd=passwd, extra=('-nomacver',))
+
+
+    def test_load_without_mac(self):
+        """
+        Loading a PKCS12 without a MAC does something other than crash.
+        """
+        passwd = 'Lake Michigan'
+        p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
+        dumped_p12 = p12.export(maciter=-1, passphrase=passwd, iter=2)
+        # Unfortunately, we can't load the dumped PKCS12 back into memory
+        # because PKCS12_parse doesn't work on such PKCS12 data.
+        p12 = load_pkcs12(dumped_p12, passwd)
 
 
     def test_zero_len_list_for_ca(self):

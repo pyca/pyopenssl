@@ -336,6 +336,12 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase) {
 
     /* parse the PKCS12 lump */
     if (p12 && !PKCS12_parse(p12, passphrase, &pkey, &cert, &cacerts)) {
+        /*
+         * If PKCS12_parse fails, and it allocated cacerts, it seems to free
+         * cacerts, but not re-NULL the pointer.  Zounds!  Make sure it is
+         * re-set to NULL here, else we'll have a double-free below.
+         */
+        cacerts = NULL;
         exception_from_error_queue(crypto_Error);
         goto error;
     }
