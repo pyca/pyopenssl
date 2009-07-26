@@ -614,6 +614,15 @@ Return a tuple of Revoked objects, by value not reference.
 
 Revoked objects have the following methods:
 
+\begin{methoddesc}[Revoked]{all_reasons}{}
+Return a list of all supported reasons.
+\end{methoddesc}
+
+\begin{methoddesc}[Revoked]{get_reason}{}
+Return the revocation reason as a str.  Can be
+None, which differs from "Unspecified".
+\end{methoddesc}
+
 \begin{methoddesc}[Revoked]{get_rev_date}{}
 Return the revocation date as a str.
 The string is formatted as an ASN1 GENERALIZEDTIME.
@@ -621,6 +630,12 @@ The string is formatted as an ASN1 GENERALIZEDTIME.
 
 \begin{methoddesc}[Revoked]{get_serial}{}
 Return a str containing a hex number of the serial of the revoked certificate.
+\end{methoddesc}
+
+\begin{methoddesc}[Revoked]{set_reason}{reason}
+Set the revocation reason.  \var{reason} must
+be None or a string, but the values are limited.  
+Spaces and case are ignored.  See \method{all_reasons}.
 \end{methoddesc}
 
 \begin{methoddesc}[Revoked]{set_rev_date}{date}

@@ -1168,6 +1168,7 @@ class RevokedTests(TestCase):
         self.assertEqual( type(revoked), Revoked )
         self.assertEqual( revoked.get_serial(), '00' )
         self.assertEqual( revoked.get_rev_date(), None )
+        self.assertEqual( revoked.get_reason(), None )
 
 
     def test_serial(self):
@@ -1186,7 +1187,7 @@ class RevokedTests(TestCase):
         ser = revoked.get_serial()
         self.assertEqual( ser, '31' )
 
-        self.assertRaises(TypeError, revoked.set_serial, 'pqrst')
+        self.assertRaises(ValueError, revoked.set_serial, 'pqrst')
         self.assertRaises(TypeError, revoked.set_serial, 100)
 
 
@@ -1206,6 +1207,34 @@ class RevokedTests(TestCase):
         date = revoked.get_rev_date()
         self.assertEqual( date, now )
 
+
+    def test_reason(self):
+        """
+        Confirm we can set and get revocation reasons from 
+        L{OpenSSL.crypto.Revoked}.  The "get" need to work
+        as "set".  Likewise, each reason of all_reasons() must work.
+        """
+        revoked = Revoked()
+        for r in revoked.all_reasons():
+            for x in xrange(2):
+                ret = revoked.set_reason(r)
+                self.assertEqual( ret, None )
+                reason = revoked.get_reason()
+                self.assertEqual( reason.lower().replace(' ',''), 
+                                       r.lower().replace(' ','') )
+                r = reason # again with the resp of get
+
+        revoked.set_reason(None)
+        self.assertEqual(revoked.get_reason(), None)
+
+
+    def test_bad_reasons(self):
+        """
+        Use L{OpenSSL.crypto.Revoked.set_reason} in bad ways.
+        """
+        revoked = Revoked()
+        self.assertRaises(TypeError, revoked.set_reason, 100)
+        self.assertRaises(ValueError, revoked.set_reason, 'blue')
 
 
 class CRLTests(TestCase):
@@ -1236,23 +1265,27 @@ class CRLTests(TestCase):
         now = datetime.now().strftime("%Y%m%d%H%M%SZ")
         revoked.set_rev_date(now)
         revoked.set_serial('3ab')
+        revoked.set_reason('sUpErSeDEd')
         crl.add_revoked(revoked)
 
         # PEM format
         dumped_crl = crl.export(self.cert, self.pkey, days=20)
         text = _runopenssl(dumped_crl, "crl", "-noout", "-text")
         text.index('Serial Number: 03AB')
+        text.index('Superseded')
         text.index('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA')
 
         # DER format
         dumped_crl = crl.export(self.cert, self.pkey, FILETYPE_ASN1)
         text = _runopenssl(dumped_crl, "crl", "-noout", "-text", "-inform", "DER")
         text.index('Serial Number: 03AB')
+        text.index('Superseded')
         text.index('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA')
 
         # text format
         dumped_text = crl.export(self.cert, self.pkey, type=FILETYPE_TEXT)
         self.assertEqual(text, dumped_text)
+
 
 
     def test_get_revoked(self):
@@ -1269,6 +1302,7 @@ class CRLTests(TestCase):
         revoked.set_serial('3ab')
         crl.add_revoked(revoked)
         revoked.set_serial('100')
+        revoked.set_reason('sUpErSeDEd')
         crl.add_revoked(revoked)
 
         revs = crl.get_revoked()
@@ -1289,29 +1323,32 @@ class CRLTests(TestCase):
 
         crl_txt = """
 -----BEGIN X509 CRL-----
-MIIBTTCBtzANBgkqhkiG9w0BAQQFADBYMQswCQYDVQQGEwJVUzELMAkGA1UECBMC
+MIIBWzCBxTANBgkqhkiG9w0BAQQFADBYMQswCQYDVQQGEwJVUzELMAkGA1UECBMC
 SUwxEDAOBgNVBAcTB0NoaWNhZ28xEDAOBgNVBAoTB1Rlc3RpbmcxGDAWBgNVBAMT
-D1Rlc3RpbmcgUm9vdCBDQRcNMDkwNzI1MDIxMjE0WhcNMDkxMTAyMDIxMjE0WjAu
-MBUCAgOrGA8yMDA5MDcyNDIxMTIxNFowFQICAQAYDzIwMDkwNzI0MjExMjE0WjAN
-BgkqhkiG9w0BAQQFAAOBgQApflU91pdbbSXNMLxRHAwz+2M2vzhmpFDYsX8gPe76
-GgrEY475v1CGJTdmKQnwosUx1tJ6HgoueAfTvzLGgVhqfeeR6BTjhnJH69rW+L6A
-w47xSB7rmUglsn3HlAdZl4tIex+SlH7AB1mEsWNJ0VA0mDEF01eOaBwBfEmK3zGd
-ng==
+D1Rlc3RpbmcgUm9vdCBDQRcNMDkwNzI2MDQzNDU2WhcNMTIwOTI3MDI0MTUyWjA8
+MBUCAgOrGA8yMDA5MDcyNTIzMzQ1NlowIwICAQAYDzIwMDkwNzI1MjMzNDU2WjAM
+MAoGA1UdFQQDCgEEMA0GCSqGSIb3DQEBBAUAA4GBAEBt7xTs2htdD3d4ErrcGAw1
+4dKcVnIWTutoI7xxen26Wwvh8VCsT7i/UeP+rBl9rC/kfjWjzQk3/zleaarGTpBT
+0yp4HXRFFoRhhSE/hP+eteaPXRgrsNRLHe9ZDd69wmh7J1wMDb0m81RG7kqcbsid
+vrzEeLDRiiPl92dyyWmu
 -----END X509 CRL-----
 """
         crl = load_crl(FILETYPE_PEM, crl_txt) 
         revs = crl.get_revoked()
         self.assertEqual(len(revs), 2)
         self.assertEqual(revs[0].get_serial(), '03AB')
+        self.assertEqual(revs[0].get_reason(), None)
         self.assertEqual(revs[1].get_serial(), '0100')
+        self.assertEqual(revs[1].get_reason(), 'Superseded')
 
         der = _runopenssl(crl_txt, "crl", "-outform", "DER")
         crl = load_crl(FILETYPE_ASN1, der) 
         revs = crl.get_revoked()
         self.assertEqual(len(revs), 2)
         self.assertEqual(revs[0].get_serial(), '03AB')
+        self.assertEqual(revs[0].get_reason(), None)
         self.assertEqual(revs[1].get_serial(), '0100')
-
+        self.assertEqual(revs[1].get_reason(), 'Superseded')
 
 
 

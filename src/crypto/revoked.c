@@ -3,6 +3,203 @@
 #include "crypto.h"
 
 
+/* http://www.openssl.org/docs/apps/x509v3_config.html#CRL_distribution_points_ */
+/* which differs from crl_reasons of crypto/x509v3/v3_enum.c that matches */
+/* OCSP_crl_reason_str.  We use the latter, just like the command line program.  */
+static const char *crl_reasons[] = {
+        "unspecified",
+        "keyCompromise",
+        "CACompromise",
+        "affiliationChanged",
+        "superseded",
+        "cessationOfOperation",
+        "certificateHold",
+        NULL, 
+        "removeFromCRL",
+};
+
+#define NUM_REASONS (sizeof(crl_reasons) / sizeof(char *))
+
+static char crypto_Revoked_all_reasons_doc[] = "\n\
+Return a list of all the supported reason strings.\n\
+\n\
+@return: A list of reason strings.\n\
+";
+static PyObject *
+crypto_Revoked_all_reasons(crypto_RevokedObj *self, PyObject *args)
+{
+    PyObject *list, *str;
+    int j;
+
+    list = PyList_New(0);
+    for (j = 0; j < NUM_REASONS; j++) 
+    {
+        if( crl_reasons[j] ) 
+        {
+	    str = PyString_FromString(crl_reasons[j]);
+            PyList_Append(list, str);
+            Py_DECREF(str);
+        }
+    }
+    return list;
+}
+
+static PyObject *
+X509_EXTENSION_value_to_PyString(X509_EXTENSION *ex)
+{
+    BIO *bio = NULL;
+    PyObject *str = NULL;
+    int str_len;
+    char *tmp_str;
+
+    /* Create a openssl BIO buffer */
+    bio = BIO_new(BIO_s_mem());
+    if (bio == NULL)
+        goto err;
+
+    /* These are not the droids you are looking for. */
+    if(!X509V3_EXT_print(bio, ex, 0, 0))
+        if(M_ASN1_OCTET_STRING_print(bio, ex->value) == 0)
+            goto err;
+
+    /* Convert to a Python string. */
+    str_len = BIO_get_mem_data(bio, &tmp_str);
+    str = PyString_FromStringAndSize(tmp_str, str_len);
+
+    /* Cleanup */
+    BIO_free(bio);
+    return str;
+
+ err:
+    if(bio) {
+        BIO_free(bio);
+    }
+    if(str) {
+        Py_DECREF(str);
+    }
+    return NULL;
+}
+
+static void
+delete_reason(STACK_OF(X509_EXTENSION) *sk)
+{
+    X509_EXTENSION * ext;
+    int j;
+
+    for(j = 0; j < sk_X509_EXTENSION_num(sk); j++) {
+         ext = sk_X509_EXTENSION_value(sk, j);
+         if ( OBJ_obj2nid(ext->object) == NID_crl_reason) {
+             X509_EXTENSION_free(ext);
+             (void) sk_X509_EXTENSION_delete(sk, j);
+             break;
+         }
+    }
+}
+
+static int 
+reason_str_to_code(const char * reason_str)
+{
+    int reason_code = -1, j;
+    char *spaceless_reason, * sp;
+
+    /*  Remove spaces so that the responses of
+     *  get_reason() work in set_reason()  */
+    if((spaceless_reason = strdup(reason_str)) == NULL)
+        return -1;
+    while((sp = strchr(spaceless_reason, ' ') )) 
+    {
+       memmove(sp, sp+1, strlen(sp));
+    } 
+
+    for (j = 0; j < NUM_REASONS; j++)
+    {
+        if(crl_reasons[j] && !strcasecmp(spaceless_reason, crl_reasons[j]))
+        {
+            reason_code = j;
+            break;
+        }
+    }
+    free(spaceless_reason);
+    return reason_code;
+}
+
+static char crypto_Revoked_set_reason_doc[] = "\n\
+Set the reason of a Revoked object.\n\
+\n\
+@param reason: The reason string.\n\
+@type reason: L{str}\n\
+@return: None\n\
+";
+static PyObject *
+crypto_Revoked_set_reason(crypto_RevokedObj *self, PyObject *args, PyObject *keywds)
+{
+    static char *kwlist[] = {"reason", NULL};
+    const char *reason_str = NULL;
+    int reason_code;
+    ASN1_ENUMERATED *rtmp = NULL;
+
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "z:set_reason", 
+        kwlist, &reason_str))
+        return NULL;
+
+    if(reason_str == NULL) 
+    {
+        delete_reason(self->revoked->extensions); 
+        goto done;
+    }
+
+    reason_code = reason_str_to_code(reason_str);
+    if(reason_code == -1)
+    {
+        PyErr_SetString(PyExc_ValueError, "bad reason string");
+        return NULL;
+    }
+
+    rtmp = ASN1_ENUMERATED_new();
+    if (!rtmp || !ASN1_ENUMERATED_set(rtmp, reason_code))
+        goto err;
+    delete_reason(self->revoked->extensions); 
+    if (!X509_REVOKED_add1_ext_i2d(self->revoked, NID_crl_reason, rtmp, 0, 0))
+        goto err;
+
+ done:
+    Py_INCREF(Py_None);
+    return Py_None;
+
+ err:
+    exception_from_error_queue(crypto_Error);
+    return NULL;
+}
+
+
+static char crypto_Revoked_get_reason_doc[] = "\n\
+Return the reason of a Revoked object.\n\
+\n\
+@return: The reason as a string\n\
+";
+static PyObject *
+crypto_Revoked_get_reason(crypto_RevokedObj *self, PyObject *args)
+{
+    X509_EXTENSION * ext;
+    int j;
+    STACK_OF(X509_EXTENSION) *sk = NULL;
+
+    if (!PyArg_ParseTuple(args, ":get_reason"))
+        return NULL;
+
+    sk = self->revoked->extensions;
+    for(j = 0; j < sk_X509_EXTENSION_num(sk); j++) {
+         ext = sk_X509_EXTENSION_value(sk, j);
+         if ( OBJ_obj2nid(ext->object) == NID_crl_reason) {
+             return X509_EXTENSION_value_to_PyString(ext);
+         }
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
 static char crypto_Revoked_get_rev_date_doc[] = "\n\
 Retrieve the revocation date\n\
 \n\
@@ -16,9 +213,9 @@ Retrieve the revocation date\n\
 static PyObject*
 crypto_Revoked_get_rev_date(crypto_RevokedObj *self, PyObject *args)
 {
-	/* returns a borrowed reference.  */
-	return _get_asn1_time(
-		":get_rev_date", self->revoked->revocationDate, args);
+        /* returns a borrowed reference.  */
+        return _get_asn1_time(
+                ":get_rev_date", self->revoked->revocationDate, args);
 }
 
 static char crypto_Revoked_set_rev_date_doc[] = "\n\
@@ -36,17 +233,19 @@ Set the revocation timestamp\n\
 static PyObject*
 crypto_Revoked_set_rev_date(crypto_RevokedObj *self, PyObject *args)
 {
-	return _set_asn1_time(
-		"s:set_rev_date", self->revoked->revocationDate, args);
+        return _set_asn1_time(
+                "s:set_rev_date", self->revoked->revocationDate, args);
 }
 
-
+/* The integer is converted to an upper-case hex string 
+ * without a '0x' prefix. */
 static PyObject *
 ASN1_INTEGER_to_PyString(ASN1_INTEGER *asn1_int)
 {
     BIO *bio = NULL;
-    PyObject *buf = NULL;
-    int ret, pending;
+    PyObject *str = NULL;
+    int str_len;
+    char *tmp_str;
 
     /* Create a openssl BIO buffer */
     bio = BIO_new(BIO_s_mem());
@@ -54,32 +253,23 @@ ASN1_INTEGER_to_PyString(ASN1_INTEGER *asn1_int)
         goto err;
 
     /* Write the integer to the BIO as a hex string. */
-    i2a_ASN1_INTEGER(bio, asn1_int);
-
-    /* Allocate a Python string. */
-    pending = BIO_pending(bio);
-    buf = PyString_FromStringAndSize(NULL, pending);
-    if (buf == NULL) {
+    if(i2a_ASN1_INTEGER(bio, asn1_int) < 0)
         goto err;
-    }
 
-    /* Copy the BIO contents to a Python string. */
-    ret = BIO_read(bio, PyString_AsString(buf), pending);
-    if (ret <= 0) { /* problem with BIO_read */
-        goto err;
-    }
+    /* Convert to a Python string. */
+    str_len = BIO_get_mem_data(bio, &tmp_str);
+    str = PyString_FromStringAndSize(tmp_str, str_len);
 
     /* Cleanup */
     BIO_free(bio);
-    bio = NULL;
-    return buf;
+    return str;
 
  err:
     if(bio) {
         BIO_free(bio);
     }
-    if(buf) {
-        Py_DECREF(buf);
+    if(str) {
+        Py_DECREF(str);
     }
     return NULL;
 }
@@ -125,7 +315,7 @@ crypto_Revoked_set_serial(crypto_RevokedObj *self, PyObject *args, PyObject *key
         return NULL;
 
     if( ! BN_hex2bn(&serial, hex_str) ) {
-        PyErr_SetString(PyExc_TypeError, "bad hex string");
+        PyErr_SetString(PyExc_ValueError, "bad hex string");
         return NULL;
     }
 
@@ -147,7 +337,7 @@ crypto_Revoked_New(X509_REVOKED *revoked)
 
     self = PyObject_New(crypto_RevokedObj, &crypto_Revoked_Type);
     if (self==NULL)
-	    return NULL;
+            return NULL;
     self->revoked = revoked;
     return self;
 }
@@ -163,6 +353,9 @@ crypto_Revoked_New(X509_REVOKED *revoked)
     { #name, (PyCFunction)crypto_Revoked_##name, METH_VARARGS | METH_KEYWORDS, crypto_Revoked_##name##_doc }
 static PyMethodDef crypto_Revoked_methods[] =
 {
+    ADD_METHOD(all_reasons),
+    ADD_METHOD(get_reason),
+    ADD_KW_METHOD(set_reason),
     ADD_METHOD(get_rev_date),
     ADD_METHOD(set_rev_date),
     ADD_METHOD(get_serial),
