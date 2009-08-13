@@ -7,6 +7,7 @@ Unit tests for L{OpenSSL.crypto}.
 from unittest import main
 
 from os import popen2
+from sys import platform
 from datetime import datetime, timedelta
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
@@ -1290,9 +1291,13 @@ class PKCS12Tests(TestCase):
 def _runopenssl(pem, *args):
     """
     Run the command line openssl tool with the given arguments and write
-    the given PEM to its stdin.  Not safe for single quotes.
+    the given PEM to its stdin.  Not safe for quotes.
     """
-    write, read = popen2("'" + "' '".join(("openssl",) + args) + "'", "b")
+    if platform[0:3] == 'win':
+        args = '"' + '" "'.join(args) + '"'
+    else:
+        args = "'" + "' '".join(args) + "'"
+    write, read = popen2("openssl " + args)
     write.write(pem)
     write.close()
     return read.read()
