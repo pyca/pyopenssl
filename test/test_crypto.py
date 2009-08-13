@@ -1024,7 +1024,13 @@ class PKCS12Tests(TestCase):
         p12.set_privatekey(pkey)
         self.assertEqual(None, p12.get_certificate())
         self.assertEqual(pkey, p12.get_privatekey())
-        dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=3)
+        try:
+            dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=3)
+        except Error:
+            # Some versions of OpenSSL will throw an exception
+            # for this nearly useless PKCS12 we tried to generate:
+            # [('PKCS12 routines', 'PKCS12_create', 'invalid null argument')]
+            return
         p12 = load_pkcs12(dumped_p12, passwd)
         self.assertEqual(None, p12.get_ca_certificates())
         self.assertEqual(None, p12.get_certificate())
@@ -1045,7 +1051,13 @@ class PKCS12Tests(TestCase):
         p12.set_certificate(cert)
         self.assertEqual(cert, p12.get_certificate())
         self.assertEqual(None, p12.get_privatekey())
-        dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=3)
+        try:
+            dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=3)
+        except Error:
+            # Some versions of OpenSSL will throw an exception
+            # for this nearly useless PKCS12 we tried to generate:
+            # [('PKCS12 routines', 'PKCS12_create', 'invalid null argument')]
+            return
         p12 = load_pkcs12(dumped_p12, passwd)
         self.assertEqual(None, p12.get_privatekey())
 
@@ -1227,7 +1239,18 @@ class PKCS12Tests(TestCase):
         passwd = 'Lake Michigan'
         p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
         dumped_p12 = p12.export(maciter=-1, passphrase=passwd, iter=2)
-        self.assertRaises(Error, load_pkcs12, dumped_p12, passwd)
+        try:
+            recovered_p12 = load_pkcs12(dumped_p12, passwd)
+            # The person who generated this PCKS12 should be flogged,
+            # or better yet we should have a means to determine
+            # whether a PCKS12 had a MAC that was verified.
+            # Anyway, libopenssl chooses to allow it, so the
+            # pyopenssl binding does as well.
+            self.assertTrue(isinstance(recovered_p12, PKCS12))
+        except Error:
+            # Failing here with an exception is preferred as some openssl
+            # versions do.
+            pass
 
 
     def test_zero_len_list_for_ca(self):
