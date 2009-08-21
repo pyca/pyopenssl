@@ -1293,11 +1293,11 @@ def _runopenssl(pem, *args):
     Run the command line openssl tool with the given arguments and write
     the given PEM to its stdin.  Not safe for quotes.
     """
-    if platform[0:3] == 'win':
-        args = '"' + '" "'.join(args) + '"'
+    if os.name == 'posix':
+        command = ["openssl"] + list(args)
     else:
-        args = "'" + "' '".join(args) + "'"
-    write, read = popen2("openssl " + args, "b")
+        command = "openssl " + " ".join(args)
+    write, read = popen2(command, "b")
     write.write(pem)
     write.close()
     return read.read()
