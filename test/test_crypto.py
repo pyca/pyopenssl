@@ -6,6 +6,7 @@ Unit tests for L{OpenSSL.crypto}.
 
 from unittest import main
 
+import os
 from os import popen2
 from sys import platform
 from datetime import datetime, timedelta
