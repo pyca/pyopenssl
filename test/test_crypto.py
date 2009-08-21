@@ -1297,7 +1297,7 @@ def _runopenssl(pem, *args):
         args = '"' + '" "'.join(args) + '"'
     else:
         args = "'" + "' '".join(args) + "'"
-    write, read = popen2("openssl " + args)
+    write, read = popen2("openssl " + args, "b")
     write.write(pem)
     write.close()
     return read.read()
