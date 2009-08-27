@@ -1332,7 +1332,7 @@ def _runopenssl(pem, *args):
     if os.name == 'posix':
         command = "openssl " + " ".join(["'%s'" % (arg.replace("'", "'\\''"),) for arg in args])
     else:
-        command = "openssl " + " ".join(args)
+        command = "openssl " + quoteArguments(args)
     write, read = popen2(command, "b")
     write.write(pem)
     write.close()
