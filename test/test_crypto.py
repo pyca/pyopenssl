@@ -6,9 +6,8 @@ Unit tests for L{OpenSSL.crypto}.
 
 from unittest import main
 
-import os
+import os, re
 from os import popen2
-from sys import platform
 from datetime import datetime, timedelta
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
@@ -1289,13 +1288,49 @@ class PKCS12Tests(TestCase):
 
 
 
+# These quoting functions taken directly from Twisted's twisted.python.win32.
+_cmdLineQuoteRe = re.compile(r'(\\*)"')
+_cmdLineQuoteRe2 = re.compile(r'(\\+)\Z')
+def cmdLineQuote(s):
+    """
+    Internal method for quoting a single command-line argument.
+
+    @type: C{str}
+    @param s: A single unquoted string to quote for something that is expecting
+        cmd.exe-style quoting
+
+    @rtype: C{str}
+    @return: A cmd.exe-style quoted string
+
+    @see: U{http://www.perlmonks.org/?node_id=764004}
+    """
+    s = _cmdLineQuoteRe2.sub(r"\1\1", _cmdLineQuoteRe.sub(r'\1\1\\"', s))
+    return '"%s"' % s
+
+
+
+def quoteArguments(arguments):
+    """
+    Quote an iterable of command-line arguments for passing to CreateProcess or
+    a similar API.  This allows the list passed to C{reactor.spawnProcess} to
+    match the child process's C{sys.argv} properly.
+
+    @type arguments: C{iterable} of C{str}
+    @param arguments: An iterable of unquoted arguments to quote
+
+    @rtype: C{str}
+    @return: A space-delimited string containing quoted versions of L{arguments}
+    """
+    return ' '.join(map(cmdLineQuote, arguments))
+
+
 def _runopenssl(pem, *args):
     """
     Run the command line openssl tool with the given arguments and write
     the given PEM to its stdin.  Not safe for quotes.
     """
     if os.name == 'posix':
-        command = ["openssl"] + list(args)
+        command = "openssl " + " ".join(["'%s'" % (arg.replace("'", "'\\''"),) for arg in args])
     else:
         command = "openssl " + " ".join(args)
     write, read = popen2(command, "b")
