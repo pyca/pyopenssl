@@ -265,7 +265,10 @@ Load pkcs7 data from the string \var{buffer} encoded with the type \var{type}.
 
 \begin{funcdesc}{load_pkcs12}{buffer\optional{, passphrase}}
 Load pkcs12 data from the string \var{buffer}. If the pkcs12 structure is
-encrypted, a \var{passphrase} must be included.
+encrypted, a \var{passphrase} must be included.  The MAC is always
+checked and thus required.
+
+See also the man page for the C function \function{PKCS12_parse}.
 \end{funcdesc}
 
 \subsubsection{X509 objects \label{openssl-x509}}
@@ -527,17 +530,47 @@ Get the type name of the PKCS7.
 
 PKCS12 objects have the following methods:
 
+\begin{methoddesc}[PKCS12]{export}{\optional{passphrase=None}\optional{, iter=2048}\optional{, maciter=1}}
+Returns a PKCS12 object as a string.
+
+The optional \var{passphrase} must be a string not a callback.
+
+See also the man page for the C function \function{PKCS12_create}.
+\end{methoddesc}
+
+\begin{methoddesc}[PKCS12]{get_ca_certificates}{}
+Return CA certificates within the PKCS12 object as a tuple. Returns
+\constant{None} if no CA certificates are present.
+\end{methoddesc}
+
 \begin{methoddesc}[PKCS12]{get_certificate}{}
 Return certificate portion of the PKCS12 structure.
+\end{methoddesc}
+
+\begin{methoddesc}[PKCS12]{get_friendlyname}{}
+Return friendlyName portion of the PKCS12 structure.
 \end{methoddesc}
 
 \begin{methoddesc}[PKCS12]{get_privatekey}{}
 Return private key portion of the PKCS12 structure
 \end{methoddesc}
 
-\begin{methoddesc}[PKCS12]{get_ca_certificates}{}
-Return CA certificates within the PKCS12 object as a tuple. Returns
-None if no CA certificates are present.
+\begin{methoddesc}[PKCS12]{set_ca_certificates}{cacerts}
+Replace or set the CA certificates within the PKCS12 object with the sequence \var{cacerts}.
+
+Set \var{cacerts} to \constant{None} to remove all CA certificates.
+\end{methoddesc}
+
+\begin{methoddesc}[PKCS12]{set_certificate}{cert}
+Replace or set the certificate portion of the PKCS12 structure.
+\end{methoddesc}
+
+\begin{methoddesc}[PKCS12]{set_friendlyname}{name}
+Replace or set the friendlyName portion of the PKCS12 structure.
+\end{methoddesc}
+
+\begin{methoddesc}[PKCS12]{set_privatekey}{pkey}
+Replace or set private key portion of the PKCS12 structure
 \end{methoddesc}
 
 \subsubsection{X509Extension objects \label{openssl-509ext}}

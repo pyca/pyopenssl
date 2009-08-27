@@ -6,6 +6,7 @@ Unit tests for L{OpenSSL.crypto}.
 
 from unittest import main
 
+import os, re
 from os import popen2
 from datetime import datetime, timedelta
 
@@ -18,10 +19,113 @@ from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT
 from OpenSSL.crypto import dump_certificate, load_certificate_request
 from OpenSSL.crypto import dump_certificate_request, dump_privatekey
 from OpenSSL.crypto import PKCS7Type, load_pkcs7_data
-from OpenSSL.crypto import PKCS12Type, load_pkcs12
+from OpenSSL.crypto import PKCS12Type, load_pkcs12, PKCS12
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.test.util import TestCase
 
+
+root_cert_pem = """-----BEGIN CERTIFICATE-----
+MIIC7TCCAlagAwIBAgIIPQzE4MbeufQwDQYJKoZIhvcNAQEFBQAwWDELMAkGA1UE
+BhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQHEwdDaGljYWdvMRAwDgYDVQQKEwdU
+ZXN0aW5nMRgwFgYDVQQDEw9UZXN0aW5nIFJvb3QgQ0EwIhgPMjAwOTAzMjUxMjM2
+NThaGA8yMDE3MDYxMTEyMzY1OFowWDELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAklM
+MRAwDgYDVQQHEwdDaGljYWdvMRAwDgYDVQQKEwdUZXN0aW5nMRgwFgYDVQQDEw9U
+ZXN0aW5nIFJvb3QgQ0EwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAPmaQumL
+urpE527uSEHdL1pqcDRmWzu+98Y6YHzT/J7KWEamyMCNZ6fRW1JCR782UQ8a07fy
+2xXsKy4WdKaxyG8CcatwmXvpvRQ44dSANMihHELpANTdyVp6DCysED6wkQFurHlF
+1dshEaJw8b/ypDhmbVIo6Ci1xvCJqivbLFnbAgMBAAGjgbswgbgwHQYDVR0OBBYE
+FINVdy1eIfFJDAkk51QJEo3IfgSuMIGIBgNVHSMEgYAwfoAUg1V3LV4h8UkMCSTn
+VAkSjch+BK6hXKRaMFgxCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJJTDEQMA4GA1UE
+BxMHQ2hpY2FnbzEQMA4GA1UEChMHVGVzdGluZzEYMBYGA1UEAxMPVGVzdGluZyBS
+b290IENBggg9DMTgxt659DAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GB
+AGGCDazMJGoWNBpc03u6+smc95dEead2KlZXBATOdFT1VesY3+nUOqZhEhTGlDMi
+hkgaZnzoIq/Uamidegk4hirsCT/R+6vsKAAxNTcBjUeZjlykCJWy5ojShGftXIKY
+w/njVbKMXrvc83qmTdGl3TAM0fxQIpqgcglFLveEBgzn
+-----END CERTIFICATE-----
+"""
+
+root_key_pem = """-----BEGIN RSA PRIVATE KEY-----
+MIICXQIBAAKBgQD5mkLpi7q6ROdu7khB3S9aanA0Zls7vvfGOmB80/yeylhGpsjA
+jWen0VtSQke/NlEPGtO38tsV7CsuFnSmschvAnGrcJl76b0UOOHUgDTIoRxC6QDU
+3claegwsrBA+sJEBbqx5RdXbIRGicPG/8qQ4Zm1SKOgotcbwiaor2yxZ2wIDAQAB
+AoGBAPCgMpmLxzwDaUmcFbTJUvlLW1hoxNNYSu2jIZm1k/hRAcE60JYwvBkgz3UB
+yMEh0AtLxYe0bFk6EHah11tMUPgscbCq73snJ++8koUw+csk22G65hOs51bVb7Aa
+6JBe67oLzdtvgCUFAA2qfrKzWRZzAdhUirQUZgySZk+Xq1pBAkEA/kZG0A6roTSM
+BVnx7LnPfsycKUsTumorpXiylZJjTi9XtmzxhrYN6wgZlDOOwOLgSQhszGpxVoMD
+u3gByT1b2QJBAPtL3mSKdvwRu/+40zaZLwvSJRxaj0mcE4BJOS6Oqs/hS1xRlrNk
+PpQ7WJ4yM6ZOLnXzm2mKyxm50Mv64109FtMCQQDOqS2KkjHaLowTGVxwC0DijMfr
+I9Lf8sSQk32J5VWCySWf5gGTfEnpmUa41gKTMJIbqZZLucNuDcOtzUaeWZlZAkA8
+ttXigLnCqR486JDPTi9ZscoZkZ+w7y6e/hH8t6d5Vjt48JVyfjPIaJY+km58LcN3
+6AWSeGAdtRFHVzR7oHjVAkB4hutvxiOeiIVQNBhM6RSI9aBPMI21DoX2JRoxvNW2
+cbvAhow217X9V0dVerEOKxnNYspXRrh36h7k4mQA+sDq
+-----END RSA PRIVATE KEY-----
+"""
+
+server_cert_pem = """-----BEGIN CERTIFICATE-----
+MIICKDCCAZGgAwIBAgIJAJn/HpR21r/8MA0GCSqGSIb3DQEBBQUAMFgxCzAJBgNV
+BAYTAlVTMQswCQYDVQQIEwJJTDEQMA4GA1UEBxMHQ2hpY2FnbzEQMA4GA1UEChMH
+VGVzdGluZzEYMBYGA1UEAxMPVGVzdGluZyBSb290IENBMCIYDzIwMDkwMzI1MTIz
+NzUzWhgPMjAxNzA2MTExMjM3NTNaMBgxFjAUBgNVBAMTDWxvdmVseSBzZXJ2ZXIw
+gZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAL6m+G653V0tpBC/OKl22VxOi2Cv
+lK4TYu9LHSDP9uDVTe7V5D5Tl6qzFoRRx5pfmnkqT5B+W9byp2NU3FC5hLm5zSAr
+b45meUhjEJ/ifkZgbNUjHdBIGP9MAQUHZa5WKdkGIJvGAvs8UzUqlr4TBWQIB24+
+lJ+Ukk/CRgasrYwdAgMBAAGjNjA0MB0GA1UdDgQWBBS4kC7Ij0W1TZXZqXQFAM2e
+gKEG2DATBgNVHSUEDDAKBggrBgEFBQcDATANBgkqhkiG9w0BAQUFAAOBgQBh30Li
+dJ+NlxIOx5343WqIBka3UbsOb2kxWrbkVCrvRapCMLCASO4FqiKWM+L0VDBprqIp
+2mgpFQ6FHpoIENGvJhdEKpptQ5i7KaGhnDNTfdy3x1+h852G99f1iyj0RmbuFcM8
+uzujnS8YXWvM7DM1Ilozk4MzPug8jzFp5uhKCQ==
+-----END CERTIFICATE-----
+"""
+
+server_key_pem = """-----BEGIN RSA PRIVATE KEY-----
+MIICWwIBAAKBgQC+pvhuud1dLaQQvzipdtlcTotgr5SuE2LvSx0gz/bg1U3u1eQ+
+U5eqsxaEUceaX5p5Kk+QflvW8qdjVNxQuYS5uc0gK2+OZnlIYxCf4n5GYGzVIx3Q
+SBj/TAEFB2WuVinZBiCbxgL7PFM1Kpa+EwVkCAduPpSflJJPwkYGrK2MHQIDAQAB
+AoGAbwuZ0AR6JveahBaczjfnSpiFHf+mve2UxoQdpyr6ROJ4zg/PLW5K/KXrC48G
+j6f3tXMrfKHcpEoZrQWUfYBRCUsGD5DCazEhD8zlxEHahIsqpwA0WWssJA2VOLEN
+j6DuV2pCFbw67rfTBkTSo32ahfXxEKev5KswZk0JIzH3ooECQQDgzS9AI89h0gs8
+Dt+1m11Rzqo3vZML7ZIyGApUzVan+a7hbc33nbGRkAXjHaUBJO31it/H6dTO+uwX
+msWwNG5ZAkEA2RyFKs5xR5USTFaKLWCgpH/ydV96KPOpBND7TKQx62snDenFNNbn
+FwwOhpahld+vqhYk+pfuWWUpQciE+Bu7ZQJASjfT4sQv4qbbKK/scePicnDdx9th
+4e1EeB9xwb+tXXXUo/6Bor/AcUNwfiQ6Zt9PZOK9sR3lMZSsP7rMi7kzuQJABie6
+1sXXjFH7nNJvRG4S39cIxq8YRYTy68II/dlB2QzGpKxV/POCxbJ/zu0CU79tuYK7
+NaeNCFfH3aeTrX0LyQJAMBWjWmeKM2G2sCExheeQK0ROnaBC8itCECD4Jsve4nqf
+r50+LF74iLXFwqysVCebPKMOpDWp/qQ1BbJQIPs7/A==
+-----END RSA PRIVATE KEY-----
+"""
+
+client_cert_pem = """-----BEGIN CERTIFICATE-----
+MIICJjCCAY+gAwIBAgIJAKxpFI5lODkjMA0GCSqGSIb3DQEBBQUAMFgxCzAJBgNV
+BAYTAlVTMQswCQYDVQQIEwJJTDEQMA4GA1UEBxMHQ2hpY2FnbzEQMA4GA1UEChMH
+VGVzdGluZzEYMBYGA1UEAxMPVGVzdGluZyBSb290IENBMCIYDzIwMDkwMzI1MTIz
+ODA1WhgPMjAxNzA2MTExMjM4MDVaMBYxFDASBgNVBAMTC3VnbHkgY2xpZW50MIGf
+MA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDAZh/SRtNm5ntMT4qb6YzEpTroMlq2
+rn+GrRHRiZ+xkCw/CGNhbtPir7/QxaUj26BSmQrHw1bGKEbPsWiW7bdXSespl+xK
+iku4G/KvnnmWdeJHqsiXeUZtqurMELcPQAw9xPHEuhqqUJvvEoMTsnCEqGM+7Dtb
+oCRajYyHfluARQIDAQABozYwNDAdBgNVHQ4EFgQUNQB+qkaOaEVecf1J3TTUtAff
+0fAwEwYDVR0lBAwwCgYIKwYBBQUHAwIwDQYJKoZIhvcNAQEFBQADgYEAyv/Jh7gM
+Q3OHvmsFEEvRI+hsW8y66zK4K5de239Y44iZrFYkt7Q5nBPMEWDj4F2hLYWL/qtI
+9Zdr0U4UDCU9SmmGYh4o7R4TZ5pGFvBYvjhHbkSFYFQXZxKUi+WUxplP6I0wr2KJ
+PSTJCjJOn3xo2NTKRgV1gaoTf2EhL+RG8TQ=
+-----END CERTIFICATE-----
+"""
+
+client_key_pem = """-----BEGIN RSA PRIVATE KEY-----
+MIICXgIBAAKBgQDAZh/SRtNm5ntMT4qb6YzEpTroMlq2rn+GrRHRiZ+xkCw/CGNh
+btPir7/QxaUj26BSmQrHw1bGKEbPsWiW7bdXSespl+xKiku4G/KvnnmWdeJHqsiX
+eUZtqurMELcPQAw9xPHEuhqqUJvvEoMTsnCEqGM+7DtboCRajYyHfluARQIDAQAB
+AoGATkZ+NceY5Glqyl4mD06SdcKfV65814vg2EL7V9t8+/mi9rYL8KztSXGlQWPX
+zuHgtRoMl78yQ4ZJYOBVo+nsx8KZNRCEBlE19bamSbQLCeQMenWnpeYyQUZ908gF
+h6L9qsFVJepgA9RDgAjyDoS5CaWCdCCPCH2lDkdcqC54SVUCQQDseuduc4wi8h4t
+V8AahUn9fn9gYfhoNuM0gdguTA0nPLVWz4hy1yJiWYQe0H7NLNNTmCKiLQaJpAbb
+TC6vE8C7AkEA0Ee8CMJUc20BnGEmxwgWcVuqFWaKCo8jTH1X38FlATUsyR3krjW2
+dL3yDD9NwHxsYP7nTKp/U8MV7U9IBn4y/wJBAJl7H0/BcLeRmuJk7IqJ7b635iYB
+D/9beFUw3MUXmQXZUfyYz39xf6CDZsu1GEdEC5haykeln3Of4M9d/4Kj+FcCQQCY
+si6xwT7GzMDkk/ko684AV3KPc/h6G0yGtFIrMg7J3uExpR/VdH2KgwMkZXisSMvw
+JJEQjOMCVsEJlRk54WWjAkEAzoZNH6UhDdBK5F38rVt/y4SEHgbSfJHIAmPS32Kq
+f6GGcfNpip0Uk7q7udTKuX7Q/buZi/C4YW7u3VKAquv9NA==
+-----END RSA PRIVATE KEY-----
+"""
 
 cleartextCertificatePEM = """-----BEGIN CERTIFICATE-----
 MIIC7TCCAlagAwIBAgIIPQzE4MbeufQwDQYJKoZIhvcNAQEFBQAwWDELMAkGA1UE
@@ -93,57 +197,6 @@ MbzjS007Oe4qqBnCWaFPSnJX6uLApeTbqAxAeyCql56ULW5x6vDMNC3dwjvS/CEh
 -----END RSA PRIVATE KEY-----
 """
 encryptedPrivateKeyPEMPassphrase = "foobar"
-
-# Some PKCS12 data, base64 encoded.  The data itself was constructed using the
-# openssl command line:
-#
-#    openssl pkcs12 -export -in s.pem -out o.p12 -inkey s.pem -certfile s.pem
-#
-# With s.pem containing a private key and certificate.  The contents of the
-# generated file, o.p12, were then base64 encoded to produce this value.
-pkcs12Data = """\
-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
-""".decode('base64')
 
 # Some PKCS#7 stuff.  Generated with the openssl command line:
 #
@@ -914,6 +967,379 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
 
 
 
+class PKCS12Tests(TestCase):
+    """
+    Test for L{OpenSSL.crypto.PKCS12} and L{OpenSSL.crypto.load_pkcs12}.
+    """
+    pemData = cleartextCertificatePEM + cleartextPrivateKeyPEM
+
+    def test_type(self):
+        """
+        L{PKCS12Type} is a type object.
+        """
+        self.assertIdentical(PKCS12, PKCS12Type)
+        self.assertConsistentType(PKCS12, 'PKCS12')
+
+
+    def test_empty_construction(self):
+        """
+        L{PKCS12} returns a new instance of L{PKCS12} with no certificate,
+        private key, CA certificates, or friendly name.
+        """
+        p12 = PKCS12()
+        self.assertEqual(None, p12.get_certificate())
+        self.assertEqual(None, p12.get_privatekey())
+        self.assertEqual(None, p12.get_ca_certificates())
+        self.assertEqual(None, p12.get_friendlyname())
+
+
+    def test_type_errors(self):
+        """
+        The L{PKCS12} setter functions (C{set_certificate}, C{set_privatekey},
+        C{set_ca_certificates}, and C{set_friendlyname}) raise L{TypeError}
+        when passed objects of types other than those expected.
+        """
+        p12 = PKCS12()
+        self.assertRaises(TypeError, p12.set_certificate, 3)
+        self.assertRaises(TypeError, p12.set_certificate, PKey())
+        self.assertRaises(TypeError, p12.set_certificate, X509)
+        self.assertRaises(TypeError, p12.set_privatekey, 3)
+        self.assertRaises(TypeError, p12.set_privatekey, 'legbone')
+        self.assertRaises(TypeError, p12.set_privatekey, X509())
+        self.assertRaises(TypeError, p12.set_ca_certificates, 3)
+        self.assertRaises(TypeError, p12.set_ca_certificates, X509())
+        self.assertRaises(TypeError, p12.set_ca_certificates, (3, 4))
+        self.assertRaises(TypeError, p12.set_ca_certificates, ( PKey(), ))
+        self.assertRaises(TypeError, p12.set_friendlyname, 6)
+        self.assertRaises(TypeError, p12.set_friendlyname, ('foo', 'bar'))
+
+
+    def test_key_only(self):
+        """
+        A L{PKCS12} with only a private key can be exported using
+        L{PKCS12.export} and loaded again using L{load_pkcs12}.
+        """
+        passwd = 'blah'
+        p12 = PKCS12()
+        pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        p12.set_privatekey(pkey)
+        self.assertEqual(None, p12.get_certificate())
+        self.assertEqual(pkey, p12.get_privatekey())
+        try:
+            dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=3)
+        except Error:
+            # Some versions of OpenSSL will throw an exception
+            # for this nearly useless PKCS12 we tried to generate:
+            # [('PKCS12 routines', 'PKCS12_create', 'invalid null argument')]
+            return
+        p12 = load_pkcs12(dumped_p12, passwd)
+        self.assertEqual(None, p12.get_ca_certificates())
+        self.assertEqual(None, p12.get_certificate())
+
+        # OpenSSL fails to bring the key back to us.  So sad.  Perhaps in the
+        # future this will be improved.
+        self.assertTrue(isinstance(p12.get_privatekey(), (PKey, type(None))))
+
+
+    def test_cert_only(self):
+        """
+        A L{PKCS12} with only a certificate can be exported using
+        L{PKCS12.export} and loaded again using L{load_pkcs12}.
+        """
+        passwd = 'blah'
+        p12 = PKCS12()
+        cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+        p12.set_certificate(cert)
+        self.assertEqual(cert, p12.get_certificate())
+        self.assertEqual(None, p12.get_privatekey())
+        try:
+            dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=3)
+        except Error:
+            # Some versions of OpenSSL will throw an exception
+            # for this nearly useless PKCS12 we tried to generate:
+            # [('PKCS12 routines', 'PKCS12_create', 'invalid null argument')]
+            return
+        p12 = load_pkcs12(dumped_p12, passwd)
+        self.assertEqual(None, p12.get_privatekey())
+
+        # OpenSSL fails to bring the cert back to us.  Groany mcgroan.
+        self.assertTrue(isinstance(p12.get_certificate(), (X509, type(None))))
+
+        # Oh ho.  It puts the certificate into the ca certificates list, in
+        # fact.  Totally bogus, I would think.  Nevertheless, let's exploit
+        # that to check to see if it reconstructed the certificate we expected
+        # it to.  At some point, hopefully this will change so that
+        # p12.get_certificate() is actually what returns the loaded
+        # certificate.
+        self.assertEqual(
+            cleartextCertificatePEM,
+            dump_certificate(FILETYPE_PEM, p12.get_ca_certificates()[0]))
+
+
+    def gen_pkcs12(self, cert_pem=None, key_pem=None, ca_pem=None, friendly_name=None):
+        """
+        Generate a PKCS12 object with components from PEM.  Verify that the set
+        functions return None.
+        """
+        p12 = PKCS12()
+        if cert_pem:
+            ret = p12.set_certificate(load_certificate(FILETYPE_PEM, cert_pem))
+            self.assertEqual(ret, None)
+        if key_pem:
+            ret = p12.set_privatekey(load_privatekey(FILETYPE_PEM, key_pem))
+            self.assertEqual(ret, None)
+        if ca_pem:
+            ret = p12.set_ca_certificates((load_certificate(FILETYPE_PEM, ca_pem),))
+            self.assertEqual(ret, None)
+        if friendly_name:
+            ret = p12.set_friendlyname(friendly_name)
+            self.assertEqual(ret, None)
+        return p12
+
+
+    def check_recovery(self, p12_str, key=None, cert=None, ca=None, passwd='',
+                       extra=()):
+        """
+        Use openssl program to confirm three components are recoverable from a
+        PKCS12 string.
+        """
+        if key:
+            recovered_key = _runopenssl(
+                p12_str, "pkcs12", '-nocerts', '-nodes', '-passin',
+                'pass:' + passwd, *extra)
+            self.assertEqual(recovered_key[-len(key):], key)
+        if cert:
+            recovered_cert = _runopenssl(
+                p12_str, "pkcs12", '-clcerts', '-nodes', '-passin',
+                'pass:' + passwd, '-nokeys', *extra)
+            self.assertEqual(recovered_cert[-len(cert):], cert)
+        if ca:
+            recovered_cert = _runopenssl(
+                p12_str, "pkcs12", '-cacerts', '-nodes', '-passin',
+                'pass:' + passwd, '-nokeys', *extra)
+            self.assertEqual(recovered_cert[-len(ca):], ca)
+
+
+    def test_load_pkcs12(self):
+        """
+        A PKCS12 string generated using the openssl command line can be loaded
+        with L{load_pkcs12} and its components extracted and examined.
+        """
+        passwd = 'whatever'
+        pem = client_key_pem + client_cert_pem
+        p12_str = _runopenssl(
+            pem, "pkcs12", '-export', '-clcerts', '-passout', 'pass:' + passwd)
+        p12 = load_pkcs12(p12_str, passwd)
+        # verify
+        self.assertTrue(isinstance(p12, PKCS12))
+        cert_pem = dump_certificate(FILETYPE_PEM, p12.get_certificate())
+        self.assertEqual(cert_pem, client_cert_pem)
+        key_pem = dump_privatekey(FILETYPE_PEM, p12.get_privatekey())
+        self.assertEqual(key_pem, client_key_pem)
+        self.assertEqual(None, p12.get_ca_certificates())
+
+
+    def test_load_pkcs12_garbage(self):
+        """
+        L{load_pkcs12} raises L{OpenSSL.crypto.Error} when passed a string
+        which is not a PKCS12 dump.
+        """
+        passwd = 'whatever'
+        e = self.assertRaises(Error, load_pkcs12, 'fruit loops', passwd)
+        self.assertEqual( e[0][0][0], 'asn1 encoding routines')
+        self.assertEqual( len(e[0][0]), 3)
+
+
+    def test_replace(self):
+        """
+        L{PKCS12.set_certificate} replaces the certificate in a PKCS12 cluster.
+        L{PKCS12.set_privatekey} replaces the private key.
+        L{PKCS12.set_ca_certificates} replaces the CA certificates.
+        """
+        p12 = self.gen_pkcs12(client_cert_pem, client_key_pem, root_cert_pem)
+        p12.set_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
+        p12.set_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
+        root_cert = load_certificate(FILETYPE_PEM, root_cert_pem)
+        client_cert = load_certificate(FILETYPE_PEM, client_cert_pem)
+        p12.set_ca_certificates([root_cert]) # not a tuple
+        self.assertEqual(1, len(p12.get_ca_certificates()))
+        self.assertEqual(root_cert, p12.get_ca_certificates()[0])
+        p12.set_ca_certificates([client_cert, root_cert])
+        self.assertEqual(2, len(p12.get_ca_certificates()))
+        self.assertEqual(client_cert, p12.get_ca_certificates()[0])
+        self.assertEqual(root_cert, p12.get_ca_certificates()[1])
+
+
+    def test_friendly_name(self):
+        """
+        The I{friendlyName} of a PKCS12 can be set and retrieved via
+        L{PKCS12.get_friendlyname} and L{PKCS12_set_friendlyname}, and a
+        L{PKCS12} with a friendly name set can be dumped with L{PKCS12.export}.
+        """
+        passwd = 'Dogmeat[]{}!@#$%^&*()~`?/.,<>-_+=";:'
+        p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
+        for friendly_name in ['Serverlicious', None, '###']:
+            p12.set_friendlyname(friendly_name)
+            self.assertEqual(p12.get_friendlyname(), friendly_name)
+            dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=3)
+            reloaded_p12 = load_pkcs12(dumped_p12, passwd)
+            self.assertEqual(
+                p12.get_friendlyname(),reloaded_p12.get_friendlyname())
+            # We would use the openssl program to confirm the friendly
+            # name, but it is not possible.  The pkcs12 command
+            # does not store the friendly name in the cert's
+            # alias, which we could then extract.
+            self.check_recovery(
+                dumped_p12, key=server_key_pem, cert=server_cert_pem,
+                ca=root_cert_pem, passwd=passwd)
+
+
+    def test_various_empty_passphrases(self):
+        """
+        Test that missing, None, and '' passphrases are identical for PKCS12
+        export.
+        """
+        p12 = self.gen_pkcs12(client_cert_pem, client_key_pem, root_cert_pem)
+        passwd = ''
+        dumped_p12_empty = p12.export(iter=2, maciter=0, passphrase=passwd)
+        dumped_p12_none = p12.export(iter=3, maciter=2, passphrase=None)
+        dumped_p12_nopw = p12.export(iter=9, maciter=4)
+        for dumped_p12 in [dumped_p12_empty, dumped_p12_none, dumped_p12_nopw]:
+            self.check_recovery(
+                dumped_p12, key=client_key_pem, cert=client_cert_pem,
+                ca=root_cert_pem, passwd=passwd)
+
+
+    def test_removing_ca_cert(self):
+        """
+        Passing C{None} to L{PKCS12.set_ca_certificates} removes all CA
+        certificates.
+        """
+        p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
+        p12.set_ca_certificates(None)
+        self.assertEqual(None, p12.get_ca_certificates())
+
+
+    def test_export_without_mac(self):
+        """
+        Exporting a PKCS12 with a C{maciter} of C{-1} excludes the MAC
+        entirely.
+        """
+        passwd = 'Lake Michigan'
+        p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
+        dumped_p12 = p12.export(maciter=-1, passphrase=passwd, iter=2)
+        self.check_recovery(
+            dumped_p12, key=server_key_pem, cert=server_cert_pem,
+            passwd=passwd, extra=('-nomacver',))
+
+
+    def test_load_without_mac(self):
+        """
+        Loading a PKCS12 without a MAC does something other than crash.
+        """
+        passwd = 'Lake Michigan'
+        p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
+        dumped_p12 = p12.export(maciter=-1, passphrase=passwd, iter=2)
+        try:
+            recovered_p12 = load_pkcs12(dumped_p12, passwd)
+            # The person who generated this PCKS12 should be flogged,
+            # or better yet we should have a means to determine
+            # whether a PCKS12 had a MAC that was verified.
+            # Anyway, libopenssl chooses to allow it, so the
+            # pyopenssl binding does as well.
+            self.assertTrue(isinstance(recovered_p12, PKCS12))
+        except Error:
+            # Failing here with an exception is preferred as some openssl
+            # versions do.
+            pass
+
+
+    def test_zero_len_list_for_ca(self):
+        """
+        A PKCS12 with an empty CA certificates list can be exported.
+        """
+        passwd = 'Hobie 18'
+        p12 = self.gen_pkcs12(server_cert_pem, server_key_pem)
+        p12.set_ca_certificates([])
+        self.assertEqual((), p12.get_ca_certificates())
+        dumped_p12 = p12.export(passphrase=passwd, iter=3)
+        self.check_recovery(
+            dumped_p12, key=server_key_pem, cert=server_cert_pem,
+            passwd=passwd)
+
+
+    def test_export_without_args(self):
+        """
+        All the arguments to L{PKCS12.export} are optional.
+        """
+        p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
+        dumped_p12 = p12.export()  # no args
+        self.check_recovery(
+            dumped_p12, key=server_key_pem, cert=server_cert_pem, passwd='')
+
+
+    def test_key_cert_mismatch(self):
+        """
+        L{PKCS12.export} raises an exception when a key and certificate
+        mismatch.
+        """
+        p12 = self.gen_pkcs12(server_cert_pem, client_key_pem, root_cert_pem)
+        self.assertRaises(Error, p12.export)
+
+
+
+# These quoting functions taken directly from Twisted's twisted.python.win32.
+_cmdLineQuoteRe = re.compile(r'(\\*)"')
+_cmdLineQuoteRe2 = re.compile(r'(\\+)\Z')
+def cmdLineQuote(s):
+    """
+    Internal method for quoting a single command-line argument.
+
+    @type: C{str}
+    @param s: A single unquoted string to quote for something that is expecting
+        cmd.exe-style quoting
+
+    @rtype: C{str}
+    @return: A cmd.exe-style quoted string
+
+    @see: U{http://www.perlmonks.org/?node_id=764004}
+    """
+    s = _cmdLineQuoteRe2.sub(r"\1\1", _cmdLineQuoteRe.sub(r'\1\1\\"', s))
+    return '"%s"' % s
+
+
+
+def quoteArguments(arguments):
+    """
+    Quote an iterable of command-line arguments for passing to CreateProcess or
+    a similar API.  This allows the list passed to C{reactor.spawnProcess} to
+    match the child process's C{sys.argv} properly.
+
+    @type arguments: C{iterable} of C{str}
+    @param arguments: An iterable of unquoted arguments to quote
+
+    @rtype: C{str}
+    @return: A space-delimited string containing quoted versions of L{arguments}
+    """
+    return ' '.join(map(cmdLineQuote, arguments))
+
+
+def _runopenssl(pem, *args):
+    """
+    Run the command line openssl tool with the given arguments and write
+    the given PEM to its stdin.  Not safe for quotes.
+    """
+    if os.name == 'posix':
+        command = "openssl " + " ".join(["'%s'" % (arg.replace("'", "'\\''"),) for arg in args])
+    else:
+        command = "openssl " + quoteArguments(args)
+    write, read = popen2(command, "b")
+    write.write(pem)
+    write.close()
+    return read.read()
+
+
+
 class FunctionTests(TestCase):
     """
     Tests for free-functions in the L{OpenSSL.crypto} module.
@@ -983,17 +1409,6 @@ class FunctionTests(TestCase):
         self.assertEqual(loadedKey.bits(), key.bits())
 
 
-    def _runopenssl(self, pem, *args):
-        """
-        Run the command line openssl tool with the given arguments and write
-        the given PEM to its stdin.
-        """
-        write, read = popen2(" ".join(("openssl",) + args), "b")
-        write.write(pem)
-        write.close()
-        return read.read()
-
-
     def test_dump_certificate(self):
         """
         L{dump_certificate} writes PEM, DER, and text.
@@ -1003,13 +1418,13 @@ class FunctionTests(TestCase):
         dumped_pem = dump_certificate(FILETYPE_PEM, cert)
         self.assertEqual(dumped_pem, cleartextCertificatePEM)
         dumped_der = dump_certificate(FILETYPE_ASN1, cert)
-        good_der = self._runopenssl(dumped_pem, "x509", "-outform", "DER")
+        good_der = _runopenssl(dumped_pem, "x509", "-outform", "DER")
         self.assertEqual(dumped_der, good_der)
         cert2 = load_certificate(FILETYPE_ASN1, dumped_der)
         dumped_pem2 = dump_certificate(FILETYPE_PEM, cert2)
         self.assertEqual(dumped_pem2, cleartextCertificatePEM)
         dumped_text = dump_certificate(FILETYPE_TEXT, cert)
-        good_text = self._runopenssl(dumped_pem, "x509", "-noout", "-text")
+        good_text = _runopenssl(dumped_pem, "x509", "-noout", "-text")
         self.assertEqual(dumped_text, good_text)
 
 
@@ -1022,13 +1437,13 @@ class FunctionTests(TestCase):
         self.assertEqual(dumped_pem, cleartextPrivateKeyPEM)
         dumped_der = dump_privatekey(FILETYPE_ASN1, key)
         # XXX This OpenSSL call writes "writing RSA key" to standard out.  Sad.
-        good_der = self._runopenssl(dumped_pem, "rsa", "-outform", "DER")
+        good_der = _runopenssl(dumped_pem, "rsa", "-outform", "DER")
         self.assertEqual(dumped_der, good_der)
         key2 = load_privatekey(FILETYPE_ASN1, dumped_der)
         dumped_pem2 = dump_privatekey(FILETYPE_PEM, key2)
         self.assertEqual(dumped_pem2, cleartextPrivateKeyPEM)
         dumped_text = dump_privatekey(FILETYPE_TEXT, key)
-        good_text = self._runopenssl(dumped_pem, "rsa", "-noout", "-text")
+        good_text = _runopenssl(dumped_pem, "rsa", "-noout", "-text")
         self.assertEqual(dumped_text, good_text)
 
 
@@ -1040,13 +1455,13 @@ class FunctionTests(TestCase):
         dumped_pem = dump_certificate_request(FILETYPE_PEM, req)
         self.assertEqual(dumped_pem, cleartextCertificateRequestPEM)
         dumped_der = dump_certificate_request(FILETYPE_ASN1, req)
-        good_der = self._runopenssl(dumped_pem, "req", "-outform", "DER")
+        good_der = _runopenssl(dumped_pem, "req", "-outform", "DER")
         self.assertEqual(dumped_der, good_der)
         req2 = load_certificate_request(FILETYPE_ASN1, dumped_der)
         dumped_pem2 = dump_certificate_request(FILETYPE_PEM, req2)
         self.assertEqual(dumped_pem2, cleartextCertificateRequestPEM)
         dumped_text = dump_certificate_request(FILETYPE_TEXT, req)
-        good_text = self._runopenssl(dumped_pem, "req", "-noout", "-text")
+        good_text = _runopenssl(dumped_pem, "req", "-noout", "-text")
         self.assertEqual(dumped_text, good_text)
 
 
@@ -1079,15 +1494,6 @@ class FunctionTests(TestCase):
         self.assertTrue(isinstance(pkcs7, PKCS7Type))
 
 
-    def test_load_pkcs12(self):
-        """
-        L{load_pkcs12} accepts a PKCS#12 string and returns an instance of
-        L{PKCS12Type}.
-        """
-        pkcs12 = load_pkcs12(pkcs12Data)
-        self.assertTrue(isinstance(pkcs12, PKCS12Type))
-
-
 
 class PKCS7Tests(TestCase):
     """
@@ -1102,22 +1508,6 @@ class PKCS7Tests(TestCase):
 
         # XXX This doesn't currently work.
         # self.assertIdentical(PKCS7, PKCS7Type)
-
-
-
-class PKCS12Tests(TestCase):
-    """
-    Tests for L{PKCS12Type}.
-    """
-    def test_type(self):
-        """
-        L{PKCS12Type} is a type object.
-        """
-        self.assertTrue(isinstance(PKCS12Type, type))
-        self.assertEqual(PKCS12Type.__name__, 'PKCS12')
-
-        # XXX This doesn't currently work.
-        # self.assertIdentical(PKCS12, PKCS12Type)
 
 
 
