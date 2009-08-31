@@ -10,6 +10,7 @@ from os import makedirs
 from os.path import join
 from unittest import main
 
+from OpenSSL import SSL
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, PKey, dump_privatekey, load_certificate, load_privatekey
 from OpenSSL.SSL import WantReadError, Context, ContextType, Connection, ConnectionType, Error
 from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
@@ -255,7 +256,7 @@ class ContextTests(TestCase):
             context = Context(SSLv3_METHOD)
             context.set_default_verify_paths()
             context.set_verify(
-                VERIFY_PEER, 
+                VERIFY_PEER,
                 lambda conn, cert, errno, depth, preverify_ok: preverify_ok)
 
             client = socket()
@@ -511,8 +512,8 @@ class MemoryBIOTests(TestCase):
             established = True  # assume the best
             for ssl in client_conn, server_conn:
                 try:
-                    # Generally a recv() or send() could also work instead 
-                    # of do_handshake(), and we would stop on the first 
+                    # Generally a recv() or send() could also work instead
+                    # of do_handshake(), and we would stop on the first
                     # non-exception.
                     ssl.do_handshake()
                 except WantReadError:
@@ -581,6 +582,21 @@ class MemoryBIOTests(TestCase):
         # We don't want WantReadError or ZeroReturnError or anything - it's a
         # handshake failure.
         self.assertEquals(e.__class__, Error)
+
+
+
+class ModuleTests(TestCase):
+    """
+    Tests for all objects in L{OpenSSL.crypto} module.
+    """
+
+    def test_type_module_name(self):
+        """
+        Test that all types have a sane C{__module__} attribute.
+        """
+        for name, obj in vars(SSL).items():
+            if isinstance(obj, type):
+                self.assertEqual(obj.__module__, "OpenSSL.SSL", name)
 
 
 

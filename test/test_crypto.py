@@ -10,6 +10,7 @@ import os, re
 from os import popen2
 from datetime import datetime, timedelta
 
+from OpenSSL import crypto
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
 from OpenSSL.crypto import X509Req, X509ReqType
@@ -1530,6 +1531,21 @@ class NetscapeSPKITests(TestCase):
         """
         nspki = NetscapeSPKI()
         self.assertTrue(isinstance(nspki, NetscapeSPKIType))
+
+
+
+class ModuleTests(TestCase):
+    """
+    Tests for all objects in L{OpenSSL.crypto} module.
+    """
+
+    def test_type_module_name(self):
+        """
+        Test that all types have a sane C{__module__} attribute.
+        """
+        for name, obj in vars(crypto).items():
+            if isinstance(obj, type):
+                self.assertEqual(obj.__module__, "OpenSSL.crypto", name)
 
 
 
