@@ -71,14 +71,14 @@ Return private key portion of the PKCS12 structure\n\
 \n\
 @returns: PKey object containing the private key\n\
 ";
-static crypto_PKeyObj *
+static PyObject *
 crypto_PKCS12_get_privatekey(crypto_PKCS12Obj *self, PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ":get_privatekey"))
         return NULL;
 
     Py_INCREF(self->key);
-    return (crypto_PKeyObj *) self->key;
+    return self->key;
 }
 
 static char crypto_PKCS12_set_privatekey_doc[] = "\n\
