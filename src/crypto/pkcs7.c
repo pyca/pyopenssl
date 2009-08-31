@@ -177,7 +177,7 @@ crypto_PKCS7_getattr(crypto_PKCS7Obj *self, char *name)
 PyTypeObject crypto_PKCS7_Type = {
     PyObject_HEAD_INIT(NULL)
     0,
-    "PKCS7",
+    "OpenSSL.crypto.PKCS7",
     sizeof(crypto_PKCS7Obj),
     0,
     (destructor)crypto_PKCS7_dealloc,

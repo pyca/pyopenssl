@@ -335,36 +335,63 @@ ssl_Context_set_passwd_cb(ssl_ContextObj *self, PyObject *args)
     return Py_None;
 }
 
+static PyTypeObject *
+type_modified_error(const char *name)
+{
+    PyErr_Format(PyExc_RuntimeError,
+                 "OpenSSL.crypto's '%s' attribute has been modified",
+                 name);
+    return NULL;
+}
+
+static PyTypeObject *
+import_crypto_type(const char *name, size_t objsize)
+{
+    PyObject *module, *type;
+    PyTypeObject *res;
+    char modname[] = "OpenSSL.crypto";
+    char buffer[256] = "OpenSSL.crypto.";
+
+    if (strlen(buffer) + strlen(name) >= sizeof(buffer)) {
+        PyErr_BadInternalCall();
+        return NULL;
+    }
+    strcat(buffer, name);
+    module = PyImport_ImportModule(modname);
+    if (module == NULL) {
+        return NULL;
+    }
+    type = PyObject_GetAttrString(module, name);
+    Py_DECREF(module);
+    if (type == NULL) {
+        return NULL;
+    }
+    if (!(PyType_Check(type))) {
+        Py_DECREF(type);
+        return type_modified_error(name);
+    }
+    res = (PyTypeObject *)type;
+    if (strcmp(buffer, res->tp_name) != 0 || res->tp_basicsize != objsize) {
+        Py_DECREF(type);
+        return type_modified_error(name);
+    }
+    return res;
+}
+
 static crypto_X509Obj *
-parse_certificate_argument(const char* format1, const char* format2, PyObject* args)
+parse_certificate_argument(const char* format, PyObject* args)
 {
     static PyTypeObject *crypto_X509_type = NULL;
     crypto_X509Obj *cert;
 
-    /* We need to check that cert really is an X509 object before
-       we deal with it. The problem is we can't just quickly verify
-       the type (since that comes from another module). This should
-       do the trick (reasonably well at least): Once we have one
-       verified object, we use it's type object for future
-       comparisons. */
-
     if (!crypto_X509_type)
     {
-	if (!PyArg_ParseTuple(args, (PYARG_PARSETUPLE_FORMAT *)format1, &cert))
-	    return NULL;
-
-	if (strcmp(cert->ob_type->tp_name, "X509") != 0 || 
-	    cert->ob_type->tp_basicsize != sizeof(crypto_X509Obj))
-	{
-	    PyErr_SetString(PyExc_TypeError, "Expected an X509 object");
-	    return NULL;
-	}
-
-	crypto_X509_type = cert->ob_type;
+        crypto_X509_type = import_crypto_type("X509", sizeof(crypto_X509Obj));
+        if (!crypto_X509_type)
+            return NULL;
     }
-    else
-	if (!PyArg_ParseTuple(args, (PYARG_PARSETUPLE_FORMAT *)format2, crypto_X509_type,
-			      &cert))
+    if (!PyArg_ParseTuple(args, (PYARG_PARSETUPLE_FORMAT *)format,
+                          crypto_X509_type, &cert))
 	    return NULL;
     return cert;
 }
@@ -381,7 +408,7 @@ ssl_Context_add_extra_chain_cert(ssl_ContextObj *self, PyObject *args)
 {
     X509* cert_original;
     crypto_X509Obj *cert = parse_certificate_argument(
-        "O:add_extra_chain_cert", "O!:add_extra_chain_cert", args);
+        "O!:add_extra_chain_cert", args);
     if (cert == NULL)
     {
         return NULL;
@@ -471,7 +498,7 @@ static PyObject *
 ssl_Context_use_certificate(ssl_ContextObj *self, PyObject *args)
 {
     crypto_X509Obj *cert = parse_certificate_argument(
-        "O:use_certificate", "O!:use_certificate", args);
+        "O!:use_certificate", args);
     if (cert == NULL) {
         return NULL;
     }
@@ -538,28 +565,12 @@ ssl_Context_use_privatekey(ssl_ContextObj *self, PyObject *args)
     static PyTypeObject *crypto_PKey_type = NULL;
     crypto_PKeyObj *pkey;
 
-    /* We need to check that cert really is a PKey object before
-       we deal with it. The problem is we can't just quickly verify
-       the type (since that comes from another module). This should
-       do the trick (reasonably well at least): Once we have one
-       verified object, we use it's type object for future
-       comparisons. */
-
     if (!crypto_PKey_type)
     {
-	if (!PyArg_ParseTuple(args, "O:use_privatekey", &pkey))
-	    return NULL;
-
-	if (strcmp(pkey->ob_type->tp_name, "OpenSSL.crypto.PKey") != 0 ||
-	    pkey->ob_type->tp_basicsize != sizeof(crypto_PKeyObj))
-	{
-	    PyErr_SetString(PyExc_TypeError, "Expected a PKey object");
-	    return NULL;
-	}
-
-	crypto_PKey_type = pkey->ob_type;
+        crypto_PKey_type = import_crypto_type("PKey", sizeof(crypto_PKeyObj));
+        if (!crypto_PKey_type)
+            return NULL;
     }
-    else
     if (!PyArg_ParseTuple(args, "O!:use_privatekey", crypto_PKey_type, &pkey))
         return NULL;
 

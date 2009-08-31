@@ -423,7 +423,7 @@ static PyMethodDef crypto_X509Name_methods[] =
 PyTypeObject crypto_X509Name_Type = {
     PyObject_HEAD_INIT(NULL)
     0,
-    "X509Name",
+    "OpenSSL.crypto.X509Name",
     sizeof(crypto_X509NameObj),
     0,
     (destructor)crypto_X509Name_dealloc,
