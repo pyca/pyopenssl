@@ -55,12 +55,22 @@ static PyObject *
 crypto_X509Name_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs)
 {
     crypto_X509NameObj *name;
+    X509_NAME *sslname;
+    PyObject *newname;
 
     if (!PyArg_ParseTuple(args, "O!:X509Name", &crypto_X509Name_Type, &name)) {
         return NULL;
     }
-
-    return (PyObject *)crypto_X509Name_New(X509_NAME_dup(name->x509_name), 1);
+    sslname = X509_NAME_dup(name->x509_name);
+    if (sslname == NULL) {
+        exception_from_error_queue(crypto_Error);
+        return NULL;
+    }
+    newname = (PyObject *)crypto_X509Name_New(sslname, 1);
+    if (newname == NULL) {
+        X509_NAME_free(sslname);
+    }
+    return newname;
 }
 
 
