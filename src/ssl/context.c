@@ -800,6 +800,111 @@ ssl_Context_set_cipher_list(ssl_ContextObj *self, PyObject *args)
     }
 }
 
+static char ssl_Context_set_client_CA_list_doc[] = "\n\
+Set the list of preferred client certificate signers for this server context.\n\
+\n\
+This list of certificate authorities will be sent to the client when the\n\
+server requests a client certificate.\n\
+\n\
+@param certificate_authorities: a sequence of X509Names.\n\
+@return: None\n\
+";
+
+static PyObject *
+ssl_Context_set_client_CA_list(ssl_ContextObj *self, PyObject *args)
+{
+    static PyTypeObject *X509NameType;
+    PyObject *sequence, *tuple, *item;
+    crypto_X509NameObj *name;
+    X509_NAME *sslname;
+    STACK_OF(X509_NAME) *CANames;
+    Py_ssize_t length;
+    int i;
+
+    if (X509NameType == NULL) {
+        X509NameType = import_crypto_type("X509Name", sizeof(crypto_X509NameObj));
+        if (X509NameType == NULL) {
+            return NULL;
+        }
+    }
+    if (!PyArg_ParseTuple(args, "O:set_client_CA_list", &sequence)) {
+        return NULL;
+    }
+    tuple = PySequence_Tuple(sequence);
+    if (tuple == NULL) {
+        return NULL;
+    }
+    length = PyTuple_Size(tuple);
+    if (length >= INT_MAX) {
+        PyErr_SetString(PyExc_ValueError, "client CA list is too long");
+        Py_DECREF(tuple);
+        return NULL;
+    }
+    CANames = sk_X509_NAME_new_null();
+    if (CANames == NULL) {
+        Py_DECREF(tuple);
+        exception_from_error_queue(ssl_Error);
+        return NULL;
+    }
+    for (i = 0; i < length; i++) {
+        item = PyTuple_GetItem(tuple, i);
+        if (item->ob_type != X509NameType) {
+            PyErr_Format(PyExc_TypeError,
+                         "client CAs must be X509Name objects, not %s objects",
+                         item->ob_type->tp_name);
+            sk_X509_NAME_free(CANames);
+            Py_DECREF(tuple);
+            return NULL;
+        }
+        name = (crypto_X509NameObj *)item;
+        sslname = X509_NAME_dup(name->x509_name);
+        if (sslname == NULL) {
+            sk_X509_NAME_free(CANames);
+            Py_DECREF(tuple);
+            exception_from_error_queue(ssl_Error);
+            return NULL;
+        }
+        if (!sk_X509_NAME_push(CANames, sslname)) {
+            X509_NAME_free(sslname);
+            sk_X509_NAME_free(CANames);
+            Py_DECREF(tuple);
+            exception_from_error_queue(ssl_Error);
+            return NULL;
+        }
+    }
+    Py_DECREF(tuple);
+    SSL_CTX_set_client_CA_list(self->ctx, CANames);
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static char ssl_Context_add_client_CA_doc[] = "\n\
+Add the CA certificate to the list of preferred signers for this context.\n\
+\n\
+The list of certificate authorities will be sent to the client when the\n\
+server requests a client certificate.\n\
+\n\
+@param certificate_authority: certificate authority's X509 certificate.\n\
+@return: None\n\
+";
+
+static PyObject *
+ssl_Context_add_client_CA(ssl_ContextObj *self, PyObject *args)
+{
+    crypto_X509Obj *cert;
+
+    cert = parse_certificate_argument("O!:add_client_CA", args);
+    if (cert == NULL) {
+        return NULL;
+    }
+    if (!SSL_CTX_add_client_CA(self->ctx, cert->x509)) {
+        exception_from_error_queue(ssl_Error);
+        return NULL;
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static char ssl_Context_set_timeout_doc[] = "\n\
 Set session timeout\n\
 \n\
@@ -971,6 +1076,8 @@ static PyMethodDef ssl_Context_methods[] = {
     ADD_METHOD(get_verify_depth),
     ADD_METHOD(load_tmp_dh),
     ADD_METHOD(set_cipher_list),
+    ADD_METHOD(set_client_CA_list),
+    ADD_METHOD(add_client_CA),
     ADD_METHOD(set_timeout),
     ADD_METHOD(get_timeout),
     ADD_METHOD(set_info_callback),

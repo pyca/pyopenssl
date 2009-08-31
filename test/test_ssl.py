@@ -584,6 +584,121 @@ class MemoryBIOTests(TestCase):
         self.assertEquals(e.__class__, Error)
 
 
+    def _check_client_CA_list(self, func):
+        server = self._server(None)
+        client = self._client(None)
+        ctx = server.get_context()
+        expected = func(ctx)
+        self.assertEqual(server.get_client_CA_list(), expected)
+        self._loopback(client, server)
+        self.assertEqual(client.get_client_CA_list(), expected)
+        self.assertEqual(server.get_client_CA_list(), expected)
+
+
+    def test_set_client_CA_list_basic(self):
+        """
+        Test paramater validation and return value for
+        L{Context.set_client_CA_list}.
+        """
+        ctx = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, ctx.set_client_CA_list, "spam")
+        self.assertRaises(TypeError, ctx.set_client_CA_list, ["spam"])
+        self.assertIdentical(ctx.set_client_CA_list([]), None)
+
+
+    def test_set_client_CA_list_functional(self):
+        """
+        The list of CAs set by L{Context.set_client_CA_list} and read by
+        L{Connection.get_client_CA_list} should match on server and
+        client side.
+        """
+        cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
+        secert = load_certificate(FILETYPE_PEM, server_cert_pem)
+        clcert = load_certificate(FILETYPE_PEM, server_cert_pem)
+
+        cadesc = cacert.get_subject()
+        sedesc = secert.get_subject()
+        cldesc = clcert.get_subject()
+
+        def single_CA(ctx):
+            ctx.set_client_CA_list([cadesc])
+            return [cadesc]
+        self._check_client_CA_list(single_CA)
+
+        def no_CA(ctx):
+            ctx.set_client_CA_list([])
+            return []
+        self._check_client_CA_list(no_CA)
+
+        def multiple_CA(ctx):
+            L = [cadesc, sedesc, cldesc]
+            ctx.set_client_CA_list(L)
+            return L
+        self._check_client_CA_list(multiple_CA)
+
+        def changed_CA(ctx):
+            ctx.set_client_CA_list([sedesc, cldesc])
+            ctx.set_client_CA_list([cadesc])
+            return [cadesc]
+        self._check_client_CA_list(changed_CA)
+
+        def mutated_CA(ctx):
+            L = [cadesc]
+            ctx.set_client_CA_list([cadesc])
+            L.append(sedesc)
+            return [cadesc]
+        self._check_client_CA_list(mutated_CA)
+
+
+    def test_add_client_CA_basic(self):
+        """
+        Test paramater validation and return value for
+        L{Context.add_client_CA}.
+        """
+        ctx = Context(TLSv1_METHOD)
+        cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
+        self.assertRaises(TypeError, ctx.add_client_CA, "spam")
+        self.assertIdentical(ctx.add_client_CA(cacert), None)
+
+
+    def test_add_client_CA_functional(self):
+        """
+        The list of CAs set by L{Context.add_client_CA} and read by
+        L{Connection.get_client_CA_list} should match on server and
+        client side.
+        """
+        cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
+        secert = load_certificate(FILETYPE_PEM, server_cert_pem)
+        clcert = load_certificate(FILETYPE_PEM, server_cert_pem)
+
+        cadesc = cacert.get_subject()
+        sedesc = secert.get_subject()
+        cldesc = clcert.get_subject()
+
+        def single_CA(ctx):
+            ctx.add_client_CA(cacert)
+            return [cadesc]
+        self._check_client_CA_list(single_CA)
+
+        def multiple_CA(ctx):
+            ctx.add_client_CA(cacert)
+            ctx.add_client_CA(secert)
+            return [cadesc, sedesc]
+        self._check_client_CA_list(multiple_CA)
+
+        def mixed_set_add_CA(ctx):
+            ctx.set_client_CA_list([cadesc, sedesc])
+            ctx.add_client_CA(clcert)
+            return [cadesc, sedesc, cldesc]
+        self._check_client_CA_list(mixed_set_add_CA)
+
+        def set_replaces_add_CA(ctx):
+            ctx.add_client_CA(clcert)
+            ctx.set_client_CA_list([cadesc])
+            ctx.add_client_CA(secert)
+            return [cadesc, sedesc]
+        self._check_client_CA_list(set_replaces_add_CA)
+
 
 class ModuleTests(TestCase):
     """
