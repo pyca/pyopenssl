@@ -10,7 +10,6 @@ from os import makedirs
 from os.path import join
 from unittest import main
 
-from OpenSSL import SSL
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, PKey, dump_privatekey, load_certificate, load_privatekey
 from OpenSSL.SSL import WantReadError, Context, ContextType, Connection, ConnectionType, Error
 from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
@@ -701,20 +700,6 @@ class MemoryBIOTests(TestCase):
             ctx.add_client_CA(secert)
             return [cadesc, sedesc]
         self._check_client_CA_list(set_replaces_add_CA)
-
-
-class ModuleTests(TestCase):
-    """
-    Tests for all objects in L{OpenSSL.crypto} module.
-    """
-
-    def test_type_module_name(self):
-        """
-        Test that all types have a sane C{__module__} attribute.
-        """
-        for name, obj in vars(SSL).items():
-            if isinstance(obj, type):
-                self.assertEqual(obj.__module__, "OpenSSL.SSL", name)
 
 
 

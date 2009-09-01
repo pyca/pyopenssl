@@ -372,7 +372,7 @@ crypto_X509Req_getattr(crypto_X509ReqObj *self, char *name)
 PyTypeObject crypto_X509Req_Type = {
     PyObject_HEAD_INIT(NULL)
     0,
-    "OpenSSL.crypto.X509Req",
+    "X509Req",
     sizeof(crypto_X509ReqObj),
     0,
     (destructor)crypto_X509Req_dealloc,

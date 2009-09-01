@@ -347,17 +347,11 @@ type_modified_error(const char *name)
 static PyTypeObject *
 import_crypto_type(const char *name, size_t objsize)
 {
-    PyObject *module, *type;
+    PyObject *module, *type, *name_attr;
     PyTypeObject *res;
-    char modname[] = "OpenSSL.crypto";
-    char buffer[256] = "OpenSSL.crypto.";
+    int right_name;
 
-    if (strlen(buffer) + strlen(name) >= sizeof(buffer)) {
-        PyErr_BadInternalCall();
-        return NULL;
-    }
-    strcat(buffer, name);
-    module = PyImport_ImportModule(modname);
+    module = PyImport_ImportModule("OpenSSL.crypto");
     if (module == NULL) {
         return NULL;
     }
@@ -370,8 +364,16 @@ import_crypto_type(const char *name, size_t objsize)
         Py_DECREF(type);
         return type_modified_error(name);
     }
+    name_attr = PyObject_GetAttrString(type, "__name__");
+    if (name_attr == NULL) {
+        Py_DECREF(type);
+        return NULL;
+    }
+    right_name = (PyString_CheckExact(name_attr) &&
+                  strcmp(name, PyString_AsString(name_attr)) == 0);
+    Py_DECREF(name_attr);
     res = (PyTypeObject *)type;
-    if (strcmp(buffer, res->tp_name) != 0 || res->tp_basicsize != objsize) {
+    if (!right_name || res->tp_basicsize != objsize) {
         Py_DECREF(type);
         return type_modified_error(name);
     }

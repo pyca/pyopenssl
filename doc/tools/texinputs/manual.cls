@@ -6,7 +6,6 @@
 \ProvidesClass{manual}
              [1998/03/03 Document class (Python manual)]
 
-\RequirePackage{ifpdf}
 \RequirePackage{pypaper}
 
 % Change the options here to get a different set of basic options, but only
@@ -24,7 +23,7 @@
 % distribution.
 %
 % The "fancyhdr" package makes nicer page footers reasonable to
-% implement, and is used to put the chapter and section information in
+% implement, and is used to put the chapter and section information in 
 % the footers.
 %
 \RequirePackage{fancyhdr}\typeout{Using fancier footers than usual.}
@@ -64,8 +63,7 @@
     \let\footnotesize\small
     \let\footnoterule\relax
     \py@doHorizontalRule%
-    \ifpdf
-      \begingroup
+    \@ifundefined{pdfinfo}{}{{
       % This \def is required to deal with multi-line authors; it
       % changes \\ to ', ' (comma-space), making it pass muster for
       % generating document info in the PDF file.
@@ -74,8 +72,7 @@
         /Author (\@author)
         /Title (\@title)
       }
-      \endgroup
-    \fi
+    }}
     \begin{flushright}%
       {\rm\Huge\py@HeaderFamily \@title \par}%
       {\em\LARGE\py@HeaderFamily \py@release \par}

@@ -800,7 +800,7 @@ crypto_X509_getattr(crypto_X509Obj *self, char *name)
 PyTypeObject crypto_X509_Type = {
     PyObject_HEAD_INIT(NULL)
     0,
-    "OpenSSL.crypto.X509",
+    "X509",
     sizeof(crypto_X509Obj),
     0,
     (destructor)crypto_X509_dealloc,

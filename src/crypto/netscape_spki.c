@@ -243,7 +243,7 @@ crypto_NetscapeSPKI_getattr(crypto_NetscapeSPKIObj *self, char *name)
 PyTypeObject crypto_NetscapeSPKI_Type = {
     PyObject_HEAD_INIT(NULL)
     0,
-    "OpenSSL.crypto.NetscapeSPKI",
+    "NetscapeSPKI",
     sizeof(crypto_NetscapeSPKIObj),
     0,
     (destructor)crypto_NetscapeSPKI_dealloc,

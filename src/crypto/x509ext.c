@@ -256,7 +256,7 @@ crypto_X509Extension_str(crypto_X509ExtensionObj *self)
 PyTypeObject crypto_X509Extension_Type = {
     PyObject_HEAD_INIT(NULL)
     0,
-    "OpenSSL.crypto.X509Extension",
+    "X509Extension",
     sizeof(crypto_X509ExtensionObj),
     0,
     (destructor)crypto_X509Extension_dealloc, 

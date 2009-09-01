@@ -819,21 +819,10 @@ ssl_Connection_get_cipher_list(ssl_ConnectionObj *self, PyObject *args)
         return NULL;
 
     lst = PyList_New(0);
-    if (lst == NULL) {
-        return NULL;
-    }
     while ((ret = SSL_get_cipher_list(self->ssl, idx)) != NULL)
     {
         item = PyString_FromString(ret);
-        if (item == NULL) {
-            Py_DECREF(lst);
-            return NULL;
-        }
-        if (PyList_Append(lst, item)) {
-            Py_DECREF(lst);
-            Py_DECREF(item);
-            return NULL;
-        }
+        PyList_Append(lst, item);
         Py_DECREF(item);
         idx++;
     }

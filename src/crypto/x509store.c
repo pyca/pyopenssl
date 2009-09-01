@@ -109,7 +109,7 @@ crypto_X509Store_getattr(crypto_X509StoreObj *self, char *name)
 PyTypeObject crypto_X509Store_Type = {
     PyObject_HEAD_INIT(NULL)
     0,
-    "OpenSSL.crypto.X509Store",
+    "X509Store",
     sizeof(crypto_X509StoreObj),
     0,
     (destructor)crypto_X509Store_dealloc,
