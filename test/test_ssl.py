@@ -587,8 +587,11 @@ class MemoryBIOTests(TestCase):
     def _check_client_CA_list(self, func):
         server = self._server(None)
         client = self._client(None)
+        self.assertEqual(client.get_client_CA_list(), [])
+        self.assertEqual(server.get_client_CA_list(), [])
         ctx = server.get_context()
         expected = func(ctx)
+        self.assertEqual(client.get_client_CA_list(), [])
         self.assertEqual(server.get_client_CA_list(), expected)
         self._loopback(client, server)
         self.assertEqual(client.get_client_CA_list(), expected)
