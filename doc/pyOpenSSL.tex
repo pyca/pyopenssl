@@ -854,9 +854,9 @@ when requesting a client certificate.
 \end{methoddesc}
 
 \begin{methoddesc}[Context]{set_client_CA_list}{certificate_authorities}
-Replace the current list of \class{OpenSSL.crypto.X509Name} objects that
-would be sent to the client when requesting a client certificate with a
-new one.
+Replace the current list of preferred certificate signers that would be
+sent to the client when requesting a client certificate with the
+\var{certificate_authorities} sequence of \class{OpenSSL.crypto.X509Name}s.
 
 \versionadded{0.10}
 \end{methoddesc}
@@ -865,8 +865,6 @@ new one.
 Extract a \class{OpenSSL.crypto.X509Name} from the \var{certificate_authority}
 \class{OpenSSL.crypto.X509} certificate and add it to the list of preferred
 certificate signers sent to the client when requesting a client certificate.
-% Certificate certificate certificate. Certificate certificate. Certificate
-% certificate certificate certificate certificate certificate. Certificate.
 
 \versionadded{0.10}
 \end{methoddesc}
