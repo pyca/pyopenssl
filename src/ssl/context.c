@@ -802,7 +802,7 @@ ssl_Context_set_cipher_list(ssl_ContextObj *self, PyObject *args)
     }
 }
 
-static char ssl_Context_set_client_CA_list_doc[] = "\n\
+static char ssl_Context_set_client_ca_list_doc[] = "\n\
 Set the list of preferred client certificate signers for this server context.\n\
 \n\
 This list of certificate authorities will be sent to the client when the\n\
@@ -813,7 +813,7 @@ server requests a client certificate.\n\
 ";
 
 static PyObject *
-ssl_Context_set_client_CA_list(ssl_ContextObj *self, PyObject *args)
+ssl_Context_set_client_ca_list(ssl_ContextObj *self, PyObject *args)
 {
     static PyTypeObject *X509NameType;
     PyObject *sequence, *tuple, *item;
@@ -829,7 +829,7 @@ ssl_Context_set_client_CA_list(ssl_ContextObj *self, PyObject *args)
             return NULL;
         }
     }
-    if (!PyArg_ParseTuple(args, "O:set_client_CA_list", &sequence)) {
+    if (!PyArg_ParseTuple(args, "O:set_client_ca_list", &sequence)) {
         return NULL;
     }
     tuple = PySequence_Tuple(sequence);
@@ -880,7 +880,7 @@ ssl_Context_set_client_CA_list(ssl_ContextObj *self, PyObject *args)
     return Py_None;
 }
 
-static char ssl_Context_add_client_CA_doc[] = "\n\
+static char ssl_Context_add_client_ca_doc[] = "\n\
 Add the CA certificate to the list of preferred signers for this context.\n\
 \n\
 The list of certificate authorities will be sent to the client when the\n\
@@ -891,11 +891,11 @@ server requests a client certificate.\n\
 ";
 
 static PyObject *
-ssl_Context_add_client_CA(ssl_ContextObj *self, PyObject *args)
+ssl_Context_add_client_ca(ssl_ContextObj *self, PyObject *args)
 {
     crypto_X509Obj *cert;
 
-    cert = parse_certificate_argument("O!:add_client_CA", args);
+    cert = parse_certificate_argument("O!:add_client_ca", args);
     if (cert == NULL) {
         return NULL;
     }
@@ -1078,8 +1078,8 @@ static PyMethodDef ssl_Context_methods[] = {
     ADD_METHOD(get_verify_depth),
     ADD_METHOD(load_tmp_dh),
     ADD_METHOD(set_cipher_list),
-    ADD_METHOD(set_client_CA_list),
-    ADD_METHOD(add_client_CA),
+    ADD_METHOD(set_client_ca_list),
+    ADD_METHOD(add_client_ca),
     ADD_METHOD(set_timeout),
     ADD_METHOD(get_timeout),
     ADD_METHOD(set_info_callback),

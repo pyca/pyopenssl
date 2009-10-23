@@ -853,7 +853,7 @@ Read a file with PEM-formatted certificates that will be sent to the client
 when requesting a client certificate.
 \end{methoddesc}
 
-\begin{methoddesc}[Context]{set_client_CA_list}{certificate_authorities}
+\begin{methoddesc}[Context]{set_client_ca_list}{certificate_authorities}
 Replace the current list of preferred certificate signers that would be
 sent to the client when requesting a client certificate with the
 \var{certificate_authorities} sequence of \class{OpenSSL.crypto.X509Name}s.
@@ -861,7 +861,7 @@ sent to the client when requesting a client certificate with the
 \versionadded{0.10}
 \end{methoddesc}
 
-\begin{methoddesc}[Context]{add_client_CA}{certificate_authority}
+\begin{methoddesc}[Context]{add_client_ca}{certificate_authority}
 Extract a \class{OpenSSL.crypto.X509Name} from the \var{certificate_authority}
 \class{OpenSSL.crypto.X509} certificate and add it to the list of preferred
 certificate signers sent to the client when requesting a client certificate.
@@ -1042,7 +1042,7 @@ has changed. It used to take an optional parameter and just return a string,
 but not it returns the entire list in one go.
 \end{methoddesc}
 
-\begin{methoddesc}[Connection]{get_client_CA_list}{}
+\begin{methoddesc}[Connection]{get_client_ca_list}{}
 Retrieve the list of preferred client certificate issuers sent by the server
 as \class{OpenSSL.crypto.X509Name} objects.
 

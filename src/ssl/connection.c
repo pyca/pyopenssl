@@ -829,22 +829,22 @@ ssl_Connection_get_cipher_list(ssl_ConnectionObj *self, PyObject *args)
     return lst;
 }
 
-static char ssl_Connection_get_client_CA_list_doc[] = "\n\
+static char ssl_Connection_get_client_ca_list_doc[] = "\n\
 Get CAs whose certificates are suggested for client authentication.\n\
 \n\
 @return: A list of X509Names representing the acceptable CAs as set by\n\
-         ssl.Context.{set, add}_client_CA* if this is a server connection\n\
+         ssl.Context.{set, add}_client_ca* if this is a server connection\n\
          or as sent by the server if this is a client connection.\n\
 ";
 
 static PyObject *
-ssl_Connection_get_client_CA_list(ssl_ConnectionObj *self, PyObject *args)
+ssl_Connection_get_client_ca_list(ssl_ConnectionObj *self, PyObject *args)
 {
     STACK_OF(X509_NAME) *CANames;
     PyObject *CAList;
     int i, n;
 
-    if (!PyArg_ParseTuple(args, ":get_client_CA_list")) {
+    if (!PyArg_ParseTuple(args, ":get_client_ca_list")) {
         return NULL;
     }
     CANames = SSL_get_client_CA_list(self->ssl);
@@ -1139,7 +1139,7 @@ static PyMethodDef ssl_Connection_methods[] =
     ADD_METHOD(bio_shutdown),
     ADD_METHOD(shutdown),
     ADD_METHOD(get_cipher_list),
-    ADD_METHOD(get_client_CA_list),
+    ADD_METHOD(get_client_ca_list),
     ADD_METHOD(makefile),
     ADD_METHOD(get_app_data),
     ADD_METHOD(set_app_data),
