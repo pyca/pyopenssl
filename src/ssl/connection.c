@@ -840,8 +840,7 @@ Get CAs whose certificates are suggested for client authentication.\n\
 ";
 
 static PyObject *
-ssl_Connection_get_client_ca_list(ssl_ConnectionObj *self, PyObject *args)
-{
+ssl_Connection_get_client_ca_list(ssl_ConnectionObj *self, PyObject *args) {
     STACK_OF(X509_NAME) *CANames;
     PyObject *CAList;
     int i, n;

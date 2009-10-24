@@ -13,8 +13,10 @@
 
 #if PY_VERSION_HEX >= 0x02050000
 # define PYARG_PARSETUPLE_FORMAT const char
+# define PYOBJECT_GETATTRSTRING_TYPE const char*
 #else
 # define PYARG_PARSETUPLE_FORMAT char
+# define PYOBJECT_GETATTRSTRING_TYPE char*
 #endif
 
 #ifndef MS_WINDOWS
@@ -336,8 +338,7 @@ ssl_Context_set_passwd_cb(ssl_ContextObj *self, PyObject *args)
 }
 
 static PyTypeObject *
-type_modified_error(const char *name)
-{
+type_modified_error(const char *name) {
     PyErr_Format(PyExc_RuntimeError,
                  "OpenSSL.crypto's '%s' attribute has been modified",
                  name);
@@ -345,8 +346,7 @@ type_modified_error(const char *name)
 }
 
 static PyTypeObject *
-import_crypto_type(const char *name, size_t objsize)
-{
+import_crypto_type(const char *name, size_t objsize) {
     PyObject *module, *type, *name_attr;
     PyTypeObject *res;
     int right_name;
@@ -355,7 +355,7 @@ import_crypto_type(const char *name, size_t objsize)
     if (module == NULL) {
         return NULL;
     }
-    type = PyObject_GetAttrString(module, name);
+    type = PyObject_GetAttrString(module, (PYOBJECT_GETATTRSTRING_TYPE)name);
     Py_DECREF(module);
     if (type == NULL) {
         return NULL;
@@ -381,20 +381,20 @@ import_crypto_type(const char *name, size_t objsize)
 }
 
 static crypto_X509Obj *
-parse_certificate_argument(const char* format, PyObject* args)
-{
+parse_certificate_argument(const char* format, PyObject* args) {
     static PyTypeObject *crypto_X509_type = NULL;
     crypto_X509Obj *cert;
 
-    if (!crypto_X509_type)
-    {
+    if (!crypto_X509_type) {
         crypto_X509_type = import_crypto_type("X509", sizeof(crypto_X509Obj));
-        if (!crypto_X509_type)
+        if (!crypto_X509_type) {
             return NULL;
+        }
     }
     if (!PyArg_ParseTuple(args, (PYARG_PARSETUPLE_FORMAT *)format,
-                          crypto_X509_type, &cert))
-	    return NULL;
+                          crypto_X509_type, &cert)) {
+        return NULL;
+    }
     return cert;
 }
 
