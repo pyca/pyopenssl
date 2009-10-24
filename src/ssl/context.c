@@ -562,27 +562,24 @@ Load a private key from a PKey object\n\
 @return: None\n\
 ";
 static PyObject *
-ssl_Context_use_privatekey(ssl_ContextObj *self, PyObject *args)
-{
+ssl_Context_use_privatekey(ssl_ContextObj *self, PyObject *args) {
     static PyTypeObject *crypto_PKey_type = NULL;
     crypto_PKeyObj *pkey;
 
-    if (!crypto_PKey_type)
-    {
+    if (!crypto_PKey_type) {
         crypto_PKey_type = import_crypto_type("PKey", sizeof(crypto_PKeyObj));
-        if (!crypto_PKey_type)
+        if (!crypto_PKey_type) {
             return NULL;
+        }
     }
-    if (!PyArg_ParseTuple(args, "O!:use_privatekey", crypto_PKey_type, &pkey))
+    if (!PyArg_ParseTuple(args, "O!:use_privatekey", crypto_PKey_type, &pkey)) {
         return NULL;
+    }
 
-    if (!SSL_CTX_use_PrivateKey(self->ctx, pkey->pkey))
-    {
+    if (!SSL_CTX_use_PrivateKey(self->ctx, pkey->pkey)) {
         exception_from_error_queue(ssl_Error);
         return NULL;
-    }
-    else
-    {
+    } else {
         Py_INCREF(Py_None);
         return Py_None;
     }
