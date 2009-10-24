@@ -832,9 +832,11 @@ ssl_Connection_get_cipher_list(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_get_client_ca_list_doc[] = "\n\
 Get CAs whose certificates are suggested for client authentication.\n\
 \n\
-@return: A list of X509Names representing the acceptable CAs as set by\n\
-         ssl.Context.{set, add}_client_ca* if this is a server connection\n\
-         or as sent by the server if this is a client connection.\n\
+@return: If this is a server connection, a list of X509Names representing\n\
+    the acceptable CAs as set by L{OpenSSL.SSL.Context.set_client_ca_list} or\n\
+    L{OpenSSL.SSL.Context.add_client_ca}.  If this is a client connection,\n\
+    the list of such X509Names sent by the server, or an empty list if that\n\
+    has not yet happened.\n\
 ";
 
 static PyObject *
