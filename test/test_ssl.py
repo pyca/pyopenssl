@@ -584,6 +584,16 @@ class MemoryBIOTests(TestCase):
 
 
     def _check_client_ca_list(self, func):
+        """
+        Verify the return value of the C{get_client_ca_list} method for server and client connections.
+
+        @param func: A function which will be called with the server context
+            before the client and server are connected to each other.  This
+            function should specify a list of CAs for the server to send to the
+            client and return that same list.  The list will be used to verify
+            that C{get_client_ca_list} returns the proper value at various
+            times.
+        """
         server = self._server(None)
         client = self._client(None)
         self.assertEqual(client.get_client_ca_list(), [])
@@ -597,10 +607,10 @@ class MemoryBIOTests(TestCase):
         self.assertEqual(server.get_client_ca_list(), expected)
 
 
-    def test_set_client_ca_list_basic(self):
+    def test_set_client_ca_list_errors(self):
         """
-        Test paramater validation and return value for
-        L{Context.set_client_ca_list}.
+        L{Context.set_client_ca_list} raises a L{TypeError} if called with a
+        non-list or a list that contains objects other than X509Names.
         """
         ctx = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, ctx.set_client_ca_list, "spam")
@@ -608,11 +618,61 @@ class MemoryBIOTests(TestCase):
         self.assertIdentical(ctx.set_client_ca_list([]), None)
 
 
-    def test_set_client_ca_list_functional(self):
+    def test_set_empty_ca_list(self):
         """
-        The list of CAs set by L{Context.set_client_ca_list} and read by
-        L{Connection.get_client_ca_list} should match on server and
-        client side.
+        If passed an empty list, L{Context.set_client_ca_list} configures the
+        context to send no CA names to the client and, on both the server and
+        client sides, L{Connection.get_client_ca_list} returns an empty list
+        after the connection is set up.
+        """
+        def no_ca(ctx):
+            ctx.set_client_ca_list([])
+            return []
+        self._check_client_ca_list(no_ca)
+
+
+    def test_set_one_ca_list(self):
+        """
+        If passed a list containing a single X509Name,
+        L{Context.set_client_ca_list} configures the context to send that CA
+        name to the client and, on both the server and client sides,
+        L{Connection.get_client_ca_list} returns a list containing that
+        X509Name after the connection is set up.
+        """
+        cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
+        cadesc = cacert.get_subject()
+        def single_ca(ctx):
+            ctx.set_client_ca_list([cadesc])
+            return [cadesc]
+        self._check_client_ca_list(single_ca)
+
+
+    def test_set_multiple_ca_list(self):
+        """
+        If passed a list containing multiple X509Name objects,
+        L{Context.set_client_ca_list} configures the context to send those CA
+        names to the client and, on both the server and client sides,
+        L{Connection.get_client_ca_list} returns a list containing those
+        X509Names after the connection is set up.
+        """
+        secert = load_certificate(FILETYPE_PEM, server_cert_pem)
+        clcert = load_certificate(FILETYPE_PEM, server_cert_pem)
+
+        sedesc = secert.get_subject()
+        cldesc = clcert.get_subject()
+
+        def multiple_ca(ctx):
+            L = [sedesc, cldesc]
+            ctx.set_client_ca_list(L)
+            return L
+        self._check_client_ca_list(multiple_ca)
+
+
+    def test_reset_ca_list(self):
+        """
+        If called multiple times, only the X509Names passed to the final call
+        of L{Context.set_client_ca_list} are used to configure the CA names
+        sent to the client.
         """
         cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
         secert = load_certificate(FILETYPE_PEM, server_cert_pem)
@@ -622,27 +682,24 @@ class MemoryBIOTests(TestCase):
         sedesc = secert.get_subject()
         cldesc = clcert.get_subject()
 
-        def single_ca(ctx):
-            ctx.set_client_ca_list([cadesc])
-            return [cadesc]
-        self._check_client_ca_list(single_ca)
-
-        def no_ca(ctx):
-            ctx.set_client_ca_list([])
-            return []
-        self._check_client_ca_list(no_ca)
-
-        def multiple_ca(ctx):
-            L = [cadesc, sedesc, cldesc]
-            ctx.set_client_ca_list(L)
-            return L
-        self._check_client_ca_list(multiple_ca)
-
         def changed_ca(ctx):
             ctx.set_client_ca_list([sedesc, cldesc])
             ctx.set_client_ca_list([cadesc])
             return [cadesc]
         self._check_client_ca_list(changed_ca)
+
+
+    def test_mutated_ca_list(self):
+        """
+        If the list passed to L{Context.set_client_ca_list} is mutated
+        afterwards, this does not affect the list of CA names sent to the
+        client.
+        """
+        cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
+        secert = load_certificate(FILETYPE_PEM, server_cert_pem)
+
+        cadesc = cacert.get_subject()
+        sedesc = secert.get_subject()
 
         def mutated_ca(ctx):
             L = [cadesc]
@@ -652,15 +709,16 @@ class MemoryBIOTests(TestCase):
         self._check_client_ca_list(mutated_ca)
 
 
-    def test_add_client_ca_basic(self):
+    def test_add_client_ca_errors(self):
         """
-        Test paramater validation and return value for
-        L{Context.add_client_ca}.
+        L{Context.add_client_ca} raises L{TypeError} if called with a non-X509
+        object or with a number of arguments other than one.
         """
         ctx = Context(TLSv1_METHOD)
         cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
+        self.assertRaises(TypeError, ctx.add_client_ca)
         self.assertRaises(TypeError, ctx.add_client_ca, "spam")
-        self.assertIdentical(ctx.add_client_ca(cacert), None)
+        self.assertRaises(TypeError, ctx.add_client_ca, cacert, cacert)
 
 
     def test_add_client_ca_functional(self):
