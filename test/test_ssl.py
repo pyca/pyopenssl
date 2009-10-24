@@ -721,11 +721,42 @@ class MemoryBIOTests(TestCase):
         self.assertRaises(TypeError, ctx.add_client_ca, cacert, cacert)
 
 
-    def test_add_client_ca_functional(self):
+    def test_one_add_client_ca(self):
         """
-        The list of CAs set by L{Context.add_client_ca} and read by
-        L{Connection.get_client_ca_list} should match on server and
-        client side.
+        A certificate's subject can be added as a CA to be sent to the client
+        with L{Context.add_client_ca}.
+        """
+        cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
+        cadesc = cacert.get_subject()
+        def single_ca(ctx):
+            ctx.add_client_ca(cacert)
+            return [cadesc]
+        self._check_client_ca_list(single_ca)
+
+
+    def test_multiple_add_client_ca(self):
+        """
+        Multiple CA names can be sent to the client by calling
+        L{Context.add_client_ca} with multiple X509 objects.
+        """
+        cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
+        secert = load_certificate(FILETYPE_PEM, server_cert_pem)
+
+        cadesc = cacert.get_subject()
+        sedesc = secert.get_subject()
+
+        def multiple_ca(ctx):
+            ctx.add_client_ca(cacert)
+            ctx.add_client_ca(secert)
+            return [cadesc, sedesc]
+        self._check_client_ca_list(multiple_ca)
+
+
+    def test_set_and_add_client_ca(self):
+        """
+        A call to L{Context.set_client_ca_list} followed by a call to
+        L{Context.add_client_ca} results in using the CA names from the first
+        call and the CA name from the second call.
         """
         cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
         secert = load_certificate(FILETYPE_PEM, server_cert_pem)
@@ -735,22 +766,26 @@ class MemoryBIOTests(TestCase):
         sedesc = secert.get_subject()
         cldesc = clcert.get_subject()
 
-        def single_ca(ctx):
-            ctx.add_client_ca(cacert)
-            return [cadesc]
-        self._check_client_ca_list(single_ca)
-
-        def multiple_ca(ctx):
-            ctx.add_client_ca(cacert)
-            ctx.add_client_ca(secert)
-            return [cadesc, sedesc]
-        self._check_client_ca_list(multiple_ca)
-
         def mixed_set_add_ca(ctx):
             ctx.set_client_ca_list([cadesc, sedesc])
             ctx.add_client_ca(clcert)
             return [cadesc, sedesc, cldesc]
         self._check_client_ca_list(mixed_set_add_ca)
+
+
+    def test_set_after_add_client_ca(self):
+        """
+        A call to L{Context.set_client_ca_list} after a call to
+        L{Context.add_client_ca} replaces the CA name specified by the former
+        call with the names specified by the latter cal.
+        """
+        cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
+        secert = load_certificate(FILETYPE_PEM, server_cert_pem)
+        clcert = load_certificate(FILETYPE_PEM, server_cert_pem)
+
+        cadesc = cacert.get_subject()
+        sedesc = secert.get_subject()
+        cldesc = clcert.get_subject()
 
         def set_replaces_add_ca(ctx):
             ctx.add_client_ca(clcert)
