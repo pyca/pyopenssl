@@ -194,6 +194,7 @@ class ContextTests(TestCase):
         cert = clientSSL.get_peer_certificate()
         self.assertEqual(cert.get_subject().CN, 'Testing Root CA')
 
+
     def test_load_verify_file(self):
         """
         L{Context.load_verify_locations} accepts a file name and uses the
@@ -276,6 +277,28 @@ class ContextTests(TestCase):
         self.assertRaises(TypeError, context.set_default_verify_paths, None)
         self.assertRaises(TypeError, context.set_default_verify_paths, 1)
         self.assertRaises(TypeError, context.set_default_verify_paths, "")
+
+    def test_add_extra_chain_cert_invalid_cert(self):
+        """
+        L{Context.add_extra_chain_cert} raises L{TypeError} if called with
+        other than one argument or if called with an object which is not an
+        instance of L{X509}.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.add_extra_chain_cert)
+        self.assertRaises(TypeError, context.add_extra_chain_cert, object())
+        self.assertRaises(TypeError, context.add_extra_chain_cert, object(), object())
+
+
+    def test_add_extra_chain_cert(self):
+        """
+        L{Context.add_extra_chain_cert} accepts an L{X509} instance to add to
+        the certificate chain.
+        """
+        context = Context(TLSv1_METHOD)
+        context.add_extra_chain_cert(load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
+        # XXX Oh no, actually asserting something about its behavior would be really hard.
+        # See #477521.
 
 
 
