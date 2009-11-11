@@ -13,8 +13,8 @@ Installation script for the OpenSSL module
 
 import sys, os
 from distutils.core import Extension, setup
-
-from glob import glob
+from distutils.errors import DistutilsFileError
+from distutils.command.build_ext import build_ext
 
 from version import __version__
 
@@ -44,25 +44,139 @@ LibraryDirs = None
 if os.name == 'nt' or sys.platform == 'win32':
 
     Libraries = ['Ws2_32']
-    def makeTellMeIf(original, what):
-        class tellMeIf(original):
-            def __init__(*a, **kw):
-                Libraries.extend(what)
-                return original.__init__(*a, **kw)
-        return tellMeIf
 
-    from distutils import cygwinccompiler
-    cygwinccompiler.Mingw32CCompiler = makeTellMeIf(cygwinccompiler.Mingw32CCompiler, ['eay32', 'ssl32'])
-    from distutils import msvccompiler
-    msvccompiler.MSVCCompiler = makeTellMeIf(msvccompiler.MSVCCompiler, ['libeay32', 'ssleay32'])
 
-    import shutil
-    shutil.copy("C:\\OpenSSL\\ssleay32.dll", os.path.split(os.path.abspath(__file__))[0])
-    shutil.copy("C:\\OpenSSL\\libeay32.dll", os.path.split(os.path.abspath(__file__))[0])
-    package_data = {'': ['ssleay32.dll', 'libeay32.dll']}
+
+    class BuildExtension(build_ext):
+        """
+        A custom command that semiautomatically finds dependencies required by
+        PyOpenSSL.
+        """
+
+        user_options = (build_ext.user_options +
+                        [("with-openssl=", None,
+                          "directory where OpenSSL is installed")])
+        with_openssl = None
+        openssl_dlls = ()
+        openssl_mingw = False
+
+
+        def finalize_options(self):
+            """
+            Update build options with details about OpenSSL.
+            """
+            build_ext.finalize_options(self)
+            if self.with_openssl is None:
+                self.find_openssl()
+            self.find_openssl_dlls()
+            self.add_openssl_compile_info()
+
+
+        def find_openssl(self):
+            """
+            Find OpenSSL's install directory.
+            """
+            dirs = os.environ.get("PATH").split(os.pathsep)
+            for d in dirs:
+                if os.path.exists(os.path.join(d, "openssl.exe")):
+                    ssldir, bin = os.path.split(d)
+                    if not bin:
+                        ssldir, bin = os.path.split(ssldir)
+                    childdirs = os.listdir(ssldir)
+                    if (not os.path.isdir(os.path.join(ssldir, "lib")) or
+                        not os.path.isdir(os.path.join(ssldir, "include"))):
+                        msg = "'%s' is not a proper OpenSSL install dir"
+                        raise DistutilsFileError(msg % ssldir)
+                    self.with_openssl = ssldir
+                    return
+            raise DistutilsFileError("could not find 'openssl.exe'")
+
+
+        def find_openssl_dlls(self):
+            """
+            Find OpenSSL's shared libraries.
+            """
+            self.openssl_dlls = []
+            self.find_openssl_dll("libssl32.dll", False)
+            if self.openssl_dlls:
+                self.openssl_mingw = True
+            else:
+                self.find_openssl_dll("ssleay32.dll", True)
+            self.find_openssl_dll("libeay32.dll", True)
+            # add zlib to the mix if it looks like OpenSSL
+            # was linked with a private copy of it
+            self.find_openssl_dll("zlib1.dll", False)
+
+
+        def find_openssl_dll(self, name, required):
+            """
+            Find OpenSSL's shared library and its path after installation.
+            """
+            dllpath = os.path.join(self.with_openssl, "bin", name)
+            if not os.path.exists(dllpath):
+                if required:
+                    raise DistutilsFileError("could not find '%s'" % name)
+                else:
+                    return
+            newpath = os.path.join(self.build_lib, "OpenSSL", name)
+            self.openssl_dlls.append((dllpath, newpath))
+
+
+        def add_openssl_compile_info(self):
+            """
+            Set up various compile and link parameters.
+            """
+            if self.compiler == "mingw32":
+                if self.openssl_mingw:
+                    # Library path and library names are sane when OpenSSL is
+                    # built with MinGW .
+                    libdir = "lib"
+                    libs = ["eay32", "ssl32"]
+                else:
+                    libdir = ""
+                    libs = []
+                    # Unlike when using the binary installer, which creates
+                    # an atypical shared library name 'ssleay32', so we have
+                    # to use this workaround.
+                    if self.link_objects is None:
+                        self.link_objects = []
+                    for dllpath, _ in self.openssl_dlls:
+                        dllname = os.path.basename(dllpath)
+                        libname = os.path.splitext(dllname)[0] + ".a"
+                        libpath = os.path.join(self.with_openssl,
+                                               "lib", "MinGW", libname)
+                        self.link_objects.append(libpath)
+            else:
+                libdir = "lib"
+                libs = ["libeay32", "ssleay32"]
+            self.include_dirs.append(os.path.join(self.with_openssl, "include"))
+            self.library_dirs.append(os.path.join(self.with_openssl, libdir))
+            self.libraries.extend(libs)
+
+
+        def run(self):
+            """
+            Build extension modules and copy shared libraries.
+            """
+            build_ext.run(self)
+            for dllpath, newpath in self.openssl_dlls:
+                self.copy_file(dllpath, newpath)
+
+
+        def get_outputs(self):
+            """
+            Return a list of file paths built by this comand.
+            """
+            output = [pathpair[1] for pathpair in self.openssl_dlls]
+            output.extend(build_ext.get_outputs(self))
+            return output
+
+
+
 else:
     Libraries = ['ssl', 'crypto']
-    package_data = {}
+    BuildExtension = build_ext
+
 
 
 def mkExtension(name):
@@ -85,7 +199,7 @@ setup(name='pyOpenSSL', version=__version__,
                      'OpenSSL.test.test_rand',
                      'OpenSSL.test.test_ssl'],
       zip_safe = False,
-      package_data = package_data,
+      cmdclass = {"build_ext": BuildExtension},
       description = 'Python wrapper module around the OpenSSL library',
       author = 'Martin Sjögren, AB Strakt',
       author_email = 'msjogren@gmail.com',
