@@ -189,8 +189,8 @@ See \class{X509Extension}.
 \end{datadesc}
 
 \begin{classdesc}{X509Extension}{typename, critical, value\optional{, subject}\optional{, issuer}}
-A class representing an X.509 v3 certificate extensions.  
-See \url{http://openssl.org/docs/apps/x509v3_config.html\#STANDARD_EXTENSIONS} 
+A class representing an X.509 v3 certificate extensions.
+See \url{http://openssl.org/docs/apps/x509v3_config.html\#STANDARD_EXTENSIONS}
 for \var{typename} strings and their options.
 Optional parameters \var{subject} and \var{issuer} must be X509 objects.
 \end{classdesc}
@@ -673,7 +673,7 @@ file can then be used with \function{load_file} to seed the PRNG again.
 \end{funcdesc}
 
 \begin{excdesc}{Error}
-If the current RAND method supports any errors, this is raised when needed.  
+If the current RAND method supports any errors, this is raised when needed.
 The default method does not raise this when the entropy pool is depleted.
 
 Whenever this exception is raised directly, it has a list of error messages
@@ -853,6 +853,22 @@ Read a file with PEM-formatted certificates that will be sent to the client
 when requesting a client certificate.
 \end{methoddesc}
 
+\begin{methoddesc}[Context]{set_client_ca_list}{certificate_authorities}
+Replace the current list of preferred certificate signers that would be
+sent to the client when requesting a client certificate with the
+\var{certificate_authorities} sequence of \class{OpenSSL.crypto.X509Name}s.
+
+\versionadded{0.10}
+\end{methoddesc}
+
+\begin{methoddesc}[Context]{add_client_ca}{certificate_authority}
+Extract a \class{OpenSSL.crypto.X509Name} from the \var{certificate_authority}
+\class{OpenSSL.crypto.X509} certificate and add it to the list of preferred
+certificate signers sent to the client when requesting a client certificate.
+
+\versionadded{0.10}
+\end{methoddesc}
+
 \begin{methoddesc}[Context]{load_verify_locations}{pemfile, capath}
 Specify where CA certificates for verification purposes are located. These
 are trusted certificates. Note that the certificates have to be in PEM
@@ -1024,6 +1040,20 @@ Retrieve application data as set by \method{set_app_data}.
 Retrieve the list of ciphers used by the Connection object. WARNING: This API
 has changed. It used to take an optional parameter and just return a string,
 but not it returns the entire list in one go.
+\end{methoddesc}
+
+\begin{methoddesc}[Connection]{get_client_ca_list}{}
+Retrieve the list of preferred client certificate issuers sent by the server
+as \class{OpenSSL.crypto.X509Name} objects.
+
+If this is a client \class{Connection}, the list will be empty until the
+connection with the server is established.
+
+If this is a server \class{Connection}, return the list of certificate
+authorities that will be sent or has been sent to the client, as controlled
+by this \class{Connection}'s \class{Context}.
+
+\versionadded{0.10}
 \end{methoddesc}
 
 \begin{methoddesc}[Connection]{get_context}{}
