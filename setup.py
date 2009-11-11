@@ -76,20 +76,24 @@ if os.name == 'nt' or sys.platform == 'win32':
             """
             Find OpenSSL's install directory.
             """
+            potentials = []
             dirs = os.environ.get("PATH").split(os.pathsep)
             for d in dirs:
                 if os.path.exists(os.path.join(d, "openssl.exe")):
                     ssldir, bin = os.path.split(d)
                     if not bin:
                         ssldir, bin = os.path.split(ssldir)
+                    potentials.append(ssldir)
                     childdirs = os.listdir(ssldir)
-                    if (not os.path.isdir(os.path.join(ssldir, "lib")) or
-                        not os.path.isdir(os.path.join(ssldir, "include"))):
-                        msg = "'%s' is not a proper OpenSSL install dir"
-                        raise DistutilsFileError(msg % ssldir)
-                    self.with_openssl = ssldir
-                    return
-            raise DistutilsFileError("could not find 'openssl.exe'")
+                    if "lib" in childdirs and "include" in childdirs:
+                        self.with_openssl = ssldir
+                        return
+            if potentials:
+                raise DistutilsFileError(
+                    "Only found improper OpenSSL directories: %r" % (
+                        potentials,))
+            else:
+                raise DistutilsFileError("Could not find 'openssl.exe'")
 
 
         def find_openssl_dlls(self):
