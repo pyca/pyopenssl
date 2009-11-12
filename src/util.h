@@ -119,6 +119,10 @@ static int PyObject_AsFileDescriptor(PyObject *o)
 }
 #endif
 
-
+#if !defined(PY_SSIZE_T_MIN)
+typedef int Py_ssize_t;
+#define PY_SSIZE_T_MAX INT_MAX
+#define PY_SSIZE_T_MIN INT_MIN
+#endif
 
 #endif

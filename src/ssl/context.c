@@ -13,8 +13,10 @@
 
 #if PY_VERSION_HEX >= 0x02050000
 # define PYARG_PARSETUPLE_FORMAT const char
+# define PYOBJECT_GETATTRSTRING_TYPE const char*
 #else
 # define PYARG_PARSETUPLE_FORMAT char
+# define PYOBJECT_GETATTRSTRING_TYPE char*
 #endif
 
 #ifndef MS_WINDOWS
@@ -335,37 +337,64 @@ ssl_Context_set_passwd_cb(ssl_ContextObj *self, PyObject *args)
     return Py_None;
 }
 
+static PyTypeObject *
+type_modified_error(const char *name) {
+    PyErr_Format(PyExc_RuntimeError,
+                 "OpenSSL.crypto's '%s' attribute has been modified",
+                 name);
+    return NULL;
+}
+
+static PyTypeObject *
+import_crypto_type(const char *name, size_t objsize) {
+    PyObject *module, *type, *name_attr;
+    PyTypeObject *res;
+    int right_name;
+
+    module = PyImport_ImportModule("OpenSSL.crypto");
+    if (module == NULL) {
+        return NULL;
+    }
+    type = PyObject_GetAttrString(module, (PYOBJECT_GETATTRSTRING_TYPE)name);
+    Py_DECREF(module);
+    if (type == NULL) {
+        return NULL;
+    }
+    if (!(PyType_Check(type))) {
+        Py_DECREF(type);
+        return type_modified_error(name);
+    }
+    name_attr = PyObject_GetAttrString(type, "__name__");
+    if (name_attr == NULL) {
+        Py_DECREF(type);
+        return NULL;
+    }
+    right_name = (PyString_CheckExact(name_attr) &&
+                  strcmp(name, PyString_AsString(name_attr)) == 0);
+    Py_DECREF(name_attr);
+    res = (PyTypeObject *)type;
+    if (!right_name || res->tp_basicsize != objsize) {
+        Py_DECREF(type);
+        return type_modified_error(name);
+    }
+    return res;
+}
+
 static crypto_X509Obj *
-parse_certificate_argument(const char* format1, const char* format2, PyObject* args)
-{
+parse_certificate_argument(const char* format, PyObject* args) {
     static PyTypeObject *crypto_X509_type = NULL;
     crypto_X509Obj *cert;
 
-    /* We need to check that cert really is an X509 object before
-       we deal with it. The problem is we can't just quickly verify
-       the type (since that comes from another module). This should
-       do the trick (reasonably well at least): Once we have one
-       verified object, we use it's type object for future
-       comparisons. */
-
-    if (!crypto_X509_type)
-    {
-	if (!PyArg_ParseTuple(args, (PYARG_PARSETUPLE_FORMAT *)format1, &cert))
-	    return NULL;
-
-	if (strcmp(cert->ob_type->tp_name, "X509") != 0 || 
-	    cert->ob_type->tp_basicsize != sizeof(crypto_X509Obj))
-	{
-	    PyErr_SetString(PyExc_TypeError, "Expected an X509 object");
-	    return NULL;
-	}
-
-	crypto_X509_type = cert->ob_type;
+    if (!crypto_X509_type) {
+        crypto_X509_type = import_crypto_type("X509", sizeof(crypto_X509Obj));
+        if (!crypto_X509_type) {
+            return NULL;
+        }
     }
-    else
-	if (!PyArg_ParseTuple(args, (PYARG_PARSETUPLE_FORMAT *)format2, crypto_X509_type,
-			      &cert))
-	    return NULL;
+    if (!PyArg_ParseTuple(args, (PYARG_PARSETUPLE_FORMAT *)format,
+                          crypto_X509_type, &cert)) {
+        return NULL;
+    }
     return cert;
 }
 
@@ -381,7 +410,7 @@ ssl_Context_add_extra_chain_cert(ssl_ContextObj *self, PyObject *args)
 {
     X509* cert_original;
     crypto_X509Obj *cert = parse_certificate_argument(
-        "O:add_extra_chain_cert", "O!:add_extra_chain_cert", args);
+        "O!:add_extra_chain_cert", args);
     if (cert == NULL)
     {
         return NULL;
@@ -471,7 +500,7 @@ static PyObject *
 ssl_Context_use_certificate(ssl_ContextObj *self, PyObject *args)
 {
     crypto_X509Obj *cert = parse_certificate_argument(
-        "O:use_certificate", "O!:use_certificate", args);
+        "O!:use_certificate", args);
     if (cert == NULL) {
         return NULL;
     }
@@ -533,43 +562,24 @@ Load a private key from a PKey object\n\
 @return: None\n\
 ";
 static PyObject *
-ssl_Context_use_privatekey(ssl_ContextObj *self, PyObject *args)
-{
+ssl_Context_use_privatekey(ssl_ContextObj *self, PyObject *args) {
     static PyTypeObject *crypto_PKey_type = NULL;
     crypto_PKeyObj *pkey;
 
-    /* We need to check that cert really is a PKey object before
-       we deal with it. The problem is we can't just quickly verify
-       the type (since that comes from another module). This should
-       do the trick (reasonably well at least): Once we have one
-       verified object, we use it's type object for future
-       comparisons. */
-
-    if (!crypto_PKey_type)
-    {
-	if (!PyArg_ParseTuple(args, "O:use_privatekey", &pkey))
-	    return NULL;
-
-	if (strcmp(pkey->ob_type->tp_name, "OpenSSL.crypto.PKey") != 0 ||
-	    pkey->ob_type->tp_basicsize != sizeof(crypto_PKeyObj))
-	{
-	    PyErr_SetString(PyExc_TypeError, "Expected a PKey object");
-	    return NULL;
-	}
-
-	crypto_PKey_type = pkey->ob_type;
+    if (!crypto_PKey_type) {
+        crypto_PKey_type = import_crypto_type("PKey", sizeof(crypto_PKeyObj));
+        if (!crypto_PKey_type) {
+            return NULL;
+        }
     }
-    else
-    if (!PyArg_ParseTuple(args, "O!:use_privatekey", crypto_PKey_type, &pkey))
+    if (!PyArg_ParseTuple(args, "O!:use_privatekey", crypto_PKey_type, &pkey)) {
         return NULL;
+    }
 
-    if (!SSL_CTX_use_PrivateKey(self->ctx, pkey->pkey))
-    {
+    if (!SSL_CTX_use_PrivateKey(self->ctx, pkey->pkey)) {
         exception_from_error_queue(ssl_Error);
         return NULL;
-    }
-    else
-    {
+    } else {
         Py_INCREF(Py_None);
         return Py_None;
     }
@@ -789,6 +799,111 @@ ssl_Context_set_cipher_list(ssl_ContextObj *self, PyObject *args)
     }
 }
 
+static char ssl_Context_set_client_ca_list_doc[] = "\n\
+Set the list of preferred client certificate signers for this server context.\n\
+\n\
+This list of certificate authorities will be sent to the client when the\n\
+server requests a client certificate.\n\
+\n\
+@param certificate_authorities: a sequence of X509Names.\n\
+@return: None\n\
+";
+
+static PyObject *
+ssl_Context_set_client_ca_list(ssl_ContextObj *self, PyObject *args)
+{
+    static PyTypeObject *X509NameType;
+    PyObject *sequence, *tuple, *item;
+    crypto_X509NameObj *name;
+    X509_NAME *sslname;
+    STACK_OF(X509_NAME) *CANames;
+    Py_ssize_t length;
+    int i;
+
+    if (X509NameType == NULL) {
+        X509NameType = import_crypto_type("X509Name", sizeof(crypto_X509NameObj));
+        if (X509NameType == NULL) {
+            return NULL;
+        }
+    }
+    if (!PyArg_ParseTuple(args, "O:set_client_ca_list", &sequence)) {
+        return NULL;
+    }
+    tuple = PySequence_Tuple(sequence);
+    if (tuple == NULL) {
+        return NULL;
+    }
+    length = PyTuple_Size(tuple);
+    if (length >= INT_MAX) {
+        PyErr_SetString(PyExc_ValueError, "client CA list is too long");
+        Py_DECREF(tuple);
+        return NULL;
+    }
+    CANames = sk_X509_NAME_new_null();
+    if (CANames == NULL) {
+        Py_DECREF(tuple);
+        exception_from_error_queue(ssl_Error);
+        return NULL;
+    }
+    for (i = 0; i < length; i++) {
+        item = PyTuple_GetItem(tuple, i);
+        if (item->ob_type != X509NameType) {
+            PyErr_Format(PyExc_TypeError,
+                         "client CAs must be X509Name objects, not %s objects",
+                         item->ob_type->tp_name);
+            sk_X509_NAME_free(CANames);
+            Py_DECREF(tuple);
+            return NULL;
+        }
+        name = (crypto_X509NameObj *)item;
+        sslname = X509_NAME_dup(name->x509_name);
+        if (sslname == NULL) {
+            sk_X509_NAME_free(CANames);
+            Py_DECREF(tuple);
+            exception_from_error_queue(ssl_Error);
+            return NULL;
+        }
+        if (!sk_X509_NAME_push(CANames, sslname)) {
+            X509_NAME_free(sslname);
+            sk_X509_NAME_free(CANames);
+            Py_DECREF(tuple);
+            exception_from_error_queue(ssl_Error);
+            return NULL;
+        }
+    }
+    Py_DECREF(tuple);
+    SSL_CTX_set_client_CA_list(self->ctx, CANames);
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static char ssl_Context_add_client_ca_doc[] = "\n\
+Add the CA certificate to the list of preferred signers for this context.\n\
+\n\
+The list of certificate authorities will be sent to the client when the\n\
+server requests a client certificate.\n\
+\n\
+@param certificate_authority: certificate authority's X509 certificate.\n\
+@return: None\n\
+";
+
+static PyObject *
+ssl_Context_add_client_ca(ssl_ContextObj *self, PyObject *args)
+{
+    crypto_X509Obj *cert;
+
+    cert = parse_certificate_argument("O!:add_client_ca", args);
+    if (cert == NULL) {
+        return NULL;
+    }
+    if (!SSL_CTX_add_client_CA(self->ctx, cert->x509)) {
+        exception_from_error_queue(ssl_Error);
+        return NULL;
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static char ssl_Context_set_timeout_doc[] = "\n\
 Set session timeout\n\
 \n\
@@ -960,6 +1075,8 @@ static PyMethodDef ssl_Context_methods[] = {
     ADD_METHOD(get_verify_depth),
     ADD_METHOD(load_tmp_dh),
     ADD_METHOD(set_cipher_list),
+    ADD_METHOD(set_client_ca_list),
+    ADD_METHOD(add_client_ca),
     ADD_METHOD(set_timeout),
     ADD_METHOD(get_timeout),
     ADD_METHOD(set_info_callback),

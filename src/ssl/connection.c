@@ -829,6 +829,59 @@ ssl_Connection_get_cipher_list(ssl_ConnectionObj *self, PyObject *args)
     return lst;
 }
 
+static char ssl_Connection_get_client_ca_list_doc[] = "\n\
+Get CAs whose certificates are suggested for client authentication.\n\
+\n\
+@return: If this is a server connection, a list of X509Names representing\n\
+    the acceptable CAs as set by L{OpenSSL.SSL.Context.set_client_ca_list} or\n\
+    L{OpenSSL.SSL.Context.add_client_ca}.  If this is a client connection,\n\
+    the list of such X509Names sent by the server, or an empty list if that\n\
+    has not yet happened.\n\
+";
+
+static PyObject *
+ssl_Connection_get_client_ca_list(ssl_ConnectionObj *self, PyObject *args) {
+    STACK_OF(X509_NAME) *CANames;
+    PyObject *CAList;
+    int i, n;
+
+    if (!PyArg_ParseTuple(args, ":get_client_ca_list")) {
+        return NULL;
+    }
+    CANames = SSL_get_client_CA_list(self->ssl);
+    if (CANames == NULL) {
+        return PyList_New(0);
+    }
+    n = sk_X509_NAME_num(CANames);
+    CAList = PyList_New(n);
+    if (CAList == NULL) {
+        return NULL;
+    }
+    for (i = 0; i < n; i++) {
+        X509_NAME *CAName;
+        PyObject *CA;
+
+        CAName = X509_NAME_dup(sk_X509_NAME_value(CANames, i));
+        if (CAName == NULL) {
+            Py_DECREF(CAList);
+            exception_from_error_queue(ssl_Error);
+            return NULL;
+        }
+        CA = (PyObject *)crypto_X509Name_New(CAName, 1);
+        if (CA == NULL) {
+            X509_NAME_free(CAName);
+            Py_DECREF(CAList);
+            return NULL;
+        }
+        if (PyList_SetItem(CAList, i, CA)) {
+            Py_DECREF(CA);
+            Py_DECREF(CAList);
+            return NULL;
+        }
+    }
+    return CAList;
+}
+
 static char ssl_Connection_makefile_doc[] = "\n\
 The makefile() method is not implemented, since there is no dup semantics\n\
 for SSL connections\n\
@@ -1087,6 +1140,7 @@ static PyMethodDef ssl_Connection_methods[] =
     ADD_METHOD(bio_shutdown),
     ADD_METHOD(shutdown),
     ADD_METHOD(get_cipher_list),
+    ADD_METHOD(get_client_ca_list),
     ADD_METHOD(makefile),
     ADD_METHOD(get_app_data),
     ADD_METHOD(set_app_data),
