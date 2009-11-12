@@ -47,16 +47,16 @@ The binaries in the installer are built with Visual Studio 2008 at the
 time of this writing, which is the same compiler used for building the
 official Python 2.6 installers.
 
-If you want to build PyOpenSSL for an older Python version, it is preferred
+If you want to build pyOpenSSL for an older Python version, it is preferred
 to build OpenSSL yourself, either with the Visual Studio 2003 compiler or
 with the MinGW compiler.  This way you avoid all potential incompatibilities
-between different versions of runtime library (msvcrt.dll). To build OpenSSL
-folow the instructions in its source distribution and make sure that you build
-a shared library, not a static one.  PyOpenSSL fails some of its tests when
-linked with the static OpenSSL libraries. Use the same compiler for OpenSSL
-that you will use for PyOpenSSL later. Make sure that OpenSSL is properly
-installed before continuing.  To install OpenSSL when building with MinGW, use
-the folowing script:
+between different versions of runtime library (msvcrt.dll).  To build
+OpenSSL follow the instructions in its source distribution and make sure
+that you build a shared library, not a static one.  pyOpenSSL fails some of
+its tests when linked with the static OpenSSL libraries.  Use the same
+compiler for OpenSSL that you will use for pyOpenSSL later.  Make sure that
+OpenSSL is properly installed before continuing.  To install OpenSSL when
+building with MinGW, use the folowing script:
 
 set OPENSSL_INSTALL_DIR=%1
 mkdir %OPENSSL_INSTALL_DIR%
@@ -70,15 +70,15 @@ copy /b .\outinc\openssl\* %OPENSSL_INSTALL_DIR%\include\openssl
 copy /b .\out\*.a          %OPENSSL_INSTALL_DIR%\lib
 
 Ensure that OpenSSL's openssl.exe executable can be found on PATH before
-running PyOpenSSL's setup script. The setup script finds OpenSSL's include dir
-and lib dir based on the location of openssl.exe, and the test suite requires
-openssl.exe for output comparison. Alternatively, you can specify the
---with-openssl option to setup.py's build_ext command with the path to the
-OpenSSL installation dir:
+running pyOpenSSL's setup script.  The setup script finds OpenSSL's include
+dir and lib dir based on the location of openssl.exe, and the test suite
+requires openssl.exe for output comparison.  Alternatively, you can specify
+the --with-openssl option to setup.py's build_ext command with the path to
+the OpenSSL installation dir:
 
   > python setup.py build_ext --with-openssl=C:\path\to\openssl build
 
-PyOpenSSL is known to build with mingw32 for Python 2.3 through Python 2.5.
+pyOpenSSL is known to build with mingw32 for Python 2.3 through Python 2.5.
 Before using the mingw32 compiler for Python 2.3, you will have to create
 a Python library that MinGW understands. Find and download the pexports
 program, put it and MinGW's bin directory on path, then run from Python's
@@ -118,8 +118,9 @@ And similarily, you can do
 to get more information.
 
 Big thanks to Itamar Shtull-Trauring, Oleg Orlov, Zooko O'Whielacronx, Chris
-Galvan, and #python and #distutils on FreeNode for their help with Windows
-build instructions.
+Galvan, Žiga Seilnacht, and #python and #distutils on FreeNode for their
+help with Windows build instructions and to Michael Schneider for providing
+Windows build hosts.
 
 -- Documentation --
 
