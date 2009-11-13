@@ -1,3 +1,7 @@
+2009-11-13  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* Release 0.10
+
 2009-11-07  Žiga Seilnacht, Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* src/ssl/connection.c, src/ssl/context.c: Add set_client_ca_list,
