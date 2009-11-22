@@ -316,6 +316,25 @@ class ConnectionTests(TestCase):
         self.assertConsistentType(Connection, 'Connection', ctx, None)
 
 
+    def test_get_context(self):
+        """
+        L{Connection.get_context} returns the L{Context} instance used to
+        construct the L{Connection} instance.
+        """
+        context = Context(TLSv1_METHOD)
+        connection = Connection(context, None)
+        self.assertIdentical(connection.get_context(), context)
+
+
+    def test_get_context_wrong_args(self):
+        """
+        L{Connection.get_context} raises L{TypeError} if called with any
+        arguments.
+        """
+        connection = Connection(Context(TLSv1_METHOD), None)
+        self.assertRaises(TypeError, connection.get_context, None)
+
+
 
 class ErrorTests(TestCase):
     """
