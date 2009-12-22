@@ -85,6 +85,32 @@ raise_current_error(void)
     return NULL;
 }
 
+static int
+setup_callback(int type, PyObject *pw, pem_password_cb **cb, void **cb_arg) {
+    if (pw == NULL) {
+        *cb = NULL;
+        *cb_arg = NULL;
+        return 1;
+    }
+    if (type != X509_FILETYPE_PEM) {
+        PyErr_SetString(PyExc_ValueError,
+                        "only FILETYPE_PEM key format supports encryption");
+        return 0;
+    }
+    if (PyBytes_Check(pw)) {
+        *cb = NULL;
+        *cb_arg = PyBytes_AsString(pw);
+    } else if (PyCallable_Check(pw)) {
+        *cb = global_passphrase_callback;
+        *cb_arg = pw;
+    } else {
+        PyErr_SetString(PyExc_TypeError,
+                        "Last argument must be string or callable");
+        return 0;
+    }
+    return 1;
+}
+
 static char crypto_load_privatekey_doc[] = "\n\
 Load a private key from a buffer\n\
 \n\
@@ -112,23 +138,8 @@ crypto_load_privatekey(PyObject *spam, PyObject *args)
     if (!PyArg_ParseTuple(args, "is#|O:load_privatekey", &type, &buffer, &len, &pw))
         return NULL;
 
-    if (pw != NULL)
-    {
-        if (PyBytes_Check(pw))
-        {
-            cb = NULL;
-            cb_arg = PyBytes_AsString(pw);
-        }
-        else if (PyCallable_Check(pw))
-        {
-            cb = global_passphrase_callback;
-            cb_arg = pw;
-        }
-        else
-        {
-            PyErr_SetString(PyExc_TypeError, "Last argument must be string or callable");
-            return NULL;
-        }
+    if (!setup_callback(type, pw, &cb, &cb_arg)) {
+        return NULL;
     }
 
     bio = BIO_new_mem_buf(buffer, len);
@@ -203,19 +214,7 @@ crypto_dump_privatekey(PyObject *spam, PyObject *args)
             PyErr_SetString(PyExc_ValueError, "Invalid cipher name");
             return NULL;
         }
-        if (PyBytes_Check(pw))
-        {
-            cb = NULL;
-            cb_arg = PyBytes_AsString(pw);
-        }
-        else if (PyCallable_Check(pw))
-        {
-            cb = global_passphrase_callback;
-            cb_arg = pw;
-        }
-        else
-        {
-            PyErr_SetString(PyExc_TypeError, "Last argument must be string or callable");
+        if (!setup_callback(type, pw, &cb, &cb_arg)) {
             return NULL;
         }
     }

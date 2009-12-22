@@ -1979,6 +1979,18 @@ class FunctionTests(TestCase):
             load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, b("quack"))
 
 
+    def test_load_privatekey_passphraseWrongType(self):
+        """
+        L{load_privatekey} raises C{ValueError} when it is passed a passphrase
+        with a private key encoded in a format, that doesn't support
+        encryption.
+        """
+        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        blob = dump_privatekey(FILETYPE_ASN1, key)
+        self.assertRaises(ValueError,
+            load_privatekey, FILETYPE_ASN1, blob, "secret")
+
+
     def test_load_privatekey_passphrase(self):
         """
         :py:obj:`load_privatekey` can create a :py:obj:`PKey` object from an encrypted PEM
@@ -2114,6 +2126,17 @@ class FunctionTests(TestCase):
         self.assertTrue(isinstance(loadedKey, PKeyType))
         self.assertEqual(loadedKey.type(), key.type())
         self.assertEqual(loadedKey.bits(), key.bits())
+
+
+    def test_dump_privatekey_passphraseWrongType(self):
+        """
+        L{dump_privatekey} raises C{ValueError} when it is passed a passphrase
+        with a private key encoded in a format, that doesn't support
+        encryption.
+        """
+        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        self.assertRaises(ValueError,
+            dump_privatekey, FILETYPE_ASN1, key, "blowfish", "secret")
 
 
     def test_dump_certificate(self):
