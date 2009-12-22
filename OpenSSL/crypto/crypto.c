@@ -50,10 +50,10 @@ global_passphrase_callback(char *buf, int len, int rwflag, void *cb_arg)
     }
     ret = PyEval_CallObject(func, argv);
     Py_DECREF(argv);
-    if (ret == NULL)
+    if (ret == NULL) {
         return 0;
-    if (!PyBytes_Check(ret))
-    {
+    }
+    if (!PyBytes_Check(ret)) {
         Py_DECREF(ret);
         PyErr_SetString(PyExc_ValueError, "String expected");
         return 0;
@@ -135,9 +135,10 @@ crypto_load_privatekey(PyObject *spam, PyObject *args)
     BIO *bio;
     EVP_PKEY *pkey;
 
-    if (!PyArg_ParseTuple(args, "is#|O:load_privatekey", &type, &buffer, &len, &pw))
+    if (!PyArg_ParseTuple(args, "is#|O:load_privatekey",
+                          &type, &buffer, &len, &pw)) {
         return NULL;
-
+    }
     if (!setup_callback(type, pw, &cb, &cb_arg)) {
         return NULL;
     }
@@ -147,8 +148,7 @@ crypto_load_privatekey(PyObject *spam, PyObject *args)
         exception_from_error_queue(crypto_Error);
         return NULL;
     }
-    switch (type)
-    {
+    switch (type) {
         case X509_FILETYPE_PEM:
             pkey = PEM_read_bio_PrivateKey(bio, NULL, cb, cb_arg);
             break;
@@ -164,8 +164,7 @@ crypto_load_privatekey(PyObject *spam, PyObject *args)
     }
     BIO_free(bio);
 
-    if (pkey == NULL)
-    {
+    if (pkey == NULL) {
         return raise_current_error();
     }
 
@@ -202,19 +201,16 @@ crypto_dump_privatekey(PyObject *spam, PyObject *args)
     crypto_PKeyObj *pkey;
 
     if (!PyArg_ParseTuple(args, "iO!|sO:dump_privatekey", &type,
-			  &crypto_PKey_Type, &pkey, &cipher_name, &pw))
+                          &crypto_PKey_Type, &pkey, &cipher_name, &pw)) {
         return NULL;
-
-    if (cipher_name != NULL && pw == NULL)
-    {
+    }
+    if (cipher_name != NULL && pw == NULL) {
         PyErr_SetString(PyExc_ValueError, "Illegal number of arguments");
         return NULL;
     }
-    if (cipher_name != NULL)
-    {
+    if (cipher_name != NULL) {
         cipher = EVP_get_cipherbyname(cipher_name);
-        if (cipher == NULL)
-        {
+        if (cipher == NULL) {
             PyErr_SetString(PyExc_ValueError, "Invalid cipher name");
             return NULL;
         }
@@ -228,8 +224,7 @@ crypto_dump_privatekey(PyObject *spam, PyObject *args)
         exception_from_error_queue(crypto_Error);
         return NULL;
     }
-    switch (type)
-    {
+    switch (type) {
         case X509_FILETYPE_PEM:
             ret = PEM_write_bio_PrivateKey(bio, pkey->pkey, cipher, NULL, 0, cb, cb_arg);
             break;
@@ -254,8 +249,7 @@ crypto_dump_privatekey(PyObject *spam, PyObject *args)
             return NULL;
     }
 
-    if (ret == 0)
-    {
+    if (ret == 0) {
         BIO_free(bio);
         return raise_current_error();
     }
