@@ -143,6 +143,10 @@ crypto_load_privatekey(PyObject *spam, PyObject *args)
     }
 
     bio = BIO_new_mem_buf(buffer, len);
+    if (bio == NULL) {
+        exception_from_error_queue(crypto_Error);
+        return NULL;
+    }
     switch (type)
     {
         case X509_FILETYPE_PEM:
@@ -220,6 +224,10 @@ crypto_dump_privatekey(PyObject *spam, PyObject *args)
     }
 
     bio = BIO_new(BIO_s_mem());
+    if (bio == NULL) {
+        exception_from_error_queue(crypto_Error);
+        return NULL;
+    }
     switch (type)
     {
         case X509_FILETYPE_PEM:
@@ -232,6 +240,10 @@ crypto_dump_privatekey(PyObject *spam, PyObject *args)
 
         case X509_FILETYPE_TEXT:
             rsa = EVP_PKEY_get1_RSA(pkey->pkey);
+            if (rsa == NULL) {
+                ret = 0;
+                break;
+            }
             ret = RSA_print(bio, rsa, 0);
             RSA_free(rsa);
             break;
