@@ -216,7 +216,7 @@ crypto_dump_privatekey(PyObject *spam, PyObject *args)
         case X509_FILETYPE_TEXT:
             rsa = EVP_PKEY_get1_RSA(pkey->pkey);
             ret = RSA_print(bio, rsa, 0);
-            RSA_free(rsa); 
+            RSA_free(rsa);
             break;
 
         default:
@@ -509,8 +509,8 @@ crypto_load_pkcs7_data(PyObject *spam, PyObject *args)
     if (!PyArg_ParseTuple(args, "is#:load_pkcs7_data", &type, &buffer, &len))
         return NULL;
 
-    /* 
-     * Try to read the pkcs7 data from the bio 
+    /*
+     * Try to read the pkcs7 data from the bio
      */
     bio = BIO_new_mem_buf(buffer, len);
     switch (type)
