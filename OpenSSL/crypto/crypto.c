@@ -45,19 +45,28 @@ global_passphrase_callback(char *buf, int len, int rwflag, void *cb_arg)
 
     func = (PyObject *)cb_arg;
     argv = Py_BuildValue("(i)", rwflag);
+    if (argv == NULL) {
+        return 0;
+    }
     ret = PyEval_CallObject(func, argv);
     Py_DECREF(argv);
     if (ret == NULL)
         return 0;
     if (!PyBytes_Check(ret))
     {
+        Py_DECREF(ret);
         PyErr_SetString(PyExc_ValueError, "String expected");
         return 0;
     }
     nchars = PyBytes_Size(ret);
-    if (nchars > len)
-        nchars = len;
+    if (nchars > len) {
+        Py_DECREF(ret);
+        PyErr_SetString(PyExc_ValueError,
+                        "passphrase returned by callback is too long");
+        return 0;
+    }
     strncpy(buf, PyBytes_AsString(ret), nchars);
+    Py_DECREF(ret);
     return nchars;
 }
 
