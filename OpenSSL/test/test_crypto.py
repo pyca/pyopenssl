@@ -1990,6 +1990,18 @@ class FunctionTests(TestCase):
         self.assertTrue(isinstance(key, PKeyType))
 
 
+    def test_load_privatekey_passphrase_exception(self):
+        """
+        If the passphrase callback raises an exception, that exception is raised
+        by :py:obj:`load_privatekey`.
+        """
+        def cb(ignored):
+            raise ArithmeticError
+
+        self.assertRaises(ArithmeticError,
+            load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
+
+
     def test_load_privatekey_wrongPassphraseCallback(self):
         """
         :py:obj:`load_privatekey` raises :py:obj:`OpenSSL.crypto.Error` when it is passed an
@@ -2019,22 +2031,6 @@ class FunctionTests(TestCase):
         key = load_privatekey(FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
         self.assertTrue(isinstance(key, PKeyType))
         self.assertEqual(called, [False])
-
-
-    def test_load_privatekey_passphrase_exception(self):
-        """
-        An exception raised by the passphrase callback passed to
-        :py:obj:`load_privatekey` causes :py:obj:`OpenSSL.crypto.Error` to be raised.
-
-        This isn't as nice as just letting the exception pass through.  The
-        behavior might be changed to that eventually.
-        """
-        def broken(ignored):
-            raise RuntimeError("This is not working.")
-        self.assertRaises(
-            Error,
-            load_privatekey,
-            FILETYPE_PEM, encryptedPrivateKeyPEM, broken)
 
 
     def test_dump_privatekey_wrong_args(self):
@@ -2169,6 +2165,19 @@ class FunctionTests(TestCase):
         self.assertTrue(isinstance(loadedKey, PKeyType))
         self.assertEqual(loadedKey.type(), key.type())
         self.assertEqual(loadedKey.bits(), key.bits())
+
+
+    def test_dump_privatekey_passphrase_exception(self):
+        """
+        L{dump_privatekey} should not overwrite the exception raised
+        by the passphrase callback.
+        """
+        def cb(ignored):
+            raise ArithmeticError
+
+        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        self.assertRaises(ArithmeticError,
+            dump_privatekey, FILETYPE_PEM, key, "blowfish", cb)
 
 
     def test_load_pkcs7_data(self):

@@ -61,6 +61,21 @@ global_passphrase_callback(char *buf, int len, int rwflag, void *cb_arg)
     return nchars;
 }
 
+static PyObject *
+raise_current_error(void)
+{
+    if (PyErr_Occurred()) {
+        /*
+         * The python exception from callback is more informative than
+         * OpenSSL's error.
+         */
+        flush_error_queue();
+        return NULL;
+    }
+    exception_from_error_queue(crypto_Error);
+    return NULL;
+}
+
 static char crypto_load_privatekey_doc[] = "\n\
 Load a private key from a buffer\n\
 \n\
@@ -127,8 +142,7 @@ crypto_load_privatekey(PyObject *spam, PyObject *args)
 
     if (pkey == NULL)
     {
-        exception_from_error_queue(crypto_Error);
-        return NULL;
+        return raise_current_error();
     }
 
     return (PyObject *)crypto_PKey_New(pkey, 1);
@@ -202,11 +216,6 @@ crypto_dump_privatekey(PyObject *spam, PyObject *args)
     {
         case X509_FILETYPE_PEM:
             ret = PEM_write_bio_PrivateKey(bio, pkey->pkey, cipher, NULL, 0, cb, cb_arg);
-            if (PyErr_Occurred())
-            {
-                BIO_free(bio);
-                return NULL;
-            }
             break;
 
         case X509_FILETYPE_ASN1:
@@ -228,8 +237,7 @@ crypto_dump_privatekey(PyObject *spam, PyObject *args)
     if (ret == 0)
     {
         BIO_free(bio);
-        exception_from_error_queue(crypto_Error);
-        return NULL;
+        return raise_current_error();
     }
 
     buf_len = BIO_get_mem_data(bio, &temp);
