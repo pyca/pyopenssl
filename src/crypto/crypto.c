@@ -12,6 +12,7 @@
 #include <Python.h>
 #define crypto_MODULE
 #include "crypto.h"
+#include "pkcs12.h"
 
 static char crypto_doc[] = "\n\
 Main file of crypto sub module.\n\
@@ -540,7 +541,6 @@ Load a PKCS12 object from a buffer\n\
 static PyObject *
 crypto_load_pkcs12(PyObject *spam, PyObject *args)
 {
-    crypto_PKCS12Obj *crypto_PKCS12_New(PKCS12 *, char *);
     int len;
     char *buffer, *passphrase = NULL;
     BIO *bio;

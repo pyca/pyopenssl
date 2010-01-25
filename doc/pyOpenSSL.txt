@@ -130,31 +130,34 @@ setup.py --help
 3.1 crypto -- Generic cryptographic module
 
    X509Type
-          A Python type object representing the X509 object type.
+          See X509.
 
-   X509()
-          Factory function that creates an X509 object.
+   class X509()
+          A class representing X.509 certificates.
 
    X509NameType
-          A Python type object representing the X509Name object type.
+          See X509Name.
 
-   X509Name(x509name)
-          Factory function that creates a copy of x509name.
+   class X509Name(x509name)
+          A class representing X.509 Distinguished Names.
+
+          This constructor creates a copy of x509name which should be an
+          instance of X509Name.
 
    X509ReqType
-          A Python type object representing the X509Req object type.
+          See X509Req.
 
-   X509Req()
-          Factory function that creates an X509Req object.
+   class X509Req()
+          A class representing X.509 certificate requests.
 
    X509StoreType
           A Python type object representing the X509Store object type.
 
    PKeyType
-          A Python type object representing the PKey object type.
+          See PKey.
 
-   PKey()
-          Factory function that creates a PKey object.
+   class PKey()
+          A class representing DSA or RSA keys.
 
    PKCS7Type
           A Python type object representing the PKCS7 object type.
@@ -163,18 +166,22 @@ setup.py --help
           A Python type object representing the PKCS12 object type.
 
    X509ExtensionType
-          A Python type object representing the X509Extension object type.
+          See X509Extension.
 
-   X509Extension(typename, critical, value)
-          Factory function that creates a X509Extension object.
+   class X509Extension(typename, critical, value[, subject][, issuer])
+          A class representing an X.509 v3 certificate extensions. See
+          http://openssl.org/docs/apps/x509v3_config.html#STANDARD_EXTENSI
+          ONSfor typename strings and their options. Optional parameters
+          subject and issuer must be X509 objects.
 
    NetscapeSPKIType
-          A Python type object representing the NetscapeSPKI object type.
+          See NetscapeSPKI.
 
-   NetscapeSPKI([enc])
-          Factory function that creates a NetscapeSPKI object. If the enc
-          argument is present, it should be a base64-encoded string
-          representing a NetscapeSPKI object, as returned by the
+   class NetscapeSPKI([enc])
+          A class representing Netscape SPKI objects.
+
+          If the enc argument is present, it should be a base64-encoded
+          string representing a NetscapeSPKI object, as returned by the
           b64_encode method.
 
    FILETYPE_PEM
@@ -227,7 +234,10 @@ setup.py --help
 
    load_pkcs12(buffer[, passphrase])
           Load pkcs12 data from the string buffer. If the pkcs12 structure
-          is encrypted, a passphrase must be included.
+          is encrypted, a passphrase must be included. The MAC is always
+          checked and thus required.
+
+          See also the man page for the C function PKCS12_parse.
 
 
   3.1.1 X509 objects
@@ -455,15 +465,40 @@ setup.py --help
 
    PKCS12 objects have the following methods:
 
-   get_certificate()
-          Return certificate portion of the PKCS12 structure.
+   export([passphrase=None][, iter=2048][, maciter=1])
+          Returns a PKCS12 object as a string.
 
-   get_privatekey()
-          Return private key portion of the PKCS12 structure
+          The optional passphrase must be a string not a callback.
+
+          See also the man page for the C function PKCS12_create.
 
    get_ca_certificates()
           Return CA certificates within the PKCS12 object as a tuple.
           Returns None if no CA certificates are present.
+
+   get_certificate()
+          Return certificate portion of the PKCS12 structure.
+
+   get_friendlyname()
+          Return friendlyName portion of the PKCS12 structure.
+
+   get_privatekey()
+          Return private key portion of the PKCS12 structure
+
+   set_ca_certificates(cacerts)
+          Replace or set the CA certificates within the PKCS12 object with
+          the sequence cacerts.
+
+          Set cacerts to None to remove all CA certificates.
+
+   set_certificate(cert)
+          Replace or set the certificate portion of the PKCS12 structure.
+
+   set_friendlyname(name)
+          Replace or set the friendlyName portion of the PKCS12 structure.
+
+   set_privatekey(pkey)
+          Replace or set private key portion of the PKCS12 structure
 
 
   3.1.8 X509Extension objects
@@ -511,6 +546,16 @@ setup.py --help
           contained in string, measured in bytes. For more information,
           see e.g. RFC 1750.
 
+   bytes(num_bytes)
+          Get some random bytes from the PRNG as a string.
+
+          This is a wrapper for the C function RAND_bytes.
+
+   cleanup()
+          Erase the memory used by the PRNG.
+
+          This is a wrapper for the C function RAND_cleanup.
+
    egd(path[, bytes])
           Query the Entropy Gathering Daemon^2 on socket path for bytes
           bytes of random data and and uses add to seed the PRNG. The
@@ -537,6 +582,17 @@ setup.py --help
           Write a number of random bytes (currently 1024) to the file
           path. This file can then be used with load_file to seed the PRNG
           again.
+
+   exception Error
+          If the current RAND method supports any errors, this is raised
+          when needed. The default method does not raise this when the
+          entropy pool is depleted.
+
+          Whenever this exception is raised directly, it has a list of
+          error messages from the OpenSSL error queue, where each item is
+          a tuple (lib, function, reason). Here lib, function and reason
+          are all strings, describing where and what the problem is. See
+          err(3) for more information.
 
 
 3.3 SSL -- An interface to the SSL-specific parts of OpenSSL
@@ -587,19 +643,25 @@ setup.py --help
           want to use SSLv2.
 
    ContextType
-          A Python type object representing the Context object type.
+          See Context.
 
-   Context(method)
-          Factory function that creates a new Context object given an SSL
-          method. The method should be SSLv2_METHOD, SSLv3_METHOD,
-          SSLv23_METHOD or TLSv1_METHOD.
+   class Context(method)
+          A class representing SSL contexts. Contexts define the
+          parameters of one or more SSL connections.
+
+          method should be SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD or
+          TLSv1_METHOD.
 
    ConnectionType
-          A Python type object representing the Connection object type.
+          See Connection.
 
-   Connection(context, socket)
-          Factory fucnction that creates a new Connection object given an
-          SSL context and a socket ^3 object.
+   class Connection(context, socket)
+          A class representing SSL connections.
+
+          context should be an instance of Context and socket should be a
+          socket ^3 object. socket may be None; in this case, the
+          Connection is created with a memory BIO: see the bio_read,
+          bio_write, and bio_shutdown methods.
 
    exception Error
           This exception is used as a base class for the other SSL-related
@@ -627,8 +689,17 @@ setup.py --help
           called again later, with the same arguments. Any I/O method can
           lead to this since new handshakes can occur at any time.
 
+          The wanted read is for dirty data sent over the network, not the
+          clean data inside the tunnel. For a socket based SSL connection,
+          read means data coming at us over the network. Until that read
+          succeeds, the attempted OpenSSL.SSL.Connection.recv,
+          OpenSSL.SSL.Connection.send, or
+          OpenSSL.SSL.Connection.do_handshake is prevented or incomplete.
+          You probably want to select() on the socket before trying again.
+
    exception WantWriteError
-          See WantReadError.
+          See WantReadError. The socket send buffer may be too full to
+          write more data.
 
    exception WantX509LookupError
           The operation did not complete because an application callback
@@ -675,6 +746,22 @@ setup.py --help
    load_client_ca(pemfile)
           Read a file with PEM-formatted certificates that will be sent to
           the client when requesting a client certificate.
+
+   set_client_ca_list(certificate_authorities)
+          Replace the current list of preferred certificate signers that
+          would be sent to the client when requesting a client certificate
+          with the certificate_authorities sequence of
+          OpenSSL.crypto.X509Names.
+
+          New in version 0.10.
+
+   add_client_ca(certificate_authority)
+          Extract a OpenSSL.crypto.X509Name from the certificate_authority
+          OpenSSL.crypto.X509 certificate and add it to the list of
+          preferred certificate signers sent to the client when requesting
+          a client certificate.
+
+          New in version 0.10.
 
    load_verify_locations(pemfile, capath)
           Specify where CA certificates for verification purposes are
@@ -827,6 +914,19 @@ setup.py --help
           parameter and just return a string, but not it returns the
           entire list in one go.
 
+   get_client_ca_list()
+          Retrieve the list of preferred client certificate issuers sent
+          by the server as OpenSSL.crypto.X509Name objects.
+
+          If this is a client Connection, the list will be empty until the
+          connection with the server is established.
+
+          If this is a server Connection, return the list of certificate
+          authorities that will be sent or has been sent to the client, as
+          controlled by this Connection's Context.
+
+          New in version 0.10.
+
    get_context()
           Retrieve the Context object associated with this Connection.
 
@@ -851,12 +951,25 @@ setup.py --help
           representing the data received. The maximum amount of data to be
           received at once, is specified by bufsize.
 
+   bio_write(bytes)
+          If the Connection was created with a memory BIO, this method can
+          be used to add bytes to the read end of that memory BIO. The
+          Connection can then read the bytes (for example, in response to
+          a call to recv).
+
    renegotiate()
           Renegotiate the SSL session. Call this if you wish to change
           cipher suites or anything like that.
 
    send(string)
           Send the string data to the Connection.
+
+   bio_read(bufsize)
+          If the Connection was created with a memory BIO, this method can
+          be used to read bytes from the write end of that memory BIO.
+          Many Connection methods will add bytes which must be read in
+          this manner or the buffer will eventually fill up and the
+          Connection will be able to take no further actions.
 
    sendall(string)
           Send all of the string data to the Connection. This calls send
@@ -898,8 +1011,22 @@ setup.py --help
    sock_shutdown(how)
           Call the shutdown method of the underlying socket.
 
+   bio_shutdown()
+          If the Connection was created with a memory BIO, this method can
+          be used to indicate that ``end of file'' has been reached on the
+          read end of that memory BIO.
+
    state_string()
           Retrieve a verbose string detailing the state of the Connection.
+
+   client_random()
+          Retrieve the random value used with the client hello message.
+
+   server_random()
+          Retrieve the random value used with the server hello message.
+
+   master_key()
+          Retrieve the value of the master key for this session.
 
    want_read()
           Checks if more data has to be read from the transport layer to
@@ -1031,4 +1158,4 @@ setup.py --help
                             Python OpenSSL Manual
      __________________________________________________________________
 
-   Release 0.9.
+   Release 0.10.

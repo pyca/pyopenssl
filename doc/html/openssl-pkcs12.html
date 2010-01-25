@@ -17,17 +17,17 @@
 <table align="center" width="100%" cellpadding="0" cellspacing="2">
 <tr>
 <td><A href="openssl-pkcs7.html"><img src="previous.gif"
-border="0" height="32"
+  border="0" height="32"
   alt="Previous Page" width="32"></A></td>
 <td><A href="openssl-crypto.html"><img src="up.gif"
-border="0" height="32"
+  border="0" height="32"
   alt="Up One Level" width="32"></A></td>
 <td><A href="openssl-509ext.html"><img src="next.gif"
-border="0" height="32"
+  border="0" height="32"
   alt="Next Page" width="32"></A></td>
 <td align="center" width="100%">Python OpenSSL Manual</td>
 <td><A href="contents.html"><img src="contents.gif"
-border="0" height="32"
+  border="0" height="32"
   alt="Contents" width="32"></A></td>
 <td><img src="blank.gif"
   border="0" height="32"
@@ -52,22 +52,67 @@ border="0" height="32"
 PKCS12 objects have the following methods:
 
 <P>
-<dl><dt><b><a name='l2h-81'><tt class='method'>get_certificate</tt></a></b>()
+<dl><dt><b><a name='l2h-81'><tt class='method'>export</tt></a></b>(<big>[</big><var>passphrase=None</var><big>]</big><big>[</big><var>, iter=2048</var><big>]</big><big>[</big><var>, maciter=1</var><big>]</big>)
+<dd>
+Returns a PKCS12 object as a string.
+
+<P>
+The optional <var>passphrase</var> must be a string not a callback.
+
+<P>
+See also the man page for the C function <tt class="function">PKCS12_create</tt>.
+</dl>
+
+<P>
+<dl><dt><b><a name='l2h-82'><tt class='method'>get_ca_certificates</tt></a></b>()
+<dd>
+Return CA certificates within the PKCS12 object as a tuple. Returns
+<tt class="constant">None</tt> if no CA certificates are present.
+</dl>
+
+<P>
+<dl><dt><b><a name='l2h-83'><tt class='method'>get_certificate</tt></a></b>()
 <dd>
 Return certificate portion of the PKCS12 structure.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-82'><tt class='method'>get_privatekey</tt></a></b>()
+<dl><dt><b><a name='l2h-84'><tt class='method'>get_friendlyname</tt></a></b>()
+<dd>
+Return friendlyName portion of the PKCS12 structure.
+</dl>
+
+<P>
+<dl><dt><b><a name='l2h-85'><tt class='method'>get_privatekey</tt></a></b>()
 <dd>
 Return private key portion of the PKCS12 structure
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-83'><tt class='method'>get_ca_certificates</tt></a></b>()
+<dl><dt><b><a name='l2h-86'><tt class='method'>set_ca_certificates</tt></a></b>(<var>cacerts</var>)
 <dd>
-Return CA certificates within the PKCS12 object as a tuple. Returns
-None if no CA certificates are present.
+Replace or set the CA certificates within the PKCS12 object with the sequence <var>cacerts</var>.
+
+<P>
+Set <var>cacerts</var> to <tt class="constant">None</tt> to remove all CA certificates.
+</dl>
+
+<P>
+<dl><dt><b><a name='l2h-87'><tt class='method'>set_certificate</tt></a></b>(<var>cert</var>)
+<dd>
+Replace or set the certificate portion of the PKCS12 structure.
+</dl>
+
+<P>
+<dl><dt><b><a name='l2h-88'><tt class='method'>set_friendlyname</tt></a></b>(<var>name</var>)
+<dd>
+Replace or set the friendlyName portion of the PKCS12 structure.
+</dl>
+
+<P>
+<dl><dt><b><a name='l2h-89'><tt class='method'>set_privatekey</tt></a></b>(<var>pkey</var>)
+<dd>
+Replace or set private key portion of the PKCS12 structure
 </dl>
 
 <P>
@@ -77,17 +122,17 @@ None if no CA certificates are present.
 <table align="center" width="100%" cellpadding="0" cellspacing="2">
 <tr>
 <td><A href="openssl-pkcs7.html"><img src="previous.gif"
-border="0" height="32"
+  border="0" height="32"
   alt="Previous Page" width="32"></A></td>
 <td><A href="openssl-crypto.html"><img src="up.gif"
-border="0" height="32"
+  border="0" height="32"
   alt="Up One Level" width="32"></A></td>
 <td><A href="openssl-509ext.html"><img src="next.gif"
-border="0" height="32"
+  border="0" height="32"
   alt="Next Page" width="32"></A></td>
 <td align="center" width="100%">Python OpenSSL Manual</td>
 <td><A href="contents.html"><img src="contents.gif"
-border="0" height="32"
+  border="0" height="32"
   alt="Contents" width="32"></A></td>
 <td><img src="blank.gif"
   border="0" height="32"
@@ -100,7 +145,7 @@ border="0" height="32"
 <b class="navlabel">Up:</b> <a class="sectref" href="openssl-crypto.html">3.1 crypto  </A>
 <b class="navlabel">Next:</b> <a class="sectref" href="openssl-509ext.html">3.1.8 X509Extension objects</A>
 <hr>
-<span class="release-info">Release 0.9.</span>
+<span class="release-info">Release 0.10.</span>
 </DIV>
 <!--End of Navigation Panel-->
 

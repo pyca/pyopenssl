@@ -17,17 +17,17 @@
 <table align="center" width="100%" cellpadding="0" cellspacing="2">
 <tr>
 <td><A href="openssl.html"><img src="previous.gif"
-border="0" height="32"
+  border="0" height="32"
   alt="Previous Page" width="32"></A></td>
 <td><A href="openssl.html"><img src="up.gif"
-border="0" height="32"
+  border="0" height="32"
   alt="Up One Level" width="32"></A></td>
 <td><A href="openssl-x509.html"><img src="next.gif"
-border="0" height="32"
+  border="0" height="32"
   alt="Next Page" width="32"></A></td>
 <td align="center" width="100%">Python OpenSSL Manual</td>
 <td><A href="contents.html"><img src="contents.gif"
-border="0" height="32"
+  border="0" height="32"
   alt="Contents" width="32"></A></td>
 <td><img src="blank.gif"
   border="0" height="32"
@@ -42,6 +42,7 @@ border="0" height="32"
 <br><hr>
 </DIV>
 <!--End of Navigation Panel-->
+
 <H2><A NAME="SECTION000410000000000000000">&nbsp;</A>
 <BR>
 3.1 <tt class="module">crypto</tt> -- Generic cryptographic module 
@@ -53,37 +54,41 @@ border="0" height="32"
 <P>
 <dl><dt><b><a name='l2h-6'><tt>X509Type</tt></a></b>
 <dd>
-A Python type object representing the X509 object type.
+See <tt class="class">X509</tt>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-7'><tt class='function'>X509</tt></a></b>()
+<dl><dt><b>class <a name='l2h-7'><tt class='class'>X509</tt></a></b>()
 <dd>
-Factory function that creates an X509 object.
+A class representing X.509 certificates.
 </dl>
 
 <P>
 <dl><dt><b><a name='l2h-8'><tt>X509NameType</tt></a></b>
 <dd>
-A Python type object representing the X509Name object type.
+See <tt class="class">X509Name</tt>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-9'><tt class='function'>X509Name</tt></a></b>(<var>x509name</var>)
+<dl><dt><b>class <a name='l2h-9'><tt class='class'>X509Name</tt></a></b>(<var>x509name</var>)
 <dd>
-Factory function that creates a copy of <var>x509name</var>.
+A class representing X.509 Distinguished Names.
+
+<P>
+This constructor creates a copy of <var>x509name</var> which should be an
+instance of <tt class="class">X509Name</tt>.
 </dl>
 
 <P>
 <dl><dt><b><a name='l2h-10'><tt>X509ReqType</tt></a></b>
 <dd>
-A Python type object representing the X509Req object type.
+See <tt class="class">X509Req</tt>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-11'><tt class='function'>X509Req</tt></a></b>()
+<dl><dt><b>class <a name='l2h-11'><tt class='class'>X509Req</tt></a></b>()
 <dd>
-Factory function that creates an X509Req object.
+A class representing X.509 certificate requests.
 </dl>
 
 <P>
@@ -95,13 +100,13 @@ A Python type object representing the X509Store object type.
 <P>
 <dl><dt><b><a name='l2h-13'><tt>PKeyType</tt></a></b>
 <dd>
-A Python type object representing the PKey object type.
+See <tt class="class">PKey</tt>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-14'><tt class='function'>PKey</tt></a></b>()
+<dl><dt><b>class <a name='l2h-14'><tt class='class'>PKey</tt></a></b>()
 <dd>
-Factory function that creates a PKey object.
+A class representing DSA or RSA keys.
 </dl>
 
 <P>
@@ -119,27 +124,32 @@ A Python type object representing the PKCS12 object type.
 <P>
 <dl><dt><b><a name='l2h-17'><tt>X509ExtensionType</tt></a></b>
 <dd>
-A Python type object representing the X509Extension object type.
+See <tt class="class">X509Extension</tt>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-18'><tt class='function'>X509Extension</tt></a></b>(<var>typename, critical, value</var>)
+<dl><dt><b>class <a name='l2h-18'><tt class='class'>X509Extension</tt></a></b>(<var>typename, critical, value</var><big>[</big><var>, subject</var><big>]</big><big>[</big><var>, issuer</var><big>]</big>)
 <dd>
-Factory function that creates a X509Extension object.
+A class representing an X.509 v3 certificate extensions.
+See <a class="url" href="http://openssl.org/docs/apps/x509v3_config.html#STANDARD_EXTENSIONS">http://openssl.org/docs/apps/x509v3_config.html#STANDARD_EXTENSIONS</a>for <var>typename</var> strings and their options.
+Optional parameters <var>subject</var> and <var>issuer</var> must be X509 objects.
 </dl>
 
 <P>
 <dl><dt><b><a name='l2h-19'><tt>NetscapeSPKIType</tt></a></b>
 <dd>
-A Python type object representing the NetscapeSPKI object type.
+See <tt class="class">NetscapeSPKI</tt>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-20'><tt class='function'>NetscapeSPKI</tt></a></b>(<big>[</big><var>enc</var><big>]</big>)
+<dl><dt><b>class <a name='l2h-20'><tt class='class'>NetscapeSPKI</tt></a></b>(<big>[</big><var>enc</var><big>]</big>)
 <dd>
-Factory function that creates a NetscapeSPKI object. If the <var>enc</var> argument
-is present, it should be a base64-encoded string representing a NetscapeSPKI
-object, as returned by the <tt class="method">b64_encode</tt> method.
+A class representing Netscape SPKI objects.
+
+<P>
+If the <var>enc</var> argument is present, it should be a base64-encoded string
+representing a NetscapeSPKI object, as returned by the <tt class="method">b64_encode</tt>
+method.
 </dl>
 
 <P>
@@ -224,13 +234,16 @@ Load pkcs7 data from the string <var>buffer</var> encoded with the type <var>typ
 <dl><dt><b><a name='l2h-31'><tt class='function'>load_pkcs12</tt></a></b>(<var>buffer</var><big>[</big><var>, passphrase</var><big>]</big>)
 <dd>
 Load pkcs12 data from the string <var>buffer</var>. If the pkcs12 structure is
-encrypted, a <var>passphrase</var> must be included.
+encrypted, a <var>passphrase</var> must be included.  The MAC is always
+checked and thus required.
+
+<P>
+See also the man page for the C function <tt class="function">PKCS12_parse</tt>.
 </dl>
 
 <P>
 
 <p><hr>
-
 <!--Table of Child-Links-->
 <A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
 
@@ -261,17 +274,17 @@ encrypted, a <var>passphrase</var> must be included.
 <table align="center" width="100%" cellpadding="0" cellspacing="2">
 <tr>
 <td><A href="openssl.html"><img src="previous.gif"
-border="0" height="32"
+  border="0" height="32"
   alt="Previous Page" width="32"></A></td>
 <td><A href="openssl.html"><img src="up.gif"
-border="0" height="32"
+  border="0" height="32"
   alt="Up One Level" width="32"></A></td>
 <td><A href="openssl-x509.html"><img src="next.gif"
-border="0" height="32"
+  border="0" height="32"
   alt="Next Page" width="32"></A></td>
 <td align="center" width="100%">Python OpenSSL Manual</td>
 <td><A href="contents.html"><img src="contents.gif"
-border="0" height="32"
+  border="0" height="32"
   alt="Contents" width="32"></A></td>
 <td><img src="blank.gif"
   border="0" height="32"
@@ -284,7 +297,7 @@ border="0" height="32"
 <b class="navlabel">Up:</b> <a class="sectref" href="openssl.html">3 OpenSSL  </A>
 <b class="navlabel">Next:</b> <a class="sectref" href="openssl-x509.html">3.1.1 X509 objects</A>
 <hr>
-<span class="release-info">Release 0.9.</span>
+<span class="release-info">Release 0.10.</span>
 </DIV>
 <!--End of Navigation Panel-->
 

@@ -1,5 +1,30 @@
-2009-07-17  Rick Dean  <rick@fdd.com>
-            Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+2009-11-13  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* Release 0.10
+
+2009-11-07  Žiga Seilnacht, Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* src/ssl/connection.c, src/ssl/context.c: Add set_client_ca_list,
+	  add_client_ca, and get_client_ca_list to Context for manipulating
+	  the list of certificate authority names which are sent by servers
+	  with the certificate request message.
+	* src/util.h: Add ssize-related defines if the version of Python
+	  being used does not have them.
+	* setup.py: Significant changes to the way Windows builds are done,
+	  particularly the way OpenSSL headers and libraries are found (with
+	  the new --with-openssl argument to build_ext).
+
+2009-08-27  Rick Dean  <rick@fdd.com>, Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* src/crypto/pkcs12.c: Add setters to the PKCS12 type for the
+	  certificate, private key, ca certificate list, and friendly
+	  name, and add a getter for the friendly name.  Also add a method
+	  for exporting a PKCS12 object as a string.
+	* test/test_crypto.py: Add lots of additional tests for the PKCS12
+	  type.
+	* doc/pyOpenSSL.tex: Documentation for the new PKCS12 methods.
+
+2009-07-17  Rick Dean  <rick@fdd.com>, Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* src/crypto/x509ext.c: Add subject and issuer parameters to
 	  X509Extension, allowing creation of extensions which require that
@@ -89,7 +114,7 @@
 
 	* src/crypto/x509ext.c, test/test_crypto.py: Add the get_short_name
 	  method to X509Extension based on patch from Alex Stapleton.
-	
+
 2008-12-31  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* src/crypto/x509ext.c, test/test_crypto.py: Fix X509Extension so
