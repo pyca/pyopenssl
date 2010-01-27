@@ -326,7 +326,7 @@ WantWrite or WantX509Lookup exceptions on this, you have to call the\n\
 method again with the SAME buffer.\n\
 \n\
 @param buf: The string to send\n\
-@param flags: (optional) Included for compatability with the socket\n\
+@param flags: (optional) Included for compatibility with the socket\n\
               API, the value is ignored\n\
 @return: The number of bytes written\n\
 ";
@@ -367,7 +367,7 @@ all data is sent. If an error occurs, it's impossible to tell how much data\n\
 has been sent.\n\
 \n\
 @param buf: The string to send\n\
-@param flags: (optional) Included for compatability with the socket\n\
+@param flags: (optional) Included for compatibility with the socket\n\
               API, the value is ignored\n\
 @return: The number of bytes written\n\
 ";
@@ -416,7 +416,7 @@ WantWrite or WantX509Lookup exceptions on this, you have to call the\n\
 method again with the SAME buffer.\n\
 \n\
 @param bufsiz: The maximum number of bytes to read\n\
-@param flags: (optional) Included for compatability with the socket\n\
+@param flags: (optional) Included for compatibility with the socket\n\
               API, the value is ignored\n\
 @return: The string read from the Connection\n\
 ";

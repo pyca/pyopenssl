@@ -18,7 +18,7 @@
 
 /*
  * pymemcompat written by Michael Hudson and lets you program to the
- * Python 2.3 memory API while keeping backwards compatability.
+ * Python 2.3 memory API while keeping backwards compatibility.
  */
 #include "pymemcompat.h"
 
