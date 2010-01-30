@@ -1325,6 +1325,7 @@ def quoteArguments(arguments):
     return ' '.join(map(cmdLineQuote, arguments))
 
 
+
 def _runopenssl(pem, *args):
     """
     Run the command line openssl tool with the given arguments and write
@@ -1533,17 +1534,6 @@ class NetscapeSPKITests(TestCase):
         self.assertTrue(isinstance(nspki, NetscapeSPKIType))
 
 
-def _runopenssl(pem, *args):
-    """
-    Run the command line openssl tool with the given arguments and write
-    the given PEM to its stdin.
-    """
-    write, read = popen2(" ".join(("openssl",) + args), "b")
-    write.write(pem)
-    write.close()
-    return read.read()
-
-
 class RevokedTests(TestCase):
     """
     Tests for L{OpenSSL.crypto.Revoked}
@@ -1563,7 +1553,7 @@ class RevokedTests(TestCase):
 
     def test_serial(self):
         """
-        Confirm we can set and get serial numbers from 
+        Confirm we can set and get serial numbers from
         L{OpenSSL.crypto.Revoked}.  Confirm errors are handled
         with grace.
         """
@@ -1583,7 +1573,7 @@ class RevokedTests(TestCase):
 
     def test_date(self):
         """
-        Confirm we can set and get revocation dates from 
+        Confirm we can set and get revocation dates from
         L{OpenSSL.crypto.Revoked}.  Confirm errors are handled
         with grace.
         """
@@ -1600,7 +1590,7 @@ class RevokedTests(TestCase):
 
     def test_reason(self):
         """
-        Confirm we can set and get revocation reasons from 
+        Confirm we can set and get revocation reasons from
         L{OpenSSL.crypto.Revoked}.  The "get" need to work
         as "set".  Likewise, each reason of all_reasons() must work.
         """
@@ -1610,7 +1600,7 @@ class RevokedTests(TestCase):
                 ret = revoked.set_reason(r)
                 self.assertEqual( ret, None )
                 reason = revoked.get_reason()
-                self.assertEqual( reason.lower().replace(' ',''), 
+                self.assertEqual( reason.lower().replace(' ',''),
                                        r.lower().replace(' ','') )
                 r = reason # again with the resp of get
 
@@ -1680,8 +1670,8 @@ class CRLTests(TestCase):
 
     def test_get_revoked(self):
         """
-        Use python to create a simple CRL with two revocations.  
-        Get back the L{Revoked} using L{OpenSSL.CRL.get_revoked} and 
+        Use python to create a simple CRL with two revocations.
+        Get back the L{Revoked} using L{OpenSSL.CRL.get_revoked} and
         verify them.
         """
         crl = CRL()
@@ -1723,7 +1713,7 @@ MAoGA1UdFQQDCgEEMA0GCSqGSIb3DQEBBAUAA4GBAEBt7xTs2htdD3d4ErrcGAw1
 vrzEeLDRiiPl92dyyWmu
 -----END X509 CRL-----
 """
-        crl = load_crl(FILETYPE_PEM, crl_txt) 
+        crl = load_crl(FILETYPE_PEM, crl_txt)
         revs = crl.get_revoked()
         self.assertEqual(len(revs), 2)
         self.assertEqual(revs[0].get_serial(), '03AB')
@@ -1732,7 +1722,7 @@ vrzEeLDRiiPl92dyyWmu
         self.assertEqual(revs[1].get_reason(), 'Superseded')
 
         der = _runopenssl(crl_txt, "crl", "-outform", "DER")
-        crl = load_crl(FILETYPE_ASN1, der) 
+        crl = load_crl(FILETYPE_ASN1, der)
         revs = crl.get_revoked()
         self.assertEqual(len(revs), 2)
         self.assertEqual(revs[0].get_serial(), '03AB')
