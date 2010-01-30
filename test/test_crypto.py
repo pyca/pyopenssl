@@ -1696,6 +1696,16 @@ class CRLTests(TestCase):
         self.assertRaises(TypeError, crl.export, self.cert, FILETYPE_PEM, None)
 
 
+    def test_export_unknown_filetype(self):
+        """
+        Calling L{OpenSSL.CRL.export} with a file type other than
+        L{FILETYPE_PEM}, L{FILETYPE_ASN1}, or L{FILETYPE_TEXT} results
+        in a L{ValueError} being raised.
+        """
+        crl = CRL()
+        self.assertRaises(ValueError, crl.export, self.cert, self.pkey, 100, 10)
+
+
     def test_get_revoked(self):
         """
         Use python to create a simple CRL with two revocations.
