@@ -1695,6 +1695,18 @@ class CRLTests(TestCase):
         self.assertEqual(revs[1].get_rev_date(), now)
 
 
+    def test_get_revoked_wrong_args(self):
+        """
+        Calling L{OpenSSL.CRL.get_revoked} with any arguments results
+        in a L{TypeError} being raised.
+        """
+        crl = CRL()
+        self.assertRaises(TypeError, crl.get_revoked, None)
+        self.assertRaises(TypeError, crl.get_revoked, 1)
+        self.assertRaises(TypeError, crl.get_revoked, "")
+        self.assertRaises(TypeError, crl.get_revoked, "", 1, None)
+
+
     def test_load_crl(self):
         """
         Load a known CRL and inspect its revocations.  Both
