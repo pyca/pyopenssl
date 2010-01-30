@@ -110,7 +110,7 @@ crypto_CRL_add_revoked(crypto_CRLObj *self, PyObject *args, PyObject *keywds)
 }
 
 static char crypto_CRL_export_doc[] = "\n\
-Export a CRL as a string\n\
+export(cert, key[, type[, days]]) -> export a CRL as a string\n\
 \n\
 @param cert: Used to sign CRL.\n\
 @type cert: L{X509}\n\
