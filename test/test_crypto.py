@@ -1681,12 +1681,19 @@ class CRLTests(TestCase):
     def test_export_wrong_args(self):
         """
         Calling L{OpenSSL.CRL.export} with fewer than two or more than
-        four arguments results in a L{TypeError} being raised.
+        four arguments, or with arguments other than the certificate,
+        private key, integer file type, and integer number of days it
+        expects, results in a L{TypeError} being raised.
         """
         crl = CRL()
         self.assertRaises(TypeError, crl.export)
         self.assertRaises(TypeError, crl.export, self.cert)
         self.assertRaises(TypeError, crl.export, self.cert, self.pkey, FILETYPE_PEM, 10, "foo")
+
+        self.assertRaises(TypeError, crl.export, None, self.pkey, FILETYPE_PEM, 10)
+        self.assertRaises(TypeError, crl.export, self.cert, None, FILETYPE_PEM, 10)
+        self.assertRaises(TypeError, crl.export, self.cert, self.pkey, None, 10)
+        self.assertRaises(TypeError, crl.export, self.cert, FILETYPE_PEM, None)
 
 
     def test_get_revoked(self):
