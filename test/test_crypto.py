@@ -1634,6 +1634,16 @@ class CRLTests(TestCase):
         self.assertEqual(crl.get_revoked(), None)
 
 
+    def test_construction_wrong_args(self):
+        """
+        Calling L{OpenSSL.crypto.CRL} with any number of arguments
+        results in a L{TypeError} being raised.
+        """
+        self.assertRaises(TypeError, CRL, 1)
+        self.assertRaises(TypeError, CRL, "")
+        self.assertRaises(TypeError, CRL, None)
+
+
     def test_export(self):
         """
         Use python to create a simple CRL with a revocation, and export
