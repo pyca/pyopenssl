@@ -1667,6 +1667,16 @@ class CRLTests(TestCase):
         self.assertEqual(text, dumped_text)
 
 
+    def test_add_revoked_keyword(self):
+        """
+        L{OpenSSL.CRL.add_revoked} accepts its single argument as the
+        I{revoked} keyword argument.
+        """
+        crl = CRL()
+        revoked = Revoked()
+        crl.add_revoked(revoked=revoked)
+        self.assertTrue(isinstance(crl.get_revoked()[0], Revoked))
+
 
     def test_get_revoked(self):
         """
