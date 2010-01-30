@@ -2,6 +2,9 @@
 #define crypto_MODULE
 #include "crypto.h"
 
+#ifdef _WIN32
+#define strcasecmp(string1, string2) _stricmp(string1, string2)
+#endif
 
 /* http://www.openssl.org/docs/apps/x509v3_config.html#CRL_distribution_points_ */
 /* which differs from crl_reasons of crypto/x509v3/v3_enum.c that matches */
