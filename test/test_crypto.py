@@ -917,6 +917,11 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         # An invalid string results in a ValueError
         self.assertRaises(ValueError, set, "foo bar")
 
+        # The wrong number of arguments results in a TypeError.
+        self.assertRaises(TypeError, set)
+        self.assertRaises(TypeError, set, "20040203040506Z", "20040203040506Z")
+        self.assertRaises(TypeError, get, "foo bar")
+
 
     def test_set_notBefore(self):
         """
