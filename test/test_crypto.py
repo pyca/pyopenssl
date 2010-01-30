@@ -1551,6 +1551,16 @@ class RevokedTests(TestCase):
         self.assertEqual( revoked.get_reason(), None )
 
 
+    def test_construction_wrong_args(self):
+        """
+        Calling L{OpenSSL.crypto.Revoked} with any arguments results
+        in a L{TypeError} being raised.
+        """
+        self.assertRaises(TypeError, Revoked, None)
+        self.assertRaises(TypeError, Revoked, 1)
+        self.assertRaises(TypeError, Revoked, "foo")
+
+
     def test_serial(self):
         """
         Confirm we can set and get serial numbers from
@@ -1569,6 +1579,9 @@ class RevokedTests(TestCase):
 
         self.assertRaises(ValueError, revoked.set_serial, 'pqrst')
         self.assertRaises(TypeError, revoked.set_serial, 100)
+        self.assertRaises(TypeError, revoked.get_serial, 1)
+        self.assertRaises(TypeError, revoked.get_serial, None)
+        self.assertRaises(TypeError, revoked.get_serial, "")
 
 
     def test_date(self):
@@ -1608,13 +1621,27 @@ class RevokedTests(TestCase):
         self.assertEqual(revoked.get_reason(), None)
 
 
-    def test_bad_reasons(self):
+    def test_set_reason_wrong_arguments(self):
         """
-        Use L{OpenSSL.crypto.Revoked.set_reason} in bad ways.
+        Calling L{OpenSSL.crypto.Revoked.set_reason} with other than
+        one argument, or an argument which isn't a valid reason,
+        results in L{TypeError} or L{ValueError} being raised.
         """
         revoked = Revoked()
         self.assertRaises(TypeError, revoked.set_reason, 100)
         self.assertRaises(ValueError, revoked.set_reason, 'blue')
+
+
+    def test_get_reason_wrong_arguments(self):
+        """
+        Calling L{OpenSSL.crypto.Revoked.get_reason} with any
+        arguments results in L{TypeError} being raised.
+        """
+        revoked = Revoked()
+        self.assertRaises(TypeError, revoked.get_reason, None)
+        self.assertRaises(TypeError, revoked.get_reason, 1)
+        self.assertRaises(TypeError, revoked.get_reason, "foo")
+
 
 
 class CRLTests(TestCase):
