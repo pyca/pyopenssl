@@ -1678,6 +1678,17 @@ class CRLTests(TestCase):
         self.assertTrue(isinstance(crl.get_revoked()[0], Revoked))
 
 
+    def test_export_wrong_args(self):
+        """
+        Calling L{OpenSSL.CRL.export} with fewer than two or more than
+        four arguments results in a L{TypeError} being raised.
+        """
+        crl = CRL()
+        self.assertRaises(TypeError, crl.export)
+        self.assertRaises(TypeError, crl.export, self.cert)
+        self.assertRaises(TypeError, crl.export, self.cert, self.pkey, FILETYPE_PEM, 10, "foo")
+
+
     def test_get_revoked(self):
         """
         Use python to create a simple CRL with two revocations.
