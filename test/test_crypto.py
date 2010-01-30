@@ -227,6 +227,18 @@ Ho4EzbYCOaEAMQA=
 -----END PKCS7-----
 """
 
+crlData ="""\
+-----BEGIN X509 CRL-----
+MIIBWzCBxTANBgkqhkiG9w0BAQQFADBYMQswCQYDVQQGEwJVUzELMAkGA1UECBMC
+SUwxEDAOBgNVBAcTB0NoaWNhZ28xEDAOBgNVBAoTB1Rlc3RpbmcxGDAWBgNVBAMT
+D1Rlc3RpbmcgUm9vdCBDQRcNMDkwNzI2MDQzNDU2WhcNMTIwOTI3MDI0MTUyWjA8
+MBUCAgOrGA8yMDA5MDcyNTIzMzQ1NlowIwICAQAYDzIwMDkwNzI1MjMzNDU2WjAM
+MAoGA1UdFQQDCgEEMA0GCSqGSIb3DQEBBAUAA4GBAEBt7xTs2htdD3d4ErrcGAw1
+4dKcVnIWTutoI7xxen26Wwvh8VCsT7i/UeP+rBl9rC/kfjWjzQk3/zleaarGTpBT
+0yp4HXRFFoRhhSE/hP+eteaPXRgrsNRLHe9ZDd69wmh7J1wMDb0m81RG7kqcbsid
+vrzEeLDRiiPl92dyyWmu
+-----END X509 CRL-----
+"""
 
 class X509ExtTests(TestCase):
     """
@@ -1803,20 +1815,7 @@ class CRLTests(TestCase):
         Load a known CRL and inspect its revocations.  Both
         PEM and DER formats are loaded.
         """
-
-        crl_txt = """
------BEGIN X509 CRL-----
-MIIBWzCBxTANBgkqhkiG9w0BAQQFADBYMQswCQYDVQQGEwJVUzELMAkGA1UECBMC
-SUwxEDAOBgNVBAcTB0NoaWNhZ28xEDAOBgNVBAoTB1Rlc3RpbmcxGDAWBgNVBAMT
-D1Rlc3RpbmcgUm9vdCBDQRcNMDkwNzI2MDQzNDU2WhcNMTIwOTI3MDI0MTUyWjA8
-MBUCAgOrGA8yMDA5MDcyNTIzMzQ1NlowIwICAQAYDzIwMDkwNzI1MjMzNDU2WjAM
-MAoGA1UdFQQDCgEEMA0GCSqGSIb3DQEBBAUAA4GBAEBt7xTs2htdD3d4ErrcGAw1
-4dKcVnIWTutoI7xxen26Wwvh8VCsT7i/UeP+rBl9rC/kfjWjzQk3/zleaarGTpBT
-0yp4HXRFFoRhhSE/hP+eteaPXRgrsNRLHe9ZDd69wmh7J1wMDb0m81RG7kqcbsid
-vrzEeLDRiiPl92dyyWmu
------END X509 CRL-----
-"""
-        crl = load_crl(FILETYPE_PEM, crl_txt)
+        crl = load_crl(FILETYPE_PEM, crlData)
         revs = crl.get_revoked()
         self.assertEqual(len(revs), 2)
         self.assertEqual(revs[0].get_serial(), '03AB')
@@ -1824,7 +1823,7 @@ vrzEeLDRiiPl92dyyWmu
         self.assertEqual(revs[1].get_serial(), '0100')
         self.assertEqual(revs[1].get_reason(), 'Superseded')
 
-        der = _runopenssl(crl_txt, "crl", "-outform", "DER")
+        der = _runopenssl(crlData, "crl", "-outform", "DER")
         crl = load_crl(FILETYPE_ASN1, der)
         revs = crl.get_revoked()
         self.assertEqual(len(revs), 2)
@@ -1833,6 +1832,31 @@ vrzEeLDRiiPl92dyyWmu
         self.assertEqual(revs[1].get_serial(), '0100')
         self.assertEqual(revs[1].get_reason(), 'Superseded')
 
+
+    def test_load_crl_wrong_args(self):
+        """
+        Calling L{OpenSSL.crypto.load_crl} with other than two
+        arguments results in a L{TypeError} being raised.
+        """
+        self.assertRaises(TypeError, load_crl)
+        self.assertRaises(TypeError, load_crl, FILETYPE_PEM)
+        self.assertRaises(TypeError, load_crl, FILETYPE_PEM, crlData, None)
+
+
+    def test_load_crl_bad_filetype(self):
+        """
+        Calling L{OpenSSL.crypto.load_crl} with an unknown file type
+        raises a L{ValueError}.
+        """
+        self.assertRaises(ValueError, load_crl, 100, crlData)
+
+
+    def test_load_crl_bad_data(self):
+        """
+        Calling L{OpenSSL.crypto.load_crl} with file data which can't
+        be loaded raises a L{OpenSSL.crypto.Error}.
+        """
+        self.assertRaises(Error, load_crl, FILETYPE_PEM, "hello, world")
 
 
 if __name__ == '__main__':
