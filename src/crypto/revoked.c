@@ -17,7 +17,7 @@ static const char *crl_reasons[] = {
         "superseded",
         "cessationOfOperation",
         "certificateHold",
-        NULL, 
+        NULL,
         "removeFromCRL",
 };
 
@@ -35,11 +35,11 @@ crypto_Revoked_all_reasons(crypto_RevokedObj *self, PyObject *args)
     int j;
 
     list = PyList_New(0);
-    for (j = 0; j < NUM_REASONS; j++) 
+    for (j = 0; j < NUM_REASONS; j++)
     {
-        if( crl_reasons[j] ) 
+        if( crl_reasons[j] )
         {
-	    str = PyString_FromString(crl_reasons[j]);
+            str = PyString_FromString(crl_reasons[j]);
             PyList_Append(list, str);
             Py_DECREF(str);
         }
@@ -99,7 +99,7 @@ delete_reason(STACK_OF(X509_EXTENSION) *sk)
     }
 }
 
-static int 
+static int
 reason_str_to_code(const char * reason_str)
 {
     int reason_code = -1, j;
@@ -109,10 +109,10 @@ reason_str_to_code(const char * reason_str)
      *  get_reason() work in set_reason()  */
     if((spaceless_reason = strdup(reason_str)) == NULL)
         return -1;
-    while((sp = strchr(spaceless_reason, ' ') )) 
+    while((sp = strchr(spaceless_reason, ' ') ))
     {
        memmove(sp, sp+1, strlen(sp));
-    } 
+    }
 
     for (j = 0; j < NUM_REASONS; j++)
     {
@@ -141,13 +141,13 @@ crypto_Revoked_set_reason(crypto_RevokedObj *self, PyObject *args, PyObject *key
     int reason_code;
     ASN1_ENUMERATED *rtmp = NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "z:set_reason", 
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "z:set_reason",
         kwlist, &reason_str))
         return NULL;
 
-    if(reason_str == NULL) 
+    if(reason_str == NULL)
     {
-        delete_reason(self->revoked->extensions); 
+        delete_reason(self->revoked->extensions);
         goto done;
     }
 
@@ -161,7 +161,7 @@ crypto_Revoked_set_reason(crypto_RevokedObj *self, PyObject *args, PyObject *key
     rtmp = ASN1_ENUMERATED_new();
     if (!rtmp || !ASN1_ENUMERATED_set(rtmp, reason_code))
         goto err;
-    delete_reason(self->revoked->extensions); 
+    delete_reason(self->revoked->extensions);
     if (!X509_REVOKED_add1_ext_i2d(self->revoked, NID_crl_reason, rtmp, 0, 0))
         goto err;
 
@@ -240,7 +240,7 @@ crypto_Revoked_set_rev_date(crypto_RevokedObj *self, PyObject *args)
                 "s:set_rev_date", self->revoked->revocationDate, args);
 }
 
-/* The integer is converted to an upper-case hex string 
+/* The integer is converted to an upper-case hex string
  * without a '0x' prefix. */
 static PyObject *
 ASN1_INTEGER_to_PyString(ASN1_INTEGER *asn1_int)
@@ -313,7 +313,7 @@ crypto_Revoked_set_serial(crypto_RevokedObj *self, PyObject *args, PyObject *key
     BIGNUM *serial = NULL;
     ASN1_INTEGER *tmpser = NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "s:set_serial", 
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "s:set_serial",
         kwlist, &hex_str))
         return NULL;
 
@@ -392,11 +392,11 @@ Create a new empty Revoked object.\n\
 ";
 
 static PyObject* crypto_Revoked_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs) {
-    	if (!PyArg_ParseTuple(args, ":Revoked")) {
-		return NULL;
-    	}
-	
-    	return (PyObject *)crypto_Revoked_New(X509_REVOKED_new());
+        if (!PyArg_ParseTuple(args, ":Revoked")) {
+                return NULL;
+        }
+
+        return (PyObject *)crypto_Revoked_New(X509_REVOKED_new());
 }
 
 PyTypeObject crypto_Revoked_Type = {
@@ -443,12 +443,11 @@ PyTypeObject crypto_Revoked_Type = {
 
 int init_crypto_revoked(PyObject *module) {
        if(PyType_Ready(&crypto_Revoked_Type) < 0) {
-       	       return 0;
+               return 0;
        }
-    
+
        if (PyModule_AddObject(module, "Revoked", (PyObject *)&crypto_Revoked_Type) != 0) {
-       	       return 0;
+               return 0;
        }
        return 1;
 }
-
