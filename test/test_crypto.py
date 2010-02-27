@@ -1533,5 +1533,35 @@ class NetscapeSPKITests(TestCase):
 
 
 
+class SignVerifyTests(TestCase):
+    """
+    Tests for L{OpenSSL.crypto.sign} and L{OpenSSL.crypto.verify}.
+    """
+    def test_sign_verify(self):
+        from OpenSSL.crypto import sign, verify
+
+        content = "It was a bright cold day in April, and the clocks were striking thirteen. Winston Smith, his chin nuzzled into his breast in an effort to escape the vile wind, slipped quickly through the glass doors of Victory Mansions, though not quickly enough to prevent a swirl of gritty dust from entering along with him."
+        priv_key = load_privatekey (FILETYPE_PEM, root_key_pem)    # sign the content with this private key
+        good_cert = load_certificate(FILETYPE_PEM, root_cert_pem)  # verify the content with this cert
+        bad_cert = load_certificate(FILETYPE_PEM, server_cert_pem) # certificate unrelated to priv_key, used to trigger an error
+
+        for digest in ('md5', 'sha1'):
+            sig = sign(priv_key, content, digest)
+
+            # Verify the signature of content, will throw an exception if error.
+            verify(good_cert, sig, content, digest)
+
+            # This should fail because the certificate doesn't match the
+            # private key that was used to sign the content.
+            self.assertRaises(Error, verify, bad_cert, sig, content, digest)
+
+            # This should fail because we've "tainted" the content after
+            # signing it.
+            self.assertRaises(Error, verify, good_cert, sig, content+"tainted", digest)
+
+        # test that unknown digest types fail
+        self.assertRaises(ValueError, sign, priv_key, content, "strange-digest")
+        self.assertRaises(ValueError, verify, good_cert, sig, content, "strange-digest")
+
 if __name__ == '__main__':
     main()
