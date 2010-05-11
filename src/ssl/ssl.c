@@ -92,8 +92,12 @@ do {                                                                          \
 } while (0)
 
     ssl_Error = PyErr_NewException("OpenSSL.SSL.Error", NULL, NULL);
-    if (ssl_Error == NULL)
+    if (ssl_Error == NULL) {
         goto error;
+    }
+    /* XXX PyPy hack */
+    Py_INCREF(ssl_Error);
+
     if (PyModule_AddObject(module, "Error", ssl_Error) != 0)
         goto error;
 

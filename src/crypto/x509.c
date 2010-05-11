@@ -852,6 +852,11 @@ init_crypto_x509(PyObject *module)
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.  We need crypto_X509_Type to
+     * still be ours at least until the second PyModule_AddObject call
+     * below.
+     */
+    Py_INCREF((PyObject *)&crypto_X509_Type);
     if (PyModule_AddObject(module, "X509", (PyObject *)&crypto_X509_Type) != 0) {
         return 0;
     }
