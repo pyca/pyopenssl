@@ -441,19 +441,18 @@ Load a certificate revocation list from a buffer\n\
 ";
 
 static PyObject *
-crypto_load_crl(PyObject *spam, PyObject *args)
-{
+crypto_load_crl(PyObject *spam, PyObject *args) {
     int type, len;
     char *buffer;
     BIO *bio;
     X509_CRL *crl;
 
-    if (!PyArg_ParseTuple(args, "is#:load_crl", &type, &buffer, &len))
+    if (!PyArg_ParseTuple(args, "is#:load_crl", &type, &buffer, &len)) {
         return NULL;
+    }
 
     bio = BIO_new_mem_buf(buffer, len);
-    switch (type)
-    {
+    switch (type) {
         case X509_FILETYPE_PEM:
             crl = PEM_read_bio_X509_CRL(bio, NULL, NULL, NULL);
             break;
@@ -469,8 +468,7 @@ crypto_load_crl(PyObject *spam, PyObject *args)
     }
     BIO_free(bio);
 
-    if (crl == NULL)
-    {
+    if (crl == NULL) {
         exception_from_error_queue(crypto_Error);
         return NULL;
     }
