@@ -19,7 +19,8 @@ from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT
 from OpenSSL.crypto import dump_certificate, load_certificate_request
 from OpenSSL.crypto import dump_certificate_request, dump_privatekey
 from OpenSSL.crypto import PKCS7Type, load_pkcs7_data
-from OpenSSL.crypto import PKCS12Type, load_pkcs12, PKCS12
+from OpenSSL.crypto import PKCS12, PKCS12Type, load_pkcs12
+from OpenSSL.crypto import CRL, Revoked, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.test.util import TestCase
 
@@ -226,6 +227,18 @@ Ho4EzbYCOaEAMQA=
 -----END PKCS7-----
 """
 
+crlData ="""\
+-----BEGIN X509 CRL-----
+MIIBWzCBxTANBgkqhkiG9w0BAQQFADBYMQswCQYDVQQGEwJVUzELMAkGA1UECBMC
+SUwxEDAOBgNVBAcTB0NoaWNhZ28xEDAOBgNVBAoTB1Rlc3RpbmcxGDAWBgNVBAMT
+D1Rlc3RpbmcgUm9vdCBDQRcNMDkwNzI2MDQzNDU2WhcNMTIwOTI3MDI0MTUyWjA8
+MBUCAgOrGA8yMDA5MDcyNTIzMzQ1NlowIwICAQAYDzIwMDkwNzI1MjMzNDU2WjAM
+MAoGA1UdFQQDCgEEMA0GCSqGSIb3DQEBBAUAA4GBAEBt7xTs2htdD3d4ErrcGAw1
+4dKcVnIWTutoI7xxen26Wwvh8VCsT7i/UeP+rBl9rC/kfjWjzQk3/zleaarGTpBT
+0yp4HXRFFoRhhSE/hP+eteaPXRgrsNRLHe9ZDd69wmh7J1wMDb0m81RG7kqcbsid
+vrzEeLDRiiPl92dyyWmu
+-----END X509 CRL-----
+"""
 
 class X509ExtTests(TestCase):
     """
@@ -916,6 +929,11 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         # An invalid string results in a ValueError
         self.assertRaises(ValueError, set, "foo bar")
 
+        # The wrong number of arguments results in a TypeError.
+        self.assertRaises(TypeError, set)
+        self.assertRaises(TypeError, set, "20040203040506Z", "20040203040506Z")
+        self.assertRaises(TypeError, get, "foo bar")
+
 
     def test_set_notBefore(self):
         """
@@ -1324,6 +1342,7 @@ def quoteArguments(arguments):
     return ' '.join(map(cmdLineQuote, arguments))
 
 
+
 def _runopenssl(pem, *args):
     """
     Run the command line openssl tool with the given arguments and write
@@ -1531,6 +1550,313 @@ class NetscapeSPKITests(TestCase):
         nspki = NetscapeSPKI()
         self.assertTrue(isinstance(nspki, NetscapeSPKIType))
 
+
+class RevokedTests(TestCase):
+    """
+    Tests for L{OpenSSL.crypto.Revoked}
+    """
+    def test_construction(self):
+        """
+        Confirm we can create L{OpenSSL.crypto.Revoked}.  Check
+        that it is empty.
+        """
+        revoked = Revoked()
+        self.assertTrue( isinstance(revoked, Revoked) )
+        self.assertEqual( type(revoked), Revoked )
+        self.assertEqual( revoked.get_serial(), '00' )
+        self.assertEqual( revoked.get_rev_date(), None )
+        self.assertEqual( revoked.get_reason(), None )
+
+
+    def test_construction_wrong_args(self):
+        """
+        Calling L{OpenSSL.crypto.Revoked} with any arguments results
+        in a L{TypeError} being raised.
+        """
+        self.assertRaises(TypeError, Revoked, None)
+        self.assertRaises(TypeError, Revoked, 1)
+        self.assertRaises(TypeError, Revoked, "foo")
+
+
+    def test_serial(self):
+        """
+        Confirm we can set and get serial numbers from
+        L{OpenSSL.crypto.Revoked}.  Confirm errors are handled
+        with grace.
+        """
+        revoked = Revoked()
+        ret = revoked.set_serial('10b')
+        self.assertEqual( ret, None )
+        ser = revoked.get_serial()
+        self.assertEqual( ser, '010B' )
+
+        revoked.set_serial('31ppp')  # a type error would be nice
+        ser = revoked.get_serial()
+        self.assertEqual( ser, '31' )
+
+        self.assertRaises(ValueError, revoked.set_serial, 'pqrst')
+        self.assertRaises(TypeError, revoked.set_serial, 100)
+        self.assertRaises(TypeError, revoked.get_serial, 1)
+        self.assertRaises(TypeError, revoked.get_serial, None)
+        self.assertRaises(TypeError, revoked.get_serial, "")
+
+
+    def test_date(self):
+        """
+        Confirm we can set and get revocation dates from
+        L{OpenSSL.crypto.Revoked}.  Confirm errors are handled
+        with grace.
+        """
+        revoked = Revoked()
+        date = revoked.get_rev_date()
+        self.assertEqual( date, None )
+
+        now = datetime.now().strftime("%Y%m%d%H%M%SZ")
+        ret = revoked.set_rev_date(now)
+        self.assertEqual( ret, None )
+        date = revoked.get_rev_date()
+        self.assertEqual( date, now )
+
+
+    def test_reason(self):
+        """
+        Confirm we can set and get revocation reasons from
+        L{OpenSSL.crypto.Revoked}.  The "get" need to work
+        as "set".  Likewise, each reason of all_reasons() must work.
+        """
+        revoked = Revoked()
+        for r in revoked.all_reasons():
+            for x in xrange(2):
+                ret = revoked.set_reason(r)
+                self.assertEqual( ret, None )
+                reason = revoked.get_reason()
+                self.assertEqual( reason.lower().replace(' ',''),
+                                       r.lower().replace(' ','') )
+                r = reason # again with the resp of get
+
+        revoked.set_reason(None)
+        self.assertEqual(revoked.get_reason(), None)
+
+
+    def test_set_reason_wrong_arguments(self):
+        """
+        Calling L{OpenSSL.crypto.Revoked.set_reason} with other than
+        one argument, or an argument which isn't a valid reason,
+        results in L{TypeError} or L{ValueError} being raised.
+        """
+        revoked = Revoked()
+        self.assertRaises(TypeError, revoked.set_reason, 100)
+        self.assertRaises(ValueError, revoked.set_reason, 'blue')
+
+
+    def test_get_reason_wrong_arguments(self):
+        """
+        Calling L{OpenSSL.crypto.Revoked.get_reason} with any
+        arguments results in L{TypeError} being raised.
+        """
+        revoked = Revoked()
+        self.assertRaises(TypeError, revoked.get_reason, None)
+        self.assertRaises(TypeError, revoked.get_reason, 1)
+        self.assertRaises(TypeError, revoked.get_reason, "foo")
+
+
+
+class CRLTests(TestCase):
+    """
+    Tests for L{OpenSSL.crypto.CRL}
+    """
+    cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+    pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+
+    def test_construction(self):
+        """
+        Confirm we can create L{OpenSSL.crypto.CRL}.  Check
+        that it is empty
+        """
+        crl = CRL()
+        self.assertTrue( isinstance(crl, CRL) )
+        self.assertEqual(crl.get_revoked(), None)
+
+
+    def test_construction_wrong_args(self):
+        """
+        Calling L{OpenSSL.crypto.CRL} with any number of arguments
+        results in a L{TypeError} being raised.
+        """
+        self.assertRaises(TypeError, CRL, 1)
+        self.assertRaises(TypeError, CRL, "")
+        self.assertRaises(TypeError, CRL, None)
+
+
+    def test_export(self):
+        """
+        Use python to create a simple CRL with a revocation, and export
+        the CRL in formats of PEM, DER and text.  Those outputs are verified
+        with the openssl program.
+        """
+        crl = CRL()
+        revoked = Revoked()
+        now = datetime.now().strftime("%Y%m%d%H%M%SZ")
+        revoked.set_rev_date(now)
+        revoked.set_serial('3ab')
+        revoked.set_reason('sUpErSeDEd')
+        crl.add_revoked(revoked)
+
+        # PEM format
+        dumped_crl = crl.export(self.cert, self.pkey, days=20)
+        text = _runopenssl(dumped_crl, "crl", "-noout", "-text")
+        text.index('Serial Number: 03AB')
+        text.index('Superseded')
+        text.index('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA')
+
+        # DER format
+        dumped_crl = crl.export(self.cert, self.pkey, FILETYPE_ASN1)
+        text = _runopenssl(dumped_crl, "crl", "-noout", "-text", "-inform", "DER")
+        text.index('Serial Number: 03AB')
+        text.index('Superseded')
+        text.index('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA')
+
+        # text format
+        dumped_text = crl.export(self.cert, self.pkey, type=FILETYPE_TEXT)
+        self.assertEqual(text, dumped_text)
+
+
+    def test_add_revoked_keyword(self):
+        """
+        L{OpenSSL.CRL.add_revoked} accepts its single argument as the
+        I{revoked} keyword argument.
+        """
+        crl = CRL()
+        revoked = Revoked()
+        crl.add_revoked(revoked=revoked)
+        self.assertTrue(isinstance(crl.get_revoked()[0], Revoked))
+
+
+    def test_export_wrong_args(self):
+        """
+        Calling L{OpenSSL.CRL.export} with fewer than two or more than
+        four arguments, or with arguments other than the certificate,
+        private key, integer file type, and integer number of days it
+        expects, results in a L{TypeError} being raised.
+        """
+        crl = CRL()
+        self.assertRaises(TypeError, crl.export)
+        self.assertRaises(TypeError, crl.export, self.cert)
+        self.assertRaises(TypeError, crl.export, self.cert, self.pkey, FILETYPE_PEM, 10, "foo")
+
+        self.assertRaises(TypeError, crl.export, None, self.pkey, FILETYPE_PEM, 10)
+        self.assertRaises(TypeError, crl.export, self.cert, None, FILETYPE_PEM, 10)
+        self.assertRaises(TypeError, crl.export, self.cert, self.pkey, None, 10)
+        self.assertRaises(TypeError, crl.export, self.cert, FILETYPE_PEM, None)
+
+
+    def test_export_unknown_filetype(self):
+        """
+        Calling L{OpenSSL.CRL.export} with a file type other than
+        L{FILETYPE_PEM}, L{FILETYPE_ASN1}, or L{FILETYPE_TEXT} results
+        in a L{ValueError} being raised.
+        """
+        crl = CRL()
+        self.assertRaises(ValueError, crl.export, self.cert, self.pkey, 100, 10)
+
+
+    def test_get_revoked(self):
+        """
+        Use python to create a simple CRL with two revocations.
+        Get back the L{Revoked} using L{OpenSSL.CRL.get_revoked} and
+        verify them.
+        """
+        crl = CRL()
+
+        revoked = Revoked()
+        now = datetime.now().strftime("%Y%m%d%H%M%SZ")
+        revoked.set_rev_date(now)
+        revoked.set_serial('3ab')
+        crl.add_revoked(revoked)
+        revoked.set_serial('100')
+        revoked.set_reason('sUpErSeDEd')
+        crl.add_revoked(revoked)
+
+        revs = crl.get_revoked()
+        self.assertEqual(len(revs), 2)
+        self.assertEqual(type(revs[0]), Revoked)
+        self.assertEqual(type(revs[1]), Revoked)
+        self.assertEqual(revs[0].get_serial(), '03AB')
+        self.assertEqual(revs[1].get_serial(), '0100')
+        self.assertEqual(revs[0].get_rev_date(), now)
+        self.assertEqual(revs[1].get_rev_date(), now)
+
+
+    def test_get_revoked_wrong_args(self):
+        """
+        Calling L{OpenSSL.CRL.get_revoked} with any arguments results
+        in a L{TypeError} being raised.
+        """
+        crl = CRL()
+        self.assertRaises(TypeError, crl.get_revoked, None)
+        self.assertRaises(TypeError, crl.get_revoked, 1)
+        self.assertRaises(TypeError, crl.get_revoked, "")
+        self.assertRaises(TypeError, crl.get_revoked, "", 1, None)
+
+
+    def test_add_revoked_wrong_args(self):
+        """
+        Calling L{OpenSSL.CRL.add_revoked} with other than one
+        argument results in a L{TypeError} being raised.
+        """
+        crl = CRL()
+        self.assertRaises(TypeError, crl.add_revoked)
+        self.assertRaises(TypeError, crl.add_revoked, 1, 2)
+        self.assertRaises(TypeError, crl.add_revoked, "foo", "bar")
+
+
+    def test_load_crl(self):
+        """
+        Load a known CRL and inspect its revocations.  Both
+        PEM and DER formats are loaded.
+        """
+        crl = load_crl(FILETYPE_PEM, crlData)
+        revs = crl.get_revoked()
+        self.assertEqual(len(revs), 2)
+        self.assertEqual(revs[0].get_serial(), '03AB')
+        self.assertEqual(revs[0].get_reason(), None)
+        self.assertEqual(revs[1].get_serial(), '0100')
+        self.assertEqual(revs[1].get_reason(), 'Superseded')
+
+        der = _runopenssl(crlData, "crl", "-outform", "DER")
+        crl = load_crl(FILETYPE_ASN1, der)
+        revs = crl.get_revoked()
+        self.assertEqual(len(revs), 2)
+        self.assertEqual(revs[0].get_serial(), '03AB')
+        self.assertEqual(revs[0].get_reason(), None)
+        self.assertEqual(revs[1].get_serial(), '0100')
+        self.assertEqual(revs[1].get_reason(), 'Superseded')
+
+
+    def test_load_crl_wrong_args(self):
+        """
+        Calling L{OpenSSL.crypto.load_crl} with other than two
+        arguments results in a L{TypeError} being raised.
+        """
+        self.assertRaises(TypeError, load_crl)
+        self.assertRaises(TypeError, load_crl, FILETYPE_PEM)
+        self.assertRaises(TypeError, load_crl, FILETYPE_PEM, crlData, None)
+
+
+    def test_load_crl_bad_filetype(self):
+        """
+        Calling L{OpenSSL.crypto.load_crl} with an unknown file type
+        raises a L{ValueError}.
+        """
+        self.assertRaises(ValueError, load_crl, 100, crlData)
+
+
+    def test_load_crl_bad_data(self):
+        """
+        Calling L{OpenSSL.crypto.load_crl} with file data which can't
+        be loaded raises a L{OpenSSL.crypto.Error}.
+        """
+        self.assertRaises(Error, load_crl, FILETYPE_PEM, "hello, world")
 
 
 if __name__ == '__main__':
