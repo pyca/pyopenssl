@@ -1866,10 +1866,19 @@ class SignVerifyTests(TestCase):
     def test_sign_verify(self):
         from OpenSSL.crypto import sign, verify
 
-        content = "It was a bright cold day in April, and the clocks were striking thirteen. Winston Smith, his chin nuzzled into his breast in an effort to escape the vile wind, slipped quickly through the glass doors of Victory Mansions, though not quickly enough to prevent a swirl of gritty dust from entering along with him."
-        priv_key = load_privatekey (FILETYPE_PEM, root_key_pem)    # sign the content with this private key
-        good_cert = load_certificate(FILETYPE_PEM, root_cert_pem)  # verify the content with this cert
-        bad_cert = load_certificate(FILETYPE_PEM, server_cert_pem) # certificate unrelated to priv_key, used to trigger an error
+        content = (
+            "It was a bright cold day in April, and the clocks were striking "
+            "thirteen. Winston Smith, his chin nuzzled into his breast in an "
+            "effort to escape the vile wind, slipped quickly through the "
+            "glass doors of Victory Mansions, though not quickly enough to "
+            "prevent a swirl of gritty dust from entering along with him.")
+
+        # sign the content with this private key
+        priv_key = load_privatekey (FILETYPE_PEM, root_key_pem)
+        # verify the content with this cert
+        good_cert = load_certificate(FILETYPE_PEM, root_cert_pem)
+        # certificate unrelated to priv_key, used to trigger an error
+        bad_cert = load_certificate(FILETYPE_PEM, server_cert_pem)
 
         for digest in ('md5', 'sha1'):
             sig = sign(priv_key, content, digest)
@@ -1888,6 +1897,7 @@ class SignVerifyTests(TestCase):
         # test that unknown digest types fail
         self.assertRaises(ValueError, sign, priv_key, content, "strange-digest")
         self.assertRaises(ValueError, verify, good_cert, sig, content, "strange-digest")
+
 
 if __name__ == '__main__':
     main()
