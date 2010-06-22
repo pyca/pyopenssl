@@ -632,7 +632,7 @@ crypto_sign(PyObject *spam, PyObject *args) {
         return NULL;
     }
 
-    buffer = PyString_FromStringAndSize(sig_buf, sig_len);
+    buffer = PyString_FromStringAndSize((char*)sig_buf, sig_len);
     return buffer;
 }
 
