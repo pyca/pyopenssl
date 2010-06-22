@@ -601,40 +601,39 @@ Sign data with a digest\n\
 ";
 
 static PyObject *
-crypto_sign(PyObject *spam, PyObject *args)
-{
-  PyObject *buffer;
-  crypto_PKeyObj *pkey;
-  char *data = NULL;
-  char *digest_name;
-  int err;
-  unsigned int sig_len;
-  const EVP_MD *digest;
-  EVP_MD_CTX md_ctx;
-  unsigned char sig_buf[512];
+crypto_sign(PyObject *spam, PyObject *args) {
+    PyObject *buffer;
+    crypto_PKeyObj *pkey;
+    char *data = NULL;
+    char *digest_name;
+    int err;
+    unsigned int sig_len;
+    const EVP_MD *digest;
+    EVP_MD_CTX md_ctx;
+    unsigned char sig_buf[512];
 
-  if (!PyArg_ParseTuple(args, "O!ss:sign", &crypto_PKey_Type,
-			&pkey, &data, &digest_name))
-    return NULL;
-
-  if ((digest = EVP_get_digestbyname(digest_name)) == NULL)
-    {
-      PyErr_SetString(PyExc_ValueError, "No such digest method");
-      return NULL;
+    if (!PyArg_ParseTuple(args, "O!ss:sign", &crypto_PKey_Type,
+                          &pkey, &data, &digest_name)) {
+        return NULL;
     }
 
-  EVP_SignInit (&md_ctx, digest);
-  EVP_SignUpdate (&md_ctx, data, strlen(data));
-  sig_len = sizeof(sig_buf);
-  err = EVP_SignFinal (&md_ctx, sig_buf, &sig_len, pkey->pkey);
+    if ((digest = EVP_get_digestbyname(digest_name)) == NULL) {
+        PyErr_SetString(PyExc_ValueError, "No such digest method");
+        return NULL;
+    }
 
-  if (err != 1) {
-    exception_from_error_queue(crypto_Error);
-    return NULL;
-  }
+    EVP_SignInit (&md_ctx, digest);
+    EVP_SignUpdate (&md_ctx, data, strlen(data));
+    sig_len = sizeof(sig_buf);
+    err = EVP_SignFinal (&md_ctx, sig_buf, &sig_len, pkey->pkey);
 
-  buffer = PyString_FromStringAndSize(sig_buf, sig_len);
-  return buffer;
+    if (err != 1) {
+        exception_from_error_queue(crypto_Error);
+        return NULL;
+    }
+
+    buffer = PyString_FromStringAndSize(sig_buf, sig_len);
+    return buffer;
 }
 
 static char crypto_verify_doc[] = "\n\
