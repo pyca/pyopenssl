@@ -22,6 +22,7 @@ from OpenSSL.crypto import PKCS7Type, load_pkcs7_data
 from OpenSSL.crypto import PKCS12, PKCS12Type, load_pkcs12
 from OpenSSL.crypto import CRL, Revoked, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
+from OpenSSL.crypto import sign, verify
 from OpenSSL.test.util import TestCase
 
 
@@ -1864,8 +1865,9 @@ class SignVerifyTests(TestCase):
     Tests for L{OpenSSL.crypto.sign} and L{OpenSSL.crypto.verify}.
     """
     def test_sign_verify(self):
-        from OpenSSL.crypto import sign, verify
-
+        """
+        L{sign} generates a cryptographic signature which L{verify} can check.
+        """
         content = (
             "It was a bright cold day in April, and the clocks were striking "
             "thirteen. Winston Smith, his chin nuzzled into his breast in an "
@@ -1874,7 +1876,7 @@ class SignVerifyTests(TestCase):
             "prevent a swirl of gritty dust from entering along with him.")
 
         # sign the content with this private key
-        priv_key = load_privatekey (FILETYPE_PEM, root_key_pem)
+        priv_key = load_privatekey(FILETYPE_PEM, root_key_pem)
         # verify the content with this cert
         good_cert = load_certificate(FILETYPE_PEM, root_cert_pem)
         # certificate unrelated to priv_key, used to trigger an error
