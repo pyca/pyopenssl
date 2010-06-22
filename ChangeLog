@@ -1,3 +1,12 @@
+2010-02-27  James Yonan <james@openvpn.net>
+
+	* src/crypto/crypto.c: Added crypto.sign and crypto.verify methods
+	  that wrap EVP_Sign and EVP_Verify function families, using code
+	  derived from Dave Cridland's PyOpenSSL branch.
+
+	* test/test_crypto.py: Added unit tests for crypto.sign and
+	  crypto.verify.
+
 2010-01-27  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* src/ssl/connection.c, src/util.h: Apply patch from Sandro Tosi to

@@ -2,6 +2,7 @@
  * crypto.c
  *
  * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) Keyphrene 2004, All rights reserved
  * Copyright (C) Jean-Paul Calderone 2008-2009, All rights reserved
  *
  * Main file of crypto sub module.
@@ -590,6 +591,101 @@ crypto_exception_from_error_queue(PyObject *spam, PyObject *eggs) {
     return NULL;
 }
 
+static char crypto_sign_doc[] = "\n\
+Sign data with a digest\n\
+\n\
+@param pkey: Pkey to sign with\n\
+@param data: data to be signed\n\
+@param digest: message digest to use\n\
+@return: signature\n\
+";
+
+static PyObject *
+crypto_sign(PyObject *spam, PyObject *args) {
+    PyObject *buffer;
+    crypto_PKeyObj *pkey;
+    char *data = NULL;
+    char *digest_name;
+    int err;
+    unsigned int sig_len;
+    const EVP_MD *digest;
+    EVP_MD_CTX md_ctx;
+    unsigned char sig_buf[512];
+
+    if (!PyArg_ParseTuple(args, "O!ss:sign", &crypto_PKey_Type,
+                          &pkey, &data, &digest_name)) {
+        return NULL;
+    }
+
+    if ((digest = EVP_get_digestbyname(digest_name)) == NULL) {
+        PyErr_SetString(PyExc_ValueError, "No such digest method");
+        return NULL;
+    }
+
+    EVP_SignInit(&md_ctx, digest);
+    EVP_SignUpdate(&md_ctx, data, strlen(data));
+    sig_len = sizeof(sig_buf);
+    err = EVP_SignFinal(&md_ctx, sig_buf, &sig_len, pkey->pkey);
+
+    if (err != 1) {
+        exception_from_error_queue(crypto_Error);
+        return NULL;
+    }
+
+    buffer = PyString_FromStringAndSize((char*)sig_buf, sig_len);
+    return buffer;
+}
+
+static char crypto_verify_doc[] = "\n\
+Verify a signature\n\
+\n\
+@param cert: signing certificate (X509 object)\n\
+@param signature: signature returned by sign function\n\
+@param data: data to be verified\n\
+@param digest: message digest to use\n\
+@return: None if the signature is correct, raise exception otherwise\n\
+";
+
+static PyObject *
+crypto_verify(PyObject *spam, PyObject *args) {
+    crypto_X509Obj *cert;
+    unsigned char *signature;
+    int sig_len;
+    char *data, *digest_name;
+    int err;
+    const EVP_MD *digest;
+    EVP_MD_CTX md_ctx;
+    EVP_PKEY *pkey;
+
+    if (!PyArg_ParseTuple(args, "O!t#ss:verify", &crypto_X509_Type, &cert, &signature, &sig_len,
+                          &data, &digest_name)) {
+        return NULL;
+    }
+
+    if ((digest = EVP_get_digestbyname(digest_name)) == NULL){
+        PyErr_SetString(PyExc_ValueError, "No such digest method");
+        return NULL;
+    }
+
+    pkey = X509_get_pubkey(cert->x509);
+    if (pkey == NULL) {
+        PyErr_SetString(PyExc_ValueError, "No public key");
+        return NULL;
+    }
+
+    EVP_VerifyInit(&md_ctx, digest);
+    EVP_VerifyUpdate(&md_ctx, data, strlen((char*)data));
+    err = EVP_VerifyFinal(&md_ctx, signature, sig_len, pkey);
+    EVP_PKEY_free(pkey);
+
+    if (err != 1) {
+        exception_from_error_queue(crypto_Error);
+        return NULL;
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
 
 /* Methods in the OpenSSL.crypto module (i.e. none) */
 static PyMethodDef crypto_methods[] = {
@@ -603,6 +699,8 @@ static PyMethodDef crypto_methods[] = {
     { "load_crl",         (PyCFunction)crypto_load_crl,         METH_VARARGS, crypto_load_crl_doc },
     { "load_pkcs7_data", (PyCFunction)crypto_load_pkcs7_data, METH_VARARGS, crypto_load_pkcs7_data_doc },
     { "load_pkcs12", (PyCFunction)crypto_load_pkcs12, METH_VARARGS, crypto_load_pkcs12_doc },
+    { "sign", (PyCFunction)crypto_sign, METH_VARARGS, crypto_sign_doc },
+    { "verify", (PyCFunction)crypto_verify, METH_VARARGS, crypto_verify_doc },
     { "X509_verify_cert_error_string", (PyCFunction)crypto_X509_verify_cert_error_string, METH_VARARGS, crypto_X509_verify_cert_error_string_doc },
     { "_exception_from_error_queue", (PyCFunction)crypto_exception_from_error_queue, METH_NOARGS, crypto_exception_from_error_queue_doc },
     { NULL, NULL }
