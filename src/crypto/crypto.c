@@ -622,10 +622,10 @@ crypto_sign(PyObject *spam, PyObject *args) {
         return NULL;
     }
 
-    EVP_SignInit (&md_ctx, digest);
-    EVP_SignUpdate (&md_ctx, data, strlen(data));
+    EVP_SignInit(&md_ctx, digest);
+    EVP_SignUpdate(&md_ctx, data, strlen(data));
     sig_len = sizeof(sig_buf);
-    err = EVP_SignFinal (&md_ctx, sig_buf, &sig_len, pkey->pkey);
+    err = EVP_SignFinal(&md_ctx, sig_buf, &sig_len, pkey->pkey);
 
     if (err != 1) {
         exception_from_error_queue(crypto_Error);
@@ -647,43 +647,44 @@ Verify a signature\n\
 ";
 
 static PyObject *
-crypto_verify(PyObject *spam, PyObject *args)
-{
-  crypto_X509Obj *cert;
-  unsigned char *signature;
-  int sig_len;
-  char *data, *digest_name;
-  int err;
-  const EVP_MD *digest;
-  EVP_MD_CTX md_ctx;
-  EVP_PKEY *pkey;
+crypto_verify(PyObject *spam, PyObject *args) {
+    crypto_X509Obj *cert;
+    unsigned char *signature;
+    int sig_len;
+    char *data, *digest_name;
+    int err;
+    const EVP_MD *digest;
+    EVP_MD_CTX md_ctx;
+    EVP_PKEY *pkey;
 
-  if (!PyArg_ParseTuple(args, "O!t#ss:verify", &crypto_X509_Type, &cert, &signature, &sig_len,
-			&data, &digest_name))
-    return NULL;
+    if (!PyArg_ParseTuple(args, "O!t#ss:verify", &crypto_X509_Type, &cert, &signature, &sig_len,
+                          &data, &digest_name)) {
+        return NULL;
+    }
 
-  if ((digest = EVP_get_digestbyname(digest_name)) == NULL){
-    PyErr_SetString(PyExc_ValueError, "No such digest method");
-    return NULL;
-  }
-  pkey=X509_get_pubkey(cert->x509);
-  if (pkey == NULL) {
-    PyErr_SetString(PyExc_ValueError, "No public key");
-    return NULL;
-  }
+    if ((digest = EVP_get_digestbyname(digest_name)) == NULL){
+        PyErr_SetString(PyExc_ValueError, "No such digest method");
+        return NULL;
+    }
 
-  EVP_VerifyInit (&md_ctx, digest);
-  EVP_VerifyUpdate (&md_ctx, data, strlen((char*)data));
-  err = EVP_VerifyFinal (&md_ctx, signature, sig_len, pkey);
-  EVP_PKEY_free (pkey);
+    pkey = X509_get_pubkey(cert->x509);
+    if (pkey == NULL) {
+        PyErr_SetString(PyExc_ValueError, "No public key");
+        return NULL;
+    }
 
-  if (err != 1) {
-    exception_from_error_queue(crypto_Error);
-    return NULL;
-  }
+    EVP_VerifyInit(&md_ctx, digest);
+    EVP_VerifyUpdate(&md_ctx, data, strlen((char*)data));
+    err = EVP_VerifyFinal(&md_ctx, signature, sig_len, pkey);
+    EVP_PKEY_free(pkey);
 
-  Py_INCREF(Py_None);
-  return Py_None;
+    if (err != 1) {
+        exception_from_error_queue(crypto_Error);
+        return NULL;
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 /* Methods in the OpenSSL.crypto module (i.e. none) */
