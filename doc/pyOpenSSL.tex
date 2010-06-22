@@ -207,6 +207,14 @@ representing a NetscapeSPKI object, as returned by the \method{b64_encode}
 method.
 \end{classdesc}
 
+\begin{classdesc}{CRL}{}
+A class representing Certifcate Revocation List objects.
+\end{classdesc}
+
+\begin{classdesc}{Revoked}{}
+A class representing Revocation objects of CRL.
+\end{classdesc}
+
 \begin{datadesc}{FILETYPE_PEM}
 \dataline{FILETYPE_ASN1}
 File type constants.
@@ -257,6 +265,12 @@ the type \var{type} (must be one of \constant{FILETYPE_PEM} and
 
 \var{passphrase} must be either a string or a callback for providing the
 pass phrase.
+\end{funcdesc}
+
+\begin{funcdesc}{load_crl}{type, buffer}
+Load Certificate Revocation List (CRL) data from a string \var{buffer}.
+\var{buffer} encoded with the type \var{type}.  The type \var{type} 
+must either \constant{FILETYPE_PEM} or \constant{FILETYPE_ASN1}).
 \end{funcdesc}
 
 \begin{funcdesc}{load_pkcs7_data}{type, buffer}
@@ -610,6 +624,60 @@ example, \constant{"md5"} or \constant{"sha1"}.
 
 \begin{methoddesc}[NetscapeSPKI]{verify}{key}
 Verify the NetscapeSPKI object using the given \var{key}.
+\end{methoddesc}
+
+\subsubsection{CRL objects \label{crl}}
+
+CRL objects have the following methods:
+
+\begin{methoddesc}[CRL]{add_revoked}{revoked}
+Add a Revoked object to the CRL, by value not reference.
+\end{methoddesc}
+
+\begin{methoddesc}[CRL]{export}{cert, key\optional{, type=FILETYPE_PEM}\optional{, days=100}}
+Use \var{cert} and \var{key} to sign the CRL and return the CRL as a string.
+\var{days} is the number of days before the next CRL is due.
+\end{methoddesc}
+
+\begin{methoddesc}[CRL]{get_revoked}{}
+Return a tuple of Revoked objects, by value not reference.
+\end{methoddesc}
+
+\subsubsection{Revoked objects \label{revoked}}
+
+Revoked objects have the following methods:
+
+\begin{methoddesc}[Revoked]{all_reasons}{}
+Return a list of all supported reasons.
+\end{methoddesc}
+
+\begin{methoddesc}[Revoked]{get_reason}{}
+Return the revocation reason as a str.  Can be
+None, which differs from "Unspecified".
+\end{methoddesc}
+
+\begin{methoddesc}[Revoked]{get_rev_date}{}
+Return the revocation date as a str.
+The string is formatted as an ASN1 GENERALIZEDTIME.
+\end{methoddesc}
+
+\begin{methoddesc}[Revoked]{get_serial}{}
+Return a str containing a hex number of the serial of the revoked certificate.
+\end{methoddesc}
+
+\begin{methoddesc}[Revoked]{set_reason}{reason}
+Set the revocation reason.  \var{reason} must
+be None or a string, but the values are limited.  
+Spaces and case are ignored.  See \method{all_reasons}.
+\end{methoddesc}
+
+\begin{methoddesc}[Revoked]{set_rev_date}{date}
+Set the revocation date.
+The string is formatted as an ASN1 GENERALIZEDTIME.
+\end{methoddesc}
+
+\begin{methoddesc}[Revoked]{set_serial}{serial}
+\var{serial} is a string containing a hex number of the serial of the revoked certificate.
 \end{methoddesc}
 
 

@@ -16,8 +16,6 @@
 #include <Python.h>
 #include <openssl/ssl.h>
 
-extern  int       init_crypto_x509   (PyObject *);
-
 extern  PyTypeObject      crypto_X509_Type;
 
 #define crypto_X509_Check(v) ((v)->ob_type == &crypto_X509_Type)
@@ -27,6 +25,10 @@ typedef struct {
     X509                *x509;
     int                  dealloc;
 } crypto_X509Obj;
+
+PyObject* _set_asn1_time(char *format, ASN1_TIME* timestamp, PyObject *args);
+PyObject* _get_asn1_time(char *format, ASN1_TIME* timestamp, PyObject *args);
+extern  int       init_crypto_x509   (PyObject *);
 
 
 #endif

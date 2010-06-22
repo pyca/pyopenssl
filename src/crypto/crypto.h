@@ -23,6 +23,8 @@
 #include "x509ext.h"
 #include "pkcs7.h"
 #include "pkcs12.h"
+#include "crl.h"
+#include "revoked.h"
 #include "../util.h"
 
 extern PyObject *crypto_Error;
