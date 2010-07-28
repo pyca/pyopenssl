@@ -19,7 +19,7 @@ from distutils.core import Extension, setup
 from distutils.errors import DistutilsFileError
 from distutils.command.build_ext import build_ext
 
-from version import __version__
+from OpenSSL.version import __version__
 
 crypto_src = ['OpenSSL/crypto/crypto.c', 'OpenSSL/crypto/x509.c',
               'OpenSSL/crypto/x509name.c', 'OpenSSL/crypto/pkey.c',
