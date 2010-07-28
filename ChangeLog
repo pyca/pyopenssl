@@ -1,3 +1,8 @@
+2010-07-27  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* Re-arrange the repository so that the package can be built and
+	  used in-place without requiring installation.
+
 2010-02-27  James Yonan <james@openvpn.net>
 
 	* src/crypto/crypto.c: Added crypto.sign and crypto.verify methods
