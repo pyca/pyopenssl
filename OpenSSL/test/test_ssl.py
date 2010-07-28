@@ -54,7 +54,7 @@ def socket_pair():
     client.send("y")
     assert server.recv(1024) == "y"
 
-    # All our callers want non-blocking sockets, make it easy for them.
+    # Most of our callers want non-blocking sockets, make it easy for them.
     server.setblocking(False)
     client.setblocking(False)
 
@@ -235,8 +235,8 @@ class ContextTests(TestCase):
         self._load_verify_locations_test(None, capath)
 
 
-    if platform in ("darwin", "win32"):
-        "set_default_verify_paths appears not to work on OS X or Windows"
+    if platform == "win32":
+        "set_default_verify_paths appears not to work on Windows.  "
         "See LP#404343 and LP#404344."
     else:
         def test_set_default_verify_paths(self):
@@ -302,6 +302,7 @@ class ContextTests(TestCase):
 
 
 
+
 class ConnectionTests(TestCase):
     """
     Unit tests for L{OpenSSL.SSL.Connection}.
@@ -333,6 +334,57 @@ class ConnectionTests(TestCase):
         """
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, connection.get_context, None)
+
+
+
+class ConnectionSendallTests(TestCase):
+    """
+    Tests for L{Connection.sendall}.
+    """
+    def _loopback(self):
+        (server, client) = socket_pair()
+
+        ctx = Context(TLSv1_METHOD)
+        ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
+        ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
+        server = Connection(ctx, server)
+        server.set_accept_state()
+        client = Connection(Context(TLSv1_METHOD), client)
+        client.set_connect_state()
+
+        for i in range(3):
+            for conn in [client, server]:
+                try:
+                    conn.do_handshake()
+                except WantReadError:
+                    pass
+
+        server.setblocking(True)
+        client.setblocking(True)
+        return server, client
+
+
+    def test_short(self):
+        """
+        L{Connection.sendall} transmits all of the bytes in the string passed to
+        it.
+        """
+        server, client = self._loopback()
+        server.sendall('x')
+        self.assertEquals(client.recv(1), 'x')
+
+
+    def test_long(self):
+        server, client = self._loopback()
+        message ='x' * 1024 * 128 + 'y'
+        server.sendall(message)
+        accum = []
+        received = 0
+        while received < len(message):
+            bytes = client.recv(1024)
+            accum.append(bytes)
+            received += len(bytes)
+        self.assertEquals(message, ''.join(accum))
 
 
 
