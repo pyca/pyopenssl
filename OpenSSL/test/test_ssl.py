@@ -337,6 +337,21 @@ class ConnectionTests(TestCase):
 
 
 
+class ConnectionGetCipherListTests(TestCase):
+    def test_wrongargs(self):
+        connection = Connection(Context(TLSv1_METHOD), None)
+        self.assertRaises(TypeError, connection.get_cipher_list, None)
+
+
+    def test_result(self):
+        connection = Connection(Context(TLSv1_METHOD), None)
+        ciphers = connection.get_cipher_list()
+        self.assertTrue(isinstance(ciphers, list))
+        for cipher in ciphers:
+            self.assertTrue(isinstance(cipher, str))
+
+
+
 class ConnectionSendallTests(TestCase):
     """
     Tests for L{Connection.sendall}.
