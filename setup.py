@@ -21,26 +21,26 @@ from distutils.command.build_ext import build_ext
 
 from version import __version__
 
-crypto_src = ['src/crypto/crypto.c', 'src/crypto/x509.c',
-              'src/crypto/x509name.c', 'src/crypto/pkey.c',
-              'src/crypto/x509store.c', 'src/crypto/x509req.c',
-              'src/crypto/x509ext.c', 'src/crypto/pkcs7.c',
-              'src/crypto/pkcs12.c', 'src/crypto/netscape_spki.c',
-              'src/crypto/revoked.c', 'src/crypto/crl.c',
-              'src/util.c']
-crypto_dep = ['src/crypto/crypto.h', 'src/crypto/x509.h',
-              'src/crypto/x509name.h', 'src/crypto/pkey.h',
-              'src/crypto/x509store.h', 'src/crypto/x509req.h',
-              'src/crypto/x509ext.h', 'src/crypto/pkcs7.h',
-              'src/crypto/pkcs12.h', 'src/crypto/netscape_spki.h',
-              'src/crypto/revoked.h', 'src/crypto/crl.h',
-              'src/util.h']
-rand_src = ['src/rand/rand.c', 'src/util.c']
-rand_dep = ['src/util.h']
-ssl_src = ['src/ssl/connection.c', 'src/ssl/context.c', 'src/ssl/ssl.c',
-           'src/util.c']
-ssl_dep = ['src/ssl/connection.h', 'src/ssl/context.h', 'src/ssl/ssl.h',
-           'src/util.h']
+crypto_src = ['OpenSSL/crypto/crypto.c', 'OpenSSL/crypto/x509.c',
+              'OpenSSL/crypto/x509name.c', 'OpenSSL/crypto/pkey.c',
+              'OpenSSL/crypto/x509store.c', 'OpenSSL/crypto/x509req.c',
+              'OpenSSL/crypto/x509ext.c', 'OpenSSL/crypto/pkcs7.c',
+              'OpenSSL/crypto/pkcs12.c', 'OpenSSL/crypto/netscape_spki.c',
+              'OpenSSL/crypto/revoked.c', 'OpenSSL/crypto/crl.c',
+              'OpenSSL/util.c']
+crypto_dep = ['OpenSSL/crypto/crypto.h', 'OpenSSL/crypto/x509.h',
+              'OpenSSL/crypto/x509name.h', 'OpenSSL/crypto/pkey.h',
+              'OpenSSL/crypto/x509store.h', 'OpenSSL/crypto/x509req.h',
+              'OpenSSL/crypto/x509ext.h', 'OpenSSL/crypto/pkcs7.h',
+              'OpenSSL/crypto/pkcs12.h', 'OpenSSL/crypto/netscape_spki.h',
+              'OpenSSL/crypto/revoked.h', 'OpenSSL/crypto/crl.h',
+              'OpenSSL/util.h']
+rand_src = ['OpenSSL/rand/rand.c', 'OpenSSL/util.c']
+rand_dep = ['OpenSSL/util.h']
+ssl_src = ['OpenSSL/ssl/connection.c', 'OpenSSL/ssl/context.c', 'OpenSSL/ssl/ssl.c',
+           'OpenSSL/util.c']
+ssl_dep = ['OpenSSL/ssl/connection.h', 'OpenSSL/ssl/context.h', 'OpenSSL/ssl/ssl.h',
+           'OpenSSL/util.h']
 
 IncludeDirs = None
 LibraryDirs = None
@@ -198,7 +198,7 @@ def mkExtension(name):
 
 setup(name='pyOpenSSL', version=__version__,
       packages = ['OpenSSL'],
-      package_dir = {'OpenSSL': '.'},
+      package_dir = {'OpenSSL': 'OpenSSL'},
       ext_modules = [mkExtension('crypto'), mkExtension('rand'),
                      mkExtension('SSL')],
       py_modules  = ['OpenSSL.__init__', 'OpenSSL.tsafe',
