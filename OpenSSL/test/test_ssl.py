@@ -341,6 +341,17 @@ class ConnectionSendallTests(TestCase):
     """
     Tests for L{Connection.sendall}.
     """
+    def test_wrongargs(self):
+        """
+        When called with arguments other than a single string,
+        L{Connection.sendall} raises L{TypeError}.
+        """
+        connection = Connection(Context(TLSv1_METHOD), None)
+        self.assertRaises(TypeError, connection.sendall)
+        self.assertRaises(TypeError, connection.sendall, object())
+        self.assertRaises(TypeError, connection.sendall, "foo", "bar")
+
+
     def _loopback(self):
         (server, client) = socket_pair()
 
