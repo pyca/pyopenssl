@@ -11,7 +11,7 @@ from os.path import join
 from unittest import main
 
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, PKey, dump_privatekey, load_certificate, load_privatekey
-from OpenSSL.SSL import SysCallError, WantReadError, Context, ContextType, Connection, ConnectionType, Error
+from OpenSSL.SSL import SysCallError, WantReadError, WantWriteError, Context, ContextType, Connection, ConnectionType, Error
 from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
 from OpenSSL.SSL import OP_NO_SSLv2, OP_NO_SSLv3, OP_SINGLE_DH_USE
 from OpenSSL.SSL import VERIFY_PEER, VERIFY_FAIL_IF_NO_PEER_CERT, VERIFY_CLIENT_ONCE
@@ -336,6 +336,16 @@ class ConnectionTests(TestCase):
         self.assertRaises(TypeError, connection.get_context, None)
 
 
+    def test_pending(self):
+        connection = Connection(Context(TLSv1_METHOD), None)
+        self.assertEquals(connection.pending(), 0)
+
+
+    def test_pending_wrong_args(self):
+        connection = Connection(Context(TLSv1_METHOD), None)
+        self.assertRaises(TypeError, connection.pending, None)
+
+
 
 class ConnectionGetCipherListTests(TestCase):
     def test_wrongargs(self):
@@ -422,6 +432,7 @@ class ConnectionSendallTests(TestCase):
         client.close()
         server.sendall("hello, world")
         self.assertRaises(SysCallError, server.sendall, "hello, world")
+
 
 
 class ErrorTests(TestCase):
