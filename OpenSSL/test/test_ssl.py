@@ -383,6 +383,13 @@ class ConnectionTests(TestCase):
         self.assertEquals(address, clientSSL.getsockname())
 
 
+    def test_app_data(self):
+        conn = Connection(Context(TLSv1_METHOD), None)
+        app_data = object()
+        conn.set_app_data(app_data)
+        self.assertIdentical(conn.get_app_data(), app_data)
+
+
 
 class ConnectionGetCipherListTests(TestCase):
     def test_wrongargs(self):
