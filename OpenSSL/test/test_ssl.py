@@ -362,21 +362,7 @@ class ConnectionGetCipherListTests(TestCase):
 
 
 
-class ConnectionSendallTests(TestCase):
-    """
-    Tests for L{Connection.sendall}.
-    """
-    def test_wrongargs(self):
-        """
-        When called with arguments other than a single string,
-        L{Connection.sendall} raises L{TypeError}.
-        """
-        connection = Connection(Context(TLSv1_METHOD), None)
-        self.assertRaises(TypeError, connection.sendall)
-        self.assertRaises(TypeError, connection.sendall, object())
-        self.assertRaises(TypeError, connection.sendall, "foo", "bar")
-
-
+class _LoopbackMixin:
     def _loopback(self):
         (server, client) = socket_pair()
 
@@ -398,6 +384,22 @@ class ConnectionSendallTests(TestCase):
         server.setblocking(True)
         client.setblocking(True)
         return server, client
+
+
+
+class ConnectionSendallTests(TestCase, _LoopbackMixin):
+    """
+    Tests for L{Connection.sendall}.
+    """
+    def test_wrongargs(self):
+        """
+        When called with arguments other than a single string,
+        L{Connection.sendall} raises L{TypeError}.
+        """
+        connection = Connection(Context(TLSv1_METHOD), None)
+        self.assertRaises(TypeError, connection.sendall)
+        self.assertRaises(TypeError, connection.sendall, object())
+        self.assertRaises(TypeError, connection.sendall, "foo", "bar")
 
 
     def test_short(self):
@@ -432,6 +434,37 @@ class ConnectionSendallTests(TestCase):
         client.close()
         server.sendall("hello, world")
         self.assertRaises(SysCallError, server.sendall, "hello, world")
+
+
+
+class ConnectionRenegotiateTests(TestCase, _LoopbackMixin):
+    """
+    Tests for SSL renegotiation APIs.
+    """
+    def test_renegotiate_wrong_args(self):
+        connection = Connection(Context(TLSv1_METHOD), None)
+        self.assertRaises(TypeError, connection.renegotiate, None)
+
+
+#     def test_renegotiate(self):
+#         """
+#         """
+#         server, client = self._loopback()
+
+#         server.send("hello world")
+#         self.assertEquals(client.recv(len("hello world")), "hello world")
+
+#         self.assertEquals(server.total_renegotiations(), 0)
+#         self.assertTrue(server.renegotiate())
+
+#         server.setblocking(False)
+#         client.setblocking(False)
+#         while server.renegotiate_pending():
+#             client.do_handshake()
+#             server.do_handshake()
+
+#         self.assertEquals(server.total_renegotiations(), 1)
+
 
 
 

@@ -520,19 +520,18 @@ Renegotiate the session\n\
 @return: True if the renegotiation can be started, false otherwise\n\
 ";
 static PyObject *
-ssl_Connection_renegotiate(ssl_ConnectionObj *self, PyObject *args)
-{
+ssl_Connection_renegotiate(ssl_ConnectionObj *self, PyObject *args) {
     int ret;
 
-    if (!PyArg_ParseTuple(args, ":renegotiate"))
+    if (!PyArg_ParseTuple(args, ":renegotiate")) {
         return NULL;
+    }
 
     MY_BEGIN_ALLOW_THREADS(self->tstate);
     ret = SSL_renegotiate(self->ssl);
     MY_END_ALLOW_THREADS(self->tstate);
 
-    if (PyErr_Occurred())
-    {
+    if (PyErr_Occurred()) {
         flush_error_queue();
         return NULL;
     }
