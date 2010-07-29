@@ -4,8 +4,9 @@
 Unit tests for L{OpenSSL.SSL}.
 """
 
+from errno import ECONNREFUSED
 from sys import platform
-from socket import socket
+from socket import error, socket
 from os import makedirs
 from os.path import join
 from unittest import main
@@ -344,6 +345,28 @@ class ConnectionTests(TestCase):
     def test_pending_wrong_args(self):
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, connection.pending, None)
+
+
+    def test_connect_refused(self):
+        client = socket()
+        context = Context(TLSv1_METHOD)
+        clientSSL = Connection(context, client)
+        exc = self.assertRaises(error, clientSSL.connect, ("127.0.0.1", 1))
+        self.assertEquals(exc.errno, ECONNREFUSED)
+
+
+    def test_connect(self):
+        ctx = Context(TLSv1_METHOD)
+        ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
+        ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
+        server = socket()
+        serverSSL = Connection(ctx, server)
+        serverSSL.bind(('', 0))
+        serverSSL.listen(3)
+
+        client = Connection(Context(TLSv1_METHOD), socket())
+        client.connect(serverSSL.getsockname())
+
 
 
 
