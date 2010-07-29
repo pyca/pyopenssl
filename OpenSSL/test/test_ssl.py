@@ -356,17 +356,31 @@ class ConnectionTests(TestCase):
 
 
     def test_connect(self):
+        port = socket()
+        port.bind(('', 0))
+        port.listen(3)
+
+        clientSSL = Connection(Context(TLSv1_METHOD), socket())
+        clientSSL.connect(port.getsockname())
+
+
+    def test_accept(self):
         ctx = Context(TLSv1_METHOD)
         ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
         ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
-        server = socket()
-        serverSSL = Connection(ctx, server)
-        serverSSL.bind(('', 0))
-        serverSSL.listen(3)
+        port = socket()
+        portSSL = Connection(ctx, port)
+        portSSL.bind(('', 0))
+        portSSL.listen(3)
 
-        client = Connection(Context(TLSv1_METHOD), socket())
-        client.connect(serverSSL.getsockname())
+        clientSSL = Connection(Context(TLSv1_METHOD), socket())
+        clientSSL.connect(portSSL.getsockname())
 
+        serverSSL, address = portSSL.accept()
+
+        self.assertTrue(isinstance(serverSSL, Connection))
+        self.assertIdentical(serverSSL.get_context(), ctx)
+        self.assertEquals(address, clientSSL.getsockname())
 
 
 
