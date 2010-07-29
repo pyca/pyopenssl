@@ -352,7 +352,7 @@ class ConnectionTests(TestCase):
         context = Context(TLSv1_METHOD)
         clientSSL = Connection(context, client)
         exc = self.assertRaises(error, clientSSL.connect, ("127.0.0.1", 1))
-        self.assertEquals(exc.errno, ECONNREFUSED)
+        self.assertEquals(exc.args[0], ECONNREFUSED)
 
 
     def test_connect(self):
