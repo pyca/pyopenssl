@@ -4,7 +4,7 @@
 Unit tests for L{OpenSSL.SSL}.
 """
 
-from errno import ECONNREFUSED
+from errno import ECONNREFUSED, EINPROGRESS
 from sys import platform
 from socket import error, socket
 from os import makedirs
@@ -362,6 +362,17 @@ class ConnectionTests(TestCase):
 
         clientSSL = Connection(Context(TLSv1_METHOD), socket())
         clientSSL.connect(port.getsockname())
+
+
+    def test_connect_ex(self):
+        port = socket()
+        port.bind(('', 0))
+        port.listen(3)
+
+        clientSSL = Connection(Context(TLSv1_METHOD), socket())
+        clientSSL.setblocking(False)
+        self.assertEquals(
+            clientSSL.connect_ex(port.getsockname()), EINPROGRESS)
 
 
     def test_accept(self):
