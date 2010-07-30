@@ -1530,6 +1530,36 @@ class PKCS7Tests(TestCase):
         # self.assertIdentical(PKCS7, PKCS7Type)
 
 
+    def test_type_is_signed_wrong_args(self):
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertRaises(TypeError, pkcs7.type_is_signed, None)
+
+
+    def test_type_is_signed(self):
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertTrue(pkcs7.type_is_signed())
+
+
+    def test_type_is_enveloped_wrong_args(self):
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertRaises(TypeError, pkcs7.type_is_enveloped, None)
+
+
+    def test_type_is_enveloped(self):
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertFalse(pkcs7.type_is_enveloped())
+
+
+    def test_type_is_signedAndEnveloped_wrong_args(self):
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertRaises(TypeError, pkcs7.type_is_signedAndEnveloped, None)
+
+
+    def test_type_is_signedAndEnveloped(self):
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertFalse(pkcs7.type_is_signedAndEnveloped())
+
+
 
 class NetscapeSPKITests(TestCase):
     """
