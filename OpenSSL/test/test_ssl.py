@@ -99,6 +99,36 @@ class ContextTests(TestCase):
         self.assertRaises(TypeError, ctx.use_privatekey, "")
 
 
+    def test_set_app_data_wrong_args(self):
+        """
+        L{Context.set_app_data} raises L{TypeError} if called with other than
+        one argument.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.set_app_data)
+        self.assertRaises(TypeError, context.set_app_data, None, None)
+
+
+    def test_get_app_data_wrong_args(self):
+        """
+        L{Context.get_app_data} raises L{TypeError} if called with any
+        arguments.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.get_app_data, None)
+
+
+    def test_app_data(self):
+        """
+        L{Context.set_app_data} stores an object for later retrieval using
+        L{Context.get_app_data}.
+        """
+        app_data = object()
+        context = Context(TLSv1_METHOD)
+        context.set_app_data(app_data)
+        self.assertIdentical(context.get_app_data(), app_data)
+
+
     def _write_encrypted_pem(self, passphrase):
         key = PKey()
         key.generate_key(TYPE_RSA, 128)
