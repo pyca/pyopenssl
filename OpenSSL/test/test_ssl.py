@@ -129,6 +129,17 @@ class ContextTests(TestCase):
         self.assertIdentical(context.get_app_data(), app_data)
 
 
+    def test_set_options_wrong_args(self):
+        """
+        L{Context.set_options} raises L{TypeError} if called with the wrong
+        number of arguments or a non-C{int} argument.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.set_options)
+        self.assertRaises(TypeError, context.set_options, None)
+        self.assertRaises(TypeError, context.set_options, 1, None)
+
+
     def _write_encrypted_pem(self, passphrase):
         key = PKey()
         key.generate_key(TYPE_RSA, 128)
