@@ -821,6 +821,14 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
         self.assertEqual(request.get_version(), 3)
 
 
+    def test_version_wrong_args(self):
+        request = X509Req()
+        self.assertRaises(TypeError, request.set_version)
+        self.assertRaises(TypeError, request.set_version, "foo")
+        self.assertRaises(TypeError, request.set_version, 1, 2)
+        self.assertRaises(TypeError, request.get_version, None)
+
+
     def test_get_subject(self):
         """
         L{X509ReqType.get_subject} returns an L{X509Name} for the subject of
@@ -837,6 +845,11 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
         del request
         subject.commonName = "bar"
         self.assertEqual(subject.commonName, "bar")
+
+
+    def test_get_subject_wrong_args(self):
+        request = X509Req()
+        self.assertRaises(TypeError, request.get_subject, None)
 
 
 
