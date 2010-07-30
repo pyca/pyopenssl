@@ -433,6 +433,10 @@ class ConnectionTests(TestCase, _LoopbackMixin):
     def test_shutdown_wrong_args(self):
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, connection.shutdown, None)
+        self.assertRaises(TypeError, connection.get_shutdown, None)
+        self.assertRaises(TypeError, connection.set_shutdown)
+        self.assertRaises(TypeError, connection.set_shutdown, None)
+        self.assertRaises(TypeError, connection.set_shutdown, 0, 1)
 
 
     def test_shutdown(self):
