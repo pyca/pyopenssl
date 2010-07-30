@@ -22,6 +22,7 @@ class RandTests(TestCase):
         self.assertRaises(TypeError, rand.bytes, None)
         self.assertRaises(TypeError, rand.bytes, 3, None)
 
+    # XXX Test failure of the malloc() in rand_bytes.
 
     def test_bytes(self):
         """
