@@ -372,6 +372,11 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, connection.pending, None)
 
 
+    def test_connect_wrong_args(self):
+        connection = Connection(Context(TLSv1_METHOD), socket())
+        self.assertRaises(TypeError, connection.connect, None)
+
+
     def test_connect_refused(self):
         client = socket()
         context = Context(TLSv1_METHOD)
@@ -400,6 +405,11 @@ class ConnectionTests(TestCase, _LoopbackMixin):
             clientSSL.connect_ex(port.getsockname()), EINPROGRESS)
 
 
+    def test_accept_wrong_args(self):
+        connection = Connection(Context(TLSv1_METHOD), socket())
+        self.assertRaises(TypeError, connection.accept, None)
+
+
     def test_accept(self):
         ctx = Context(TLSv1_METHOD)
         ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
@@ -419,10 +429,22 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertEquals(address, clientSSL.getsockname())
 
 
+    def test_shutdown_wrong_args(self):
+        connection = Connection(Context(TLSv1_METHOD), None)
+        self.assertRaises(TypeError, connection.shutdown, None)
+
+
     def test_shutdown(self):
         server, client = self._loopback()
         server.shutdown()
         self.assertRaises(ZeroReturnError, client.recv, 1024)
+
+
+    def test_app_data_wrong_args(self):
+        conn = Connection(Context(TLSv1_METHOD), None)
+        self.assertRaises(TypeError, conn.get_app_data, None)
+        self.assertRaises(TypeError, conn.set_app_data)
+        self.assertRaises(TypeError, conn.set_app_data, None, None)
 
 
     def test_app_data(self):
@@ -430,6 +452,11 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         app_data = object()
         conn.set_app_data(app_data)
         self.assertIdentical(conn.get_app_data(), app_data)
+
+
+    def test_makefile(self):
+        conn = Connection(Context(TLSv1_METHOD), None)
+        self.assertRaises(NotImplementedError, conn.makefile)
 
 
 
@@ -505,6 +532,16 @@ class ConnectionRenegotiateTests(TestCase, _LoopbackMixin):
     def test_renegotiate_wrong_args(self):
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, connection.renegotiate, None)
+
+
+    def test_total_renegotiations_wrong_args(self):
+        connection = Connection(Context(TLSv1_METHOD), None)
+        self.assertRaises(TypeError, connection.total_renegotiations, None)
+
+
+    def test_total_renegotiations(self):
+        connection = Connection(Context(TLSv1_METHOD), None)
+        self.assertEquals(connection.total_renegotiations(), 0)
 
 
 #     def test_renegotiate(self):
