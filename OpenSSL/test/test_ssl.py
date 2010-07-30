@@ -447,6 +447,12 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertEquals(server.get_shutdown(), SENT_SHUTDOWN|RECEIVED_SHUTDOWN)
 
 
+    def test_set_shutdown(self):
+        connection = Connection(Context(TLSv1_METHOD), socket())
+        connection.set_shutdown(RECEIVED_SHUTDOWN)
+        self.assertEquals(connection.get_shutdown(), RECEIVED_SHUTDOWN)
+
+
     def test_app_data_wrong_args(self):
         conn = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, conn.get_app_data, None)
