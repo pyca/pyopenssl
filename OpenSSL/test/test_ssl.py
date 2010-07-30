@@ -140,6 +140,36 @@ class ContextTests(TestCase):
         self.assertRaises(TypeError, context.set_options, 1, None)
 
 
+    def test_set_timeout_wrong_args(self):
+        """
+        L{Context.set_timeout} raises L{TypeError} if called with the wrong
+        number of arguments or a non-C{int} argument.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.set_timeout)
+        self.assertRaises(TypeError, context.set_timeout, None)
+        self.assertRaises(TypeError, context.set_timeout, 1, None)
+
+
+    def test_get_timeout_wrong_args(self):
+        """
+        L{Context.get_timeout} raises L{TypeError} if called with any arguments.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.get_timeout, None)
+
+
+    def test_timeout(self):
+        """
+        L{Context.set_timeout} sets the session timeout for all connections
+        created using the context object.  L{Context.get_timeout} retrieves this
+        value.
+        """
+        context = Context(TLSv1_METHOD)
+        context.set_timeout(1234)
+        self.assertEquals(context.get_timeout(), 1234)
+
+
     def _write_encrypted_pem(self, passphrase):
         key = PKey()
         key.generate_key(TYPE_RSA, 128)
