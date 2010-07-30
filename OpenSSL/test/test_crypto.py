@@ -1560,6 +1560,16 @@ class PKCS7Tests(TestCase):
         self.assertFalse(pkcs7.type_is_signedAndEnveloped())
 
 
+    def test_get_type_name(self):
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertEquals(pkcs7.get_type_name(), 'pkcs7-signedData')
+
+
+    def test_attribute(self):
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertRaises(AttributeError, getattr, pkcs7, "foo")
+
+
 
 class NetscapeSPKITests(TestCase):
     """
