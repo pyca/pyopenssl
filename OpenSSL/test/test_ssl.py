@@ -13,6 +13,7 @@ from unittest import main
 
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, PKey, dump_privatekey, load_certificate, load_privatekey
 from OpenSSL.SSL import SysCallError, WantReadError, WantWriteError, ZeroReturnError, Context, ContextType, Connection, ConnectionType, Error
+from OpenSSL.SSL import SENT_SHUTDOWN, RECEIVED_SHUTDOWN
 from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
 from OpenSSL.SSL import OP_NO_SSLv2, OP_NO_SSLv3, OP_SINGLE_DH_USE
 from OpenSSL.SSL import VERIFY_PEER, VERIFY_FAIL_IF_NO_PEER_CERT, VERIFY_CLIENT_ONCE
@@ -436,8 +437,14 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_shutdown(self):
         server, client = self._loopback()
-        server.shutdown()
+        self.assertFalse(server.shutdown())
+        self.assertEquals(server.get_shutdown(), SENT_SHUTDOWN)
         self.assertRaises(ZeroReturnError, client.recv, 1024)
+        self.assertEquals(client.get_shutdown(), RECEIVED_SHUTDOWN)
+        client.shutdown()
+        self.assertEquals(client.get_shutdown(), SENT_SHUTDOWN|RECEIVED_SHUTDOWN)
+        self.assertRaises(ZeroReturnError, server.recv, 1024)
+        self.assertEquals(server.get_shutdown(), SENT_SHUTDOWN|RECEIVED_SHUTDOWN)
 
 
     def test_app_data_wrong_args(self):
