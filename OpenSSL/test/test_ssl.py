@@ -170,6 +170,36 @@ class ContextTests(TestCase):
         self.assertEquals(context.get_timeout(), 1234)
 
 
+    def test_set_verify_depth_wrong_args(self):
+        """
+        L{Context.set_verify_depth} raises L{TypeError} if called with the wrong
+        number of arguments or a non-C{int} argument.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.set_verify_depth)
+        self.assertRaises(TypeError, context.set_verify_depth, None)
+        self.assertRaises(TypeError, context.set_verify_depth, 1, None)
+
+
+    def test_get_verify_depth_wrong_args(self):
+        """
+        L{Context.get_verify_depth} raises L{TypeError} if called with any arguments.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.get_verify_depth, None)
+
+
+    def test_verify_depth(self):
+        """
+        L{Context.set_verify_depth} sets the number of certificates in a chain
+        to follow before giving up.  The value can be retrieved with
+        L{Context.get_verify_depth}.
+        """
+        context = Context(TLSv1_METHOD)
+        context.set_verify_depth(11)
+        self.assertEquals(context.get_verify_depth(), 11)
+
+
     def _write_encrypted_pem(self, passphrase):
         key = PKey()
         key.generate_key(TYPE_RSA, 128)
