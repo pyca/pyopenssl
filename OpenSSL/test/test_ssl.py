@@ -99,19 +99,23 @@ class ContextTests(TestCase):
         self.assertRaises(TypeError, ctx.use_privatekey, "")
 
 
+    def _write_encrypted_pem(self, passphrase):
+        key = PKey()
+        key.generate_key(TYPE_RSA, 128)
+        pemFile = self.mktemp()
+        fObj = file(pemFile, 'w')
+        fObj.write(dump_privatekey(FILETYPE_PEM, key, "blowfish", passphrase))
+        fObj.close()
+        return pemFile
+
+
     def test_set_passwd_cb(self):
         """
         L{Context.set_passwd_cb} accepts a callable which will be invoked when
         a private key is loaded from an encrypted PEM.
         """
-        key = PKey()
-        key.generate_key(TYPE_RSA, 128)
-        pemFile = self.mktemp()
-        fObj = file(pemFile, 'w')
         passphrase = "foobar"
-        fObj.write(dump_privatekey(FILETYPE_PEM, key, "blowfish", passphrase))
-        fObj.close()
-
+        pemFile = self._write_encrypted_pem(passphrase)
         calledWith = []
         def passphraseCallback(maxlen, verify, extra):
             calledWith.append((maxlen, verify, extra))
@@ -123,6 +127,67 @@ class ContextTests(TestCase):
         self.assertTrue(isinstance(calledWith[0][0], int))
         self.assertTrue(isinstance(calledWith[0][1], int))
         self.assertEqual(calledWith[0][2], None)
+
+
+    def test_passwd_callback_exception(self):
+        """
+        L{Context.use_privatekey_file} propagates any exception raised by the
+        passphrase callback.
+        """
+        pemFile = self._write_encrypted_pem("monkeys are nice")
+        def passphraseCallback(maxlen, verify, extra):
+            raise RuntimeError("Sorry, I am a fail.")
+
+        context = Context(TLSv1_METHOD)
+        context.set_passwd_cb(passphraseCallback)
+        self.assertRaises(RuntimeError, context.use_privatekey_file, pemFile)
+
+
+    def test_passwd_callback_false(self):
+        """
+        L{Context.use_privatekey_file} raises L{OpenSSL.SSL.Error} if the
+        passphrase callback returns a false value.
+        """
+        pemFile = self._write_encrypted_pem("monkeys are nice")
+        def passphraseCallback(maxlen, verify, extra):
+            return None
+
+        context = Context(TLSv1_METHOD)
+        context.set_passwd_cb(passphraseCallback)
+        self.assertRaises(Error, context.use_privatekey_file, pemFile)
+
+
+    def test_passwd_callback_non_string(self):
+        """
+        L{Context.use_privatekey_file} raises L{OpenSSL.SSL.Error} if the
+        passphrase callback returns a true non-string value.
+        """
+        pemFile = self._write_encrypted_pem("monkeys are nice")
+        def passphraseCallback(maxlen, verify, extra):
+            return 10
+
+        context = Context(TLSv1_METHOD)
+        context.set_passwd_cb(passphraseCallback)
+        self.assertRaises(Error, context.use_privatekey_file, pemFile)
+
+
+    def test_passwd_callback_too_long(self):
+        """
+        If the passphrase returned by the passphrase callback returns a string
+        longer than the indicated maximum length, it is truncated.
+        """
+        # A priori knowledge!
+        passphrase = "x" * 1024
+        pemFile = self._write_encrypted_pem(passphrase)
+        def passphraseCallback(maxlen, verify, extra):
+            assert maxlen == 1024
+            return passphrase + "y"
+
+        context = Context(TLSv1_METHOD)
+        context.set_passwd_cb(passphraseCallback)
+        # This shall succeed because the truncated result is the correct
+        # passphrase.
+        context.use_privatekey_file(pemFile)
 
 
     def test_set_info_callback(self):
