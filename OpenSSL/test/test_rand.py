@@ -5,7 +5,7 @@ Unit tests for L{OpenSSL.rand}.
 """
 
 from unittest import main
-import os 
+import os
 import stat
 
 from OpenSSL.test.util import TestCase
@@ -13,6 +13,16 @@ from OpenSSL import rand
 
 
 class RandTests(TestCase):
+    def test_bytes_wrong_args(self):
+        """
+        L{OpenSSL.rand.bytes} raises L{TypeError} if called with the wrong
+        number of arguments or with a non-C{int} argument.
+        """
+        self.assertRaises(TypeError, rand.bytes)
+        self.assertRaises(TypeError, rand.bytes, None)
+        self.assertRaises(TypeError, rand.bytes, 3, None)
+
+
     def test_bytes(self):
         """
         Verify that we can obtain bytes from rand_bytes() and
@@ -23,7 +33,7 @@ class RandTests(TestCase):
         self.assertEqual(len(b1), 50)
         b2 = rand.bytes(num_bytes=50)  # parameter by name
         self.assertNotEqual(b1, b2)  #  Hip, Hip, Horay! FIPS complaince
-        b3 = rand.bytes(num_bytes=0) 
+        b3 = rand.bytes(num_bytes=0)
         self.assertEqual(len(b3), 0)
         exc = self.assertRaises(ValueError, rand.bytes, -1)
         self.assertEqual(str(exc), "num_bytes must not be negative")
