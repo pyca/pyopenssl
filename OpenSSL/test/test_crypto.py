@@ -1560,6 +1560,16 @@ class PKCS7Tests(TestCase):
         self.assertFalse(pkcs7.type_is_signedAndEnveloped())
 
 
+    def test_type_is_data(self):
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertFalse(pkcs7.type_is_data())
+
+
+    def test_type_is_data_wrong_args(self):
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertRaises(TypeError, pkcs7.type_is_data, None)
+
+
     def test_get_type_name_wrong_args(self):
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertRaises(TypeError, pkcs7.get_type_name, None)
