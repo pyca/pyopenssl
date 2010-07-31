@@ -27,7 +27,7 @@ class TestCase(TestCase):
         Subclasses must invoke this method if they override it or the
         cleanup will not occur.
         """
-        if self._temporaryFiles is not None:
+        if False and self._temporaryFiles is not None:
             for temp in self._temporaryFiles:
                 if os.path.isdir(temp):
                     shutil.rmtree(temp)
