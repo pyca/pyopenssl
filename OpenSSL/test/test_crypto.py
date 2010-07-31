@@ -891,6 +891,44 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         self.assertEqual(type(certificate), X509)
 
 
+    def test_get_version_wrong_args(self):
+        """
+        L{X509.get_version} raises L{TypeError} if invoked with any arguments.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.get_version, None)
+
+
+    def test_set_version_wrong_args(self):
+        """
+        L{X509.set_version} raises L{TypeError} if invoked with the wrong number
+        of arguments or an argument not of type C{int}.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.set_version)
+        self.assertRaises(TypeError, cert.set_version, None)
+        self.assertRaises(TypeError, cert.set_version, 1, None)
+
+
+    def test_version(self):
+        """
+        L{X509.set_version} sets the certificate version number.
+        L{X509.get_version} retrieves it.
+        """
+        cert = X509()
+        cert.set_version(1234)
+        self.assertEquals(cert.get_version(), 1234)
+
+
+    def test_get_serial_number_wrong_args(self):
+        """
+        L{X509.get_serial_number} raises L{TypeError} if invoked with any
+        arguments.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.get_serial_number, None)
+
+
     def test_serial_number(self):
         """
         The serial number of an L{X509Type} can be retrieved and modified with
