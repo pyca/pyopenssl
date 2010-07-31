@@ -1025,6 +1025,17 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         self.assertEqual(cert.get_notAfter(), "20170611123658Z")
 
 
+    def test_gmtime_adj_notBefore_wrong_args(self):
+        """
+        L{X509Type.gmtime_adj_notBefore} raises L{TypeError} if called with the
+        wrong number of arguments or a non-C{int} argument.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.gmtime_adj_notBefore)
+        self.assertRaises(TypeError, cert.gmtime_adj_notBefore, None)
+        self.assertRaises(TypeError, cert.gmtime_adj_notBefore, 123, None)
+
+
     def test_gmtime_adj_notBefore(self):
         """
         L{X509Type.gmtime_adj_notBefore} changes the not-before timestamp to be
@@ -1036,6 +1047,17 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         self.assertEqual(cert.get_notBefore(), now.strftime("%Y%m%d%H%M%SZ"))
 
 
+    def test_gmtime_adj_notAfter_wrong_args(self):
+        """
+        L{X509Type.gmtime_adj_notAfter} raises L{TypeError} if called with the
+        wrong number of arguments or a non-C{int} argument.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.gmtime_adj_notAfter)
+        self.assertRaises(TypeError, cert.gmtime_adj_notAfter, None)
+        self.assertRaises(TypeError, cert.gmtime_adj_notAfter, 123, None)
+
+
     def test_gmtime_adj_notAfter(self):
         """
         L{X509Type.gmtime_adj_notAfter} changes the not-after timestamp to be
@@ -1045,6 +1067,35 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         now = datetime.utcnow() + timedelta(seconds=100)
         cert.gmtime_adj_notAfter(100)
         self.assertEqual(cert.get_notAfter(), now.strftime("%Y%m%d%H%M%SZ"))
+
+
+    def test_has_expired_wrong_args(self):
+        """
+        L{X509Type.has_expired} raises L{TypeError} if called with any
+        arguments.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.has_expired, None)
+
+
+    def test_has_expired(self):
+        """
+        L{X509Type.has_expired} returns C{True} if the certificate's not-after
+        time is in the past.
+        """
+        cert = X509()
+        cert.gmtime_adj_notAfter(-1)
+        self.assertTrue(cert.has_expired())
+
+
+    def test_has_not_expired(self):
+        """
+        L{X509Type.has_expired} returns C{False} if the certificate's not-after
+        time is in the future.
+        """
+        cert = X509()
+        cert.gmtime_adj_notAfter(2)
+        self.assertFalse(cert.has_expired())
 
 
     def test_digest(self):
@@ -1159,6 +1210,24 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         """
         cert = X509()
         self.assertRaises(Error, cert.get_pubkey)
+
+
+    def test_subject_name_hash_wrong_args(self):
+        """
+        L{X509.subject_name_hash} raises L{TypeError} if called with any
+        arguments.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.subject_name_hash, None)
+
+
+    def test_subject_name_hash(self):
+        """
+        L{X509.subject_name_hash} returns the hash of the certificate's subject
+        name.
+        """
+        cert = load_certificate(FILETYPE_PEM, self.pemData)
+        self.assertEquals(cert.subject_name_hash(), -944919422L)
 
 
 
