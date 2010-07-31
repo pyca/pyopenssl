@@ -1025,6 +1025,28 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         self.assertEqual(cert.get_notAfter(), "20170611123658Z")
 
 
+    def test_gmtime_adj_notBefore(self):
+        """
+        L{X509Type.gmtime_adj_notBefore} changes the not-before timestamp to be
+        the current time plus the number of seconds passed in.
+        """
+        cert = load_certificate(FILETYPE_PEM, self.pemData)
+        now = datetime.utcnow() + timedelta(seconds=100)
+        cert.gmtime_adj_notBefore(100)
+        self.assertEqual(cert.get_notBefore(), now.strftime("%Y%m%d%H%M%SZ"))
+
+
+    def test_gmtime_adj_notAfter(self):
+        """
+        L{X509Type.gmtime_adj_notAfter} changes the not-after timestamp to be
+        the current time plus the number of seconds passed in.
+        """
+        cert = load_certificate(FILETYPE_PEM, self.pemData)
+        now = datetime.utcnow() + timedelta(seconds=100)
+        cert.gmtime_adj_notAfter(100)
+        self.assertEqual(cert.get_notAfter(), now.strftime("%Y%m%d%H%M%SZ"))
+
+
     def test_digest(self):
         """
         L{X509.digest} returns a string giving ":"-separated hex-encoded words
@@ -1034,6 +1056,109 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         self.assertEqual(
             cert.digest("md5"),
             "A8:EB:07:F8:53:25:0A:F2:56:05:C5:A5:C4:C4:C7:15")
+
+
+    def test_get_subject_wrong_args(self):
+        """
+        L{X509.get_subject} raises L{TypeError} if called with any arguments.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.get_subject, None)
+
+
+    def test_get_subject(self):
+        """
+        L{X509.get_subject} returns an L{X509Name} instance.
+        """
+        cert = load_certificate(FILETYPE_PEM, self.pemData)
+        subj = cert.get_subject()
+        self.assertTrue(isinstance(subj, X509Name))
+        self.assertEquals(
+            subj.get_components(),
+            [('C', 'US'), ('ST', 'IL'), ('L', 'Chicago'),
+             ('O', 'Testing'), ('CN', 'Testing Root CA')])
+
+
+    def test_set_subject_wrong_args(self):
+        """
+        L{X509.set_subject} raises a L{TypeError} if called with the wrong
+        number of arguments or an argument not of type L{X509Name}.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.set_subject)
+        self.assertRaises(TypeError, cert.set_subject, None)
+        self.assertRaises(TypeError, cert.set_subject, cert.get_subject(), None)
+
+
+    def test_set_subject(self):
+        """
+        L{X509.set_subject} changes the subject of the certificate to the one
+        passed in.
+        """
+        cert = X509()
+        name = cert.get_subject()
+        name.C = 'AU'
+        name.O = 'Unit Tests'
+        cert.set_subject(name)
+        self.assertEquals(
+            cert.get_subject().get_components(),
+            [('C', 'AU'), ('O', 'Unit Tests')])
+
+
+    def test_get_issuer_wrong_args(self):
+        """
+        L{X509.get_issuer} raises L{TypeError} if called with any arguments.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.get_issuer, None)
+
+
+    def test_get_issuer(self):
+        """
+        L{X509.get_issuer} returns an L{X509Name} instance.
+        """
+        cert = load_certificate(FILETYPE_PEM, self.pemData)
+        subj = cert.get_issuer()
+        self.assertTrue(isinstance(subj, X509Name))
+        self.assertEquals(
+            subj.get_components(),
+            [('C', 'US'), ('ST', 'IL'), ('L', 'Chicago'),
+             ('O', 'Testing'), ('CN', 'Testing Root CA')])
+
+
+    def test_set_issuer_wrong_args(self):
+        """
+        L{X509.set_issuer} raises a L{TypeError} if called with the wrong
+        number of arguments or an argument not of type L{X509Name}.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.set_issuer)
+        self.assertRaises(TypeError, cert.set_issuer, None)
+        self.assertRaises(TypeError, cert.set_issuer, cert.get_issuer(), None)
+
+
+    def test_set_issuer(self):
+        """
+        L{X509.set_issuer} changes the issuer of the certificate to the one
+        passed in.
+        """
+        cert = X509()
+        name = cert.get_issuer()
+        name.C = 'AU'
+        name.O = 'Unit Tests'
+        cert.set_issuer(name)
+        self.assertEquals(
+            cert.get_issuer().get_components(),
+            [('C', 'AU'), ('O', 'Unit Tests')])
+
+
+    def test_get_pubkey_uninitialized(self):
+        """
+        When called on a certificate with no public key, L{X509.get_pubkey}
+        raises L{OpenSSL.crypto.Error}.
+        """
+        cert = X509()
+        self.assertRaises(Error, cert.get_pubkey)
 
 
 
