@@ -269,6 +269,18 @@ class X509ExtTests(TestCase):
         self.x509.set_notAfter(expire)
 
 
+    def test_str(self):
+        """
+        The string representation of L{X509Extension} instances as returned by
+        C{str} includes stuff.
+        """
+        # This isn't necessarily the best string representation.  Perhaps it
+        # will be changed/improved in the future.
+        self.assertEquals(
+            str(X509Extension('basicConstraints', True, 'CA:false')),
+            'CA:FALSE')
+
+
     def test_type(self):
         """
         L{X509Extension} and L{X509ExtensionType} refer to the same type object
@@ -852,6 +864,50 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
         self.assertRaises(TypeError, request.get_subject, None)
 
 
+    def test_add_extensions(self):
+        """
+        L{X509Req.add_extensions} accepts a C{list} of L{X509Extension}
+        instances and adds them to the X509 request.
+        """
+        request = X509Req()
+        request.add_extensions([
+                X509Extension('basicConstraints', True, 'CA:false')])
+        # XXX Add get_extensions so the rest of this unit test can be written.
+
+
+    def test_add_extensions_wrong_args(self):
+        """
+        L{X509Req.add_extensions} raises L{TypeError} if called with the wrong
+        number of arguments or with a non-C{list}.  Or it raises L{ValueError}
+        if called with a C{list} containing objects other than L{X509Extension}
+        instances.
+        """
+        request = X509Req()
+        self.assertRaises(TypeError, request.add_extensions)
+        self.assertRaises(TypeError, request.add_extensions, object())
+        self.assertRaises(ValueError, request.add_extensions, [object()])
+        self.assertRaises(TypeError, request.add_extensions, [], None)
+
+
+    def test_sign(self):
+        """
+        L{X509Req.sign} succeeds when passed a private key object and a valid
+        digest function.  C{X509Req.verify} can be used to check the signature.
+        """
+        request = self.signable()
+        key = PKey()
+        key.generate_key(TYPE_RSA, 512)
+        request.set_pubkey(key)
+        request.sign(key, 'MD5')
+        pub = request.get_pubkey()
+        self.assertTrue(request.verify(pub))
+
+        # Make another key that won't verify.
+        key = PKey()
+        key.generate_key(TYPE_RSA, 512)
+        self.assertRaises(Error, request.verify, key)
+
+
 
 class X509Tests(TestCase, _PKeyInteractionTestsMixin):
     """
@@ -986,6 +1042,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         self.assertRaises(TypeError, set, "20040203040506Z", "20040203040506Z")
         self.assertRaises(TypeError, get, "foo bar")
 
+    # XXX ASN1_TIME (not GENERALIZEDTIME)
 
     def test_set_notBefore(self):
         """
@@ -1107,6 +1164,15 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         self.assertEqual(
             cert.digest("md5"),
             "A8:EB:07:F8:53:25:0A:F2:56:05:C5:A5:C4:C4:C7:15")
+
+
+    def test_invalid_digest_algorithm(self):
+        """
+        L{X509.digest} raises L{ValueError} if called with an unrecognized hash
+        algorithm.
+        """
+        cert = X509()
+        self.assertRaises(ValueError, cert.digest, "monkeys")
 
 
     def test_get_subject_wrong_args(self):
@@ -1609,6 +1675,33 @@ class FunctionTests(TestCase):
     """
     Tests for free-functions in the L{OpenSSL.crypto} module.
     """
+
+    def test_load_privatekey_invalid_format(self):
+        """
+        L{load_privatekey} raises L{ValueError} if passed an unknown filetype.
+        """
+        self.assertRaises(ValueError, load_privatekey, 100, root_key_pem)
+
+
+    def test_load_privatekey_invalid_passphrase_type(self):
+        """
+        L{load_privatekey} raises L{TypeError} if passed a passphrase that is
+        neither a c{str} nor a callable.
+        """
+        self.assertRaises(
+            TypeError,
+            load_privatekey,
+            FILETYPE_PEM, encryptedPrivateKeyPEMPassphrase, object())
+
+
+    def test_load_privatekey_wrong_args(self):
+        """
+        L{load_privatekey} raises L{TypeError} if called with the wrong number
+        of arguments.
+        """
+        self.assertRaises(TypeError, load_privatekey)
+
+
     def test_load_privatekey_wrongPassphrase(self):
         """
         L{load_privatekey} raises L{OpenSSL.crypto.Error} when it is passed an
@@ -1658,6 +1751,48 @@ class FunctionTests(TestCase):
         key = load_privatekey(FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
         self.assertTrue(isinstance(key, PKeyType))
         self.assertEqual(called, [False])
+
+
+    def test_dump_privatekey_wrong_args(self):
+        """
+        L{dump_privatekey} raises L{TypeError} if called with the wrong number
+        of arguments.
+        """
+        self.assertRaises(TypeError, dump_privatekey)
+
+
+    def test_dump_privatekey_unknown_cipher(self):
+        """
+        L{dump_privatekey} raises L{ValueError} if called with an unrecognized
+        cipher name.
+        """
+        key = PKey()
+        key.generate_key(TYPE_RSA, 512)
+        self.assertRaises(
+            ValueError, dump_privatekey,
+            FILETYPE_PEM, key, "zippers", "passphrase")
+
+
+    def test_dump_privatekey_invalid_passphrase_type(self):
+        """
+        L{dump_privatekey} raises L{TypeError} if called with a passphrase which
+        is neither a C{str} nor a callable.
+        """
+        key = PKey()
+        key.generate_key(TYPE_RSA, 512)
+        self.assertRaises(
+            TypeError,
+            dump_privatekey, FILETYPE_PEM, key, "blowfish", object())
+
+
+    def test_dump_privatekey_invalid_filetype(self):
+        """
+        L{dump_privatekey} raises L{ValueError} if called with an unrecognized
+        filetype.
+        """
+        key = PKey()
+        key.generate_key(TYPE_RSA, 512)
+        self.assertRaises(ValueError, dump_privatekey, 100, key)
 
 
     def test_dump_privatekey_passphrase(self):
@@ -1775,6 +1910,8 @@ class PKCS7Tests(TestCase):
         # self.assertIdentical(PKCS7, PKCS7Type)
 
 
+    # XXX Opposite results for all these following methods
+
     def test_type_is_signed_wrong_args(self):
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertRaises(TypeError, pkcs7.type_is_signed, None)
@@ -1850,6 +1987,12 @@ class NetscapeSPKITests(TestCase):
         """
         nspki = NetscapeSPKI()
         self.assertTrue(isinstance(nspki, NetscapeSPKIType))
+
+    # XXX sign
+    # XXX verify
+    # XXX get_pubkey
+    # XXX set_pubkey
+    # XXX getattr
 
 
 class RevokedTests(TestCase):
