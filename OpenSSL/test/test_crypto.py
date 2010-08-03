@@ -1998,11 +1998,14 @@ class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):
         self.assertTrue(isinstance(nspki, NetscapeSPKIType))
 
 
-    # XXX sign
-    # XXX verify
-    # XXX get_pubkey
-    # XXX set_pubkey
-    # XXX getattr
+    def test_invalid_attribute(self):
+        """
+        Accessing a non-existent attribute of a L{NetscapeSPKI} instance causes
+        an L{AttributeError} to be raised.
+        """
+        nspki = NetscapeSPKI()
+        self.assertRaises(AttributeError, lambda: nspki.foo)
+
 
 
 class RevokedTests(TestCase):
