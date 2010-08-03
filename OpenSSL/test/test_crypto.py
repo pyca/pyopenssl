@@ -2018,6 +2018,15 @@ class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):
         self.assertRaises(AttributeError, lambda: nspki.foo)
 
 
+    def test_b64_encode(self):
+        """
+        L{NetscapeSPKI.b64_encode} encodes the certificate to a base64 blob.
+        """
+        nspki = NetscapeSPKI()
+        blob = nspki.b64_encode()
+        self.assertTrue(isinstance(blob, str))
+
+
 
 class RevokedTests(TestCase):
     """
