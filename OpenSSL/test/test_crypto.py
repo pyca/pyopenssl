@@ -788,6 +788,17 @@ class _PKeyInteractionTestsMixin:
         self.assertRaises(ValueError, request.sign, pub, 'MD5')
 
 
+    def test_signWithUnknownDigest(self):
+        """
+        L{X509Req.sign} raises L{ValueError} when passed a digest name which is
+        not known.
+        """
+        request = self.signable()
+        key = PKey()
+        key.generate_key(TYPE_RSA, 512)
+        self.assertRaises(ValueError, request.sign, key, "monkeys")
+
+
     def test_sign(self):
         """
         L{X509Req.sign} succeeds when passed a private key object and a valid
