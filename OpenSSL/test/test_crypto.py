@@ -1766,6 +1766,22 @@ class FunctionTests(TestCase):
         self.assertEqual(called, [False])
 
 
+    def test_load_privatekey_passphrase_exception(self):
+        """
+        An exception raised by the passphrase callback passed to
+        L{load_privatekey} causes L{OpenSSL.crypto.Error} to be raised.
+
+        This isn't as nice as just letting the exception pass through.  The
+        behavior might be changed to that eventually.
+        """
+        def broken(ignored):
+            raise RuntimeError("This is not working.")
+        self.assertRaises(
+            Error,
+            load_privatekey,
+            FILETYPE_PEM, encryptedPrivateKeyPEM, broken)
+
+
     def test_dump_privatekey_wrong_args(self):
         """
         L{dump_privatekey} raises L{TypeError} if called with the wrong number
@@ -1876,6 +1892,7 @@ class FunctionTests(TestCase):
         dumped_text = dump_certificate_request(FILETYPE_TEXT, req)
         good_text = _runopenssl(dumped_pem, "req", "-noout", "-text")
         self.assertEqual(dumped_text, good_text)
+        self.assertRaises(ValueError, dump_certificate_request, 100, req)
 
 
     def test_dump_privatekey_passphraseCallback(self):
