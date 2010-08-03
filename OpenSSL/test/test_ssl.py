@@ -699,7 +699,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         self._handshake_test(serverContext, clientContext)
 
 
-
     def test_use_certificate_chain_file(self):
         """
         L{Context.use_certificate_chain_file} reads a certificate chain from
@@ -736,7 +735,11 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         self._handshake_test(serverContext, clientContext)
 
-        
+    # XXX load_client_ca
+    # XXX set_session_id
+    # XXX get_verify
+    # XXX load_temp_dh
+    # XXX set_cipher_list
 
 
 
