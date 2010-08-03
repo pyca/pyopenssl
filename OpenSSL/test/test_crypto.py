@@ -788,6 +788,27 @@ class _PKeyInteractionTestsMixin:
         self.assertRaises(ValueError, request.sign, pub, 'MD5')
 
 
+    def test_sign(self):
+        """
+        L{X509Req.sign} succeeds when passed a private key object and a valid
+        digest function.  C{X509Req.verify} can be used to check the signature.
+        """
+        request = self.signable()
+        key = PKey()
+        key.generate_key(TYPE_RSA, 512)
+        request.set_pubkey(key)
+        request.sign(key, 'MD5')
+        # If the type has a verify method, cover that too.
+        if getattr(request, 'verify', None) is not None:
+            pub = request.get_pubkey()
+            self.assertTrue(request.verify(pub))
+            # Make another key that won't verify.
+            key = PKey()
+            key.generate_key(TYPE_RSA, 512)
+            self.assertRaises(Error, request.verify, key)
+
+
+
 
 class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
     """
@@ -887,25 +908,6 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
         self.assertRaises(TypeError, request.add_extensions, object())
         self.assertRaises(ValueError, request.add_extensions, [object()])
         self.assertRaises(TypeError, request.add_extensions, [], None)
-
-
-    def test_sign(self):
-        """
-        L{X509Req.sign} succeeds when passed a private key object and a valid
-        digest function.  C{X509Req.verify} can be used to check the signature.
-        """
-        request = self.signable()
-        key = PKey()
-        key.generate_key(TYPE_RSA, 512)
-        request.set_pubkey(key)
-        request.sign(key, 'MD5')
-        pub = request.get_pubkey()
-        self.assertTrue(request.verify(pub))
-
-        # Make another key that won't verify.
-        key = PKey()
-        key.generate_key(TYPE_RSA, 512)
-        self.assertRaises(Error, request.verify, key)
 
 
 
@@ -1968,10 +1970,17 @@ class PKCS7Tests(TestCase):
 
 
 
-class NetscapeSPKITests(TestCase):
+class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):
     """
     Tests for L{OpenSSL.crypto.NetscapeSPKI}.
     """
+    def signable(self):
+        """
+        Return a new L{NetscapeSPKI} for use with signing tests.
+        """
+        return NetscapeSPKI()
+
+
     def test_type(self):
         """
         L{NetscapeSPKI} and L{NetscapeSPKIType} refer to the same type object
@@ -1987,6 +1996,7 @@ class NetscapeSPKITests(TestCase):
         """
         nspki = NetscapeSPKI()
         self.assertTrue(isinstance(nspki, NetscapeSPKIType))
+
 
     # XXX sign
     # XXX verify
