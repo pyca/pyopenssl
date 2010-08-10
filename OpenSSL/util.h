@@ -22,6 +22,12 @@
  */
 #include "pymemcompat.h"
 
+/*
+ * py3k defines macros that help with Python 2.x/3.x compatibility.
+ */
+#include "py3k.h"
+
+
 extern  PyObject *error_queue_to_list(void);
 extern void exception_from_error_queue(PyObject *the_Error);
 extern  void      flush_error_queue(void);

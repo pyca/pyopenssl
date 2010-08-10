@@ -36,15 +36,15 @@ global_passphrase_callback(char *buf, int len, int rwflag, void *cb_arg)
     Py_DECREF(argv);
     if (ret == NULL)
         return 0;
-    if (!PyString_Check(ret))
+    if (!PyBytes_Check(ret))
     {
         PyErr_SetString(PyExc_ValueError, "String expected");
         return 0;
     }
-    nchars = PyString_Size(ret);
+    nchars = PyBytes_Size(ret);
     if (nchars > len)
         nchars = len;
-    strncpy(buf, PyString_AsString(ret), nchars);
+    strncpy(buf, PyBytes_AsString(ret), nchars);
     return nchars;
 }
 
@@ -77,10 +77,10 @@ crypto_load_privatekey(PyObject *spam, PyObject *args)
 
     if (pw != NULL)
     {
-        if (PyString_Check(pw))
+        if (PyBytes_Check(pw))
         {
             cb = NULL;
-            cb_arg = PyString_AsString(pw);
+            cb_arg = PyBytes_AsString(pw);
         }
         else if (PyCallable_Check(pw))
         {
@@ -167,10 +167,10 @@ crypto_dump_privatekey(PyObject *spam, PyObject *args)
             PyErr_SetString(PyExc_ValueError, "Invalid cipher name");
             return NULL;
         }
-        if (PyString_Check(pw))
+        if (PyBytes_Check(pw))
         {
             cb = NULL;
-            cb_arg = PyString_AsString(pw);
+            cb_arg = PyBytes_AsString(pw);
         }
         else if (PyCallable_Check(pw))
         {
@@ -220,7 +220,7 @@ crypto_dump_privatekey(PyObject *spam, PyObject *args)
     }
 
     buf_len = BIO_get_mem_data(bio, &temp);
-    buffer = PyString_FromStringAndSize(temp, buf_len);
+    buffer = PyBytes_FromStringAndSize(temp, buf_len);
     BIO_free(bio);
 
     return buffer;
@@ -323,7 +323,7 @@ crypto_dump_certificate(PyObject *spam, PyObject *args)
     }
 
     buf_len = BIO_get_mem_data(bio, &temp);
-    buffer = PyString_FromStringAndSize(temp, buf_len);
+    buffer = PyBytes_FromStringAndSize(temp, buf_len);
     BIO_free(bio);
 
     return buffer;
@@ -426,7 +426,7 @@ crypto_dump_certificate_request(PyObject *spam, PyObject *args)
     }
 
     buf_len = BIO_get_mem_data(bio, &temp);
-    buffer = PyString_FromStringAndSize(temp, buf_len);
+    buffer = PyBytes_FromStringAndSize(temp, buf_len);
     BIO_free(bio);
 
     return buffer;
@@ -578,7 +578,7 @@ crypto_X509_verify_cert_error_string(PyObject *spam, PyObject *args)
         return NULL;
 
     str = X509_verify_cert_error_string(errnum);
-    return PyString_FromString(str);
+    return PyText_FromString(str);
 }
 
 static char crypto_exception_from_error_queue_doc[] = "\n\
@@ -632,7 +632,7 @@ crypto_sign(PyObject *spam, PyObject *args) {
         return NULL;
     }
 
-    buffer = PyString_FromStringAndSize((char*)sig_buf, sig_len);
+    buffer = PyBytes_FromStringAndSize((char*)sig_buf, sig_len);
     return buffer;
 }
 
@@ -772,6 +772,15 @@ static int init_openssl_threads(void) {
 
 #endif
 
+#ifdef PY3
+static struct PyModuleDef cryptomodule = {
+    PyModuleDef_HEAD_INIT,
+    "crypto",
+    crypto_doc,
+    -1,
+    crypto_methods
+};
+#endif
 
 /*
  * Initialize crypto sub module
@@ -779,19 +788,27 @@ static int init_openssl_threads(void) {
  * Arguments: None
  * Returns:   None
  */
-void
-initcrypto(void)
-{
+PyOpenSSL_MODINIT(crypto) {
+#ifndef PY3
     static void *crypto_API[crypto_API_pointers];
     PyObject *c_api_object;
+#endif
     PyObject *module;
 
     ERR_load_crypto_strings();
     OpenSSL_add_all_algorithms();
 
-    if ((module = Py_InitModule3("crypto", crypto_methods, crypto_doc)) == NULL)
-        return;
+#ifdef PY3
+    module = PyModule_Create(&cryptomodule);
+#else
+    module = Py_InitModule3("crypto", crypto_methods, crypto_doc);
+#endif
 
+    if (module == NULL) {
+        return NULL;
+    }
+
+#ifndef PY3
     /* Initialize the C API pointer array */
     crypto_API[crypto_X509_New_NUM]      = (void *)crypto_X509_New;
     crypto_API[crypto_X509Name_New_NUM]  = (void *)crypto_X509Name_New;
@@ -804,6 +821,7 @@ initcrypto(void)
     c_api_object = PyCObject_FromVoidPtr((void *)crypto_API, NULL);
     if (c_api_object != NULL)
         PyModule_AddObject(module, "_C_API", c_api_object);
+#endif
 
     crypto_Error = PyErr_NewException("OpenSSL.crypto.Error", NULL, NULL);
     if (crypto_Error == NULL)
@@ -844,6 +862,15 @@ initcrypto(void)
         goto error;
     if (!init_crypto_revoked(module))
         goto error;
+
+#ifdef PY3
+    return module;
+#endif
+
 error:
+#ifdef PY3
+    return NULL;
+#else
     ;
+#endif
 }

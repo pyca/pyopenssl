@@ -230,7 +230,7 @@ rand_bytes(PyObject *spam, PyObject *args, PyObject *keywds) {
         exception_from_error_queue(rand_Error);
         goto done;
     }
-    obj = PyString_FromStringAndSize(buf, (unsigned) num_bytes);
+    obj = PyBytes_FromStringAndSize(buf, (unsigned) num_bytes);
  done:
     free(buf);
     return obj;
@@ -254,28 +254,55 @@ static PyMethodDef rand_methods[] = {
 };
 
 
+#ifdef PY3
+static struct PyModuleDef randmodule = {
+    PyModuleDef_HEAD_INIT,
+    "rand",
+    rand_doc,
+    -1,
+    rand_methods
+};
+#endif
+
 /*
  * Initialize the rand sub module
  *
  * Arguments: None
  * Returns:   None
  */
-void
-initrand(void)
-{
+PyOpenSSL_MODINIT(rand) {
     PyObject *module;
+
+#ifdef PY3
+    module = PyModule_Create(&randmodule);
+#else
+    module = Py_InitModule3("rand", rand_methods, rand_doc);
+#endif
+    if (module == NULL) {
+        return NULL;
+    }
+
+    rand_Error = PyErr_NewException("OpenSSL.rand.Error", NULL, NULL);
+
+    if (rand_Error == NULL) {
+        goto error;
+    }
+
+    if (PyModule_AddObject(module, "Error", rand_Error) != 0) {
+        goto error;
+    }
 
     ERR_load_RAND_strings();
 
-    if ((module = Py_InitModule3("rand", rand_methods, rand_doc)) == NULL)
-        return;
+#ifdef PY3
+    return module;
+#endif
 
-    rand_Error = PyErr_NewException("OpenSSL.rand.Error", NULL, NULL);
-    if (rand_Error == NULL)
-        goto error;
-    if (PyModule_AddObject(module, "Error", rand_Error) != 0)
-        goto error;
- error:
+error:
+#ifdef PY3
+    return NULL;
+#else
     ;
+#endif
 }
 
