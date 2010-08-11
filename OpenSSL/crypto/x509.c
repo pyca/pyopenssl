@@ -776,8 +776,7 @@ crypto_X509_dealloc(crypto_X509Obj *self)
 }
 
 PyTypeObject crypto_X509_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
     "X509",
     sizeof(crypto_X509Obj),
     0,

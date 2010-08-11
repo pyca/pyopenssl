@@ -13,6 +13,8 @@ PyInit_##name(void)
 
 #else /* (PY_VERSION_HEX >= 0x03000000) */
 
+#define PyVarObject_HEAD_INIT(type, size) PyObject_HEAD_INIT(NULL) 0
+
 #define PyBytes_FromStringAndSize PyString_FromStringAndSize
 
 #define PyLong_FromLong PyInt_FromLong
