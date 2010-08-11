@@ -19,8 +19,9 @@ extern  int     init_crypto_x509extension       (PyObject *);
 
 extern  PyTypeObject      crypto_X509Extension_Type;
 
-#define crypto_X509Extension_Check(v) ((v)->ob_type == \
-				       &crypto_X509Extension_Type)
+#define crypto_X509Extension_Check(v) ( \
+        PyObject_TypeCheck((v),         \
+                           &crypto_X509Extension_Type))
 
 typedef struct {
     PyObject_HEAD

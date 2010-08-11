@@ -16,6 +16,7 @@ PyInit_##name(void)
 #define PyBytes_FromStringAndSize PyString_FromStringAndSize
 
 #define PyLong_FromLong PyInt_FromLong
+#define PyLong_Check(o) (PyInt_Check(o) || PyLong_Check(o))
 
 #define PyBytes_Size PyString_Size
 #define PyBytes_Check PyString_Check
