@@ -88,7 +88,7 @@ crypto_PKey_bits(crypto_PKeyObj *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":bits"))
         return NULL;
 
-    return PyInt_FromLong(EVP_PKEY_bits(self->pkey));
+    return PyLong_FromLong(EVP_PKEY_bits(self->pkey));
 }
 
 static char crypto_PKey_type_doc[] = "\n\
@@ -103,7 +103,7 @@ crypto_PKey_type(crypto_PKeyObj *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":type"))
         return NULL;
 
-    return PyInt_FromLong(self->pkey->type);
+    return PyLong_FromLong(self->pkey->type);
 }
 
 
@@ -196,29 +196,14 @@ crypto_PKey_dealloc(crypto_PKeyObj *self)
     PyObject_Del(self);
 }
 
-/*
- * Find attribute
- *
- * Arguments: self - The PKey object
- *            name - The attribute name
- * Returns:   A Python object for the attribute, or NULL if something went
- *            wrong
- */
-static PyObject *
-crypto_PKey_getattr(crypto_PKeyObj *self, char *name)
-{
-    return Py_FindMethod(crypto_PKey_methods, (PyObject *)self, name);
-}
-
 PyTypeObject crypto_PKey_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
     "OpenSSL.crypto.PKey",
     sizeof(crypto_PKeyObj),
     0,
     (destructor)crypto_PKey_dealloc,
     NULL, /* print */
-    (getattrfunc)crypto_PKey_getattr,
+    NULL, /* getattr */
     NULL, /* setattr */
     NULL, /* compare */
     NULL, /* repr */

@@ -10,6 +10,7 @@ PyMODINIT_FUNC \
 PyInit_##name(void)
 
 #define PyText_FromString PyUnicode_FromString
+#define PyText_FromStringAndSize PyUnicode_FromStringAndSize
 
 #else /* (PY_VERSION_HEX >= 0x03000000) */
 
@@ -22,10 +23,12 @@ PyInit_##name(void)
 
 #define PyBytes_Size PyString_Size
 #define PyBytes_Check PyString_Check
+#define PyBytes_CheckExact PyString_CheckExact
 #define PyBytes_AsString PyString_AsString
 #define PyBytes_FromStringAndSize PyString_FromStringAndSize
 
 #define PyText_FromString PyString_FromString
+#define PyText_FromStringAndSize PyString_FromStringAndSize
 
 #define PyOpenSSL_MODINIT(name)
 void \

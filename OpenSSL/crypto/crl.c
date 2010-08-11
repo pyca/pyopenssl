@@ -172,7 +172,7 @@ crypto_CRL_export(crypto_CRLObj *self, PyObject *args, PyObject *keywds) {
         return NULL;
     }
     buf_len = BIO_get_mem_data(bio, &temp);
-    buffer = PyString_FromStringAndSize(temp, buf_len);
+    buffer = PyBytes_FromStringAndSize(temp, buf_len);
     BIO_free(bio);
     return buffer;
 }
@@ -207,11 +207,6 @@ static PyMethodDef crypto_CRL_methods[] = {
 #undef ADD_METHOD
 
 
-static PyObject *
-crypto_CRL_getattr(crypto_CRLObj *self, char *name) {
-    return Py_FindMethod(crypto_CRL_methods, (PyObject *)self, name);
-}
-
 static void
 crypto_CRL_dealloc(crypto_CRLObj *self) {
     X509_CRL_free(self->crl);
@@ -237,14 +232,13 @@ static PyObject* crypto_CRL_new(PyTypeObject *subtype, PyObject *args, PyObject 
 }
 
 PyTypeObject crypto_CRL_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
     "CRL",
     sizeof(crypto_CRLObj),
     0,
     (destructor)crypto_CRL_dealloc,
     NULL, /* print */
-    (getattrfunc)crypto_CRL_getattr,
+    NULL, /* getattr */
     NULL, /* setattr */
     NULL, /* compare */
     NULL, /* repr */

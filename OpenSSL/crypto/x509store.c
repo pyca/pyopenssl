@@ -92,36 +92,35 @@ crypto_X509Store_dealloc(crypto_X509StoreObj *self)
 }
 
 
-/*
- * Find attribute.
- *
- * Arguments: self - The X509Store object
- *            name - The attribute name
- * Returns:   A Python object for the attribute, or NULL if something went
- *            wrong
- */
-static PyObject *
-crypto_X509Store_getattr(crypto_X509StoreObj *self, char *name)
-{
-    return Py_FindMethod(crypto_X509Store_methods, (PyObject *)self, name);
-}
-
 PyTypeObject crypto_X509Store_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
     "X509Store",
     sizeof(crypto_X509StoreObj),
     0,
     (destructor)crypto_X509Store_dealloc,
     NULL, /* print */
-    (getattrfunc)crypto_X509Store_getattr,
+    NULL, /* getattr */
     NULL, /* setattr */
     NULL, /* compare */
     NULL, /* repr */
     NULL, /* as_number */
     NULL, /* as_sequence */
     NULL, /* as_mapping */
-    NULL  /* hash */
+    NULL,  /* hash */
+    NULL, /* call */
+    NULL, /* str */
+    NULL, /* getattro */
+    NULL, /* setattro */
+    NULL, /* as_buffer */
+    Py_TPFLAGS_DEFAULT,
+    NULL, /* doc */
+    NULL, /* traverse */
+    NULL, /* clear */
+    NULL, /* tp_richcompare */
+    0, /* tp_weaklistoffset */
+    NULL, /* tp_iter */
+    NULL, /* tp_iternext */
+    crypto_X509Store_methods, /* tp_methods */
 };
 
 

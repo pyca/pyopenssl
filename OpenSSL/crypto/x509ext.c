@@ -25,7 +25,7 @@ crypto_X509Extension_get_critical(crypto_X509ExtensionObj *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":get_critical"))
         return NULL;
 
-    return PyInt_FromLong(X509_EXTENSION_get_critical(self->x509_extension));
+    return PyLong_FromLong(X509_EXTENSION_get_critical(self->x509_extension));
 }
 
 static char crypto_X509Extension_get_short_name_doc[] = "\n\
@@ -47,7 +47,7 @@ crypto_X509Extension_get_short_name(crypto_X509ExtensionObj *self, PyObject *arg
 	obj = X509_EXTENSION_get_object(self->x509_extension);
 
 	extname = OBJ_nid2sn(OBJ_obj2nid(obj));
-	return PyString_FromString(extname);
+	return PyBytes_FromString(extname);
 }
 
 
@@ -214,20 +214,6 @@ crypto_X509Extension_dealloc(crypto_X509ExtensionObj *self)
 }
 
 /*
- * Find attribute
- *
- * Arguments: self - The X509Extension object
- *            name - The attribute name
- * Returns: A Python object for the attribute, or NULL if something
- *          went wrong.
- */       
-static PyObject *
-crypto_X509Extension_getattr(crypto_X509ExtensionObj *self, char *name)
-{
-    return Py_FindMethod(crypto_X509Extension_methods, (PyObject *)self, name);
-}
-
-/*
  * Print a nice text representation of the certificate request.
  */
 static PyObject *
@@ -246,7 +232,7 @@ crypto_X509Extension_str(crypto_X509ExtensionObj *self)
     }
 
     str_len = BIO_get_mem_data(bio, &tmp_str);
-    str = PyString_FromStringAndSize(tmp_str, str_len);
+    str = PyText_FromStringAndSize(tmp_str, str_len);
 
     BIO_free(bio);
 
@@ -254,14 +240,13 @@ crypto_X509Extension_str(crypto_X509ExtensionObj *self)
 }
 
 PyTypeObject crypto_X509Extension_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
     "X509Extension",
     sizeof(crypto_X509ExtensionObj),
     0,
     (destructor)crypto_X509Extension_dealloc, 
     NULL, /* print */
-    (getattrfunc)crypto_X509Extension_getattr, 
+    NULL, /* getattr */
     NULL, /* setattr  (setattrfunc)crypto_X509Name_setattr, */
     NULL, /* compare */
     NULL, /* repr */ 

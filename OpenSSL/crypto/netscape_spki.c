@@ -149,7 +149,7 @@ crypto_NetscapeSPKI_verify(crypto_NetscapeSPKIObj *self, PyObject *args)
         return NULL;
     }
 
-    return PyInt_FromLong((long)answer);
+    return PyLong_FromLong((long)answer);
 }
 
 static char crypto_NetscapeSPKI_b64_encode_doc[] = "\n\
@@ -167,7 +167,7 @@ crypto_NetscapeSPKI_b64_encode(crypto_NetscapeSPKIObj *self, PyObject *args)
         return NULL;
 
     str = NETSCAPE_SPKI_b64_encode(self->netscape_spki);
-    return PyString_FromString(str);
+    return PyBytes_FromString(str);
 }
 
 
@@ -243,29 +243,14 @@ static PyMethodDef crypto_NetscapeSPKI_methods[] =
 };
 #undef ADD_METHOD
 
-/*
- * Find attribute
- *
- * Arguments: self - The NetscapeSPKI object
- *            name - The attribute name
- * Returns:   A Python object for the attribute, or NULL if something went
- *            wrong
- */
-static PyObject *
-crypto_NetscapeSPKI_getattr(crypto_NetscapeSPKIObj *self, char *name)
-{
-    return Py_FindMethod(crypto_NetscapeSPKI_methods, (PyObject *)self, name);
-}
-
 PyTypeObject crypto_NetscapeSPKI_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
     "NetscapeSPKI",
     sizeof(crypto_NetscapeSPKIObj),
     0,
     (destructor)crypto_NetscapeSPKI_dealloc,
     NULL, /* print */
-    (getattrfunc)crypto_NetscapeSPKI_getattr,
+    NULL, /* getattr */
     NULL, /* setattr */
     NULL, /* compare */
     NULL, /* repr */
