@@ -7,7 +7,7 @@ Unit tests for L{OpenSSL.crypto}.
 from unittest import main
 
 import os, re
-from os import popen2
+from subprocess import PIPE, Popen
 from datetime import datetime, timedelta
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
@@ -568,7 +568,9 @@ class X509NameTests(TestCase):
         name = X509().get_subject()
         attrs = attrs.items()
         # Make the order stable - order matters!
-        attrs.sort(lambda (k1, v1), (k2, v2): cmp(v1, v2))
+        def compare(attr1, attr2):
+            return cmp(attr1[1], attr2[1])
+        attrs.sort(compare)
         for k, v in attrs:
             setattr(name, k, v)
         return name
@@ -1306,7 +1308,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         name.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        self.assertEquals(cert.subject_name_hash(), -944919422L)
+        self.assertEquals(cert.subject_name_hash(), -944919422)
 
 
 
@@ -1677,10 +1679,10 @@ def _runopenssl(pem, *args):
         command = "openssl " + " ".join(["'%s'" % (arg.replace("'", "'\\''"),) for arg in args])
     else:
         command = "openssl " + quoteArguments(args)
-    write, read = popen2(command, "b")
-    write.write(pem)
-    write.close()
-    return read.read()
+    proc = Popen(command, "b", stdin=PIPE, stdout=PIPE)
+    proc.stdin.write(pem)
+    proc.stdin.close()
+    return proc.stdout.read()
 
 
 
