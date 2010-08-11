@@ -88,7 +88,7 @@ rand_status(PyObject *spam, PyObject *args)
     if (!PyArg_ParseTuple(args, ":status"))
         return NULL;
 
-    return PyInt_FromLong((long)RAND_status());
+    return PyLong_FromLong((long)RAND_status());
 }
 
 #ifdef MS_WINDOWS
@@ -131,7 +131,7 @@ rand_egd(PyObject *spam, PyObject *args)
     if (!PyArg_ParseTuple(args, "s|i:egd", &path, &bytes))
         return NULL;
 
-    return PyInt_FromLong((long)RAND_egd_bytes(path, bytes));
+    return PyLong_FromLong((long)RAND_egd_bytes(path, bytes));
 }
 
 static char rand_cleanup_doc[] = "\n\
@@ -170,7 +170,7 @@ rand_load_file(PyObject *spam, PyObject *args)
     if (!PyArg_ParseTuple(args, "s|i:load_file", &filename, &maxbytes))
         return NULL;
 
-    return PyInt_FromLong((long)RAND_load_file(filename, maxbytes));
+    return PyLong_FromLong((long)RAND_load_file(filename, maxbytes));
 }
 
 static char rand_write_file_doc[] = "\n\
@@ -188,7 +188,7 @@ rand_write_file(PyObject *spam, PyObject *args)
     if (!PyArg_ParseTuple(args, "s:write_file", &filename))
         return NULL;
 
-    return PyInt_FromLong((long)RAND_write_file(filename));
+    return PyLong_FromLong((long)RAND_write_file(filename));
 }
 
 static char rand_bytes_doc[] = "\n\
