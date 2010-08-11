@@ -158,7 +158,7 @@ class RandTests(TestCase):
         # Write random bytes to a file
         tmpfile = self.mktemp()
         # Make sure it exists (so cleanup definitely succeeds)
-        fObj = file(tmpfile, 'w')
+        fObj = open(tmpfile, 'w')
         fObj.close()
         try:
             rand.write_file(tmpfile)
