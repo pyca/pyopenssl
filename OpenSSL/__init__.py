@@ -16,7 +16,7 @@ from OpenSSL import crypto
 sys.setdlopenflags(orig)
 del sys, orig
 
-from OpenSSL import rand, SSL, tsafe
+from OpenSSL import rand, SSL
 from OpenSSL.version import __version__
 
 __all__ = [
