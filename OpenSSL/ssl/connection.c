@@ -1349,7 +1349,7 @@ ssl_Connection_dealloc(ssl_ConnectionObj *self)
 }
 
 PyTypeObject ssl_Connection_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "OpenSSL.SSL.Connection",
     sizeof(ssl_ConnectionObj),
     0,

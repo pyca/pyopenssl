@@ -368,8 +368,16 @@ import_crypto_type(const char *name, size_t objsize) {
         Py_DECREF(type);
         return NULL;
     }
+
+#ifdef PY3
+    {
+        PyObject* asciiname = PyUnicode_AsASCIIString(name_attr);
+        Py_DECREF(name_attr);
+        name_attr = asciiname;
+    }
+#endif
     right_name = (PyUnicode_CheckExact(name_attr) &&
-                  strcmp(name, _PyUnicode_AsString(name_attr)) == 0);
+                  strcmp(name, PyBytes_AsString(name_attr)) == 0);
     Py_DECREF(name_attr);
     res = (PyTypeObject *)type;
     if (!right_name || res->tp_basicsize != objsize) {
@@ -1243,7 +1251,7 @@ ssl_Context_dealloc(ssl_ContextObj *self)
 
 
 PyTypeObject ssl_Context_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "OpenSSL.SSL.Context",
     sizeof(ssl_ContextObj),
     0,
