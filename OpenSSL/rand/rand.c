@@ -279,7 +279,7 @@ PyOpenSSL_MODINIT(rand) {
     module = Py_InitModule3("rand", rand_methods, rand_doc);
 #endif
     if (module == NULL) {
-        return NULL;
+        PyOpenSSL_MODRETURN(NULL);
     }
 
     rand_Error = PyErr_NewException("OpenSSL.rand.Error", NULL, NULL);
@@ -294,15 +294,10 @@ PyOpenSSL_MODINIT(rand) {
 
     ERR_load_RAND_strings();
 
-#ifdef PY3
-    return module;
-#endif
+    PyOpenSSL_MODRETURN(module);
 
 error:
-#ifdef PY3
-    return NULL;
-#else
+    PyOpenSSL_MODRETURN(NULL);
     ;
-#endif
 }
 
