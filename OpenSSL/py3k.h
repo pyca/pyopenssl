@@ -9,6 +9,7 @@
 PyMODINIT_FUNC \
 PyInit_##name(void)
 
+#define PyText_CheckExact PyUnicode_CheckExact
 #define PyText_FromString PyUnicode_FromString
 #define PyText_FromStringAndSize PyUnicode_FromStringAndSize
 
@@ -34,6 +35,7 @@ PyInit_##name(void)
 #define PyBytes_AsString PyString_AsString
 #define PyBytes_FromStringAndSize PyString_FromStringAndSize
 
+#define PyText_CheckExact PyString_CheckExact
 #define PyText_FromString PyString_FromString
 #define PyText_FromStringAndSize PyString_FromStringAndSize
 
