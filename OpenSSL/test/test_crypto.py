@@ -1252,8 +1252,9 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         cert = load_certificate(FILETYPE_PEM, self.pemData)
         subj = cert.get_issuer()
         self.assertTrue(isinstance(subj, X509Name))
+        comp = subj.get_components()
         self.assertEquals(
-            subj.get_components(),
+            comp,
             [('C', 'US'), ('ST', 'IL'), ('L', 'Chicago'),
              ('O', 'Testing'), ('CN', 'Testing Root CA')])
 
@@ -1676,10 +1677,11 @@ def _runopenssl(pem, *args):
     the given PEM to its stdin.  Not safe for quotes.
     """
     if os.name == 'posix':
-        command = "openssl " + " ".join(["'%s'" % (arg.replace("'", "'\\''"),) for arg in args])
+        command = "openssl " + " ".join([
+                "'%s'" % (arg.replace("'", "'\\''"),) for arg in args])
     else:
         command = "openssl " + quoteArguments(args)
-    proc = Popen(command, "b", stdin=PIPE, stdout=PIPE)
+    proc = Popen(command, shell=True, stdin=PIPE, stdout=PIPE)
     proc.stdin.write(pem)
     proc.stdin.close()
     return proc.stdout.read()
