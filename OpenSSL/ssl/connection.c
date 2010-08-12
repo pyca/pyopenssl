@@ -1276,17 +1276,14 @@ ssl_Connection_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs) {
  *            wrong
  */
 static PyObject *
-ssl_Connection_getattr(ssl_ConnectionObj *self, char *name)
-{
+ssl_Connection_getattro(ssl_ConnectionObj *self, PyObject *nameobj) {
     PyObject *meth;
 
-    meth = ssl_Connection_Type.tp_getattr((PyObject *)self, name);
-
-    if (PyErr_Occurred() && PyErr_ExceptionMatches(PyExc_AttributeError))
-    {
+    meth = PyObject_GenericGetAttr((PyObject*)self, nameobj);
+    if (PyErr_Occurred() && PyErr_ExceptionMatches(PyExc_AttributeError)) {
         PyErr_Clear();
         /* Try looking it up in the "socket" instead. */
-        meth = PyObject_GetAttrString(self->socket, name);
+        meth = PyObject_GenericGetAttr(self->socket, nameobj);
     }
 
     return meth;
@@ -1358,7 +1355,7 @@ PyTypeObject ssl_Connection_Type = {
     0,
     (destructor)ssl_Connection_dealloc,
     NULL, /* print */
-    (getattrfunc)ssl_Connection_getattr, /* tp_getattr */
+    NULL, /* tp_getattr */
     NULL, /* setattr */
     NULL, /* compare */
     NULL, /* repr */
@@ -1368,7 +1365,7 @@ PyTypeObject ssl_Connection_Type = {
     NULL, /* hash */
     NULL, /* call */
     NULL, /* str */
-    NULL, /* getattro */
+    (getattrofunc)ssl_Connection_getattro, /* getattro */
     NULL, /* setattro */
     NULL, /* as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
