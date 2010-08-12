@@ -161,7 +161,7 @@ crypto_PKCS7_dealloc(crypto_PKCS7Obj *self)
 }
 
 PyTypeObject crypto_PKCS7_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "PKCS7",
     sizeof(crypto_PKCS7Obj),
     0,

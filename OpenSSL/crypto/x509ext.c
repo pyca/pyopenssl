@@ -240,7 +240,7 @@ crypto_X509Extension_str(crypto_X509ExtensionObj *self)
 }
 
 PyTypeObject crypto_X509Extension_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "X509Extension",
     sizeof(crypto_X509ExtensionObj),
     0,

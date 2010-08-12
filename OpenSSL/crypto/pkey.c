@@ -197,7 +197,7 @@ crypto_PKey_dealloc(crypto_PKeyObj *self)
 }
 
 PyTypeObject crypto_PKey_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "OpenSSL.crypto.PKey",
     sizeof(crypto_PKeyObj),
     0,

@@ -805,7 +805,7 @@ PyOpenSSL_MODINIT(crypto) {
 #endif
 
     if (module == NULL) {
-        return NULL;
+        PyOpenSSL_MODRETURN(NULL);
     }
 
 #ifndef PY3
@@ -863,14 +863,9 @@ PyOpenSSL_MODINIT(crypto) {
     if (!init_crypto_revoked(module))
         goto error;
 
-#ifdef PY3
-    return module;
-#endif
+    PyOpenSSL_MODRETURN(module);
 
 error:
-#ifdef PY3
-    return NULL;
-#else
+    PyOpenSSL_MODRETURN(NULL);
     ;
-#endif
 }

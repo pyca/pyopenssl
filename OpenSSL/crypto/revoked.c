@@ -387,7 +387,7 @@ static PyObject* crypto_Revoked_new(PyTypeObject *subtype, PyObject *args, PyObj
 }
 
 PyTypeObject crypto_Revoked_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "Revoked",
     sizeof(crypto_RevokedObj),
     0,

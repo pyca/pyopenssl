@@ -152,7 +152,11 @@ crypto_X509Name_getattro(crypto_X509NameObj *self, PyObject *nameobj)
 {
     int nid, len;
     char *utf8string;
-    char *name = _PyUnicode_AsString(nameobj);
+    char *name;
+#ifdef PY3
+    nameobj = PyUnicode_AsASCIIString(nameobj);
+#endif
+    name = PyBytes_AsString(nameobj);
 
     if ((nid = OBJ_txt2nid(name)) == NID_undef) {
         /*
@@ -456,7 +460,7 @@ static PyMethodDef crypto_X509Name_methods[] =
 #undef ADD_METHOD
 
 PyTypeObject crypto_X509Name_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "X509Name",
     sizeof(crypto_X509NameObj),
     0,

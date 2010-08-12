@@ -244,7 +244,7 @@ static PyMethodDef crypto_NetscapeSPKI_methods[] =
 #undef ADD_METHOD
 
 PyTypeObject crypto_NetscapeSPKI_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "NetscapeSPKI",
     sizeof(crypto_NetscapeSPKIObj),
     0,

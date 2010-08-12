@@ -498,7 +498,7 @@ crypto_PKCS12_dealloc(crypto_PKCS12Obj *self)
 }
 
 PyTypeObject crypto_PKCS12_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "PKCS12",
     sizeof(crypto_PKCS12Obj),
     0,

@@ -93,7 +93,7 @@ crypto_X509Store_dealloc(crypto_X509StoreObj *self)
 
 
 PyTypeObject crypto_X509Store_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "X509Store",
     sizeof(crypto_X509StoreObj),
     0,

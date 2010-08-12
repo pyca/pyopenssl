@@ -358,7 +358,7 @@ crypto_X509Req_dealloc(crypto_X509ReqObj *self)
 
 
 PyTypeObject crypto_X509Req_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "X509Req",
     sizeof(crypto_X509ReqObj),
     0,

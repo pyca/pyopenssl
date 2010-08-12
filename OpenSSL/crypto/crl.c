@@ -232,7 +232,7 @@ static PyObject* crypto_CRL_new(PyTypeObject *subtype, PyObject *args, PyObject 
 }
 
 PyTypeObject crypto_CRL_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "CRL",
     sizeof(crypto_CRLObj),
     0,
