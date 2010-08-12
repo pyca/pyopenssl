@@ -93,8 +93,6 @@ crypto_X509_set_serial_number(crypto_X509Obj *self, PyObject *args)
     long small_serial;
     PyObject *serial = NULL;
     PyObject *hex = NULL;
-    PyObject *format = NULL;
-    PyObject *format_args = NULL;
     ASN1_INTEGER *asn1_i = NULL;
     BIGNUM *bignum = NULL;
 
@@ -117,12 +115,8 @@ crypto_X509_set_serial_number(crypto_X509Obj *self, PyObject *args)
      * it.  If bignum is still NULL after this call, then the return value
      * is actually the result.  I hope.  -exarkun
      */
-    small_serial = BN_hex2bn(&bignum, PyBytes_AsString(hex));
+    small_serial = BN_hex2bn(&bignum, _PyUnicode_AsString(hex));
 
-    Py_DECREF(format_args);
-    format_args = NULL;
-    Py_DECREF(format);
-    format = NULL;
     Py_DECREF(hex);
     hex = NULL;
 
@@ -151,12 +145,6 @@ crypto_X509_set_serial_number(crypto_X509Obj *self, PyObject *args)
     return Py_None;
 
   err:
-    if (format_args) {
-        Py_DECREF(format_args);
-    }
-    if (format) {
-        Py_DECREF(format);
-    }
     if (hex) {
         Py_DECREF(hex);
     }

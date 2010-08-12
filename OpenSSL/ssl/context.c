@@ -368,8 +368,8 @@ import_crypto_type(const char *name, size_t objsize) {
         Py_DECREF(type);
         return NULL;
     }
-    right_name = (PyString_CheckExact(name_attr) &&
-                  strcmp(name, PyString_AsString(name_attr)) == 0);
+    right_name = (PyUnicode_CheckExact(name_attr) &&
+                  strcmp(name, _PyUnicode_AsString(name_attr)) == 0);
     Py_DECREF(name_attr);
     res = (PyTypeObject *)type;
     if (!right_name || res->tp_basicsize != objsize) {

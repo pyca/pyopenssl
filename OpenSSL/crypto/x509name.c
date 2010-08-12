@@ -148,10 +148,11 @@ set_name_by_nid(X509_NAME *name, int nid, char *utf8string)
  *            wrong
  */
 static PyObject *
-crypto_X509Name_getattr(crypto_X509NameObj *self, char *name)
+crypto_X509Name_getattro(crypto_X509NameObj *self, PyObject *nameobj)
 {
     int nid, len;
     char *utf8string;
+    char *name = _PyUnicode_AsString(nameobj);
 
     if ((nid = OBJ_txt2nid(name)) == NID_undef) {
         /*
@@ -162,7 +163,7 @@ crypto_X509Name_getattr(crypto_X509NameObj *self, char *name)
          * See lp#314814.
          */
         flush_error_queue();
-        return crypto_X509Name_Type.tp_getattr((PyObject*)self, name);
+        return PyObject_GenericGetAttr((PyObject*)self, nameobj);
     }
 
     len = get_name_by_nid(self->x509_name, nid, &utf8string);
@@ -461,7 +462,7 @@ PyTypeObject crypto_X509Name_Type = {
     0,
     (destructor)crypto_X509Name_dealloc,
     NULL, /* print */
-    (getattrfunc)crypto_X509Name_getattr,
+    NULL, /* getattr */
     (setattrfunc)crypto_X509Name_setattr,
     NULL, /* reserved */
     (reprfunc)crypto_X509Name_repr,
@@ -471,7 +472,7 @@ PyTypeObject crypto_X509Name_Type = {
     NULL, /* hash */
     NULL, /* call */
     NULL, /* str */
-    NULL, /* getattro */
+    (getattrofunc)crypto_X509Name_getattro, /* getattro */
     NULL, /* setattro */
     NULL, /* as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC, /* tp_flags */
