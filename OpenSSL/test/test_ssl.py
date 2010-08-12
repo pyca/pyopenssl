@@ -4,7 +4,7 @@
 Unit tests for L{OpenSSL.SSL}.
 """
 
-from twisted.internet.ssl import *
+# from twisted.internet.ssl import *
 
 from errno import ECONNREFUSED, EINPROGRESS
 from sys import platform
@@ -37,7 +37,7 @@ except ImportError:
 
 
 def verify_cb(conn, cert, errnum, depth, ok):
-    print conn, cert, X509_verify_cert_error_string(errnum), depth, ok
+    print((conn, cert, X509_verify_cert_error_string(errnum), depth, ok))
     return ok
 
 def socket_pair():
