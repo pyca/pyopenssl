@@ -100,7 +100,7 @@ crypto_X509_set_serial_number(crypto_X509Obj *self, PyObject *args)
         return NULL;
     }
 
-    if (!PyLong_Check(serial)) {
+    if (!PyOpenSSL_Integer_Check(serial)) {
         PyErr_SetString(
             PyExc_TypeError, "serial number must be integer");
         goto err;
@@ -123,7 +123,8 @@ crypto_X509_set_serial_number(crypto_X509Obj *self, PyObject *args)
      * it.  If bignum is still NULL after this call, then the return value
      * is actually the result.  I hope.  -exarkun
      */
-    small_serial = BN_hex2bn(&bignum, PyBytes_AsString(hex));
+    /* +2 to skip the "0x" */
+    small_serial = BN_hex2bn(&bignum, PyBytes_AsString(hex) + 2);
 
     Py_DECREF(hex);
     hex = NULL;
