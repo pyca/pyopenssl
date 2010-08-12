@@ -8,5 +8,16 @@
 """
 pyOpenSSL - A simple wrapper around the OpenSSL library
 """
-import rand, crypto, SSL, tsafe
-from version import __version__
+
+import sys
+orig = sys.getdlopenflags()
+sys.setdlopenflags(2|256)
+from OpenSSL import crypto
+sys.setdlopenflags(orig)
+del sys, orig
+
+from OpenSSL import rand, SSL, tsafe
+from OpenSSL.version import __version__
+
+__all__ = [
+    'rand', 'crypto', 'SSL', 'tsafe', '__version__']
