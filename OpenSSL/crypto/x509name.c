@@ -237,21 +237,27 @@ crypto_X509Name_richcompare(PyObject *n, PyObject *m, int op) {
     switch (op) {
     case Py_EQ:
         result = (result == 0);
+        break;
 
     case Py_NE:
         result = (result != 0);
+        break;
 
     case Py_LT:
         result = (result < 0);
+        break;
 
     case Py_LE:
         result = (result <= 0);
+        break;
 
     case Py_GT:
         result = (result > 0);
+        break;
 
     case Py_GE:
         result = (result >= 0);
+        break;
 
     default:
         /* Should be impossible */
