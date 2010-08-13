@@ -60,6 +60,7 @@ flush_error_queue(void) {
     Py_DECREF(list);
 }
 
+#if (PY_VERSION_HEX < 0x02600000)
 PyObject* PyOpenSSL_LongToHex(PyObject *o) {
     PyObject *hex = NULL;
     PyObject *format = NULL;
@@ -77,14 +78,6 @@ PyObject* PyOpenSSL_LongToHex(PyObject *o) {
         goto err;
     }
 
-#ifdef PY3
-    {
-        PyObject *hexbytes = PyUnicode_AsASCIIString(hex);
-        Py_DECREF(hex);
-        hex = hexbytes;
-    }
-#endif
-
     return hex;
 
   err:
@@ -99,3 +92,4 @@ PyObject* PyOpenSSL_LongToHex(PyObject *o) {
     }
     return NULL;
 }
+#endif

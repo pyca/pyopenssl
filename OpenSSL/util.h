@@ -131,7 +131,7 @@ typedef int Py_ssize_t;
 #define PY_SSIZE_T_MIN INT_MIN
 #endif
 
-#if !defined(PyNumber_ToBase)
+#if (PY_VERSION_HEX < 0x02600000)
 extern PyObject* PyOpenSSL_LongToHex(PyObject *o);
 #else
 #define PyOpenSSL_LongToHex(o) PyNumber_ToBase(o, 16)

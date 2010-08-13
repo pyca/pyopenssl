@@ -95,7 +95,7 @@ crypto_X509_set_serial_number(crypto_X509Obj *self, PyObject *args)
     PyObject *hex = NULL;
     ASN1_INTEGER *asn1_i = NULL;
     BIGNUM *bignum = NULL;
-    char *hexbytes;
+    char *hexstr;
 
     if (!PyArg_ParseTuple(args, "O:set_serial_number", &serial)) {
         return NULL;
@@ -111,17 +111,25 @@ crypto_X509_set_serial_number(crypto_X509Obj *self, PyObject *args)
         goto err;
     }
 
+#ifdef PY3
+    {
+        PyObject *hexbytes = PyUnicode_AsASCIIString(hex);
+        Py_DECREF(hex);
+        hex = hexbytes;
+    }
+#endif
+
     /**
      * BN_hex2bn stores the result in &bignum.  Unless it doesn't feel like
      * it.  If bignum is still NULL after this call, then the return value
      * is actually the result.  I hope.  -exarkun
      */
-    hexbytes = PyBytes_AsString(hex);
-    if (hexbytes[2] == 'x') {
+    hexstr = PyBytes_AsString(hex);
+    if (hexstr[2] == 'x') {
         /* +2 to skip the "0x" */
-        hexbytes += 2;
+        hexstr += 2;
     }
-    small_serial = BN_hex2bn(&bignum, hexbytes);
+    small_serial = BN_hex2bn(&bignum, hexstr);
 
     Py_DECREF(hex);
     hex = NULL;
