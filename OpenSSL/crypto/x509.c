@@ -106,7 +106,7 @@ crypto_X509_set_serial_number(crypto_X509Obj *self, PyObject *args)
         goto err;
     }
 
-    if ((hex = PyNumber_ToBase(serial, 16)) == NULL) {
+    if ((hex = PyOpenSSL_LongToHex(serial)) == NULL) {
         goto err;
     }
 

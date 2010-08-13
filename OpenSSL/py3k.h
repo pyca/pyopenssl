@@ -33,7 +33,9 @@ PyInit_##name(void)
 #define PyBytes_Check PyString_Check
 #define PyBytes_CheckExact PyString_CheckExact
 #define PyBytes_AsString PyString_AsString
+#define PyBytes_FromString PyString_FromString
 #define PyBytes_FromStringAndSize PyString_FromStringAndSize
+#define _PyBytes_Resize _PyString_Resize
 
 #define PyText_CheckExact PyString_CheckExact
 #define PyText_FromString PyString_FromString

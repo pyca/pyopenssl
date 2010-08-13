@@ -59,3 +59,35 @@ flush_error_queue(void) {
     PyObject *list = error_queue_to_list();
     Py_DECREF(list);
 }
+
+PyObject* PyOpenSSL_LongToHex(PyObject *o) {
+    PyObject *hex = NULL;
+    PyObject *format = NULL;
+    PyObject *format_args = NULL;
+
+    if ((format_args = Py_BuildValue("(O)", o)) == NULL) {
+        goto err;
+    }
+
+    if ((format = PyString_FromString("%x")) == NULL) {
+        goto err;
+    }
+
+    if ((hex = PyString_Format(format, format_args)) == NULL) {
+        goto err;
+    }
+
+    return hex;
+
+  err:
+    if (format_args) {
+        Py_DECREF(format_args);
+    }
+    if (format) {
+        Py_DECREF(format);
+    }
+    if (hex) {
+        Py_DECREF(hex);
+    }
+    return NULL;
+}
