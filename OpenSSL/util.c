@@ -77,6 +77,14 @@ PyObject* PyOpenSSL_LongToHex(PyObject *o) {
         goto err;
     }
 
+#ifdef PY3
+    {
+        PyObject *hexbytes = PyUnicode_AsASCIIString(hex);
+        Py_DECREF(hex);
+        hex = hexbytes;
+    }
+#endif
+
     return hex;
 
   err:
