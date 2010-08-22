@@ -125,7 +125,7 @@ crypto_X509_set_serial_number(crypto_X509Obj *self, PyObject *args)
      * is actually the result.  I hope.  -exarkun
      */
     hexstr = PyBytes_AsString(hex);
-    if (hexstr[2] == 'x') {
+    if (hexstr[1] == 'x') {
         /* +2 to skip the "0x" */
         hexstr += 2;
     }
