@@ -2004,7 +2004,7 @@ class PKCS7Tests(TestCase):
 
     def test_get_type_name(self):
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertEquals(pkcs7.get_type_name(), 'pkcs7-signedData')
+        self.assertEquals(pkcs7.get_type_name(), b('pkcs7-signedData'))
 
 
     def test_attribute(self):
