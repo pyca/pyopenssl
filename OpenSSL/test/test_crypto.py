@@ -921,7 +921,7 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
         """
         request = X509Req()
         request.add_extensions([
-                X509Extension('basicConstraints', True, 'CA:false')])
+                X509Extension(b('basicConstraints'), True, b('CA:false'))])
         # XXX Add get_extensions so the rest of this unit test can be written.
 
 
