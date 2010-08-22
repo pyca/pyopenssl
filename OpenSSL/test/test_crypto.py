@@ -241,6 +241,16 @@ vrzEeLDRiiPl92dyyWmu
 -----END X509 CRL-----
 """
 
+try:
+    bytes
+except NameError:
+    def b(s):
+        return s
+else:
+    def b(s):
+        return s.encode("ascii")
+
+
 class X509ExtTests(TestCase):
     """
     Tests for L{OpenSSL.crypto.X509Extension}.
@@ -1035,27 +1045,28 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         self.assertEqual(get(), None)
 
         # GMT (Or is it UTC?) -exarkun
-        when = "20040203040506Z"
+        when = b("20040203040506Z")
         set(when)
         self.assertEqual(get(), when)
 
         # A plus two hours and thirty minutes offset
-        when = "20040203040506+0530"
+        when = b("20040203040506+0530")
         set(when)
         self.assertEqual(get(), when)
 
         # A minus one hour fifteen minutes offset
-        when = "20040203040506-0115"
+        when = b("20040203040506-0115")
         set(when)
         self.assertEqual(get(), when)
 
         # An invalid string results in a ValueError
-        self.assertRaises(ValueError, set, "foo bar")
+        self.assertRaises(ValueError, set, b("foo bar"))
 
         # The wrong number of arguments results in a TypeError.
         self.assertRaises(TypeError, set)
-        self.assertRaises(TypeError, set, "20040203040506Z", "20040203040506Z")
-        self.assertRaises(TypeError, get, "foo bar")
+        self.assertRaises(TypeError, set, b("20040203040506Z"), b("20040203040506Z"))
+        self.assertRaises(TypeError, get, b("foo bar"))
+
 
     # XXX ASN1_TIME (not GENERALIZEDTIME)
 
@@ -1084,7 +1095,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         internally.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        self.assertEqual(cert.get_notBefore(), "20090325123658Z")
+        self.assertEqual(cert.get_notBefore(), b("20090325123658Z"))
 
 
     def test_get_notAfter(self):
@@ -1094,7 +1105,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         internally.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        self.assertEqual(cert.get_notAfter(), "20170611123658Z")
+        self.assertEqual(cert.get_notAfter(), b("20170611123658Z"))
 
 
     def test_gmtime_adj_notBefore_wrong_args(self):
@@ -1116,7 +1127,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         cert = load_certificate(FILETYPE_PEM, self.pemData)
         now = datetime.utcnow() + timedelta(seconds=100)
         cert.gmtime_adj_notBefore(100)
-        self.assertEqual(cert.get_notBefore(), now.strftime("%Y%m%d%H%M%SZ"))
+        self.assertEqual(cert.get_notBefore(), b(now.strftime("%Y%m%d%H%M%SZ")))
 
 
     def test_gmtime_adj_notAfter_wrong_args(self):
@@ -1138,7 +1149,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         cert = load_certificate(FILETYPE_PEM, self.pemData)
         now = datetime.utcnow() + timedelta(seconds=100)
         cert.gmtime_adj_notAfter(100)
-        self.assertEqual(cert.get_notAfter(), now.strftime("%Y%m%d%H%M%SZ"))
+        self.assertEqual(cert.get_notAfter(), b(now.strftime("%Y%m%d%H%M%SZ")))
 
 
     def test_has_expired_wrong_args(self):
@@ -1178,7 +1189,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         cert = X509()
         self.assertEqual(
             cert.digest("md5"),
-            "A8:EB:07:F8:53:25:0A:F2:56:05:C5:A5:C4:C4:C7:15")
+            b("A8:EB:07:F8:53:25:0A:F2:56:05:C5:A5:C4:C4:C7:15"))
 
 
     def test_invalid_digest_algorithm(self):

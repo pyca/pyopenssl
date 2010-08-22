@@ -365,11 +365,17 @@ Set the time stamp for when the certificate starts being valid\n\
 @return: None\n\
 ";
 
+#ifdef PY3
+#define FMT(name) ("y" name)
+#else
+#define FMT(name) ("s" name)
+#endif
+
 static PyObject*
 crypto_X509_set_notBefore(crypto_X509Obj *self, PyObject *args)
 {
 	return _set_asn1_time(
-		"s:set_notBefore", X509_get_notBefore(self->x509), args);
+            FMT(":set_notBefore"), X509_get_notBefore(self->x509), args);
 }
 
 static char crypto_X509_set_notAfter_doc[] = "\n\
@@ -388,8 +394,10 @@ static PyObject*
 crypto_X509_set_notAfter(crypto_X509Obj *self, PyObject *args)
 {
 	return _set_asn1_time(
-		"s:set_notAfter", X509_get_notAfter(self->x509), args);
+            FMT(":set_notAfter"), X509_get_notAfter(self->x509), args);
 }
+
+#undef FMT
 
 PyObject*
 _get_asn1_time(char *format, ASN1_TIME* timestamp, PyObject *args)
