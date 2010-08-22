@@ -2070,11 +2070,11 @@ class RevokedTests(TestCase):
         that it is empty.
         """
         revoked = Revoked()
-        self.assertTrue( isinstance(revoked, Revoked) )
-        self.assertEqual( type(revoked), Revoked )
-        self.assertEqual( revoked.get_serial(), '00' )
-        self.assertEqual( revoked.get_rev_date(), None )
-        self.assertEqual( revoked.get_reason(), None )
+        self.assertTrue(isinstance(revoked, Revoked))
+        self.assertEquals(type(revoked), Revoked)
+        self.assertEquals(revoked.get_serial(), b('00'))
+        self.assertEquals(revoked.get_rev_date(), None)
+        self.assertEquals(revoked.get_reason(), None)
 
 
     def test_construction_wrong_args(self):
@@ -2094,16 +2094,16 @@ class RevokedTests(TestCase):
         with grace.
         """
         revoked = Revoked()
-        ret = revoked.set_serial('10b')
-        self.assertEqual( ret, None )
+        ret = revoked.set_serial(b('10b'))
+        self.assertEquals(ret, None)
         ser = revoked.get_serial()
-        self.assertEqual( ser, '010B' )
+        self.assertEquals(ser, b('010B'))
 
-        revoked.set_serial('31ppp')  # a type error would be nice
+        revoked.set_serial(b('31ppp'))  # a type error would be nice
         ser = revoked.get_serial()
-        self.assertEqual( ser, '31' )
+        self.assertEquals(ser, b('31'))
 
-        self.assertRaises(ValueError, revoked.set_serial, 'pqrst')
+        self.assertRaises(ValueError, revoked.set_serial, b('pqrst'))
         self.assertRaises(TypeError, revoked.set_serial, 100)
         self.assertRaises(TypeError, revoked.get_serial, 1)
         self.assertRaises(TypeError, revoked.get_serial, None)
@@ -2118,13 +2118,13 @@ class RevokedTests(TestCase):
         """
         revoked = Revoked()
         date = revoked.get_rev_date()
-        self.assertEqual( date, None )
+        self.assertEquals(date, None)
 
-        now = datetime.now().strftime("%Y%m%d%H%M%SZ")
+        now = b(datetime.now().strftime("%Y%m%d%H%M%SZ"))
         ret = revoked.set_rev_date(now)
-        self.assertEqual( ret, None )
+        self.assertEqual(ret, None)
         date = revoked.get_rev_date()
-        self.assertEqual( date, now )
+        self.assertEqual(date, now)
 
 
     def test_reason(self):
@@ -2135,12 +2135,13 @@ class RevokedTests(TestCase):
         """
         revoked = Revoked()
         for r in revoked.all_reasons():
-            for x in xrange(2):
+            for x in range(2):
                 ret = revoked.set_reason(r)
-                self.assertEqual( ret, None )
+                self.assertEquals(ret, None)
                 reason = revoked.get_reason()
-                self.assertEqual( reason.lower().replace(' ',''),
-                                       r.lower().replace(' ','') )
+                self.assertEquals(
+                    reason.lower().replace(b(' '), b('')),
+                    r.lower().replace(b(' '), b('')))
                 r = reason # again with the resp of get
 
         revoked.set_reason(None)
