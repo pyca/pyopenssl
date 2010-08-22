@@ -31,6 +31,7 @@ try:
 except NameError:
     def b(s):
         return s
+    bytes = str
 else:
     def b(s):
         return s.encode("ascii")
@@ -1743,7 +1744,7 @@ class FunctionTests(TestCase):
         """
         self.assertRaises(
             Error,
-            load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, "quack")
+            load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, b("quack"))
 
 
     def test_load_privatekey_passphrase(self):
@@ -1849,10 +1850,10 @@ class FunctionTests(TestCase):
         """
         L{dump_privatekey} writes an encrypted PEM when given a passphrase.
         """
-        passphrase = "foo"
+        passphrase = b("foo")
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         pem = dump_privatekey(FILETYPE_PEM, key, "blowfish", passphrase)
-        self.assertTrue(isinstance(pem, str))
+        self.assertTrue(isinstance(pem, bytes))
         loadedKey = load_privatekey(FILETYPE_PEM, pem, passphrase)
         self.assertTrue(isinstance(loadedKey, PKeyType))
         self.assertEqual(loadedKey.type(), key.type())
@@ -1921,14 +1922,14 @@ class FunctionTests(TestCase):
         L{dump_privatekey} writes an encrypted PEM when given a callback which
         returns the correct passphrase.
         """
-        passphrase = "foo"
+        passphrase = b("foo")
         called = []
         def cb(writing):
             called.append(writing)
             return passphrase
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         pem = dump_privatekey(FILETYPE_PEM, key, "blowfish", cb)
-        self.assertTrue(isinstance(pem, str))
+        self.assertTrue(isinstance(pem, bytes))
         self.assertEqual(called, [True])
         loadedKey = load_privatekey(FILETYPE_PEM, pem, passphrase)
         self.assertTrue(isinstance(loadedKey, PKeyType))
