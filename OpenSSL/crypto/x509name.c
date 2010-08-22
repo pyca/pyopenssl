@@ -154,9 +154,10 @@ crypto_X509Name_getattro(crypto_X509NameObj *self, PyObject *nameobj)
     char *utf8string;
     char *name;
 #ifdef PY3
-    nameobj = PyUnicode_AsASCIIString(nameobj);
-#endif
+    name = PyBytes_AsString(PyUnicode_AsASCIIString(nameobj));
+#else
     name = PyBytes_AsString(nameobj);
+#endif
 
     if ((nid = OBJ_txt2nid(name)) == NID_undef) {
         /*

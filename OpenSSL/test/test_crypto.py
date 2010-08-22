@@ -1218,8 +1218,8 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         self.assertTrue(isinstance(subj, X509Name))
         self.assertEquals(
             subj.get_components(),
-            [('C', 'US'), ('ST', 'IL'), ('L', 'Chicago'),
-             ('O', 'Testing'), ('CN', 'Testing Root CA')])
+            [(b('C'), b('US')), (b('ST'), b('IL')), (b('L'), b('Chicago')),
+             (b('O'), b('Testing')), (b('CN'), b('Testing Root CA'))])
 
 
     def test_set_subject_wrong_args(self):
@@ -1245,7 +1245,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         cert.set_subject(name)
         self.assertEquals(
             cert.get_subject().get_components(),
-            [('C', 'AU'), ('O', 'Unit Tests')])
+            [(b('C'), b('AU')), (b('O'), b('Unit Tests'))])
 
 
     def test_get_issuer_wrong_args(self):
@@ -1266,8 +1266,8 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         comp = subj.get_components()
         self.assertEquals(
             comp,
-            [('C', 'US'), ('ST', 'IL'), ('L', 'Chicago'),
-             ('O', 'Testing'), ('CN', 'Testing Root CA')])
+            [(b('C'), b('US')), (b('ST'), b('IL')), (b('L'), b('Chicago')),
+             (b('O'), b('Testing')), (b('CN'), b('Testing Root CA'))])
 
 
     def test_set_issuer_wrong_args(self):
@@ -1293,7 +1293,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         cert.set_issuer(name)
         self.assertEquals(
             cert.get_issuer().get_components(),
-            [('C', 'AU'), ('O', 'Unit Tests')])
+            [(b('C'), b('AU')), (b('O'), b('Unit Tests'))])
 
 
     def test_get_pubkey_uninitialized(self):
