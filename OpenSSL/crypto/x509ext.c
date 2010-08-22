@@ -186,10 +186,12 @@ crypto_X509Extension_new(PyTypeObject *subtype, PyObject *args,
     static char *kwlist[] = {"type_name", "critical", "value", "subject",
                              "issuer", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sis|O!O!:X509Extension",
-                                     kwlist, &type_name, &critical, &value,
-                                     &crypto_X509_Type, &subject,
-                                     &crypto_X509_Type, &issuer )) {
+    if (!PyArg_ParseTupleAndKeywords(
+            args, kwargs,
+            BYTESTRING_FMT "i" BYTESTRING_FMT "|O!O!:X509Extension",
+            kwlist, &type_name, &critical, &value,
+            &crypto_X509_Type, &subject,
+            &crypto_X509_Type, &issuer )) {
         return NULL;
     }
 

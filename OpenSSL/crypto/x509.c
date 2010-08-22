@@ -369,7 +369,8 @@ static PyObject*
 crypto_X509_set_notBefore(crypto_X509Obj *self, PyObject *args)
 {
 	return _set_asn1_time(
-            FMT(":set_notBefore"), X509_get_notBefore(self->x509), args);
+            BYTESTRING_FMT ":set_notBefore",
+            X509_get_notBefore(self->x509), args);
 }
 
 static char crypto_X509_set_notAfter_doc[] = "\n\
@@ -388,7 +389,8 @@ static PyObject*
 crypto_X509_set_notAfter(crypto_X509Obj *self, PyObject *args)
 {
 	return _set_asn1_time(
-            FMT(":set_notAfter"), X509_get_notAfter(self->x509), args);
+            BYTESTRING_FMT ":set_notAfter",
+            X509_get_notAfter(self->x509), args);
 }
 
 PyObject*

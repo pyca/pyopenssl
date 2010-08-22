@@ -273,8 +273,8 @@ class X509ExtTests(TestCase):
         self.subject.commonName = self.req.get_subject().commonName
         self.x509.set_issuer(self.subject)
         self.x509.set_pubkey(self.pkey)
-        now = datetime.now().strftime("%Y%m%d%H%M%SZ")
-        expire  = (datetime.now() + timedelta(days=100)).strftime("%Y%m%d%H%M%SZ")
+        now = b(datetime.now().strftime("%Y%m%d%H%M%SZ"))
+        expire  = b((datetime.now() + timedelta(days=100)).strftime("%Y%m%d%H%M%SZ"))
         self.x509.set_notBefore(now)
         self.x509.set_notAfter(expire)
 
@@ -287,7 +287,7 @@ class X509ExtTests(TestCase):
         # This isn't necessarily the best string representation.  Perhaps it
         # will be changed/improved in the future.
         self.assertEquals(
-            str(X509Extension('basicConstraints', True, 'CA:false')),
+            str(X509Extension(b('basicConstraints'), True, b('CA:false'))),
             'CA:FALSE')
 
 
@@ -298,7 +298,8 @@ class X509ExtTests(TestCase):
         """
         self.assertIdentical(X509Extension, X509ExtensionType)
         self.assertConsistentType(
-            X509Extension, 'X509Extension', 'basicConstraints', True, 'CA:true')
+            X509Extension,
+            'X509Extension', b('basicConstraints'), True, b('CA:true'))
 
 
     def test_construction(self):
@@ -306,13 +307,14 @@ class X509ExtTests(TestCase):
         L{X509Extension} accepts an extension type name, a critical flag,
         and an extension value and returns an L{X509ExtensionType} instance.
         """
-        basic = X509Extension('basicConstraints', True, 'CA:true')
+        basic = X509Extension(b('basicConstraints'), True, b('CA:true'))
         self.assertTrue(
             isinstance(basic, X509ExtensionType),
             "%r is of type %r, should be %r" % (
                 basic, type(basic), X509ExtensionType))
 
-        comment = X509Extension('nsComment', False, 'pyOpenSSL unit test')
+        comment = X509Extension(
+            b('nsComment'), False, b('pyOpenSSL unit test'))
         self.assertTrue(
             isinstance(comment, X509ExtensionType),
             "%r is of type %r, should be %r" % (
@@ -325,17 +327,17 @@ class X509ExtTests(TestCase):
         name or value.
         """
         self.assertRaises(
-            Error, X509Extension, 'thisIsMadeUp', False, 'hi')
+            Error, X509Extension, b('thisIsMadeUp'), False, b('hi'))
         self.assertRaises(
-            Error, X509Extension, 'basicConstraints', False, 'blah blah')
+            Error, X509Extension, b('basicConstraints'), False, b('blah blah'))
 
         # Exercise a weird one (an extension which uses the r2i method).  This
         # exercises the codepath that requires a non-NULL ctx to be passed to
         # X509V3_EXT_nconf.  It can't work now because we provide no
         # configuration database.  It might be made to work in the future.
         self.assertRaises(
-            Error, X509Extension, 'proxyCertInfo', True,
-            'language:id-ppl-anyLanguage,pathlen:1,policy:text:AB')
+            Error, X509Extension, b('proxyCertInfo'), True,
+            b('language:id-ppl-anyLanguage,pathlen:1,policy:text:AB'))
 
 
     def test_get_critical(self):
@@ -343,9 +345,9 @@ class X509ExtTests(TestCase):
         L{X509ExtensionType.get_critical} returns the value of the
         extension's critical flag.
         """
-        ext = X509Extension('basicConstraints', True, 'CA:true')
+        ext = X509Extension(b('basicConstraints'), True, b('CA:true'))
         self.assertTrue(ext.get_critical())
-        ext = X509Extension('basicConstraints', False, 'CA:true')
+        ext = X509Extension(b('basicConstraints'), False, b('CA:true'))
         self.assertFalse(ext.get_critical())
 
 
@@ -354,10 +356,10 @@ class X509ExtTests(TestCase):
         L{X509ExtensionType.get_short_name} returns a string giving the short
         type name of the extension.
         """
-        ext = X509Extension('basicConstraints', True, 'CA:true')
-        self.assertEqual(ext.get_short_name(), 'basicConstraints')
-        ext = X509Extension('nsComment', True, 'foo bar')
-        self.assertEqual(ext.get_short_name(), 'nsComment')
+        ext = X509Extension(b('basicConstraints'), True, b('CA:true'))
+        self.assertEqual(ext.get_short_name(), b('basicConstraints'))
+        ext = X509Extension(b('nsComment'), True, b('foo bar'))
+        self.assertEqual(ext.get_short_name(), b('nsComment'))
 
 
     def test_unused_subject(self):
@@ -365,13 +367,14 @@ class X509ExtTests(TestCase):
         The C{subject} parameter to L{X509Extension} may be provided for an
         extension which does not use it and is ignored in this case.
         """
-        ext1 = X509Extension('basicConstraints', False, 'CA:TRUE', subject=self.x509)
+        ext1 = X509Extension(
+            b('basicConstraints'), False, b('CA:TRUE'), subject=self.x509)
         self.x509.add_extensions([ext1])
         self.x509.sign(self.pkey, 'sha1')
         # This is a little lame.  Can we think of a better way?
         text = dump_certificate(FILETYPE_TEXT, self.x509)
-        self.assertTrue('X509v3 Basic Constraints:' in text)
-        self.assertTrue('CA:TRUE' in text)
+        self.assertTrue(b('X509v3 Basic Constraints:') in text)
+        self.assertTrue(b('CA:TRUE') in text)
 
 
     def test_subject(self):
@@ -379,11 +382,12 @@ class X509ExtTests(TestCase):
         If an extension requires a subject, the C{subject} parameter to
         L{X509Extension} provides its value.
         """
-        ext3 = X509Extension('subjectKeyIdentifier', False, 'hash', subject=self.x509)
+        ext3 = X509Extension(
+            b('subjectKeyIdentifier'), False, b('hash'), subject=self.x509)
         self.x509.add_extensions([ext3])
         self.x509.sign(self.pkey, 'sha1')
         text = dump_certificate(FILETYPE_TEXT, self.x509)
-        self.assertTrue('X509v3 Subject Key Identifier:' in text)
+        self.assertTrue(b('X509v3 Subject Key Identifier:') in text)
 
 
     def test_missing_subject(self):
@@ -392,7 +396,7 @@ class X509ExtTests(TestCase):
         given no value, something happens.
         """
         self.assertRaises(
-            Error, X509Extension, 'subjectKeyIdentifier', False, 'hash')
+            Error, X509Extension, b('subjectKeyIdentifier'), False, b('hash'))
 
 
     def test_invalid_subject(self):
@@ -412,12 +416,13 @@ class X509ExtTests(TestCase):
         The C{issuer} parameter to L{X509Extension} may be provided for an
         extension which does not use it and is ignored in this case.
         """
-        ext1 = X509Extension('basicConstraints', False, 'CA:TRUE', issuer=self.x509)
+        ext1 = X509Extension(
+            b('basicConstraints'), False, b('CA:TRUE'), issuer=self.x509)
         self.x509.add_extensions([ext1])
         self.x509.sign(self.pkey, 'sha1')
         text = dump_certificate(FILETYPE_TEXT, self.x509)
-        self.assertTrue('X509v3 Basic Constraints:' in text)
-        self.assertTrue('CA:TRUE' in text)
+        self.assertTrue(b('X509v3 Basic Constraints:') in text)
+        self.assertTrue(b('CA:TRUE') in text)
 
 
     def test_issuer(self):
@@ -426,13 +431,13 @@ class X509ExtTests(TestCase):
         L{X509Extension} provides its value.
         """
         ext2 = X509Extension(
-            'authorityKeyIdentifier', False, 'issuer:always',
+            b('authorityKeyIdentifier'), False, b('issuer:always'),
             issuer=self.x509)
         self.x509.add_extensions([ext2])
         self.x509.sign(self.pkey, 'sha1')
         text = dump_certificate(FILETYPE_TEXT, self.x509)
-        self.assertTrue('X509v3 Authority Key Identifier:' in text)
-        self.assertTrue('DirName:/CN=Yoda root CA' in text)
+        self.assertTrue(b('X509v3 Authority Key Identifier:') in text)
+        self.assertTrue(b('DirName:/CN=Yoda root CA') in text)
 
 
     def test_missing_issuer(self):
@@ -443,7 +448,8 @@ class X509ExtTests(TestCase):
         self.assertRaises(
             Error,
             X509Extension,
-            'authorityKeyIdentifier', False, 'keyid:always,issuer:always')
+            b('authorityKeyIdentifier'), False,
+            b('keyid:always,issuer:always'))
 
 
     def test_invalid_issuer(self):
@@ -576,11 +582,11 @@ class X509NameTests(TestCase):
     def _x509name(self, **attrs):
         # XXX There's no other way to get a new X509Name yet.
         name = X509().get_subject()
-        attrs = attrs.items()
+        attrs = list(attrs.items())
         # Make the order stable - order matters!
-        def compare(attr1, attr2):
-            return cmp(attr1[1], attr2[1])
-        attrs.sort(compare)
+        def key(attr):
+            return attr[1]
+        attrs.sort(key=key)
         for k, v in attrs:
             setattr(name, k, v)
         return name

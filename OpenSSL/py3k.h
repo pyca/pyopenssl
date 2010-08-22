@@ -19,7 +19,7 @@ PyInit_##name(void)
 
 #define PyOpenSSL_MODRETURN(module) { return module; }
 
-#define FMT(name) ("y" name)
+#define BYTESTRING_FMT "y"
 
 #else /* (PY_VERSION_HEX >= 0x03000000) */
 
@@ -47,7 +47,7 @@ PyInit_##name(void)
 void \
 init##name(void)
 
-#define FMT(name) ("s" name)
+#define BYTESTRING_FMT "s"
 
 #endif /* (PY_VERSION_HEX >= 0x03000000) */
 

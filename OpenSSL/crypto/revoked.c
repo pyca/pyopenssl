@@ -231,7 +231,7 @@ Set the revocation timestamp\n\
 static PyObject*
 crypto_Revoked_set_rev_date(crypto_RevokedObj *self, PyObject *args) {
     return _set_asn1_time(
-        FMT(":set_rev_date"), self->revoked->revocationDate, args);
+        BYTESTRING_FMT ":set_rev_date", self->revoked->revocationDate, args);
 }
 
 /* The integer is converted to an upper-case hex string
@@ -307,7 +307,7 @@ crypto_Revoked_set_serial(crypto_RevokedObj *self, PyObject *args, PyObject *key
     BIGNUM *serial = NULL;
     ASN1_INTEGER *tmpser = NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, FMT(":set_serial"),
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, BYTESTRING_FMT ":set_serial",
                                      kwlist, &hex_str)) {
         return NULL;
     }

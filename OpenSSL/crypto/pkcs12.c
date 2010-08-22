@@ -367,7 +367,7 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase) {
          *  certificate. */
         alias_str = X509_alias_get0(cert, &alias_len);
         if (alias_str) {
-            self->friendlyname = Py_BuildValue(FMT("#"), alias_str, alias_len);
+            self->friendlyname = Py_BuildValue(BYTESTRING_FMT "#", alias_str, alias_len);
             if (!self->friendlyname) {
                 /*
                  * XXX Untested
