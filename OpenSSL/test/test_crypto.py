@@ -754,8 +754,8 @@ class X509NameTests(TestCase):
         a = self._x509name(CN="foo", C="US")
         self.assertEqual(
             a.der(),
-            '0\x1b1\x0b0\t\x06\x03U\x04\x06\x13\x02US'
-            '1\x0c0\n\x06\x03U\x04\x03\x13\x03foo')
+            b('0\x1b1\x0b0\t\x06\x03U\x04\x06\x13\x02US'
+              '1\x0c0\n\x06\x03U\x04\x03\x13\x03foo'))
 
 
     def test_get_components(self):
@@ -766,11 +766,11 @@ class X509NameTests(TestCase):
         a = self._x509name()
         self.assertEqual(a.get_components(), [])
         a.CN = "foo"
-        self.assertEqual(a.get_components(), [("CN", "foo")])
+        self.assertEqual(a.get_components(), [(b("CN"), b("foo"))])
         a.organizationalUnitName = "bar"
         self.assertEqual(
             a.get_components(),
-            [("CN", "foo"), ("OU", "bar")])
+            [(b("CN"), b("foo")), (b("OU"), b("bar"))])
 
 
 class _PKeyInteractionTestsMixin:
