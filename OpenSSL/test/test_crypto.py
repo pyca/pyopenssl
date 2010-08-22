@@ -2063,7 +2063,7 @@ class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):
         """
         nspki = NetscapeSPKI()
         blob = nspki.b64_encode()
-        self.assertTrue(isinstance(blob, str))
+        self.assertTrue(isinstance(blob, bytes))
 
 
 
@@ -2213,25 +2213,25 @@ class CRLTests(TestCase):
         """
         crl = CRL()
         revoked = Revoked()
-        now = datetime.now().strftime("%Y%m%d%H%M%SZ")
+        now = b(datetime.now().strftime("%Y%m%d%H%M%SZ"))
         revoked.set_rev_date(now)
-        revoked.set_serial('3ab')
-        revoked.set_reason('sUpErSeDEd')
+        revoked.set_serial(b('3ab'))
+        revoked.set_reason(b('sUpErSeDEd'))
         crl.add_revoked(revoked)
 
         # PEM format
         dumped_crl = crl.export(self.cert, self.pkey, days=20)
         text = _runopenssl(dumped_crl, "crl", "-noout", "-text")
-        text.index('Serial Number: 03AB')
-        text.index('Superseded')
-        text.index('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA')
+        text.index(b('Serial Number: 03AB'))
+        text.index(b('Superseded'))
+        text.index(b('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA'))
 
         # DER format
         dumped_crl = crl.export(self.cert, self.pkey, FILETYPE_ASN1)
         text = _runopenssl(dumped_crl, "crl", "-noout", "-text", "-inform", "DER")
-        text.index('Serial Number: 03AB')
-        text.index('Superseded')
-        text.index('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA')
+        text.index(b('Serial Number: 03AB'))
+        text.index(b('Superseded'))
+        text.index(b('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA'))
 
         # text format
         dumped_text = crl.export(self.cert, self.pkey, type=FILETYPE_TEXT)
@@ -2286,20 +2286,20 @@ class CRLTests(TestCase):
         crl = CRL()
 
         revoked = Revoked()
-        now = datetime.now().strftime("%Y%m%d%H%M%SZ")
+        now = b(datetime.now().strftime("%Y%m%d%H%M%SZ"))
         revoked.set_rev_date(now)
-        revoked.set_serial('3ab')
+        revoked.set_serial(b('3ab'))
         crl.add_revoked(revoked)
-        revoked.set_serial('100')
-        revoked.set_reason('sUpErSeDEd')
+        revoked.set_serial(b('100'))
+        revoked.set_reason(b('sUpErSeDEd'))
         crl.add_revoked(revoked)
 
         revs = crl.get_revoked()
         self.assertEqual(len(revs), 2)
         self.assertEqual(type(revs[0]), Revoked)
         self.assertEqual(type(revs[1]), Revoked)
-        self.assertEqual(revs[0].get_serial(), '03AB')
-        self.assertEqual(revs[1].get_serial(), '0100')
+        self.assertEqual(revs[0].get_serial(), b('03AB'))
+        self.assertEqual(revs[1].get_serial(), b('0100'))
         self.assertEqual(revs[0].get_rev_date(), now)
         self.assertEqual(revs[1].get_rev_date(), now)
 
@@ -2335,19 +2335,19 @@ class CRLTests(TestCase):
         crl = load_crl(FILETYPE_PEM, crlData)
         revs = crl.get_revoked()
         self.assertEqual(len(revs), 2)
-        self.assertEqual(revs[0].get_serial(), '03AB')
+        self.assertEqual(revs[0].get_serial(), b('03AB'))
         self.assertEqual(revs[0].get_reason(), None)
-        self.assertEqual(revs[1].get_serial(), '0100')
-        self.assertEqual(revs[1].get_reason(), 'Superseded')
+        self.assertEqual(revs[1].get_serial(), b('0100'))
+        self.assertEqual(revs[1].get_reason(), b('Superseded'))
 
         der = _runopenssl(crlData, "crl", "-outform", "DER")
         crl = load_crl(FILETYPE_ASN1, der)
         revs = crl.get_revoked()
         self.assertEqual(len(revs), 2)
-        self.assertEqual(revs[0].get_serial(), '03AB')
+        self.assertEqual(revs[0].get_serial(), b('03AB'))
         self.assertEqual(revs[0].get_reason(), None)
-        self.assertEqual(revs[1].get_serial(), '0100')
-        self.assertEqual(revs[1].get_reason(), 'Superseded')
+        self.assertEqual(revs[1].get_serial(), b('0100'))
+        self.assertEqual(revs[1].get_reason(), b('Superseded'))
 
 
     def test_load_crl_wrong_args(self):
