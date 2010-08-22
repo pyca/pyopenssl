@@ -228,12 +228,6 @@ Set the revocation timestamp\n\
 @return: None\n\
 ";
 
-#ifdef PY3
-#define FMT(name) ("y" name)
-#else
-#define FMT(name) ("s" name)
-#endif
-
 static PyObject*
 crypto_Revoked_set_rev_date(crypto_RevokedObj *self, PyObject *args) {
     return _set_asn1_time(

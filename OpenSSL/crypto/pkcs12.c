@@ -203,7 +203,7 @@ crypto_PKCS12_set_friendlyname(crypto_PKCS12Obj *self, PyObject *args, PyObject 
         return NULL;
 
     if (name != Py_None && ! PyBytes_CheckExact(name)) {
-        PyErr_SetString(PyExc_TypeError, "name must be a str or None");
+        PyErr_SetString(PyExc_TypeError, "name must be a byte string or None");
         return NULL;
     }
 
@@ -367,7 +367,8 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase) {
          *  certificate. */
         alias_str = X509_alias_get0(cert, &alias_len);
         if (alias_str) {
-            if (!(self->friendlyname = Py_BuildValue("s#", alias_str, alias_len))) {
+            self->friendlyname = Py_BuildValue(FMT("#"), alias_str, alias_len);
+            if (!self->friendlyname) {
                 /*
                  * XXX Untested
                  */

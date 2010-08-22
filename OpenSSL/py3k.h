@@ -19,6 +19,8 @@ PyInit_##name(void)
 
 #define PyOpenSSL_MODRETURN(module) { return module; }
 
+#define FMT(name) ("y" name)
+
 #else /* (PY_VERSION_HEX >= 0x03000000) */
 
 #define PyOpenSSL_MODRETURN(module) { return; }
@@ -44,6 +46,8 @@ PyInit_##name(void)
 #define PyOpenSSL_MODINIT(name) \
 void \
 init##name(void)
+
+#define FMT(name) ("s" name)
 
 #endif /* (PY_VERSION_HEX >= 0x03000000) */
 

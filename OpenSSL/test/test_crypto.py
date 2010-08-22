@@ -26,7 +26,17 @@ from OpenSSL.crypto import sign, verify
 from OpenSSL.test.util import TestCase
 
 
-root_cert_pem = """-----BEGIN CERTIFICATE-----
+try:
+    bytes
+except NameError:
+    def b(s):
+        return s
+else:
+    def b(s):
+        return s.encode("ascii")
+
+
+root_cert_pem = b("""-----BEGIN CERTIFICATE-----
 MIIC7TCCAlagAwIBAgIIPQzE4MbeufQwDQYJKoZIhvcNAQEFBQAwWDELMAkGA1UE
 BhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQHEwdDaGljYWdvMRAwDgYDVQQKEwdU
 ZXN0aW5nMRgwFgYDVQQDEw9UZXN0aW5nIFJvb3QgQ0EwIhgPMjAwOTAzMjUxMjM2
@@ -44,9 +54,9 @@ AGGCDazMJGoWNBpc03u6+smc95dEead2KlZXBATOdFT1VesY3+nUOqZhEhTGlDMi
 hkgaZnzoIq/Uamidegk4hirsCT/R+6vsKAAxNTcBjUeZjlykCJWy5ojShGftXIKY
 w/njVbKMXrvc83qmTdGl3TAM0fxQIpqgcglFLveEBgzn
 -----END CERTIFICATE-----
-"""
+""")
 
-root_key_pem = """-----BEGIN RSA PRIVATE KEY-----
+root_key_pem = b("""-----BEGIN RSA PRIVATE KEY-----
 MIICXQIBAAKBgQD5mkLpi7q6ROdu7khB3S9aanA0Zls7vvfGOmB80/yeylhGpsjA
 jWen0VtSQke/NlEPGtO38tsV7CsuFnSmschvAnGrcJl76b0UOOHUgDTIoRxC6QDU
 3claegwsrBA+sJEBbqx5RdXbIRGicPG/8qQ4Zm1SKOgotcbwiaor2yxZ2wIDAQAB
@@ -61,9 +71,9 @@ ttXigLnCqR486JDPTi9ZscoZkZ+w7y6e/hH8t6d5Vjt48JVyfjPIaJY+km58LcN3
 6AWSeGAdtRFHVzR7oHjVAkB4hutvxiOeiIVQNBhM6RSI9aBPMI21DoX2JRoxvNW2
 cbvAhow217X9V0dVerEOKxnNYspXRrh36h7k4mQA+sDq
 -----END RSA PRIVATE KEY-----
-"""
+""")
 
-server_cert_pem = """-----BEGIN CERTIFICATE-----
+server_cert_pem = b("""-----BEGIN CERTIFICATE-----
 MIICKDCCAZGgAwIBAgIJAJn/HpR21r/8MA0GCSqGSIb3DQEBBQUAMFgxCzAJBgNV
 BAYTAlVTMQswCQYDVQQIEwJJTDEQMA4GA1UEBxMHQ2hpY2FnbzEQMA4GA1UEChMH
 VGVzdGluZzEYMBYGA1UEAxMPVGVzdGluZyBSb290IENBMCIYDzIwMDkwMzI1MTIz
@@ -77,9 +87,9 @@ dJ+NlxIOx5343WqIBka3UbsOb2kxWrbkVCrvRapCMLCASO4FqiKWM+L0VDBprqIp
 2mgpFQ6FHpoIENGvJhdEKpptQ5i7KaGhnDNTfdy3x1+h852G99f1iyj0RmbuFcM8
 uzujnS8YXWvM7DM1Ilozk4MzPug8jzFp5uhKCQ==
 -----END CERTIFICATE-----
-"""
+""")
 
-server_key_pem = """-----BEGIN RSA PRIVATE KEY-----
+server_key_pem = b("""-----BEGIN RSA PRIVATE KEY-----
 MIICWwIBAAKBgQC+pvhuud1dLaQQvzipdtlcTotgr5SuE2LvSx0gz/bg1U3u1eQ+
 U5eqsxaEUceaX5p5Kk+QflvW8qdjVNxQuYS5uc0gK2+OZnlIYxCf4n5GYGzVIx3Q
 SBj/TAEFB2WuVinZBiCbxgL7PFM1Kpa+EwVkCAduPpSflJJPwkYGrK2MHQIDAQAB
@@ -94,9 +104,9 @@ FwwOhpahld+vqhYk+pfuWWUpQciE+Bu7ZQJASjfT4sQv4qbbKK/scePicnDdx9th
 NaeNCFfH3aeTrX0LyQJAMBWjWmeKM2G2sCExheeQK0ROnaBC8itCECD4Jsve4nqf
 r50+LF74iLXFwqysVCebPKMOpDWp/qQ1BbJQIPs7/A==
 -----END RSA PRIVATE KEY-----
-"""
+""")
 
-client_cert_pem = """-----BEGIN CERTIFICATE-----
+client_cert_pem = b("""-----BEGIN CERTIFICATE-----
 MIICJjCCAY+gAwIBAgIJAKxpFI5lODkjMA0GCSqGSIb3DQEBBQUAMFgxCzAJBgNV
 BAYTAlVTMQswCQYDVQQIEwJJTDEQMA4GA1UEBxMHQ2hpY2FnbzEQMA4GA1UEChMH
 VGVzdGluZzEYMBYGA1UEAxMPVGVzdGluZyBSb290IENBMCIYDzIwMDkwMzI1MTIz
@@ -110,9 +120,9 @@ Q3OHvmsFEEvRI+hsW8y66zK4K5de239Y44iZrFYkt7Q5nBPMEWDj4F2hLYWL/qtI
 9Zdr0U4UDCU9SmmGYh4o7R4TZ5pGFvBYvjhHbkSFYFQXZxKUi+WUxplP6I0wr2KJ
 PSTJCjJOn3xo2NTKRgV1gaoTf2EhL+RG8TQ=
 -----END CERTIFICATE-----
-"""
+""")
 
-client_key_pem = """-----BEGIN RSA PRIVATE KEY-----
+client_key_pem = b("""-----BEGIN RSA PRIVATE KEY-----
 MIICXgIBAAKBgQDAZh/SRtNm5ntMT4qb6YzEpTroMlq2rn+GrRHRiZ+xkCw/CGNh
 btPir7/QxaUj26BSmQrHw1bGKEbPsWiW7bdXSespl+xKiku4G/KvnnmWdeJHqsiX
 eUZtqurMELcPQAw9xPHEuhqqUJvvEoMTsnCEqGM+7DtboCRajYyHfluARQIDAQAB
@@ -127,9 +137,9 @@ si6xwT7GzMDkk/ko684AV3KPc/h6G0yGtFIrMg7J3uExpR/VdH2KgwMkZXisSMvw
 JJEQjOMCVsEJlRk54WWjAkEAzoZNH6UhDdBK5F38rVt/y4SEHgbSfJHIAmPS32Kq
 f6GGcfNpip0Uk7q7udTKuX7Q/buZi/C4YW7u3VKAquv9NA==
 -----END RSA PRIVATE KEY-----
-"""
+""")
 
-cleartextCertificatePEM = """-----BEGIN CERTIFICATE-----
+cleartextCertificatePEM = b("""-----BEGIN CERTIFICATE-----
 MIIC7TCCAlagAwIBAgIIPQzE4MbeufQwDQYJKoZIhvcNAQEFBQAwWDELMAkGA1UE
 BhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQHEwdDaGljYWdvMRAwDgYDVQQKEwdU
 ZXN0aW5nMRgwFgYDVQQDEw9UZXN0aW5nIFJvb3QgQ0EwIhgPMjAwOTAzMjUxMjM2
@@ -147,9 +157,9 @@ AGGCDazMJGoWNBpc03u6+smc95dEead2KlZXBATOdFT1VesY3+nUOqZhEhTGlDMi
 hkgaZnzoIq/Uamidegk4hirsCT/R+6vsKAAxNTcBjUeZjlykCJWy5ojShGftXIKY
 w/njVbKMXrvc83qmTdGl3TAM0fxQIpqgcglFLveEBgzn
 -----END CERTIFICATE-----
-"""
+""")
 
-cleartextPrivateKeyPEM = """-----BEGIN RSA PRIVATE KEY-----
+cleartextPrivateKeyPEM = b("""-----BEGIN RSA PRIVATE KEY-----
 MIICXQIBAAKBgQD5mkLpi7q6ROdu7khB3S9aanA0Zls7vvfGOmB80/yeylhGpsjA
 jWen0VtSQke/NlEPGtO38tsV7CsuFnSmschvAnGrcJl76b0UOOHUgDTIoRxC6QDU
 3claegwsrBA+sJEBbqx5RdXbIRGicPG/8qQ4Zm1SKOgotcbwiaor2yxZ2wIDAQAB
@@ -164,22 +174,22 @@ ttXigLnCqR486JDPTi9ZscoZkZ+w7y6e/hH8t6d5Vjt48JVyfjPIaJY+km58LcN3
 6AWSeGAdtRFHVzR7oHjVAkB4hutvxiOeiIVQNBhM6RSI9aBPMI21DoX2JRoxvNW2
 cbvAhow217X9V0dVerEOKxnNYspXRrh36h7k4mQA+sDq
 -----END RSA PRIVATE KEY-----
-"""
+""")
 
-cleartextCertificateRequestPEM = (
-    "-----BEGIN CERTIFICATE REQUEST-----\n"
-    "MIIBnjCCAQcCAQAwXjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQH\n"
-    "EwdDaGljYWdvMRcwFQYDVQQKEw5NeSBDb21wYW55IEx0ZDEXMBUGA1UEAxMORnJl\n"
-    "ZGVyaWNrIERlYW4wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBANp6Y17WzKSw\n"
-    "BsUWkXdqg6tnXy8H8hA1msCMWpc+/2KJ4mbv5NyD6UD+/SqagQqulPbF/DFea9nA\n"
-    "E0zhmHJELcM8gUTIlXv/cgDWnmK4xj8YkjVUiCdqKRAKeuzLG1pGmwwF5lGeJpXN\n"
-    "xQn5ecR0UYSOWj6TTGXB9VyUMQzCClcBAgMBAAGgADANBgkqhkiG9w0BAQUFAAOB\n"
-    "gQAAJGuF/R/GGbeC7FbFW+aJgr9ee0Xbl6nlhu7pTe67k+iiKT2dsl2ti68MVTnu\n"
-    "Vrb3HUNqOkiwsJf6kCtq5oPn3QVYzTa76Dt2y3Rtzv6boRSlmlfrgS92GNma8JfR\n"
-    "oICQk3nAudi6zl1Dix3BCv1pUp5KMtGn3MeDEi6QFGy2rA==\n"
-    "-----END CERTIFICATE REQUEST-----\n")
+cleartextCertificateRequestPEM = b("""-----BEGIN CERTIFICATE REQUEST-----
+MIIBnjCCAQcCAQAwXjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQH
+EwdDaGljYWdvMRcwFQYDVQQKEw5NeSBDb21wYW55IEx0ZDEXMBUGA1UEAxMORnJl
+ZGVyaWNrIERlYW4wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBANp6Y17WzKSw
+BsUWkXdqg6tnXy8H8hA1msCMWpc+/2KJ4mbv5NyD6UD+/SqagQqulPbF/DFea9nA
+E0zhmHJELcM8gUTIlXv/cgDWnmK4xj8YkjVUiCdqKRAKeuzLG1pGmwwF5lGeJpXN
+xQn5ecR0UYSOWj6TTGXB9VyUMQzCClcBAgMBAAGgADANBgkqhkiG9w0BAQUFAAOB
+gQAAJGuF/R/GGbeC7FbFW+aJgr9ee0Xbl6nlhu7pTe67k+iiKT2dsl2ti68MVTnu
+Vrb3HUNqOkiwsJf6kCtq5oPn3QVYzTa76Dt2y3Rtzv6boRSlmlfrgS92GNma8JfR
+oICQk3nAudi6zl1Dix3BCv1pUp5KMtGn3MeDEi6QFGy2rA==
+-----END CERTIFICATE REQUEST-----
+""")
 
-encryptedPrivateKeyPEM = """-----BEGIN RSA PRIVATE KEY-----
+encryptedPrivateKeyPEM = b("""-----BEGIN RSA PRIVATE KEY-----
 Proc-Type: 4,ENCRYPTED
 DEK-Info: DES-EDE3-CBC,9573604A18579E9E
 
@@ -197,15 +207,15 @@ o1mcnNiZSdxLZxVKccq0AfRpHqpPAFnJcQHP6xyT9MZp6fBa0XkxDnt9kNU8H3Qw
 MbzjS007Oe4qqBnCWaFPSnJX6uLApeTbqAxAeyCql56ULW5x6vDMNC3dwjvS/CEh
 11n8RkgFIQA0AhuKSIg3CbuartRsJnWOLwgLTzsrKYL4yRog1RJrtw==
 -----END RSA PRIVATE KEY-----
-"""
-encryptedPrivateKeyPEMPassphrase = "foobar"
+""")
+encryptedPrivateKeyPEMPassphrase = b("foobar")
 
 # Some PKCS#7 stuff.  Generated with the openssl command line:
 #
 #    openssl crl2pkcs7 -inform pem -outform pem -certfile s.pem -nocrl
 #
 # with a certificate and key (but the key should be irrelevant) in s.pem
-pkcs7Data = """\
+pkcs7Data = b("""\
 -----BEGIN PKCS7-----
 MIIDNwYJKoZIhvcNAQcCoIIDKDCCAyQCAQExADALBgkqhkiG9w0BBwGgggMKMIID
 BjCCAm+gAwIBAgIBATANBgkqhkiG9w0BAQQFADB7MQswCQYDVQQGEwJTRzERMA8G
@@ -226,9 +236,9 @@ VwnW8YxGO8Sn6UJ4FeffZNcYZddSDKosw8LtPOeWoK3JINjAk5jiPQ2cww++7QGG
 /g5NDjxFZNDJP1dGiLAxPW6JXwov4v0FmdzfLOZ01jDcgQQZqEpYlgpuI5JEWUQ9
 Ho4EzbYCOaEAMQA=
 -----END PKCS7-----
-"""
+""")
 
-crlData ="""\
+crlData = b("""\
 -----BEGIN X509 CRL-----
 MIIBWzCBxTANBgkqhkiG9w0BAQQFADBYMQswCQYDVQQGEwJVUzELMAkGA1UECBMC
 SUwxEDAOBgNVBAcTB0NoaWNhZ28xEDAOBgNVBAoTB1Rlc3RpbmcxGDAWBgNVBAMT
@@ -239,17 +249,7 @@ MAoGA1UdFQQDCgEEMA0GCSqGSIb3DQEBBAUAA4GBAEBt7xTs2htdD3d4ErrcGAw1
 0yp4HXRFFoRhhSE/hP+eteaPXRgrsNRLHe9ZDd69wmh7J1wMDb0m81RG7kqcbsid
 vrzEeLDRiiPl92dyyWmu
 -----END X509 CRL-----
-"""
-
-try:
-    bytes
-except NameError:
-    def b(s):
-        return s
-else:
-    def b(s):
-        return s.encode("ascii")
-
+""")
 
 class X509ExtTests(TestCase):
     """
@@ -1503,8 +1503,8 @@ class PKCS12Tests(TestCase):
         """
         passwd = 'whatever'
         e = self.assertRaises(Error, load_pkcs12, 'fruit loops', passwd)
-        self.assertEqual( e[0][0][0], 'asn1 encoding routines')
-        self.assertEqual( len(e[0][0]), 3)
+        self.assertEqual( e.args[0][0][0], 'asn1 encoding routines')
+        self.assertEqual( len(e.args[0][0]), 3)
 
 
     def test_replace(self):
@@ -1535,7 +1535,7 @@ class PKCS12Tests(TestCase):
         """
         passwd = 'Dogmeat[]{}!@#$%^&*()~`?/.,<>-_+=";:'
         p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
-        for friendly_name in ['Serverlicious', None, '###']:
+        for friendly_name in [b('Serverlicious'), None, b('###')]:
             p12.set_friendlyname(friendly_name)
             self.assertEqual(p12.get_friendlyname(), friendly_name)
             dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=3)
