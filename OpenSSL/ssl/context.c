@@ -376,7 +376,7 @@ import_crypto_type(const char *name, size_t objsize) {
         name_attr = asciiname;
     }
 #endif
-    right_name = (PyText_CheckExact(name_attr) &&
+    right_name = (PyBytes_CheckExact(name_attr) &&
                   strcmp(name, PyBytes_AsString(name_attr)) == 0);
     Py_DECREF(name_attr);
     res = (PyTypeObject *)type;

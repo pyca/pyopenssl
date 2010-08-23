@@ -19,7 +19,7 @@ from OpenSSL.SSL import SENT_SHUTDOWN, RECEIVED_SHUTDOWN
 from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
 from OpenSSL.SSL import OP_NO_SSLv2, OP_NO_SSLv3, OP_SINGLE_DH_USE
 from OpenSSL.SSL import VERIFY_PEER, VERIFY_FAIL_IF_NO_PEER_CERT, VERIFY_CLIENT_ONCE
-from OpenSSL.test.util import TestCase
+from OpenSSL.test.util import TestCase, bytes, b
 from OpenSSL.test.test_crypto import cleartextCertificatePEM, cleartextPrivateKeyPEM
 from OpenSSL.test.test_crypto import client_cert_pem, client_key_pem, server_cert_pem, server_key_pem, root_cert_pem
 try:
@@ -57,10 +57,10 @@ def socket_pair():
     # Let's pass some unencrypted data to make sure our socket connection is
     # fine.  Just one byte, so we don't have to worry about buffers getting
     # filled up or fragmentation.
-    server.send("x")
-    assert client.recv(1024) == "x"
-    client.send("y")
-    assert server.recv(1024) == "y"
+    server.send(b("x"))
+    assert client.recv(1024) == b("x")
+    client.send(b("y"))
+    assert server.recv(1024) == b("y")
 
     # Most of our callers want non-blocking sockets, make it easy for them.
     server.setblocking(False)

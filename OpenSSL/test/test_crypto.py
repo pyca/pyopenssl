@@ -23,18 +23,7 @@ from OpenSSL.crypto import PKCS12, PKCS12Type, load_pkcs12
 from OpenSSL.crypto import CRL, Revoked, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.crypto import sign, verify
-from OpenSSL.test.util import TestCase
-
-
-try:
-    bytes
-except NameError:
-    def b(s):
-        return s
-    bytes = str
-else:
-    def b(s):
-        return s.encode("ascii")
+from OpenSSL.test.util import TestCase, bytes, b
 
 
 root_cert_pem = b("""-----BEGIN CERTIFICATE-----

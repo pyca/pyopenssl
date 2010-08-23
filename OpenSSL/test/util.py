@@ -16,6 +16,17 @@ import sys
 from OpenSSL.crypto import Error, _exception_from_error_queue
 
 
+try:
+    bytes = bytes
+except NameError:
+    def b(s):
+        return s
+    bytes = str
+else:
+    def b(s):
+        return s.encode("ascii")
+
+
 class TestCase(TestCase):
     """
     L{TestCase} adds useful testing functionality beyond what is available
