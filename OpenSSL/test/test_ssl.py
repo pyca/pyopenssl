@@ -281,8 +281,9 @@ class ContextTests(TestCase, _LoopbackMixin):
         key = PKey()
         key.generate_key(TYPE_RSA, 128)
         pemFile = self.mktemp()
-        fObj = file(pemFile, 'w')
-        fObj.write(dump_privatekey(FILETYPE_PEM, key, "blowfish", passphrase))
+        fObj = open(pemFile, 'w')
+        pem = dump_privatekey(FILETYPE_PEM, key, "blowfish", passphrase)
+        fObj.write(pem.decode('ascii'))
         fObj.close()
         return pemFile
 
@@ -303,7 +304,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         L{Context.set_passwd_cb} accepts a callable which will be invoked when
         a private key is loaded from an encrypted PEM.
         """
-        passphrase = "foobar"
+        passphrase = b("foobar")
         pemFile = self._write_encrypted_pem(passphrase)
         calledWith = []
         def passphraseCallback(maxlen, verify, extra):
@@ -323,7 +324,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         L{Context.use_privatekey_file} propagates any exception raised by the
         passphrase callback.
         """
-        pemFile = self._write_encrypted_pem("monkeys are nice")
+        pemFile = self._write_encrypted_pem(b("monkeys are nice"))
         def passphraseCallback(maxlen, verify, extra):
             raise RuntimeError("Sorry, I am a fail.")
 
@@ -337,7 +338,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         L{Context.use_privatekey_file} raises L{OpenSSL.SSL.Error} if the
         passphrase callback returns a false value.
         """
-        pemFile = self._write_encrypted_pem("monkeys are nice")
+        pemFile = self._write_encrypted_pem(b("monkeys are nice"))
         def passphraseCallback(maxlen, verify, extra):
             return None
 
@@ -351,7 +352,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         L{Context.use_privatekey_file} raises L{OpenSSL.SSL.Error} if the
         passphrase callback returns a true non-string value.
         """
-        pemFile = self._write_encrypted_pem("monkeys are nice")
+        pemFile = self._write_encrypted_pem(b("monkeys are nice"))
         def passphraseCallback(maxlen, verify, extra):
             return 10
 
@@ -366,7 +367,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         longer than the indicated maximum length, it is truncated.
         """
         # A priori knowledge!
-        passphrase = "x" * 1024
+        passphrase = b("x") * 1024
         pemFile = self._write_encrypted_pem(passphrase)
         def passphraseCallback(maxlen, verify, extra):
             assert maxlen == 1024
@@ -457,7 +458,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         certificates within for verification purposes.
         """
         cafile = self.mktemp()
-        fObj = file(cafile, 'w')
+        fObj = open(cafile, 'w')
         fObj.write(cleartextCertificatePEM)
         fObj.close()
 
@@ -484,7 +485,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         # Hash value computed manually with c_rehash to avoid depending on
         # c_rehash in the test suite.
         cafile = join(capath, 'c7adac82.0')
-        fObj = file(cafile, 'w')
+        fObj = open(cafile, 'w')
         fObj.write(cleartextCertificatePEM)
         fObj.close()
 
@@ -567,7 +568,7 @@ class ContextTests(TestCase, _LoopbackMixin):
             2. A new intermediate certificate signed by cacert (icert)
             3. A new server certificate signed by icert (scert)
         """
-        caext = X509Extension('basicConstraints', True, 'CA:true')
+        caext = X509Extension(b('basicConstraints'), True, b('CA:true'))
 
         # Step 1
         cakey = PKey()
@@ -672,12 +673,12 @@ class ContextTests(TestCase, _LoopbackMixin):
         # Dump the CA certificate to a file because that's the only way to load
         # it as a trusted CA in the client context.
         for cert, name in [(cacert, 'ca.pem'), (icert, 'i.pem'), (scert, 's.pem')]:
-            fObj = file(name, 'w')
+            fObj = open(name, 'w')
             fObj.write(dump_certificate(FILETYPE_PEM, cert))
             fObj.close()
 
         for key, name in [(cakey, 'ca.key'), (ikey, 'i.key'), (skey, 's.key')]:
-            fObj = file(name, 'w')
+            fObj = open(name, 'w')
             fObj.write(dump_privatekey(FILETYPE_PEM, key))
             fObj.close()
 
@@ -712,19 +713,19 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         # Write out the chain file.
         chainFile = self.mktemp()
-        fObj = file(chainFile, 'w')
+        fObj = open(chainFile, 'w')
         # Most specific to least general.
-        fObj.write(dump_certificate(FILETYPE_PEM, scert))
-        fObj.write(dump_certificate(FILETYPE_PEM, icert))
-        fObj.write(dump_certificate(FILETYPE_PEM, cacert))
+        fObj.write(dump_certificate(FILETYPE_PEM, scert).decode('ascii'))
+        fObj.write(dump_certificate(FILETYPE_PEM, icert).decode('ascii'))
+        fObj.write(dump_certificate(FILETYPE_PEM, cacert).decode('ascii'))
         fObj.close()
 
         serverContext = Context(TLSv1_METHOD)
         serverContext.use_certificate_chain_file(chainFile)
         serverContext.use_privatekey(skey)
 
-        fObj = file('ca.pem', 'w')
-        fObj.write(dump_certificate(FILETYPE_PEM, cacert))
+        fObj = open('ca.pem', 'w')
+        fObj.write(dump_certificate(FILETYPE_PEM, cacert).decode('ascii'))
         fObj.close()
 
         clientContext = Context(TLSv1_METHOD)
@@ -925,8 +926,8 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         it.
         """
         server, client = self._loopback()
-        server.sendall('x')
-        self.assertEquals(client.recv(1), 'x')
+        server.sendall(b('x'))
+        self.assertEquals(client.recv(1), b('x'))
 
 
     def test_long(self):
