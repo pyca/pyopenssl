@@ -371,7 +371,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         pemFile = self._write_encrypted_pem(passphrase)
         def passphraseCallback(maxlen, verify, extra):
             assert maxlen == 1024
-            return passphrase + "y"
+            return passphrase + b("y")
 
         context = Context(TLSv1_METHOD)
         context.set_passwd_cb(passphraseCallback)
@@ -459,7 +459,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         cafile = self.mktemp()
         fObj = open(cafile, 'w')
-        fObj.write(cleartextCertificatePEM)
+        fObj.write(cleartextCertificatePEM.decode('ascii'))
         fObj.close()
 
         self._load_verify_locations_test(cafile)
@@ -486,7 +486,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         # c_rehash in the test suite.
         cafile = join(capath, 'c7adac82.0')
         fObj = open(cafile, 'w')
-        fObj.write(cleartextCertificatePEM)
+        fObj.write(cleartextCertificatePEM.decode('ascii'))
         fObj.close()
 
         self._load_verify_locations_test(None, capath)
@@ -674,12 +674,12 @@ class ContextTests(TestCase, _LoopbackMixin):
         # it as a trusted CA in the client context.
         for cert, name in [(cacert, 'ca.pem'), (icert, 'i.pem'), (scert, 's.pem')]:
             fObj = open(name, 'w')
-            fObj.write(dump_certificate(FILETYPE_PEM, cert))
+            fObj.write(dump_certificate(FILETYPE_PEM, cert).decode('ascii'))
             fObj.close()
 
         for key, name in [(cakey, 'ca.key'), (ikey, 'i.key'), (skey, 's.key')]:
             fObj = open(name, 'w')
-            fObj.write(dump_privatekey(FILETYPE_PEM, key))
+            fObj.write(dump_privatekey(FILETYPE_PEM, key).decode('ascii'))
             fObj.close()
 
         # Create the server context
@@ -932,15 +932,15 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
 
     def test_long(self):
         server, client = self._loopback()
-        message ='x' * 1024 * 128 + 'y'
+        message = b('x') * 1024 * 128 + b('y')
         server.sendall(message)
         accum = []
         received = 0
         while received < len(message):
-            bytes = client.recv(1024)
-            accum.append(bytes)
-            received += len(bytes)
-        self.assertEquals(message, ''.join(accum))
+            data = client.recv(1024)
+            accum.append(data)
+            received += len(data)
+        self.assertEquals(message, b''.join(accum))
 
 
     def test_closed(self):
