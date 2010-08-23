@@ -37,7 +37,6 @@ except ImportError:
 
 
 def verify_cb(conn, cert, errnum, depth, ok):
-    print((conn, cert, X509_verify_cert_error_string(errnum), depth, ok))
     return ok
 
 def socket_pair():
@@ -1129,7 +1128,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         self.assertNotEquals(client_conn.client_random(), client_conn.server_random())
 
         # Here are the bytes we'll try to send.
-        important_message = 'One if by land, two if by sea.'
+        important_message = b('One if by land, two if by sea.')
 
         server_conn.write(important_message)
         self.assertEquals(
@@ -1171,7 +1170,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
                 except WantReadError:
                     established = False
 
-        important_message = "Help me Obi Wan Kenobi, you're my only hope."
+        important_message = b("Help me Obi Wan Kenobi, you're my only hope.")
         client_conn.send(important_message)
         msg = server_conn.recv(1024)
         self.assertEqual(msg, important_message)
