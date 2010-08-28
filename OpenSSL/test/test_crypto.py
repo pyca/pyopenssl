@@ -2373,7 +2373,7 @@ class SignVerifyTests(TestCase):
         """
         L{sign} generates a cryptographic signature which L{verify} can check.
         """
-        content = (
+        content = b(
             "It was a bright cold day in April, and the clocks were striking "
             "thirteen. Winston Smith, his chin nuzzled into his breast in an "
             "effort to escape the vile wind, slipped quickly through the "
@@ -2387,7 +2387,7 @@ class SignVerifyTests(TestCase):
         # certificate unrelated to priv_key, used to trigger an error
         bad_cert = load_certificate(FILETYPE_PEM, server_cert_pem)
 
-        for digest in ('md5', 'sha1'):
+        for digest in (b('md5'), b('sha1')):
             sig = sign(priv_key, content, digest)
 
             # Verify the signature of content, will throw an exception if error.
@@ -2399,11 +2399,15 @@ class SignVerifyTests(TestCase):
 
             # This should fail because we've "tainted" the content after
             # signing it.
-            self.assertRaises(Error, verify, good_cert, sig, content+"tainted", digest)
+            self.assertRaises(
+                Error, verify,
+                good_cert, sig, content + b("tainted"), digest)
 
         # test that unknown digest types fail
-        self.assertRaises(ValueError, sign, priv_key, content, "strange-digest")
-        self.assertRaises(ValueError, verify, good_cert, sig, content, "strange-digest")
+        self.assertRaises(
+            ValueError, sign, priv_key, content, b("strange-digest"))
+        self.assertRaises(
+            ValueError, verify, good_cert, sig, content, b("strange-digest"))
 
 
 if __name__ == '__main__':
