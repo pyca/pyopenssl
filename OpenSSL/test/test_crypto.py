@@ -2152,7 +2152,7 @@ class RevokedTests(TestCase):
         """
         revoked = Revoked()
         self.assertRaises(TypeError, revoked.set_reason, 100)
-        self.assertRaises(ValueError, revoked.set_reason, 'blue')
+        self.assertRaises(ValueError, revoked.set_reason, b('blue'))
 
 
     def test_get_reason_wrong_arguments(self):

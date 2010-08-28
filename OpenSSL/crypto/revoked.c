@@ -122,6 +122,20 @@ reason_str_to_code(const char * reason_str) {
     return reason_code;
 }
 
+
+static int
+crypto_byte_converter(PyObject *input, void* output) {
+    char **message = output;
+    if (input == Py_None) {
+        *message = NULL;
+    } else if (PyBytes_CheckExact(input)) {
+        *message = PyBytes_AsString(input);
+    } else {
+        return 0;
+    }
+    return 1;
+}
+
 static char crypto_Revoked_set_reason_doc[] = "\n\
 Set the reason of a Revoked object.\n\
 \n\
@@ -136,8 +150,9 @@ crypto_Revoked_set_reason(crypto_RevokedObj *self, PyObject *args, PyObject *key
     int reason_code;
     ASN1_ENUMERATED *rtmp = NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "z:set_reason",
-                                     kwlist, &reason_str)) {
+    if (!PyArg_ParseTupleAndKeywords(
+            args, keywds, "O&:set_reason", kwlist,
+            crypto_byte_converter, &reason_str)) {
         return NULL;
     }
 
