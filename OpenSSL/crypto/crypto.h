@@ -74,6 +74,8 @@ extern crypto_X509Extension_New_RETURN crypto_X509Extension_New crypto_X509Exten
 extern crypto_PKCS7_New_RETURN     crypto_PKCS7_New     crypto_PKCS7_New_PROTO;
 extern crypto_NetscapeSPKI_New_RETURN  crypto_NetscapeSPKI_New  crypto_NetscapeSPKI_New_PROTO;
 
+int crypto_byte_converter(PyObject *input, void *output);
+
 #else /* crypto_MODULE */
 
 extern void **crypto_API;

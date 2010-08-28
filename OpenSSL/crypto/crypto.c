@@ -24,6 +24,18 @@ void **ssl_API;
 
 PyObject *crypto_Error;
 
+int crypto_byte_converter(PyObject *input, void* output) {
+    char **message = output;
+    if (input == Py_None) {
+        *message = NULL;
+    } else if (PyBytes_CheckExact(input)) {
+        *message = PyBytes_AsString(input);
+    } else {
+        return 0;
+    }
+    return 1;
+}
+
 static int
 global_passphrase_callback(char *buf, int len, int rwflag, void *cb_arg)
 {
@@ -612,8 +624,9 @@ crypto_sign(PyObject *spam, PyObject *args) {
     EVP_MD_CTX md_ctx;
     unsigned char sig_buf[512];
 
-    if (!PyArg_ParseTuple(args, "O!ss:sign", &crypto_PKey_Type,
-                          &pkey, &data, &digest_name)) {
+    if (!PyArg_ParseTuple(
+            args, "O!" BYTESTRING_FMT BYTESTRING_FMT ":sign", &crypto_PKey_Type,
+            &pkey, &data, &digest_name)) {
         return NULL;
     }
 
@@ -657,8 +670,11 @@ crypto_verify(PyObject *spam, PyObject *args) {
     EVP_MD_CTX md_ctx;
     EVP_PKEY *pkey;
 
-    if (!PyArg_ParseTuple(args, "O!t#ss:verify", &crypto_X509_Type, &cert, &signature, &sig_len,
-                          &data, &digest_name)) {
+#ifdef PY3
+    if (!PyArg_ParseTuple(args, "O!y#yy:verify", &crypto_X509_Type, &cert, &signature, &sig_len, &data, &digest_name)) {
+#else
+    if (!PyArg_ParseTuple(args, "O!t#ss:verify", &crypto_X509_Type, &cert, &signature, &sig_len, &data, &digest_name)) {
+#endif
         return NULL;
     }
 
