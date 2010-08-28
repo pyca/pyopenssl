@@ -1306,7 +1306,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         name.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        self.assertEquals(cert.subject_name_hash(), -944919422L)
+        self.assertEquals(cert.subject_name_hash(), 3350047874)
 
 
 
