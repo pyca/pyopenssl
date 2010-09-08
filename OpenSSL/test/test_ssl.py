@@ -13,7 +13,7 @@ from os import makedirs
 from os.path import join
 from unittest import main
 
-from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, PKey, X509, X509Extension, dump_privatekey, load_certificate, dump_certificate, load_privatekey, X509_verify_cert_error_string
+from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, FILETYPE_ASN1, PKey, X509Req, X509, X509Extension, dump_privatekey, load_certificate, dump_certificate, load_certificate_request, dump_certificate_request, load_privatekey, X509_verify_cert_error_string
 from OpenSSL.SSL import SysCallError, WantReadError, WantWriteError, ZeroReturnError, Context, ContextType, Connection, ConnectionType, Error
 from OpenSSL.SSL import SENT_SHUTDOWN, RECEIVED_SHUTDOWN
 from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
@@ -37,7 +37,7 @@ except ImportError:
 
 
 def verify_cb(conn, cert, errnum, depth, ok):
-    print conn, cert, X509_verify_cert_error_string(errnum), depth, ok
+    # print conn, cert, X509_verify_cert_error_string(errnum), depth, ok
     return ok
 
 def socket_pair():
@@ -568,19 +568,20 @@ class ContextTests(TestCase, _LoopbackMixin):
             2. A new intermediate certificate signed by cacert (icert)
             3. A new server certificate signed by icert (scert)
         """
-        caext = X509Extension('basicConstraints', True, 'CA:true')
+        caext = X509Extension('basicConstraints', False, 'CA:true')
 
         # Step 1
         cakey = PKey()
         cakey.generate_key(TYPE_RSA, 512)
         cacert = X509()
-        cacert.get_subject().commonName = "CA Certificate"
+        cacert.get_subject().commonName = "Authority Certificate"
         cacert.set_issuer(cacert.get_subject())
         cacert.set_pubkey(cakey)
-        cacert.gmtime_adj_notBefore(0)
-        cacert.gmtime_adj_notAfter(6000)
+        cacert.set_notBefore("20000101000000Z")
+        cacert.set_notAfter("20200101000000Z")
         cacert.add_extensions([caext])
-        cacert.sign(cakey, "sha")
+        cacert.set_serial_number(0)
+        cacert.sign(cakey, "sha1")
 
         # Step 2
         ikey = PKey()
@@ -589,10 +590,11 @@ class ContextTests(TestCase, _LoopbackMixin):
         icert.get_subject().commonName = "Intermediate Certificate"
         icert.set_issuer(cacert.get_subject())
         icert.set_pubkey(ikey)
-        icert.gmtime_adj_notBefore(0)
-        icert.gmtime_adj_notAfter(6000)
+        icert.set_notBefore("20000101000000Z")
+        icert.set_notAfter("20200101000000Z")
         icert.add_extensions([caext])
-        icert.sign(cakey, "sha")
+        icert.set_serial_number(0)
+        icert.sign(cakey, "sha1")
 
         # Step 3
         skey = PKey()
@@ -601,34 +603,12 @@ class ContextTests(TestCase, _LoopbackMixin):
         scert.get_subject().commonName = "Server Certificate"
         scert.set_issuer(icert.get_subject())
         scert.set_pubkey(skey)
-        scert.gmtime_adj_notBefore(0)
-        scert.gmtime_adj_notAfter(6000)
-        scert.sign(ikey, "sha")
+        scert.set_notBefore("20000101000000Z")
+        scert.set_notAfter("20200101000000Z")
+        scert.add_extensions([X509Extension('basicConstraints', True, 'CA:false')])
+        scert.set_serial_number(0)
+        scert.sign(ikey, "sha1")
 
-        # # Step 1
-        # cakey = KeyPair.generate()
-        # cacert = cakey.selfSignedCert(1, commonName="CA Certificate")
-
-        # # Step 2
-        # ikey = KeyPair.generate()
-        # ireq = ikey.certificateRequest(DN(commonName="Intermediate Certificate"))
-        # icert = PrivateCertificate.load(
-        #     cacert.signCertificateRequest(ireq, lambda dn: True, 1),
-        #     ikey)
-
-        # # Step 3
-        # skey = KeyPair.generate()
-        # sreq = skey.certificateRequest(DN(commonName="Server Certificate"))
-        # scert = PrivateCertificate.load(
-        #     icert.signCertificateRequest(sreq, lambda dn: True, 2),
-        #     skey)
-
-        # cakey = cakey.original
-        # cacert = cacert.original
-        # ikey = ikey.original
-        # icert = icert.original
-        # skey = skey.original
-        # scert = scert.original
         return [(cakey, cacert), (ikey, icert), (skey, scert)]
 
 
@@ -676,6 +656,9 @@ class ContextTests(TestCase, _LoopbackMixin):
             fObj = file(name, 'w')
             fObj.write(dump_certificate(FILETYPE_PEM, cert))
             fObj.close()
+            fObj = file(name.replace('pem', 'asn1'), 'w')
+            fObj.write(dump_certificate(FILETYPE_ASN1, cert))
+            fObj.close()
 
         for key, name in [(cakey, 'ca.key'), (ikey, 'i.key'), (skey, 's.key')]:
             fObj = file(name, 'w')
@@ -686,7 +669,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         serverContext = Context(TLSv1_METHOD)
         serverContext.use_privatekey(skey)
         serverContext.use_certificate(scert)
-        serverContext.add_extra_chain_cert(cacert)
+        # The client already has cacert, we only need to give them icert.
         serverContext.add_extra_chain_cert(icert)
 
         # Create the client
