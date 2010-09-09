@@ -760,21 +760,38 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
 
     def test_pending(self):
+        """
+        L{Connection.pending} returns the number of bytes available for
+        immediate read.
+        """
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertEquals(connection.pending(), 0)
 
 
     def test_pending_wrong_args(self):
+        """
+        L{Connection.pending} raises L{TypeError} if called with any arguments.
+        """
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, connection.pending, None)
 
 
     def test_connect_wrong_args(self):
+        """
+        L{Connection.connect} raises L{TypeError} if called with a non-address
+        argument or with the wrong number of arguments.
+        """
         connection = Connection(Context(TLSv1_METHOD), socket())
         self.assertRaises(TypeError, connection.connect, None)
+        self.assertRaises(TypeError, connection.connect)
+        self.assertRaises(TypeError, connection.connect, ("127.0.0.1", 1), None)
 
 
     def test_connect_refused(self):
+        """
+        L{Connection.connect} raises L{socket.error} if the underlying socket
+        connect method raises it.
+        """
         client = socket()
         context = Context(TLSv1_METHOD)
         clientSSL = Connection(context, client)
@@ -783,6 +800,9 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
 
     def test_connect(self):
+        """
+        L{Connection.connect} establishes a connection to the specified address.
+        """
         port = socket()
         port.bind(('', 0))
         port.listen(3)
@@ -792,6 +812,10 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
 
     def test_connect_ex(self):
+        """
+        If there is a connection error, L{Connection.connect_ex} returns the
+        errno instead of raising an exception.
+        """
         port = socket()
         port.bind(('', 0))
         port.listen(3)
@@ -803,11 +827,19 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
 
     def test_accept_wrong_args(self):
+        """
+        L{Connection.accept} raises L{TypeError} if called with any arguments.
+        """
         connection = Connection(Context(TLSv1_METHOD), socket())
         self.assertRaises(TypeError, connection.accept, None)
 
 
     def test_accept(self):
+        """
+        L{Connection.accept} accepts a pending connection attempt and returns a
+        tuple of a new L{Connection} (the accepted client) and the address the
+        connection originated from.
+        """
         ctx = Context(TLSv1_METHOD)
         ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
         ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
@@ -827,6 +859,10 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
 
     def test_shutdown_wrong_args(self):
+        """
+        L{Connection.shutdown} raises L{TypeError} if called with the wrong
+        number of arguments or with arguments other than integers.
+        """
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, connection.shutdown, None)
         self.assertRaises(TypeError, connection.get_shutdown, None)
@@ -836,6 +872,9 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
 
     def test_shutdown(self):
+        """
+        L{Connection.shutdown} performs an SSL-level connection shutdown.
+        """
         server, client = self._loopback()
         self.assertFalse(server.shutdown())
         self.assertEquals(server.get_shutdown(), SENT_SHUTDOWN)
@@ -848,12 +887,21 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
 
     def test_set_shutdown(self):
+        """
+        L{Connection.set_shutdown} sets the state of the SSL connection shutdown
+        process.
+        """
         connection = Connection(Context(TLSv1_METHOD), socket())
         connection.set_shutdown(RECEIVED_SHUTDOWN)
         self.assertEquals(connection.get_shutdown(), RECEIVED_SHUTDOWN)
 
 
     def test_app_data_wrong_args(self):
+        """
+        L{Connection.set_app_data} raises L{TypeError} if called with other than
+        one argument.  L{Connection.get_app_data} raises L{TypeError} if called
+        with any arguments.
+        """
         conn = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, conn.get_app_data, None)
         self.assertRaises(TypeError, conn.set_app_data)
@@ -861,6 +909,11 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
 
     def test_app_data(self):
+        """
+        Any object can be set as app data by passing it to
+        L{Connection.set_app_data} and later retrieved with
+        L{Connection.get_app_data}.
+        """
         conn = Connection(Context(TLSv1_METHOD), None)
         app_data = object()
         conn.set_app_data(app_data)
@@ -868,6 +921,10 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
 
     def test_makefile(self):
+        """
+        L{Connection.makefile} is not implemented and calling that method raises
+        L{NotImplementedError}.
+        """
         conn = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(NotImplementedError, conn.makefile)
 
