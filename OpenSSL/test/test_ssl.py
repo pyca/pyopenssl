@@ -1,10 +1,8 @@
-# Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+# Copyright (C) Jean-Paul Calderone 2008-2010, All rights reserved
 
 """
 Unit tests for L{OpenSSL.SSL}.
 """
-
-from twisted.internet.ssl import *
 
 from errno import ECONNREFUSED, EINPROGRESS
 from sys import platform
@@ -13,15 +11,23 @@ from os import makedirs
 from os.path import join
 from unittest import main
 
-from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, FILETYPE_ASN1, PKey, X509Req, X509, X509Extension, dump_privatekey, load_certificate, dump_certificate, load_certificate_request, dump_certificate_request, load_privatekey, X509_verify_cert_error_string
-from OpenSSL.SSL import SysCallError, WantReadError, WantWriteError, ZeroReturnError, Context, ContextType, Connection, ConnectionType, Error
+from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, FILETYPE_ASN1
+from OpenSSL.crypto import PKey, X509, X509Extension
+from OpenSSL.crypto import dump_privatekey, load_privatekey
+from OpenSSL.crypto import dump_certificate, load_certificate
+
 from OpenSSL.SSL import SENT_SHUTDOWN, RECEIVED_SHUTDOWN
 from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
 from OpenSSL.SSL import OP_NO_SSLv2, OP_NO_SSLv3, OP_SINGLE_DH_USE
 from OpenSSL.SSL import VERIFY_PEER, VERIFY_FAIL_IF_NO_PEER_CERT, VERIFY_CLIENT_ONCE
+from OpenSSL.SSL import Error, SysCallError, WantReadError, ZeroReturnError
+from OpenSSL.SSL import Context, ContextType, Connection, ConnectionType
+
 from OpenSSL.test.util import TestCase
 from OpenSSL.test.test_crypto import cleartextCertificatePEM, cleartextPrivateKeyPEM
-from OpenSSL.test.test_crypto import client_cert_pem, client_key_pem, server_cert_pem, server_key_pem, root_cert_pem
+from OpenSSL.test.test_crypto import client_cert_pem, client_key_pem
+from OpenSSL.test.test_crypto import server_cert_pem, server_key_pem, root_cert_pem
+
 try:
     from OpenSSL.SSL import OP_NO_QUERY_MTU
 except ImportError:
@@ -1478,7 +1484,6 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
 
         cadesc = cacert.get_subject()
         sedesc = secert.get_subject()
-        cldesc = clcert.get_subject()
 
         def set_replaces_add_ca(ctx):
             ctx.add_client_ca(clcert)
