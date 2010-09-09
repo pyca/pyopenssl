@@ -821,6 +821,24 @@ class ConnectionTests(TestCase, _LoopbackMixin):
     """
     Unit tests for L{OpenSSL.SSL.Connection}.
     """
+    # XXX want_write
+    # XXX want_read
+    # XXX get_peer_certificate -> None
+    # XXX sock_shutdown
+    # XXX master_key -> TypeError
+    # XXX server_random -> TypeError
+    # XXX state_string
+    # XXX connect -> TypeError
+    # XXX connect_ex -> TypeError
+    # XXX set_connect_state -> TypeError
+    # XXX set_accept_state -> TypeError
+    # XXX renegotiate_pending
+    # XXX do_handshake -> TypeError
+    # XXX bio_read -> TypeError
+    # XXX recv -> TypeError
+    # XXX send -> TypeError
+    # XXX bio_write -> TypeError
+
     def test_type(self):
         """
         L{Connection} and L{ConnectionType} refer to the same type object and
