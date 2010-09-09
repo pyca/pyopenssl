@@ -608,8 +608,10 @@ ssl_Context_check_privatekey(ssl_ContextObj *self, PyObject *args)
 }
 
 static char ssl_Context_load_client_ca_doc[] = "\n\
-Load the trusted certificates that will be sent to the client (basically\n\
-telling the client \"These are the guys I trust\")\n\
+Load the trusted certificates that will be sent to the client (basically\n \
+telling the client \"These are the guys I trust\").  Does not actually\n\
+imply any of the certificates are trusted; that must be configured\n\
+separately.\n\
 \n\
 @param cafile: The name of the certificates file\n\
 @return: None\n\

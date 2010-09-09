@@ -739,7 +739,28 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     # XXX load_client_ca
     # XXX set_session_id
-    # XXX get_verify
+
+    def test_get_verify_mode_wrong_args(self):
+        """
+        L{Context.get_verify_mode} raises L{TypeError} if called with any
+        arguments.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.get_verify_mode, None)
+
+
+    def test_get_verify_mode(self):
+        """
+        L{Context.get_verify_mode} returns the verify mode flags previously
+        passed to L{Context.set_verify}.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertEquals(context.get_verify_mode(), 0)
+        context.set_verify(
+            VERIFY_PEER | VERIFY_CLIENT_ONCE, lambda *args: None)
+        self.assertEquals(
+            context.get_verify_mode(), VERIFY_PEER | VERIFY_CLIENT_ONCE)
+
     # XXX load_temp_dh
     # XXX set_cipher_list
 
