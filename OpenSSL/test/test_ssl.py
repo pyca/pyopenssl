@@ -42,6 +42,15 @@ except ImportError:
     OP_NO_TICKET = None
 
 
+# openssl dhparam 128 -out dh-128.pem (note that 128 is a small number of bits
+# to use)
+dhparam = """\
+-----BEGIN DH PARAMETERS-----
+MBYCEQCobsg29c9WZP/54oAPcwiDAgEC
+-----END DH PARAMETERS-----
+"""
+
+
 def verify_cb(conn, cert, errnum, depth, ok):
     # print conn, cert, X509_verify_cert_error_string(errnum), depth, ok
     return ok
@@ -761,8 +770,50 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertEquals(
             context.get_verify_mode(), VERIFY_PEER | VERIFY_CLIENT_ONCE)
 
-    # XXX load_temp_dh
-    # XXX set_cipher_list
+
+    def test_load_tmp_dh_wrong_args(self):
+        """
+        L{Context.load_tmp_dh} raises L{TypeError} if called with the wrong
+        number of arguments or with a non-C{str} argument.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.load_tmp_dh)
+        self.assertRaises(TypeError, context.load_tmp_dh, "foo", None)
+        self.assertRaises(TypeError, context.load_tmp_dh, object())
+
+
+    def test_load_tmp_dh_missing_file(self):
+        """
+        L{Context.load_tmp_dh} raises L{OpenSSL.SSL.Error} if the specified file
+        does not exist.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(Error, context.load_tmp_dh, "hello")
+
+
+    def test_load_tmp_dh(self):
+        """
+        L{Context.load_tmp_dh} loads Diffie-Hellman parameters from the
+        specified file.
+        """
+        context = Context(TLSv1_METHOD)
+        dhfilename = self.mktemp()
+        dhfile = open(dhfilename, "w")
+        dhfile.write(dhparam)
+        dhfile.close()
+        context.load_tmp_dh(dhfilename)
+        # XXX What should I assert here? -exarkun
+
+
+    def test_set_cipher_list(self):
+        """
+        L{Context.set_cipher_list} accepts a C{str} naming the ciphers which
+        connections created with the context object will be able to choose from.
+        """
+        context = Context(TLSv1_METHOD)
+        context.set_cipher_list("hello world:EXP-RC4-MD5")
+        conn = Connection(context, None)
+        self.assertEquals(conn.get_cipher_list(), ["EXP-RC4-MD5"])
 
 
 

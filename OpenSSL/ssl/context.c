@@ -762,8 +762,10 @@ ssl_Context_load_tmp_dh(ssl_ContextObj *self, PyObject *args)
         return NULL;
 
     bio = BIO_new_file(dhfile, "r");
-    if (bio == NULL)
-        return PyErr_NoMemory();
+    if (bio == NULL) {
+        exception_from_error_queue(ssl_Error);
+        return NULL;
+    }
 
     dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
     SSL_CTX_set_tmp_dh(self->ctx, dh);
