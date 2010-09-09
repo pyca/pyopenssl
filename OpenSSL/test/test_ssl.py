@@ -931,7 +931,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
 
 class ConnectionGetCipherListTests(TestCase):
-    def test_wrongargs(self):
+    def test_wrong_args(self):
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, connection.get_cipher_list, None)
 
