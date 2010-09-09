@@ -1982,8 +1982,8 @@ class PKCS7Tests(TestCase):
 
     def test_type_is_enveloped(self):
         """
-        L{PKCS7Type.type_is_enveloped} returns C{True} if the PKCS7 object is of
-        the type I{enveloped}.
+        L{PKCS7Type.type_is_enveloped} returns C{False} if the PKCS7 object is
+        not of the type I{enveloped}.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertFalse(pkcs7.type_is_enveloped())
