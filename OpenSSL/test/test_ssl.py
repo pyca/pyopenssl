@@ -77,6 +77,10 @@ def socket_pair():
 
 
 class _LoopbackMixin:
+    """
+    Helper mixin which defines methods for creating a connected socket pair and
+    for forcing two connected SSL sockets to talk to each other via memory BIOs.
+    """
     def _loopback(self):
         (server, client) = socket_pair()
 
@@ -285,6 +289,10 @@ class ContextTests(TestCase, _LoopbackMixin):
 
 
     def _write_encrypted_pem(self, passphrase):
+        """
+        Write a new private key out to a new file, encrypted using the given
+        passphrase.  Return the path to the new file.
+        """
         key = PKey()
         key.generate_key(TYPE_RSA, 128)
         pemFile = self.mktemp()
@@ -421,6 +429,11 @@ class ContextTests(TestCase, _LoopbackMixin):
 
 
     def _load_verify_locations_test(self, *args):
+        """
+        Create a client context which will verify the peer certificate and call
+        its C{load_verify_locations} method with C{*args}.  Then connect it to a
+        server and ensure that the handshake succeeds.
+        """
         (server, client) = socket_pair()
 
         clientContext = Context(TLSv1_METHOD)
@@ -937,12 +950,23 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
 
 class ConnectionGetCipherListTests(TestCase):
+    """
+    Tests for L{Connection.get_cipher_list}.
+    """
     def test_wrong_args(self):
+        """
+        L{Connection.get_cipher_list} raises L{TypeError} if called with any
+        arguments.
+        """
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, connection.get_cipher_list, None)
 
 
     def test_result(self):
+        """
+        L{Connection.get_cipher_list} returns a C{list} of C{str} giving the
+        names of the ciphers which might be used.
+        """
         connection = Connection(Context(TLSv1_METHOD), None)
         ciphers = connection.get_cipher_list()
         self.assertTrue(isinstance(ciphers, list))
@@ -955,7 +979,7 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
     """
     Tests for L{Connection.sendall}.
     """
-    def test_wrongargs(self):
+    def test_wrong_args(self):
         """
         When called with arguments other than a single string,
         L{Connection.sendall} raises L{TypeError}.
@@ -977,6 +1001,10 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
 
 
     def test_long(self):
+        """
+        L{Connection.sendall} transmits all of the bytes in the string passed to
+        it even if this requires multiple calls of an underlying write function.
+        """
         server, client = self._loopback()
         message ='x' * 1024 * 128 + 'y'
         server.sendall(message)
@@ -1006,16 +1034,28 @@ class ConnectionRenegotiateTests(TestCase, _LoopbackMixin):
     Tests for SSL renegotiation APIs.
     """
     def test_renegotiate_wrong_args(self):
+        """
+        L{Connection.renegotiate} raises L{TypeError} if called with any
+        arguments.
+        """
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, connection.renegotiate, None)
 
 
     def test_total_renegotiations_wrong_args(self):
+        """
+        L{Connection.total_renegotiations} raises L{TypeError} if called with
+        any arguments.
+        """
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, connection.total_renegotiations, None)
 
 
     def test_total_renegotiations(self):
+        """
+        L{Connection.total_renegotiations} returns C{0} before any
+        renegotiations have happened.
+        """
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertEquals(connection.total_renegotiations(), 0)
 
