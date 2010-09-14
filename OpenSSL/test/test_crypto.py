@@ -269,6 +269,18 @@ class X509ExtTests(TestCase):
         self.x509.set_notAfter(expire)
 
 
+    def test_str(self):
+        """
+        The string representation of L{X509Extension} instances as returned by
+        C{str} includes stuff.
+        """
+        # This isn't necessarily the best string representation.  Perhaps it
+        # will be changed/improved in the future.
+        self.assertEquals(
+            str(X509Extension('basicConstraints', True, 'CA:false')),
+            'CA:FALSE')
+
+
     def test_type(self):
         """
         L{X509Extension} and L{X509ExtensionType} refer to the same type object
@@ -776,6 +788,38 @@ class _PKeyInteractionTestsMixin:
         self.assertRaises(ValueError, request.sign, pub, 'MD5')
 
 
+    def test_signWithUnknownDigest(self):
+        """
+        L{X509Req.sign} raises L{ValueError} when passed a digest name which is
+        not known.
+        """
+        request = self.signable()
+        key = PKey()
+        key.generate_key(TYPE_RSA, 512)
+        self.assertRaises(ValueError, request.sign, key, "monkeys")
+
+
+    def test_sign(self):
+        """
+        L{X509Req.sign} succeeds when passed a private key object and a valid
+        digest function.  C{X509Req.verify} can be used to check the signature.
+        """
+        request = self.signable()
+        key = PKey()
+        key.generate_key(TYPE_RSA, 512)
+        request.set_pubkey(key)
+        request.sign(key, 'MD5')
+        # If the type has a verify method, cover that too.
+        if getattr(request, 'verify', None) is not None:
+            pub = request.get_pubkey()
+            self.assertTrue(request.verify(pub))
+            # Make another key that won't verify.
+            key = PKey()
+            key.generate_key(TYPE_RSA, 512)
+            self.assertRaises(Error, request.verify, key)
+
+
+
 
 class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
     """
@@ -821,6 +865,20 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
         self.assertEqual(request.get_version(), 3)
 
 
+    def test_version_wrong_args(self):
+        """
+        L{X509ReqType.set_version} raises L{TypeError} if called with the wrong
+        number of arguments or with a non-C{int} argument.
+        L{X509ReqType.get_version} raises L{TypeError} if called with any
+        arguments.
+        """
+        request = X509Req()
+        self.assertRaises(TypeError, request.set_version)
+        self.assertRaises(TypeError, request.set_version, "foo")
+        self.assertRaises(TypeError, request.set_version, 1, 2)
+        self.assertRaises(TypeError, request.get_version, None)
+
+
     def test_get_subject(self):
         """
         L{X509ReqType.get_subject} returns an L{X509Name} for the subject of
@@ -837,6 +895,40 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
         del request
         subject.commonName = "bar"
         self.assertEqual(subject.commonName, "bar")
+
+
+    def test_get_subject_wrong_args(self):
+        """
+        L{X509ReqType.get_subject} raises L{TypeError} if called with any
+        arguments.
+        """
+        request = X509Req()
+        self.assertRaises(TypeError, request.get_subject, None)
+
+
+    def test_add_extensions(self):
+        """
+        L{X509Req.add_extensions} accepts a C{list} of L{X509Extension}
+        instances and adds them to the X509 request.
+        """
+        request = X509Req()
+        request.add_extensions([
+                X509Extension('basicConstraints', True, 'CA:false')])
+        # XXX Add get_extensions so the rest of this unit test can be written.
+
+
+    def test_add_extensions_wrong_args(self):
+        """
+        L{X509Req.add_extensions} raises L{TypeError} if called with the wrong
+        number of arguments or with a non-C{list}.  Or it raises L{ValueError}
+        if called with a C{list} containing objects other than L{X509Extension}
+        instances.
+        """
+        request = X509Req()
+        self.assertRaises(TypeError, request.add_extensions)
+        self.assertRaises(TypeError, request.add_extensions, object())
+        self.assertRaises(ValueError, request.add_extensions, [object()])
+        self.assertRaises(TypeError, request.add_extensions, [], None)
 
 
 
@@ -876,6 +968,44 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         self.assertEqual(type(certificate).__name__, 'X509')
         self.assertEqual(type(certificate), X509Type)
         self.assertEqual(type(certificate), X509)
+
+
+    def test_get_version_wrong_args(self):
+        """
+        L{X509.get_version} raises L{TypeError} if invoked with any arguments.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.get_version, None)
+
+
+    def test_set_version_wrong_args(self):
+        """
+        L{X509.set_version} raises L{TypeError} if invoked with the wrong number
+        of arguments or an argument not of type C{int}.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.set_version)
+        self.assertRaises(TypeError, cert.set_version, None)
+        self.assertRaises(TypeError, cert.set_version, 1, None)
+
+
+    def test_version(self):
+        """
+        L{X509.set_version} sets the certificate version number.
+        L{X509.get_version} retrieves it.
+        """
+        cert = X509()
+        cert.set_version(1234)
+        self.assertEquals(cert.get_version(), 1234)
+
+
+    def test_get_serial_number_wrong_args(self):
+        """
+        L{X509.get_serial_number} raises L{TypeError} if invoked with any
+        arguments.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.get_serial_number, None)
 
 
     def test_serial_number(self):
@@ -935,6 +1065,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         self.assertRaises(TypeError, set, "20040203040506Z", "20040203040506Z")
         self.assertRaises(TypeError, get, "foo bar")
 
+    # XXX ASN1_TIME (not GENERALIZEDTIME)
 
     def test_set_notBefore(self):
         """
@@ -974,6 +1105,79 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         self.assertEqual(cert.get_notAfter(), "20170611123658Z")
 
 
+    def test_gmtime_adj_notBefore_wrong_args(self):
+        """
+        L{X509Type.gmtime_adj_notBefore} raises L{TypeError} if called with the
+        wrong number of arguments or a non-C{int} argument.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.gmtime_adj_notBefore)
+        self.assertRaises(TypeError, cert.gmtime_adj_notBefore, None)
+        self.assertRaises(TypeError, cert.gmtime_adj_notBefore, 123, None)
+
+
+    def test_gmtime_adj_notBefore(self):
+        """
+        L{X509Type.gmtime_adj_notBefore} changes the not-before timestamp to be
+        the current time plus the number of seconds passed in.
+        """
+        cert = load_certificate(FILETYPE_PEM, self.pemData)
+        now = datetime.utcnow() + timedelta(seconds=100)
+        cert.gmtime_adj_notBefore(100)
+        self.assertEqual(cert.get_notBefore(), now.strftime("%Y%m%d%H%M%SZ"))
+
+
+    def test_gmtime_adj_notAfter_wrong_args(self):
+        """
+        L{X509Type.gmtime_adj_notAfter} raises L{TypeError} if called with the
+        wrong number of arguments or a non-C{int} argument.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.gmtime_adj_notAfter)
+        self.assertRaises(TypeError, cert.gmtime_adj_notAfter, None)
+        self.assertRaises(TypeError, cert.gmtime_adj_notAfter, 123, None)
+
+
+    def test_gmtime_adj_notAfter(self):
+        """
+        L{X509Type.gmtime_adj_notAfter} changes the not-after timestamp to be
+        the current time plus the number of seconds passed in.
+        """
+        cert = load_certificate(FILETYPE_PEM, self.pemData)
+        now = datetime.utcnow() + timedelta(seconds=100)
+        cert.gmtime_adj_notAfter(100)
+        self.assertEqual(cert.get_notAfter(), now.strftime("%Y%m%d%H%M%SZ"))
+
+
+    def test_has_expired_wrong_args(self):
+        """
+        L{X509Type.has_expired} raises L{TypeError} if called with any
+        arguments.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.has_expired, None)
+
+
+    def test_has_expired(self):
+        """
+        L{X509Type.has_expired} returns C{True} if the certificate's not-after
+        time is in the past.
+        """
+        cert = X509()
+        cert.gmtime_adj_notAfter(-1)
+        self.assertTrue(cert.has_expired())
+
+
+    def test_has_not_expired(self):
+        """
+        L{X509Type.has_expired} returns C{False} if the certificate's not-after
+        time is in the future.
+        """
+        cert = X509()
+        cert.gmtime_adj_notAfter(2)
+        self.assertFalse(cert.has_expired())
+
+
     def test_digest(self):
         """
         L{X509.digest} returns a string giving ":"-separated hex-encoded words
@@ -983,6 +1187,136 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         self.assertEqual(
             cert.digest("md5"),
             "A8:EB:07:F8:53:25:0A:F2:56:05:C5:A5:C4:C4:C7:15")
+
+
+    def test_invalid_digest_algorithm(self):
+        """
+        L{X509.digest} raises L{ValueError} if called with an unrecognized hash
+        algorithm.
+        """
+        cert = X509()
+        self.assertRaises(ValueError, cert.digest, "monkeys")
+
+
+    def test_get_subject_wrong_args(self):
+        """
+        L{X509.get_subject} raises L{TypeError} if called with any arguments.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.get_subject, None)
+
+
+    def test_get_subject(self):
+        """
+        L{X509.get_subject} returns an L{X509Name} instance.
+        """
+        cert = load_certificate(FILETYPE_PEM, self.pemData)
+        subj = cert.get_subject()
+        self.assertTrue(isinstance(subj, X509Name))
+        self.assertEquals(
+            subj.get_components(),
+            [('C', 'US'), ('ST', 'IL'), ('L', 'Chicago'),
+             ('O', 'Testing'), ('CN', 'Testing Root CA')])
+
+
+    def test_set_subject_wrong_args(self):
+        """
+        L{X509.set_subject} raises a L{TypeError} if called with the wrong
+        number of arguments or an argument not of type L{X509Name}.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.set_subject)
+        self.assertRaises(TypeError, cert.set_subject, None)
+        self.assertRaises(TypeError, cert.set_subject, cert.get_subject(), None)
+
+
+    def test_set_subject(self):
+        """
+        L{X509.set_subject} changes the subject of the certificate to the one
+        passed in.
+        """
+        cert = X509()
+        name = cert.get_subject()
+        name.C = 'AU'
+        name.O = 'Unit Tests'
+        cert.set_subject(name)
+        self.assertEquals(
+            cert.get_subject().get_components(),
+            [('C', 'AU'), ('O', 'Unit Tests')])
+
+
+    def test_get_issuer_wrong_args(self):
+        """
+        L{X509.get_issuer} raises L{TypeError} if called with any arguments.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.get_issuer, None)
+
+
+    def test_get_issuer(self):
+        """
+        L{X509.get_issuer} returns an L{X509Name} instance.
+        """
+        cert = load_certificate(FILETYPE_PEM, self.pemData)
+        subj = cert.get_issuer()
+        self.assertTrue(isinstance(subj, X509Name))
+        self.assertEquals(
+            subj.get_components(),
+            [('C', 'US'), ('ST', 'IL'), ('L', 'Chicago'),
+             ('O', 'Testing'), ('CN', 'Testing Root CA')])
+
+
+    def test_set_issuer_wrong_args(self):
+        """
+        L{X509.set_issuer} raises a L{TypeError} if called with the wrong
+        number of arguments or an argument not of type L{X509Name}.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.set_issuer)
+        self.assertRaises(TypeError, cert.set_issuer, None)
+        self.assertRaises(TypeError, cert.set_issuer, cert.get_issuer(), None)
+
+
+    def test_set_issuer(self):
+        """
+        L{X509.set_issuer} changes the issuer of the certificate to the one
+        passed in.
+        """
+        cert = X509()
+        name = cert.get_issuer()
+        name.C = 'AU'
+        name.O = 'Unit Tests'
+        cert.set_issuer(name)
+        self.assertEquals(
+            cert.get_issuer().get_components(),
+            [('C', 'AU'), ('O', 'Unit Tests')])
+
+
+    def test_get_pubkey_uninitialized(self):
+        """
+        When called on a certificate with no public key, L{X509.get_pubkey}
+        raises L{OpenSSL.crypto.Error}.
+        """
+        cert = X509()
+        self.assertRaises(Error, cert.get_pubkey)
+
+
+    def test_subject_name_hash_wrong_args(self):
+        """
+        L{X509.subject_name_hash} raises L{TypeError} if called with any
+        arguments.
+        """
+        cert = X509()
+        self.assertRaises(TypeError, cert.subject_name_hash, None)
+
+
+    def test_subject_name_hash(self):
+        """
+        L{X509.subject_name_hash} returns the hash of the certificate's subject
+        name.
+        """
+        cert = load_certificate(FILETYPE_PEM, self.pemData)
+        self.assertEquals(cert.subject_name_hash(), 3350047874)
 
 
 
@@ -1364,6 +1698,33 @@ class FunctionTests(TestCase):
     """
     Tests for free-functions in the L{OpenSSL.crypto} module.
     """
+
+    def test_load_privatekey_invalid_format(self):
+        """
+        L{load_privatekey} raises L{ValueError} if passed an unknown filetype.
+        """
+        self.assertRaises(ValueError, load_privatekey, 100, root_key_pem)
+
+
+    def test_load_privatekey_invalid_passphrase_type(self):
+        """
+        L{load_privatekey} raises L{TypeError} if passed a passphrase that is
+        neither a c{str} nor a callable.
+        """
+        self.assertRaises(
+            TypeError,
+            load_privatekey,
+            FILETYPE_PEM, encryptedPrivateKeyPEMPassphrase, object())
+
+
+    def test_load_privatekey_wrong_args(self):
+        """
+        L{load_privatekey} raises L{TypeError} if called with the wrong number
+        of arguments.
+        """
+        self.assertRaises(TypeError, load_privatekey)
+
+
     def test_load_privatekey_wrongPassphrase(self):
         """
         L{load_privatekey} raises L{OpenSSL.crypto.Error} when it is passed an
@@ -1400,6 +1761,7 @@ class FunctionTests(TestCase):
             load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
         self.assertTrue(called)
 
+
     def test_load_privatekey_passphraseCallback(self):
         """
         L{load_privatekey} can create a L{PKey} object from an encrypted PEM
@@ -1413,6 +1775,64 @@ class FunctionTests(TestCase):
         key = load_privatekey(FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
         self.assertTrue(isinstance(key, PKeyType))
         self.assertEqual(called, [False])
+
+
+    def test_load_privatekey_passphrase_exception(self):
+        """
+        An exception raised by the passphrase callback passed to
+        L{load_privatekey} causes L{OpenSSL.crypto.Error} to be raised.
+
+        This isn't as nice as just letting the exception pass through.  The
+        behavior might be changed to that eventually.
+        """
+        def broken(ignored):
+            raise RuntimeError("This is not working.")
+        self.assertRaises(
+            Error,
+            load_privatekey,
+            FILETYPE_PEM, encryptedPrivateKeyPEM, broken)
+
+
+    def test_dump_privatekey_wrong_args(self):
+        """
+        L{dump_privatekey} raises L{TypeError} if called with the wrong number
+        of arguments.
+        """
+        self.assertRaises(TypeError, dump_privatekey)
+
+
+    def test_dump_privatekey_unknown_cipher(self):
+        """
+        L{dump_privatekey} raises L{ValueError} if called with an unrecognized
+        cipher name.
+        """
+        key = PKey()
+        key.generate_key(TYPE_RSA, 512)
+        self.assertRaises(
+            ValueError, dump_privatekey,
+            FILETYPE_PEM, key, "zippers", "passphrase")
+
+
+    def test_dump_privatekey_invalid_passphrase_type(self):
+        """
+        L{dump_privatekey} raises L{TypeError} if called with a passphrase which
+        is neither a C{str} nor a callable.
+        """
+        key = PKey()
+        key.generate_key(TYPE_RSA, 512)
+        self.assertRaises(
+            TypeError,
+            dump_privatekey, FILETYPE_PEM, key, "blowfish", object())
+
+
+    def test_dump_privatekey_invalid_filetype(self):
+        """
+        L{dump_privatekey} raises L{ValueError} if called with an unrecognized
+        filetype.
+        """
+        key = PKey()
+        key.generate_key(TYPE_RSA, 512)
+        self.assertRaises(ValueError, dump_privatekey, 100, key)
 
 
     def test_dump_privatekey_passphrase(self):
@@ -1483,6 +1903,7 @@ class FunctionTests(TestCase):
         dumped_text = dump_certificate_request(FILETYPE_TEXT, req)
         good_text = _runopenssl(dumped_pem, "req", "-noout", "-text")
         self.assertEqual(dumped_text, good_text)
+        self.assertRaises(ValueError, dump_certificate_request, 100, req)
 
 
     def test_dump_privatekey_passphraseCallback(self):
@@ -1530,11 +1951,118 @@ class PKCS7Tests(TestCase):
         # self.assertIdentical(PKCS7, PKCS7Type)
 
 
+    # XXX Opposite results for all these following methods
 
-class NetscapeSPKITests(TestCase):
+    def test_type_is_signed_wrong_args(self):
+        """
+        L{PKCS7Type.type_is_signed} raises L{TypeError} if called with any
+        arguments.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertRaises(TypeError, pkcs7.type_is_signed, None)
+
+
+    def test_type_is_signed(self):
+        """
+        L{PKCS7Type.type_is_signed} returns C{True} if the PKCS7 object is of
+        the type I{signed}.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertTrue(pkcs7.type_is_signed())
+
+
+    def test_type_is_enveloped_wrong_args(self):
+        """
+        L{PKCS7Type.type_is_enveloped} raises L{TypeError} if called with any
+        arguments.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertRaises(TypeError, pkcs7.type_is_enveloped, None)
+
+
+    def test_type_is_enveloped(self):
+        """
+        L{PKCS7Type.type_is_enveloped} returns C{False} if the PKCS7 object is
+        not of the type I{enveloped}.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertFalse(pkcs7.type_is_enveloped())
+
+
+    def test_type_is_signedAndEnveloped_wrong_args(self):
+        """
+        L{PKCS7Type.type_is_signedAndEnveloped} raises L{TypeError} if called
+        with any arguments.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertRaises(TypeError, pkcs7.type_is_signedAndEnveloped, None)
+
+
+    def test_type_is_signedAndEnveloped(self):
+        """
+        L{PKCS7Type.type_is_signedAndEnveloped} returns C{False} if the PKCS7
+        object is not of the type I{signed and enveloped}.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertFalse(pkcs7.type_is_signedAndEnveloped())
+
+
+    def test_type_is_data(self):
+        """
+        L{PKCS7Type.type_is_data} returns C{False} if the PKCS7 object is not of
+        the type data.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertFalse(pkcs7.type_is_data())
+
+
+    def test_type_is_data_wrong_args(self):
+        """
+        L{PKCS7Type.type_is_data} raises L{TypeError} if called with any
+        arguments.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertRaises(TypeError, pkcs7.type_is_data, None)
+
+
+    def test_get_type_name_wrong_args(self):
+        """
+        L{PKCS7Type.get_type_name} raises L{TypeError} if called with any
+        arguments.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertRaises(TypeError, pkcs7.get_type_name, None)
+
+
+    def test_get_type_name(self):
+        """
+        L{PKCS7Type.get_type_name} returns a C{str} giving the type name.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertEquals(pkcs7.get_type_name(), 'pkcs7-signedData')
+
+
+    def test_attribute(self):
+        """
+        If an attribute other than one of the methods tested here is accessed on
+        an instance of L{PKCS7Type}, L{AttributeError} is raised.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertRaises(AttributeError, getattr, pkcs7, "foo")
+
+
+
+class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):
     """
     Tests for L{OpenSSL.crypto.NetscapeSPKI}.
     """
+    def signable(self):
+        """
+        Return a new L{NetscapeSPKI} for use with signing tests.
+        """
+        return NetscapeSPKI()
+
+
     def test_type(self):
         """
         L{NetscapeSPKI} and L{NetscapeSPKIType} refer to the same type object
@@ -1550,6 +2078,25 @@ class NetscapeSPKITests(TestCase):
         """
         nspki = NetscapeSPKI()
         self.assertTrue(isinstance(nspki, NetscapeSPKIType))
+
+
+    def test_invalid_attribute(self):
+        """
+        Accessing a non-existent attribute of a L{NetscapeSPKI} instance causes
+        an L{AttributeError} to be raised.
+        """
+        nspki = NetscapeSPKI()
+        self.assertRaises(AttributeError, lambda: nspki.foo)
+
+
+    def test_b64_encode(self):
+        """
+        L{NetscapeSPKI.b64_encode} encodes the certificate to a base64 blob.
+        """
+        nspki = NetscapeSPKI()
+        blob = nspki.b64_encode()
+        self.assertTrue(isinstance(blob, str))
+
 
 
 class RevokedTests(TestCase):

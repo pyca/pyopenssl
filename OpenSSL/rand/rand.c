@@ -198,17 +198,26 @@ Get some randomm bytes as a string.\n\
 @return: A string of random bytes\n\
 ";
 
+#if PY_VERSION_HEX < 0x02050000
+#define Py_ssize_t int
+#define PY_SSIZE_FMT "i"
+#else
+#define PY_SSIZE_FMT "n"
+#endif
+
 static PyObject *
-rand_bytes(PyObject *spam, PyObject *args, PyObject *keywds)
-{
-    int num_bytes;
+rand_bytes(PyObject *spam, PyObject *args, PyObject *keywds) {
+    Py_ssize_t num_bytes;
     static char *kwlist[] = {"num_bytes", NULL};
     char *buf;
     unsigned int rc;
     PyObject *obj = NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "i:bytes", kwlist, &num_bytes))
+    if (!PyArg_ParseTupleAndKeywords(
+            args, keywds, PY_SSIZE_FMT ":bytes", kwlist, &num_bytes)) {
         return NULL;
+    }
+
     if(num_bytes < 0) {
         PyErr_SetString(PyExc_ValueError, "num_bytes must not be negative");
         return NULL;

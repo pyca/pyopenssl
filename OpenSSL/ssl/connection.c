@@ -253,10 +253,10 @@ Get session context\n\
 @return: A Context object\n\
 ";
 static PyObject *
-ssl_Connection_get_context(ssl_ConnectionObj *self, PyObject *args)
-{
-    if (!PyArg_ParseTuple(args, ":get_context"))
+ssl_Connection_get_context(ssl_ConnectionObj *self, PyObject *args) {
+    if (!PyArg_ParseTuple(args, ":get_context")) {
         return NULL;
+    }
 
     Py_INCREF(self->context);
     return (PyObject *)self->context;
@@ -268,17 +268,17 @@ Get the number of bytes that can be safely read from the connection\n\
 @return: The number of bytes available in the receive buffer.\n\
 ";
 static PyObject *
-ssl_Connection_pending(ssl_ConnectionObj *self, PyObject *args)
-{
+ssl_Connection_pending(ssl_ConnectionObj *self, PyObject *args) {
     int ret;
 
-    if (!PyArg_ParseTuple(args, ":pending"))
+    if (!PyArg_ParseTuple(args, ":pending")) {
         return NULL;
+    }
 
     ret = SSL_pending(self->ssl);
     return PyInt_FromLong((long)ret);
 }
-    
+
 static char ssl_Connection_bio_write_doc[] = "\n\
 When using non-socket connections this function sends\n\
 \"dirty\" data that would have traveled in on the network.\n\
@@ -520,19 +520,18 @@ Renegotiate the session\n\
 @return: True if the renegotiation can be started, false otherwise\n\
 ";
 static PyObject *
-ssl_Connection_renegotiate(ssl_ConnectionObj *self, PyObject *args)
-{
+ssl_Connection_renegotiate(ssl_ConnectionObj *self, PyObject *args) {
     int ret;
 
-    if (!PyArg_ParseTuple(args, ":renegotiate"))
+    if (!PyArg_ParseTuple(args, ":renegotiate")) {
         return NULL;
+    }
 
     MY_BEGIN_ALLOW_THREADS(self->tstate);
     ret = SSL_renegotiate(self->ssl);
     MY_END_ALLOW_THREADS(self->tstate);
 
-    if (PyErr_Occurred())
-    {
+    if (PyErr_Occurred()) {
         flush_error_queue();
         return NULL;
     }

@@ -99,6 +99,16 @@ crypto_NetscapeSPKI_sign(crypto_NetscapeSPKIObj *self, PyObject *args)
 			  &digest_name))
         return NULL;
 
+    if (pkey->only_public) {
+	PyErr_SetString(PyExc_ValueError, "Key has only public part");
+	return NULL;
+    }
+
+    if (!pkey->initialized) {
+	PyErr_SetString(PyExc_ValueError, "Key is uninitialized");
+	return NULL;
+    }
+
     if ((digest = EVP_get_digestbyname(digest_name)) == NULL)
     {
         PyErr_SetString(PyExc_ValueError, "No such digest method");
@@ -119,7 +129,9 @@ static char crypto_NetscapeSPKI_verify_doc[] = "\n\
 Verifies a certificate request using the supplied public key\n\
 \n\
 @param key: a public key\n\
-@return: True if the signature is correct, False otherwise.\n\
+@return: True if the signature is correct.\n\
+@raise OpenSSL.crypto.Error: If the signature is invalid or there is a\n\
+    problem verifying the signature.\n\
 ";
 
 PyObject *
@@ -128,11 +140,11 @@ crypto_NetscapeSPKI_verify(crypto_NetscapeSPKIObj *self, PyObject *args)
     crypto_PKeyObj *pkey;
     int answer;
 
-    if (!PyArg_ParseTuple(args, "O!:verify", &crypto_PKey_Type, &pkey)) 
+    if (!PyArg_ParseTuple(args, "O!:verify", &crypto_PKey_Type, &pkey)) {
         return NULL;
+    }
 
-    if ((answer = NETSCAPE_SPKI_verify(self->netscape_spki, pkey->pkey)) < 0)
-    {
+    if ((answer = NETSCAPE_SPKI_verify(self->netscape_spki, pkey->pkey)) <= 0) {
         exception_from_error_queue(crypto_Error);
         return NULL;
     }
@@ -170,6 +182,7 @@ crypto_NetscapeSPKI_get_pubkey(crypto_NetscapeSPKIObj *self, PyObject *args)
 {
     crypto_PKeyObj *crypto_PKey_New(EVP_PKEY *, int);
     EVP_PKEY *pkey;
+    crypto_PKeyObj *py_pkey;
 
     if (!PyArg_ParseTuple(args, ":get_pubkey"))
         return NULL;
@@ -180,7 +193,11 @@ crypto_NetscapeSPKI_get_pubkey(crypto_NetscapeSPKIObj *self, PyObject *args)
         return NULL;
     }
 
-    return (PyObject *)crypto_PKey_New(pkey, 0);
+    py_pkey = crypto_PKey_New(pkey, 1);
+    if (py_pkey != NULL) {
+	py_pkey->only_public = 1;
+    }
+    return (PyObject *)py_pkey;
 }
 
 static char crypto_NetscapeSPKI_set_pubkey_doc[] = "\n\

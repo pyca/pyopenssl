@@ -138,12 +138,14 @@ crypto_X509Req_sign(crypto_X509ReqObj *self, PyObject *args)
     Py_INCREF(Py_None);
     return Py_None;
 }
- 
+
 static char crypto_X509Req_verify_doc[] = "\n\
 Verifies a certificate request using the supplied public key\n\
 \n\
 @param key: a public key\n\
-@return: True if the signature is correct, False otherwise.\n\
+@return: True if the signature is correct.\n\
+@raise OpenSSL.crypto.Error: If the signature is invalid or there is a\n\
+    problem verifying the signature.\n\
 ";
 
 PyObject *
@@ -153,13 +155,13 @@ crypto_X509Req_verify(crypto_X509ReqObj *self, PyObject *args)
     crypto_PKeyObj *key;
     int answer;
 
-    if (!PyArg_ParseTuple(args, "O!:verify", &crypto_PKey_Type, &obj)) 
+    if (!PyArg_ParseTuple(args, "O!:verify", &crypto_PKey_Type, &obj)) {
         return NULL;
+    }
 
     key = (crypto_PKeyObj *)obj;
 
-    if ((answer = X509_REQ_verify(self->x509_req, key->pkey)) < 0)
-    {
+    if ((answer = X509_REQ_verify(self->x509_req, key->pkey)) <= 0) {
         exception_from_error_queue(crypto_Error);
         return NULL;
     }
@@ -213,7 +215,7 @@ crypto_X509Req_add_extensions(crypto_X509ReqObj *self, PyObject *args)
         }
         sk_X509_EXTENSION_push(exts, ext->x509_extension);
     }
-    
+
     if (!X509_REQ_add_extensions(self->x509_req, exts))
     {
         sk_X509_EXTENSION_free(exts);
@@ -222,7 +224,7 @@ crypto_X509Req_add_extensions(crypto_X509ReqObj *self, PyObject *args)
     }
 
     sk_X509_EXTENSION_free(exts);
-    
+
     Py_INCREF(Py_None);
     return Py_None;
 }

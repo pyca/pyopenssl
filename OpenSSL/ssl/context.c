@@ -101,10 +101,8 @@ global_passphrase_callback(char *buf, int maxlen, int verify, void *arg)
 
     if (ret == NULL) {
         /*
-         * XXX The callback raised an exception.  At the very least, it should
-         * be printed out here.  An *actual* solution would be to raise it up
-         * through OpenSSL.  That might be a bit tricky, but it's probably
-         * possible. -exarkun
+         * The callback raised an exception.  It will be raised by whatever
+         * Python API triggered this callback.
          */
         goto out;
     }
@@ -119,9 +117,9 @@ global_passphrase_callback(char *buf, int maxlen, int verify, void *arg)
 
     if (!PyString_Check(ret)) {
         /*
-         * XXX Returned something that wasn't a string.  This is bogus.  We
-         * should report an error or raise an exception (again, through OpenSSL
-         * - tricky). -exarkun
+         * XXX Returned something that wasn't a string.  This is bogus.  We'll
+         * return 0 and OpenSSL will treat it as an error, resulting in an
+         * exception from whatever Python API triggered this callback.
          */
         Py_DECREF(ret);
         goto out;
@@ -130,8 +128,9 @@ global_passphrase_callback(char *buf, int maxlen, int verify, void *arg)
     len = PyString_Size(ret);
     if (len > maxlen) {
         /*
-         * XXX Returned more than we said they were allowed to return.  Report
-         * an error or raise an exception (tricky blah blah). -exarkun
+         * Returned more than we said they were allowed to return.  Just
+         * truncate it.  Might be better to raise an exception,
+         * instead. -exarkun
          */
         len = maxlen;
     }
@@ -609,8 +608,10 @@ ssl_Context_check_privatekey(ssl_ContextObj *self, PyObject *args)
 }
 
 static char ssl_Context_load_client_ca_doc[] = "\n\
-Load the trusted certificates that will be sent to the client (basically\n\
-telling the client \"These are the guys I trust\")\n\
+Load the trusted certificates that will be sent to the client (basically\n \
+telling the client \"These are the guys I trust\").  Does not actually\n\
+imply any of the certificates are trusted; that must be configured\n\
+separately.\n\
 \n\
 @param cafile: The name of the certificates file\n\
 @return: None\n\
@@ -761,8 +762,10 @@ ssl_Context_load_tmp_dh(ssl_ContextObj *self, PyObject *args)
         return NULL;
 
     bio = BIO_new_file(dhfile, "r");
-    if (bio == NULL)
-        return PyErr_NoMemory();
+    if (bio == NULL) {
+        exception_from_error_queue(ssl_Error);
+        return NULL;
+    }
 
     dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
     SSL_CTX_set_tmp_dh(self->ctx, dh);
