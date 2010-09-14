@@ -874,6 +874,12 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
 
 
     def test_version_wrong_args(self):
+        """
+        L{X509ReqType.set_version} raises L{TypeError} if called with the wrong
+        number of arguments or with a non-C{int} argument.
+        L{X509ReqType.get_version} raises L{TypeError} if called with any
+        arguments.
+        """
         request = X509Req()
         self.assertRaises(TypeError, request.set_version)
         self.assertRaises(TypeError, request.set_version, "foo")
@@ -900,6 +906,10 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
 
 
     def test_get_subject_wrong_args(self):
+        """
+        L{X509ReqType.get_subject} raises L{TypeError} if called with any
+        arguments.
+        """
         request = X509Req()
         self.assertRaises(TypeError, request.get_subject, None)
 
@@ -1316,7 +1326,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         name.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        self.assertEquals(cert.subject_name_hash(), -944919422)
+        self.assertEquals(cert.subject_name_hash(), 3350047874)
 
 
 
@@ -1762,6 +1772,7 @@ class FunctionTests(TestCase):
             load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
         self.assertTrue(called)
 
+
     def test_load_privatekey_passphraseCallback(self):
         """
         L{load_privatekey} can create a L{PKey} object from an encrypted PEM
@@ -1954,56 +1965,99 @@ class PKCS7Tests(TestCase):
     # XXX Opposite results for all these following methods
 
     def test_type_is_signed_wrong_args(self):
+        """
+        L{PKCS7Type.type_is_signed} raises L{TypeError} if called with any
+        arguments.
+        """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertRaises(TypeError, pkcs7.type_is_signed, None)
 
 
     def test_type_is_signed(self):
+        """
+        L{PKCS7Type.type_is_signed} returns C{True} if the PKCS7 object is of
+        the type I{signed}.
+        """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertTrue(pkcs7.type_is_signed())
 
 
     def test_type_is_enveloped_wrong_args(self):
+        """
+        L{PKCS7Type.type_is_enveloped} raises L{TypeError} if called with any
+        arguments.
+        """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertRaises(TypeError, pkcs7.type_is_enveloped, None)
 
 
     def test_type_is_enveloped(self):
+        """
+        L{PKCS7Type.type_is_enveloped} returns C{False} if the PKCS7 object is
+        not of the type I{enveloped}.
+        """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertFalse(pkcs7.type_is_enveloped())
 
 
     def test_type_is_signedAndEnveloped_wrong_args(self):
+        """
+        L{PKCS7Type.type_is_signedAndEnveloped} raises L{TypeError} if called
+        with any arguments.
+        """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertRaises(TypeError, pkcs7.type_is_signedAndEnveloped, None)
 
 
     def test_type_is_signedAndEnveloped(self):
+        """
+        L{PKCS7Type.type_is_signedAndEnveloped} returns C{False} if the PKCS7
+        object is not of the type I{signed and enveloped}.
+        """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertFalse(pkcs7.type_is_signedAndEnveloped())
 
 
     def test_type_is_data(self):
+        """
+        L{PKCS7Type.type_is_data} returns C{False} if the PKCS7 object is not of
+        the type data.
+        """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertFalse(pkcs7.type_is_data())
 
 
     def test_type_is_data_wrong_args(self):
+        """
+        L{PKCS7Type.type_is_data} raises L{TypeError} if called with any
+        arguments.
+        """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertRaises(TypeError, pkcs7.type_is_data, None)
 
 
     def test_get_type_name_wrong_args(self):
+        """
+        L{PKCS7Type.get_type_name} raises L{TypeError} if called with any
+        arguments.
+        """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertRaises(TypeError, pkcs7.get_type_name, None)
 
 
     def test_get_type_name(self):
+        """
+        L{PKCS7Type.get_type_name} returns a C{str} giving the type name.
+        """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertEquals(pkcs7.get_type_name(), b('pkcs7-signedData'))
 
 
     def test_attribute(self):
+        """
+        If an attribute other than one of the methods tested here is accessed on
+        an instance of L{PKCS7Type}, L{AttributeError} is raised.
+        """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertRaises(AttributeError, getattr, pkcs7, "foo")
 

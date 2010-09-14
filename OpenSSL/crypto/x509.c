@@ -595,7 +595,7 @@ crypto_X509_subject_name_hash(crypto_X509Obj *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":subject_name_hash"))
         return NULL;
 
-    return PyLong_FromLong(X509_subject_name_hash(self->x509));
+    return PyLong_FromLongLong(X509_subject_name_hash(self->x509));
 }
 
 static char crypto_X509_digest_doc[] = "\n\
