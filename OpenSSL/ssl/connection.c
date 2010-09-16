@@ -382,9 +382,14 @@ ssl_Connection_sendall(ssl_ConnectionObj *self, PyObject *args)
         return NULL;
 
     do {
+        printf("about to SSL_write\n");
+        fflush(stdout);
         MY_BEGIN_ALLOW_THREADS(self->tstate)
         ret = SSL_write(self->ssl, buf, len);
         MY_END_ALLOW_THREADS(self->tstate)
+        printf("SSL_write returned %d\n", ret);
+        fflush(stdout);
+
         if (PyErr_Occurred())
         {
             flush_error_queue();
