@@ -3,6 +3,7 @@
 """
 Unit tests for L{OpenSSL.SSL}.
 """
+import time
 
 from errno import ECONNREFUSED, EINPROGRESS
 from sys import platform
@@ -1097,13 +1098,21 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
         message ='x' * 1024 * 128 + 'y'
+        z = time.time()
+        def now():
+            return time.time() - z
+        print now(), 'Sending', len(message), 'bytes'
         server.sendall(message)
+        print now(), 'sent'
         accum = []
         received = 0
         while received < len(message):
+            print now(), 'receiving 1k'
             bytes = client.recv(1024)
+            print now(), 'received', len(bytes)
             accum.append(bytes)
             received += len(bytes)
+            print now(), 'total', received
         self.assertEquals(message, ''.join(accum))
 
 
