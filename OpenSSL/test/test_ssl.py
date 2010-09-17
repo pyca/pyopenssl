@@ -4,7 +4,7 @@
 Unit tests for L{OpenSSL.SSL}.
 """
 
-from errno import ECONNREFUSED, EINPROGRESS
+from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK
 from sys import platform
 from socket import error, socket
 from os import makedirs
@@ -931,8 +931,10 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
         clientSSL = Connection(Context(TLSv1_METHOD), socket())
         clientSSL.setblocking(False)
-        self.assertEquals(
-            clientSSL.connect_ex(port.getsockname()), EINPROGRESS)
+        result = clientSSL.connect_ex(port.getsockname())
+        expected = (EINPROGRESS, EWOULDBLOCK)
+        self.assertTrue(
+                result in expected, "%r not in %r" % (result, expected))
 
 
     def test_accept_wrong_args(self):
