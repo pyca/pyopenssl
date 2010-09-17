@@ -1096,7 +1096,10 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         it even if this requires multiple calls of an underlying write function.
         """
         server, client = self._loopback()
-        message ='x' * 1024 * 128 + 'y'
+        # Should be enough, underlying SSL_write should only do 16k at a time.
+        # On Windows, after 32k of bytes the write will block (forever - because
+        # no one is yet reading).
+        message ='x' * (1024 * 32 - 1) + 'y'
         server.sendall(message)
         accum = []
         received = 0
