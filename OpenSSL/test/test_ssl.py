@@ -633,7 +633,8 @@ class ContextTests(TestCase, _LoopbackMixin):
         scert.set_pubkey(skey)
         scert.set_notBefore(b("20000101000000Z"))
         scert.set_notAfter(b("20200101000000Z"))
-        scert.add_extensions([X509Extension('basicConstraints', True, 'CA:false')])
+        scert.add_extensions([
+                X509Extension(b('basicConstraints'), True, b('CA:false'))])
         scert.set_serial_number(0)
         scert.sign(ikey, "sha1")
 
