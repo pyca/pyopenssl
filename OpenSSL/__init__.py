@@ -18,7 +18,8 @@ else:
     sys.setdlopenflags(2 | 256)
     from OpenSSL import crypto
     sys.setdlopenflags(orig)
-del sys, orig
+    del orig
+del sys
 
 from OpenSSL import rand, crypto, SSL
 from OpenSSL.version import __version__
