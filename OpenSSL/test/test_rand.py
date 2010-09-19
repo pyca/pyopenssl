@@ -108,10 +108,14 @@ class RandTests(TestCase):
 
     def test_egd_missing(self):
         """
-        L{OpenSSL.rand.egd} returns C{0} if the EGD socket passed to it does not
-        exist.
+        L{OpenSSL.rand.egd} returns C{0} or C{-1} if the EGD socket passed
+        to it does not exist.
         """
-        self.assertEquals(rand.egd(self.mktemp()), 0)
+        result = rand.egd(self.mktemp())
+        expected = (-1, 0)
+        self.assertTrue(
+            result in expected,
+            "%r not in %r" % (result, expected))
 
 
     def test_cleanup_wrong_args(self):
