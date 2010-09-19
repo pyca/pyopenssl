@@ -11,9 +11,6 @@
 Installation script for the OpenSSL module
 """
 
-import distutils.log
-distutils.log.set_verbosity(3)
-
 import sys, os
 from distutils.core import Extension, setup
 from distutils.errors import DistutilsFileError
