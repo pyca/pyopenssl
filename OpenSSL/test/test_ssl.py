@@ -1113,7 +1113,7 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
             data = client.recv(1024)
             accum.append(data)
             received += len(data)
-        self.assertEquals(message, b''.join(accum))
+        self.assertEquals(message, b('').join(accum))
 
 
     def test_closed(self):
