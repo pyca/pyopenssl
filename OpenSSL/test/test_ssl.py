@@ -605,8 +605,8 @@ class ContextTests(TestCase, _LoopbackMixin):
         cacert.get_subject().commonName = "Authority Certificate"
         cacert.set_issuer(cacert.get_subject())
         cacert.set_pubkey(cakey)
-        cacert.set_notBefore("20000101000000Z")
-        cacert.set_notAfter("20200101000000Z")
+        cacert.set_notBefore(b("20000101000000Z"))
+        cacert.set_notAfter(b("20200101000000Z"))
         cacert.add_extensions([caext])
         cacert.set_serial_number(0)
         cacert.sign(cakey, "sha1")
@@ -618,8 +618,8 @@ class ContextTests(TestCase, _LoopbackMixin):
         icert.get_subject().commonName = "Intermediate Certificate"
         icert.set_issuer(cacert.get_subject())
         icert.set_pubkey(ikey)
-        icert.set_notBefore("20000101000000Z")
-        icert.set_notAfter("20200101000000Z")
+        icert.set_notBefore(b("20000101000000Z"))
+        icert.set_notAfter(b("20200101000000Z"))
         icert.add_extensions([caext])
         icert.set_serial_number(0)
         icert.sign(cakey, "sha1")
@@ -631,8 +631,8 @@ class ContextTests(TestCase, _LoopbackMixin):
         scert.get_subject().commonName = "Server Certificate"
         scert.set_issuer(icert.get_subject())
         scert.set_pubkey(skey)
-        scert.set_notBefore("20000101000000Z")
-        scert.set_notAfter("20200101000000Z")
+        scert.set_notBefore(b("20000101000000Z"))
+        scert.set_notAfter(b("20200101000000Z"))
         scert.add_extensions([X509Extension('basicConstraints', True, 'CA:false')])
         scert.set_serial_number(0)
         scert.sign(ikey, "sha1")
