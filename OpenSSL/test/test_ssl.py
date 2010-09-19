@@ -685,9 +685,6 @@ class ContextTests(TestCase, _LoopbackMixin):
             fObj = open(name, 'w')
             fObj.write(dump_certificate(FILETYPE_PEM, cert).decode('ascii'))
             fObj.close()
-            fObj = open(name.replace('pem', 'asn1'), 'w')
-            fObj.write(dump_certificate(FILETYPE_ASN1, cert).decode('ascii'))
-            fObj.close()
 
         for key, name in [(cakey, 'ca.key'), (ikey, 'i.key'), (skey, 's.key')]:
             fObj = open(name, 'w')
