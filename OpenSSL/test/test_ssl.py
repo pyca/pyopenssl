@@ -917,7 +917,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         port.listen(3)
 
         clientSSL = Connection(Context(TLSv1_METHOD), socket())
-        clientSSL.connect(port.getsockname())
+        clientSSL.connect(('127.0.0.1', port.getsockname()[1]))
+        # XXX An assertion?  Or something?
 
 
     def test_connect_ex(self):
@@ -960,7 +961,10 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         portSSL.listen(3)
 
         clientSSL = Connection(Context(TLSv1_METHOD), socket())
-        clientSSL.connect(portSSL.getsockname())
+
+        # Calling portSSL.getsockname() here to get the server IP address sounds
+        # great, but frequently fails on Windows.
+        clientSSL.connect(('127.0.0.1', portSSL.getsockname()[1]))
 
         serverSSL, address = portSSL.accept()
 
