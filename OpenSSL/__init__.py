@@ -10,13 +10,17 @@ pyOpenSSL - A simple wrapper around the OpenSSL library
 """
 
 import sys
-orig = sys.getdlopenflags()
-sys.setdlopenflags(2|256)
-from OpenSSL import crypto
-sys.setdlopenflags(orig)
+try:
+    orig = sys.getdlopenflags()
+except AttributeError:
+    pass
+else:
+    sys.setdlopenflags(2 | 256)
+    from OpenSSL import crypto
+    sys.setdlopenflags(orig)
 del sys, orig
 
-from OpenSSL import rand, SSL
+from OpenSSL import rand, crypto, SSL
 from OpenSSL.version import __version__
 
 __all__ = [
