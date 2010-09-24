@@ -919,21 +919,24 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         # XXX An assertion?  Or something?
 
 
-    def test_connect_ex(self):
-        """
-        If there is a connection error, L{Connection.connect_ex} returns the
-        errno instead of raising an exception.
-        """
-        port = socket()
-        port.bind(('', 0))
-        port.listen(3)
+    if platform == "darwin":
+        "connect_ex sometimes causes a kernel panic on OS X 10.6.4"
+    else:
+        def test_connect_ex(self):
+            """
+            If there is a connection error, L{Connection.connect_ex} returns the
+            errno instead of raising an exception.
+            """
+            port = socket()
+            port.bind(('', 0))
+            port.listen(3)
 
-        clientSSL = Connection(Context(TLSv1_METHOD), socket())
-        clientSSL.setblocking(False)
-        result = clientSSL.connect_ex(port.getsockname())
-        expected = (EINPROGRESS, EWOULDBLOCK)
-        self.assertTrue(
-                result in expected, "%r not in %r" % (result, expected))
+            clientSSL = Connection(Context(TLSv1_METHOD), socket())
+            clientSSL.setblocking(False)
+            result = clientSSL.connect_ex(port.getsockname())
+            expected = (EINPROGRESS, EWOULDBLOCK)
+            self.assertTrue(
+                    result in expected, "%r not in %r" % (result, expected))
 
 
     def test_accept_wrong_args(self):
