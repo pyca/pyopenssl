@@ -1123,8 +1123,7 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         write error from the low level write call.
         """
         server, client = self._loopback()
-        client.close()
-        server.sendall("hello, world")
+        server.sock_shutdown(2)
         self.assertRaises(SysCallError, server.sendall, "hello, world")
 
 
