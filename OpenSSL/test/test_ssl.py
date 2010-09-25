@@ -1340,24 +1340,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         code, as no memory BIO is involved here).  Even though this isn't a
         memory BIO test, it's convenient to have it here.
         """
-        (server, client) = socket_pair()
-
-        # Let the encryption begin...
-        client_conn = self._client(client)
-        server_conn = self._server(server)
-
-        # Establish the connection
-        established = False
-        while not established:
-            established = True  # assume the best
-            for ssl in client_conn, server_conn:
-                try:
-                    # Generally a recv() or send() could also work instead
-                    # of do_handshake(), and we would stop on the first
-                    # non-exception.
-                    ssl.do_handshake()
-                except WantReadError:
-                    established = False
+        server_conn, client_conn = self._loopback()
 
         important_message = b("Help me Obi Wan Kenobi, you're my only hope.")
         client_conn.send(important_message)
