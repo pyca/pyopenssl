@@ -84,6 +84,18 @@ def socket_pair():
 
 
 
+def handshake(client, server):
+    conns = [client, server]
+    while conns:
+        for conn in conns:
+            try:
+                conn.do_handshake()
+            except WantReadError:
+                pass
+            else:
+                conns.remove(conn)
+
+
 class _LoopbackMixin:
     """
     Helper mixin which defines methods for creating a connected socket pair and
@@ -100,15 +112,7 @@ class _LoopbackMixin:
         client = Connection(Context(TLSv1_METHOD), client)
         client.set_connect_state()
 
-        conns = [client, server]
-        while conns:
-            for conn in conns:
-                try:
-                    conn.do_handshake()
-                except WantReadError:
-                    pass
-                else:
-                    conns.remove(conn)
+        handshake(client, server)
 
         server.setblocking(True)
         client.setblocking(True)
@@ -468,16 +472,11 @@ class ContextTests(TestCase, _LoopbackMixin):
         serverSSL = Connection(serverContext, server)
         serverSSL.set_accept_state()
 
-        for i in range(3):
-            for ssl in clientSSL, serverSSL:
-                try:
-                    # Without load_verify_locations above, the handshake
-                    # will fail:
-                    # Error: [('SSL routines', 'SSL3_GET_SERVER_CERTIFICATE',
-                    #          'certificate verify failed')]
-                    ssl.do_handshake()
-                except WantReadError:
-                    pass
+        # Without load_verify_locations above, the handshake
+        # will fail:
+        # Error: [('SSL routines', 'SSL3_GET_SERVER_CERTIFICATE',
+        #          'certificate verify failed')]
+        handshake(clientSSL, serverSSL)
 
         cert = clientSSL.get_peer_certificate()
         self.assertEqual(cert.get_subject().CN, 'Testing Root CA')
