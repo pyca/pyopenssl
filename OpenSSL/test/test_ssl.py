@@ -100,12 +100,15 @@ class _LoopbackMixin:
         client = Connection(Context(TLSv1_METHOD), client)
         client.set_connect_state()
 
-        for i in range(3):
-            for conn in [client, server]:
+        conns = [client, server]
+        while conns:
+            for conn in conns:
                 try:
                     conn.do_handshake()
                 except WantReadError:
                     pass
+                else:
+                    conns.remove(conn)
 
         server.setblocking(True)
         client.setblocking(True)
