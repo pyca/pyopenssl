@@ -84,6 +84,18 @@ def socket_pair():
 
 
 
+def handshake(client, server):
+    conns = [client, server]
+    while conns:
+        for conn in conns:
+            try:
+                conn.do_handshake()
+            except WantReadError:
+                pass
+            else:
+                conns.remove(conn)
+
+
 class _LoopbackMixin:
     """
     Helper mixin which defines methods for creating a connected socket pair and
@@ -100,12 +112,7 @@ class _LoopbackMixin:
         client = Connection(Context(TLSv1_METHOD), client)
         client.set_connect_state()
 
-        for i in range(3):
-            for conn in [client, server]:
-                try:
-                    conn.do_handshake()
-                except WantReadError:
-                    pass
+        handshake(client, server)
 
         server.setblocking(True)
         client.setblocking(True)
@@ -465,16 +472,11 @@ class ContextTests(TestCase, _LoopbackMixin):
         serverSSL = Connection(serverContext, server)
         serverSSL.set_accept_state()
 
-        for i in range(3):
-            for ssl in clientSSL, serverSSL:
-                try:
-                    # Without load_verify_locations above, the handshake
-                    # will fail:
-                    # Error: [('SSL routines', 'SSL3_GET_SERVER_CERTIFICATE',
-                    #          'certificate verify failed')]
-                    ssl.do_handshake()
-                except WantReadError:
-                    pass
+        # Without load_verify_locations above, the handshake
+        # will fail:
+        # Error: [('SSL routines', 'SSL3_GET_SERVER_CERTIFICATE',
+        #          'certificate verify failed')]
+        handshake(clientSSL, serverSSL)
 
         cert = clientSSL.get_peer_certificate()
         self.assertEqual(cert.get_subject().CN, 'Testing Root CA')
@@ -919,21 +921,24 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         # XXX An assertion?  Or something?
 
 
-    def test_connect_ex(self):
-        """
-        If there is a connection error, L{Connection.connect_ex} returns the
-        errno instead of raising an exception.
-        """
-        port = socket()
-        port.bind(('', 0))
-        port.listen(3)
+    if platform == "darwin":
+        "connect_ex sometimes causes a kernel panic on OS X 10.6.4"
+    else:
+        def test_connect_ex(self):
+            """
+            If there is a connection error, L{Connection.connect_ex} returns the
+            errno instead of raising an exception.
+            """
+            port = socket()
+            port.bind(('', 0))
+            port.listen(3)
 
-        clientSSL = Connection(Context(TLSv1_METHOD), socket())
-        clientSSL.setblocking(False)
-        result = clientSSL.connect_ex(port.getsockname())
-        expected = (EINPROGRESS, EWOULDBLOCK)
-        self.assertTrue(
-                result in expected, "%r not in %r" % (result, expected))
+            clientSSL = Connection(Context(TLSv1_METHOD), socket())
+            clientSSL.setblocking(False)
+            result = clientSSL.connect_ex(port.getsockname())
+            expected = (EINPROGRESS, EWOULDBLOCK)
+            self.assertTrue(
+                    result in expected, "%r not in %r" % (result, expected))
 
 
     def test_accept_wrong_args(self):
@@ -1120,8 +1125,7 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         write error from the low level write call.
         """
         server, client = self._loopback()
-        client.close()
-        server.sendall("hello, world")
+        server.sock_shutdown(2)
         self.assertRaises(SysCallError, server.sendall, "hello, world")
 
 
@@ -1335,24 +1339,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         code, as no memory BIO is involved here).  Even though this isn't a
         memory BIO test, it's convenient to have it here.
         """
-        (server, client) = socket_pair()
-
-        # Let the encryption begin...
-        client_conn = self._client(client)
-        server_conn = self._server(server)
-
-        # Establish the connection
-        established = False
-        while not established:
-            established = True  # assume the best
-            for ssl in client_conn, server_conn:
-                try:
-                    # Generally a recv() or send() could also work instead
-                    # of do_handshake(), and we would stop on the first
-                    # non-exception.
-                    ssl.do_handshake()
-                except WantReadError:
-                    established = False
+        server_conn, client_conn = self._loopback()
 
         important_message = b("Help me Obi Wan Kenobi, you're my only hope.")
         client_conn.send(important_message)
