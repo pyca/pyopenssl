@@ -625,7 +625,7 @@ crypto_sign(PyObject *spam, PyObject *args) {
     unsigned char sig_buf[512];
 
     if (!PyArg_ParseTuple(
-            args, "O!" BYTESTRING_FMT BYTESTRING_FMT ":sign", &crypto_PKey_Type,
+            args, "O!" BYTESTRING_FMT "s:sign", &crypto_PKey_Type,
             &pkey, &data, &digest_name)) {
         return NULL;
     }
@@ -671,7 +671,7 @@ crypto_verify(PyObject *spam, PyObject *args) {
     EVP_PKEY *pkey;
 
 #ifdef PY3
-    if (!PyArg_ParseTuple(args, "O!y#yy:verify", &crypto_X509_Type, &cert, &signature, &sig_len, &data, &digest_name)) {
+    if (!PyArg_ParseTuple(args, "O!" BYTESTRING_FMT "#" BYTESTRING_FMT "s:verify", &crypto_X509_Type, &cert, &signature, &sig_len, &data, &digest_name)) {
 #else
     if (!PyArg_ParseTuple(args, "O!t#ss:verify", &crypto_X509_Type, &cert, &signature, &sig_len, &data, &digest_name)) {
 #endif

@@ -116,7 +116,10 @@ export(cert, key[, type[, days]]) -> export a CRL as a string\n\
 @type cert: L{X509}\n\
 @param key: Used to sign CRL.\n\
 @type key: L{PKey}\n\
-@return: None\n\
+@param type: The export format, either L{FILETYPE_PEM}, L{FILETYPE_ASN1}, or L{FILETYPE_TEXT}.\n\
+@param days: The number of days until the next update of this CRL.\n\
+@type days: L{int}\n\
+@return: L{str}\n\
 ";
 static PyObject *
 crypto_CRL_export(crypto_CRLObj *self, PyObject *args, PyObject *keywds) {
