@@ -45,7 +45,7 @@ rand_add(PyObject *spam, PyObject *args)
     int size;
     double entropy;
 
-    if (!PyArg_ParseTuple(args, "s#d:add", &buf, &size, &entropy))
+    if (!PyArg_ParseTuple(args, BYTESTRING_FMT "#d:add", &buf, &size, &entropy))
         return NULL;
 
     RAND_add(buf, size, entropy);
@@ -67,7 +67,7 @@ rand_seed(PyObject *spam, PyObject *args)
     char *buf;
     int size;
 
-    if (!PyArg_ParseTuple(args, "s#:seed", &buf, &size))
+    if (!PyArg_ParseTuple(args, BYTESTRING_FMT "#:seed", &buf, &size))
         return NULL;
 
     RAND_seed(buf, size);
