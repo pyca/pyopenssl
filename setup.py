@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) AB Strakt 2001, All rights reserved
-# Copyright (C) Jean-Paul Calderone 2008, All rights reserved
-#
-# @(#) $Id: setup.py,v 1.28 2004/08/10 10:59:01 martin Exp $
+# Copyright (C) Jean-Paul Calderone 2008-2010, All rights reserved
 #
 
 """
@@ -17,7 +15,7 @@ from distutils.errors import DistutilsFileError
 from distutils.command.build_ext import build_ext
 
 # XXX Deduplicate this
-__version__ = '0.11'
+__version__ = '0.11a1'
 
 crypto_src = ['OpenSSL/crypto/crypto.c', 'OpenSSL/crypto/x509.c',
               'OpenSSL/crypto/x509name.c', 'OpenSSL/crypto/pkey.c',
