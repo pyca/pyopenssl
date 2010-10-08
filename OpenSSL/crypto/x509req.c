@@ -166,7 +166,7 @@ crypto_X509Req_verify(crypto_X509ReqObj *self, PyObject *args)
         return NULL;
     }
 
-    return PyInt_FromLong(answer);
+    return PyLong_FromLong(answer);
 }
 
 static char crypto_X509Req_add_extensions_doc[] = "\n\
@@ -357,29 +357,14 @@ crypto_X509Req_dealloc(crypto_X509ReqObj *self)
 }
 
 
-/*
- * Find attribute.
- *
- * Arguments: self - The X509Req object
- *            name - The attribute name
- * Returns:   A Python object for the attribute, or NULL if something went
- *            wrong
- */
-static PyObject *
-crypto_X509Req_getattr(crypto_X509ReqObj *self, char *name)
-{
-    return Py_FindMethod(crypto_X509Req_methods, (PyObject *)self, name);
-}
-
 PyTypeObject crypto_X509Req_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "X509Req",
     sizeof(crypto_X509ReqObj),
     0,
     (destructor)crypto_X509Req_dealloc,
     NULL, /* print */
-    (getattrfunc)crypto_X509Req_getattr,
+    NULL, /* getattr */
     NULL, /* setattr */
     NULL, /* compare */
     NULL, /* repr */

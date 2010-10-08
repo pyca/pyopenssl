@@ -8,7 +8,7 @@ from unittest import main
 import os
 import stat
 
-from OpenSSL.test.util import TestCase
+from OpenSSL.test.util import TestCase, b
 from OpenSSL import rand
 
 
@@ -46,16 +46,16 @@ class RandTests(TestCase):
         type C{str} and C{int}, L{OpenSSL.rand.add} raises L{TypeError}.
         """
         self.assertRaises(TypeError, rand.add)
-        self.assertRaises(TypeError, rand.add, "foo", None)
+        self.assertRaises(TypeError, rand.add, b("foo"), None)
         self.assertRaises(TypeError, rand.add, None, 3)
-        self.assertRaises(TypeError, rand.add, "foo", 3, None)
+        self.assertRaises(TypeError, rand.add, b("foo"), 3, None)
 
 
     def test_add(self):
         """
         L{OpenSSL.rand.add} adds entropy to the PRNG.
         """
-        rand.add('hamburger', 3)
+        rand.add(b('hamburger'), 3)
 
 
     def test_seed_wrong_args(self):
@@ -65,14 +65,14 @@ class RandTests(TestCase):
         """
         self.assertRaises(TypeError, rand.seed)
         self.assertRaises(TypeError, rand.seed, None)
-        self.assertRaises(TypeError, rand.seed, "foo", None)
+        self.assertRaises(TypeError, rand.seed, b("foo"), None)
 
 
     def test_seed(self):
         """
         L{OpenSSL.rand.seed} adds entropy to the PRNG.
         """
-        rand.seed('milk shake')
+        rand.seed(b('milk shake'))
 
 
     def test_status_wrong_args(self):
@@ -162,7 +162,7 @@ class RandTests(TestCase):
         # Write random bytes to a file
         tmpfile = self.mktemp()
         # Make sure it exists (so cleanup definitely succeeds)
-        fObj = file(tmpfile, 'w')
+        fObj = open(tmpfile, 'w')
         fObj.close()
         try:
             rand.write_file(tmpfile)

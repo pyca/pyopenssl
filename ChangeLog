@@ -1,3 +1,7 @@
+2010-10-07  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* Initial support for Python 3.x throughout the codebase.
+
 2010-09-14  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL/crypto/netscape_spki.c: Fix an off-by-one mistake in the

@@ -7,7 +7,7 @@ Unit tests for L{OpenSSL.crypto}.
 from unittest import main
 
 import os, re
-from os import popen2
+from subprocess import PIPE, Popen
 from datetime import datetime, timedelta
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
@@ -23,10 +23,10 @@ from OpenSSL.crypto import PKCS12, PKCS12Type, load_pkcs12
 from OpenSSL.crypto import CRL, Revoked, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.crypto import sign, verify
-from OpenSSL.test.util import TestCase
+from OpenSSL.test.util import TestCase, bytes, b
 
 
-root_cert_pem = """-----BEGIN CERTIFICATE-----
+root_cert_pem = b("""-----BEGIN CERTIFICATE-----
 MIIC7TCCAlagAwIBAgIIPQzE4MbeufQwDQYJKoZIhvcNAQEFBQAwWDELMAkGA1UE
 BhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQHEwdDaGljYWdvMRAwDgYDVQQKEwdU
 ZXN0aW5nMRgwFgYDVQQDEw9UZXN0aW5nIFJvb3QgQ0EwIhgPMjAwOTAzMjUxMjM2
@@ -44,9 +44,9 @@ AGGCDazMJGoWNBpc03u6+smc95dEead2KlZXBATOdFT1VesY3+nUOqZhEhTGlDMi
 hkgaZnzoIq/Uamidegk4hirsCT/R+6vsKAAxNTcBjUeZjlykCJWy5ojShGftXIKY
 w/njVbKMXrvc83qmTdGl3TAM0fxQIpqgcglFLveEBgzn
 -----END CERTIFICATE-----
-"""
+""")
 
-root_key_pem = """-----BEGIN RSA PRIVATE KEY-----
+root_key_pem = b("""-----BEGIN RSA PRIVATE KEY-----
 MIICXQIBAAKBgQD5mkLpi7q6ROdu7khB3S9aanA0Zls7vvfGOmB80/yeylhGpsjA
 jWen0VtSQke/NlEPGtO38tsV7CsuFnSmschvAnGrcJl76b0UOOHUgDTIoRxC6QDU
 3claegwsrBA+sJEBbqx5RdXbIRGicPG/8qQ4Zm1SKOgotcbwiaor2yxZ2wIDAQAB
@@ -61,9 +61,9 @@ ttXigLnCqR486JDPTi9ZscoZkZ+w7y6e/hH8t6d5Vjt48JVyfjPIaJY+km58LcN3
 6AWSeGAdtRFHVzR7oHjVAkB4hutvxiOeiIVQNBhM6RSI9aBPMI21DoX2JRoxvNW2
 cbvAhow217X9V0dVerEOKxnNYspXRrh36h7k4mQA+sDq
 -----END RSA PRIVATE KEY-----
-"""
+""")
 
-server_cert_pem = """-----BEGIN CERTIFICATE-----
+server_cert_pem = b("""-----BEGIN CERTIFICATE-----
 MIICKDCCAZGgAwIBAgIJAJn/HpR21r/8MA0GCSqGSIb3DQEBBQUAMFgxCzAJBgNV
 BAYTAlVTMQswCQYDVQQIEwJJTDEQMA4GA1UEBxMHQ2hpY2FnbzEQMA4GA1UEChMH
 VGVzdGluZzEYMBYGA1UEAxMPVGVzdGluZyBSb290IENBMCIYDzIwMDkwMzI1MTIz
@@ -77,9 +77,9 @@ dJ+NlxIOx5343WqIBka3UbsOb2kxWrbkVCrvRapCMLCASO4FqiKWM+L0VDBprqIp
 2mgpFQ6FHpoIENGvJhdEKpptQ5i7KaGhnDNTfdy3x1+h852G99f1iyj0RmbuFcM8
 uzujnS8YXWvM7DM1Ilozk4MzPug8jzFp5uhKCQ==
 -----END CERTIFICATE-----
-"""
+""")
 
-server_key_pem = """-----BEGIN RSA PRIVATE KEY-----
+server_key_pem = b("""-----BEGIN RSA PRIVATE KEY-----
 MIICWwIBAAKBgQC+pvhuud1dLaQQvzipdtlcTotgr5SuE2LvSx0gz/bg1U3u1eQ+
 U5eqsxaEUceaX5p5Kk+QflvW8qdjVNxQuYS5uc0gK2+OZnlIYxCf4n5GYGzVIx3Q
 SBj/TAEFB2WuVinZBiCbxgL7PFM1Kpa+EwVkCAduPpSflJJPwkYGrK2MHQIDAQAB
@@ -94,9 +94,9 @@ FwwOhpahld+vqhYk+pfuWWUpQciE+Bu7ZQJASjfT4sQv4qbbKK/scePicnDdx9th
 NaeNCFfH3aeTrX0LyQJAMBWjWmeKM2G2sCExheeQK0ROnaBC8itCECD4Jsve4nqf
 r50+LF74iLXFwqysVCebPKMOpDWp/qQ1BbJQIPs7/A==
 -----END RSA PRIVATE KEY-----
-"""
+""")
 
-client_cert_pem = """-----BEGIN CERTIFICATE-----
+client_cert_pem = b("""-----BEGIN CERTIFICATE-----
 MIICJjCCAY+gAwIBAgIJAKxpFI5lODkjMA0GCSqGSIb3DQEBBQUAMFgxCzAJBgNV
 BAYTAlVTMQswCQYDVQQIEwJJTDEQMA4GA1UEBxMHQ2hpY2FnbzEQMA4GA1UEChMH
 VGVzdGluZzEYMBYGA1UEAxMPVGVzdGluZyBSb290IENBMCIYDzIwMDkwMzI1MTIz
@@ -110,9 +110,9 @@ Q3OHvmsFEEvRI+hsW8y66zK4K5de239Y44iZrFYkt7Q5nBPMEWDj4F2hLYWL/qtI
 9Zdr0U4UDCU9SmmGYh4o7R4TZ5pGFvBYvjhHbkSFYFQXZxKUi+WUxplP6I0wr2KJ
 PSTJCjJOn3xo2NTKRgV1gaoTf2EhL+RG8TQ=
 -----END CERTIFICATE-----
-"""
+""")
 
-client_key_pem = """-----BEGIN RSA PRIVATE KEY-----
+client_key_pem = b("""-----BEGIN RSA PRIVATE KEY-----
 MIICXgIBAAKBgQDAZh/SRtNm5ntMT4qb6YzEpTroMlq2rn+GrRHRiZ+xkCw/CGNh
 btPir7/QxaUj26BSmQrHw1bGKEbPsWiW7bdXSespl+xKiku4G/KvnnmWdeJHqsiX
 eUZtqurMELcPQAw9xPHEuhqqUJvvEoMTsnCEqGM+7DtboCRajYyHfluARQIDAQAB
@@ -127,9 +127,9 @@ si6xwT7GzMDkk/ko684AV3KPc/h6G0yGtFIrMg7J3uExpR/VdH2KgwMkZXisSMvw
 JJEQjOMCVsEJlRk54WWjAkEAzoZNH6UhDdBK5F38rVt/y4SEHgbSfJHIAmPS32Kq
 f6GGcfNpip0Uk7q7udTKuX7Q/buZi/C4YW7u3VKAquv9NA==
 -----END RSA PRIVATE KEY-----
-"""
+""")
 
-cleartextCertificatePEM = """-----BEGIN CERTIFICATE-----
+cleartextCertificatePEM = b("""-----BEGIN CERTIFICATE-----
 MIIC7TCCAlagAwIBAgIIPQzE4MbeufQwDQYJKoZIhvcNAQEFBQAwWDELMAkGA1UE
 BhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQHEwdDaGljYWdvMRAwDgYDVQQKEwdU
 ZXN0aW5nMRgwFgYDVQQDEw9UZXN0aW5nIFJvb3QgQ0EwIhgPMjAwOTAzMjUxMjM2
@@ -147,9 +147,9 @@ AGGCDazMJGoWNBpc03u6+smc95dEead2KlZXBATOdFT1VesY3+nUOqZhEhTGlDMi
 hkgaZnzoIq/Uamidegk4hirsCT/R+6vsKAAxNTcBjUeZjlykCJWy5ojShGftXIKY
 w/njVbKMXrvc83qmTdGl3TAM0fxQIpqgcglFLveEBgzn
 -----END CERTIFICATE-----
-"""
+""")
 
-cleartextPrivateKeyPEM = """-----BEGIN RSA PRIVATE KEY-----
+cleartextPrivateKeyPEM = b("""-----BEGIN RSA PRIVATE KEY-----
 MIICXQIBAAKBgQD5mkLpi7q6ROdu7khB3S9aanA0Zls7vvfGOmB80/yeylhGpsjA
 jWen0VtSQke/NlEPGtO38tsV7CsuFnSmschvAnGrcJl76b0UOOHUgDTIoRxC6QDU
 3claegwsrBA+sJEBbqx5RdXbIRGicPG/8qQ4Zm1SKOgotcbwiaor2yxZ2wIDAQAB
@@ -164,22 +164,22 @@ ttXigLnCqR486JDPTi9ZscoZkZ+w7y6e/hH8t6d5Vjt48JVyfjPIaJY+km58LcN3
 6AWSeGAdtRFHVzR7oHjVAkB4hutvxiOeiIVQNBhM6RSI9aBPMI21DoX2JRoxvNW2
 cbvAhow217X9V0dVerEOKxnNYspXRrh36h7k4mQA+sDq
 -----END RSA PRIVATE KEY-----
-"""
+""")
 
-cleartextCertificateRequestPEM = (
-    "-----BEGIN CERTIFICATE REQUEST-----\n"
-    "MIIBnjCCAQcCAQAwXjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQH\n"
-    "EwdDaGljYWdvMRcwFQYDVQQKEw5NeSBDb21wYW55IEx0ZDEXMBUGA1UEAxMORnJl\n"
-    "ZGVyaWNrIERlYW4wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBANp6Y17WzKSw\n"
-    "BsUWkXdqg6tnXy8H8hA1msCMWpc+/2KJ4mbv5NyD6UD+/SqagQqulPbF/DFea9nA\n"
-    "E0zhmHJELcM8gUTIlXv/cgDWnmK4xj8YkjVUiCdqKRAKeuzLG1pGmwwF5lGeJpXN\n"
-    "xQn5ecR0UYSOWj6TTGXB9VyUMQzCClcBAgMBAAGgADANBgkqhkiG9w0BAQUFAAOB\n"
-    "gQAAJGuF/R/GGbeC7FbFW+aJgr9ee0Xbl6nlhu7pTe67k+iiKT2dsl2ti68MVTnu\n"
-    "Vrb3HUNqOkiwsJf6kCtq5oPn3QVYzTa76Dt2y3Rtzv6boRSlmlfrgS92GNma8JfR\n"
-    "oICQk3nAudi6zl1Dix3BCv1pUp5KMtGn3MeDEi6QFGy2rA==\n"
-    "-----END CERTIFICATE REQUEST-----\n")
+cleartextCertificateRequestPEM = b("""-----BEGIN CERTIFICATE REQUEST-----
+MIIBnjCCAQcCAQAwXjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQH
+EwdDaGljYWdvMRcwFQYDVQQKEw5NeSBDb21wYW55IEx0ZDEXMBUGA1UEAxMORnJl
+ZGVyaWNrIERlYW4wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBANp6Y17WzKSw
+BsUWkXdqg6tnXy8H8hA1msCMWpc+/2KJ4mbv5NyD6UD+/SqagQqulPbF/DFea9nA
+E0zhmHJELcM8gUTIlXv/cgDWnmK4xj8YkjVUiCdqKRAKeuzLG1pGmwwF5lGeJpXN
+xQn5ecR0UYSOWj6TTGXB9VyUMQzCClcBAgMBAAGgADANBgkqhkiG9w0BAQUFAAOB
+gQAAJGuF/R/GGbeC7FbFW+aJgr9ee0Xbl6nlhu7pTe67k+iiKT2dsl2ti68MVTnu
+Vrb3HUNqOkiwsJf6kCtq5oPn3QVYzTa76Dt2y3Rtzv6boRSlmlfrgS92GNma8JfR
+oICQk3nAudi6zl1Dix3BCv1pUp5KMtGn3MeDEi6QFGy2rA==
+-----END CERTIFICATE REQUEST-----
+""")
 
-encryptedPrivateKeyPEM = """-----BEGIN RSA PRIVATE KEY-----
+encryptedPrivateKeyPEM = b("""-----BEGIN RSA PRIVATE KEY-----
 Proc-Type: 4,ENCRYPTED
 DEK-Info: DES-EDE3-CBC,9573604A18579E9E
 
@@ -197,15 +197,15 @@ o1mcnNiZSdxLZxVKccq0AfRpHqpPAFnJcQHP6xyT9MZp6fBa0XkxDnt9kNU8H3Qw
 MbzjS007Oe4qqBnCWaFPSnJX6uLApeTbqAxAeyCql56ULW5x6vDMNC3dwjvS/CEh
 11n8RkgFIQA0AhuKSIg3CbuartRsJnWOLwgLTzsrKYL4yRog1RJrtw==
 -----END RSA PRIVATE KEY-----
-"""
-encryptedPrivateKeyPEMPassphrase = "foobar"
+""")
+encryptedPrivateKeyPEMPassphrase = b("foobar")
 
 # Some PKCS#7 stuff.  Generated with the openssl command line:
 #
 #    openssl crl2pkcs7 -inform pem -outform pem -certfile s.pem -nocrl
 #
 # with a certificate and key (but the key should be irrelevant) in s.pem
-pkcs7Data = """\
+pkcs7Data = b("""\
 -----BEGIN PKCS7-----
 MIIDNwYJKoZIhvcNAQcCoIIDKDCCAyQCAQExADALBgkqhkiG9w0BBwGgggMKMIID
 BjCCAm+gAwIBAgIBATANBgkqhkiG9w0BAQQFADB7MQswCQYDVQQGEwJTRzERMA8G
@@ -226,9 +226,9 @@ VwnW8YxGO8Sn6UJ4FeffZNcYZddSDKosw8LtPOeWoK3JINjAk5jiPQ2cww++7QGG
 /g5NDjxFZNDJP1dGiLAxPW6JXwov4v0FmdzfLOZ01jDcgQQZqEpYlgpuI5JEWUQ9
 Ho4EzbYCOaEAMQA=
 -----END PKCS7-----
-"""
+""")
 
-crlData ="""\
+crlData = b("""\
 -----BEGIN X509 CRL-----
 MIIBWzCBxTANBgkqhkiG9w0BAQQFADBYMQswCQYDVQQGEwJVUzELMAkGA1UECBMC
 SUwxEDAOBgNVBAcTB0NoaWNhZ28xEDAOBgNVBAoTB1Rlc3RpbmcxGDAWBgNVBAMT
@@ -239,7 +239,7 @@ MAoGA1UdFQQDCgEEMA0GCSqGSIb3DQEBBAUAA4GBAEBt7xTs2htdD3d4ErrcGAw1
 0yp4HXRFFoRhhSE/hP+eteaPXRgrsNRLHe9ZDd69wmh7J1wMDb0m81RG7kqcbsid
 vrzEeLDRiiPl92dyyWmu
 -----END X509 CRL-----
-"""
+""")
 
 class X509ExtTests(TestCase):
     """
@@ -263,8 +263,8 @@ class X509ExtTests(TestCase):
         self.subject.commonName = self.req.get_subject().commonName
         self.x509.set_issuer(self.subject)
         self.x509.set_pubkey(self.pkey)
-        now = datetime.now().strftime("%Y%m%d%H%M%SZ")
-        expire  = (datetime.now() + timedelta(days=100)).strftime("%Y%m%d%H%M%SZ")
+        now = b(datetime.now().strftime("%Y%m%d%H%M%SZ"))
+        expire  = b((datetime.now() + timedelta(days=100)).strftime("%Y%m%d%H%M%SZ"))
         self.x509.set_notBefore(now)
         self.x509.set_notAfter(expire)
 
@@ -277,7 +277,7 @@ class X509ExtTests(TestCase):
         # This isn't necessarily the best string representation.  Perhaps it
         # will be changed/improved in the future.
         self.assertEquals(
-            str(X509Extension('basicConstraints', True, 'CA:false')),
+            str(X509Extension(b('basicConstraints'), True, b('CA:false'))),
             'CA:FALSE')
 
 
@@ -288,7 +288,8 @@ class X509ExtTests(TestCase):
         """
         self.assertIdentical(X509Extension, X509ExtensionType)
         self.assertConsistentType(
-            X509Extension, 'X509Extension', 'basicConstraints', True, 'CA:true')
+            X509Extension,
+            'X509Extension', b('basicConstraints'), True, b('CA:true'))
 
 
     def test_construction(self):
@@ -296,13 +297,14 @@ class X509ExtTests(TestCase):
         L{X509Extension} accepts an extension type name, a critical flag,
         and an extension value and returns an L{X509ExtensionType} instance.
         """
-        basic = X509Extension('basicConstraints', True, 'CA:true')
+        basic = X509Extension(b('basicConstraints'), True, b('CA:true'))
         self.assertTrue(
             isinstance(basic, X509ExtensionType),
             "%r is of type %r, should be %r" % (
                 basic, type(basic), X509ExtensionType))
 
-        comment = X509Extension('nsComment', False, 'pyOpenSSL unit test')
+        comment = X509Extension(
+            b('nsComment'), False, b('pyOpenSSL unit test'))
         self.assertTrue(
             isinstance(comment, X509ExtensionType),
             "%r is of type %r, should be %r" % (
@@ -315,17 +317,17 @@ class X509ExtTests(TestCase):
         name or value.
         """
         self.assertRaises(
-            Error, X509Extension, 'thisIsMadeUp', False, 'hi')
+            Error, X509Extension, b('thisIsMadeUp'), False, b('hi'))
         self.assertRaises(
-            Error, X509Extension, 'basicConstraints', False, 'blah blah')
+            Error, X509Extension, b('basicConstraints'), False, b('blah blah'))
 
         # Exercise a weird one (an extension which uses the r2i method).  This
         # exercises the codepath that requires a non-NULL ctx to be passed to
         # X509V3_EXT_nconf.  It can't work now because we provide no
         # configuration database.  It might be made to work in the future.
         self.assertRaises(
-            Error, X509Extension, 'proxyCertInfo', True,
-            'language:id-ppl-anyLanguage,pathlen:1,policy:text:AB')
+            Error, X509Extension, b('proxyCertInfo'), True,
+            b('language:id-ppl-anyLanguage,pathlen:1,policy:text:AB'))
 
 
     def test_get_critical(self):
@@ -333,9 +335,9 @@ class X509ExtTests(TestCase):
         L{X509ExtensionType.get_critical} returns the value of the
         extension's critical flag.
         """
-        ext = X509Extension('basicConstraints', True, 'CA:true')
+        ext = X509Extension(b('basicConstraints'), True, b('CA:true'))
         self.assertTrue(ext.get_critical())
-        ext = X509Extension('basicConstraints', False, 'CA:true')
+        ext = X509Extension(b('basicConstraints'), False, b('CA:true'))
         self.assertFalse(ext.get_critical())
 
 
@@ -344,10 +346,10 @@ class X509ExtTests(TestCase):
         L{X509ExtensionType.get_short_name} returns a string giving the short
         type name of the extension.
         """
-        ext = X509Extension('basicConstraints', True, 'CA:true')
-        self.assertEqual(ext.get_short_name(), 'basicConstraints')
-        ext = X509Extension('nsComment', True, 'foo bar')
-        self.assertEqual(ext.get_short_name(), 'nsComment')
+        ext = X509Extension(b('basicConstraints'), True, b('CA:true'))
+        self.assertEqual(ext.get_short_name(), b('basicConstraints'))
+        ext = X509Extension(b('nsComment'), True, b('foo bar'))
+        self.assertEqual(ext.get_short_name(), b('nsComment'))
 
 
     def test_unused_subject(self):
@@ -355,13 +357,14 @@ class X509ExtTests(TestCase):
         The C{subject} parameter to L{X509Extension} may be provided for an
         extension which does not use it and is ignored in this case.
         """
-        ext1 = X509Extension('basicConstraints', False, 'CA:TRUE', subject=self.x509)
+        ext1 = X509Extension(
+            b('basicConstraints'), False, b('CA:TRUE'), subject=self.x509)
         self.x509.add_extensions([ext1])
         self.x509.sign(self.pkey, 'sha1')
         # This is a little lame.  Can we think of a better way?
         text = dump_certificate(FILETYPE_TEXT, self.x509)
-        self.assertTrue('X509v3 Basic Constraints:' in text)
-        self.assertTrue('CA:TRUE' in text)
+        self.assertTrue(b('X509v3 Basic Constraints:') in text)
+        self.assertTrue(b('CA:TRUE') in text)
 
 
     def test_subject(self):
@@ -369,11 +372,12 @@ class X509ExtTests(TestCase):
         If an extension requires a subject, the C{subject} parameter to
         L{X509Extension} provides its value.
         """
-        ext3 = X509Extension('subjectKeyIdentifier', False, 'hash', subject=self.x509)
+        ext3 = X509Extension(
+            b('subjectKeyIdentifier'), False, b('hash'), subject=self.x509)
         self.x509.add_extensions([ext3])
         self.x509.sign(self.pkey, 'sha1')
         text = dump_certificate(FILETYPE_TEXT, self.x509)
-        self.assertTrue('X509v3 Subject Key Identifier:' in text)
+        self.assertTrue(b('X509v3 Subject Key Identifier:') in text)
 
 
     def test_missing_subject(self):
@@ -382,7 +386,7 @@ class X509ExtTests(TestCase):
         given no value, something happens.
         """
         self.assertRaises(
-            Error, X509Extension, 'subjectKeyIdentifier', False, 'hash')
+            Error, X509Extension, b('subjectKeyIdentifier'), False, b('hash'))
 
 
     def test_invalid_subject(self):
@@ -402,12 +406,13 @@ class X509ExtTests(TestCase):
         The C{issuer} parameter to L{X509Extension} may be provided for an
         extension which does not use it and is ignored in this case.
         """
-        ext1 = X509Extension('basicConstraints', False, 'CA:TRUE', issuer=self.x509)
+        ext1 = X509Extension(
+            b('basicConstraints'), False, b('CA:TRUE'), issuer=self.x509)
         self.x509.add_extensions([ext1])
         self.x509.sign(self.pkey, 'sha1')
         text = dump_certificate(FILETYPE_TEXT, self.x509)
-        self.assertTrue('X509v3 Basic Constraints:' in text)
-        self.assertTrue('CA:TRUE' in text)
+        self.assertTrue(b('X509v3 Basic Constraints:') in text)
+        self.assertTrue(b('CA:TRUE') in text)
 
 
     def test_issuer(self):
@@ -416,13 +421,13 @@ class X509ExtTests(TestCase):
         L{X509Extension} provides its value.
         """
         ext2 = X509Extension(
-            'authorityKeyIdentifier', False, 'issuer:always',
+            b('authorityKeyIdentifier'), False, b('issuer:always'),
             issuer=self.x509)
         self.x509.add_extensions([ext2])
         self.x509.sign(self.pkey, 'sha1')
         text = dump_certificate(FILETYPE_TEXT, self.x509)
-        self.assertTrue('X509v3 Authority Key Identifier:' in text)
-        self.assertTrue('DirName:/CN=Yoda root CA' in text)
+        self.assertTrue(b('X509v3 Authority Key Identifier:') in text)
+        self.assertTrue(b('DirName:/CN=Yoda root CA') in text)
 
 
     def test_missing_issuer(self):
@@ -433,7 +438,8 @@ class X509ExtTests(TestCase):
         self.assertRaises(
             Error,
             X509Extension,
-            'authorityKeyIdentifier', False, 'keyid:always,issuer:always')
+            b('authorityKeyIdentifier'), False,
+            b('keyid:always,issuer:always'))
 
 
     def test_invalid_issuer(self):
@@ -566,9 +572,11 @@ class X509NameTests(TestCase):
     def _x509name(self, **attrs):
         # XXX There's no other way to get a new X509Name yet.
         name = X509().get_subject()
-        attrs = attrs.items()
+        attrs = list(attrs.items())
         # Make the order stable - order matters!
-        attrs.sort(lambda (k1, v1), (k2, v2): cmp(v1, v2))
+        def key(attr):
+            return attr[1]
+        attrs.sort(key=key)
         for k, v in attrs:
             setattr(name, k, v)
         return name
@@ -736,8 +744,8 @@ class X509NameTests(TestCase):
         a = self._x509name(CN="foo", C="US")
         self.assertEqual(
             a.der(),
-            '0\x1b1\x0b0\t\x06\x03U\x04\x06\x13\x02US'
-            '1\x0c0\n\x06\x03U\x04\x03\x13\x03foo')
+            b('0\x1b1\x0b0\t\x06\x03U\x04\x06\x13\x02US'
+              '1\x0c0\n\x06\x03U\x04\x03\x13\x03foo'))
 
 
     def test_get_components(self):
@@ -748,11 +756,11 @@ class X509NameTests(TestCase):
         a = self._x509name()
         self.assertEqual(a.get_components(), [])
         a.CN = "foo"
-        self.assertEqual(a.get_components(), [("CN", "foo")])
+        self.assertEqual(a.get_components(), [(b("CN"), b("foo"))])
         a.organizationalUnitName = "bar"
         self.assertEqual(
             a.get_components(),
-            [("CN", "foo"), ("OU", "bar")])
+            [(b("CN"), b("foo")), (b("OU"), b("bar"))])
 
 
 class _PKeyInteractionTestsMixin:
@@ -913,7 +921,7 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
         """
         request = X509Req()
         request.add_extensions([
-                X509Extension('basicConstraints', True, 'CA:false')])
+                X509Extension(b('basicConstraints'), True, b('CA:false'))])
         # XXX Add get_extensions so the rest of this unit test can be written.
 
 
@@ -1043,27 +1051,28 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         self.assertEqual(get(), None)
 
         # GMT (Or is it UTC?) -exarkun
-        when = "20040203040506Z"
+        when = b("20040203040506Z")
         set(when)
         self.assertEqual(get(), when)
 
         # A plus two hours and thirty minutes offset
-        when = "20040203040506+0530"
+        when = b("20040203040506+0530")
         set(when)
         self.assertEqual(get(), when)
 
         # A minus one hour fifteen minutes offset
-        when = "20040203040506-0115"
+        when = b("20040203040506-0115")
         set(when)
         self.assertEqual(get(), when)
 
         # An invalid string results in a ValueError
-        self.assertRaises(ValueError, set, "foo bar")
+        self.assertRaises(ValueError, set, b("foo bar"))
 
         # The wrong number of arguments results in a TypeError.
         self.assertRaises(TypeError, set)
-        self.assertRaises(TypeError, set, "20040203040506Z", "20040203040506Z")
-        self.assertRaises(TypeError, get, "foo bar")
+        self.assertRaises(TypeError, set, b("20040203040506Z"), b("20040203040506Z"))
+        self.assertRaises(TypeError, get, b("foo bar"))
+
 
     # XXX ASN1_TIME (not GENERALIZEDTIME)
 
@@ -1092,7 +1101,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         internally.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        self.assertEqual(cert.get_notBefore(), "20090325123658Z")
+        self.assertEqual(cert.get_notBefore(), b("20090325123658Z"))
 
 
     def test_get_notAfter(self):
@@ -1102,7 +1111,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         internally.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        self.assertEqual(cert.get_notAfter(), "20170611123658Z")
+        self.assertEqual(cert.get_notAfter(), b("20170611123658Z"))
 
 
     def test_gmtime_adj_notBefore_wrong_args(self):
@@ -1124,7 +1133,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         cert = load_certificate(FILETYPE_PEM, self.pemData)
         now = datetime.utcnow() + timedelta(seconds=100)
         cert.gmtime_adj_notBefore(100)
-        self.assertEqual(cert.get_notBefore(), now.strftime("%Y%m%d%H%M%SZ"))
+        self.assertEqual(cert.get_notBefore(), b(now.strftime("%Y%m%d%H%M%SZ")))
 
 
     def test_gmtime_adj_notAfter_wrong_args(self):
@@ -1146,7 +1155,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         cert = load_certificate(FILETYPE_PEM, self.pemData)
         now = datetime.utcnow() + timedelta(seconds=100)
         cert.gmtime_adj_notAfter(100)
-        self.assertEqual(cert.get_notAfter(), now.strftime("%Y%m%d%H%M%SZ"))
+        self.assertEqual(cert.get_notAfter(), b(now.strftime("%Y%m%d%H%M%SZ")))
 
 
     def test_has_expired_wrong_args(self):
@@ -1186,7 +1195,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         cert = X509()
         self.assertEqual(
             cert.digest("md5"),
-            "A8:EB:07:F8:53:25:0A:F2:56:05:C5:A5:C4:C4:C7:15")
+            b("A8:EB:07:F8:53:25:0A:F2:56:05:C5:A5:C4:C4:C7:15"))
 
 
     def test_invalid_digest_algorithm(self):
@@ -1215,8 +1224,8 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         self.assertTrue(isinstance(subj, X509Name))
         self.assertEquals(
             subj.get_components(),
-            [('C', 'US'), ('ST', 'IL'), ('L', 'Chicago'),
-             ('O', 'Testing'), ('CN', 'Testing Root CA')])
+            [(b('C'), b('US')), (b('ST'), b('IL')), (b('L'), b('Chicago')),
+             (b('O'), b('Testing')), (b('CN'), b('Testing Root CA'))])
 
 
     def test_set_subject_wrong_args(self):
@@ -1242,7 +1251,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         cert.set_subject(name)
         self.assertEquals(
             cert.get_subject().get_components(),
-            [('C', 'AU'), ('O', 'Unit Tests')])
+            [(b('C'), b('AU')), (b('O'), b('Unit Tests'))])
 
 
     def test_get_issuer_wrong_args(self):
@@ -1260,10 +1269,11 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         cert = load_certificate(FILETYPE_PEM, self.pemData)
         subj = cert.get_issuer()
         self.assertTrue(isinstance(subj, X509Name))
+        comp = subj.get_components()
         self.assertEquals(
-            subj.get_components(),
-            [('C', 'US'), ('ST', 'IL'), ('L', 'Chicago'),
-             ('O', 'Testing'), ('CN', 'Testing Root CA')])
+            comp,
+            [(b('C'), b('US')), (b('ST'), b('IL')), (b('L'), b('Chicago')),
+             (b('O'), b('Testing')), (b('CN'), b('Testing Root CA'))])
 
 
     def test_set_issuer_wrong_args(self):
@@ -1289,7 +1299,7 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         cert.set_issuer(name)
         self.assertEquals(
             cert.get_issuer().get_components(),
-            [('C', 'AU'), ('O', 'Unit Tests')])
+            [(b('C'), b('AU')), (b('O'), b('Unit Tests'))])
 
 
     def test_get_pubkey_uninitialized(self):
@@ -1499,8 +1509,8 @@ class PKCS12Tests(TestCase):
         """
         passwd = 'whatever'
         e = self.assertRaises(Error, load_pkcs12, 'fruit loops', passwd)
-        self.assertEqual( e[0][0][0], 'asn1 encoding routines')
-        self.assertEqual( len(e[0][0]), 3)
+        self.assertEqual( e.args[0][0][0], 'asn1 encoding routines')
+        self.assertEqual( len(e.args[0][0]), 3)
 
 
     def test_replace(self):
@@ -1531,7 +1541,7 @@ class PKCS12Tests(TestCase):
         """
         passwd = 'Dogmeat[]{}!@#$%^&*()~`?/.,<>-_+=";:'
         p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
-        for friendly_name in ['Serverlicious', None, '###']:
+        for friendly_name in [b('Serverlicious'), None, b('###')]:
             p12.set_friendlyname(friendly_name)
             self.assertEqual(p12.get_friendlyname(), friendly_name)
             dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=3)
@@ -1684,13 +1694,14 @@ def _runopenssl(pem, *args):
     the given PEM to its stdin.  Not safe for quotes.
     """
     if os.name == 'posix':
-        command = "openssl " + " ".join(["'%s'" % (arg.replace("'", "'\\''"),) for arg in args])
+        command = "openssl " + " ".join([
+                "'%s'" % (arg.replace("'", "'\\''"),) for arg in args])
     else:
         command = "openssl " + quoteArguments(args)
-    write, read = popen2(command, "b")
-    write.write(pem)
-    write.close()
-    return read.read()
+    proc = Popen(command, shell=True, stdin=PIPE, stdout=PIPE)
+    proc.stdin.write(pem)
+    proc.stdin.close()
+    return proc.stdout.read()
 
 
 
@@ -1732,7 +1743,7 @@ class FunctionTests(TestCase):
         """
         self.assertRaises(
             Error,
-            load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, "quack")
+            load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, b("quack"))
 
 
     def test_load_privatekey_passphrase(self):
@@ -1839,10 +1850,10 @@ class FunctionTests(TestCase):
         """
         L{dump_privatekey} writes an encrypted PEM when given a passphrase.
         """
-        passphrase = "foo"
+        passphrase = b("foo")
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         pem = dump_privatekey(FILETYPE_PEM, key, "blowfish", passphrase)
-        self.assertTrue(isinstance(pem, str))
+        self.assertTrue(isinstance(pem, bytes))
         loadedKey = load_privatekey(FILETYPE_PEM, pem, passphrase)
         self.assertTrue(isinstance(loadedKey, PKeyType))
         self.assertEqual(loadedKey.type(), key.type())
@@ -1911,14 +1922,14 @@ class FunctionTests(TestCase):
         L{dump_privatekey} writes an encrypted PEM when given a callback which
         returns the correct passphrase.
         """
-        passphrase = "foo"
+        passphrase = b("foo")
         called = []
         def cb(writing):
             called.append(writing)
             return passphrase
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         pem = dump_privatekey(FILETYPE_PEM, key, "blowfish", cb)
-        self.assertTrue(isinstance(pem, str))
+        self.assertTrue(isinstance(pem, bytes))
         self.assertEqual(called, [True])
         loadedKey = load_privatekey(FILETYPE_PEM, pem, passphrase)
         self.assertTrue(isinstance(loadedKey, PKeyType))
@@ -2039,7 +2050,7 @@ class PKCS7Tests(TestCase):
         L{PKCS7Type.get_type_name} returns a C{str} giving the type name.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertEquals(pkcs7.get_type_name(), 'pkcs7-signedData')
+        self.assertEquals(pkcs7.get_type_name(), b('pkcs7-signedData'))
 
 
     def test_attribute(self):
@@ -2095,7 +2106,7 @@ class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):
         """
         nspki = NetscapeSPKI()
         blob = nspki.b64_encode()
-        self.assertTrue(isinstance(blob, str))
+        self.assertTrue(isinstance(blob, bytes))
 
 
 
@@ -2109,11 +2120,11 @@ class RevokedTests(TestCase):
         that it is empty.
         """
         revoked = Revoked()
-        self.assertTrue( isinstance(revoked, Revoked) )
-        self.assertEqual( type(revoked), Revoked )
-        self.assertEqual( revoked.get_serial(), '00' )
-        self.assertEqual( revoked.get_rev_date(), None )
-        self.assertEqual( revoked.get_reason(), None )
+        self.assertTrue(isinstance(revoked, Revoked))
+        self.assertEquals(type(revoked), Revoked)
+        self.assertEquals(revoked.get_serial(), b('00'))
+        self.assertEquals(revoked.get_rev_date(), None)
+        self.assertEquals(revoked.get_reason(), None)
 
 
     def test_construction_wrong_args(self):
@@ -2133,16 +2144,16 @@ class RevokedTests(TestCase):
         with grace.
         """
         revoked = Revoked()
-        ret = revoked.set_serial('10b')
-        self.assertEqual( ret, None )
+        ret = revoked.set_serial(b('10b'))
+        self.assertEquals(ret, None)
         ser = revoked.get_serial()
-        self.assertEqual( ser, '010B' )
+        self.assertEquals(ser, b('010B'))
 
-        revoked.set_serial('31ppp')  # a type error would be nice
+        revoked.set_serial(b('31ppp'))  # a type error would be nice
         ser = revoked.get_serial()
-        self.assertEqual( ser, '31' )
+        self.assertEquals(ser, b('31'))
 
-        self.assertRaises(ValueError, revoked.set_serial, 'pqrst')
+        self.assertRaises(ValueError, revoked.set_serial, b('pqrst'))
         self.assertRaises(TypeError, revoked.set_serial, 100)
         self.assertRaises(TypeError, revoked.get_serial, 1)
         self.assertRaises(TypeError, revoked.get_serial, None)
@@ -2157,13 +2168,13 @@ class RevokedTests(TestCase):
         """
         revoked = Revoked()
         date = revoked.get_rev_date()
-        self.assertEqual( date, None )
+        self.assertEquals(date, None)
 
-        now = datetime.now().strftime("%Y%m%d%H%M%SZ")
+        now = b(datetime.now().strftime("%Y%m%d%H%M%SZ"))
         ret = revoked.set_rev_date(now)
-        self.assertEqual( ret, None )
+        self.assertEqual(ret, None)
         date = revoked.get_rev_date()
-        self.assertEqual( date, now )
+        self.assertEqual(date, now)
 
 
     def test_reason(self):
@@ -2174,12 +2185,13 @@ class RevokedTests(TestCase):
         """
         revoked = Revoked()
         for r in revoked.all_reasons():
-            for x in xrange(2):
+            for x in range(2):
                 ret = revoked.set_reason(r)
-                self.assertEqual( ret, None )
+                self.assertEquals(ret, None)
                 reason = revoked.get_reason()
-                self.assertEqual( reason.lower().replace(' ',''),
-                                       r.lower().replace(' ','') )
+                self.assertEquals(
+                    reason.lower().replace(b(' '), b('')),
+                    r.lower().replace(b(' '), b('')))
                 r = reason # again with the resp of get
 
         revoked.set_reason(None)
@@ -2194,7 +2206,7 @@ class RevokedTests(TestCase):
         """
         revoked = Revoked()
         self.assertRaises(TypeError, revoked.set_reason, 100)
-        self.assertRaises(ValueError, revoked.set_reason, 'blue')
+        self.assertRaises(ValueError, revoked.set_reason, b('blue'))
 
 
     def test_get_reason_wrong_arguments(self):
@@ -2244,25 +2256,25 @@ class CRLTests(TestCase):
         """
         crl = CRL()
         revoked = Revoked()
-        now = datetime.now().strftime("%Y%m%d%H%M%SZ")
+        now = b(datetime.now().strftime("%Y%m%d%H%M%SZ"))
         revoked.set_rev_date(now)
-        revoked.set_serial('3ab')
-        revoked.set_reason('sUpErSeDEd')
+        revoked.set_serial(b('3ab'))
+        revoked.set_reason(b('sUpErSeDEd'))
         crl.add_revoked(revoked)
 
         # PEM format
         dumped_crl = crl.export(self.cert, self.pkey, days=20)
         text = _runopenssl(dumped_crl, "crl", "-noout", "-text")
-        text.index('Serial Number: 03AB')
-        text.index('Superseded')
-        text.index('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA')
+        text.index(b('Serial Number: 03AB'))
+        text.index(b('Superseded'))
+        text.index(b('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA'))
 
         # DER format
         dumped_crl = crl.export(self.cert, self.pkey, FILETYPE_ASN1)
         text = _runopenssl(dumped_crl, "crl", "-noout", "-text", "-inform", "DER")
-        text.index('Serial Number: 03AB')
-        text.index('Superseded')
-        text.index('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA')
+        text.index(b('Serial Number: 03AB'))
+        text.index(b('Superseded'))
+        text.index(b('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA'))
 
         # text format
         dumped_text = crl.export(self.cert, self.pkey, type=FILETYPE_TEXT)
@@ -2317,20 +2329,20 @@ class CRLTests(TestCase):
         crl = CRL()
 
         revoked = Revoked()
-        now = datetime.now().strftime("%Y%m%d%H%M%SZ")
+        now = b(datetime.now().strftime("%Y%m%d%H%M%SZ"))
         revoked.set_rev_date(now)
-        revoked.set_serial('3ab')
+        revoked.set_serial(b('3ab'))
         crl.add_revoked(revoked)
-        revoked.set_serial('100')
-        revoked.set_reason('sUpErSeDEd')
+        revoked.set_serial(b('100'))
+        revoked.set_reason(b('sUpErSeDEd'))
         crl.add_revoked(revoked)
 
         revs = crl.get_revoked()
         self.assertEqual(len(revs), 2)
         self.assertEqual(type(revs[0]), Revoked)
         self.assertEqual(type(revs[1]), Revoked)
-        self.assertEqual(revs[0].get_serial(), '03AB')
-        self.assertEqual(revs[1].get_serial(), '0100')
+        self.assertEqual(revs[0].get_serial(), b('03AB'))
+        self.assertEqual(revs[1].get_serial(), b('0100'))
         self.assertEqual(revs[0].get_rev_date(), now)
         self.assertEqual(revs[1].get_rev_date(), now)
 
@@ -2366,19 +2378,19 @@ class CRLTests(TestCase):
         crl = load_crl(FILETYPE_PEM, crlData)
         revs = crl.get_revoked()
         self.assertEqual(len(revs), 2)
-        self.assertEqual(revs[0].get_serial(), '03AB')
+        self.assertEqual(revs[0].get_serial(), b('03AB'))
         self.assertEqual(revs[0].get_reason(), None)
-        self.assertEqual(revs[1].get_serial(), '0100')
-        self.assertEqual(revs[1].get_reason(), 'Superseded')
+        self.assertEqual(revs[1].get_serial(), b('0100'))
+        self.assertEqual(revs[1].get_reason(), b('Superseded'))
 
         der = _runopenssl(crlData, "crl", "-outform", "DER")
         crl = load_crl(FILETYPE_ASN1, der)
         revs = crl.get_revoked()
         self.assertEqual(len(revs), 2)
-        self.assertEqual(revs[0].get_serial(), '03AB')
+        self.assertEqual(revs[0].get_serial(), b('03AB'))
         self.assertEqual(revs[0].get_reason(), None)
-        self.assertEqual(revs[1].get_serial(), '0100')
-        self.assertEqual(revs[1].get_reason(), 'Superseded')
+        self.assertEqual(revs[1].get_serial(), b('0100'))
+        self.assertEqual(revs[1].get_reason(), b('Superseded'))
 
 
     def test_load_crl_wrong_args(self):
@@ -2415,7 +2427,7 @@ class SignVerifyTests(TestCase):
         """
         L{sign} generates a cryptographic signature which L{verify} can check.
         """
-        content = (
+        content = b(
             "It was a bright cold day in April, and the clocks were striking "
             "thirteen. Winston Smith, his chin nuzzled into his breast in an "
             "effort to escape the vile wind, slipped quickly through the "
@@ -2429,7 +2441,7 @@ class SignVerifyTests(TestCase):
         # certificate unrelated to priv_key, used to trigger an error
         bad_cert = load_certificate(FILETYPE_PEM, server_cert_pem)
 
-        for digest in ('md5', 'sha1'):
+        for digest in (b('md5'), b('sha1')):
             sig = sign(priv_key, content, digest)
 
             # Verify the signature of content, will throw an exception if error.
@@ -2441,11 +2453,15 @@ class SignVerifyTests(TestCase):
 
             # This should fail because we've "tainted" the content after
             # signing it.
-            self.assertRaises(Error, verify, good_cert, sig, content+"tainted", digest)
+            self.assertRaises(
+                Error, verify,
+                good_cert, sig, content + b("tainted"), digest)
 
         # test that unknown digest types fail
-        self.assertRaises(ValueError, sign, priv_key, content, "strange-digest")
-        self.assertRaises(ValueError, verify, good_cert, sig, content, "strange-digest")
+        self.assertRaises(
+            ValueError, sign, priv_key, content, b("strange-digest"))
+        self.assertRaises(
+            ValueError, verify, good_cert, sig, content, b("strange-digest"))
 
 
 if __name__ == '__main__':

@@ -30,7 +30,7 @@ crypto_X509_get_version(crypto_X509Obj *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":get_version"))
         return NULL;
 
-    return PyInt_FromLong((long)X509_get_version(self->x509));
+    return PyLong_FromLong((long)X509_get_version(self->x509));
 }
 
 static char crypto_X509_set_version_doc[] = "\n\
@@ -93,44 +93,44 @@ crypto_X509_set_serial_number(crypto_X509Obj *self, PyObject *args)
     long small_serial;
     PyObject *serial = NULL;
     PyObject *hex = NULL;
-    PyObject *format = NULL;
-    PyObject *format_args = NULL;
     ASN1_INTEGER *asn1_i = NULL;
     BIGNUM *bignum = NULL;
+    char *hexstr;
 
     if (!PyArg_ParseTuple(args, "O:set_serial_number", &serial)) {
         return NULL;
     }
 
-    if (!PyInt_Check(serial) && !PyLong_Check(serial)) {
+    if (!PyOpenSSL_Integer_Check(serial)) {
         PyErr_SetString(
             PyExc_TypeError, "serial number must be integer");
         goto err;
     }
 
-    if ((format_args = Py_BuildValue("(O)", serial)) == NULL) {
+    if ((hex = PyOpenSSL_LongToHex(serial)) == NULL) {
         goto err;
     }
 
-    if ((format = PyString_FromString("%x")) == NULL) {
-        goto err;
+#ifdef PY3
+    {
+        PyObject *hexbytes = PyUnicode_AsASCIIString(hex);
+        Py_DECREF(hex);
+        hex = hexbytes;
     }
-
-    if ((hex = PyString_Format(format, format_args)) == NULL) {
-        goto err;
-    }
+#endif
 
     /**
      * BN_hex2bn stores the result in &bignum.  Unless it doesn't feel like
      * it.  If bignum is still NULL after this call, then the return value
      * is actually the result.  I hope.  -exarkun
      */
-    small_serial = BN_hex2bn(&bignum, PyString_AsString(hex));
+    hexstr = PyBytes_AsString(hex);
+    if (hexstr[1] == 'x') {
+        /* +2 to skip the "0x" */
+        hexstr += 2;
+    }
+    small_serial = BN_hex2bn(&bignum, hexstr);
 
-    Py_DECREF(format_args);
-    format_args = NULL;
-    Py_DECREF(format);
-    format = NULL;
     Py_DECREF(hex);
     hex = NULL;
 
@@ -159,12 +159,6 @@ crypto_X509_set_serial_number(crypto_X509Obj *self, PyObject *args)
     return Py_None;
 
   err:
-    if (format_args) {
-        Py_DECREF(format_args);
-    }
-    if (format) {
-        Py_DECREF(format);
-    }
     if (hex) {
         Py_DECREF(hex);
     }
@@ -375,7 +369,8 @@ static PyObject*
 crypto_X509_set_notBefore(crypto_X509Obj *self, PyObject *args)
 {
 	return _set_asn1_time(
-		"s:set_notBefore", X509_get_notBefore(self->x509), args);
+            BYTESTRING_FMT ":set_notBefore",
+            X509_get_notBefore(self->x509), args);
 }
 
 static char crypto_X509_set_notAfter_doc[] = "\n\
@@ -394,7 +389,8 @@ static PyObject*
 crypto_X509_set_notAfter(crypto_X509Obj *self, PyObject *args)
 {
 	return _set_asn1_time(
-		"s:set_notAfter", X509_get_notAfter(self->x509), args);
+            BYTESTRING_FMT ":set_notAfter",
+            X509_get_notAfter(self->x509), args);
 }
 
 PyObject*
@@ -418,14 +414,14 @@ _get_asn1_time(char *format, ASN1_TIME* timestamp, PyObject *args)
 	    Py_INCREF(Py_None);
 	    return Py_None;
 	} else if (timestamp->type == V_ASN1_GENERALIZEDTIME) {
-		return PyString_FromString((char *)timestamp->data);
+		return PyBytes_FromString((char *)timestamp->data);
 	} else {
 		ASN1_TIME_to_generalizedtime(timestamp, &gt_timestamp);
 		if (gt_timestamp == NULL) {
 			exception_from_error_queue(crypto_Error);
 			return NULL;
 		} else {
-			py_timestamp = PyString_FromString((char *)gt_timestamp->data);
+			py_timestamp = PyBytes_FromString((char *)gt_timestamp->data);
 			ASN1_GENERALIZEDTIME_free(gt_timestamp);
 			return py_timestamp;
 		}
@@ -582,9 +578,9 @@ crypto_X509_has_expired(crypto_X509Obj *self, PyObject *args)
 
     tnow = time(NULL);
     if (ASN1_UTCTIME_cmp_time_t(X509_get_notAfter(self->x509), tnow) < 0)
-        return PyInt_FromLong(1L);
+        return PyLong_FromLong(1L);
     else
-        return PyInt_FromLong(0L);
+        return PyLong_FromLong(0L);
 }
 
 static char crypto_X509_subject_name_hash_doc[] = "\n\
@@ -637,7 +633,7 @@ crypto_X509_digest(crypto_X509Obj *self, PyObject *args)
         sprintf(tmp+i*3,"%02X:",fp[i]);
     }
     tmp[3*len-1] = 0;
-    ret = PyString_FromStringAndSize(tmp,3*len-1);
+    ret = PyBytes_FromStringAndSize(tmp,3*len-1);
     free(tmp);
     return ret;
 }
@@ -783,29 +779,14 @@ crypto_X509_dealloc(crypto_X509Obj *self)
     PyObject_Del(self);
 }
 
-/*
- * Find attribute
- *
- * Arguments: self - The X509 object
- *            name - The attribute name
- * Returns:   A Python object for the attribute, or NULL if something went
- *            wrong
- */
-static PyObject *
-crypto_X509_getattr(crypto_X509Obj *self, char *name)
-{
-    return Py_FindMethod(crypto_X509_methods, (PyObject *)self, name);
-}
-
 PyTypeObject crypto_X509_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "X509",
     sizeof(crypto_X509Obj),
     0,
     (destructor)crypto_X509_dealloc,
     NULL, /* print */
-    (getattrfunc)crypto_X509_getattr,
+    NULL, /* getattr */
     NULL, /* setattr */
     NULL, /* compare */
     NULL, /* repr */

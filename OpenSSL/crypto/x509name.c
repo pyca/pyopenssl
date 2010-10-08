@@ -148,10 +148,16 @@ set_name_by_nid(X509_NAME *name, int nid, char *utf8string)
  *            wrong
  */
 static PyObject *
-crypto_X509Name_getattr(crypto_X509NameObj *self, char *name)
+crypto_X509Name_getattro(crypto_X509NameObj *self, PyObject *nameobj)
 {
     int nid, len;
     char *utf8string;
+    char *name;
+#ifdef PY3
+    name = PyBytes_AsString(PyUnicode_AsASCIIString(nameobj));
+#else
+    name = PyBytes_AsString(nameobj);
+#endif
 
     if ((nid = OBJ_txt2nid(name)) == NID_undef) {
         /*
@@ -162,7 +168,7 @@ crypto_X509Name_getattr(crypto_X509NameObj *self, char *name)
          * See lp#314814.
          */
         flush_error_queue();
-        return Py_FindMethod(crypto_X509Name_methods, (PyObject *)self, name);
+        return PyObject_GenericGetAttr((PyObject*)self, nameobj);
     }
 
     len = get_name_by_nid(self->x509_name, nid, &utf8string);
@@ -216,16 +222,56 @@ crypto_X509Name_setattr(crypto_X509NameObj *self, char *name, PyObject *value)
  *            m - The second X509Name
  * Returns:   <0 if n < m, 0 if n == m and >0 if n > m
  */
-static int
-crypto_X509Name_compare(crypto_X509NameObj *n, crypto_X509NameObj *m)
-{
-    int result = X509_NAME_cmp(n->x509_name, m->x509_name);
-    if (result < 0) {
-        return -1;
-    } else if (result > 0) {
-        return 1;
+static PyObject *
+crypto_X509Name_richcompare(PyObject *n, PyObject *m, int op) {
+    int result;
+
+    if (!crypto_X509Name_Check(n) || !crypto_X509Name_Check(m)) {
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    result = X509_NAME_cmp(
+        ((crypto_X509NameObj*)n)->x509_name,
+        ((crypto_X509NameObj*)m)->x509_name);
+
+    switch (op) {
+    case Py_EQ:
+        result = (result == 0);
+        break;
+
+    case Py_NE:
+        result = (result != 0);
+        break;
+
+    case Py_LT:
+        result = (result < 0);
+        break;
+
+    case Py_LE:
+        result = (result <= 0);
+        break;
+
+    case Py_GT:
+        result = (result > 0);
+        break;
+
+    case Py_GE:
+        result = (result >= 0);
+        break;
+
+    default:
+        /* Should be impossible */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    if (result) {
+        Py_INCREF(Py_True);
+        return Py_True;
     } else {
-        return 0;
+        Py_INCREF(Py_False);
+        return Py_False;
     }
 }
 
@@ -250,7 +296,7 @@ crypto_X509Name_repr(crypto_X509NameObj *self)
     {
         /* This is safe because tmpbuf is max 512 characters */
         sprintf(realbuf, "<X509Name object '%s'>", tmpbuf);
-        return PyString_FromString(realbuf);
+        return PyText_FromString(realbuf);
     }
 }
 
@@ -275,7 +321,7 @@ crypto_X509Name_hash(crypto_X509NameObj *self, PyObject* args)
         return NULL;
     }
     hash = X509_NAME_hash(self->x509_name);
-    return PyInt_FromLong(hash);
+    return PyLong_FromLong(hash);
 }
 
 static char crypto_X509Name_der_doc[] = "\n\
@@ -296,8 +342,8 @@ crypto_X509Name_der(crypto_X509NameObj *self, PyObject *args)
     }
 
     i2d_X509_NAME(self->x509_name, 0);
-    return PyString_FromStringAndSize(self->x509_name->bytes->data,
-				      self->x509_name->bytes->length);
+    return PyBytes_FromStringAndSize(self->x509_name->bytes->data,
+                                     self->x509_name->bytes->length);
 }
 
 
@@ -342,8 +388,8 @@ crypto_X509Name_get_components(crypto_X509NameObj *self, PyObject *args)
 	/* printf("fname is %s len=%d str=%s\n", OBJ_nid2sn(nid), l, str); */
 
 	tuple = PyTuple_New(2);
-	PyTuple_SetItem(tuple, 0, PyString_FromString(OBJ_nid2sn(nid)));
-	PyTuple_SetItem(tuple, 1, PyString_FromStringAndSize((char *)str, l));
+	PyTuple_SetItem(tuple, 0, PyBytes_FromString(OBJ_nid2sn(nid)));
+	PyTuple_SetItem(tuple, 1, PyBytes_FromStringAndSize((char *)str, l));
 
 	PyList_SetItem(list, i, tuple);
     }
@@ -421,16 +467,15 @@ static PyMethodDef crypto_X509Name_methods[] =
 #undef ADD_METHOD
 
 PyTypeObject crypto_X509Name_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "X509Name",
     sizeof(crypto_X509NameObj),
     0,
     (destructor)crypto_X509Name_dealloc,
     NULL, /* print */
-    (getattrfunc)crypto_X509Name_getattr,
+    NULL, /* getattr */
     (setattrfunc)crypto_X509Name_setattr,
-    (cmpfunc)crypto_X509Name_compare,
+    NULL, /* reserved */
     (reprfunc)crypto_X509Name_repr,
     NULL, /* as_number */
     NULL, /* as_sequence */
@@ -438,14 +483,14 @@ PyTypeObject crypto_X509Name_Type = {
     NULL, /* hash */
     NULL, /* call */
     NULL, /* str */
-    NULL, /* getattro */
+    (getattrofunc)crypto_X509Name_getattro, /* getattro */
     NULL, /* setattro */
     NULL, /* as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC, /* tp_flags */
     crypto_X509Name_doc, /* tp_doc */
     (traverseproc)crypto_X509Name_traverse, /* tp_traverse */
     (inquiry)crypto_X509Name_clear, /* tp_clear */
-    NULL, /* tp_richcompare */
+    crypto_X509Name_richcompare, /* tp_richcompare */
     0, /* tp_weaklistoffset */
     NULL, /* tp_iter */
     NULL, /* tp_iternext */

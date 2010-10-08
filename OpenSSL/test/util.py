@@ -16,6 +16,17 @@ import sys
 from OpenSSL.crypto import Error, _exception_from_error_queue
 
 
+try:
+    bytes = bytes
+except NameError:
+    def b(s):
+        return s
+    bytes = str
+else:
+    def b(s):
+        return s.encode("ascii")
+
+
 class TestCase(TestCase):
     """
     L{TestCase} adds useful testing functionality beyond what is available
@@ -35,7 +46,8 @@ class TestCase(TestCase):
                     os.unlink(temp)
         try:
             _exception_from_error_queue()
-        except Error, e:
+        except Error:
+            e = sys.exc_info()[1]
             if e.args != ([],):
                 self.fail("Left over errors in OpenSSL error queue: " + repr(e))
 
@@ -86,7 +98,8 @@ class TestCase(TestCase):
         """
         try:
             result = f(*args, **kwargs)
-        except exception, inst:
+        except exception:
+            inst = sys.exc_info()[1]
             return inst
         except:
             raise self.failureException('%s raised instead of %s'

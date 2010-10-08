@@ -30,7 +30,9 @@ Main file of the SSL sub module.\n\
 See the file RATIONALE for a short explanation of why this module was written.\n\
 ";
 
+#ifndef PY3
 void **crypto_API;
+#endif
 
 int _pyOpenSSL_tstate_key;
 
@@ -48,34 +50,51 @@ static PyMethodDef ssl_methods[] = {
     { NULL, NULL }
 };
 
+#ifdef PY3
+static struct PyModuleDef sslmodule = {
+    PyModuleDef_HEAD_INIT,
+    "SSL",
+    ssl_doc,
+    -1,
+    ssl_methods
+};
+#endif
+
 /*
  * Initialize SSL sub module
  *
  * Arguments: None
  * Returns:   None
  */
-void
-initSSL(void)
-{
+PyOpenSSL_MODINIT(SSL) {
+    PyObject *module;
+#ifndef PY3
     static void *ssl_API[ssl_API_pointers];
     PyObject *ssl_api_object;
-    PyObject *module;
+
+    import_crypto();
+#endif
 
     SSL_library_init();
     ERR_load_SSL_strings();
 
-    import_crypto();
-
-    if ((module = Py_InitModule3("SSL", ssl_methods, ssl_doc)) == NULL) {
-        return;
+#ifdef PY3
+    module = PyModule_Create(&sslmodule);
+#else
+    module = Py_InitModule3("SSL", ssl_methods, ssl_doc);
+#endif
+    if (module == NULL) {
+        PyOpenSSL_MODRETURN(NULL);
     }
 
+#ifndef PY3
     /* Initialize the C API pointer array */
     ssl_API[ssl_Context_New_NUM]    = (void *)ssl_Context_New;
     ssl_API[ssl_Connection_New_NUM] = (void *)ssl_Connection_New;
     ssl_api_object = PyCObject_FromVoidPtr((void *)ssl_API, NULL);
     if (ssl_api_object != NULL)
         PyModule_AddObject(module, "_C_API", ssl_api_object);
+#endif
 
     /* Exceptions */
 /*
@@ -177,6 +196,9 @@ do {                                                                          \
     _pyOpenSSL_tstate_key = PyThread_create_key();
 #endif
 
-  error:
+    PyOpenSSL_MODRETURN(module);
+
+error:
+    PyOpenSSL_MODRETURN(NULL);
     ;
 }

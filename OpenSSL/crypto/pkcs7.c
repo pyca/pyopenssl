@@ -24,9 +24,9 @@ crypto_PKCS7_type_is_signed(crypto_PKCS7Obj *self, PyObject *args)
         return NULL;
 
     if (PKCS7_type_is_signed(self->pkcs7))
-        return PyInt_FromLong(1L);
+        return PyLong_FromLong(1L);
     else
-        return PyInt_FromLong(0L);
+        return PyLong_FromLong(0L);
 }
 
 static char crypto_PKCS7_type_is_enveloped_doc[] = "\n\
@@ -42,9 +42,9 @@ crypto_PKCS7_type_is_enveloped(crypto_PKCS7Obj *self, PyObject *args)
         return NULL;
 
     if (PKCS7_type_is_enveloped(self->pkcs7))
-        return PyInt_FromLong(1L);
+        return PyLong_FromLong(1L);
     else
-        return PyInt_FromLong(0L);
+        return PyLong_FromLong(0L);
 }
 
 static char crypto_PKCS7_type_is_signedAndEnveloped_doc[] = "\n\
@@ -60,9 +60,9 @@ crypto_PKCS7_type_is_signedAndEnveloped(crypto_PKCS7Obj *self, PyObject *args)
         return NULL;
 
     if (PKCS7_type_is_signedAndEnveloped(self->pkcs7))
-        return PyInt_FromLong(1L);
+        return PyLong_FromLong(1L);
     else
-        return PyInt_FromLong(0L);
+        return PyLong_FromLong(0L);
 }
 
 static char crypto_PKCS7_type_is_data_doc[] = "\n\
@@ -78,9 +78,9 @@ crypto_PKCS7_type_is_data(crypto_PKCS7Obj *self, PyObject *args)
         return NULL;
 
     if (PKCS7_type_is_data(self->pkcs7))
-        return PyInt_FromLong(1L);
+        return PyLong_FromLong(1L);
     else
-        return PyInt_FromLong(0L);
+        return PyLong_FromLong(0L);
 }
 
 static char crypto_PKCS7_get_type_name_doc[] = "\n\
@@ -98,7 +98,7 @@ crypto_PKCS7_get_type_name(crypto_PKCS7Obj *self, PyObject *args)
     /* 
      * return a string with the typename
      */
-    return PyString_FromString(OBJ_nid2sn(OBJ_obj2nid(self->pkcs7->type)));
+    return PyBytes_FromString(OBJ_nid2sn(OBJ_obj2nid(self->pkcs7->type)));
 }
 
 /*
@@ -160,29 +160,14 @@ crypto_PKCS7_dealloc(crypto_PKCS7Obj *self)
     PyObject_Del(self);
 }
 
-/*
- * Find attribute
- *
- * Arguments: self - The PKCS7 object
- *            name - The attribute name
- * Returns:   A Python object for the attribute, or NULL if something went
- *            wrong
- */
-static PyObject *
-crypto_PKCS7_getattr(crypto_PKCS7Obj *self, char *name)
-{
-    return Py_FindMethod(crypto_PKCS7_methods, (PyObject *)self, name);
-}
-
 PyTypeObject crypto_PKCS7_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "PKCS7",
     sizeof(crypto_PKCS7Obj),
     0,
     (destructor)crypto_PKCS7_dealloc,
     NULL, /* print */
-    (getattrfunc)crypto_PKCS7_getattr,
+    NULL, /* getattr */
     NULL, /* setattr */
     NULL, /* compare */
     NULL, /* repr */
@@ -191,7 +176,19 @@ PyTypeObject crypto_PKCS7_Type = {
     NULL, /* as_mapping */
     NULL, /* hash */
     NULL, /* call */
-    NULL  /* str */
+    NULL,  /* str */
+    NULL, /* getattro */
+    NULL, /* setattro */
+    NULL, /* as_buffer */
+    Py_TPFLAGS_DEFAULT,
+    NULL, /* doc */
+    NULL, /* traverse */
+    NULL, /* clear */
+    NULL, /* tp_richcompare */
+    0, /* tp_weaklistoffset */
+    NULL, /* tp_iter */
+    NULL, /* tp_iternext */
+    crypto_PKCS7_methods, /* tp_methods */
 };
 
 /*

@@ -276,7 +276,7 @@ ssl_Connection_pending(ssl_ConnectionObj *self, PyObject *args) {
     }
 
     ret = SSL_pending(self->ssl);
-    return PyInt_FromLong((long)ret);
+    return PyLong_FromLong((long)ret);
 }
 
 static char ssl_Connection_bio_write_doc[] = "\n\
@@ -317,7 +317,7 @@ ssl_Connection_bio_write(ssl_ConnectionObj *self, PyObject *args)
         return NULL;
     }
 
-    return PyInt_FromLong((long)ret);
+    return PyLong_FromLong((long)ret);
 }
 
 static char ssl_Connection_send_doc[] = "\n\
@@ -352,7 +352,7 @@ ssl_Connection_send(ssl_ConnectionObj *self, PyObject *args)
     err = SSL_get_error(self->ssl, ret);
     if (err == SSL_ERROR_NONE)
     {
-        return PyInt_FromLong((long)ret);
+        return PyLong_FromLong((long)ret);
     }
     else
     {
@@ -429,12 +429,12 @@ ssl_Connection_recv(ssl_ConnectionObj *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "i|i:recv", &bufsiz, &flags))
         return NULL;
 
-    buf = PyString_FromStringAndSize(NULL, bufsiz);
+    buf = PyBytes_FromStringAndSize(NULL, bufsiz);
     if (buf == NULL)
         return NULL;
 
     MY_BEGIN_ALLOW_THREADS(self->tstate)
-    ret = SSL_read(self->ssl, PyString_AsString(buf), bufsiz);
+    ret = SSL_read(self->ssl, PyBytes_AsString(buf), bufsiz);
     MY_END_ALLOW_THREADS(self->tstate)
 
     if (PyErr_Occurred())
@@ -447,7 +447,7 @@ ssl_Connection_recv(ssl_ConnectionObj *self, PyObject *args)
     err = SSL_get_error(self->ssl, ret);
     if (err == SSL_ERROR_NONE)
     {
-        if (ret != bufsiz && _PyString_Resize(&buf, ret) < 0)
+        if (ret != bufsiz && _PyBytes_Resize(&buf, ret) < 0)
             return NULL;
         return buf;
     }
@@ -481,11 +481,11 @@ ssl_Connection_bio_read(ssl_ConnectionObj *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "i:bio_read", &bufsiz))
         return NULL;
 
-    buf = PyString_FromStringAndSize(NULL, bufsiz);
+    buf = PyBytes_FromStringAndSize(NULL, bufsiz);
     if (buf == NULL)
         return NULL;
 
-    ret = BIO_read(self->from_ssl, PyString_AsString(buf), bufsiz);
+    ret = BIO_read(self->from_ssl, PyBytes_AsString(buf), bufsiz);
 
     if (PyErr_Occurred())
     {
@@ -506,7 +506,7 @@ ssl_Connection_bio_read(ssl_ConnectionObj *self, PyObject *args)
     /*
      * Shrink the string to match the number of bytes we actually read.
      */
-    if (ret != bufsiz && _PyString_Resize(&buf, ret) < 0)
+    if (ret != bufsiz && _PyBytes_Resize(&buf, ret) < 0)
     {
         Py_DECREF(buf);
         return NULL;
@@ -536,7 +536,7 @@ ssl_Connection_renegotiate(ssl_ConnectionObj *self, PyObject *args) {
         return NULL;
     }
 
-    return PyInt_FromLong((long)ret);
+    return PyLong_FromLong((long)ret);
 }
 
 static char ssl_Connection_do_handshake_doc[] = "\n\
@@ -589,7 +589,7 @@ ssl_Connection_renegotiate_pending(ssl_ConnectionObj *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":renegotiate_pending"))
         return NULL;
 
-    return PyInt_FromLong((long)SSL_renegotiate_pending(self->ssl));
+    return PyLong_FromLong((long)SSL_renegotiate_pending(self->ssl));
 }
 #endif
 
@@ -604,7 +604,7 @@ ssl_Connection_total_renegotiations(ssl_ConnectionObj *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":total_renegotiations"))
         return NULL;
 
-    return PyInt_FromLong(SSL_total_renegotiations(self->ssl));
+    return PyLong_FromLong(SSL_total_renegotiations(self->ssl));
 }
 
 static char ssl_Connection_set_accept_state_doc[] = "\n\
@@ -686,11 +686,6 @@ ssl_Connection_connect_ex(ssl_ConnectionObj *self, PyObject *args)
 
     ret = PyEval_CallObject(meth, args);
     Py_DECREF(meth);
-    if (ret == NULL)
-        return NULL;
-    if (PyInt_Check(ret) && PyInt_AsLong(ret) != 0)
-        return ret;
-
     return ret;
 }
 
@@ -820,7 +815,7 @@ ssl_Connection_get_cipher_list(ssl_ConnectionObj *self, PyObject *args)
     lst = PyList_New(0);
     while ((ret = SSL_get_cipher_list(self->ssl, idx)) != NULL)
     {
-        item = PyString_FromString(ret);
+        item = PyText_FromString(ret);
         PyList_Append(lst, item);
         Py_DECREF(item);
         idx++;
@@ -942,7 +937,7 @@ ssl_Connection_get_shutdown(ssl_ConnectionObj *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":get_shutdown"))
         return NULL;
 
-    return PyInt_FromLong((long)SSL_get_shutdown(self->ssl));
+    return PyLong_FromLong((long)SSL_get_shutdown(self->ssl));
 }
 
 static char ssl_Connection_set_shutdown_doc[] = "\n\
@@ -975,7 +970,7 @@ ssl_Connection_state_string(ssl_ConnectionObj *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":state_string"))
         return NULL;
 
-    return PyString_FromString(SSL_state_string_long(self->ssl));
+    return PyText_FromString(SSL_state_string_long(self->ssl));
 }
 
 static char ssl_Connection_client_random_doc[] = "\n\
@@ -993,7 +988,7 @@ ssl_Connection_client_random(ssl_ConnectionObj *self, PyObject *args)
         Py_INCREF(Py_None);
         return Py_None;
     }
-    return PyString_FromStringAndSize( (const char *) self->ssl->s3->client_random, SSL3_RANDOM_SIZE);
+    return PyBytes_FromStringAndSize( (const char *) self->ssl->s3->client_random, SSL3_RANDOM_SIZE);
 }
 
 static char ssl_Connection_server_random_doc[] = "\n\
@@ -1011,7 +1006,7 @@ ssl_Connection_server_random(ssl_ConnectionObj *self, PyObject *args)
         Py_INCREF(Py_None);
         return Py_None;
     }
-    return PyString_FromStringAndSize( (const char *) self->ssl->s3->server_random, SSL3_RANDOM_SIZE);
+    return PyBytes_FromStringAndSize( (const char *) self->ssl->s3->server_random, SSL3_RANDOM_SIZE);
 }
 
 static char ssl_Connection_master_key_doc[] = "\n\
@@ -1029,7 +1024,7 @@ ssl_Connection_master_key(ssl_ConnectionObj *self, PyObject *args)
         Py_INCREF(Py_None);
         return Py_None;
     }
-    return PyString_FromStringAndSize( (const char *) self->ssl->session->master_key, self->ssl->session->master_key_length);
+    return PyBytes_FromStringAndSize( (const char *) self->ssl->session->master_key, self->ssl->session->master_key_length);
 }
 
 static char ssl_Connection_sock_shutdown_doc[] = "\n\
@@ -1086,7 +1081,7 @@ ssl_Connection_want_read(ssl_ConnectionObj *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":want_read"))
         return NULL;
 
-    return PyInt_FromLong((long)SSL_want_read(self->ssl));
+    return PyLong_FromLong((long)SSL_want_read(self->ssl));
 }
 
 static char ssl_Connection_want_write_doc[] = "\n\
@@ -1101,7 +1096,7 @@ ssl_Connection_want_write(ssl_ConnectionObj *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":want_write"))
         return NULL;
 
-    return PyInt_FromLong((long)SSL_want_write(self->ssl));
+    return PyLong_FromLong((long)SSL_want_write(self->ssl));
 }
 
 /*
@@ -1281,17 +1276,14 @@ ssl_Connection_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs) {
  *            wrong
  */
 static PyObject *
-ssl_Connection_getattr(ssl_ConnectionObj *self, char *name)
-{
+ssl_Connection_getattro(ssl_ConnectionObj *self, PyObject *nameobj) {
     PyObject *meth;
-    
-    meth = Py_FindMethod(ssl_Connection_methods, (PyObject *)self, name);
 
-    if (PyErr_Occurred() && PyErr_ExceptionMatches(PyExc_AttributeError))
-    {
+    meth = PyObject_GenericGetAttr((PyObject*)self, nameobj);
+    if (PyErr_Occurred() && PyErr_ExceptionMatches(PyExc_AttributeError)) {
         PyErr_Clear();
         /* Try looking it up in the "socket" instead. */
-        meth = PyObject_GetAttrString(self->socket, name);
+        meth = PyObject_GenericGetAttr(self->socket, nameobj);
     }
 
     return meth;
@@ -1357,14 +1349,13 @@ ssl_Connection_dealloc(ssl_ConnectionObj *self)
 }
 
 PyTypeObject ssl_Connection_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "OpenSSL.SSL.Connection",
     sizeof(ssl_ConnectionObj),
     0,
     (destructor)ssl_Connection_dealloc,
     NULL, /* print */
-    (getattrfunc)ssl_Connection_getattr, /* tp_getattr */
+    NULL, /* tp_getattr */
     NULL, /* setattr */
     NULL, /* compare */
     NULL, /* repr */
@@ -1374,7 +1365,7 @@ PyTypeObject ssl_Connection_Type = {
     NULL, /* hash */
     NULL, /* call */
     NULL, /* str */
-    NULL, /* getattro */
+    (getattrofunc)ssl_Connection_getattro, /* getattro */
     NULL, /* setattro */
     NULL, /* as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,

@@ -36,7 +36,7 @@ crypto_Revoked_all_reasons(crypto_RevokedObj *self, PyObject *args) {
     list = PyList_New(0);
     for (j = 0; j < NUM_REASONS; j++) {
         if(crl_reasons[j]) {
-            str = PyString_FromString(crl_reasons[j]);
+            str = PyBytes_FromString(crl_reasons[j]);
             PyList_Append(list, str);
             Py_DECREF(str);
         }
@@ -66,7 +66,7 @@ X509_EXTENSION_value_to_PyString(X509_EXTENSION *ex) {
 
     /* Convert to a Python string. */
     str_len = BIO_get_mem_data(bio, &tmp_str);
-    str = PyString_FromStringAndSize(tmp_str, str_len);
+    str = PyBytes_FromStringAndSize(tmp_str, str_len);
 
     /* Cleanup */
     BIO_free(bio);
@@ -122,6 +122,7 @@ reason_str_to_code(const char * reason_str) {
     return reason_code;
 }
 
+
 static char crypto_Revoked_set_reason_doc[] = "\n\
 Set the reason of a Revoked object.\n\
 \n\
@@ -136,8 +137,9 @@ crypto_Revoked_set_reason(crypto_RevokedObj *self, PyObject *args, PyObject *key
     int reason_code;
     ASN1_ENUMERATED *rtmp = NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "z:set_reason",
-                                     kwlist, &reason_str)) {
+    if (!PyArg_ParseTupleAndKeywords(
+            args, keywds, "O&:set_reason", kwlist,
+            crypto_byte_converter, &reason_str)) {
         return NULL;
     }
 
@@ -231,7 +233,7 @@ Set the revocation timestamp\n\
 static PyObject*
 crypto_Revoked_set_rev_date(crypto_RevokedObj *self, PyObject *args) {
     return _set_asn1_time(
-        "s:set_rev_date", self->revoked->revocationDate, args);
+        BYTESTRING_FMT ":set_rev_date", self->revoked->revocationDate, args);
 }
 
 /* The integer is converted to an upper-case hex string
@@ -256,7 +258,7 @@ ASN1_INTEGER_to_PyString(ASN1_INTEGER *asn1_int) {
 
     /* Convert to a Python string. */
     str_len = BIO_get_mem_data(bio, &tmp_str);
-    str = PyString_FromStringAndSize(tmp_str, str_len);
+    str = PyBytes_FromStringAndSize(tmp_str, str_len);
 
     /* Cleanup */
     BIO_free(bio);
@@ -307,7 +309,7 @@ crypto_Revoked_set_serial(crypto_RevokedObj *self, PyObject *args, PyObject *key
     BIGNUM *serial = NULL;
     ASN1_INTEGER *tmpser = NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "s:set_serial",
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, BYTESTRING_FMT ":set_serial",
                                      kwlist, &hex_str)) {
         return NULL;
     }
@@ -362,11 +364,6 @@ static PyMethodDef crypto_Revoked_methods[] = {
 #undef ADD_METHOD
 
 
-static PyObject *
-crypto_Revoked_getattr(crypto_RevokedObj *self, char *name) {
-    return Py_FindMethod(crypto_Revoked_methods, (PyObject *)self, name);
-}
-
 static void
 crypto_Revoked_dealloc(crypto_RevokedObj *self) {
     X509_REVOKED_free(self->revoked);
@@ -392,14 +389,13 @@ static PyObject* crypto_Revoked_new(PyTypeObject *subtype, PyObject *args, PyObj
 }
 
 PyTypeObject crypto_Revoked_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "Revoked",
     sizeof(crypto_RevokedObj),
     0,
     (destructor)crypto_Revoked_dealloc,
     NULL, /* print */
-    (getattrfunc)crypto_Revoked_getattr,
+    NULL, /* getattr */
     NULL, /* setattr */
     NULL, /* compare */
     NULL, /* repr */

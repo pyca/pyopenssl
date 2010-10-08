@@ -115,7 +115,7 @@ global_passphrase_callback(char *buf, int maxlen, int verify, void *arg)
 	goto out;
     }
 
-    if (!PyString_Check(ret)) {
+    if (!PyBytes_Check(ret)) {
         /*
          * XXX Returned something that wasn't a string.  This is bogus.  We'll
          * return 0 and OpenSSL will treat it as an error, resulting in an
@@ -125,7 +125,7 @@ global_passphrase_callback(char *buf, int maxlen, int verify, void *arg)
         goto out;
     }
 
-    len = PyString_Size(ret);
+    len = PyBytes_Size(ret);
     if (len > maxlen) {
         /*
          * Returned more than we said they were allowed to return.  Just
@@ -135,7 +135,7 @@ global_passphrase_callback(char *buf, int maxlen, int verify, void *arg)
         len = maxlen;
     }
 
-    str = PyString_AsString(ret);
+    str = PyBytes_AsString(ret);
     strncpy(buf, str, len);
     Py_XDECREF(ret);
 
@@ -368,8 +368,16 @@ import_crypto_type(const char *name, size_t objsize) {
         Py_DECREF(type);
         return NULL;
     }
-    right_name = (PyString_CheckExact(name_attr) &&
-                  strcmp(name, PyString_AsString(name_attr)) == 0);
+
+#ifdef PY3
+    {
+        PyObject* asciiname = PyUnicode_AsASCIIString(name_attr);
+        Py_DECREF(name_attr);
+        name_attr = asciiname;
+    }
+#endif
+    right_name = (PyBytes_CheckExact(name_attr) &&
+                  strcmp(name, PyBytes_AsString(name_attr)) == 0);
     Py_DECREF(name_attr);
     res = (PyTypeObject *)type;
     if (!right_name || res->tp_basicsize != objsize) {
@@ -725,7 +733,7 @@ ssl_Context_get_verify_mode(ssl_ContextObj *self, PyObject *args)
         return NULL;
 
     mode = SSL_CTX_get_verify_mode(self->ctx);
-    return PyInt_FromLong((long)mode);
+    return PyLong_FromLong((long)mode);
 }
 
 static char ssl_Context_get_verify_depth_doc[] = "\n\
@@ -742,7 +750,7 @@ ssl_Context_get_verify_depth(ssl_ContextObj *self, PyObject *args)
         return NULL;
 
     depth = SSL_CTX_get_verify_depth(self->ctx);
-    return PyInt_FromLong((long)depth);
+    return PyLong_FromLong((long)depth);
 }
 
 static char ssl_Context_load_tmp_dh_doc[] = "\n\
@@ -1046,7 +1054,7 @@ ssl_Context_set_options(ssl_ContextObj *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "l:set_options", &options))
         return NULL;
 
-    return PyInt_FromLong(SSL_CTX_set_options(self->ctx, options));
+    return PyLong_FromLong(SSL_CTX_set_options(self->ctx, options));
 }
 
 
@@ -1247,8 +1255,7 @@ ssl_Context_dealloc(ssl_ContextObj *self)
 
 
 PyTypeObject ssl_Context_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "OpenSSL.SSL.Context",
     sizeof(ssl_ContextObj),
     0,

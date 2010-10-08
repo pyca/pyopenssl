@@ -63,7 +63,7 @@ extern PyObject *crypto_Error;
 
 #define crypto_API_pointers             8
 
-#ifdef crypto_MODULE
+#if defined(PY3) || defined(crypto_MODULE)
 
 extern crypto_X509_New_RETURN      crypto_X509_New      crypto_X509_New_PROTO;
 extern crypto_X509Name_New_RETURN  crypto_X509Name_New  crypto_X509Name_New_PROTO;
@@ -73,6 +73,8 @@ extern crypto_PKey_New_RETURN      crypto_PKey_New      crypto_PKey_New_PROTO;
 extern crypto_X509Extension_New_RETURN crypto_X509Extension_New crypto_X509Extension_New_PROTO;
 extern crypto_PKCS7_New_RETURN     crypto_PKCS7_New     crypto_PKCS7_New_PROTO;
 extern crypto_NetscapeSPKI_New_RETURN  crypto_NetscapeSPKI_New  crypto_NetscapeSPKI_New_PROTO;
+
+int crypto_byte_converter(PyObject *input, void *output);
 
 #else /* crypto_MODULE */
 

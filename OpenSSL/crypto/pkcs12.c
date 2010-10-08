@@ -202,8 +202,8 @@ crypto_PKCS12_set_friendlyname(crypto_PKCS12Obj *self, PyObject *args, PyObject 
         kwlist, &name))
         return NULL;
 
-    if (name != Py_None && ! PyString_CheckExact(name)) {
-        PyErr_SetString(PyExc_TypeError, "name must be a str or None");
+    if (name != Py_None && ! PyBytes_CheckExact(name)) {
+        PyErr_SetString(PyExc_TypeError, "name must be a byte string or None");
         return NULL;
     }
 
@@ -263,7 +263,7 @@ crypto_PKCS12_export(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds) {
         }
     }
     if (self->friendlyname != Py_None) {
-        friendly_name = PyString_AsString(self->friendlyname);
+        friendly_name = PyBytes_AsString(self->friendlyname);
     }
 
     p12 = PKCS12_create(passphrase, friendly_name, pkey, x509, cacerts,
@@ -278,7 +278,7 @@ crypto_PKCS12_export(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds) {
     bio = BIO_new(BIO_s_mem());
     i2d_PKCS12_bio(bio, p12);
     buf_len = BIO_get_mem_data(bio, &temp);
-    buffer = PyString_FromStringAndSize(temp, buf_len);
+    buffer = PyBytes_FromStringAndSize(temp, buf_len);
     BIO_free(bio);
     return buffer;
 }
@@ -367,7 +367,8 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase) {
          *  certificate. */
         alias_str = X509_alias_get0(cert, &alias_len);
         if (alias_str) {
-            if (!(self->friendlyname = Py_BuildValue("s#", alias_str, alias_len))) {
+            self->friendlyname = Py_BuildValue(BYTESTRING_FMT "#", alias_str, alias_len);
+            if (!self->friendlyname) {
                 /*
                  * XXX Untested
                  */
@@ -439,20 +440,6 @@ crypto_PKCS12_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs) {
 }
 
 /*
- * Find attribute
- *
- * Arguments: self - The PKCS12 object
- *            name - The attribute name
- * Returns:   A Python object for the attribute, or NULL if something went
- *            wrong
- */
-static PyObject *
-crypto_PKCS12_getattr(crypto_PKCS12Obj *self, char *name)
-{
-    return Py_FindMethod(crypto_PKCS12_methods, (PyObject *)self, name);
-}
-
-/*
  * Call the visitproc on all contained objects.
  *
  * Arguments: self - The PKCS12 object
@@ -512,14 +499,13 @@ crypto_PKCS12_dealloc(crypto_PKCS12Obj *self)
 }
 
 PyTypeObject crypto_PKCS12_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyOpenSSL_HEAD_INIT(&PyType_Type, 0)
     "PKCS12",
     sizeof(crypto_PKCS12Obj),
     0,
     (destructor)crypto_PKCS12_dealloc,
     NULL, /* print */
-    (getattrfunc)crypto_PKCS12_getattr,
+    NULL, /* getattr */
     NULL, /* setattr */
     NULL, /* compare */
     NULL, /* repr */

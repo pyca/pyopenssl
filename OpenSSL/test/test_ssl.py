@@ -23,7 +23,7 @@ from OpenSSL.SSL import VERIFY_PEER, VERIFY_FAIL_IF_NO_PEER_CERT, VERIFY_CLIENT_
 from OpenSSL.SSL import Error, SysCallError, WantReadError, ZeroReturnError
 from OpenSSL.SSL import Context, ContextType, Connection, ConnectionType
 
-from OpenSSL.test.util import TestCase
+from OpenSSL.test.util import TestCase, bytes, b
 from OpenSSL.test.test_crypto import cleartextCertificatePEM, cleartextPrivateKeyPEM
 from OpenSSL.test.test_crypto import client_cert_pem, client_key_pem
 from OpenSSL.test.test_crypto import server_cert_pem, server_key_pem, root_cert_pem
@@ -52,7 +52,6 @@ MBYCEQCobsg29c9WZP/54oAPcwiDAgEC
 
 
 def verify_cb(conn, cert, errnum, depth, ok):
-    # print conn, cert, X509_verify_cert_error_string(errnum), depth, ok
     return ok
 
 def socket_pair():
@@ -72,10 +71,10 @@ def socket_pair():
     # Let's pass some unencrypted data to make sure our socket connection is
     # fine.  Just one byte, so we don't have to worry about buffers getting
     # filled up or fragmentation.
-    server.send("x")
-    assert client.recv(1024) == "x"
-    client.send("y")
-    assert server.recv(1024) == "y"
+    server.send(b("x"))
+    assert client.recv(1024) == b("x")
+    client.send(b("y"))
+    assert server.recv(1024) == b("y")
 
     # Most of our callers want non-blocking sockets, make it easy for them.
     server.setblocking(False)
@@ -83,6 +82,18 @@ def socket_pair():
 
     return (server, client)
 
+
+
+def handshake(client, server):
+    conns = [client, server]
+    while conns:
+        for conn in conns:
+            try:
+                conn.do_handshake()
+            except WantReadError:
+                pass
+            else:
+                conns.remove(conn)
 
 
 class _LoopbackMixin:
@@ -101,12 +112,7 @@ class _LoopbackMixin:
         client = Connection(Context(TLSv1_METHOD), client)
         client.set_connect_state()
 
-        for i in range(3):
-            for conn in [client, server]:
-                try:
-                    conn.do_handshake()
-                except WantReadError:
-                    pass
+        handshake(client, server)
 
         server.setblocking(True)
         client.setblocking(True)
@@ -305,8 +311,9 @@ class ContextTests(TestCase, _LoopbackMixin):
         key = PKey()
         key.generate_key(TYPE_RSA, 128)
         pemFile = self.mktemp()
-        fObj = file(pemFile, 'w')
-        fObj.write(dump_privatekey(FILETYPE_PEM, key, "blowfish", passphrase))
+        fObj = open(pemFile, 'w')
+        pem = dump_privatekey(FILETYPE_PEM, key, "blowfish", passphrase)
+        fObj.write(pem.decode('ascii'))
         fObj.close()
         return pemFile
 
@@ -327,7 +334,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         L{Context.set_passwd_cb} accepts a callable which will be invoked when
         a private key is loaded from an encrypted PEM.
         """
-        passphrase = "foobar"
+        passphrase = b("foobar")
         pemFile = self._write_encrypted_pem(passphrase)
         calledWith = []
         def passphraseCallback(maxlen, verify, extra):
@@ -347,7 +354,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         L{Context.use_privatekey_file} propagates any exception raised by the
         passphrase callback.
         """
-        pemFile = self._write_encrypted_pem("monkeys are nice")
+        pemFile = self._write_encrypted_pem(b("monkeys are nice"))
         def passphraseCallback(maxlen, verify, extra):
             raise RuntimeError("Sorry, I am a fail.")
 
@@ -361,7 +368,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         L{Context.use_privatekey_file} raises L{OpenSSL.SSL.Error} if the
         passphrase callback returns a false value.
         """
-        pemFile = self._write_encrypted_pem("monkeys are nice")
+        pemFile = self._write_encrypted_pem(b("monkeys are nice"))
         def passphraseCallback(maxlen, verify, extra):
             return None
 
@@ -375,7 +382,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         L{Context.use_privatekey_file} raises L{OpenSSL.SSL.Error} if the
         passphrase callback returns a true non-string value.
         """
-        pemFile = self._write_encrypted_pem("monkeys are nice")
+        pemFile = self._write_encrypted_pem(b("monkeys are nice"))
         def passphraseCallback(maxlen, verify, extra):
             return 10
 
@@ -390,11 +397,11 @@ class ContextTests(TestCase, _LoopbackMixin):
         longer than the indicated maximum length, it is truncated.
         """
         # A priori knowledge!
-        passphrase = "x" * 1024
+        passphrase = b("x") * 1024
         pemFile = self._write_encrypted_pem(passphrase)
         def passphraseCallback(maxlen, verify, extra):
             assert maxlen == 1024
-            return passphrase + "y"
+            return passphrase + b("y")
 
         context = Context(TLSv1_METHOD)
         context.set_passwd_cb(passphraseCallback)
@@ -465,16 +472,11 @@ class ContextTests(TestCase, _LoopbackMixin):
         serverSSL = Connection(serverContext, server)
         serverSSL.set_accept_state()
 
-        for i in range(3):
-            for ssl in clientSSL, serverSSL:
-                try:
-                    # Without load_verify_locations above, the handshake
-                    # will fail:
-                    # Error: [('SSL routines', 'SSL3_GET_SERVER_CERTIFICATE',
-                    #          'certificate verify failed')]
-                    ssl.do_handshake()
-                except WantReadError:
-                    pass
+        # Without load_verify_locations above, the handshake
+        # will fail:
+        # Error: [('SSL routines', 'SSL3_GET_SERVER_CERTIFICATE',
+        #          'certificate verify failed')]
+        handshake(clientSSL, serverSSL)
 
         cert = clientSSL.get_peer_certificate()
         self.assertEqual(cert.get_subject().CN, 'Testing Root CA')
@@ -486,8 +488,8 @@ class ContextTests(TestCase, _LoopbackMixin):
         certificates within for verification purposes.
         """
         cafile = self.mktemp()
-        fObj = file(cafile, 'w')
-        fObj.write(cleartextCertificatePEM)
+        fObj = open(cafile, 'w')
+        fObj.write(cleartextCertificatePEM.decode('ascii'))
         fObj.close()
 
         self._load_verify_locations_test(cafile)
@@ -513,8 +515,8 @@ class ContextTests(TestCase, _LoopbackMixin):
         # Hash value computed manually with c_rehash to avoid depending on
         # c_rehash in the test suite.
         cafile = join(capath, 'c7adac82.0')
-        fObj = file(cafile, 'w')
-        fObj.write(cleartextCertificatePEM)
+        fObj = open(cafile, 'w')
+        fObj.write(cleartextCertificatePEM.decode('ascii'))
         fObj.close()
 
         self._load_verify_locations_test(None, capath)
@@ -596,7 +598,7 @@ class ContextTests(TestCase, _LoopbackMixin):
             2. A new intermediate certificate signed by cacert (icert)
             3. A new server certificate signed by icert (scert)
         """
-        caext = X509Extension('basicConstraints', False, 'CA:true')
+        caext = X509Extension(b('basicConstraints'), False, b('CA:true'))
 
         # Step 1
         cakey = PKey()
@@ -605,8 +607,8 @@ class ContextTests(TestCase, _LoopbackMixin):
         cacert.get_subject().commonName = "Authority Certificate"
         cacert.set_issuer(cacert.get_subject())
         cacert.set_pubkey(cakey)
-        cacert.set_notBefore("20000101000000Z")
-        cacert.set_notAfter("20200101000000Z")
+        cacert.set_notBefore(b("20000101000000Z"))
+        cacert.set_notAfter(b("20200101000000Z"))
         cacert.add_extensions([caext])
         cacert.set_serial_number(0)
         cacert.sign(cakey, "sha1")
@@ -618,8 +620,8 @@ class ContextTests(TestCase, _LoopbackMixin):
         icert.get_subject().commonName = "Intermediate Certificate"
         icert.set_issuer(cacert.get_subject())
         icert.set_pubkey(ikey)
-        icert.set_notBefore("20000101000000Z")
-        icert.set_notAfter("20200101000000Z")
+        icert.set_notBefore(b("20000101000000Z"))
+        icert.set_notAfter(b("20200101000000Z"))
         icert.add_extensions([caext])
         icert.set_serial_number(0)
         icert.sign(cakey, "sha1")
@@ -631,9 +633,10 @@ class ContextTests(TestCase, _LoopbackMixin):
         scert.get_subject().commonName = "Server Certificate"
         scert.set_issuer(icert.get_subject())
         scert.set_pubkey(skey)
-        scert.set_notBefore("20000101000000Z")
-        scert.set_notAfter("20200101000000Z")
-        scert.add_extensions([X509Extension('basicConstraints', True, 'CA:false')])
+        scert.set_notBefore(b("20000101000000Z"))
+        scert.set_notAfter(b("20200101000000Z"))
+        scert.add_extensions([
+                X509Extension(b('basicConstraints'), True, b('CA:false'))])
         scert.set_serial_number(0)
         scert.sign(ikey, "sha1")
 
@@ -681,16 +684,13 @@ class ContextTests(TestCase, _LoopbackMixin):
         # Dump the CA certificate to a file because that's the only way to load
         # it as a trusted CA in the client context.
         for cert, name in [(cacert, 'ca.pem'), (icert, 'i.pem'), (scert, 's.pem')]:
-            fObj = file(name, 'w')
-            fObj.write(dump_certificate(FILETYPE_PEM, cert))
-            fObj.close()
-            fObj = file(name.replace('pem', 'asn1'), 'w')
-            fObj.write(dump_certificate(FILETYPE_ASN1, cert))
+            fObj = open(name, 'w')
+            fObj.write(dump_certificate(FILETYPE_PEM, cert).decode('ascii'))
             fObj.close()
 
         for key, name in [(cakey, 'ca.key'), (ikey, 'i.key'), (skey, 's.key')]:
-            fObj = file(name, 'w')
-            fObj.write(dump_privatekey(FILETYPE_PEM, key))
+            fObj = open(name, 'w')
+            fObj.write(dump_privatekey(FILETYPE_PEM, key).decode('ascii'))
             fObj.close()
 
         # Create the server context
@@ -724,19 +724,19 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         # Write out the chain file.
         chainFile = self.mktemp()
-        fObj = file(chainFile, 'w')
+        fObj = open(chainFile, 'w')
         # Most specific to least general.
-        fObj.write(dump_certificate(FILETYPE_PEM, scert))
-        fObj.write(dump_certificate(FILETYPE_PEM, icert))
-        fObj.write(dump_certificate(FILETYPE_PEM, cacert))
+        fObj.write(dump_certificate(FILETYPE_PEM, scert).decode('ascii'))
+        fObj.write(dump_certificate(FILETYPE_PEM, icert).decode('ascii'))
+        fObj.write(dump_certificate(FILETYPE_PEM, cacert).decode('ascii'))
         fObj.close()
 
         serverContext = Context(TLSv1_METHOD)
         serverContext.use_certificate_chain_file(chainFile)
         serverContext.use_privatekey(skey)
 
-        fObj = file('ca.pem', 'w')
-        fObj.write(dump_certificate(FILETYPE_PEM, cacert))
+        fObj = open('ca.pem', 'w')
+        fObj.write(dump_certificate(FILETYPE_PEM, cacert).decode('ascii'))
         fObj.close()
 
         clientContext = Context(TLSv1_METHOD)
@@ -921,21 +921,24 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         # XXX An assertion?  Or something?
 
 
-    def test_connect_ex(self):
-        """
-        If there is a connection error, L{Connection.connect_ex} returns the
-        errno instead of raising an exception.
-        """
-        port = socket()
-        port.bind(('', 0))
-        port.listen(3)
+    if platform == "darwin":
+        "connect_ex sometimes causes a kernel panic on OS X 10.6.4"
+    else:
+        def test_connect_ex(self):
+            """
+            If there is a connection error, L{Connection.connect_ex} returns the
+            errno instead of raising an exception.
+            """
+            port = socket()
+            port.bind(('', 0))
+            port.listen(3)
 
-        clientSSL = Connection(Context(TLSv1_METHOD), socket())
-        clientSSL.setblocking(False)
-        result = clientSSL.connect_ex(port.getsockname())
-        expected = (EINPROGRESS, EWOULDBLOCK)
-        self.assertTrue(
-                result in expected, "%r not in %r" % (result, expected))
+            clientSSL = Connection(Context(TLSv1_METHOD), socket())
+            clientSSL.setblocking(False)
+            result = clientSSL.connect_ex(port.getsockname())
+            expected = (EINPROGRESS, EWOULDBLOCK)
+            self.assertTrue(
+                    result in expected, "%r not in %r" % (result, expected))
 
 
     def test_accept_wrong_args(self):
@@ -1092,8 +1095,8 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         it.
         """
         server, client = self._loopback()
-        server.sendall('x')
-        self.assertEquals(client.recv(1), 'x')
+        server.sendall(b('x'))
+        self.assertEquals(client.recv(1), b('x'))
 
 
     def test_long(self):
@@ -1105,15 +1108,15 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         # Should be enough, underlying SSL_write should only do 16k at a time.
         # On Windows, after 32k of bytes the write will block (forever - because
         # no one is yet reading).
-        message ='x' * (1024 * 32 - 1) + 'y'
+        message = b('x') * (1024 * 32 - 1) + b('y')
         server.sendall(message)
         accum = []
         received = 0
         while received < len(message):
-            bytes = client.recv(1024)
-            accum.append(bytes)
-            received += len(bytes)
-        self.assertEquals(message, ''.join(accum))
+            data = client.recv(1024)
+            accum.append(data)
+            received += len(data)
+        self.assertEquals(message, b('').join(accum))
 
 
     def test_closed(self):
@@ -1122,8 +1125,7 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         write error from the low level write call.
         """
         server, client = self._loopback()
-        client.close()
-        server.sendall("hello, world")
+        server.sock_shutdown(2)
         self.assertRaises(SysCallError, server.sendall, "hello, world")
 
 
@@ -1314,7 +1316,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         self.assertNotEquals(client_conn.client_random(), client_conn.server_random())
 
         # Here are the bytes we'll try to send.
-        important_message = 'One if by land, two if by sea.'
+        important_message = b('One if by land, two if by sea.')
 
         server_conn.write(important_message)
         self.assertEquals(
@@ -1337,26 +1339,9 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         code, as no memory BIO is involved here).  Even though this isn't a
         memory BIO test, it's convenient to have it here.
         """
-        (server, client) = socket_pair()
+        server_conn, client_conn = self._loopback()
 
-        # Let the encryption begin...
-        client_conn = self._client(client)
-        server_conn = self._server(server)
-
-        # Establish the connection
-        established = False
-        while not established:
-            established = True  # assume the best
-            for ssl in client_conn, server_conn:
-                try:
-                    # Generally a recv() or send() could also work instead
-                    # of do_handshake(), and we would stop on the first
-                    # non-exception.
-                    ssl.do_handshake()
-                except WantReadError:
-                    established = False
-
-        important_message = "Help me Obi Wan Kenobi, you're my only hope."
+        important_message = b("Help me Obi Wan Kenobi, you're my only hope.")
         client_conn.send(important_message)
         msg = server_conn.recv(1024)
         self.assertEqual(msg, important_message)

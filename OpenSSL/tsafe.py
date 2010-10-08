@@ -19,10 +19,10 @@ class Connection:
               'sock_shutdown', 'get_peer_certificate', 'want_read',
               'want_write', 'set_connect_state', 'set_accept_state',
               'connect_ex', 'sendall'):
-        exec """def %s(self, *args):
+        exec("""def %s(self, *args):
             self._lock.acquire()
             try:
-                return apply(self._ssl_conn.%s, args)
+                return self._ssl_conn.%s(*args)
             finally:
-                self._lock.release()\n""" % (f, f)
+                self._lock.release()\n""" % (f, f))
 

@@ -22,6 +22,12 @@
  */
 #include "pymemcompat.h"
 
+/*
+ * py3k defines macros that help with Python 2.x/3.x compatibility.
+ */
+#include "py3k.h"
+
+
 extern  PyObject *error_queue_to_list(void);
 extern void exception_from_error_queue(PyObject *the_Error);
 extern  void      flush_error_queue(void);
@@ -123,6 +129,12 @@ static int PyObject_AsFileDescriptor(PyObject *o)
 typedef int Py_ssize_t;
 #define PY_SSIZE_T_MAX INT_MAX
 #define PY_SSIZE_T_MIN INT_MIN
+#endif
+
+#if (PY_VERSION_HEX < 0x02600000)
+extern PyObject* PyOpenSSL_LongToHex(PyObject *o);
+#else
+#define PyOpenSSL_LongToHex(o) PyNumber_ToBase(o, 16)
 #endif
 
 #endif

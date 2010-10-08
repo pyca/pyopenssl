@@ -45,7 +45,7 @@ rand_add(PyObject *spam, PyObject *args)
     int size;
     double entropy;
 
-    if (!PyArg_ParseTuple(args, "s#d:add", &buf, &size, &entropy))
+    if (!PyArg_ParseTuple(args, BYTESTRING_FMT "#d:add", &buf, &size, &entropy))
         return NULL;
 
     RAND_add(buf, size, entropy);
@@ -67,7 +67,7 @@ rand_seed(PyObject *spam, PyObject *args)
     char *buf;
     int size;
 
-    if (!PyArg_ParseTuple(args, "s#:seed", &buf, &size))
+    if (!PyArg_ParseTuple(args, BYTESTRING_FMT "#:seed", &buf, &size))
         return NULL;
 
     RAND_seed(buf, size);
@@ -88,7 +88,7 @@ rand_status(PyObject *spam, PyObject *args)
     if (!PyArg_ParseTuple(args, ":status"))
         return NULL;
 
-    return PyInt_FromLong((long)RAND_status());
+    return PyLong_FromLong((long)RAND_status());
 }
 
 #ifdef MS_WINDOWS
@@ -131,7 +131,7 @@ rand_egd(PyObject *spam, PyObject *args)
     if (!PyArg_ParseTuple(args, "s|i:egd", &path, &bytes))
         return NULL;
 
-    return PyInt_FromLong((long)RAND_egd_bytes(path, bytes));
+    return PyLong_FromLong((long)RAND_egd_bytes(path, bytes));
 }
 
 static char rand_cleanup_doc[] = "\n\
@@ -170,7 +170,7 @@ rand_load_file(PyObject *spam, PyObject *args)
     if (!PyArg_ParseTuple(args, "s|i:load_file", &filename, &maxbytes))
         return NULL;
 
-    return PyInt_FromLong((long)RAND_load_file(filename, maxbytes));
+    return PyLong_FromLong((long)RAND_load_file(filename, maxbytes));
 }
 
 static char rand_write_file_doc[] = "\n\
@@ -188,7 +188,7 @@ rand_write_file(PyObject *spam, PyObject *args)
     if (!PyArg_ParseTuple(args, "s:write_file", &filename))
         return NULL;
 
-    return PyInt_FromLong((long)RAND_write_file(filename));
+    return PyLong_FromLong((long)RAND_write_file(filename));
 }
 
 static char rand_bytes_doc[] = "\n\
@@ -230,7 +230,7 @@ rand_bytes(PyObject *spam, PyObject *args, PyObject *keywds) {
         exception_from_error_queue(rand_Error);
         goto done;
     }
-    obj = PyString_FromStringAndSize(buf, (unsigned) num_bytes);
+    obj = PyBytes_FromStringAndSize(buf, (unsigned) num_bytes);
  done:
     free(buf);
     return obj;
@@ -254,28 +254,50 @@ static PyMethodDef rand_methods[] = {
 };
 
 
+#ifdef PY3
+static struct PyModuleDef randmodule = {
+    PyModuleDef_HEAD_INIT,
+    "rand",
+    rand_doc,
+    -1,
+    rand_methods
+};
+#endif
+
 /*
  * Initialize the rand sub module
  *
  * Arguments: None
  * Returns:   None
  */
-void
-initrand(void)
-{
+PyOpenSSL_MODINIT(rand) {
     PyObject *module;
+
+#ifdef PY3
+    module = PyModule_Create(&randmodule);
+#else
+    module = Py_InitModule3("rand", rand_methods, rand_doc);
+#endif
+    if (module == NULL) {
+        PyOpenSSL_MODRETURN(NULL);
+    }
+
+    rand_Error = PyErr_NewException("OpenSSL.rand.Error", NULL, NULL);
+
+    if (rand_Error == NULL) {
+        goto error;
+    }
+
+    if (PyModule_AddObject(module, "Error", rand_Error) != 0) {
+        goto error;
+    }
 
     ERR_load_RAND_strings();
 
-    if ((module = Py_InitModule3("rand", rand_methods, rand_doc)) == NULL)
-        return;
+    PyOpenSSL_MODRETURN(module);
 
-    rand_Error = PyErr_NewException("OpenSSL.rand.Error", NULL, NULL);
-    if (rand_Error == NULL)
-        goto error;
-    if (PyModule_AddObject(module, "Error", rand_Error) != 0)
-        goto error;
- error:
+error:
+    PyOpenSSL_MODRETURN(NULL);
     ;
 }
 
