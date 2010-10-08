@@ -17,7 +17,7 @@ from distutils.errors import DistutilsFileError
 from distutils.command.build_ext import build_ext
 
 # XXX Deduplicate this
-__version__ = '0.10'
+__version__ = '0.11'
 
 crypto_src = ['OpenSSL/crypto/crypto.c', 'OpenSSL/crypto/x509.c',
               'OpenSSL/crypto/x509name.c', 'OpenSSL/crypto/pkey.c',
