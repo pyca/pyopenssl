@@ -2441,7 +2441,7 @@ class SignVerifyTests(TestCase):
         # certificate unrelated to priv_key, used to trigger an error
         bad_cert = load_certificate(FILETYPE_PEM, server_cert_pem)
 
-        for digest in (b('md5'), b('sha1')):
+        for digest in ['md5', 'sha1']:
             sig = sign(priv_key, content, digest)
 
             # Verify the signature of content, will throw an exception if error.
