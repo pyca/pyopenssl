@@ -1,4 +1,4 @@
-# Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+SignVerifyTests# Copyright (C) Jean-Paul Calderone 2008, All rights reserved
 
 """
 Unit tests for L{OpenSSL.crypto}.
@@ -2459,9 +2459,9 @@ class SignVerifyTests(TestCase):
 
         # test that unknown digest types fail
         self.assertRaises(
-            ValueError, sign, priv_key, content, b("strange-digest"))
+            ValueError, sign, priv_key, content, "strange-digest")
         self.assertRaises(
-            ValueError, verify, good_cert, sig, content, b("strange-digest"))
+            ValueError, verify, good_cert, sig, content, "strange-digest")
 
 
 if __name__ == '__main__':
