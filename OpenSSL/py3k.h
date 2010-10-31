@@ -13,7 +13,7 @@ PyInit_##name(void)
 #define PyText_FromString PyUnicode_FromString
 #define PyText_FromStringAndSize PyUnicode_FromStringAndSize
 
-#define PyOpenSSL_HEAD_INIT(type, size) PyVarObject_HEAD_INIT(type, size)
+#define PyOpenSSL_HEAD_INIT(type, size) PyVarObject_HEAD_INIT(NULL, size)
 
 #define PyOpenSSL_Integer_Check(o) PyLong_Check(o)
 
