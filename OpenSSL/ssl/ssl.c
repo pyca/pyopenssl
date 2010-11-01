@@ -78,10 +78,10 @@ PyOpenSSL_MODINIT(SSL) {
     HMODULE crypto = GetModuleHandle("crypto.pyd");
     if (crypto == NULL) {
         PyErr_SetString(PyExc_RuntimeError, "Unable to get crypto module");
-        return;
+        PyOpenSSL_MODRETURN(NULL);
     }
 
-    new_x509name = GetProcAddress(crypto, "crypto_X509Name_New");
+    new_x509name = (crypto_X509NameObj* (*)(X509_NAME*, int))GetProcAddress(crypto, "crypto_X509Name_New");
 #   else
     new_x509name = crypto_X509Name_New;
 #   endif
