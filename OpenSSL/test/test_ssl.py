@@ -482,19 +482,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertEqual(cert.get_subject().CN, 'Testing Root CA')
 
 
-    def test_load_verify_file(self):
-        """
-        L{Context.load_verify_locations} accepts a file name and uses the
-        certificates within for verification purposes.
-        """
-        cafile = self.mktemp()
-        fObj = open(cafile, 'w')
-        fObj.write(cleartextCertificatePEM.decode('ascii'))
-        fObj.close()
-
-        self._load_verify_locations_test(cafile)
-
-
     def test_load_verify_invalid_file(self):
         """
         L{Context.load_verify_locations} raises L{Error} when passed a
@@ -508,6 +495,19 @@ class ContextTests(TestCase, _LoopbackMixin):
     if platform == "win32" and version_info > (3,):
         "load_verify_* crashes on windows/python 3.x"
     else:
+        def test_load_verify_file(self):
+            """
+            L{Context.load_verify_locations} accepts a file name and uses the
+            certificates within for verification purposes.
+            """
+            cafile = self.mktemp()
+            fObj = open(cafile, 'w')
+            fObj.write(cleartextCertificatePEM.decode('ascii'))
+            fObj.close()
+
+            self._load_verify_locations_test(cafile)
+
+
         def test_load_verify_directory(self):
             """
             L{Context.load_verify_locations} accepts a directory name and uses
