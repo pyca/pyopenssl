@@ -2,7 +2,7 @@
 
 \title{Python OpenSSL Manual}
 
-\release{0.10}
+\release{0.11}
 
 \author{Jean-Paul Calderone}
 \authoraddress{\email{exarkun@twistedmatrix.com}}
@@ -291,6 +291,7 @@ Sign a data string using the given key and message digest.
 \var{key} is a \code{PKey} instance.  \var{data} is a \code{str} instance.
 \var{digest} is a \code{str} naming a supported message digest type, for example
 \code{``sha1''}.
+\versionadded{0.11}
 \end{funcdesc}
 
 \begin{funcdesc}{verify}{certificate, signature, data, digest}
@@ -301,6 +302,7 @@ which generated the signature.  \var{signature} is a \var{str} instance giving
 the signature itself.  \var{data} is a \var{str} instance giving the data to
 which the signature applies.  \var{digest} is a \var{str} instance naming the
 message digest type of the signature, for example \code{``sha1''}.
+\versionadded{0.11}
 \end{funcdesc}
 
 \subsubsection{X509 objects \label{openssl-x509}}

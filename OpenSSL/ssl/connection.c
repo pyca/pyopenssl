@@ -861,7 +861,7 @@ ssl_Connection_get_client_ca_list(ssl_ConnectionObj *self, PyObject *args) {
             exception_from_error_queue(ssl_Error);
             return NULL;
         }
-        CA = (PyObject *)crypto_X509Name_New(CAName, 1);
+        CA = (PyObject *)new_x509name(CAName, 1);
         if (CA == NULL) {
             X509_NAME_free(CAName);
             Py_DECREF(CAList);
@@ -1060,7 +1060,7 @@ ssl_Connection_get_peer_certificate(ssl_ConnectionObj *self, PyObject *args)
     cert = SSL_get_peer_certificate(self->ssl);
     if (cert != NULL)
     {
-        return (PyObject *)crypto_X509_New(cert, 1);
+        return (PyObject *)new_x509(cert, 1);
     }
     else
     {

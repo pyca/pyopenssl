@@ -184,6 +184,12 @@ setup.py --help
           string representing a NetscapeSPKI object, as returned by the
           b64_encode method.
 
+   class CRL()
+          A class representing Certifcate Revocation List objects.
+
+   class Revoked()
+          A class representing Revocation objects of CRL.
+
    FILETYPE_PEM
 
    FILETYPE_ASN1
@@ -228,6 +234,11 @@ setup.py --help
           passphrase must be either a string or a callback for providing
           the pass phrase.
 
+   load_crl(type, buffer)
+          Load Certificate Revocation List (CRL) data from a string
+          buffer. buffer encoded with the type type. The type type must
+          either FILETYPE_PEM or FILETYPE_ASN1).
+
    load_pkcs7_data(type, buffer)
           Load pkcs7 data from the string buffer encoded with the type
           type.
@@ -238,6 +249,23 @@ setup.py --help
           checked and thus required.
 
           See also the man page for the C function PKCS12_parse.
+
+   sign(key, data, digest)
+          Sign a data string using the given key and message digest.
+
+          key is a PKey instance. data is a str instance. digest is a str
+          naming a supported message digest type, for example ``sha1''.
+          New in version 0.11.
+
+   verify(certificate, signature, data, digest)
+          Verify the signature for a data string.
+
+          certificate is a X509 instance corresponding to the private key
+          which generated the signature. signature is a str instance
+          giving the signature itself. data is a str instance giving the
+          data to which the signature applies. digest is a str instance
+          naming the message digest type of the signature, for example
+          ``sha1''. New in version 0.11.
 
 
   3.1.1 X509 objects
@@ -533,6 +561,54 @@ setup.py --help
 
    verify(key)
           Verify the NetscapeSPKI object using the given key.
+
+
+  3.1.10 CRL objects
+
+   CRL objects have the following methods:
+
+   add_revoked(revoked)
+          Add a Revoked object to the CRL, by value not reference.
+
+   export(cert, key[, type=FILETYPE_PEM][, days=100])
+          Use cert and key to sign the CRL and return the CRL as a string.
+          days is the number of days before the next CRL is due.
+
+   get_revoked()
+          Return a tuple of Revoked objects, by value not reference.
+
+
+  3.1.11 Revoked objects
+
+   Revoked objects have the following methods:
+
+   all_reasons()
+          Return a list of all supported reasons.
+
+   get_reason()
+          Return the revocation reason as a str. Can be None, which
+          differs from "Unspecified".
+
+   get_rev_date()
+          Return the revocation date as a str. The string is formatted as
+          an ASN1 GENERALIZEDTIME.
+
+   get_serial()
+          Return a str containing a hex number of the serial of the
+          revoked certificate.
+
+   set_reason(reason)
+          Set the revocation reason. reason must be None or a string, but
+          the values are limited. Spaces and case are ignored. See
+          all_reasons.
+
+   set_rev_date(date)
+          Set the revocation date. The string is formatted as an ASN1
+          GENERALIZEDTIME.
+
+   set_serial(serial)
+          serial is a string containing a hex number of the serial of the
+          revoked certificate.
 
 
 3.2 rand -- An interface to the OpenSSL pseudo random number generator
@@ -1158,4 +1234,4 @@ setup.py --help
                             Python OpenSSL Manual
      __________________________________________________________________
 
-   Release 0.10.
+   Release 0.11.

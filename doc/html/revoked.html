@@ -1,28 +1,27 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
 <head>
-<title>3.1.6 PKCS7 objects </title>
-<META NAME="description" CONTENT="3.1.6 PKCS7 objects ">
+<title>3.1.11 Revoked objects </title>
+<META NAME="description" CONTENT="3.1.11 Revoked objects ">
 <META NAME="keywords" CONTENT="pyOpenSSL">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 <link rel="STYLESHEET" href="pyOpenSSL.css">
-<LINK REL="next" href="openssl-pkcs12.html">
-<LINK REL="previous" href="openssl-pkey.html">
+<LINK REL="previous" href="crl.html">
 <LINK REL="up" href="openssl-crypto.html">
-<LINK REL="next" href="openssl-pkcs12.html">
+<LINK REL="next" href="openssl-rand.html">
 </head>
 <body>
 <DIV CLASS="navigation">
 <table align="center" width="100%" cellpadding="0" cellspacing="2">
 <tr>
-<td><A href="openssl-pkey.html"><img src="previous.gif"
+<td><A href="crl.html"><img src="previous.gif"
   border="0" height="32"
   alt="Previous Page" width="32"></A></td>
 <td><A href="openssl-crypto.html"><img src="up.gif"
   border="0" height="32"
   alt="Up One Level" width="32"></A></td>
-<td><A href="openssl-pkcs12.html"><img src="next.gif"
+<td><A href="openssl-rand.html"><img src="next.gif"
   border="0" height="32"
   alt="Next Page" width="32"></A></td>
 <td align="center" width="100%">Python OpenSSL Manual</td>
@@ -36,49 +35,66 @@
   border="0" height="32"
   alt="" width="32"></td>
 </tr></table>
-<b class="navlabel">Previous:</b> <a class="sectref" href="openssl-pkey.html">3.1.5 PKey objects</A>
+<b class="navlabel">Previous:</b> <a class="sectref" href="crl.html">3.1.10 CRL objects</A>
 <b class="navlabel">Up:</b> <a class="sectref" href="openssl-crypto.html">3.1 crypto  </A>
-<b class="navlabel">Next:</b> <a class="sectref" href="openssl-pkcs12.html">3.1.7 PKCS12 objects</A>
+<b class="navlabel">Next:</b> <a class="sectref" href="openssl-rand.html">3.2 rand  </A>
 <br><hr>
 </DIV>
 <!--End of Navigation Panel-->
 
-<H3><A NAME="SECTION000416000000000000000">&nbsp;</A>
+<H3><A NAME="SECTION0004111000000000000000">&nbsp;</A>
 <BR>
-3.1.6 PKCS7 objects 
+3.1.11 Revoked objects 
 </H3>
 
 <P>
-PKCS7 objects have the following methods:
+Revoked objects have the following methods:
 
 <P>
-<dl><dt><b><a name='l2h-81'><tt class='method'>type_is_signed</tt></a></b>()
+<dl><dt><b><a name='l2h-105'><tt class='method'>all_reasons</tt></a></b>()
 <dd>
-FIXME
+Return a list of all supported reasons.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-82'><tt class='method'>type_is_enveloped</tt></a></b>()
+<dl><dt><b><a name='l2h-106'><tt class='method'>get_reason</tt></a></b>()
 <dd>
-FIXME
+Return the revocation reason as a str.  Can be
+None, which differs from "Unspecified".
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-83'><tt class='method'>type_is_signedAndEnveloped</tt></a></b>()
+<dl><dt><b><a name='l2h-107'><tt class='method'>get_rev_date</tt></a></b>()
 <dd>
-FIXME
+Return the revocation date as a str.
+The string is formatted as an ASN1 GENERALIZEDTIME.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-84'><tt class='method'>type_is_data</tt></a></b>()
+<dl><dt><b><a name='l2h-108'><tt class='method'>get_serial</tt></a></b>()
 <dd>
-FIXME
+Return a str containing a hex number of the serial of the revoked certificate.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-85'><tt class='method'>get_type_name</tt></a></b>()
+<dl><dt><b><a name='l2h-109'><tt class='method'>set_reason</tt></a></b>(<var>reason</var>)
 <dd>
-Get the type name of the PKCS7.
+Set the revocation reason.  <var>reason</var> must
+be None or a string, but the values are limited.  
+Spaces and case are ignored.  See <tt class="method">all_reasons</tt>.
+</dl>
+
+<P>
+<dl><dt><b><a name='l2h-110'><tt class='method'>set_rev_date</tt></a></b>(<var>date</var>)
+<dd>
+Set the revocation date.
+The string is formatted as an ASN1 GENERALIZEDTIME.
+</dl>
+
+<P>
+<dl><dt><b><a name='l2h-111'><tt class='method'>set_serial</tt></a></b>(<var>serial</var>)
+<dd>
+<var>serial</var> is a string containing a hex number of the serial of the revoked certificate.
 </dl>
 
 <P>
@@ -87,13 +103,13 @@ Get the type name of the PKCS7.
 <p><hr>
 <table align="center" width="100%" cellpadding="0" cellspacing="2">
 <tr>
-<td><A href="openssl-pkey.html"><img src="previous.gif"
+<td><A href="crl.html"><img src="previous.gif"
   border="0" height="32"
   alt="Previous Page" width="32"></A></td>
 <td><A href="openssl-crypto.html"><img src="up.gif"
   border="0" height="32"
   alt="Up One Level" width="32"></A></td>
-<td><A href="openssl-pkcs12.html"><img src="next.gif"
+<td><A href="openssl-rand.html"><img src="next.gif"
   border="0" height="32"
   alt="Next Page" width="32"></A></td>
 <td align="center" width="100%">Python OpenSSL Manual</td>
@@ -107,9 +123,9 @@ Get the type name of the PKCS7.
   border="0" height="32"
   alt="" width="32"></td>
 </tr></table>
-<b class="navlabel">Previous:</b> <a class="sectref" href="openssl-pkey.html">3.1.5 PKey objects</A>
+<b class="navlabel">Previous:</b> <a class="sectref" href="crl.html">3.1.10 CRL objects</A>
 <b class="navlabel">Up:</b> <a class="sectref" href="openssl-crypto.html">3.1 crypto  </A>
-<b class="navlabel">Next:</b> <a class="sectref" href="openssl-pkcs12.html">3.1.7 PKCS12 objects</A>
+<b class="navlabel">Next:</b> <a class="sectref" href="openssl-rand.html">3.2 rand  </A>
 <hr>
 <span class="release-info">Release 0.11.</span>
 </DIV>

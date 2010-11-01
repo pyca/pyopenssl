@@ -1,28 +1,28 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
 <head>
-<title>3.1.6 PKCS7 objects </title>
-<META NAME="description" CONTENT="3.1.6 PKCS7 objects ">
+<title>3.1.10 CRL objects </title>
+<META NAME="description" CONTENT="3.1.10 CRL objects ">
 <META NAME="keywords" CONTENT="pyOpenSSL">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 <link rel="STYLESHEET" href="pyOpenSSL.css">
-<LINK REL="next" href="openssl-pkcs12.html">
-<LINK REL="previous" href="openssl-pkey.html">
+<LINK REL="next" href="revoked.html">
+<LINK REL="previous" href="openssl-netscape-spki.html">
 <LINK REL="up" href="openssl-crypto.html">
-<LINK REL="next" href="openssl-pkcs12.html">
+<LINK REL="next" href="revoked.html">
 </head>
 <body>
 <DIV CLASS="navigation">
 <table align="center" width="100%" cellpadding="0" cellspacing="2">
 <tr>
-<td><A href="openssl-pkey.html"><img src="previous.gif"
+<td><A href="openssl-netscape-spki.html"><img src="previous.gif"
   border="0" height="32"
   alt="Previous Page" width="32"></A></td>
 <td><A href="openssl-crypto.html"><img src="up.gif"
   border="0" height="32"
   alt="Up One Level" width="32"></A></td>
-<td><A href="openssl-pkcs12.html"><img src="next.gif"
+<td><A href="revoked.html"><img src="next.gif"
   border="0" height="32"
   alt="Next Page" width="32"></A></td>
 <td align="center" width="100%">Python OpenSSL Manual</td>
@@ -36,49 +36,38 @@
   border="0" height="32"
   alt="" width="32"></td>
 </tr></table>
-<b class="navlabel">Previous:</b> <a class="sectref" href="openssl-pkey.html">3.1.5 PKey objects</A>
+<b class="navlabel">Previous:</b> <a class="sectref" href="openssl-netscape-spki.html">3.1.9 NetscapeSPKI objects</A>
 <b class="navlabel">Up:</b> <a class="sectref" href="openssl-crypto.html">3.1 crypto  </A>
-<b class="navlabel">Next:</b> <a class="sectref" href="openssl-pkcs12.html">3.1.7 PKCS12 objects</A>
+<b class="navlabel">Next:</b> <a class="sectref" href="revoked.html">3.1.11 Revoked objects</A>
 <br><hr>
 </DIV>
 <!--End of Navigation Panel-->
 
-<H3><A NAME="SECTION000416000000000000000">&nbsp;</A>
+<H3><A NAME="SECTION0004110000000000000000">&nbsp;</A>
 <BR>
-3.1.6 PKCS7 objects 
+3.1.10 CRL objects 
 </H3>
 
 <P>
-PKCS7 objects have the following methods:
+CRL objects have the following methods:
 
 <P>
-<dl><dt><b><a name='l2h-81'><tt class='method'>type_is_signed</tt></a></b>()
+<dl><dt><b><a name='l2h-102'><tt class='method'>add_revoked</tt></a></b>(<var>revoked</var>)
 <dd>
-FIXME
+Add a Revoked object to the CRL, by value not reference.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-82'><tt class='method'>type_is_enveloped</tt></a></b>()
+<dl><dt><b><a name='l2h-103'><tt class='method'>export</tt></a></b>(<var>cert, key</var><big>[</big><var>, type=FILETYPE_PEM</var><big>]</big><big>[</big><var>, days=100</var><big>]</big>)
 <dd>
-FIXME
+Use <var>cert</var> and <var>key</var> to sign the CRL and return the CRL as a string.
+<var>days</var> is the number of days before the next CRL is due.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-83'><tt class='method'>type_is_signedAndEnveloped</tt></a></b>()
+<dl><dt><b><a name='l2h-104'><tt class='method'>get_revoked</tt></a></b>()
 <dd>
-FIXME
-</dl>
-
-<P>
-<dl><dt><b><a name='l2h-84'><tt class='method'>type_is_data</tt></a></b>()
-<dd>
-FIXME
-</dl>
-
-<P>
-<dl><dt><b><a name='l2h-85'><tt class='method'>get_type_name</tt></a></b>()
-<dd>
-Get the type name of the PKCS7.
+Return a tuple of Revoked objects, by value not reference.
 </dl>
 
 <P>
@@ -87,13 +76,13 @@ Get the type name of the PKCS7.
 <p><hr>
 <table align="center" width="100%" cellpadding="0" cellspacing="2">
 <tr>
-<td><A href="openssl-pkey.html"><img src="previous.gif"
+<td><A href="openssl-netscape-spki.html"><img src="previous.gif"
   border="0" height="32"
   alt="Previous Page" width="32"></A></td>
 <td><A href="openssl-crypto.html"><img src="up.gif"
   border="0" height="32"
   alt="Up One Level" width="32"></A></td>
-<td><A href="openssl-pkcs12.html"><img src="next.gif"
+<td><A href="revoked.html"><img src="next.gif"
   border="0" height="32"
   alt="Next Page" width="32"></A></td>
 <td align="center" width="100%">Python OpenSSL Manual</td>
@@ -107,9 +96,9 @@ Get the type name of the PKCS7.
   border="0" height="32"
   alt="" width="32"></td>
 </tr></table>
-<b class="navlabel">Previous:</b> <a class="sectref" href="openssl-pkey.html">3.1.5 PKey objects</A>
+<b class="navlabel">Previous:</b> <a class="sectref" href="openssl-netscape-spki.html">3.1.9 NetscapeSPKI objects</A>
 <b class="navlabel">Up:</b> <a class="sectref" href="openssl-crypto.html">3.1 crypto  </A>
-<b class="navlabel">Next:</b> <a class="sectref" href="openssl-pkcs12.html">3.1.7 PKCS12 objects</A>
+<b class="navlabel">Next:</b> <a class="sectref" href="revoked.html">3.1.11 Revoked objects</A>
 <hr>
 <span class="release-info">Release 0.11.</span>
 </DIV>
