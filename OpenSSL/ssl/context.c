@@ -171,7 +171,11 @@ global_verify_callback(int ok, X509_STORE_CTX *x509_ctx)
 
     MY_END_ALLOW_THREADS(conn->tstate);
 
+    printf("before new_x509 %p\n", new_x509);
+    fflush(stdout);
     cert = new_x509(X509_STORE_CTX_get_current_cert(x509_ctx), 0);
+    printf("after new_x509\n");
+    fflush(stdout);
     errnum = X509_STORE_CTX_get_error(x509_ctx);
     errdepth = X509_STORE_CTX_get_error_depth(x509_ctx);
 
