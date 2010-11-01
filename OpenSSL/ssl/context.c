@@ -171,7 +171,7 @@ global_verify_callback(int ok, X509_STORE_CTX *x509_ctx)
 
     MY_END_ALLOW_THREADS(conn->tstate);
 
-    cert = crypto_X509_New(X509_STORE_CTX_get_current_cert(x509_ctx), 0);
+    cert = new_x509(X509_STORE_CTX_get_current_cert(x509_ctx), 0);
     errnum = X509_STORE_CTX_get_error(x509_ctx);
     errdepth = X509_STORE_CTX_get_error_depth(x509_ctx);
 
@@ -1036,7 +1036,7 @@ ssl_Context_get_cert_store(ssl_ContextObj *self, PyObject *args)
     }
     else
     {
-        return (PyObject *)crypto_X509Store_New(store, 0);
+        return (PyObject *)new_x509store(store, 0);
     }
 }
 

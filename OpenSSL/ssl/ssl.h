@@ -46,6 +46,10 @@ extern int _pyOpenSSL_tstate_key;
 extern ssl_Context_New_RETURN    ssl_Context_New    ssl_Context_New_PROTO;
 extern ssl_Connection_New_RETURN ssl_Connection_New ssl_Connection_New_PROTO;
 
+extern crypto_X509Obj* (*new_x509)(X509*, int);
+extern crypto_X509NameObj* (*new_x509name)(X509_NAME*, int);
+extern crypto_X509StoreObj* (*new_x509store)(X509_STORE*, int);
+
 #else /* SSL_MODULE */
 
 extern void **ssl_API;

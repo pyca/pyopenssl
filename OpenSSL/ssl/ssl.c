@@ -30,6 +30,11 @@ Main file of the SSL sub module.\n\
 See the file RATIONALE for a short explanation of why this module was written.\n\
 ";
 
+crypto_X509Obj* (*new_x509)(X509*, int);
+crypto_X509NameObj* (*new_x509name)(X509_NAME*, int);
+crypto_X509StoreObj* (*new_x509store)(X509_STORE*, int);
+
+
 #ifndef PY3
 void **crypto_API;
 #endif
@@ -73,6 +78,26 @@ PyOpenSSL_MODINIT(SSL) {
     PyObject *ssl_api_object;
 
     import_crypto();
+
+    new_x509 = crypto_X509_New;
+    new_x509name = crypto_X509Name_New;
+    new_x509store = crypto_X509Store_New;
+#else
+#   ifdef _WIN32
+    HMODULE crypto = GetModuleHandle("crypto.pyd");
+    if (crypto == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "Unable to get crypto module");
+        PyOpenSSL_MODRETURN(NULL);
+    }
+
+    new_x509 = (crypto_X509Obj* (*)(X509*, int))GetProcAddress(crypto, "crypto_X509_New");
+    new_x509name = (crypto_X509NameObj* (*)(X509_NAME*, int))GetProcAddress(crypto, "crypto_X509Name_New");
+    new_x509store = (crypto_X509StoreObj* (*)(X509_STORE*, int))GetProcAddress(crypto, "crypto_X509Store_New");
+#   else
+    new_x509 = crypto_X509_New;
+    new_x509name = crypto_X509Name_New;
+    new_x509store = crypto_X509Store_New;
+#   endif
 #endif
 
     SSL_library_init();
