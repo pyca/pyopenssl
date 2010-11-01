@@ -1060,7 +1060,7 @@ ssl_Connection_get_peer_certificate(ssl_ConnectionObj *self, PyObject *args)
     cert = SSL_get_peer_certificate(self->ssl);
     if (cert != NULL)
     {
-        return (PyObject *)crypto_X509_New(cert, 1);
+        return (PyObject *)new_x509(cert, 1);
     }
     else
     {
