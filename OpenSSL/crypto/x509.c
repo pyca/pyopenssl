@@ -727,7 +727,6 @@ static PyMethodDef crypto_X509_methods[] =
  *                      free the "real" X509 object
  * Returns:   The newly created X509 object
  */
-__declspec(dllexport)
 crypto_X509Obj *
 crypto_X509_New(X509 *cert, int dealloc)
 {
