@@ -73,6 +73,18 @@ PyOpenSSL_MODINIT(SSL) {
     PyObject *ssl_api_object;
 
     import_crypto();
+#else
+#   ifdef WINDOWS
+    HMODULE crypto = GetModuleHandle("crypto.pyd");
+    if (crypto == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "Unable to get crypto module");
+        return;
+    }
+
+    new_x509name = GetProcAddress(crypto, "crypto_X509Name_New");
+#   else
+    new_x509name = crypto_X509Name_New;
+#   endif
 #endif
 
     SSL_library_init();

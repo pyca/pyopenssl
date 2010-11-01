@@ -65,7 +65,7 @@ extern PyObject *crypto_Error;
 
 #if defined(PY3) || defined(crypto_MODULE)
 
-__declspec(dllexport) extern crypto_X509_New_RETURN      crypto_X509_New      crypto_X509_New_PROTO;
+extern crypto_X509_New_RETURN      crypto_X509_New      crypto_X509_New_PROTO;
 extern crypto_X509Name_New_RETURN  crypto_X509Name_New  crypto_X509Name_New_PROTO;
 extern crypto_X509Req_New_RETURN   crypto_X509Req_New   crypto_X509Req_New_PROTO;
 extern crypto_X509Store_New_RETURN crypto_X509Store_New crypto_X509Store_New_PROTO;
