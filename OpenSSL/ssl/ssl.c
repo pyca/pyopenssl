@@ -30,6 +30,11 @@ Main file of the SSL sub module.\n\
 See the file RATIONALE for a short explanation of why this module was written.\n\
 ";
 
+crypto_X509Obj* (*new_x509)(X509*, int);
+crypto_X509NameObj* (*new_x509name)(X509_NAME*, int);
+crypto_X509StoreObj* (*new_x509store)(X509_STORE*, int);
+
+
 #ifndef PY3
 void **crypto_API;
 #endif
