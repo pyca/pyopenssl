@@ -492,37 +492,34 @@ class ContextTests(TestCase, _LoopbackMixin):
             Error, clientContext.load_verify_locations, self.mktemp())
 
 
-    if platform == "win32" and version_info > (3,):
-        "load_verify_* crashes on windows/python 3.x"
-    else:
-        def test_load_verify_file(self):
-            """
-            L{Context.load_verify_locations} accepts a file name and uses the
-            certificates within for verification purposes.
-            """
-            cafile = self.mktemp()
-            fObj = open(cafile, 'w')
-            fObj.write(cleartextCertificatePEM.decode('ascii'))
-            fObj.close()
+    def test_load_verify_file(self):
+        """
+        L{Context.load_verify_locations} accepts a file name and uses the
+        certificates within for verification purposes.
+        """
+        cafile = self.mktemp()
+        fObj = open(cafile, 'w')
+        fObj.write(cleartextCertificatePEM.decode('ascii'))
+        fObj.close()
 
-            self._load_verify_locations_test(cafile)
+        self._load_verify_locations_test(cafile)
 
 
-        def test_load_verify_directory(self):
-            """
-            L{Context.load_verify_locations} accepts a directory name and uses
-            the certificates within for verification purposes.
-            """
-            capath = self.mktemp()
-            makedirs(capath)
-            # Hash value computed manually with c_rehash to avoid depending on
-            # c_rehash in the test suite.
-            cafile = join(capath, 'c7adac82.0')
-            fObj = open(cafile, 'w')
-            fObj.write(cleartextCertificatePEM.decode('ascii'))
-            fObj.close()
+    def test_load_verify_directory(self):
+        """
+        L{Context.load_verify_locations} accepts a directory name and uses
+        the certificates within for verification purposes.
+        """
+        capath = self.mktemp()
+        makedirs(capath)
+        # Hash value computed manually with c_rehash to avoid depending on
+        # c_rehash in the test suite.
+        cafile = join(capath, 'c7adac82.0')
+        fObj = open(cafile, 'w')
+        fObj.write(cleartextCertificatePEM.decode('ascii'))
+        fObj.close()
 
-            self._load_verify_locations_test(None, capath)
+        self._load_verify_locations_test(None, capath)
 
 
     def test_load_verify_locations_wrong_args(self):
@@ -668,51 +665,48 @@ class ContextTests(TestCase, _LoopbackMixin):
                     pass
 
 
-    if platform == "win32" and version_info > (3,):
-        "add_extra_chain_cert crashes on windows/python 3.x"
-    else:
-        def test_add_extra_chain_cert(self):
-            """
-            L{Context.add_extra_chain_cert} accepts an L{X509} instance to add to
-            the certificate chain.
+    def test_add_extra_chain_cert(self):
+        """
+        L{Context.add_extra_chain_cert} accepts an L{X509} instance to add to
+        the certificate chain.
 
-            See L{_create_certificate_chain} for the details of the certificate
-            chain tested.
+        See L{_create_certificate_chain} for the details of the certificate
+        chain tested.
 
-            The chain is tested by starting a server with scert and connecting
-            to it with a client which trusts cacert and requires verification to
-            succeed.
-            """
-            chain = self._create_certificate_chain()
-            [(cakey, cacert), (ikey, icert), (skey, scert)] = chain
+        The chain is tested by starting a server with scert and connecting
+        to it with a client which trusts cacert and requires verification to
+        succeed.
+        """
+        chain = self._create_certificate_chain()
+        [(cakey, cacert), (ikey, icert), (skey, scert)] = chain
 
-            # Dump the CA certificate to a file because that's the only way to load
-            # it as a trusted CA in the client context.
-            for cert, name in [(cacert, 'ca.pem'), (icert, 'i.pem'), (scert, 's.pem')]:
-                fObj = open(name, 'w')
-                fObj.write(dump_certificate(FILETYPE_PEM, cert).decode('ascii'))
-                fObj.close()
+        # Dump the CA certificate to a file because that's the only way to load
+        # it as a trusted CA in the client context.
+        for cert, name in [(cacert, 'ca.pem'), (icert, 'i.pem'), (scert, 's.pem')]:
+            fObj = open(name, 'w')
+            fObj.write(dump_certificate(FILETYPE_PEM, cert).decode('ascii'))
+            fObj.close()
 
-            for key, name in [(cakey, 'ca.key'), (ikey, 'i.key'), (skey, 's.key')]:
-                fObj = open(name, 'w')
-                fObj.write(dump_privatekey(FILETYPE_PEM, key).decode('ascii'))
-                fObj.close()
+        for key, name in [(cakey, 'ca.key'), (ikey, 'i.key'), (skey, 's.key')]:
+            fObj = open(name, 'w')
+            fObj.write(dump_privatekey(FILETYPE_PEM, key).decode('ascii'))
+            fObj.close()
 
-            # Create the server context
-            serverContext = Context(TLSv1_METHOD)
-            serverContext.use_privatekey(skey)
-            serverContext.use_certificate(scert)
-            # The client already has cacert, we only need to give them icert.
-            serverContext.add_extra_chain_cert(icert)
+        # Create the server context
+        serverContext = Context(TLSv1_METHOD)
+        serverContext.use_privatekey(skey)
+        serverContext.use_certificate(scert)
+        # The client already has cacert, we only need to give them icert.
+        serverContext.add_extra_chain_cert(icert)
 
-            # Create the client
-            clientContext = Context(TLSv1_METHOD)
-            clientContext.set_verify(
-                VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT, verify_cb)
-            clientContext.load_verify_locations('ca.pem')
+        # Create the client
+        clientContext = Context(TLSv1_METHOD)
+        clientContext.set_verify(
+            VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT, verify_cb)
+        clientContext.load_verify_locations('ca.pem')
 
-            # Try it out.
-            self._handshake_test(serverContext, clientContext)
+        # Try it out.
+        self._handshake_test(serverContext, clientContext)
 
 
     def test_use_certificate_chain_file(self):

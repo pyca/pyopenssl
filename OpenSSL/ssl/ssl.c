@@ -81,9 +81,9 @@ PyOpenSSL_MODINIT(SSL) {
         PyOpenSSL_MODRETURN(NULL);
     }
 
-    new_x509 = (crypto_X509Obj* (*)(X509*, int))GetProcAddress(crypto, "crypto_X509_New");
-    new_x509name = (crypto_X509NameObj* (*)(X509_NAME*, int))GetProcAddress(crypto, "crypto_X509Name_New");
-    new_x509store = (crypto_X509StoreObj* (*)(X509_STORE*, int))GetProcAddress(crypto, "crypto_X509Store_New");
+    new_x509 = (crypto_X509Obj* (*)(X509*, int))GetProcAddress(crypto, "_crypto_X509_New");
+    new_x509name = (crypto_X509NameObj* (*)(X509_NAME*, int))GetProcAddress(crypto, "_crypto_X509Name_New");
+    new_x509store = (crypto_X509StoreObj* (*)(X509_STORE*, int))GetProcAddress(crypto, "_crypto_X509Store_New");
 #   else
     new_x509 = crypto_X509_New;
     new_x509name = crypto_X509Name_New;
