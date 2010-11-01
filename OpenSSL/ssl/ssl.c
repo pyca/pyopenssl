@@ -73,6 +73,10 @@ PyOpenSSL_MODINIT(SSL) {
     PyObject *ssl_api_object;
 
     import_crypto();
+
+    new_x509 = crypto_X509_New;
+    new_x509name = crypto_X509Name_New;
+    new_x509store = crypto_X509Store_New;
 #else
 #   ifdef _WIN32
     HMODULE crypto = GetModuleHandle("crypto.pyd");
