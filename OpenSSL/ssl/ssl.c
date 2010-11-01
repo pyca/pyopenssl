@@ -74,8 +74,7 @@ PyOpenSSL_MODINIT(SSL) {
 
     import_crypto();
 #else
-#   ifdef WINDOWS
-    #warning "Windows"
+#   ifdef _WIN32
     HMODULE crypto = GetModuleHandle("crypto.pyd");
     if (crypto == NULL) {
         PyErr_SetString(PyExc_RuntimeError, "Unable to get crypto module");
@@ -84,7 +83,6 @@ PyOpenSSL_MODINIT(SSL) {
 
     new_x509name = GetProcAddress(crypto, "crypto_X509Name_New");
 #   else
-    #warning "Not windows"
     new_x509name = crypto_X509Name_New;
 #   endif
 #endif
