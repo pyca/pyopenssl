@@ -7,9 +7,10 @@
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 <link rel="STYLESHEET" href="pyOpenSSL.css">
+<LINK REL="next" href="crl.html">
 <LINK REL="previous" href="openssl-509ext.html">
 <LINK REL="up" href="openssl-crypto.html">
-<LINK REL="next" href="openssl-rand.html">
+<LINK REL="next" href="crl.html">
 </head>
 <body>
 <DIV CLASS="navigation">
@@ -21,7 +22,7 @@
 <td><A href="openssl-crypto.html"><img src="up.gif"
   border="0" height="32"
   alt="Up One Level" width="32"></A></td>
-<td><A href="openssl-rand.html"><img src="next.gif"
+<td><A href="crl.html"><img src="next.gif"
   border="0" height="32"
   alt="Next Page" width="32"></A></td>
 <td align="center" width="100%">Python OpenSSL Manual</td>
@@ -37,7 +38,7 @@
 </tr></table>
 <b class="navlabel">Previous:</b> <a class="sectref" href="openssl-509ext.html">3.1.8 X509Extension objects</A>
 <b class="navlabel">Up:</b> <a class="sectref" href="openssl-crypto.html">3.1 crypto  </A>
-<b class="navlabel">Next:</b> <a class="sectref" href="openssl-rand.html">3.2 rand  </A>
+<b class="navlabel">Next:</b> <a class="sectref" href="crl.html">3.1.10 CRL objects</A>
 <br><hr>
 </DIV>
 <!--End of Navigation Panel-->
@@ -51,25 +52,25 @@
 NetscapeSPKI objects have the following methods:
 
 <P>
-<dl><dt><b><a name='l2h-92'><tt class='method'>b64_encode</tt></a></b>()
+<dl><dt><b><a name='l2h-97'><tt class='method'>b64_encode</tt></a></b>()
 <dd>
 Return a base64-encoded string representation of the object.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-93'><tt class='method'>get_pubkey</tt></a></b>()
+<dl><dt><b><a name='l2h-98'><tt class='method'>get_pubkey</tt></a></b>()
 <dd>
 Return the public key of object.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-94'><tt class='method'>set_pubkey</tt></a></b>(<var>key</var>)
+<dl><dt><b><a name='l2h-99'><tt class='method'>set_pubkey</tt></a></b>(<var>key</var>)
 <dd>
 Set the public key of the object to <var>key</var>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-95'><tt class='method'>sign</tt></a></b>(<var>key, digest_name</var>)
+<dl><dt><b><a name='l2h-100'><tt class='method'>sign</tt></a></b>(<var>key, digest_name</var>)
 <dd>
 Sign the NetscapeSPKI object using the given <var>key</var> and
 <var>digest_name</var>.  <var>digest_name</var> must be a string describing a digest
@@ -78,7 +79,7 @@ example, <tt class="constant">"md5"</tt> or <tt class="constant">"sha1"</tt>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-96'><tt class='method'>verify</tt></a></b>(<var>key</var>)
+<dl><dt><b><a name='l2h-101'><tt class='method'>verify</tt></a></b>(<var>key</var>)
 <dd>
 Verify the NetscapeSPKI object using the given <var>key</var>.
 </dl>
@@ -95,7 +96,7 @@ Verify the NetscapeSPKI object using the given <var>key</var>.
 <td><A href="openssl-crypto.html"><img src="up.gif"
   border="0" height="32"
   alt="Up One Level" width="32"></A></td>
-<td><A href="openssl-rand.html"><img src="next.gif"
+<td><A href="crl.html"><img src="next.gif"
   border="0" height="32"
   alt="Next Page" width="32"></A></td>
 <td align="center" width="100%">Python OpenSSL Manual</td>
@@ -111,9 +112,9 @@ Verify the NetscapeSPKI object using the given <var>key</var>.
 </tr></table>
 <b class="navlabel">Previous:</b> <a class="sectref" href="openssl-509ext.html">3.1.8 X509Extension objects</A>
 <b class="navlabel">Up:</b> <a class="sectref" href="openssl-crypto.html">3.1 crypto  </A>
-<b class="navlabel">Next:</b> <a class="sectref" href="openssl-rand.html">3.2 rand  </A>
+<b class="navlabel">Next:</b> <a class="sectref" href="crl.html">3.1.10 CRL objects</A>
 <hr>
-<span class="release-info">Release 0.10.</span>
+<span class="release-info">Release 0.11.</span>
 </DIV>
 <!--End of Navigation Panel-->
 

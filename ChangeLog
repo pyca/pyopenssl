@@ -1,3 +1,47 @@
+2010-11-01  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* Release 0.11
+
+2010-10-07  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* Initial support for Python 3.x throughout the codebase.
+
+2010-09-14  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/crypto/netscape_spki.c: Fix an off-by-one mistake in the
+	  error handling for NetscapeSPKI.verify.  Add additional error
+          checking to NetscapeSPKI.sign to handle the case where there is no
+          private key.
+
+	* OpenSSL/crypto/x509.c: Fix an overflow bug in the subject_name_hash
+	  method of the X509 type which would cause it to return negative
+	  values on 32 bit systems.
+
+	* OpenSSL/crypto/x509req.c: Fix an off-by-one mistake in the error
+	  handling for X509Req.verify.
+
+	* OpenSSL/ssl/context.c: Fix the error handling in the load_tmp_dh
+	  method of the Context type which would cause it to always raise
+	  MemoryError, regardless of the actual error (such as a bad file
+	  name).
+
+	* OpenSSL/test/: Numerous unit tests added, both for above fixes
+	  and for other previously untested code paths.
+
+2010-07-27  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* Re-arrange the repository so that the package can be built and
+	  used in-place without requiring installation.
+
+2010-02-27  James Yonan <james@openvpn.net>
+
+	* src/crypto/crypto.c: Added crypto.sign and crypto.verify methods
+	  that wrap EVP_Sign and EVP_Verify function families, using code
+	  derived from Dave Cridland's PyOpenSSL branch.
+
+	* test/test_crypto.py: Added unit tests for crypto.sign and
+	  crypto.verify.
+
 2010-01-27  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* src/ssl/connection.c, src/util.h: Apply patch from Sandro Tosi to

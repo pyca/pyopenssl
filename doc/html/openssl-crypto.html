@@ -153,41 +153,53 @@ method.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-21'><tt>FILETYPE_PEM</tt></a></b>
+<dl><dt><b>class <a name='l2h-21'><tt class='class'>CRL</tt></a></b>()
 <dd>
-<dt><b><a name='l2h-32'><tt>FILETYPE_ASN1</tt></a></b><dd>
+A class representing Certifcate Revocation List objects.
+</dl>
+
+<P>
+<dl><dt><b>class <a name='l2h-22'><tt class='class'>Revoked</tt></a></b>()
+<dd>
+A class representing Revocation objects of CRL.
+</dl>
+
+<P>
+<dl><dt><b><a name='l2h-23'><tt>FILETYPE_PEM</tt></a></b>
+<dd>
+<dt><b><a name='l2h-37'><tt>FILETYPE_ASN1</tt></a></b><dd>
 File type constants.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-22'><tt>TYPE_RSA</tt></a></b>
+<dl><dt><b><a name='l2h-24'><tt>TYPE_RSA</tt></a></b>
 <dd>
-<dt><b><a name='l2h-33'><tt>TYPE_DSA</tt></a></b><dd>
+<dt><b><a name='l2h-38'><tt>TYPE_DSA</tt></a></b><dd>
 Key type constants.
 </dl>
 
 <P>
-<dl><dt><b>exception <a name='l2h-23'><tt class='exception'>Error</tt></a></b>
+<dl><dt><b>exception <a name='l2h-25'><tt class='exception'>Error</tt></a></b>
 <dd>
 Generic exception used in the <tt class="module">crypto</tt> module.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-24'><tt class='function'>dump_certificate</tt></a></b>(<var>type, cert</var>)
+<dl><dt><b><a name='l2h-26'><tt class='function'>dump_certificate</tt></a></b>(<var>type, cert</var>)
 <dd>
 Dump the certificate <var>cert</var> into a buffer string encoded with the type
 <var>type</var>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-25'><tt class='function'>dump_certificate_request</tt></a></b>(<var>type, req</var>)
+<dl><dt><b><a name='l2h-27'><tt class='function'>dump_certificate_request</tt></a></b>(<var>type, req</var>)
 <dd>
 Dump the certificate request <var>req</var> into a buffer string encoded with the
 type <var>type</var>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-26'><tt class='function'>dump_privatekey</tt></a></b>(<var>type, pkey</var><big>[</big><var>, cipher, passphrase</var><big>]</big>)
+<dl><dt><b><a name='l2h-28'><tt class='function'>dump_privatekey</tt></a></b>(<var>type, pkey</var><big>[</big><var>, cipher, passphrase</var><big>]</big>)
 <dd>
 Dump the private key <var>pkey</var> into a buffer string encoded with the type
 <var>type</var>, optionally (if <var>type</var> is <tt class="constant">FILETYPE_PEM</tt>) encrypting it
@@ -199,21 +211,21 @@ pass phrase.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-27'><tt class='function'>load_certificate</tt></a></b>(<var>type, buffer</var>)
+<dl><dt><b><a name='l2h-29'><tt class='function'>load_certificate</tt></a></b>(<var>type, buffer</var>)
 <dd>
 Load a certificate (X509) from the string <var>buffer</var> encoded with the
 type <var>type</var>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-28'><tt class='function'>load_certificate_request</tt></a></b>(<var>type, buffer</var>)
+<dl><dt><b><a name='l2h-30'><tt class='function'>load_certificate_request</tt></a></b>(<var>type, buffer</var>)
 <dd>
 Load a certificate request (X509Req) from the string <var>buffer</var> encoded with
 the type <var>type</var>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-29'><tt class='function'>load_privatekey</tt></a></b>(<var>type, buffer</var><big>[</big><var>, passphrase</var><big>]</big>)
+<dl><dt><b><a name='l2h-31'><tt class='function'>load_privatekey</tt></a></b>(<var>type, buffer</var><big>[</big><var>, passphrase</var><big>]</big>)
 <dd>
 Load a private key (PKey) from the string <var>buffer</var> encoded with
 the type <var>type</var> (must be one of <tt class="constant">FILETYPE_PEM</tt> and
@@ -225,13 +237,21 @@ pass phrase.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-30'><tt class='function'>load_pkcs7_data</tt></a></b>(<var>type, buffer</var>)
+<dl><dt><b><a name='l2h-32'><tt class='function'>load_crl</tt></a></b>(<var>type, buffer</var>)
+<dd>
+Load Certificate Revocation List (CRL) data from a string <var>buffer</var>.
+<var>buffer</var> encoded with the type <var>type</var>.  The type <var>type</var> 
+must either <tt class="constant">FILETYPE_PEM</tt> or <tt class="constant">FILETYPE_ASN1</tt>).
+</dl>
+
+<P>
+<dl><dt><b><a name='l2h-33'><tt class='function'>load_pkcs7_data</tt></a></b>(<var>type, buffer</var>)
 <dd>
 Load pkcs7 data from the string <var>buffer</var> encoded with the type <var>type</var>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-31'><tt class='function'>load_pkcs12</tt></a></b>(<var>buffer</var><big>[</big><var>, passphrase</var><big>]</big>)
+<dl><dt><b><a name='l2h-34'><tt class='function'>load_pkcs12</tt></a></b>(<var>buffer</var><big>[</big><var>, passphrase</var><big>]</big>)
 <dd>
 Load pkcs12 data from the string <var>buffer</var>. If the pkcs12 structure is
 encrypted, a <var>passphrase</var> must be included.  The MAC is always
@@ -242,30 +262,64 @@ See also the man page for the C function <tt class="function">PKCS12_parse</tt>.
 </dl>
 
 <P>
+<dl><dt><b><a name='l2h-35'><tt class='function'>sign</tt></a></b>(<var>key, data, digest</var>)
+<dd>
+Sign a data string using the given key and message digest.
+
+<P>
+<var>key</var> is a <code>PKey</code> instance.  <var>data</var> is a <code>str</code> instance.
+<var>digest</var> is a <code>str</code> naming a supported message digest type, for example
+<code>``sha1''</code>.
+
+<span class='versionnote'>New in version 0.11.</span>
+
+</dl>
+
+<P>
+<dl><dt><b><a name='l2h-36'><tt class='function'>verify</tt></a></b>(<var>certificate, signature, data, digest</var>)
+<dd>
+Verify the signature for a data string.
+
+<P>
+<var>certificate</var> is a <code>X509</code> instance corresponding to the private key
+which generated the signature.  <var>signature</var> is a <var>str</var> instance giving
+the signature itself.  <var>data</var> is a <var>str</var> instance giving the data to
+which the signature applies.  <var>digest</var> is a <var>str</var> instance naming the
+message digest type of the signature, for example <code>``sha1''</code>.
+
+<span class='versionnote'>New in version 0.11.</span>
+
+</dl>
+
+<P>
 
 <p><hr>
 <!--Table of Child-Links-->
 <A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
 
 <UL CLASS="ChildLinks">
-<LI><A NAME="tex2html135"
-  href="openssl-x509.html">3.1.1 X509 objects </A>
-<LI><A NAME="tex2html136"
-  href="openssl-x509name.html">3.1.2 X509Name objects </A>
-<LI><A NAME="tex2html137"
-  href="openssl-x509req.html">3.1.3 X509Req objects </A>
-<LI><A NAME="tex2html138"
-  href="openssl-x509store.html">3.1.4 X509Store objects </A>
 <LI><A NAME="tex2html139"
-  href="openssl-pkey.html">3.1.5 PKey objects </A>
+  href="openssl-x509.html">3.1.1 X509 objects </A>
 <LI><A NAME="tex2html140"
-  href="openssl-pkcs7.html">3.1.6 PKCS7 objects </A>
+  href="openssl-x509name.html">3.1.2 X509Name objects </A>
 <LI><A NAME="tex2html141"
-  href="openssl-pkcs12.html">3.1.7 PKCS12 objects </A>
+  href="openssl-x509req.html">3.1.3 X509Req objects </A>
 <LI><A NAME="tex2html142"
-  href="openssl-509ext.html">3.1.8 X509Extension objects </A>
+  href="openssl-x509store.html">3.1.4 X509Store objects </A>
 <LI><A NAME="tex2html143"
+  href="openssl-pkey.html">3.1.5 PKey objects </A>
+<LI><A NAME="tex2html144"
+  href="openssl-pkcs7.html">3.1.6 PKCS7 objects </A>
+<LI><A NAME="tex2html145"
+  href="openssl-pkcs12.html">3.1.7 PKCS12 objects </A>
+<LI><A NAME="tex2html146"
+  href="openssl-509ext.html">3.1.8 X509Extension objects </A>
+<LI><A NAME="tex2html147"
   href="openssl-netscape-spki.html">3.1.9 NetscapeSPKI objects </A>
+<LI><A NAME="tex2html148"
+  href="crl.html">3.1.10 CRL objects </A>
+<LI><A NAME="tex2html149"
+  href="revoked.html">3.1.11 Revoked objects </A>
 </UL>
 <!--End of Table of Child-Links-->
 
@@ -297,7 +351,7 @@ See also the man page for the C function <tt class="function">PKCS12_parse</tt>.
 <b class="navlabel">Up:</b> <a class="sectref" href="openssl.html">3 OpenSSL  </A>
 <b class="navlabel">Next:</b> <a class="sectref" href="openssl-x509.html">3.1.1 X509 objects</A>
 <hr>
-<span class="release-info">Release 0.10.</span>
+<span class="release-info">Release 0.11.</span>
 </DIV>
 <!--End of Navigation Panel-->
 
