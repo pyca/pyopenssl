@@ -1081,12 +1081,12 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
     def test_wrong_args(self):
         """
         When called with arguments other than a single string,
-        L{Connection.sendall} raises L{TypeError}.
+        L{Connection.send} raises L{TypeError}.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
-        self.assertRaises(TypeError, connection.sendall)
-        self.assertRaises(TypeError, connection.sendall, object())
-        self.assertRaises(TypeError, connection.sendall, "foo", "bar")
+        self.assertRaises(TypeError, connection.send)
+        self.assertRaises(TypeError, connection.send, object())
+        self.assertRaises(TypeError, connection.send, "foo", "bar")
 
 
     def test_short_bytes(self):
