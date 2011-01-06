@@ -331,17 +331,31 @@ method again with the SAME buffer.\n\
 @return: The number of bytes written\n\
 ";
 static PyObject *
-ssl_Connection_send(ssl_ConnectionObj *self, PyObject *args)
-{
-    char *buf;
+ssl_Connection_send(ssl_ConnectionObj *self, PyObject *args) {
     int len, ret, err, flags;
+    char *buf;
+
+#if PY_VERSION_HEX >= 0x02060000
+    Py_buffer pbuf;
+
+    if (!PyArg_ParseTuple(args, "s*|i:send", &pbuf, &flags))
+        return NULL;
+
+    buf = pbuf.buf;
+    len = pbuf.len;
+#else
 
     if (!PyArg_ParseTuple(args, "s#|i:send", &buf, &len, &flags))
         return NULL;
+#endif
 
     MY_BEGIN_ALLOW_THREADS(self->tstate)
     ret = SSL_write(self->ssl, buf, len);
     MY_END_ALLOW_THREADS(self->tstate)
+
+#if PY_VERSION_HEX >= 0x02060000
+    PyBuffer_Release(&pbuf);
+#endif
 
     if (PyErr_Occurred())
     {
