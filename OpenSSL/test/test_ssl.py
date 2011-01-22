@@ -1116,6 +1116,7 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
             self.assertEquals(client.recv(2), b('xy'))
 
 
+
 class ConnectionSendallTests(TestCase, _LoopbackMixin):
     """
     Tests for L{Connection.sendall}.
@@ -1139,6 +1140,21 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         server, client = self._loopback()
         server.sendall(b('x'))
         self.assertEquals(client.recv(1), b('x'))
+
+
+    try:
+        memoryview
+    except NameError:
+        "cannot test sending memoryview without memoryview"
+    else:
+        def test_short_memoryview(self):
+            """
+            When passed a memoryview onto a small number of bytes,
+            L{Connection.sendall} transmits all of them.
+            """
+            server, client = self._loopback()
+            server.sendall(memoryview(b('x')))
+            self.assertEquals(client.recv(1), b('x'))
 
 
     def test_long(self):
