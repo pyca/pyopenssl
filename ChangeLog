@@ -1,3 +1,9 @@
+2011-01-22  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/ssl/connection.py: Add support for new-style
+	  buffers (primarily memoryviews) to Connection.send and
+	  Connection.sendall.
+
 2010-11-01  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* Release 0.11

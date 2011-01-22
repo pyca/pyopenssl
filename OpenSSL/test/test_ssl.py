@@ -1074,6 +1074,49 @@ class ConnectionGetCipherListTests(TestCase):
 
 
 
+class ConnectionSendTests(TestCase, _LoopbackMixin):
+    """
+    Tests for L{Connection.send}
+    """
+    def test_wrong_args(self):
+        """
+        When called with arguments other than a single string,
+        L{Connection.send} raises L{TypeError}.
+        """
+        connection = Connection(Context(TLSv1_METHOD), None)
+        self.assertRaises(TypeError, connection.send)
+        self.assertRaises(TypeError, connection.send, object())
+        self.assertRaises(TypeError, connection.send, "foo", "bar")
+
+
+    def test_short_bytes(self):
+        """
+        When passed a short byte string, L{Connection.send} transmits all of it
+        and returns the number of bytes sent.
+        """
+        server, client = self._loopback()
+        count = server.send(b('xy'))
+        self.assertEquals(count, 2)
+        self.assertEquals(client.recv(2), b('xy'))
+
+    try:
+        memoryview
+    except NameError:
+        "cannot test sending memoryview without memoryview"
+    else:
+        def test_short_memoryview(self):
+            """
+            When passed a memoryview onto a small number of bytes,
+            L{Connection.send} transmits all of them and returns the number of
+            bytes sent.
+            """
+            server, client = self._loopback()
+            count = server.send(memoryview(b('xy')))
+            self.assertEquals(count, 2)
+            self.assertEquals(client.recv(2), b('xy'))
+
+
+
 class ConnectionSendallTests(TestCase, _LoopbackMixin):
     """
     Tests for L{Connection.sendall}.
@@ -1097,6 +1140,21 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         server, client = self._loopback()
         server.sendall(b('x'))
         self.assertEquals(client.recv(1), b('x'))
+
+
+    try:
+        memoryview
+    except NameError:
+        "cannot test sending memoryview without memoryview"
+    else:
+        def test_short_memoryview(self):
+            """
+            When passed a memoryview onto a small number of bytes,
+            L{Connection.sendall} transmits all of them.
+            """
+            server, client = self._loopback()
+            server.sendall(memoryview(b('x')))
+            self.assertEquals(client.recv(1), b('x'))
 
 
     def test_long(self):
