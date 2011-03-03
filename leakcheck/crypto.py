@@ -1,3 +1,6 @@
+# Copyright (C) Jean-Paul Calderone
+# See LICENSE for details.
+
 import sys
 
 from OpenSSL.crypto import TYPE_DSA, Error, PKey, X509

@@ -1,4 +1,5 @@
-# Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+# Copyright (C) Jean-Paul Calderone
+# See LICENSE for details.
 #
 # Stress tester for thread-related bugs in global_passphrase_callback in
 # src/ssl/context.c.  In 0.7 and earlier, this will somewhat reliably
