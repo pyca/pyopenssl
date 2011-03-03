@@ -9,7 +9,6 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: crypto.h,v 1.14 2004/08/09 13:41:25 martin Exp $
  */
 #ifndef PyOpenSSL_CRYPTO_H_
 #define PyOpenSSL_CRYPTO_H_

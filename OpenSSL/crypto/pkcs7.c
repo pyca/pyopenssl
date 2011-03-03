@@ -1,7 +1,7 @@
 /*
  * pkcs7.c
  *
- * Copyright (C) AB Strakt 2002
+ * Copyright (C) AB Strakt
  * See LICENSE for details.
  *
  * PKCS7 handling code, mostly thin wrappers around OpenSSL.

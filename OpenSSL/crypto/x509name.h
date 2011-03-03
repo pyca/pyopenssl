@@ -9,7 +9,6 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: x509name.h,v 1.8 2002/09/04 22:24:59 iko Exp $
  */
 #ifndef PyOpenSSL_crypto_X509NAME_H_
 #define PyOpenSSL_crypto_X509NAME_H_
