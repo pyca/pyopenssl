@@ -211,7 +211,7 @@ setup(name='pyOpenSSL', version=__version__,
       maintainer = 'Jean-Paul Calderone',
       maintainer_email = 'exarkun@twistedmatrix.com',
       url = 'http://pyopenssl.sourceforge.net/',
-      license = 'LGPL',
+      license = 'APL2',
       long_description = """\
 High-level wrapper around a subset of the OpenSSL library, includes
  * SSL.Connection objects, wrapping the methods of Python's portable
