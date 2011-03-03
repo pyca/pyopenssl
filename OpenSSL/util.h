@@ -1,14 +1,14 @@
 /*
  * util.h
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) AB Strakt
+ * See LICENSE for details.
  *
  * Export utility functions and macros.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: util.h,v 1.8 2002/08/16 10:08:09 martin Exp $
  */
 #ifndef PyOpenSSL_UTIL_H_
 #define PyOpenSSL_UTIL_H_

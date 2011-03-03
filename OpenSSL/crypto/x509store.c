@@ -1,7 +1,8 @@
 /*
  * x509store.c
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) AB Strakt
+ * See LICENSE for details.
  *
  * X.509 Store handling, mostly thin wrapping.
  * See the file RATIONALE for a short explanation of why this module was written.

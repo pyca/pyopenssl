@@ -1,11 +1,11 @@
 /*
  * pkcs12.h
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) AB Strakt
+ * See LICENSE for details.
  *
  * Export PKCS12 functions and data structure.
  *
- * @(#) $$
  */
 #ifndef PyOpenSSL_crypto_PKCS12_H_
 #define PyOpenSSL_crypto_PKCS12_H_

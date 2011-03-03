@@ -1,7 +1,8 @@
 /*
  * pkcs7.c
  *
- * Copyright (C) AB Strakt 2002, All rights reserved
+ * Copyright (C) AB Strakt 2002
+ * See LICENSE for details.
  *
  * PKCS7 handling code, mostly thin wrappers around OpenSSL.
  * See the file RATIONALE for a short explanation of why this module was written.

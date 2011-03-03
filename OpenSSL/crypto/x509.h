@@ -1,14 +1,14 @@
 /*
  * x509.h
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) AB Strakt
+ * See LICENSE for details.
  *
  * Export x509 functions and data structure.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: x509.h,v 1.9 2002/09/04 22:24:59 iko Exp $
  */
 #ifndef PyOpenSSL_crypto_X509_H_
 #define PyOpenSSL_crypto_X509_H_

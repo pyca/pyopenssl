@@ -1,7 +1,8 @@
 /*
  * crypto.h
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) AB Strakt
+ * See LICENSE for details.
  *
  * Exports from crypto.c.
  * See the file RATIONALE for a short explanation of why this module was written.

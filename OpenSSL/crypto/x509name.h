@@ -1,7 +1,8 @@
 /*
  * x509name.h
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) AB Strakt
+ * See LICENSE for details.
  *
  * Export X.509 name functions and data structures.
  * See the file RATIONALE for a short explanation of why this module was written.
