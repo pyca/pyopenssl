@@ -1,7 +1,8 @@
 # -*- coding: latin-1 -*-
 #
-# Copyright (C) 2001 Martin Sjögren and AB Strakt, All rights reserved
-# Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+# Copyright (C) AB Strakt
+# Copyright (C) Jean-Paul Calderone
+# See LICENSE for details.
 
 """
 Simple echo server, using nonblocking I/O
