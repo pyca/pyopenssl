@@ -1,7 +1,7 @@
 /*
  * x509req.h
  *
- * Copyright (C) AB Strakt 2001
+ * Copyright (C) AB Strakt
  * See LICENSE for details.
  *
  * Export X509 request functions and data structures.

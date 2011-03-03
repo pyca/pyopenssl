@@ -1,7 +1,7 @@
 /*
  * x509ext.c
  *
- * Copyright (C) Jean-Paul Calderone 2008
+ * Copyright (C) Jean-Paul Calderone
  * See LICENSE for details.
  *
  * Export X.509 extension functions and data structures.
