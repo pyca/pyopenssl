@@ -842,6 +842,7 @@ init_crypto_x509(PyObject *module)
         return 0;
     }
 
+    Py_INCREF((PyObject *)&crypto_X509_Type);
     if (PyModule_AddObject(module, "X509Type", (PyObject *)&crypto_X509_Type) != 0) {
         return 0;
     }
