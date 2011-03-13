@@ -203,6 +203,9 @@ init_crypto_pkcs7(PyObject *module) {
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&crypto_PKCS7_Type);
     if (PyModule_AddObject(module, "PKCS7Type", (PyObject *)&crypto_PKCS7_Type) != 0) {
         return 0;
     }
