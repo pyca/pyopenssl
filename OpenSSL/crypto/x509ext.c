@@ -1,12 +1,12 @@
 /*
  * x509ext.c
  *
- * Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+ * Copyright (C) Jean-Paul Calderone
+ * See LICENSE for details.
  *
  * Export X.509 extension functions and data structures.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
- * @(#) $Id: x509ext.c,v 1.1 2002/07/09 13:34:46 martin Exp $
  */
 
 #include <Python.h>

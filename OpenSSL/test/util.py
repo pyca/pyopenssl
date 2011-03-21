@@ -1,5 +1,5 @@
-# Copyright (C) Jean-Paul Calderone 2009, All rights reserved
-# Copyright (c) 2001-2009 Twisted Matrix Laboratories.
+# Copyright (C) Jean-Paul Calderone
+# Copyright (C) Twisted Matrix Laboratories.
 # See LICENSE for details.
 
 """

@@ -1,4 +1,5 @@
-# Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+# Copyright (c) Jean-Paul Calderone
+# See LICENSE file for details.
 
 """
 Unit tests for L{OpenSSL.crypto}.

@@ -1,12 +1,12 @@
 /*
  * x509store.h
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) AB Strakt
+ * See LICENSE for details.
  *
  * Export X509 store functions and data structures.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
- * @(#) $Id: x509store.h,v 1.4 2002/09/04 22:24:59 iko Exp $
  */
 #ifndef PyOpenSSL_SSL_X509STORE_H_
 #define PyOpenSSL_SSL_X509STORE_H_

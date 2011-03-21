@@ -1,12 +1,12 @@
 /*
  * pkcs7.h
  *
- * Copyright (C) AB Strakt 2002, All rights reserved
+ * Copyright (C) AB Strakt
+ * See LICENSE for details.
  *
  * Export pkcs7 functions and data structure.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
- * @(#) $Id: pkcs7.h,v 1.2 2002/09/04 22:24:59 iko Exp $
  */
 #ifndef PyOpenSSL_crypto_PKCS7_H_
 #define PyOpenSSL_crypto_PKCS7_H_

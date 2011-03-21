@@ -1,12 +1,12 @@
 /*
  * rand.c
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) AB Strakt
+ * See LICENSE file for details.
  *
  * PRNG management routines, thin wrappers.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
- * Reviewed 2001-07-23
  */
 #include <Python.h>
 

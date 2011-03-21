@@ -1,7 +1,8 @@
 /*
  * netscape_spki.h
  *
- * Copyright (C) Tollef Fog Heen 2003, All rights reserved
+ * Copyright (C) Tollef Fog Heen
+ * See LICENSE for details.
  *
  * Handle Netscape SPKI (challenge response) certificate requests.
  *

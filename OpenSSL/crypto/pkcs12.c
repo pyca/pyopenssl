@@ -1,7 +1,8 @@
 /*
  * pkcs12.c
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) AB Strakt
+ * See LICENSE for details.
  *
  * Certificate transport (PKCS12) handling code,
  * mostly thin wrappers around OpenSSL.

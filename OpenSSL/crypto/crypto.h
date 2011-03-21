@@ -1,14 +1,14 @@
 /*
  * crypto.h
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) AB Strakt
+ * See LICENSE for details.
  *
  * Exports from crypto.c.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: crypto.h,v 1.14 2004/08/09 13:41:25 martin Exp $
  */
 #ifndef PyOpenSSL_CRYPTO_H_
 #define PyOpenSSL_CRYPTO_H_

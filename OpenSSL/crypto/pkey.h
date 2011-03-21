@@ -1,13 +1,13 @@
 /*
  * pkey.h
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
- * Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+ * Copyright (C) AB Strakt
+ * Copyright (C) Jean-Paul Calderone
+ * See LICENSE for details.
  *
  * Export pkey functions and data structure.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
- * @(#) $Id: pkey.h,v 1.5 2002/09/04 22:24:59 iko Exp $
  */
 #ifndef PyOpenSSL_crypto_PKEY_H_
 #define PyOpenSSL_crypto_PKEY_H_

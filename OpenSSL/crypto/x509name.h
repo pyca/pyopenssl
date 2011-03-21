@@ -1,14 +1,14 @@
 /*
  * x509name.h
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) AB Strakt
+ * See LICENSE for details.
  *
  * Export X.509 name functions and data structures.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: x509name.h,v 1.8 2002/09/04 22:24:59 iko Exp $
  */
 #ifndef PyOpenSSL_crypto_X509NAME_H_
 #define PyOpenSSL_crypto_X509NAME_H_
