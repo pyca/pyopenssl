@@ -1,3 +1,8 @@
+2011-03-21  Olivier Hervieu <lp:~ohe>
+
+	* OpenSSL/ssl/ssl.c: Expose a number of symbolic constants for
+	  values passed to the connection "info" callback.
+
 2011-01-22  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL/ssl/connection.py: Add support for new-style
