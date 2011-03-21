@@ -210,6 +210,28 @@ do {                                                                          \
     PyModule_AddIntConstant(module, "SENT_SHUTDOWN", SSL_SENT_SHUTDOWN);
     PyModule_AddIntConstant(module, "RECEIVED_SHUTDOWN", SSL_RECEIVED_SHUTDOWN);
 
+    /* For set_info_callback */
+    PyModule_AddIntConstant(module, "SSL_ST_CONNECT", SSL_ST_CONNECT);
+    PyModule_AddIntConstant(module, "SSL_ST_ACCEPT", SSL_ST_ACCEPT);
+    PyModule_AddIntConstant(module, "SSL_ST_MASK", SSL_ST_MASK);
+    PyModule_AddIntConstant(module, "SSL_ST_INIT", SSL_ST_INIT);
+    PyModule_AddIntConstant(module, "SSL_ST_BEFORE", SSL_ST_BEFORE);
+    PyModule_AddIntConstant(module, "SSL_ST_OK", SSL_ST_OK);
+    PyModule_AddIntConstant(module, "SSL_ST_RENEGOTIATE", SSL_ST_RENEGOTIATE);
+    PyModule_AddIntConstant(module, "SSL_CB_LOOP", SSL_CB_LOOP);
+    PyModule_AddIntConstant(module, "SSL_CB_EXIT", SSL_CB_EXIT);
+    PyModule_AddIntConstant(module, "SSL_CB_READ", SSL_CB_READ);
+    PyModule_AddIntConstant(module, "SSL_CB_WRITE", SSL_CB_WRITE);
+    PyModule_AddIntConstant(module, "SSL_CB_ALERT", SSL_CB_ALERT);
+    PyModule_AddIntConstant(module, "SSL_CB_READ_ALERT", SSL_CB_READ_ALERT);
+    PyModule_AddIntConstant(module, "SSL_CB_WRITE_ALERT", SSL_CB_WRITE_ALERT);
+    PyModule_AddIntConstant(module, "SSL_CB_ACCEPT_LOOP", SSL_CB_ACCEPT_LOOP);
+    PyModule_AddIntConstant(module, "SSL_CB_ACCEPT_EXIT", SSL_CB_ACCEPT_EXIT);
+    PyModule_AddIntConstant(module, "SSL_CB_CONNECT_LOOP", SSL_CB_CONNECT_LOOP);
+    PyModule_AddIntConstant(module, "SSL_CB_CONNECT_EXIT", SSL_CB_CONNECT_EXIT);
+    PyModule_AddIntConstant(module, "SSL_CB_HANDSHAKE_START", SSL_CB_HANDSHAKE_START);
+    PyModule_AddIntConstant(module, "SSL_CB_HANDSHAKE_DONE", SSL_CB_HANDSHAKE_DONE);
+
     if (!init_ssl_context(module))
         goto error;
     if (!init_ssl_connection(module))

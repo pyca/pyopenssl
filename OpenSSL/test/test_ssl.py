@@ -42,6 +42,13 @@ try:
 except ImportError:
     OP_NO_TICKET = None
 
+from OpenSSL.SSL import (
+    SSL_ST_CONNECT, SSL_ST_ACCEPT, SSL_ST_MASK, SSL_ST_INIT, SSL_ST_BEFORE,
+    SSL_ST_OK, SSL_ST_RENEGOTIATE,
+    SSL_CB_LOOP, SSL_CB_EXIT, SSL_CB_READ, SSL_CB_WRITE, SSL_CB_ALERT,
+    SSL_CB_READ_ALERT, SSL_CB_WRITE_ALERT, SSL_CB_ACCEPT_LOOP,
+    SSL_CB_ACCEPT_EXIT, SSL_CB_CONNECT_LOOP, SSL_CB_CONNECT_EXIT,
+    SSL_CB_HANDSHAKE_START, SSL_CB_HANDSHAKE_DONE)
 
 # openssl dhparam 128 -out dh-128.pem (note that 128 is a small number of bits
 # to use)
@@ -1675,6 +1682,28 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
             return [cadesc, sedesc]
         self._check_client_ca_list(set_replaces_add_ca)
 
+
+class InfoConstantTests(TestCase):
+    """
+    Tests for assorted constants exposed for use in info callbacks.
+    """
+    def test_integers(self):
+        """
+        All of the info constants are integers.
+
+        This is a very weak test.  It would be nice to have one that actually
+        verifies that as certain info events happen, the value passed to the
+        info callback matches up with the constant exposed by OpenSSL.SSL.
+        """
+        for const in [
+            SSL_ST_CONNECT, SSL_ST_ACCEPT, SSL_ST_MASK, SSL_ST_INIT,
+            SSL_ST_BEFORE, SSL_ST_OK, SSL_ST_RENEGOTIATE,
+            SSL_CB_LOOP, SSL_CB_EXIT, SSL_CB_READ, SSL_CB_WRITE, SSL_CB_ALERT,
+            SSL_CB_READ_ALERT, SSL_CB_WRITE_ALERT, SSL_CB_ACCEPT_LOOP,
+            SSL_CB_ACCEPT_EXIT, SSL_CB_CONNECT_LOOP, SSL_CB_CONNECT_EXIT,
+            SSL_CB_HANDSHAKE_START, SSL_CB_HANDSHAKE_DONE]:
+
+            self.assertTrue(isinstance(const, int))
 
 
 if __name__ == '__main__':
