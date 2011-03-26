@@ -1107,7 +1107,7 @@ static PyMethodDef ssl_Context_methods[] = {
  */
 static ssl_ContextObj*
 ssl_Context_init(ssl_ContextObj *self, int i_method) {
-    SSL_METHOD *method;
+    const SSL_METHOD *method;
 
     switch (i_method) {
         case ssl_SSLv2_METHOD:
