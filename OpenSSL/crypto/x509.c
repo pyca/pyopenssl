@@ -301,7 +301,7 @@ crypto_X509_get_pubkey(crypto_X509Obj *self, PyObject *args)
 
     py_pkey = crypto_PKey_New(pkey, 1);
     if (py_pkey != NULL) {
-	    py_pkey->only_public = 1;
+        py_pkey->only_public = 1;
     }
     return (PyObject *)py_pkey;
 }
@@ -689,47 +689,46 @@ crypto_X509_add_extensions(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_get_extension_count_doc[] = "\n\
 Get the number of extensions on the certificate.\n\
 \n\
-Arguments: self - X509 object\n\
-Returns:    Number of extensions as a Python integer\n\
+@return: Number of extensions as a Python integer\n\
 ";
 
 static PyObject *
-crypto_X509_get_extension_count(crypto_X509Obj *self, PyObject *args)
-{
-    if (!PyArg_ParseTuple(args, ":get_extension_count"))
+crypto_X509_get_extension_count(crypto_X509Obj *self, PyObject *args) {
+    if (!PyArg_ParseTuple(args, ":get_extension_count")) {
         return NULL;
+    }
 
     return PyInt_FromLong((long)X509_get_ext_count(self->x509));
 }
 
 static char crypto_X509_get_extension_doc[] = "\n\
-Get a specific extension of the certificate.\n\
+Get a specific extension of the certificate by index.\n\
 \n\
-Arguments: self - X509 object\n\
-Returns:    An X509 extension object\n\
+@param index: The index of the extension to retrieve.
+@return: The X509Extension object at the specified index.\n\
 ";
 
 static PyObject *
-crypto_X509_get_extension(crypto_X509Obj *self, PyObject *args)
-{   
+crypto_X509_get_extension(crypto_X509Obj *self, PyObject *args) {
     crypto_X509ExtensionObj *extobj;
     int loc;
     X509_EXTENSION *ext;
 
-    if (!PyArg_ParseTuple(args, "i:get_extension", &loc))
+    if (!PyArg_ParseTuple(args, "i:get_extension", &loc)) {
         return NULL;
+    }
 
     /* will return NULL if loc is outside the range of extensions,
-    not registered as an error*/
+       not registered as an error*/
     ext = X509_get_ext(self->x509, loc);
     if (!ext) {
         return NULL; /* Should be reported as an IndexError ? */
         /*exception_from_error_queue();*/
     }
-    
+
     extobj = PyObject_New(crypto_X509ExtensionObj, &crypto_X509Extension_Type);
     extobj->x509_extension = X509_EXTENSION_dup(ext);
-    
+
     return extobj;
 }
 
