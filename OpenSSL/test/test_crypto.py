@@ -1222,10 +1222,38 @@ WpOdIpB8KksUTCzV591Nr1wd
     def test_extension_count(self):
         """
         L{X509.get_extension_count} returns the number of extensions that are
-        present in the certificate
+        present in the certificate.
         """
-        cert = load_certificate(FILETYPE_PEM, self.extpem)
-        self.assertEqual(cert.get_extension_count(),5)
+        pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
+        def cert(extensions):
+            cert = X509()
+            cert.set_pubkey(pkey)
+            cert.get_subject().commonName = "Unit Tests"
+            cert.get_issuer().commonName = "Unit Tests"
+            when = b(datetime.now().strftime("%Y%m%d%H%M%SZ"))
+            cert.set_notBefore(when)
+            cert.set_notAfter(when)
+
+            cert.add_extensions(extensions)
+            return load_certificate(
+                FILETYPE_PEM, dump_certificate(FILETYPE_PEM, cert))
+
+        ca = X509Extension('basicConstraints', True, 'CA:FALSE')
+        key = X509Extension('keyUsage', True, 'digitalSignature')
+        subjectAltName = X509Extension(
+            'subjectAltName', True, 'DNS:example.com')
+
+        # Try a certificate with no extensions at all.
+        c = cert([])
+        self.assertEqual(c.get_extension_count(), 0)
+
+        # And a certificate with one
+        c = cert([ca])
+        self.assertEqual(c.get_extension_count(), 1)
+
+        # And a certificate with several
+        c = cert([ca, key, subjectAltName])
+        self.assertEqual(c.get_extension_count(), 3)
 
 
     def test_subjectaltname_of_type(self):

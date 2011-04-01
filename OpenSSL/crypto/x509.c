@@ -704,7 +704,7 @@ crypto_X509_get_extension_count(crypto_X509Obj *self, PyObject *args) {
 static char crypto_X509_get_extension_doc[] = "\n\
 Get a specific extension of the certificate by index.\n\
 \n\
-@param index: The index of the extension to retrieve.
+@param index: The index of the extension to retrieve.\n\
 @return: The X509Extension object at the specified index.\n\
 ";
 
@@ -729,7 +729,7 @@ crypto_X509_get_extension(crypto_X509Obj *self, PyObject *args) {
     extobj = PyObject_New(crypto_X509ExtensionObj, &crypto_X509Extension_Type);
     extobj->x509_extension = X509_EXTENSION_dup(ext);
 
-    return extobj;
+    return (PyObject*)extobj;
 }
 
 /* Copied from openssl/crypto/x509v3/v3_utl.c */
