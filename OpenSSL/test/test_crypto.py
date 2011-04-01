@@ -353,6 +353,26 @@ class X509ExtTests(TestCase):
         self.assertEqual(ext.get_short_name(), b('nsComment'))
 
 
+    def test_get_data(self):
+        """
+        L{X509Extension.get_data} returns a string giving the data of the
+        extension.
+        """
+        ext = X509Extension(b('basicConstraints'), True, b('CA:true'))
+        # Expect to get back the DER encoded form of CA:true.
+        self.assertEqual(ext.get_data(), b('0\x03\x01\x01\xff'))
+
+
+    def test_get_data_wrong_args(self):
+        """
+        L{X509Extension.get_data} raises L{TypeError} if passed any arguments.
+        """
+        ext = X509Extension(b('basicConstraints'), True, b('CA:true'))
+        self.assertRaises(TypeError, ext.get_data, None)
+        self.assertRaises(TypeError, ext.get_data, "foo")
+        self.assertRaises(TypeError, ext.get_data, 7)
+
+
     def test_unused_subject(self):
         """
         The C{subject} parameter to L{X509Extension} may be provided for an
