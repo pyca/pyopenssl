@@ -722,8 +722,8 @@ crypto_X509_get_extension(crypto_X509Obj *self, PyObject *args) {
        not registered as an error*/
     ext = X509_get_ext(self->x509, loc);
     if (!ext) {
+        PyErr_SetString(PyExc_IndexError, "extension index out of bounds");
         return NULL; /* Should be reported as an IndexError ? */
-        /*exception_from_error_queue();*/
     }
 
     extobj = PyObject_New(crypto_X509ExtensionObj, &crypto_X509Extension_Type);

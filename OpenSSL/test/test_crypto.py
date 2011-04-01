@@ -1219,41 +1219,75 @@ WpOdIpB8KksUTCzV591Nr1wd
             b("A8:EB:07:F8:53:25:0A:F2:56:05:C5:A5:C4:C4:C7:15"))
 
 
+    def _extcert(self, pkey, extensions):
+        cert = X509()
+        cert.set_pubkey(pkey)
+        cert.get_subject().commonName = "Unit Tests"
+        cert.get_issuer().commonName = "Unit Tests"
+        when = b(datetime.now().strftime("%Y%m%d%H%M%SZ"))
+        cert.set_notBefore(when)
+        cert.set_notAfter(when)
+
+        cert.add_extensions(extensions)
+        return load_certificate(
+            FILETYPE_PEM, dump_certificate(FILETYPE_PEM, cert))
+
+
     def test_extension_count(self):
         """
         L{X509.get_extension_count} returns the number of extensions that are
         present in the certificate.
         """
         pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
-        def cert(extensions):
-            cert = X509()
-            cert.set_pubkey(pkey)
-            cert.get_subject().commonName = "Unit Tests"
-            cert.get_issuer().commonName = "Unit Tests"
-            when = b(datetime.now().strftime("%Y%m%d%H%M%SZ"))
-            cert.set_notBefore(when)
-            cert.set_notAfter(when)
-
-            cert.add_extensions(extensions)
-            return load_certificate(
-                FILETYPE_PEM, dump_certificate(FILETYPE_PEM, cert))
-
         ca = X509Extension('basicConstraints', True, 'CA:FALSE')
         key = X509Extension('keyUsage', True, 'digitalSignature')
         subjectAltName = X509Extension(
             'subjectAltName', True, 'DNS:example.com')
 
         # Try a certificate with no extensions at all.
-        c = cert([])
+        c = self._extcert(pkey, [])
         self.assertEqual(c.get_extension_count(), 0)
 
         # And a certificate with one
-        c = cert([ca])
+        c = self._extcert(pkey, [ca])
         self.assertEqual(c.get_extension_count(), 1)
 
         # And a certificate with several
-        c = cert([ca, key, subjectAltName])
+        c = self._extcert(pkey, [ca, key, subjectAltName])
         self.assertEqual(c.get_extension_count(), 3)
+
+
+    def test_get_extension(self):
+        """
+        L{X509.get_extension} takes an integer and returns an L{X509Extension}
+        corresponding to the extension at that index.
+        """
+        pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
+        ca = X509Extension('basicConstraints', True, 'CA:FALSE')
+        key = X509Extension('keyUsage', True, 'digitalSignature')
+        subjectAltName = X509Extension(
+            'subjectAltName', False, 'DNS:example.com')
+
+        cert = self._extcert(pkey, [ca, key, subjectAltName])
+
+        ext = cert.get_extension(0)
+        self.assertTrue(isinstance(ext, X509Extension))
+        self.assertTrue(ext.get_critical())
+        self.assertEqual(ext.get_short_name(), 'basicConstraints')
+
+        ext = cert.get_extension(1)
+        self.assertTrue(isinstance(ext, X509Extension))
+        self.assertTrue(ext.get_critical())
+        self.assertEqual(ext.get_short_name(), 'keyUsage')
+
+        ext = cert.get_extension(2)
+        self.assertTrue(isinstance(ext, X509Extension))
+        self.assertFalse(ext.get_critical())
+        self.assertEqual(ext.get_short_name(), 'subjectAltName')
+
+        self.assertRaises(IndexError, cert.get_extension, -1)
+        self.assertRaises(IndexError, cert.get_extension, 4)
+        self.assertRaises(TypeError, cert.get_extension, "hello")
 
 
     def test_subjectaltname_of_type(self):
