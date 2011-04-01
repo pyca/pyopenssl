@@ -1290,20 +1290,6 @@ WpOdIpB8KksUTCzV591Nr1wd
         self.assertRaises(TypeError, cert.get_extension, "hello")
 
 
-    def test_subjectaltname_of_type(self):
-        """
-        L{X509.get_subjectaltname_of_type} returns a list of strings
-        representing the values of the subjectAltName extensions of the
-        specified type
-        """
-        cert = load_certificate(FILETYPE_PEM, self.extpem)
-        domains = cert.get_subjectaltname_of_type("DNS")
-        domains.sort()
-        self.assertEqual(domains,['*.example.org', '*.om2.exmaple.com'])
-        self.assertEqual(cert.get_subjectaltname_of_type("EMAIL"),['om2@openmetadir.org'])
-        self.assertEqual(cert.get_subjectaltname_of_type("URI"),[])
-
-
     def test_invalid_digest_algorithm(self):
         """
         L{X509.digest} raises L{ValueError} if called with an unrecognized hash

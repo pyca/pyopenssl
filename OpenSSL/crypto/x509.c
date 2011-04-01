@@ -732,101 +732,6 @@ crypto_X509_get_extension(crypto_X509Obj *self, PyObject *args) {
     return (PyObject*)extobj;
 }
 
-/* Copied from openssl/crypto/x509v3/v3_utl.c */
-
-static void str_free(void *str)
-{
-	OPENSSL_free(str);
-}
-static int sk_strcmp(const char * const *a, const char * const *b)
-{
-	return strcmp(*a, *b);
-}
-static int append_ia5(STACK **sk, ASN1_IA5STRING *value)
-{
-	char *tmp;
-	/* First some sanity checks */
-	if(value->type != V_ASN1_IA5STRING) return 1;
-	if(!value->data || !value->length) return 1;
-	if(!*sk) *sk = sk_new(sk_strcmp);
-	if(!*sk) return 0;
-	/* Don't add duplicates */
-	if(sk_find(*sk, (char *)value->data) != -1) return 1;
-	tmp = BUF_strdup((char *)value->data);
-	if(!tmp || !sk_push(*sk, tmp)) {
-    	sk_pop_free(*sk, str_free);
-    	*sk = NULL;
-		return 0;
-	}
-	return 1;
-}
-
-/* -------------------------------------------------*/
-/* !!! This only works for ASN1_IA5STRING values !!!*/
-/* -------------------------------------------------*/
-static STACK *get_ia5_san_value(GENERAL_NAMES *gens, int type)
-{
-	STACK *ret = NULL;
-	GENERAL_NAME *gen;
-	int i;
-
-	for(i = 0; i < sk_GENERAL_NAME_num(gens); i++)
-	{
-		gen = sk_GENERAL_NAME_value(gens, i);
-		if(gen->type != type) continue;
-		if(!append_ia5(&ret, gen->d.ia5)) return NULL;
-	}
-	return ret;
-}
-
-static char crypto_X509_get_subjectaltname_of_type_doc[] = "\n\
-Get a list of the values of some subjectaltname extensions\n\
-Presently the DNS,EMAIL and URI types are supported.\n\
-\n\
-Arguments: self - X509 object\n\
-            type - one of DNS,EMAIL or URI\n\
-Returns:    A list of values\n\
-";
-
-static PyObject *
-crypto_X509_get_subjectaltname_of_type(crypto_X509Obj *self, PyObject *args)
-{   
-	GENERAL_NAMES *gens;
-	STACK *ret;
-    char *s;
-    char *type;
-    PyObject *list;
-    int san_type;
-
-    if (!PyArg_ParseTuple(args, "s:get_subjectaltname_of_type", &type))
-        return NULL;
-
-    list = PyList_New(0);
-	gens = X509_get_ext_d2i(self->x509, NID_subject_alt_name, NULL, NULL);
-	if (gens == NULL) {
-        return list;
-    }
-    
-    /* These are the ones that are labeled/stored as ASN1_IA5STRINGs */
-    if (strcmp(type,"DNS") == 0) san_type = GEN_DNS;
-    else if(strcmp(type,"EMAIL") == 0) san_type = GEN_EMAIL;
-    else if(strcmp(type,"URI") == 0) san_type = GEN_URI;
-    else {
-        PyErr_SetString(PyExc_AttributeError, type);
-        return NULL;
-    }
-    
-	ret = get_ia5_san_value(gens, san_type);
-	if (ret != NULL) {
-        for ( ; s = sk_pop(ret) ; ){
-            PyList_Append(list, PyString_FromString(s));
-        }
-        return list;
-    }
-    else {
-        return list;
-    }
-}
 /*
  * ADD_METHOD(name) expands to a correct PyMethodDef declaration
  *   {  'name', (PyCFunction)crypto_X509_name, METH_VARARGS }
@@ -859,7 +764,6 @@ static PyMethodDef crypto_X509_methods[] =
     ADD_METHOD(add_extensions),
     ADD_METHOD(get_extension),
     ADD_METHOD(get_extension_count),
-    ADD_METHOD(get_subjectaltname_of_type),
     { NULL, NULL }
 };
 #undef ADD_METHOD
