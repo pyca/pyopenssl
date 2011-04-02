@@ -54,7 +54,7 @@ crypto_X509Extension_get_short_name(crypto_X509ExtensionObj *self, PyObject *arg
 static char crypto_X509Extension_get_data_doc[] = "\n\
 Returns the data of the X509Extension\n\
 \n\
-@return: A C{str} giving the X509Extension's data.\n\
+@return: A C{str} giving the X509Extension's ASN.1 encoded data.\n\
 ";
 
 static PyObject *
