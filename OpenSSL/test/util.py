@@ -21,7 +21,7 @@ if sys.version_info < (3, 0):
     bytes = str
 else:
     def b(s):
-        return s.encode("ascii")
+        return s.encode("charmap")
     bytes = bytes
 
 
