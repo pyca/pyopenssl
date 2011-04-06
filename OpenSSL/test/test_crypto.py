@@ -1259,10 +1259,10 @@ WpOdIpB8KksUTCzV591Nr1wd
         present in the certificate.
         """
         pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
-        ca = X509Extension('basicConstraints', True, 'CA:FALSE')
-        key = X509Extension('keyUsage', True, 'digitalSignature')
+        ca = X509Extension(b('basicConstraints'), True, b('CA:FALSE'))
+        key = X509Extension(b('keyUsage'), True, b('digitalSignature'))
         subjectAltName = X509Extension(
-            'subjectAltName', True, 'DNS:example.com')
+            b('subjectAltName'), True, b('DNS:example.com'))
 
         # Try a certificate with no extensions at all.
         c = self._extcert(pkey, [])
@@ -1283,27 +1283,27 @@ WpOdIpB8KksUTCzV591Nr1wd
         corresponding to the extension at that index.
         """
         pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
-        ca = X509Extension('basicConstraints', True, 'CA:FALSE')
-        key = X509Extension('keyUsage', True, 'digitalSignature')
+        ca = X509Extension(b('basicConstraints'), True, b('CA:FALSE'))
+        key = X509Extension(b('keyUsage'), True, b('digitalSignature'))
         subjectAltName = X509Extension(
-            'subjectAltName', False, 'DNS:example.com')
+            b('subjectAltName'), False, b('DNS:example.com'))
 
         cert = self._extcert(pkey, [ca, key, subjectAltName])
 
         ext = cert.get_extension(0)
         self.assertTrue(isinstance(ext, X509Extension))
         self.assertTrue(ext.get_critical())
-        self.assertEqual(ext.get_short_name(), 'basicConstraints')
+        self.assertEqual(ext.get_short_name(), b('basicConstraints'))
 
         ext = cert.get_extension(1)
         self.assertTrue(isinstance(ext, X509Extension))
         self.assertTrue(ext.get_critical())
-        self.assertEqual(ext.get_short_name(), 'keyUsage')
+        self.assertEqual(ext.get_short_name(), b('keyUsage'))
 
         ext = cert.get_extension(2)
         self.assertTrue(isinstance(ext, X509Extension))
         self.assertFalse(ext.get_critical())
-        self.assertEqual(ext.get_short_name(), 'subjectAltName')
+        self.assertEqual(ext.get_short_name(), b('subjectAltName'))
 
         self.assertRaises(IndexError, cert.get_extension, -1)
         self.assertRaises(IndexError, cert.get_extension, 4)
