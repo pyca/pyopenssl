@@ -698,7 +698,7 @@ crypto_X509_get_extension_count(crypto_X509Obj *self, PyObject *args) {
         return NULL;
     }
 
-    return PyInt_FromLong((long)X509_get_ext_count(self->x509));
+    return PyLong_FromLong((long)X509_get_ext_count(self->x509));
 }
 
 static char crypto_X509_get_extension_doc[] = "\n\
