@@ -353,6 +353,26 @@ class X509ExtTests(TestCase):
         self.assertEqual(ext.get_short_name(), b('nsComment'))
 
 
+    def test_get_data(self):
+        """
+        L{X509Extension.get_data} returns a string giving the data of the
+        extension.
+        """
+        ext = X509Extension(b('basicConstraints'), True, b('CA:true'))
+        # Expect to get back the DER encoded form of CA:true.
+        self.assertEqual(ext.get_data(), b('0\x03\x01\x01\xff'))
+
+
+    def test_get_data_wrong_args(self):
+        """
+        L{X509Extension.get_data} raises L{TypeError} if passed any arguments.
+        """
+        ext = X509Extension(b('basicConstraints'), True, b('CA:true'))
+        self.assertRaises(TypeError, ext.get_data, None)
+        self.assertRaises(TypeError, ext.get_data, "foo")
+        self.assertRaises(TypeError, ext.get_data, 7)
+
+
     def test_unused_subject(self):
         """
         The C{subject} parameter to L{X509Extension} may be provided for an
@@ -947,6 +967,26 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
     """
     pemData = cleartextCertificatePEM + cleartextPrivateKeyPEM
 
+    extpem = """
+-----BEGIN CERTIFICATE-----
+MIIC3jCCAkegAwIBAgIJAJHFjlcCgnQzMA0GCSqGSIb3DQEBBQUAMEcxCzAJBgNV
+BAYTAlNFMRUwEwYDVQQIEwxXZXN0ZXJib3R0b20xEjAQBgNVBAoTCUNhdGFsb2dp
+eDENMAsGA1UEAxMEUm9vdDAeFw0wODA0MjIxNDQ1MzhaFw0wOTA0MjIxNDQ1Mzha
+MFQxCzAJBgNVBAYTAlNFMQswCQYDVQQIEwJXQjEUMBIGA1UEChMLT3Blbk1ldGFk
+aXIxIjAgBgNVBAMTGW5vZGUxLm9tMi5vcGVubWV0YWRpci5vcmcwgZ8wDQYJKoZI
+hvcNAQEBBQADgY0AMIGJAoGBAPIcQMrwbk2nESF/0JKibj9i1x95XYAOwP+LarwT
+Op4EQbdlI9SY+uqYqlERhF19w7CS+S6oyqx0DRZSk4Y9dZ9j9/xgm2u/f136YS1u
+zgYFPvfUs6PqYLPSM8Bw+SjJ+7+2+TN+Tkiof9WP1cMjodQwOmdsiRbR0/J7+b1B
+hec1AgMBAAGjgcQwgcEwCQYDVR0TBAIwADAsBglghkgBhvhCAQ0EHxYdT3BlblNT
+TCBHZW5lcmF0ZWQgQ2VydGlmaWNhdGUwHQYDVR0OBBYEFIdHsBcMVVMbAO7j6NCj
+03HgLnHaMB8GA1UdIwQYMBaAFL2h9Bf9Mre4vTdOiHTGAt7BRY/8MEYGA1UdEQQ/
+MD2CDSouZXhhbXBsZS5vcmeCESoub20yLmV4bWFwbGUuY29thwSC7wgKgRNvbTJA
+b3Blbm1ldGFkaXIub3JnMA0GCSqGSIb3DQEBBQUAA4GBALd7WdXkp2KvZ7/PuWZA
+MPlIxyjS+Ly11+BNE0xGQRp9Wz+2lABtpgNqssvU156+HkKd02rGheb2tj7MX9hG
+uZzbwDAZzJPjzDQDD7d3cWsrVcfIdqVU7epHqIadnOF+X0ghJ39pAm6VVadnSXCt
+WpOdIpB8KksUTCzV591Nr1wd
+-----END CERTIFICATE-----
+    """
     def signable(self):
         """
         Create and return a new L{X509}.
@@ -1197,6 +1237,77 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         self.assertEqual(
             cert.digest("md5"),
             b("A8:EB:07:F8:53:25:0A:F2:56:05:C5:A5:C4:C4:C7:15"))
+
+
+    def _extcert(self, pkey, extensions):
+        cert = X509()
+        cert.set_pubkey(pkey)
+        cert.get_subject().commonName = "Unit Tests"
+        cert.get_issuer().commonName = "Unit Tests"
+        when = b(datetime.now().strftime("%Y%m%d%H%M%SZ"))
+        cert.set_notBefore(when)
+        cert.set_notAfter(when)
+
+        cert.add_extensions(extensions)
+        return load_certificate(
+            FILETYPE_PEM, dump_certificate(FILETYPE_PEM, cert))
+
+
+    def test_extension_count(self):
+        """
+        L{X509.get_extension_count} returns the number of extensions that are
+        present in the certificate.
+        """
+        pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
+        ca = X509Extension(b('basicConstraints'), True, b('CA:FALSE'))
+        key = X509Extension(b('keyUsage'), True, b('digitalSignature'))
+        subjectAltName = X509Extension(
+            b('subjectAltName'), True, b('DNS:example.com'))
+
+        # Try a certificate with no extensions at all.
+        c = self._extcert(pkey, [])
+        self.assertEqual(c.get_extension_count(), 0)
+
+        # And a certificate with one
+        c = self._extcert(pkey, [ca])
+        self.assertEqual(c.get_extension_count(), 1)
+
+        # And a certificate with several
+        c = self._extcert(pkey, [ca, key, subjectAltName])
+        self.assertEqual(c.get_extension_count(), 3)
+
+
+    def test_get_extension(self):
+        """
+        L{X509.get_extension} takes an integer and returns an L{X509Extension}
+        corresponding to the extension at that index.
+        """
+        pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
+        ca = X509Extension(b('basicConstraints'), True, b('CA:FALSE'))
+        key = X509Extension(b('keyUsage'), True, b('digitalSignature'))
+        subjectAltName = X509Extension(
+            b('subjectAltName'), False, b('DNS:example.com'))
+
+        cert = self._extcert(pkey, [ca, key, subjectAltName])
+
+        ext = cert.get_extension(0)
+        self.assertTrue(isinstance(ext, X509Extension))
+        self.assertTrue(ext.get_critical())
+        self.assertEqual(ext.get_short_name(), b('basicConstraints'))
+
+        ext = cert.get_extension(1)
+        self.assertTrue(isinstance(ext, X509Extension))
+        self.assertTrue(ext.get_critical())
+        self.assertEqual(ext.get_short_name(), b('keyUsage'))
+
+        ext = cert.get_extension(2)
+        self.assertTrue(isinstance(ext, X509Extension))
+        self.assertFalse(ext.get_critical())
+        self.assertEqual(ext.get_short_name(), b('subjectAltName'))
+
+        self.assertRaises(IndexError, cert.get_extension, -1)
+        self.assertRaises(IndexError, cert.get_extension, 4)
+        self.assertRaises(TypeError, cert.get_extension, "hello")
 
 
     def test_invalid_digest_algorithm(self):

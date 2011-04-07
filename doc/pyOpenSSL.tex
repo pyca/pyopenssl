@@ -269,7 +269,7 @@ pass phrase.
 
 \begin{funcdesc}{load_crl}{type, buffer}
 Load Certificate Revocation List (CRL) data from a string \var{buffer}.
-\var{buffer} encoded with the type \var{type}.  The type \var{type} 
+\var{buffer} encoded with the type \var{type}.  The type \var{type}
 must either \constant{FILETYPE_PEM} or \constant{FILETYPE_ASN1}).
 \end{funcdesc}
 
@@ -304,6 +304,24 @@ which the signature applies.  \var{digest} is a \var{str} instance naming the
 message digest type of the signature, for example \code{``sha1''}.
 \versionadded{0.11}
 \end{funcdesc}
+
+\subsubsection{X509Extension objects \label{openssl-x509ext}}
+
+X509Extension objects have the following methods:
+
+\begin{methoddesc}[X509Extension]{get_short_name}{}
+Retrieve the short descriptive name for this extension.
+
+The result is a byte string like \code{``basicConstraints''}.
+\versionadded{0.12}
+\end{methoddesc}
+
+\begin{methoddesc}[X509Extension]{get_data}{}
+Retrieve the data for this extension.
+
+The result is the ASN.1 encoded form of the extension data as a byte string.
+\versionadded{0.12}
+\end{methoddesc}
 
 \subsubsection{X509 objects \label{openssl-x509}}
 
@@ -422,6 +440,20 @@ by OpenSSL (by EVP_get_digestbyname, specifically).  For example,
 
 \begin{methoddesc}[X509]{add_extensions}{extensions}
 Add the extensions in the sequence \var{extensions} to the certificate.
+\end{methoddesc}
+
+\begin{methoddesc}[X509]{get_extension_count}{}
+Return the number of extensions on this certificate.
+\versionadded{0.12}
+\end{methoddesc}
+
+\begin{methoddesc}[X509]{get_extension}{index}
+Retrieve the extension on this certificate at the given index.
+
+Extensions on a certificate are kept in order.  The index parameter selects
+which extension will be returned.  The returned object will be an X509Extension
+instance.
+\versionadded{0.12}
 \end{methoddesc}
 
 \subsubsection{X509Name objects \label{openssl-x509name}}
