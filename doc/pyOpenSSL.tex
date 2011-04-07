@@ -269,7 +269,7 @@ pass phrase.
 
 \begin{funcdesc}{load_crl}{type, buffer}
 Load Certificate Revocation List (CRL) data from a string \var{buffer}.
-\var{buffer} encoded with the type \var{type}.  The type \var{type} 
+\var{buffer} encoded with the type \var{type}.  The type \var{type}
 must either \constant{FILETYPE_PEM} or \constant{FILETYPE_ASN1}).
 \end{funcdesc}
 
@@ -454,7 +454,7 @@ Extensions on a certificate are kept in order.  The index parameter selects
 which extension will be returned.  The returned object will be an X509Extension
 instance.
 \versionadded{0.12}
-\end
+\end{methoddesc}
 
 \subsubsection{X509Name objects \label{openssl-x509name}}
 
