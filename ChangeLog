@@ -1,3 +1,7 @@
+2011-04-07  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* Release 0.12
+
 2011-04-06  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL/crypto/x509.c: Add get_extension_count and get_extension
