@@ -305,24 +305,6 @@ message digest type of the signature, for example \code{``sha1''}.
 \versionadded{0.11}
 \end{funcdesc}
 
-\subsubsection{X509Extension objects \label{openssl-x509ext}}
-
-X509Extension objects have the following methods:
-
-\begin{methoddesc}[X509Extension]{get_short_name}{}
-Retrieve the short descriptive name for this extension.
-
-The result is a byte string like \code{``basicConstraints''}.
-\versionadded{0.12}
-\end{methoddesc}
-
-\begin{methoddesc}[X509Extension]{get_data}{}
-Retrieve the data for this extension.
-
-The result is the ASN.1 encoded form of the extension data as a byte string.
-\versionadded{0.12}
-\end{methoddesc}
-
 \subsubsection{X509 objects \label{openssl-x509}}
 
 X509 objects have the following methods:
@@ -648,7 +630,17 @@ Return the critical field of the extension object.
 \end{methoddesc}
 
 \begin{methoddesc}[X509Extension]{get_short_name}{}
-Return the short type name of the extension object.
+Retrieve the short descriptive name for this extension.
+
+The result is a byte string like \code{``basicConstraints''}.
+\versionadded{0.12}
+\end{methoddesc}
+
+\begin{methoddesc}[X509Extension]{get_data}{}
+Retrieve the data for this extension.
+
+The result is the ASN.1 encoded form of the extension data as a byte string.
+\versionadded{0.12}
 \end{methoddesc}
 
 \subsubsection{NetscapeSPKI objects \label{openssl-netscape-spki}}
