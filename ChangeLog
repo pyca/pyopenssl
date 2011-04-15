@@ -1,3 +1,9 @@
+2011-04-15  Jean-Paul CAlderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/ssl/ssl.c: Add OPENSSL_VERSION_NUMBER, SSLeay_version
+	  and related constants for retrieving version information about the
+	  underlying OpenSSL library.
+
 2011-04-07  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* Release 0.12
