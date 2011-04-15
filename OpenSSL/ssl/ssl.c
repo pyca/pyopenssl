@@ -50,9 +50,30 @@ PyObject *ssl_Error,                   /* Base class              */
          *ssl_WantX509LookupError,     /* ...                     */
          *ssl_SysCallError;            /* Uses (errno,errstr)     */
 
+static char ssl_SSLeay_version_doc[] = "\n\
+Return a string describing the version of OpenSSL in use.\n\
+\n\
+@param type: One of the SSLEAY_ constants defined in this module.\n\
+";
+
+static PyObject *
+ssl_SSLeay_version(PyObject *spam, PyObject *args) {
+    int t;
+    const char *version;
+
+    if (!PyArg_ParseTuple(args, "i:SSLeay_version", &t)) {
+        return NULL;
+    }
+
+    version = SSLeay_version(t);
+    return PyBytes_FromStringAndSize(version, strlen(version));
+}
+
+
 
 /* Methods in the OpenSSL.SSL module */
 static PyMethodDef ssl_methods[] = {
+    { "SSLeay_version", ssl_SSLeay_version, METH_VARARGS, ssl_SSLeay_version_doc },
     { NULL, NULL }
 };
 
@@ -231,6 +252,16 @@ do {                                                                          \
     PyModule_AddIntConstant(module, "SSL_CB_CONNECT_EXIT", SSL_CB_CONNECT_EXIT);
     PyModule_AddIntConstant(module, "SSL_CB_HANDSHAKE_START", SSL_CB_HANDSHAKE_START);
     PyModule_AddIntConstant(module, "SSL_CB_HANDSHAKE_DONE", SSL_CB_HANDSHAKE_DONE);
+
+    /* Version information indicators, used with SSLeay_version */
+    PyModule_AddIntConstant(module, "SSLEAY_VERSION", SSLEAY_VERSION);
+    PyModule_AddIntConstant(module, "SSLEAY_CFLAGS", SSLEAY_CFLAGS);
+    PyModule_AddIntConstant(module, "SSLEAY_BUILT_ON", SSLEAY_BUILT_ON);
+    PyModule_AddIntConstant(module, "SSLEAY_PLATFORM", SSLEAY_PLATFORM);
+    PyModule_AddIntConstant(module, "SSLEAY_DIR", SSLEAY_DIR);
+
+    /* Straight up version number */
+    PyModule_AddIntConstant(module, "OPENSSL_VERSION_NUMBER", OPENSSL_VERSION_NUMBER);
 
     if (!init_ssl_context(module))
         goto error;

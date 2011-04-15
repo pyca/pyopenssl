@@ -841,6 +841,28 @@ interesting if you're using e.g. \constant{SSLv23_METHOD} to get an SSLv2-compat
 handshake, but don't want to use SSLv2.
 \end{datadesc}
 
+\begin{datadesc}{SSLEAY_VERSION}
+\dataline{SSLEAY_CFLAGS}
+\dataline{SSLEAY_BUILT_ON}
+\dataline{SSLEAY_PLATFORM}
+\dataline{SSLEAY_DIR}
+Constants used with \method{SSLeay_version} to specify what OpenSSL version
+information to retrieve.  See the man page for the \function{SSLeay_version} C
+API for details.
+\end{datadesc}
+
+\begin{datadesc}{OPENSSL_VERSION_NUMBER}
+An integer giving the version number of the OpenSSL library used to build this
+version of pyOpenSSL.  See the man page for the \function{SSLeay_version} C API
+for details.
+\end{datadesc}
+
+\begin{funcdesc}{SSLeay_version}{type}
+Retrieve a string describing some aspect of the underlying OpenSSL version.  The
+type passed in should be one of the \constant{SSLEAY_*} constants defined in
+this module.
+\end{funcdesc}
+
 \begin{datadesc}{ContextType}
 See \class{Context}.
 \end{datadesc}
