@@ -1,5 +1,5 @@
-# Copyright (C) Jean-Paul Calderone 2009, All rights reserved
-# Copyright (c) 2001-2009 Twisted Matrix Laboratories.
+# Copyright (C) Jean-Paul Calderone
+# Copyright (C) Twisted Matrix Laboratories.
 # See LICENSE for details.
 
 """
@@ -15,16 +15,14 @@ import sys
 
 from OpenSSL.crypto import Error, _exception_from_error_queue
 
-
-try:
-    bytes = bytes
-except NameError:
+if sys.version_info < (3, 0):
     def b(s):
         return s
     bytes = str
 else:
     def b(s):
-        return s.encode("ascii")
+        return s.encode("charmap")
+    bytes = bytes
 
 
 class TestCase(TestCase):

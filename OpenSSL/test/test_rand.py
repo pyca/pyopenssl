@@ -1,4 +1,5 @@
-# Copyright (C) Frederick Dean 2009, All rights reserved
+# Copyright (c) Frederick Dean
+# See LICENSE for details.
 
 """
 Unit tests for L{OpenSSL.rand}.

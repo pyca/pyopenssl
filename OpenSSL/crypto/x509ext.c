@@ -1,12 +1,12 @@
 /*
  * x509ext.c
  *
- * Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+ * Copyright (C) Jean-Paul Calderone
+ * See LICENSE for details.
  *
  * Export X.509 extension functions and data structures.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
- * @(#) $Id: x509ext.c,v 1.1 2002/07/09 13:34:46 martin Exp $
  */
 
 #include <Python.h>
@@ -51,6 +51,26 @@ crypto_X509Extension_get_short_name(crypto_X509ExtensionObj *self, PyObject *arg
 }
 
 
+static char crypto_X509Extension_get_data_doc[] = "\n\
+Returns the data of the X509Extension\n\
+\n\
+@return: A C{str} giving the X509Extension's ASN.1 encoded data.\n\
+";
+
+static PyObject *
+crypto_X509Extension_get_data(crypto_X509ExtensionObj *self, PyObject *args) {
+    ASN1_OCTET_STRING *data;
+    PyObject *result;
+
+    if (!PyArg_ParseTuple(args, ":get_data")) {
+        return NULL;
+    }
+
+    data = X509_EXTENSION_get_data(self->x509_extension);
+    result = PyBytes_FromStringAndSize((const char*)data->data, data->length);
+    return result;
+}
+
 /*
  * ADD_METHOD(name) expands to a correct PyMethodDef declaration
  *   {  'name', (PyCFunction)crypto_X509Extension_name, METH_VARARGS }
@@ -62,6 +82,7 @@ static PyMethodDef crypto_X509Extension_methods[] =
 {
     ADD_METHOD(get_critical),
     ADD_METHOD(get_short_name),
+    ADD_METHOD(get_data),
     { NULL, NULL }
 };
 #undef ADD_METHOD

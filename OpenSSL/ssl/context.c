@@ -1,8 +1,9 @@
 /*
  * context.c
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
- * Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+ * Copyright (C) AB Strakt
+ * Copyright (C) Jean-Paul Calderone
+ * See LICENSE for details.
  *
  * SSL Context objects and their methods.
  * See the file RATIONALE for a short explanation of why this module was written.

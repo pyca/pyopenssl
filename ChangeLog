@@ -1,3 +1,27 @@
+2011-04-15  Jean-Paul CAlderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/ssl/ssl.c: Add OPENSSL_VERSION_NUMBER, SSLeay_version
+	  and related constants for retrieving version information about the
+	  underlying OpenSSL library.
+
+2011-04-07  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* Release 0.12
+
+2011-04-06  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/crypto/x509.c: Add get_extension_count and get_extension
+	  to the X509 type, allowing read access to certificate extensions.
+
+	* OpenSSL/crypto/x509ext.c: Add get_short_name and get_data to the
+	  X509Extension type, allowing read access to the contents of an
+	  extension.
+
+2011-03-21  Olivier Hervieu <lp:~ohe>
+
+	* OpenSSL/ssl/ssl.c: Expose a number of symbolic constants for
+	  values passed to the connection "info" callback.
+
 2011-01-22  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL/ssl/connection.py: Add support for new-style

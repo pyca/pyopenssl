@@ -1,14 +1,14 @@
 /*
  * ssl.h
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) AB Strakt
+ * See LICENSE for details.
  *
  * Export functions and exceptions from the SSL sub module.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: ssl.h,v 1.6 2002/04/08 19:25:43 martin Exp $
  */
 #ifndef PyOpenSSL_SSL_H_
 #define PyOpenSSL_SSL_H_

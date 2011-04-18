@@ -1,4 +1,5 @@
-# Copyright (C) Jean-Paul Calderone 2008-2010, All rights reserved
+# Copyright (C) Jean-Paul Calderone
+# See LICENSE for details.
 
 """
 Unit tests for L{OpenSSL.SSL}.
@@ -16,18 +17,19 @@ from OpenSSL.crypto import PKey, X509, X509Extension
 from OpenSSL.crypto import dump_privatekey, load_privatekey
 from OpenSSL.crypto import dump_certificate, load_certificate
 
+from OpenSSL.SSL import OPENSSL_VERSION_NUMBER, SSLEAY_VERSION, SSLEAY_CFLAGS
+from OpenSSL.SSL import SSLEAY_PLATFORM, SSLEAY_DIR, SSLEAY_BUILT_ON
 from OpenSSL.SSL import SENT_SHUTDOWN, RECEIVED_SHUTDOWN
 from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
 from OpenSSL.SSL import OP_NO_SSLv2, OP_NO_SSLv3, OP_SINGLE_DH_USE
 from OpenSSL.SSL import VERIFY_PEER, VERIFY_FAIL_IF_NO_PEER_CERT, VERIFY_CLIENT_ONCE
-from OpenSSL.SSL import Error, SysCallError, WantReadError, ZeroReturnError
+from OpenSSL.SSL import Error, SysCallError, WantReadError, ZeroReturnError, SSLeay_version
 from OpenSSL.SSL import Context, ContextType, Connection, ConnectionType
 
 from OpenSSL.test.util import TestCase, bytes, b
 from OpenSSL.test.test_crypto import cleartextCertificatePEM, cleartextPrivateKeyPEM
 from OpenSSL.test.test_crypto import client_cert_pem, client_key_pem
 from OpenSSL.test.test_crypto import server_cert_pem, server_key_pem, root_cert_pem
-
 try:
     from OpenSSL.SSL import OP_NO_QUERY_MTU
 except ImportError:
@@ -41,6 +43,13 @@ try:
 except ImportError:
     OP_NO_TICKET = None
 
+from OpenSSL.SSL import (
+    SSL_ST_CONNECT, SSL_ST_ACCEPT, SSL_ST_MASK, SSL_ST_INIT, SSL_ST_BEFORE,
+    SSL_ST_OK, SSL_ST_RENEGOTIATE,
+    SSL_CB_LOOP, SSL_CB_EXIT, SSL_CB_READ, SSL_CB_WRITE, SSL_CB_ALERT,
+    SSL_CB_READ_ALERT, SSL_CB_WRITE_ALERT, SSL_CB_ACCEPT_LOOP,
+    SSL_CB_ACCEPT_EXIT, SSL_CB_CONNECT_LOOP, SSL_CB_CONNECT_EXIT,
+    SSL_CB_HANDSHAKE_START, SSL_CB_HANDSHAKE_DONE)
 
 # openssl dhparam 128 -out dh-128.pem (note that 128 is a small number of bits
 # to use)
@@ -166,6 +175,35 @@ class _LoopbackMixin:
                         write.bio_write(dirty)
 
 
+class VersionTests(TestCase):
+    """
+    Tests for version information exposed by
+    L{OpenSSL.SSL.SSLeay_version} and
+    L{OpenSSL.SSL.OPENSSL_VERSION_NUMBER}.
+    """
+    def test_OPENSSL_VERSION_NUMBER(self):
+        """
+        L{OPENSSL_VERSION_NUMBER} is an integer with status in the low
+        byte and the patch, fix, minor, and major versions in the
+        nibbles above that.
+        """
+        self.assertTrue(isinstance(OPENSSL_VERSION_NUMBER, int))
+
+
+    def test_SSLeay_version(self):
+        """
+        L{SSLeay_version} takes a version type indicator and returns
+        one of a number of version strings based on that indicator.
+        """
+        versions = {}
+        for t in [SSLEAY_VERSION, SSLEAY_CFLAGS, SSLEAY_BUILT_ON,
+                  SSLEAY_PLATFORM, SSLEAY_DIR]:
+            version = SSLeay_version(t)
+            versions[version] = t
+            self.assertTrue(isinstance(version, bytes))
+        self.assertEqual(len(versions), 5)
+
+
 
 class ContextTests(TestCase, _LoopbackMixin):
     """
@@ -176,8 +214,16 @@ class ContextTests(TestCase, _LoopbackMixin):
         L{Context} can be instantiated with one of L{SSLv2_METHOD},
         L{SSLv3_METHOD}, L{SSLv23_METHOD}, or L{TLSv1_METHOD}.
         """
-        for meth in [SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD]:
+        for meth in [SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD]:
             Context(meth)
+
+        try:
+            Context(SSLv2_METHOD)
+        except ValueError:
+            # Some versions of OpenSSL have SSLv2, some don't.
+            # Difficult to say in advance.
+            pass
+
         self.assertRaises(TypeError, Context, "")
         self.assertRaises(ValueError, Context, 10)
 
@@ -1674,6 +1720,28 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
             return [cadesc, sedesc]
         self._check_client_ca_list(set_replaces_add_ca)
 
+
+class InfoConstantTests(TestCase):
+    """
+    Tests for assorted constants exposed for use in info callbacks.
+    """
+    def test_integers(self):
+        """
+        All of the info constants are integers.
+
+        This is a very weak test.  It would be nice to have one that actually
+        verifies that as certain info events happen, the value passed to the
+        info callback matches up with the constant exposed by OpenSSL.SSL.
+        """
+        for const in [
+            SSL_ST_CONNECT, SSL_ST_ACCEPT, SSL_ST_MASK, SSL_ST_INIT,
+            SSL_ST_BEFORE, SSL_ST_OK, SSL_ST_RENEGOTIATE,
+            SSL_CB_LOOP, SSL_CB_EXIT, SSL_CB_READ, SSL_CB_WRITE, SSL_CB_ALERT,
+            SSL_CB_READ_ALERT, SSL_CB_WRITE_ALERT, SSL_CB_ACCEPT_LOOP,
+            SSL_CB_ACCEPT_EXIT, SSL_CB_CONNECT_LOOP, SSL_CB_CONNECT_EXIT,
+            SSL_CB_HANDSHAKE_START, SSL_CB_HANDSHAKE_DONE]:
+
+            self.assertTrue(isinstance(const, int))
 
 
 if __name__ == '__main__':

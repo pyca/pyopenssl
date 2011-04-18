@@ -1,12 +1,12 @@
 /*
  * x509ext.h
  *
- * Copyright (C) Awanim 2002, All rights reserved
+ * Copyright (C) Awanim
+ * See LICENSE for details.
  *
  * Export X.509 extension functions and data structures.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
- * @(#) $Id: x509ext.h,v 1.2 2002/09/04 22:24:59 iko Exp $
  */
 #ifndef PyOpenSSL_crypto_X509EXTENSION_H_
 #define PyOpenSSL_crypto_X509EXTENSION_H_

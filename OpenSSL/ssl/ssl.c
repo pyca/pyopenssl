@@ -1,8 +1,9 @@
 /*
  * ssl.c
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
- * Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+ * Copyright (C) AB Strakt
+ * Copyright (C) Jean-Paul Calderone
+ * See LICENSE for details.
  *
  * Main file of the SSL sub module.
  * See the file RATIONALE for a short explanation of why this module was written.
@@ -49,9 +50,30 @@ PyObject *ssl_Error,                   /* Base class              */
          *ssl_WantX509LookupError,     /* ...                     */
          *ssl_SysCallError;            /* Uses (errno,errstr)     */
 
+static char ssl_SSLeay_version_doc[] = "\n\
+Return a string describing the version of OpenSSL in use.\n\
+\n\
+@param type: One of the SSLEAY_ constants defined in this module.\n\
+";
+
+static PyObject *
+ssl_SSLeay_version(PyObject *spam, PyObject *args) {
+    int t;
+    const char *version;
+
+    if (!PyArg_ParseTuple(args, "i:SSLeay_version", &t)) {
+        return NULL;
+    }
+
+    version = SSLeay_version(t);
+    return PyBytes_FromStringAndSize(version, strlen(version));
+}
+
+
 
 /* Methods in the OpenSSL.SSL module */
 static PyMethodDef ssl_methods[] = {
+    { "SSLeay_version", ssl_SSLeay_version, METH_VARARGS, ssl_SSLeay_version_doc },
     { NULL, NULL }
 };
 
@@ -212,6 +234,38 @@ do {                                                                          \
     /* For SSL_set_shutdown */
     PyModule_AddIntConstant(module, "SENT_SHUTDOWN", SSL_SENT_SHUTDOWN);
     PyModule_AddIntConstant(module, "RECEIVED_SHUTDOWN", SSL_RECEIVED_SHUTDOWN);
+
+    /* For set_info_callback */
+    PyModule_AddIntConstant(module, "SSL_ST_CONNECT", SSL_ST_CONNECT);
+    PyModule_AddIntConstant(module, "SSL_ST_ACCEPT", SSL_ST_ACCEPT);
+    PyModule_AddIntConstant(module, "SSL_ST_MASK", SSL_ST_MASK);
+    PyModule_AddIntConstant(module, "SSL_ST_INIT", SSL_ST_INIT);
+    PyModule_AddIntConstant(module, "SSL_ST_BEFORE", SSL_ST_BEFORE);
+    PyModule_AddIntConstant(module, "SSL_ST_OK", SSL_ST_OK);
+    PyModule_AddIntConstant(module, "SSL_ST_RENEGOTIATE", SSL_ST_RENEGOTIATE);
+    PyModule_AddIntConstant(module, "SSL_CB_LOOP", SSL_CB_LOOP);
+    PyModule_AddIntConstant(module, "SSL_CB_EXIT", SSL_CB_EXIT);
+    PyModule_AddIntConstant(module, "SSL_CB_READ", SSL_CB_READ);
+    PyModule_AddIntConstant(module, "SSL_CB_WRITE", SSL_CB_WRITE);
+    PyModule_AddIntConstant(module, "SSL_CB_ALERT", SSL_CB_ALERT);
+    PyModule_AddIntConstant(module, "SSL_CB_READ_ALERT", SSL_CB_READ_ALERT);
+    PyModule_AddIntConstant(module, "SSL_CB_WRITE_ALERT", SSL_CB_WRITE_ALERT);
+    PyModule_AddIntConstant(module, "SSL_CB_ACCEPT_LOOP", SSL_CB_ACCEPT_LOOP);
+    PyModule_AddIntConstant(module, "SSL_CB_ACCEPT_EXIT", SSL_CB_ACCEPT_EXIT);
+    PyModule_AddIntConstant(module, "SSL_CB_CONNECT_LOOP", SSL_CB_CONNECT_LOOP);
+    PyModule_AddIntConstant(module, "SSL_CB_CONNECT_EXIT", SSL_CB_CONNECT_EXIT);
+    PyModule_AddIntConstant(module, "SSL_CB_HANDSHAKE_START", SSL_CB_HANDSHAKE_START);
+    PyModule_AddIntConstant(module, "SSL_CB_HANDSHAKE_DONE", SSL_CB_HANDSHAKE_DONE);
+
+    /* Version information indicators, used with SSLeay_version */
+    PyModule_AddIntConstant(module, "SSLEAY_VERSION", SSLEAY_VERSION);
+    PyModule_AddIntConstant(module, "SSLEAY_CFLAGS", SSLEAY_CFLAGS);
+    PyModule_AddIntConstant(module, "SSLEAY_BUILT_ON", SSLEAY_BUILT_ON);
+    PyModule_AddIntConstant(module, "SSLEAY_PLATFORM", SSLEAY_PLATFORM);
+    PyModule_AddIntConstant(module, "SSLEAY_DIR", SSLEAY_DIR);
+
+    /* Straight up version number */
+    PyModule_AddIntConstant(module, "OPENSSL_VERSION_NUMBER", OPENSSL_VERSION_NUMBER);
 
     if (!init_ssl_context(module))
         goto error;

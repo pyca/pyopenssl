@@ -1,14 +1,14 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
 <head>
-<title>3.1.1 X509 objects </title>
-<META NAME="description" CONTENT="3.1.1 X509 objects ">
+<title>3.1.2 X509 objects </title>
+<META NAME="description" CONTENT="3.1.2 X509 objects ">
 <META NAME="keywords" CONTENT="pyOpenSSL">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 <link rel="STYLESHEET" href="pyOpenSSL.css">
 <LINK REL="next" href="openssl-x509name.html">
-<LINK REL="previous" href="openssl-crypto.html">
+<LINK REL="previous" href="openssl-x509ext.html">
 <LINK REL="up" href="openssl-crypto.html">
 <LINK REL="next" href="openssl-x509name.html">
 </head>
@@ -16,7 +16,7 @@
 <DIV CLASS="navigation">
 <table align="center" width="100%" cellpadding="0" cellspacing="2">
 <tr>
-<td><A href="openssl-crypto.html"><img src="previous.gif"
+<td><A href="openssl-x509ext.html"><img src="previous.gif"
   border="0" height="32"
   alt="Previous Page" width="32"></A></td>
 <td><A href="openssl-crypto.html"><img src="up.gif"
@@ -36,53 +36,53 @@
   border="0" height="32"
   alt="" width="32"></td>
 </tr></table>
-<b class="navlabel">Previous:</b> <a class="sectref" href="openssl-crypto.html">3.1 crypto  </A>
+<b class="navlabel">Previous:</b> <a class="sectref" href="openssl-x509ext.html">3.1.1 X509Extension objects</A>
 <b class="navlabel">Up:</b> <a class="sectref" href="openssl-crypto.html">3.1 crypto  </A>
-<b class="navlabel">Next:</b> <a class="sectref" href="openssl-x509name.html">3.1.2 X509Name objects</A>
+<b class="navlabel">Next:</b> <a class="sectref" href="openssl-x509name.html">3.1.3 X509Name objects</A>
 <br><hr>
 </DIV>
 <!--End of Navigation Panel-->
 
-<H3><A NAME="SECTION000411000000000000000">&nbsp;</A>
+<H3><A NAME="SECTION000412000000000000000">&nbsp;</A>
 <BR>
-3.1.1 X509 objects 
+3.1.2 X509 objects 
 </H3>
 
 <P>
 X509 objects have the following methods:
 
 <P>
-<dl><dt><b><a name='l2h-39'><tt class='method'>get_issuer</tt></a></b>()
+<dl><dt><b><a name='l2h-41'><tt class='method'>get_issuer</tt></a></b>()
 <dd>
 Return an X509Name object representing the issuer of the certificate.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-40'><tt class='method'>get_pubkey</tt></a></b>()
+<dl><dt><b><a name='l2h-42'><tt class='method'>get_pubkey</tt></a></b>()
 <dd>
 Return a PKey object representing the public key of the certificate.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-41'><tt class='method'>get_serial_number</tt></a></b>()
+<dl><dt><b><a name='l2h-43'><tt class='method'>get_serial_number</tt></a></b>()
 <dd>
 Return the certificate serial number.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-42'><tt class='method'>get_subject</tt></a></b>()
+<dl><dt><b><a name='l2h-44'><tt class='method'>get_subject</tt></a></b>()
 <dd>
 Return an X509Name object representing the subject of the certificate.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-43'><tt class='method'>get_version</tt></a></b>()
+<dl><dt><b><a name='l2h-45'><tt class='method'>get_version</tt></a></b>()
 <dd>
 Return the certificate version.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-44'><tt class='method'>get_notBefore</tt></a></b>()
+<dl><dt><b><a name='l2h-46'><tt class='method'>get_notBefore</tt></a></b>()
 <dd>
 Return a string giving the time before which the certificate is not valid.  The
 string is formatted as an ASN1 GENERALIZEDTIME:
@@ -95,7 +95,7 @@ If no value exists for this field, <code>None</code> is returned.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-45'><tt class='method'>get_notAfter</tt></a></b>()
+<dl><dt><b><a name='l2h-47'><tt class='method'>get_notAfter</tt></a></b>()
 <dd>
 Return a string giving the time after which the certificate is not valid.  The
 string is formatted as an ASN1 GENERALIZEDTIME:
@@ -108,7 +108,7 @@ If no value exists for this field, <code>None</code> is returned.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-46'><tt class='method'>set_notBefore</tt></a></b>(<var>when</var>)
+<dl><dt><b><a name='l2h-48'><tt class='method'>set_notBefore</tt></a></b>(<var>when</var>)
 <dd>
 Change the time before which the certificate is not valid.  <var>when</var> is a
 string formatted as an ASN1 GENERALIZEDTIME:
@@ -120,7 +120,7 @@ string formatted as an ASN1 GENERALIZEDTIME:
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-47'><tt class='method'>set_notAfter</tt></a></b>(<var>when</var>)
+<dl><dt><b><a name='l2h-49'><tt class='method'>set_notAfter</tt></a></b>(<var>when</var>)
 <dd>
 Change the time after which the certificate is not valid.  <var>when</var> is a
 string formatted as an ASN1 GENERALIZEDTIME:
@@ -132,69 +132,69 @@ string formatted as an ASN1 GENERALIZEDTIME:
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-48'><tt class='method'>gmtime_adj_notBefore</tt></a></b>(<var>time</var>)
+<dl><dt><b><a name='l2h-50'><tt class='method'>gmtime_adj_notBefore</tt></a></b>(<var>time</var>)
 <dd>
 Adjust the timestamp (in GMT) when the certificate starts being valid.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-49'><tt class='method'>gmtime_adj_notAfter</tt></a></b>(<var>time</var>)
+<dl><dt><b><a name='l2h-51'><tt class='method'>gmtime_adj_notAfter</tt></a></b>(<var>time</var>)
 <dd>
 Adjust the timestamp (in GMT) when the certificate stops being valid.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-50'><tt class='method'>has_expired</tt></a></b>()
+<dl><dt><b><a name='l2h-52'><tt class='method'>has_expired</tt></a></b>()
 <dd>
 Checks the certificate's time stamp against current time. Returns true if the
 certificate has expired and false otherwise.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-51'><tt class='method'>set_issuer</tt></a></b>(<var>issuer</var>)
+<dl><dt><b><a name='l2h-53'><tt class='method'>set_issuer</tt></a></b>(<var>issuer</var>)
 <dd>
 Set the issuer of the certificate to <var>issuer</var>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-52'><tt class='method'>set_pubkey</tt></a></b>(<var>pkey</var>)
+<dl><dt><b><a name='l2h-54'><tt class='method'>set_pubkey</tt></a></b>(<var>pkey</var>)
 <dd>
 Set the public key of the certificate to <var>pkey</var>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-53'><tt class='method'>set_serial_number</tt></a></b>(<var>serialno</var>)
+<dl><dt><b><a name='l2h-55'><tt class='method'>set_serial_number</tt></a></b>(<var>serialno</var>)
 <dd>
 Set the serial number of the certificate to <var>serialno</var>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-54'><tt class='method'>set_subject</tt></a></b>(<var>subject</var>)
+<dl><dt><b><a name='l2h-56'><tt class='method'>set_subject</tt></a></b>(<var>subject</var>)
 <dd>
 Set the subject of the certificate to <var>subject</var>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-55'><tt class='method'>set_version</tt></a></b>(<var>version</var>)
+<dl><dt><b><a name='l2h-57'><tt class='method'>set_version</tt></a></b>(<var>version</var>)
 <dd>
 Set the certificate version to <var>version</var>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-56'><tt class='method'>sign</tt></a></b>(<var>pkey, digest</var>)
+<dl><dt><b><a name='l2h-58'><tt class='method'>sign</tt></a></b>(<var>pkey, digest</var>)
 <dd>
 Sign the certificate, using the key <var>pkey</var> and the message digest algorithm
 identified by the string <var>digest</var>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-57'><tt class='method'>subject_name_hash</tt></a></b>()
+<dl><dt><b><a name='l2h-59'><tt class='method'>subject_name_hash</tt></a></b>()
 <dd>
 Return the hash of the certificate subject.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-58'><tt class='method'>digest</tt></a></b>(<var>digest_name</var>)
+<dl><dt><b><a name='l2h-60'><tt class='method'>digest</tt></a></b>(<var>digest_name</var>)
 <dd>
 Return a digest of the certificate, using the <var>digest_name</var> method.
 <var>digest_name</var> must be a string describing a digest algorithm supported
@@ -203,9 +203,32 @@ by OpenSSL (by EVP_get_digestbyname, specifically).  For example,
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-59'><tt class='method'>add_extensions</tt></a></b>(<var>extensions</var>)
+<dl><dt><b><a name='l2h-61'><tt class='method'>add_extensions</tt></a></b>(<var>extensions</var>)
 <dd>
 Add the extensions in the sequence <var>extensions</var> to the certificate.
+</dl>
+
+<P>
+<dl><dt><b><a name='l2h-62'><tt class='method'>get_extension_count</tt></a></b>()
+<dd>
+Return the number of extensions on this certificate.
+
+<span class='versionnote'>New in version 0.12.</span>
+
+</dl>
+
+<P>
+<dl><dt><b><a name='l2h-63'><tt class='method'>get_extension</tt></a></b>(<var>index</var>)
+<dd>
+Retrieve the extension on this certificate at the given index.
+
+<P>
+Extensions on a certificate are kept in order.  The index parameter selects
+which extension will be returned.  The returned object will be an X509Extension
+instance.
+
+<span class='versionnote'>New in version 0.12.</span>
+
 </dl>
 
 <P>
@@ -214,7 +237,7 @@ Add the extensions in the sequence <var>extensions</var> to the certificate.
 <p><hr>
 <table align="center" width="100%" cellpadding="0" cellspacing="2">
 <tr>
-<td><A href="openssl-crypto.html"><img src="previous.gif"
+<td><A href="openssl-x509ext.html"><img src="previous.gif"
   border="0" height="32"
   alt="Previous Page" width="32"></A></td>
 <td><A href="openssl-crypto.html"><img src="up.gif"
@@ -234,11 +257,11 @@ Add the extensions in the sequence <var>extensions</var> to the certificate.
   border="0" height="32"
   alt="" width="32"></td>
 </tr></table>
-<b class="navlabel">Previous:</b> <a class="sectref" href="openssl-crypto.html">3.1 crypto  </A>
+<b class="navlabel">Previous:</b> <a class="sectref" href="openssl-x509ext.html">3.1.1 X509Extension objects</A>
 <b class="navlabel">Up:</b> <a class="sectref" href="openssl-crypto.html">3.1 crypto  </A>
-<b class="navlabel">Next:</b> <a class="sectref" href="openssl-x509name.html">3.1.2 X509Name objects</A>
+<b class="navlabel">Next:</b> <a class="sectref" href="openssl-x509name.html">3.1.3 X509Name objects</A>
 <hr>
-<span class="release-info">Release 0.11.</span>
+<span class="release-info">Release 0.12.</span>
 </DIV>
 <!--End of Navigation Panel-->
 

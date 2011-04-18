@@ -1,7 +1,8 @@
 /*
  * netscape_spki.c
  *
- * Copyright (C) Tollef Fog Heen 2003
+ * Copyright (C) Tollef Fog Heen
+ * See LICENSE for details.
  *
  * Netscape SPKI handling, thin wrapper
  */

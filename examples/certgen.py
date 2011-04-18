@@ -1,7 +1,8 @@
 # -*- coding: latin-1 -*-
 #
-# Copyright (C) Martin Sjögren and AB Strakt 2001, All rights reserved
-# Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+# Copyright (C) AB Strakt
+# Copyright (C) Jean-Paul Calderone
+# See LICENSE for details.
 
 """
 Certificate generation module.

@@ -1,8 +1,9 @@
-# Copyright (C) AB Strakt 2001-2004, All rights reserved
-# Copyright (C) Jean-Paul Calderone 2008-2010, All rights reserved
+# Copyright (C) AB Strakt
+# Copyright (C) Jean-Paul Calderone
+# See LICENSE for details.
 
 """
 pyOpenSSL - A simple wrapper around the OpenSSL library
 """
 
-__version__ = '0.11'
+__version__ = '0.12'
