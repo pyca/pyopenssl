@@ -139,8 +139,12 @@ PyOpenSSL_MODINIT(SSL) {
     ssl_API[ssl_Context_New_NUM]    = (void *)ssl_Context_New;
     ssl_API[ssl_Connection_New_NUM] = (void *)ssl_Connection_New;
     ssl_api_object = PyCObject_FromVoidPtr((void *)ssl_API, NULL);
-    if (ssl_api_object != NULL)
+    if (ssl_api_object != NULL) {
+        /* PyModule_AddObject steals a reference.
+         */
+        Py_INCREF((PyObject *)&ssl_Context_Type);
         PyModule_AddObject(module, "_C_API", ssl_api_object);
+    }
 #endif
 
     /* Exceptions */
@@ -148,22 +152,24 @@ PyOpenSSL_MODINIT(SSL) {
  * ADD_EXCEPTION(dict,name,base) expands to a correct Exception declaration,
  * inserting OpenSSL.SSL.name into dict, derviving the exception from base.
  */
-#define ADD_EXCEPTION(_name, _base)                                    \
-do {                                                                          \
+#define ADD_EXCEPTION(_name, _base)                                     \
+do {                                                                    \
     ssl_##_name = PyErr_NewException("OpenSSL.SSL."#_name, _base, NULL);\
     if (ssl_##_name == NULL)                                            \
-        goto error;                                                           \
+        goto error;                                                     \
+    /* PyModule_AddObject steals a reference. */                        \
+    Py_INCREF((PyObject *)&ssl_##_name);                                \
     if (PyModule_AddObject(module, #_name, ssl_##_name) != 0)           \
-        goto error;                                                           \
+        goto error;                                                     \
 } while (0)
 
     ssl_Error = PyErr_NewException("OpenSSL.SSL.Error", NULL, NULL);
     if (ssl_Error == NULL) {
         goto error;
     }
-    /* XXX PyPy hack */
-    Py_INCREF(ssl_Error);
 
+    /* PyModule_AddObject steals a reference. */
+    Py_INCREF(ssl_Error);
     if (PyModule_AddObject(module, "Error", ssl_Error) != 0)
         goto error;
 

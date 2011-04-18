@@ -434,6 +434,9 @@ int init_crypto_revoked(PyObject *module) {
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&crypto_Revoked_Type);
     if (PyModule_AddObject(module, "Revoked", (PyObject *)&crypto_Revoked_Type) != 0) {
         return 0;
     }

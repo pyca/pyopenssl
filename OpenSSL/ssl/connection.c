@@ -1439,6 +1439,9 @@ init_ssl_connection(PyObject *module) {
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&ssl_Connection_Type);
     if (PyModule_AddObject(module, "ConnectionType", (PyObject *)&ssl_Connection_Type) != 0) {
         return 0;
     }

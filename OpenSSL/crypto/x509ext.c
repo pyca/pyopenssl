@@ -324,6 +324,9 @@ init_crypto_x509extension(PyObject *module)
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&crypto_X509Extension_Type);
     if (PyModule_AddObject(module, "X509ExtensionType",
                            (PyObject *)&crypto_X509Extension_Type) != 0) {
         return 0;

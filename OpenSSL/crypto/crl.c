@@ -276,12 +276,15 @@ PyTypeObject crypto_CRL_Type = {
 };
 
 int init_crypto_crl(PyObject *module) {
-       if (PyType_Ready(&crypto_CRL_Type) < 0) {
-                  return 0;
-       }
+    if (PyType_Ready(&crypto_CRL_Type) < 0) {
+        return 0;
+    }
 
-       if (PyModule_AddObject(module, "CRL", (PyObject *)&crypto_CRL_Type) != 0) {
-                  return 0;
-       }
-       return 1;
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&crypto_CRL_Type);
+    if (PyModule_AddObject(module, "CRL", (PyObject *)&crypto_CRL_Type) != 0) {
+        return 0;
+    }
+    return 1;
 }

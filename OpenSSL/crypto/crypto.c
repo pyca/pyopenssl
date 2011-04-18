@@ -836,13 +836,21 @@ PyOpenSSL_MODINIT(crypto) {
     crypto_API[crypto_PKCS7_New_NUM]     = (void *)crypto_PKCS7_New;
     crypto_API[crypto_NetscapeSPKI_New_NUM]     = (void *)crypto_NetscapeSPKI_New;
     c_api_object = PyCObject_FromVoidPtr((void *)crypto_API, NULL);
-    if (c_api_object != NULL)
+    if (c_api_object != NULL) {
+        /* PyModule_AddObject steals a reference.
+         */
+        Py_INCREF((PyObject *)&c_api_object);
         PyModule_AddObject(module, "_C_API", c_api_object);
+    }
 #endif
 
     crypto_Error = PyErr_NewException("OpenSSL.crypto.Error", NULL, NULL);
     if (crypto_Error == NULL)
         goto error;
+
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&crypto_Error);
     if (PyModule_AddObject(module, "Error", crypto_Error) != 0)
         goto error;
 
