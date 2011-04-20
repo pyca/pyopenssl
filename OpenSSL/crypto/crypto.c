@@ -839,7 +839,7 @@ PyOpenSSL_MODINIT(crypto) {
     if (c_api_object != NULL) {
         /* PyModule_AddObject steals a reference.
          */
-        Py_INCREF((PyObject *)&c_api_object);
+        Py_INCREF(c_api_object);
         PyModule_AddObject(module, "_C_API", c_api_object);
     }
 #endif
@@ -850,7 +850,7 @@ PyOpenSSL_MODINIT(crypto) {
 
     /* PyModule_AddObject steals a reference.
      */
-    Py_INCREF((PyObject *)&crypto_Error);
+    Py_INCREF(crypto_Error);
     if (PyModule_AddObject(module, "Error", crypto_Error) != 0)
         goto error;
 

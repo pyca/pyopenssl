@@ -142,7 +142,7 @@ PyOpenSSL_MODINIT(SSL) {
     if (ssl_api_object != NULL) {
         /* PyModule_AddObject steals a reference.
          */
-        Py_INCREF((PyObject *)&ssl_Context_Type);
+        Py_INCREF(ssl_api_object);
         PyModule_AddObject(module, "_C_API", ssl_api_object);
     }
 #endif
@@ -158,7 +158,7 @@ do {                                                                    \
     if (ssl_##_name == NULL)                                            \
         goto error;                                                     \
     /* PyModule_AddObject steals a reference. */                        \
-    Py_INCREF((PyObject *)&ssl_##_name);                                \
+    Py_INCREF(ssl_##_name);                                             \
     if (PyModule_AddObject(module, #_name, ssl_##_name) != 0)           \
         goto error;                                                     \
 } while (0)

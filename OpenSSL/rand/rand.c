@@ -290,7 +290,7 @@ PyOpenSSL_MODINIT(rand) {
 
     /* PyModule_AddObject steals a reference.
      */
-    Py_INCREF((PyObject *)&rand_Error);
+    Py_INCREF(rand_Error);
     if (PyModule_AddObject(module, "Error", rand_Error) != 0) {
         goto error;
     }
