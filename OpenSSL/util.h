@@ -137,4 +137,8 @@ extern PyObject* PyOpenSSL_LongToHex(PyObject *o);
 #define PyOpenSSL_LongToHex(o) PyNumber_ToBase(o, 16)
 #endif
 
+#ifndef Py_TYPE
+#define Py_TYPE(ob)             (((PyObject*)(ob))->ob_type)
+#endif
+
 #endif

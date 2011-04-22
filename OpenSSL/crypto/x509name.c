@@ -202,12 +202,18 @@ crypto_X509Name_setattro(crypto_X509NameObj *self, PyObject *nameobj, PyObject *
     char *buffer;
     char *name;
 
-    if (!PyString_CheckExact(nameobj) || !(name = PyString_AsString(nameobj))) {
+    if (!PyBytes_CheckExact(nameobj) && !PyUnicode_CheckExact(nameobj)) {
         PyErr_Format(PyExc_TypeError,
                      "attribute name must be string, not '%.200s'",
                      Py_TYPE(nameobj)->tp_name);
         return -1;
     }
+
+#ifdef PY3
+    name = PyBytes_AsString(PyUnicode_AsASCIIString(nameobj));
+#else
+    name = PyBytes_AsString(nameobj);
+#endif
 
     if ((nid = OBJ_txt2nid(name)) == NID_undef)
     {

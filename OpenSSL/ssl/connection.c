@@ -336,7 +336,7 @@ ssl_Connection_send(ssl_ConnectionObj *self, PyObject *args) {
     int len, ret, err, flags;
     char *buf;
 
-#if !defined(PYPY_VERSION) || PY_VERSION_HEX >= 0x02060000
+#if PY_VERSION_HEX >= 0x02060000
     Py_buffer pbuf;
 
     if (!PyArg_ParseTuple(args, "s*|i:send", &pbuf, &flags))
@@ -354,7 +354,7 @@ ssl_Connection_send(ssl_ConnectionObj *self, PyObject *args) {
     ret = SSL_write(self->ssl, buf, len);
     MY_END_ALLOW_THREADS(self->tstate)
 
-#if !defined(PYPY_VERSION) || PY_VERSION_HEX >= 0x02060000
+#if PY_VERSION_HEX >= 0x02060000
     PyBuffer_Release(&pbuf);
 #endif
 
@@ -393,7 +393,7 @@ ssl_Connection_sendall(ssl_ConnectionObj *self, PyObject *args)
     int len, ret, err, flags;
     PyObject *pyret = Py_None;
 
-#if !defined(PYPY_VERSION) || PY_VERSION_HEX >= 0x02060000
+#if PY_VERSION_HEX >= 0x02060000
     Py_buffer pbuf;
 
     if (!PyArg_ParseTuple(args, "s*|i:sendall", &pbuf, &flags))
@@ -431,7 +431,7 @@ ssl_Connection_sendall(ssl_ConnectionObj *self, PyObject *args)
         }
     } while (len > 0);
 
-#if !defined(PYPY_VERSION) || PY_VERSION_HEX >= 0x02060000
+#if PY_VERSION_HEX >= 0x02060000
     PyBuffer_Release(&pbuf);
 #endif
 
