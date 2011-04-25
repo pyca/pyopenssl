@@ -138,6 +138,9 @@ init_crypto_x509store(PyObject *module)
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&crypto_X509Store_Type);
     if (PyModule_AddObject(module, "X509StoreType", (PyObject *)&crypto_X509Store_Type) != 0) {
         return 0;
     }

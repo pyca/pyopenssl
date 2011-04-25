@@ -252,10 +252,16 @@ init_crypto_pkey(PyObject *module)
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&crypto_PKey_Type);
     if (PyModule_AddObject(module, "PKey", (PyObject *)&crypto_PKey_Type) != 0) {
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&crypto_PKey_Type);
     if (PyModule_AddObject(module, "PKeyType", (PyObject *)&crypto_PKey_Type) != 0) {
         return 0;
     }

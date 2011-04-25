@@ -1310,10 +1310,16 @@ init_ssl_context(PyObject *module) {
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&ssl_Context_Type);
     if (PyModule_AddObject(module, "Context", (PyObject *)&ssl_Context_Type) < 0) {
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&ssl_Context_Type);
     if (PyModule_AddObject(module, "ContextType", (PyObject *)&ssl_Context_Type) < 0) {
         return 0;
     }

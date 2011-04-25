@@ -413,10 +413,16 @@ init_crypto_x509req(PyObject *module)
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&crypto_X509Req_Type);
     if (PyModule_AddObject(module, "X509Req", (PyObject *)&crypto_X509Req_Type) != 0) {
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&crypto_X509Req_Type);
     if (PyModule_AddObject(module, "X509ReqType", (PyObject *)&crypto_X509Req_Type) != 0) {
         return 0;
     }

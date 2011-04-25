@@ -618,6 +618,33 @@ class X509NameTests(TestCase):
                 name, type(name), X509NameType))
 
 
+    def test_onlyStringAttributes(self):
+        """
+        Attempting to set a non-L{str} attribute name on an L{X509NameType}
+        instance causes L{TypeError} to be raised.
+        """
+        name = self._x509name()
+        # Beyond these cases, you may also think that unicode should be
+        # rejected.  Sorry, you're wrong.  unicode is automatically converted to
+        # str outside of the control of X509Name, so there's no way to reject
+        # it.
+        self.assertRaises(TypeError, setattr, name, None, "hello")
+        self.assertRaises(TypeError, setattr, name, 30, "hello")
+        class evil(str):
+            pass
+        self.assertRaises(TypeError, setattr, name, evil(), "hello")
+
+
+    def test_setInvalidAttribute(self):
+        """
+        Attempting to set any attribute name on an L{X509NameType} instance for
+        which no corresponding NID is defined causes L{AttributeError} to be
+        raised.
+        """
+        name = self._x509name()
+        self.assertRaises(AttributeError, setattr, name, "no such thing", None)
+
+
     def test_attributes(self):
         """
         L{X509NameType} instances have attributes for each standard (?)

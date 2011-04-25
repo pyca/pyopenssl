@@ -110,7 +110,7 @@ extern void **crypto_API;
     PyObject *crypto_dict, *crypto_api_object; \
     crypto_dict = PyModule_GetDict(crypto_module); \
     crypto_api_object = PyDict_GetItemString(crypto_dict, "_C_API"); \
-    if (PyCObject_Check(crypto_api_object)) { \
+    if (crypto_api_object && PyCObject_Check(crypto_api_object)) { \
       crypto_API = (void **)PyCObject_AsVoidPtr(crypto_api_object); \
     } \
   } \

@@ -195,14 +195,30 @@ crypto_X509Name_getattro(crypto_X509NameObj *self, PyObject *nameobj)
  *            value - The value to set
  */
 static int
-crypto_X509Name_setattr(crypto_X509NameObj *self, char *name, PyObject *value)
+crypto_X509Name_setattro(crypto_X509NameObj *self, PyObject *nameobj, PyObject *value)
 {
     int nid;
     int result;
     char *buffer;
+    char *name;
+
+    if (!PyBytes_CheckExact(nameobj) && !PyUnicode_CheckExact(nameobj)) {
+        PyErr_Format(PyExc_TypeError,
+                     "attribute name must be string, not '%.200s'",
+                     Py_TYPE(nameobj)->tp_name);
+        return -1;
+    }
+
+#ifdef PY3
+    name = PyBytes_AsString(PyUnicode_AsASCIIString(nameobj));
+#else
+    name = PyBytes_AsString(nameobj);
+#endif
 
     if ((nid = OBJ_txt2nid(name)) == NID_undef)
     {
+        /* Just like the case in the getattr function */
+        flush_error_queue();
         PyErr_SetString(PyExc_AttributeError, "No such attribute");
         return -1;
     }
@@ -475,7 +491,7 @@ PyTypeObject crypto_X509Name_Type = {
     (destructor)crypto_X509Name_dealloc,
     NULL, /* print */
     NULL, /* getattr */
-    (setattrfunc)crypto_X509Name_setattr,
+    NULL, /* setattr */
     NULL, /* reserved */
     (reprfunc)crypto_X509Name_repr,
     NULL, /* as_number */
@@ -485,7 +501,7 @@ PyTypeObject crypto_X509Name_Type = {
     NULL, /* call */
     NULL, /* str */
     (getattrofunc)crypto_X509Name_getattro, /* getattro */
-    NULL, /* setattro */
+    (setattrofunc)crypto_X509Name_setattro, /* setattro */
     NULL, /* as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC, /* tp_flags */
     crypto_X509Name_doc, /* tp_doc */
@@ -521,10 +537,16 @@ init_crypto_x509name(PyObject *module)
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&crypto_X509Name_Type);
     if (PyModule_AddObject(module, "X509Name", (PyObject *)&crypto_X509Name_Type) != 0) {
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&crypto_X509Name_Type);
     if (PyModule_AddObject(module, "X509NameType", (PyObject *)&crypto_X509Name_Type) != 0) {
         return 0;
     }
