@@ -50,6 +50,22 @@ class TestCase(TestCase):
                 self.fail("Left over errors in OpenSSL error queue: " + repr(e))
 
 
+    def failUnlessIn(self, containee, container, msg=None):
+        """
+        Fail the test if C{containee} is not found in C{container}.
+
+        @param containee: the value that should be in C{container}
+        @param container: a sequence type, or in the case of a mapping type,
+                          will follow semantics of 'if key in dict.keys()'
+        @param msg: if msg is None, then the failure message will be
+                    '%r not in %r' % (first, second)
+        """
+        if containee not in container:
+            raise self.failureException(msg or "%r not in %r"
+                                        % (containee, container))
+        return containee
+    assertIn = failUnlessIn
+
     def failUnlessIdentical(self, first, second, msg=None):
         """
         Fail the test if C{first} is not C{second}.  This is an

@@ -1446,7 +1446,11 @@ WpOdIpB8KksUTCzV591Nr1wd
         name.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        self.assertEquals(cert.subject_name_hash(), 3350047874)
+        self.assertIn(
+            cert.subject_name_hash(), 
+            [3350047874, # OpenSSL 0.9.8, MD5
+             3278919224, # OpenSSL 1.0.0, SHA1
+             ])
 
 
 
