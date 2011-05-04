@@ -26,6 +26,13 @@ from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.crypto import sign, verify
 from OpenSSL.test.util import TestCase, bytes, b
 
+def normalize_certificate_pem(pem):
+    return dump_certificate(FILETYPE_PEM, load_certificate(FILETYPE_PEM, pem))
+
+
+def normalize_privatekey_pem(pem):
+    return dump_privatekey(FILETYPE_PEM, load_privatekey(FILETYPE_PEM, pem))
+
 
 root_cert_pem = b("""-----BEGIN CERTIFICATE-----
 MIIC7TCCAlagAwIBAgIIPQzE4MbeufQwDQYJKoZIhvcNAQEFBQAwWDELMAkGA1UE
@@ -80,7 +87,7 @@ uzujnS8YXWvM7DM1Ilozk4MzPug8jzFp5uhKCQ==
 -----END CERTIFICATE-----
 """)
 
-server_key_pem = b("""-----BEGIN RSA PRIVATE KEY-----
+server_key_pem = normalize_privatekey_pem(b("""-----BEGIN RSA PRIVATE KEY-----
 MIICWwIBAAKBgQC+pvhuud1dLaQQvzipdtlcTotgr5SuE2LvSx0gz/bg1U3u1eQ+
 U5eqsxaEUceaX5p5Kk+QflvW8qdjVNxQuYS5uc0gK2+OZnlIYxCf4n5GYGzVIx3Q
 SBj/TAEFB2WuVinZBiCbxgL7PFM1Kpa+EwVkCAduPpSflJJPwkYGrK2MHQIDAQAB
@@ -95,7 +102,7 @@ FwwOhpahld+vqhYk+pfuWWUpQciE+Bu7ZQJASjfT4sQv4qbbKK/scePicnDdx9th
 NaeNCFfH3aeTrX0LyQJAMBWjWmeKM2G2sCExheeQK0ROnaBC8itCECD4Jsve4nqf
 r50+LF74iLXFwqysVCebPKMOpDWp/qQ1BbJQIPs7/A==
 -----END RSA PRIVATE KEY-----
-""")
+"""))
 
 client_cert_pem = b("""-----BEGIN CERTIFICATE-----
 MIICJjCCAY+gAwIBAgIJAKxpFI5lODkjMA0GCSqGSIb3DQEBBQUAMFgxCzAJBgNV
@@ -1659,7 +1666,7 @@ class PKCS12Tests(TestCase):
             dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=3)
             reloaded_p12 = load_pkcs12(dumped_p12, passwd)
             self.assertEqual(
-                p12.get_friendlyname(),reloaded_p12.get_friendlyname())
+                p12.get_friendlyname(), reloaded_p12.get_friendlyname())
             # We would use the openssl program to confirm the friendly
             # name, but it is not possible.  The pkcs12 command
             # does not store the friendly name in the cert's
