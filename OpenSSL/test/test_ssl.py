@@ -558,12 +558,14 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         capath = self.mktemp()
         makedirs(capath)
-        # Hash value computed manually with c_rehash to avoid depending on
-        # c_rehash in the test suite.
-        cafile = join(capath, 'c7adac82.0')
-        fObj = open(cafile, 'w')
-        fObj.write(cleartextCertificatePEM.decode('ascii'))
-        fObj.close()
+        # Hash values computed manually with c_rehash to avoid depending on
+        # c_rehash in the test suite.  One is from OpenSSL 0.9.8, the other
+        # from OpenSSL 1.0.0.
+        for name in ['c7adac82.0', 'c3705638.0']:
+            cafile = join(capath, name)
+            fObj = open(cafile, 'w')
+            fObj.write(cleartextCertificatePEM.decode('ascii'))
+            fObj.close()
 
         self._load_verify_locations_test(None, capath)
 
