@@ -157,7 +157,8 @@ w/njVbKMXrvc83qmTdGl3TAM0fxQIpqgcglFLveEBgzn
 -----END CERTIFICATE-----
 """)
 
-cleartextPrivateKeyPEM = b("""-----BEGIN RSA PRIVATE KEY-----
+cleartextPrivateKeyPEM = normalize_privatekey_pem(b("""\
+-----BEGIN RSA PRIVATE KEY-----
 MIICXQIBAAKBgQD5mkLpi7q6ROdu7khB3S9aanA0Zls7vvfGOmB80/yeylhGpsjA
 jWen0VtSQke/NlEPGtO38tsV7CsuFnSmschvAnGrcJl76b0UOOHUgDTIoRxC6QDU
 3claegwsrBA+sJEBbqx5RdXbIRGicPG/8qQ4Zm1SKOgotcbwiaor2yxZ2wIDAQAB
@@ -172,7 +173,7 @@ ttXigLnCqR486JDPTi9ZscoZkZ+w7y6e/hH8t6d5Vjt48JVyfjPIaJY+km58LcN3
 6AWSeGAdtRFHVzR7oHjVAkB4hutvxiOeiIVQNBhM6RSI9aBPMI21DoX2JRoxvNW2
 cbvAhow217X9V0dVerEOKxnNYspXRrh36h7k4mQA+sDq
 -----END RSA PRIVATE KEY-----
-""")
+"""))
 
 cleartextCertificateRequestPEM = b("""-----BEGIN CERTIFICATE REQUEST-----
 MIIBnjCCAQcCAQAwXjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQH
