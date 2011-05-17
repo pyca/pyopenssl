@@ -307,6 +307,37 @@ class ContextTests(TestCase, _LoopbackMixin):
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.get_timeout, None)
 
+    def test_get_peer_cert_chain(self):
+        """
+        L{Connection.get_peer_cert_chain} returns the tuple of certificates
+        which the connected server returned for the certification verification.
+        """
+        # Testing this requires a server with a certificate signed by one of
+        # the CAs in the platform CA location.  Getting one of those costs
+        # money.  Fortunately (or unfortunately, depending on your
+        # perspective), it's easy to think of a public server on the
+        # internet which has such a certificate.  Connecting to the network
+        # in a unit test is bad, but it's the only way I can think of to
+        # really test this. -exarkun
+
+        # Arg, verisign.com doesn't speak TLSv1
+        context = Context(SSLv3_METHOD)
+
+        client = socket()
+        client.connect(('verisign.com', 443))
+        clientSSL = Connection(context, client)
+        clientSSL.set_connect_state()
+        clientSSL.do_handshake()
+        cert = clientSSL.get_peer_certificate()
+        certs = clientSSL.get_peer_cert_chain()
+        self.assertEqual(dump_certificate(FILETYPE_PEM, cert),
+                dump_certificate(FILETYPE_PEM, certs[0]))
+        self.assertEqual(certs[0].get_subject().CN, 'www.verisign.com')
+        self.assertEqual(certs[1].get_subject().CN,
+                'VeriSign Class 3 Extended Validation SSL SGC CA')
+        self.assertEqual(certs[2].get_subject().CN,
+                'VeriSign Class 3 Public Primary Certification Authority - G5')
+
 
     def test_timeout(self):
         """
