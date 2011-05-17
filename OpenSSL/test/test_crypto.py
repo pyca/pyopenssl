@@ -652,6 +652,15 @@ class X509NameTests(TestCase):
         name = self._x509name()
         self.assertRaises(AttributeError, setattr, name, "no such thing", None)
 
+    def test_get_signature_algorithm(self):
+        """
+        L{X509Type.get_signature_algorithm} returns a string which means
+        the algorithm used to sign the certificate.
+        """
+        cert = load_certificate(FILETYPE_PEM, self.pemData)
+        self.assertEqual(cert.get_signature_algorithm(), "sha1WithRSAEncryption")
+        
+
 
     def test_attributes(self):
         """

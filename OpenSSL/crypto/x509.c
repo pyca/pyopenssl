@@ -519,6 +519,29 @@ crypto_X509_gmtime_adj_notAfter(crypto_X509Obj *self, PyObject *args)
     return Py_None;
 }
 
+static char crypto_X509_get_signature_algorithm_doc[] = "\n\
+Retrieve the signature algorithm used in the certificate\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   None\n\
+";
+
+static PyObject *
+crypto_X509_get_signature_algorithm(crypto_X509Obj *self, PyObject *args)
+{
+    ASN1_OBJECT *alg;
+    int nid;
+
+    if (!PyArg_ParseTuple(args, ":get_signature_algorithm"))
+        return NULL;
+
+    alg = self->x509->cert_info->signature->algorithm;
+    nid = OBJ_obj2nid(alg);
+    return PyString_FromString(OBJ_nid2ln(nid));
+}
+
+
 static char crypto_X509_sign_doc[] = "\n\
 Sign the certificate using the supplied key and digest\n\
 \n\
@@ -757,6 +780,7 @@ static PyMethodDef crypto_X509_methods[] =
     ADD_METHOD(set_notAfter),
     ADD_METHOD(gmtime_adj_notBefore),
     ADD_METHOD(gmtime_adj_notAfter),
+    ADD_METHOD(get_signature_algorithm),
     ADD_METHOD(sign),
     ADD_METHOD(has_expired),
     ADD_METHOD(subject_name_hash),
