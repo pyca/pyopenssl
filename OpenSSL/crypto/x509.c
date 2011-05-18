@@ -539,6 +539,10 @@ crypto_X509_get_signature_algorithm(crypto_X509Obj *self, PyObject *args) {
 
     alg = self->x509->cert_info->signature->algorithm;
     nid = OBJ_obj2nid(alg);
+    if (nid == NID_undef) {
+        PyErr_SetString(PyExc_ValueError, "Undefined signature algorithm");
+        return NULL;
+    }
     return PyString_FromString(OBJ_nid2ln(nid));
 }
 
