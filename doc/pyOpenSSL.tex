@@ -322,7 +322,8 @@ Return the certificate serial number.
 \end{methoddesc}
 
 \begin{methoddesc}[X509]{get_signature_algorithm}{}
-Return the signature algorithem used in the certificate.
+Return the signature algorithm used in the certificate.  If the algorithm is
+undefined, raise \code{ValueError}.
 \end{methoddesc}
 
 \begin{methoddesc}[X509]{get_subject}{}
