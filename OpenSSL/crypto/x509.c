@@ -523,9 +523,9 @@ crypto_X509_gmtime_adj_notAfter(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_get_signature_algorithm_doc[] = "\n\
 Retrieve the signature algorithm used in the certificate\n\
 \n\
-Arguments: self - The X509 object\n\
-           args - The Python argument tuple, should be empty\n\
-Returns:   None\n\
+@return: A byte string giving the name of the signature algorithm used in\n\
+         the certificate.\n\
+@raise ValueError: If the signature algorithm is undefined.\n\
 ";
 
 static PyObject *
