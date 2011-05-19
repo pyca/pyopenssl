@@ -543,7 +543,7 @@ crypto_X509_get_signature_algorithm(crypto_X509Obj *self, PyObject *args) {
         PyErr_SetString(PyExc_ValueError, "Undefined signature algorithm");
         return NULL;
     }
-    return PyString_FromString(OBJ_nid2ln(nid));
+    return PyBytes_FromString(OBJ_nid2ln(nid));
 }
 
 

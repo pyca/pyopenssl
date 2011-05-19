@@ -1486,7 +1486,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         the algorithm used to sign the certificate.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        self.assertEqual(cert.get_signature_algorithm(), "sha1WithRSAEncryption")
+        self.assertEqual(cert.get_signature_algorithm(), b("sha1WithRSAEncryption"))
 
 
     def test_get_undefined_signature_algorithm(self):
