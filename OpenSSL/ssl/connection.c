@@ -1101,12 +1101,14 @@ ssl_Connection_get_peer_certificate(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_get_peer_cert_chain_doc[] = "\n\
 Retrieve the other side's certificate (if any)\n\
 \n\
-@return: A tuple of X509 instances giving the peer's certificate chain.\n\
+@return: A list of X509 instances giving the peer's certificate chain,\n\
+         or None if it does not have one.\n\
 ";
 static PyObject *
 ssl_Connection_get_peer_cert_chain(ssl_ConnectionObj *self, PyObject *args) {
     STACK_OF(X509) *sk;
-    PyObject *tpl, *item;
+    PyObject *chain;
+    crypto_X509Obj *cert;
     Py_ssize_t i;
 
     if (!PyArg_ParseTuple(args, ":get_peer_cert_chain")) {
@@ -1115,13 +1117,18 @@ ssl_Connection_get_peer_cert_chain(ssl_ConnectionObj *self, PyObject *args) {
 
     sk = SSL_get_peer_cert_chain(self->ssl);
     if (sk != NULL) {
-        tpl = PyTuple_New(sk_X509_num(sk));
+        chain = PyList_New(sk_X509_num(sk));
         for (i = 0; i < sk_X509_num(sk); i++) {
-            item = (PyObject *)crypto_X509_New(sk_X509_value(sk, i), 1);
-            Py_INCREF(item);
-            PyTuple_SET_ITEM(tpl, i, item);
+            cert = crypto_X509_New(sk_X509_value(sk, i), 1);
+            if (!cert) {
+                /* XXX Untested */
+                Py_DECREF(chain);
+                return NULL;
+            }
+            CRYPTO_add(&cert->x509->references, 1, CRYPTO_LOCK_X509);
+            PyList_SET_ITEM(chain, i, (PyObject *)cert);
         }
-        return tpl;
+        return chain;
     } else {
         Py_INCREF(Py_None);
         return Py_None;
