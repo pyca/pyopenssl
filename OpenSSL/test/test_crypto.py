@@ -1486,10 +1486,17 @@ WpOdIpB8KksUTCzV591Nr1wd
         the algorithm used to sign the certificate.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        self.assertEqual(cert.get_signature_algorithm(), b("sha1WithRSAEncryption"))
+        self.assertEqual(
+            b("sha1WithRSAEncryption"), cert.get_signature_algorithm())
 
 
     def test_get_undefined_signature_algorithm(self):
+        """
+        L{X509Type.get_signature_algorithm} raises L{ValueError} if the
+        signature algorithm is undefined or unknown.
+        """
+        # This certificate has been modified to indicate a bogus OID in the
+        # signature algorithm field so that OpenSSL does not recognize it.
         certPEM = """\
 -----BEGIN CERTIFICATE-----
 MIIC/zCCAmigAwIBAgIBATAGBgJ8BQUAMHsxCzAJBgNVBAYTAlNHMREwDwYDVQQK
