@@ -1,3 +1,10 @@
+2011-05-19  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/crypto/x509.c, OpenSSL/test/test_crypto.py: Add a new
+          method to the X509 type, get_signature_algorithm, for inspecting
+          the signature algorithm field of the certificate.  Based on a
+          patch from <lp:~okuda>.
+
 2011-05-10  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL/crypto/crypto.h: Work around a Windows/OpenSSL 1.0 issue

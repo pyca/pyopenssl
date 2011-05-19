@@ -1474,10 +1474,52 @@ WpOdIpB8KksUTCzV591Nr1wd
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
         self.assertIn(
-            cert.subject_name_hash(), 
+            cert.subject_name_hash(),
             [3350047874, # OpenSSL 0.9.8, MD5
              3278919224, # OpenSSL 1.0.0, SHA1
              ])
+
+
+    def test_get_signature_algorithm(self):
+        """
+        L{X509Type.get_signature_algorithm} returns a string which means
+        the algorithm used to sign the certificate.
+        """
+        cert = load_certificate(FILETYPE_PEM, self.pemData)
+        self.assertEqual(
+            b("sha1WithRSAEncryption"), cert.get_signature_algorithm())
+
+
+    def test_get_undefined_signature_algorithm(self):
+        """
+        L{X509Type.get_signature_algorithm} raises L{ValueError} if the
+        signature algorithm is undefined or unknown.
+        """
+        # This certificate has been modified to indicate a bogus OID in the
+        # signature algorithm field so that OpenSSL does not recognize it.
+        certPEM = """\
+-----BEGIN CERTIFICATE-----
+MIIC/zCCAmigAwIBAgIBATAGBgJ8BQUAMHsxCzAJBgNVBAYTAlNHMREwDwYDVQQK
+EwhNMkNyeXB0bzEUMBIGA1UECxMLTTJDcnlwdG8gQ0ExJDAiBgNVBAMTG00yQ3J5
+cHRvIENlcnRpZmljYXRlIE1hc3RlcjEdMBsGCSqGSIb3DQEJARYObmdwc0Bwb3N0
+MS5jb20wHhcNMDAwOTEwMDk1MTMwWhcNMDIwOTEwMDk1MTMwWjBTMQswCQYDVQQG
+EwJTRzERMA8GA1UEChMITTJDcnlwdG8xEjAQBgNVBAMTCWxvY2FsaG9zdDEdMBsG
+CSqGSIb3DQEJARYObmdwc0Bwb3N0MS5jb20wXDANBgkqhkiG9w0BAQEFAANLADBI
+AkEArL57d26W9fNXvOhNlZzlPOACmvwOZ5AdNgLzJ1/MfsQQJ7hHVeHmTAjM664V
++fXvwUGJLziCeBo1ysWLRnl8CQIDAQABo4IBBDCCAQAwCQYDVR0TBAIwADAsBglg
+hkgBhvhCAQ0EHxYdT3BlblNTTCBHZW5lcmF0ZWQgQ2VydGlmaWNhdGUwHQYDVR0O
+BBYEFM+EgpK+eyZiwFU1aOPSbczbPSpVMIGlBgNVHSMEgZ0wgZqAFPuHI2nrnDqT
+FeXFvylRT/7tKDgBoX+kfTB7MQswCQYDVQQGEwJTRzERMA8GA1UEChMITTJDcnlw
+dG8xFDASBgNVBAsTC00yQ3J5cHRvIENBMSQwIgYDVQQDExtNMkNyeXB0byBDZXJ0
+aWZpY2F0ZSBNYXN0ZXIxHTAbBgkqhkiG9w0BCQEWDm5ncHNAcG9zdDEuY29tggEA
+MA0GCSqGSIb3DQEBBAUAA4GBADv8KpPo+gfJxN2ERK1Y1l17sz/ZhzoGgm5XCdbx
+jEY7xKfpQngV599k1xhl11IMqizDwu0855agrckg2MCTmOI9DZzDD77tAYb+Dk0O
+PEVk0Mk/V0aIsDE9bolfCi/i/QWZ3N8s5nTWMNyBBBmoSliWCm4jkkRZRD0ejgTN
+tgI5
+-----END CERTIFICATE-----
+"""
+        cert = load_certificate(FILETYPE_PEM, certPEM)
+        self.assertRaises(ValueError, cert.get_signature_algorithm)
 
 
 
