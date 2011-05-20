@@ -1142,11 +1142,11 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         chain = client.get_peer_cert_chain()
         self.assertEqual(len(chain), 3)
         self.assertEqual(
-            chain[0].get_subject().CN, b("Server Certificate"))
+            chain[0].get_subject().CN, "Server Certificate")
         self.assertEqual(
-            chain[1].get_subject().CN, b("Intermediate Certificate"))
+            chain[1].get_subject().CN, "Intermediate Certificate")
         self.assertEqual(
-            chain[2].get_subject().CN, b("Authority Certificate"))
+            chain[2].get_subject().CN, "Authority Certificate")
 
 
 
