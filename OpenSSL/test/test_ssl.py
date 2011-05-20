@@ -1142,11 +1142,27 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         chain = client.get_peer_cert_chain()
         self.assertEqual(len(chain), 3)
         self.assertEqual(
-            chain[0].get_subject().CN, "Server Certificate")
+            "Server Certificate", chain[0].get_subject().CN)
         self.assertEqual(
-            chain[1].get_subject().CN, "Intermediate Certificate")
+            "Intermediate Certificate", chain[1].get_subject().CN)
         self.assertEqual(
-            chain[2].get_subject().CN, "Authority Certificate")
+            "Authority Certificate", chain[2].get_subject().CN)
+
+
+    def test_get_peer_cert_chain_none(self):
+        """
+        L{Connection.get_peer_cert_chain} returns C{None} if the peer sends no
+        certificate chain.
+        """
+        ctx = Context(TLSv1_METHOD)
+        ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
+        ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
+        server = Connection(ctx, None)
+        server.set_accept_state()
+        client = Connection(Context(TLSv1_METHOD), None)
+        client.set_connect_state()
+        self._interactInMemory(client, server)
+        self.assertIdentical(None, server.get_peer_cert_chain())
 
 
 
