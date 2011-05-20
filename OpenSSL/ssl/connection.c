@@ -1119,7 +1119,7 @@ ssl_Connection_get_peer_cert_chain(ssl_ConnectionObj *self, PyObject *args) {
     if (sk != NULL) {
         chain = PyList_New(sk_X509_num(sk));
         for (i = 0; i < sk_X509_num(sk); i++) {
-            cert = crypto_X509_New(sk_X509_value(sk, i), 1);
+            cert = new_x509(sk_X509_value(sk, i), 1);
             if (!cert) {
                 /* XXX Untested */
                 Py_DECREF(chain);
