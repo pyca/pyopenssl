@@ -1,3 +1,9 @@
+2011-05-20  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/ssl/connection.c, OpenSSL/test/test_ssl.py: Add a new
+          method to the Connection type, get_peer_cert_chain, for retrieving
+          the peer's certificate chain.
+
 2011-05-19  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL/crypto/x509.c, OpenSSL/test/test_crypto.py: Add a new

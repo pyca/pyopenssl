@@ -16,7 +16,7 @@ class Connection:
               'setblocking', 'fileno', 'shutdown', 'close', 'get_cipher_list',
               'getpeername', 'getsockname', 'getsockopt', 'setsockopt',
               'makefile', 'get_app_data', 'set_app_data', 'state_string',
-              'sock_shutdown', 'get_peer_certificate', 'want_read',
+              'sock_shutdown', 'get_peer_certificate', 'get_peer_cert_chain', 'want_read',
               'want_write', 'set_connect_state', 'set_accept_state',
               'connect_ex', 'sendall'):
         exec("""def %s(self, *args):

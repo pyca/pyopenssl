@@ -1098,6 +1098,44 @@ ssl_Connection_get_peer_certificate(ssl_ConnectionObj *self, PyObject *args)
     }
 }
 
+static char ssl_Connection_get_peer_cert_chain_doc[] = "\n\
+Retrieve the other side's certificate (if any)\n\
+\n\
+@return: A list of X509 instances giving the peer's certificate chain,\n\
+         or None if it does not have one.\n\
+";
+static PyObject *
+ssl_Connection_get_peer_cert_chain(ssl_ConnectionObj *self, PyObject *args) {
+    STACK_OF(X509) *sk;
+    PyObject *chain;
+    crypto_X509Obj *cert;
+    Py_ssize_t i;
+
+    if (!PyArg_ParseTuple(args, ":get_peer_cert_chain")) {
+        return NULL;
+    }
+
+    sk = SSL_get_peer_cert_chain(self->ssl);
+    if (sk != NULL) {
+        chain = PyList_New(sk_X509_num(sk));
+        for (i = 0; i < sk_X509_num(sk); i++) {
+            cert = new_x509(sk_X509_value(sk, i), 1);
+            if (!cert) {
+                /* XXX Untested */
+                Py_DECREF(chain);
+                return NULL;
+            }
+            CRYPTO_add(&cert->x509->references, 1, CRYPTO_LOCK_X509);
+            PyList_SET_ITEM(chain, i, (PyObject *)cert);
+        }
+        return chain;
+    } else {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+}
+
 static char ssl_Connection_want_read_doc[] = "\n\
 Checks if more data has to be read from the transport layer to complete an\n\
 operation.\n\
@@ -1175,6 +1213,7 @@ static PyMethodDef ssl_Connection_methods[] =
     ADD_METHOD(master_key),
     ADD_METHOD(sock_shutdown),
     ADD_METHOD(get_peer_certificate),
+    ADD_METHOD(get_peer_cert_chain),
     ADD_METHOD(want_read),
     ADD_METHOD(want_write),
     ADD_METHOD(set_accept_state),
