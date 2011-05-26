@@ -1122,6 +1122,12 @@ format specified by \var{format}, which is either \constant{FILETYPE_PEM} or
 \constant{FILETYPE_ASN1}. The default is \constant{FILETYPE_PEM}.
 \end{methoddesc}
 
+\begin{methoddesc}[Context]{set_tlsext_servername_callback}{callback}
+Specify a one-argument callable to use as the TLS extension server name
+callback.  When a connection using the server name extension is made using this
+context, the callback will be invoked with the \code{Connection} instance.
+\versionadded{0.13}
+\end{methoddesc}
 
 \subsubsection{Connection objects \label{openssl-connection}}
 
@@ -1336,6 +1342,16 @@ operation.
 \begin{methoddesc}[Connection]{want_write}{}
 Checks if there is data to write to the transport layer to complete an
 operation.
+\end{methoddesc}
+
+\begin{methoddesc}[Connection]{set_tlsext_host_name}{name}
+Specify the byte string to send as the server name in the client hello message.
+\versionadded{0.13}
+\end{methoddesc}
+
+\begin{methoddesc}[Connection]{get_servername}{}
+Get the value of the server name received in the client hello message.
+\versionadded{0.13}
 \end{methoddesc}
 
 
