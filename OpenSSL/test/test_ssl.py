@@ -1080,6 +1080,17 @@ class ConnectionTests(TestCase, _LoopbackMixin):
                 conn.set_tlsext_host_name, b("example.com").decode("ascii"))
 
 
+    def test_get_servername_wrong_args(self):
+        """
+        L{Connection.get_servername} raises L{TypeError} if called with any
+        arguments.
+        """
+        connection = Connection(Context(TLSv1_METHOD), None)
+        self.assertRaises(TypeError, connection.get_servername, object())
+        self.assertRaises(TypeError, connection.get_servername, 1)
+        self.assertRaises(TypeError, connection.get_servername, "hello")
+
+
     def test_pending(self):
         """
         L{Connection.pending} returns the number of bytes available for

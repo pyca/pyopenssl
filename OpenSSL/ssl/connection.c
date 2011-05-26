@@ -313,7 +313,9 @@ ssl_Connection_get_servername(ssl_ConnectionObj *self, PyObject *args) {
     int type = TLSEXT_NAMETYPE_host_name;
     const char *name;
 
-    /* XXX Argument parsing */
+    if (!PyArg_ParseTuple(args, ":get_servername")) {
+        return NULL;
+    }
 
     name = SSL_get_servername(self->ssl, type);
 
