@@ -263,6 +263,45 @@ ssl_Connection_get_context(ssl_ConnectionObj *self, PyObject *args) {
     return (PyObject *)self->context;
 }
 
+static char ssl_Connection_set_context_doc[] = "\n\
+Switch this connection to a new session context\n\
+\n\
+@param context: A L{Context} instance giving the new session context to use.\n\
+\n\
+";
+static PyObject *
+ssl_Connection_set_context(ssl_ConnectionObj *self, PyObject *args) {
+    ssl_ContextObj *ctx;
+    ssl_ContextObj *old;
+
+    if (!PyArg_ParseTuple(args, "O!:set_context", &ssl_Context_Type, &ctx)) {
+        return NULL;
+    }
+
+    /* This Connection will hold on to this context now.  Make sure it stays
+     * alive.
+     */
+    Py_INCREF(ctx);
+
+    /* XXX The unit tests don't actually verify that this call is made.
+     * They're satisfied if self->context gets updated.
+     */
+    SSL_set_SSL_CTX(self->ssl, ctx->ctx);
+
+    /* Swap the old out and the new in.
+     */
+    old = self->context;
+    self->context = ctx;
+
+    /* XXX The unit tests don't verify that this reference is dropped.
+     */
+    Py_DECREF(old);
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
 static char ssl_Connection_pending_doc[] = "\n\
 Get the number of bytes that can be safely read from the connection\n\
 \n\
@@ -1181,6 +1220,7 @@ ssl_Connection_want_write(ssl_ConnectionObj *self, PyObject *args)
 static PyMethodDef ssl_Connection_methods[] =
 {
     ADD_METHOD(get_context),
+    ADD_METHOD(set_context),
     ADD_METHOD(pending),
     ADD_METHOD(send),
     ADD_ALIAS (write, send),

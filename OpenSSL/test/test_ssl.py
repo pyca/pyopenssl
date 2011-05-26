@@ -924,6 +924,41 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, connection.get_context, None)
 
 
+    def test_set_context_wrong_args(self):
+        """
+        L{Connection.set_context} raises L{TypeError} if called with a
+        non-L{Context} instance argument or with any number of arguments other
+        than 1.
+        """
+        ctx = Context(TLSv1_METHOD)
+        connection = Connection(ctx, None)
+        self.assertRaises(TypeError, connection.set_context)
+        self.assertRaises(TypeError, connection.set_context, object())
+        self.assertRaises(TypeError, connection.set_context, "hello")
+        self.assertRaises(TypeError, connection.set_context, 1)
+        self.assertRaises(TypeError, connection.set_context, 1, 2)
+        self.assertRaises(
+            TypeError, connection.set_context, Context(TLSv1_METHOD), 2)
+        self.assertIdentical(ctx, connection.get_context())
+
+
+    def test_set_context(self):
+        """
+        L{Connection.set_context} specifies a new L{Context} instance to be used
+        for the connection.
+        """
+        original = Context(SSLv23_METHOD)
+        replacement = Context(TLSv1_METHOD)
+        connection = Connection(original, None)
+        connection.set_context(replacement)
+        self.assertIdentical(replacement, connection.get_context())
+        # Lose our references to the contexts, just in case the Connection isn't
+        # properly managing its own contributions to their reference counts.
+        del original, replacement
+        import gc
+        gc.collect()
+
+
     def test_pending(self):
         """
         L{Connection.pending} returns the number of bytes available for
