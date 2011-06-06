@@ -263,6 +263,94 @@ ssl_Connection_get_context(ssl_ConnectionObj *self, PyObject *args) {
     return (PyObject *)self->context;
 }
 
+static char ssl_Connection_set_context_doc[] = "\n\
+Switch this connection to a new session context\n\
+\n\
+@param context: A L{Context} instance giving the new session context to use.\n\
+\n\
+";
+static PyObject *
+ssl_Connection_set_context(ssl_ConnectionObj *self, PyObject *args) {
+    ssl_ContextObj *ctx;
+    ssl_ContextObj *old;
+
+    if (!PyArg_ParseTuple(args, "O!:set_context", &ssl_Context_Type, &ctx)) {
+        return NULL;
+    }
+
+    /* This Connection will hold on to this context now.  Make sure it stays
+     * alive.
+     */
+    Py_INCREF(ctx);
+
+    /* XXX The unit tests don't actually verify that this call is made.
+     * They're satisfied if self->context gets updated.
+     */
+    SSL_set_SSL_CTX(self->ssl, ctx->ctx);
+
+    /* Swap the old out and the new in.
+     */
+    old = self->context;
+    self->context = ctx;
+
+    /* XXX The unit tests don't verify that this reference is dropped.
+     */
+    Py_DECREF(old);
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static char ssl_Connection_get_servername_doc[] = "\n\
+Retrieve the servername extension value if provided in the client hello\n\
+message, or None if there wasn't one.\n\
+\n\
+@return: A byte string giving the server name or C{None}.\n\
+\n\
+";
+static PyObject *
+ssl_Connection_get_servername(ssl_ConnectionObj *self, PyObject *args) {
+    int type = TLSEXT_NAMETYPE_host_name;
+    const char *name;
+
+    if (!PyArg_ParseTuple(args, ":get_servername")) {
+        return NULL;
+    }
+
+    name = SSL_get_servername(self->ssl, type);
+
+    if (name == NULL) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    } else {
+        return PyBytes_FromString(name);
+    }
+}
+
+
+static char ssl_Connection_set_tlsext_host_name_doc[] = "\n\
+Set the value of the servername extension to send in the client hello.\n\
+\n\
+@param name: A byte string giving the name.\n\
+\n\
+";
+static PyObject *
+ssl_Connection_set_tlsext_host_name(ssl_ConnectionObj *self, PyObject *args) {
+    char *buf;
+
+    if (!PyArg_ParseTuple(args, BYTESTRING_FMT ":set_tlsext_host_name", &buf)) {
+        return NULL;
+    }
+
+    /* XXX I guess this can fail sometimes? */
+    SSL_set_tlsext_host_name(self->ssl, buf);
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
+
 static char ssl_Connection_pending_doc[] = "\n\
 Get the number of bytes that can be safely read from the connection\n\
 \n\
@@ -1181,6 +1269,9 @@ ssl_Connection_want_write(ssl_ConnectionObj *self, PyObject *args)
 static PyMethodDef ssl_Connection_methods[] =
 {
     ADD_METHOD(get_context),
+    ADD_METHOD(set_context),
+    ADD_METHOD(get_servername),
+    ADD_METHOD(set_tlsext_host_name),
     ADD_METHOD(pending),
     ADD_METHOD(send),
     ADD_ALIAS (write, send),
