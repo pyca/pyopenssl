@@ -124,7 +124,7 @@ crypto_PKey_check(crypto_PKeyObj *self, PyObject *args) {
         return NULL;
     }
 
-    if(self->pkey->type == EVP_PKEY_RSA) {
+    if (self->pkey->type == EVP_PKEY_RSA) {
         RSA *rsa;
         rsa = EVP_PKEY_get1_RSA(self->pkey);
         r = RSA_check_key(rsa);
