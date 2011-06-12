@@ -2657,5 +2657,16 @@ class SignVerifyTests(TestCase):
             ValueError, verify, good_cert, sig, content, "strange-digest")
 
 
+    def test_sign_nulls(self):
+        """
+        L{sign} produces a signature for a string with embedded nulls.
+        """
+        content = b("Watch out!  \0  Did you see it?")
+        priv_key = load_privatekey(FILETYPE_PEM, root_key_pem)
+        good_cert = load_certificate(FILETYPE_PEM, root_cert_pem)
+        sig = sign(priv_key, content, "sha1")
+        verify(good_cert, sig, content, "sha1")
+
+
 if __name__ == '__main__':
     main()

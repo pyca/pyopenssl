@@ -1,3 +1,9 @@
+2011-06-12  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/crypto/crypto.c: Fix the sign and verify functions so
+	  they handle data with embedded NULs.  Fix by David Brodsky
+	  <lp:~lihalla>.
+
 2011-05-20  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL/ssl/connection.c, OpenSSL/test/test_ssl.py: Add a new

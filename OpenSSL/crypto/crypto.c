@@ -618,6 +618,7 @@ crypto_sign(PyObject *spam, PyObject *args) {
     PyObject *buffer;
     crypto_PKeyObj *pkey;
     char *data = NULL;
+    int data_len;
     char *digest_name;
     int err;
     unsigned int sig_len;
@@ -626,8 +627,8 @@ crypto_sign(PyObject *spam, PyObject *args) {
     unsigned char sig_buf[512];
 
     if (!PyArg_ParseTuple(
-            args, "O!" BYTESTRING_FMT "s:sign", &crypto_PKey_Type,
-            &pkey, &data, &digest_name)) {
+            args, "O!" BYTESTRING_FMT "#s:sign", &crypto_PKey_Type,
+            &pkey, &data, &data_len, &digest_name)) {
         return NULL;
     }
 
@@ -637,7 +638,7 @@ crypto_sign(PyObject *spam, PyObject *args) {
     }
 
     EVP_SignInit(&md_ctx, digest);
-    EVP_SignUpdate(&md_ctx, data, strlen(data));
+    EVP_SignUpdate(&md_ctx, data, data_len);
     sig_len = sizeof(sig_buf);
     err = EVP_SignFinal(&md_ctx, sig_buf, &sig_len, pkey->pkey);
 
@@ -666,15 +667,16 @@ crypto_verify(PyObject *spam, PyObject *args) {
     unsigned char *signature;
     int sig_len;
     char *data, *digest_name;
+    int data_len;
     int err;
     const EVP_MD *digest;
     EVP_MD_CTX md_ctx;
     EVP_PKEY *pkey;
 
 #ifdef PY3
-    if (!PyArg_ParseTuple(args, "O!" BYTESTRING_FMT "#" BYTESTRING_FMT "s:verify", &crypto_X509_Type, &cert, &signature, &sig_len, &data, &digest_name)) {
+    if (!PyArg_ParseTuple(args, "O!" BYTESTRING_FMT "#" BYTESTRING_FMT "#s:verify", &crypto_X509_Type, &cert, &signature, &sig_len, &data, &data_len, &digest_name)) {
 #else
-    if (!PyArg_ParseTuple(args, "O!t#ss:verify", &crypto_X509_Type, &cert, &signature, &sig_len, &data, &digest_name)) {
+    if (!PyArg_ParseTuple(args, "O!t#s#s:verify", &crypto_X509_Type, &cert, &signature, &sig_len, &data, &data_len, &digest_name)) {
 #endif
         return NULL;
     }
@@ -691,7 +693,7 @@ crypto_verify(PyObject *spam, PyObject *args) {
     }
 
     EVP_VerifyInit(&md_ctx, digest);
-    EVP_VerifyUpdate(&md_ctx, data, strlen((char*)data));
+    EVP_VerifyUpdate(&md_ctx, data, data_len);
     err = EVP_VerifyFinal(&md_ctx, signature, sig_len, pkey);
     EVP_PKEY_free(pkey);
 
