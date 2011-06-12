@@ -555,6 +555,12 @@ Generate a public/private key pair of the type \var{type} (one of
 Return the type of the key.
 \end{methoddesc}
 
+\begin{methoddesc}[PKey]{check}{}
+Check the consistency of this key, returning True if it is consistent and
+raising an exception otherwise.  This is only valid for RSA keys.  See the
+OpenSSL RSA_check_key man page for further limitations.
+\end{methoddesc}
+
 \subsubsection{PKCS7 objects \label{openssl-pkcs7}}
 
 PKCS7 objects have the following methods:
