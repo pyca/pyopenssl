@@ -1,9 +1,10 @@
 /*
  * crypto.c
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
- * Copyright (C) Keyphrene 2004, All rights reserved
- * Copyright (C) Jean-Paul Calderone 2008-2009, All rights reserved
+ * Copyright (C) AB Strakt
+ * Copyright (C) Keyphrene
+ * Copyright (C) Jean-Paul Calderone
+ * See LICENSE for details.
  *
  * Main file of crypto sub module.
  * See the file RATIONALE for a short explanation of why this module was written.
@@ -837,13 +838,21 @@ PyOpenSSL_MODINIT(crypto) {
     crypto_API[crypto_PKCS7_New_NUM]     = (void *)crypto_PKCS7_New;
     crypto_API[crypto_NetscapeSPKI_New_NUM]     = (void *)crypto_NetscapeSPKI_New;
     c_api_object = PyCObject_FromVoidPtr((void *)crypto_API, NULL);
-    if (c_api_object != NULL)
+    if (c_api_object != NULL) {
+        /* PyModule_AddObject steals a reference.
+         */
+        Py_INCREF(c_api_object);
         PyModule_AddObject(module, "_C_API", c_api_object);
+    }
 #endif
 
     crypto_Error = PyErr_NewException("OpenSSL.crypto.Error", NULL, NULL);
     if (crypto_Error == NULL)
         goto error;
+
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF(crypto_Error);
     if (PyModule_AddObject(module, "Error", crypto_Error) != 0)
         goto error;
 

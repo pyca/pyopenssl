@@ -1,14 +1,14 @@
 /*
  * connection.h
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) AB Strakt
+ * See LICENSE for details.
  *
  * Export SSL Connection data structures and functions.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: connection.h,v 1.11 2002/09/04 22:24:59 iko Exp $
  */
 #ifndef PyOpenSSL_SSL_CONNECTION_H_
 #define PyOpenSSL_SSL_CONNECTION_H_

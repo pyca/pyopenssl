@@ -1,19 +1,32 @@
 /*
  * crypto.h
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) AB Strakt
+ * See LICENSE for details.
  *
  * Exports from crypto.c.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: crypto.h,v 1.14 2004/08/09 13:41:25 martin Exp $
  */
 #ifndef PyOpenSSL_CRYPTO_H_
 #define PyOpenSSL_CRYPTO_H_
 
 #include <Python.h>
+/* Work around a bug in OpenSSL 1.0.0 which is caused by winsock.h being
+   included (from dtls1.h) too late by the OpenSSL header files, overriding
+   the fixes (in ossl_typ.h) for symbol clashes caused by this OS header
+   file.
+   
+   In order to have those fixes still take effect, we include winsock.h
+   here, prior to including any OpenSSL header files.
+   
+ */
+#ifdef _WIN32
+# include "winsock.h"
+#endif
+
 #include "x509.h"
 #include "x509name.h"
 #include "netscape_spki.h"
@@ -110,7 +123,7 @@ extern void **crypto_API;
     PyObject *crypto_dict, *crypto_api_object; \
     crypto_dict = PyModule_GetDict(crypto_module); \
     crypto_api_object = PyDict_GetItemString(crypto_dict, "_C_API"); \
-    if (PyCObject_Check(crypto_api_object)) { \
+    if (crypto_api_object && PyCObject_Check(crypto_api_object)) { \
       crypto_API = (void **)PyCObject_AsVoidPtr(crypto_api_object); \
     } \
   } \

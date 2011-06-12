@@ -1,4 +1,5 @@
-# Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+# Copyright (C) Jean-Paul Calderone
+# See LICENSE for details.
 #
 # Stress tester for thread-related bugs in ssl_Connection_send and
 # ssl_Connection_recv in src/ssl/connection.c for usage of a single

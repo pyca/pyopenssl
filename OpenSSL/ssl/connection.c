@@ -1,8 +1,9 @@
 /*
  * connection.c
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
- * Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+ * Copyright (C) AB Strakt
+ * Copyright (C) Jean-Paul Calderone
+ * See LICENSE for details.
  *
  * SSL Connection objects and methods.
  * See the file RATIONALE for a short explanation of why this module was written.
@@ -262,6 +263,94 @@ ssl_Connection_get_context(ssl_ConnectionObj *self, PyObject *args) {
     return (PyObject *)self->context;
 }
 
+static char ssl_Connection_set_context_doc[] = "\n\
+Switch this connection to a new session context\n\
+\n\
+@param context: A L{Context} instance giving the new session context to use.\n\
+\n\
+";
+static PyObject *
+ssl_Connection_set_context(ssl_ConnectionObj *self, PyObject *args) {
+    ssl_ContextObj *ctx;
+    ssl_ContextObj *old;
+
+    if (!PyArg_ParseTuple(args, "O!:set_context", &ssl_Context_Type, &ctx)) {
+        return NULL;
+    }
+
+    /* This Connection will hold on to this context now.  Make sure it stays
+     * alive.
+     */
+    Py_INCREF(ctx);
+
+    /* XXX The unit tests don't actually verify that this call is made.
+     * They're satisfied if self->context gets updated.
+     */
+    SSL_set_SSL_CTX(self->ssl, ctx->ctx);
+
+    /* Swap the old out and the new in.
+     */
+    old = self->context;
+    self->context = ctx;
+
+    /* XXX The unit tests don't verify that this reference is dropped.
+     */
+    Py_DECREF(old);
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static char ssl_Connection_get_servername_doc[] = "\n\
+Retrieve the servername extension value if provided in the client hello\n\
+message, or None if there wasn't one.\n\
+\n\
+@return: A byte string giving the server name or C{None}.\n\
+\n\
+";
+static PyObject *
+ssl_Connection_get_servername(ssl_ConnectionObj *self, PyObject *args) {
+    int type = TLSEXT_NAMETYPE_host_name;
+    const char *name;
+
+    if (!PyArg_ParseTuple(args, ":get_servername")) {
+        return NULL;
+    }
+
+    name = SSL_get_servername(self->ssl, type);
+
+    if (name == NULL) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    } else {
+        return PyBytes_FromString(name);
+    }
+}
+
+
+static char ssl_Connection_set_tlsext_host_name_doc[] = "\n\
+Set the value of the servername extension to send in the client hello.\n\
+\n\
+@param name: A byte string giving the name.\n\
+\n\
+";
+static PyObject *
+ssl_Connection_set_tlsext_host_name(ssl_ConnectionObj *self, PyObject *args) {
+    char *buf;
+
+    if (!PyArg_ParseTuple(args, BYTESTRING_FMT ":set_tlsext_host_name", &buf)) {
+        return NULL;
+    }
+
+    /* XXX I guess this can fail sometimes? */
+    SSL_set_tlsext_host_name(self->ssl, buf);
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
+
 static char ssl_Connection_pending_doc[] = "\n\
 Get the number of bytes that can be safely read from the connection\n\
 \n\
@@ -331,17 +420,31 @@ method again with the SAME buffer.\n\
 @return: The number of bytes written\n\
 ";
 static PyObject *
-ssl_Connection_send(ssl_ConnectionObj *self, PyObject *args)
-{
-    char *buf;
+ssl_Connection_send(ssl_ConnectionObj *self, PyObject *args) {
     int len, ret, err, flags;
+    char *buf;
+
+#if PY_VERSION_HEX >= 0x02060000
+    Py_buffer pbuf;
+
+    if (!PyArg_ParseTuple(args, "s*|i:send", &pbuf, &flags))
+        return NULL;
+
+    buf = pbuf.buf;
+    len = pbuf.len;
+#else
 
     if (!PyArg_ParseTuple(args, "s#|i:send", &buf, &len, &flags))
         return NULL;
+#endif
 
     MY_BEGIN_ALLOW_THREADS(self->tstate)
     ret = SSL_write(self->ssl, buf, len);
     MY_END_ALLOW_THREADS(self->tstate)
+
+#if PY_VERSION_HEX >= 0x02060000
+    PyBuffer_Release(&pbuf);
+#endif
 
     if (PyErr_Occurred())
     {
@@ -378,8 +481,18 @@ ssl_Connection_sendall(ssl_ConnectionObj *self, PyObject *args)
     int len, ret, err, flags;
     PyObject *pyret = Py_None;
 
+#if PY_VERSION_HEX >= 0x02060000
+    Py_buffer pbuf;
+
+    if (!PyArg_ParseTuple(args, "s*|i:sendall", &pbuf, &flags))
+        return NULL;
+
+    buf = pbuf.buf;
+    len = pbuf.len;
+#else
     if (!PyArg_ParseTuple(args, "s#|i:sendall", &buf, &len, &flags))
         return NULL;
+#endif
 
     do {
         MY_BEGIN_ALLOW_THREADS(self->tstate)
@@ -403,8 +516,12 @@ ssl_Connection_sendall(ssl_ConnectionObj *self, PyObject *args)
             handle_ssl_errors(self->ssl, err, ret);
             pyret = NULL;
             break;
-        }    
+        }
     } while (len > 0);
+
+#if PY_VERSION_HEX >= 0x02060000
+    PyBuffer_Release(&pbuf);
+#endif
 
     Py_XINCREF(pyret);
     return pyret;
@@ -1069,6 +1186,44 @@ ssl_Connection_get_peer_certificate(ssl_ConnectionObj *self, PyObject *args)
     }
 }
 
+static char ssl_Connection_get_peer_cert_chain_doc[] = "\n\
+Retrieve the other side's certificate (if any)\n\
+\n\
+@return: A list of X509 instances giving the peer's certificate chain,\n\
+         or None if it does not have one.\n\
+";
+static PyObject *
+ssl_Connection_get_peer_cert_chain(ssl_ConnectionObj *self, PyObject *args) {
+    STACK_OF(X509) *sk;
+    PyObject *chain;
+    crypto_X509Obj *cert;
+    Py_ssize_t i;
+
+    if (!PyArg_ParseTuple(args, ":get_peer_cert_chain")) {
+        return NULL;
+    }
+
+    sk = SSL_get_peer_cert_chain(self->ssl);
+    if (sk != NULL) {
+        chain = PyList_New(sk_X509_num(sk));
+        for (i = 0; i < sk_X509_num(sk); i++) {
+            cert = new_x509(sk_X509_value(sk, i), 1);
+            if (!cert) {
+                /* XXX Untested */
+                Py_DECREF(chain);
+                return NULL;
+            }
+            CRYPTO_add(&cert->x509->references, 1, CRYPTO_LOCK_X509);
+            PyList_SET_ITEM(chain, i, (PyObject *)cert);
+        }
+        return chain;
+    } else {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+}
+
 static char ssl_Connection_want_read_doc[] = "\n\
 Checks if more data has to be read from the transport layer to complete an\n\
 operation.\n\
@@ -1114,6 +1269,9 @@ ssl_Connection_want_write(ssl_ConnectionObj *self, PyObject *args)
 static PyMethodDef ssl_Connection_methods[] =
 {
     ADD_METHOD(get_context),
+    ADD_METHOD(set_context),
+    ADD_METHOD(get_servername),
+    ADD_METHOD(set_tlsext_host_name),
     ADD_METHOD(pending),
     ADD_METHOD(send),
     ADD_ALIAS (write, send),
@@ -1146,6 +1304,7 @@ static PyMethodDef ssl_Connection_methods[] =
     ADD_METHOD(master_key),
     ADD_METHOD(sock_shutdown),
     ADD_METHOD(get_peer_certificate),
+    ADD_METHOD(get_peer_cert_chain),
     ADD_METHOD(want_read),
     ADD_METHOD(want_write),
     ADD_METHOD(set_accept_state),
@@ -1403,10 +1562,16 @@ init_ssl_connection(PyObject *module) {
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&ssl_Connection_Type);
     if (PyModule_AddObject(module, "Connection", (PyObject *)&ssl_Connection_Type) != 0) {
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&ssl_Connection_Type);
     if (PyModule_AddObject(module, "ConnectionType", (PyObject *)&ssl_Connection_Type) != 0) {
         return 0;
     }

@@ -1,8 +1,9 @@
 /*
  * x509.c
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
- * Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+ * Copyright (C) AB Strakt
+ * Copyright (C) Jean-Paul Calderone
+ * See LICENSE for details.
  *
  * Certificate (X.509) handling code, mostly thin wrappers around OpenSSL.
  * See the file RATIONALE for a short explanation of why this module was written.
@@ -12,6 +13,7 @@
 #include <Python.h>
 #define crypto_MODULE
 #include "crypto.h"
+#include "x509ext.h"
 
 /*
  * X.509 is a standard for digital certificates.  See e.g. the OpenSSL homepage
@@ -299,7 +301,7 @@ crypto_X509_get_pubkey(crypto_X509Obj *self, PyObject *args)
 
     py_pkey = crypto_PKey_New(pkey, 1);
     if (py_pkey != NULL) {
-	py_pkey->only_public = 1;
+        py_pkey->only_public = 1;
     }
     return (PyObject *)py_pkey;
 }
@@ -517,6 +519,34 @@ crypto_X509_gmtime_adj_notAfter(crypto_X509Obj *self, PyObject *args)
     return Py_None;
 }
 
+
+static char crypto_X509_get_signature_algorithm_doc[] = "\n\
+Retrieve the signature algorithm used in the certificate\n\
+\n\
+@return: A byte string giving the name of the signature algorithm used in\n\
+         the certificate.\n\
+@raise ValueError: If the signature algorithm is undefined.\n\
+";
+
+static PyObject *
+crypto_X509_get_signature_algorithm(crypto_X509Obj *self, PyObject *args) {
+    ASN1_OBJECT *alg;
+    int nid;
+
+    if (!PyArg_ParseTuple(args, ":get_signature_algorithm")) {
+        return NULL;
+    }
+
+    alg = self->x509->cert_info->signature->algorithm;
+    nid = OBJ_obj2nid(alg);
+    if (nid == NID_undef) {
+        PyErr_SetString(PyExc_ValueError, "Undefined signature algorithm");
+        return NULL;
+    }
+    return PyBytes_FromString(OBJ_nid2ln(nid));
+}
+
+
 static char crypto_X509_sign_doc[] = "\n\
 Sign the certificate using the supplied key and digest\n\
 \n\
@@ -684,6 +714,52 @@ crypto_X509_add_extensions(crypto_X509Obj *self, PyObject *args)
     return Py_None;
 }
 
+static char crypto_X509_get_extension_count_doc[] = "\n\
+Get the number of extensions on the certificate.\n\
+\n\
+@return: Number of extensions as a Python integer\n\
+";
+
+static PyObject *
+crypto_X509_get_extension_count(crypto_X509Obj *self, PyObject *args) {
+    if (!PyArg_ParseTuple(args, ":get_extension_count")) {
+        return NULL;
+    }
+
+    return PyLong_FromLong((long)X509_get_ext_count(self->x509));
+}
+
+static char crypto_X509_get_extension_doc[] = "\n\
+Get a specific extension of the certificate by index.\n\
+\n\
+@param index: The index of the extension to retrieve.\n\
+@return: The X509Extension object at the specified index.\n\
+";
+
+static PyObject *
+crypto_X509_get_extension(crypto_X509Obj *self, PyObject *args) {
+    crypto_X509ExtensionObj *extobj;
+    int loc;
+    X509_EXTENSION *ext;
+
+    if (!PyArg_ParseTuple(args, "i:get_extension", &loc)) {
+        return NULL;
+    }
+
+    /* will return NULL if loc is outside the range of extensions,
+       not registered as an error*/
+    ext = X509_get_ext(self->x509, loc);
+    if (!ext) {
+        PyErr_SetString(PyExc_IndexError, "extension index out of bounds");
+        return NULL; /* Should be reported as an IndexError ? */
+    }
+
+    extobj = PyObject_New(crypto_X509ExtensionObj, &crypto_X509Extension_Type);
+    extobj->x509_extension = X509_EXTENSION_dup(ext);
+
+    return (PyObject*)extobj;
+}
+
 /*
  * ADD_METHOD(name) expands to a correct PyMethodDef declaration
  *   {  'name', (PyCFunction)crypto_X509_name, METH_VARARGS }
@@ -709,11 +785,14 @@ static PyMethodDef crypto_X509_methods[] =
     ADD_METHOD(set_notAfter),
     ADD_METHOD(gmtime_adj_notBefore),
     ADD_METHOD(gmtime_adj_notAfter),
+    ADD_METHOD(get_signature_algorithm),
     ADD_METHOD(sign),
     ADD_METHOD(has_expired),
     ADD_METHOD(subject_name_hash),
     ADD_METHOD(digest),
     ADD_METHOD(add_extensions),
+    ADD_METHOD(get_extension),
+    ADD_METHOD(get_extension_count),
     { NULL, NULL }
 };
 #undef ADD_METHOD
@@ -833,10 +912,14 @@ init_crypto_x509(PyObject *module)
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&crypto_X509_Type);
     if (PyModule_AddObject(module, "X509", (PyObject *)&crypto_X509_Type) != 0) {
         return 0;
     }
 
+    Py_INCREF((PyObject *)&crypto_X509_Type);
     if (PyModule_AddObject(module, "X509Type", (PyObject *)&crypto_X509_Type) != 0) {
         return 0;
     }

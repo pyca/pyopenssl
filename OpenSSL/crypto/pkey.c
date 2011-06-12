@@ -1,8 +1,9 @@
 /*
  * pkey.c
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
- * Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+ * Copyright (C) AB Strakt
+ * Copyright (C) Jean-Paul Calderone
+ * See LICENSE for details.
  *
  * Public/rivate key handling code, mostly thin wrappers around OpenSSL.
  * See the file RATIONALE for a short explanation of why this module was written.
@@ -251,10 +252,16 @@ init_crypto_pkey(PyObject *module)
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&crypto_PKey_Type);
     if (PyModule_AddObject(module, "PKey", (PyObject *)&crypto_PKey_Type) != 0) {
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&crypto_PKey_Type);
     if (PyModule_AddObject(module, "PKeyType", (PyObject *)&crypto_PKey_Type) != 0) {
         return 0;
     }

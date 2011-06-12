@@ -1,7 +1,8 @@
 /*
  * pkcs12.c
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) AB Strakt
+ * See LICENSE for details.
  *
  * Certificate transport (PKCS12) handling code,
  * mostly thin wrappers around OpenSSL.
@@ -336,15 +337,25 @@ crypto_PKCS12_New(PKCS12 *p12, char *passphrase) {
     }
 
     /* parse the PKCS12 lump */
-    if (p12 && !PKCS12_parse(p12, passphrase, &pkey, &cert, &cacerts)) {
-        /*
-         * If PKCS12_parse fails, and it allocated cacerts, it seems to free
-         * cacerts, but not re-NULL the pointer.  Zounds!  Make sure it is
-         * re-set to NULL here, else we'll have a double-free below.
-         */
-        cacerts = NULL;
-        exception_from_error_queue(crypto_Error);
-        goto error;
+    if (p12) {
+        if (!PKCS12_parse(p12, passphrase, &pkey, &cert, &cacerts)) {
+	    /*
+             * If PKCS12_parse fails, and it allocated cacerts, it seems to
+             * free cacerts, but not re-NULL the pointer.  Zounds!  Make sure
+             * it is re-set to NULL here, else we'll have a double-free below.
+             */
+            cacerts = NULL;
+            exception_from_error_queue(crypto_Error);
+            goto error;
+        } else {
+	  /*
+	   * OpenSSL 1.0.0 sometimes leaves an X509_check_private_key error in
+	   * the queue for no particular reason.  This error isn't interesting
+	   * to anyone outside this function.  It's not even interesting to
+	   * us.  Get rid of it.
+	   */
+	  flush_error_queue();
+	}
     }
 
     if (!(self = PyObject_GC_New(crypto_PKCS12Obj, &crypto_PKCS12_Type))) {
@@ -551,10 +562,16 @@ init_crypto_pkcs12(PyObject *module) {
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&crypto_PKCS12_Type);
     if (PyModule_AddObject(module, "PKCS12", (PyObject *)&crypto_PKCS12_Type) != 0) {
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&crypto_PKCS12_Type);
     if (PyModule_AddObject(module, "PKCS12Type", (PyObject *)&crypto_PKCS12_Type) != 0) {
         return 0;
     }

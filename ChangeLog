@@ -1,3 +1,68 @@
+2011-05-20  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/ssl/connection.c, OpenSSL/test/test_ssl.py: Add a new
+          method to the Connection type, get_peer_cert_chain, for retrieving
+          the peer's certificate chain.
+
+2011-05-19  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/crypto/x509.c, OpenSSL/test/test_crypto.py: Add a new
+          method to the X509 type, get_signature_algorithm, for inspecting
+          the signature algorithm field of the certificate.  Based on a
+          patch from <lp:~okuda>.
+
+2011-05-10  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/crypto/crypto.h: Work around a Windows/OpenSSL 1.0 issue
+	  explicitly including a Windows header before any OpenSSL headers.
+
+	* OpenSSL/crypto/pkcs12.c: Work around an OpenSSL 1.0 issue by
+	  explicitly flushing errors known to be uninteresting after calling
+	  PKCS12_parse.
+
+	* OpenSSL/ssl/context.c: Remove SSLv2 support if the underlying
+	  OpenSSL library does not provide it.
+
+	* OpenSSL/test/test_crypto.py: Support an OpenSSL 1.0 change from
+	  MD5 to SHA1 by allowing either hash algorithm's result as the
+	  return value of X509.subject_name_hash.
+
+	* OpenSSL/test/test_ssl.py: Support an OpenSSL 1.0 change from MD5
+	  to SHA1 by constructing certificate files named using both hash
+	  algorithms' results when testing Context.load_verify_locations.
+
+	* Support OpenSSL 1.0.0a.
+
+2011-04-15  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/ssl/ssl.c: Add OPENSSL_VERSION_NUMBER, SSLeay_version
+	  and related constants for retrieving version information about the
+	  underlying OpenSSL library.
+
+2011-04-07  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* Release 0.12
+
+2011-04-06  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/crypto/x509.c: Add get_extension_count and get_extension
+	  to the X509 type, allowing read access to certificate extensions.
+
+	* OpenSSL/crypto/x509ext.c: Add get_short_name and get_data to the
+	  X509Extension type, allowing read access to the contents of an
+	  extension.
+
+2011-03-21  Olivier Hervieu <lp:~ohe>
+
+	* OpenSSL/ssl/ssl.c: Expose a number of symbolic constants for
+	  values passed to the connection "info" callback.
+
+2011-01-22  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/ssl/connection.py: Add support for new-style
+	  buffers (primarily memoryviews) to Connection.send and
+	  Connection.sendall.
+
 2010-11-01  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* Release 0.11

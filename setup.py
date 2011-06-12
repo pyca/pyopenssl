@@ -15,7 +15,7 @@ from distutils.errors import DistutilsFileError
 from distutils.command.build_ext import build_ext
 
 # XXX Deduplicate this
-__version__ = '0.11'
+__version__ = '0.12'
 
 crypto_src = ['OpenSSL/crypto/crypto.c', 'OpenSSL/crypto/x509.c',
               'OpenSSL/crypto/x509name.c', 'OpenSSL/crypto/pkey.c',
@@ -211,7 +211,7 @@ setup(name='pyOpenSSL', version=__version__,
       maintainer = 'Jean-Paul Calderone',
       maintainer_email = 'exarkun@twistedmatrix.com',
       url = 'http://pyopenssl.sourceforge.net/',
-      license = 'LGPL',
+      license = 'APL2',
       long_description = """\
 High-level wrapper around a subset of the OpenSSL library, includes
  * SSL.Connection objects, wrapping the methods of Python's portable

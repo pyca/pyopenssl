@@ -1,7 +1,8 @@
 /*
  * x509store.c
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) AB Strakt
+ * See LICENSE for details.
  *
  * X.509 Store handling, mostly thin wrapping.
  * See the file RATIONALE for a short explanation of why this module was written.
@@ -137,6 +138,9 @@ init_crypto_x509store(PyObject *module)
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&crypto_X509Store_Type);
     if (PyModule_AddObject(module, "X509StoreType", (PyObject *)&crypto_X509Store_Type) != 0) {
         return 0;
     }

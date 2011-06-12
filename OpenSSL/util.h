@@ -1,14 +1,14 @@
 /*
  * util.h
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
+ * Copyright (C) AB Strakt
+ * See LICENSE for details.
  *
  * Export utility functions and macros.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: util.h,v 1.8 2002/08/16 10:08:09 martin Exp $
  */
 #ifndef PyOpenSSL_UTIL_H_
 #define PyOpenSSL_UTIL_H_
@@ -135,6 +135,10 @@ typedef int Py_ssize_t;
 extern PyObject* PyOpenSSL_LongToHex(PyObject *o);
 #else
 #define PyOpenSSL_LongToHex(o) PyNumber_ToBase(o, 16)
+#endif
+
+#ifndef Py_TYPE
+#define Py_TYPE(ob)             (((PyObject*)(ob))->ob_type)
 #endif
 
 #endif

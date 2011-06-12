@@ -1,5 +1,5 @@
-# Copyright (C) Jean-Paul Calderone 2009, All rights reserved
-# Copyright (c) 2001-2009 Twisted Matrix Laboratories.
+# Copyright (C) Jean-Paul Calderone
+# Copyright (C) Twisted Matrix Laboratories.
 # See LICENSE for details.
 
 """
@@ -15,16 +15,14 @@ import sys
 
 from OpenSSL.crypto import Error, _exception_from_error_queue
 
-
-try:
-    bytes = bytes
-except NameError:
+if sys.version_info < (3, 0):
     def b(s):
         return s
     bytes = str
 else:
     def b(s):
-        return s.encode("ascii")
+        return s.encode("charmap")
+    bytes = bytes
 
 
 class TestCase(TestCase):
@@ -51,6 +49,22 @@ class TestCase(TestCase):
             if e.args != ([],):
                 self.fail("Left over errors in OpenSSL error queue: " + repr(e))
 
+
+    def failUnlessIn(self, containee, container, msg=None):
+        """
+        Fail the test if C{containee} is not found in C{container}.
+
+        @param containee: the value that should be in C{container}
+        @param container: a sequence type, or in the case of a mapping type,
+                          will follow semantics of 'if key in dict.keys()'
+        @param msg: if msg is None, then the failure message will be
+                    '%r not in %r' % (first, second)
+        """
+        if containee not in container:
+            raise self.failureException(msg or "%r not in %r"
+                                        % (containee, container))
+        return containee
+    assertIn = failUnlessIn
 
     def failUnlessIdentical(self, first, second, msg=None):
         """

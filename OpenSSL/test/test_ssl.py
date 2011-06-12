@@ -1,32 +1,41 @@
-# Copyright (C) Jean-Paul Calderone 2008-2010, All rights reserved
+# Copyright (C) Jean-Paul Calderone
+# See LICENSE for details.
 
 """
 Unit tests for L{OpenSSL.SSL}.
 """
 
+from gc import collect
 from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK
-from sys import platform
+from sys import platform, version_info
 from socket import error, socket
 from os import makedirs
 from os.path import join
 from unittest import main
+from weakref import ref
 
-from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM, FILETYPE_ASN1
+from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
 from OpenSSL.crypto import PKey, X509, X509Extension
 from OpenSSL.crypto import dump_privatekey, load_privatekey
 from OpenSSL.crypto import dump_certificate, load_certificate
 
+from OpenSSL.SSL import OPENSSL_VERSION_NUMBER, SSLEAY_VERSION, SSLEAY_CFLAGS
+from OpenSSL.SSL import SSLEAY_PLATFORM, SSLEAY_DIR, SSLEAY_BUILT_ON
 from OpenSSL.SSL import SENT_SHUTDOWN, RECEIVED_SHUTDOWN
 from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
 from OpenSSL.SSL import OP_NO_SSLv2, OP_NO_SSLv3, OP_SINGLE_DH_USE
-from OpenSSL.SSL import VERIFY_PEER, VERIFY_FAIL_IF_NO_PEER_CERT, VERIFY_CLIENT_ONCE
-from OpenSSL.SSL import Error, SysCallError, WantReadError, ZeroReturnError
+from OpenSSL.SSL import (
+    VERIFY_PEER, VERIFY_FAIL_IF_NO_PEER_CERT, VERIFY_CLIENT_ONCE, VERIFY_NONE)
+from OpenSSL.SSL import (
+    Error, SysCallError, WantReadError, ZeroReturnError, SSLeay_version)
 from OpenSSL.SSL import Context, ContextType, Connection, ConnectionType
 
 from OpenSSL.test.util import TestCase, bytes, b
-from OpenSSL.test.test_crypto import cleartextCertificatePEM, cleartextPrivateKeyPEM
-from OpenSSL.test.test_crypto import client_cert_pem, client_key_pem
-from OpenSSL.test.test_crypto import server_cert_pem, server_key_pem, root_cert_pem
+from OpenSSL.test.test_crypto import (
+    cleartextCertificatePEM, cleartextPrivateKeyPEM)
+from OpenSSL.test.test_crypto import (
+    client_cert_pem, client_key_pem, server_cert_pem, server_key_pem,
+    root_cert_pem)
 
 try:
     from OpenSSL.SSL import OP_NO_QUERY_MTU
@@ -41,6 +50,13 @@ try:
 except ImportError:
     OP_NO_TICKET = None
 
+from OpenSSL.SSL import (
+    SSL_ST_CONNECT, SSL_ST_ACCEPT, SSL_ST_MASK, SSL_ST_INIT, SSL_ST_BEFORE,
+    SSL_ST_OK, SSL_ST_RENEGOTIATE,
+    SSL_CB_LOOP, SSL_CB_EXIT, SSL_CB_READ, SSL_CB_WRITE, SSL_CB_ALERT,
+    SSL_CB_READ_ALERT, SSL_CB_WRITE_ALERT, SSL_CB_ACCEPT_LOOP,
+    SSL_CB_ACCEPT_EXIT, SSL_CB_CONNECT_LOOP, SSL_CB_CONNECT_EXIT,
+    SSL_CB_HANDSHAKE_START, SSL_CB_HANDSHAKE_DONE)
 
 # openssl dhparam 128 -out dh-128.pem (note that 128 is a small number of bits
 # to use)
@@ -53,6 +69,7 @@ MBYCEQCobsg29c9WZP/54oAPcwiDAgEC
 
 def verify_cb(conn, cert, errnum, depth, ok):
     return ok
+
 
 def socket_pair():
     """
@@ -94,6 +111,60 @@ def handshake(client, server):
                 pass
             else:
                 conns.remove(conn)
+
+
+def _create_certificate_chain():
+    """
+    Construct and return a chain of certificates.
+
+        1. A new self-signed certificate authority certificate (cacert)
+        2. A new intermediate certificate signed by cacert (icert)
+        3. A new server certificate signed by icert (scert)
+    """
+    caext = X509Extension(b('basicConstraints'), False, b('CA:true'))
+
+    # Step 1
+    cakey = PKey()
+    cakey.generate_key(TYPE_RSA, 512)
+    cacert = X509()
+    cacert.get_subject().commonName = "Authority Certificate"
+    cacert.set_issuer(cacert.get_subject())
+    cacert.set_pubkey(cakey)
+    cacert.set_notBefore(b("20000101000000Z"))
+    cacert.set_notAfter(b("20200101000000Z"))
+    cacert.add_extensions([caext])
+    cacert.set_serial_number(0)
+    cacert.sign(cakey, "sha1")
+
+    # Step 2
+    ikey = PKey()
+    ikey.generate_key(TYPE_RSA, 512)
+    icert = X509()
+    icert.get_subject().commonName = "Intermediate Certificate"
+    icert.set_issuer(cacert.get_subject())
+    icert.set_pubkey(ikey)
+    icert.set_notBefore(b("20000101000000Z"))
+    icert.set_notAfter(b("20200101000000Z"))
+    icert.add_extensions([caext])
+    icert.set_serial_number(0)
+    icert.sign(cakey, "sha1")
+
+    # Step 3
+    skey = PKey()
+    skey.generate_key(TYPE_RSA, 512)
+    scert = X509()
+    scert.get_subject().commonName = "Server Certificate"
+    scert.set_issuer(icert.get_subject())
+    scert.set_pubkey(skey)
+    scert.set_notBefore(b("20000101000000Z"))
+    scert.set_notAfter(b("20200101000000Z"))
+    scert.add_extensions([
+            X509Extension(b('basicConstraints'), True, b('CA:false'))])
+    scert.set_serial_number(0)
+    scert.sign(ikey, "sha1")
+
+    return [(cakey, cacert), (ikey, icert), (skey, scert)]
+
 
 
 class _LoopbackMixin:
@@ -141,7 +212,7 @@ class _LoopbackMixin:
                 # Give the side a chance to generate some more bytes, or
                 # succeed.
                 try:
-                    bytes = read.recv(2 ** 16)
+                    data = read.recv(2 ** 16)
                 except WantReadError:
                     # It didn't succeed, so we'll hope it generated some
                     # output.
@@ -149,7 +220,7 @@ class _LoopbackMixin:
                 else:
                     # It did succeed, so we'll stop now and let the caller deal
                     # with it.
-                    return (read, bytes)
+                    return (read, data)
 
                 while True:
                     # Keep copying as long as there's more stuff there.
@@ -167,6 +238,36 @@ class _LoopbackMixin:
 
 
 
+class VersionTests(TestCase):
+    """
+    Tests for version information exposed by
+    L{OpenSSL.SSL.SSLeay_version} and
+    L{OpenSSL.SSL.OPENSSL_VERSION_NUMBER}.
+    """
+    def test_OPENSSL_VERSION_NUMBER(self):
+        """
+        L{OPENSSL_VERSION_NUMBER} is an integer with status in the low
+        byte and the patch, fix, minor, and major versions in the
+        nibbles above that.
+        """
+        self.assertTrue(isinstance(OPENSSL_VERSION_NUMBER, int))
+
+
+    def test_SSLeay_version(self):
+        """
+        L{SSLeay_version} takes a version type indicator and returns
+        one of a number of version strings based on that indicator.
+        """
+        versions = {}
+        for t in [SSLEAY_VERSION, SSLEAY_CFLAGS, SSLEAY_BUILT_ON,
+                  SSLEAY_PLATFORM, SSLEAY_DIR]:
+            version = SSLeay_version(t)
+            versions[version] = t
+            self.assertTrue(isinstance(version, bytes))
+        self.assertEqual(len(versions), 5)
+
+
+
 class ContextTests(TestCase, _LoopbackMixin):
     """
     Unit tests for L{OpenSSL.SSL.Context}.
@@ -176,8 +277,16 @@ class ContextTests(TestCase, _LoopbackMixin):
         L{Context} can be instantiated with one of L{SSLv2_METHOD},
         L{SSLv3_METHOD}, L{SSLv23_METHOD}, or L{TLSv1_METHOD}.
         """
-        for meth in [SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD]:
+        for meth in [SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD]:
             Context(meth)
+
+        try:
+            Context(SSLv2_METHOD)
+        except ValueError:
+            # Some versions of OpenSSL have SSLv2, some don't.
+            # Difficult to say in advance.
+            pass
+
         self.assertRaises(TypeError, Context, "")
         self.assertRaises(ValueError, Context, 10)
 
@@ -512,12 +621,14 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         capath = self.mktemp()
         makedirs(capath)
-        # Hash value computed manually with c_rehash to avoid depending on
-        # c_rehash in the test suite.
-        cafile = join(capath, 'c7adac82.0')
-        fObj = open(cafile, 'w')
-        fObj.write(cleartextCertificatePEM.decode('ascii'))
-        fObj.close()
+        # Hash values computed manually with c_rehash to avoid depending on
+        # c_rehash in the test suite.  One is from OpenSSL 0.9.8, the other
+        # from OpenSSL 1.0.0.
+        for name in ['c7adac82.0', 'c3705638.0']:
+            cafile = join(capath, name)
+            fObj = open(cafile, 'w')
+            fObj.write(cleartextCertificatePEM.decode('ascii'))
+            fObj.close()
 
         self._load_verify_locations_test(None, capath)
 
@@ -590,59 +701,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, context.add_extra_chain_cert, object(), object())
 
 
-    def _create_certificate_chain(self):
-        """
-        Construct and return a chain of certificates.
-
-            1. A new self-signed certificate authority certificate (cacert)
-            2. A new intermediate certificate signed by cacert (icert)
-            3. A new server certificate signed by icert (scert)
-        """
-        caext = X509Extension(b('basicConstraints'), False, b('CA:true'))
-
-        # Step 1
-        cakey = PKey()
-        cakey.generate_key(TYPE_RSA, 512)
-        cacert = X509()
-        cacert.get_subject().commonName = "Authority Certificate"
-        cacert.set_issuer(cacert.get_subject())
-        cacert.set_pubkey(cakey)
-        cacert.set_notBefore(b("20000101000000Z"))
-        cacert.set_notAfter(b("20200101000000Z"))
-        cacert.add_extensions([caext])
-        cacert.set_serial_number(0)
-        cacert.sign(cakey, "sha1")
-
-        # Step 2
-        ikey = PKey()
-        ikey.generate_key(TYPE_RSA, 512)
-        icert = X509()
-        icert.get_subject().commonName = "Intermediate Certificate"
-        icert.set_issuer(cacert.get_subject())
-        icert.set_pubkey(ikey)
-        icert.set_notBefore(b("20000101000000Z"))
-        icert.set_notAfter(b("20200101000000Z"))
-        icert.add_extensions([caext])
-        icert.set_serial_number(0)
-        icert.sign(cakey, "sha1")
-
-        # Step 3
-        skey = PKey()
-        skey.generate_key(TYPE_RSA, 512)
-        scert = X509()
-        scert.get_subject().commonName = "Server Certificate"
-        scert.set_issuer(icert.get_subject())
-        scert.set_pubkey(skey)
-        scert.set_notBefore(b("20000101000000Z"))
-        scert.set_notAfter(b("20200101000000Z"))
-        scert.add_extensions([
-                X509Extension(b('basicConstraints'), True, b('CA:false'))])
-        scert.set_serial_number(0)
-        scert.sign(ikey, "sha1")
-
-        return [(cakey, cacert), (ikey, icert), (skey, scert)]
-
-
     def _handshake_test(self, serverContext, clientContext):
         """
         Verify that a client and server created with the given contexts can
@@ -678,7 +736,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         to it with a client which trusts cacert and requires verification to
         succeed.
         """
-        chain = self._create_certificate_chain()
+        chain = _create_certificate_chain()
         [(cakey, cacert), (ikey, icert), (skey, scert)] = chain
 
         # Dump the CA certificate to a file because that's the only way to load
@@ -719,7 +777,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         to it with a client which trusts cacert and requires verification to
         succeed.
         """
-        chain = self._create_certificate_chain()
+        chain = _create_certificate_chain()
         [(cakey, cacert), (ikey, icert), (skey, scert)] = chain
 
         # Write out the chain file.
@@ -817,6 +875,106 @@ class ContextTests(TestCase, _LoopbackMixin):
 
 
 
+class ServerNameCallbackTests(TestCase, _LoopbackMixin):
+    """
+    Tests for L{Context.set_tlsext_servername_callback} and its interaction with
+    L{Connection}.
+    """
+    def test_wrong_args(self):
+        """
+        L{Context.set_tlsext_servername_callback} raises L{TypeError} if called
+        with other than one argument.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.set_tlsext_servername_callback)
+        self.assertRaises(
+            TypeError, context.set_tlsext_servername_callback, 1, 2)
+
+    def test_old_callback_forgotten(self):
+        """
+        If L{Context.set_tlsext_servername_callback} is used to specify a new
+        callback, the one it replaces is dereferenced.
+        """
+        def callback(connection):
+            pass
+
+        def replacement(connection):
+            pass
+
+        context = Context(TLSv1_METHOD)
+        context.set_tlsext_servername_callback(callback)
+
+        tracker = ref(callback)
+        del callback
+
+        context.set_tlsext_servername_callback(replacement)
+        collect()
+        self.assertIdentical(None, tracker())
+
+
+    def test_no_servername(self):
+        """
+        When a client specifies no server name, the callback passed to
+        L{Context.set_tlsext_servername_callback} is invoked and the result of
+        L{Connection.get_servername} is C{None}.
+        """
+        args = []
+        def servername(conn):
+            args.append((conn, conn.get_servername()))
+        context = Context(TLSv1_METHOD)
+        context.set_tlsext_servername_callback(servername)
+
+        # Lose our reference to it.  The Context is responsible for keeping it
+        # alive now.
+        del servername
+        collect()
+
+        # Necessary to actually accept the connection
+        context.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
+        context.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
+
+        # Do a little connection to trigger the logic
+        server = Connection(context, None)
+        server.set_accept_state()
+
+        client = Connection(Context(TLSv1_METHOD), None)
+        client.set_connect_state()
+
+        self._interactInMemory(server, client)
+
+        self.assertEqual([(server, None)], args)
+
+
+    def test_servername(self):
+        """
+        When a client specifies a server name in its hello message, the callback
+        passed to L{Contexts.set_tlsext_servername_callback} is invoked and the
+        result of L{Connection.get_servername} is that server name.
+        """
+        args = []
+        def servername(conn):
+            args.append((conn, conn.get_servername()))
+        context = Context(TLSv1_METHOD)
+        context.set_tlsext_servername_callback(servername)
+
+        # Necessary to actually accept the connection
+        context.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
+        context.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
+
+        # Do a little connection to trigger the logic
+        server = Connection(context, None)
+        server.set_accept_state()
+
+        client = Connection(Context(TLSv1_METHOD), None)
+        client.set_connect_state()
+        client.set_tlsext_host_name(b("foo1.example.com"))
+
+        self._interactInMemory(server, client)
+
+        self.assertEqual([(server, b("foo1.example.com"))], args)
+
+
+
 class ConnectionTests(TestCase, _LoopbackMixin):
     """
     Unit tests for L{OpenSSL.SSL.Connection}.
@@ -866,6 +1024,71 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, connection.get_context, None)
+
+
+    def test_set_context_wrong_args(self):
+        """
+        L{Connection.set_context} raises L{TypeError} if called with a
+        non-L{Context} instance argument or with any number of arguments other
+        than 1.
+        """
+        ctx = Context(TLSv1_METHOD)
+        connection = Connection(ctx, None)
+        self.assertRaises(TypeError, connection.set_context)
+        self.assertRaises(TypeError, connection.set_context, object())
+        self.assertRaises(TypeError, connection.set_context, "hello")
+        self.assertRaises(TypeError, connection.set_context, 1)
+        self.assertRaises(TypeError, connection.set_context, 1, 2)
+        self.assertRaises(
+            TypeError, connection.set_context, Context(TLSv1_METHOD), 2)
+        self.assertIdentical(ctx, connection.get_context())
+
+
+    def test_set_context(self):
+        """
+        L{Connection.set_context} specifies a new L{Context} instance to be used
+        for the connection.
+        """
+        original = Context(SSLv23_METHOD)
+        replacement = Context(TLSv1_METHOD)
+        connection = Connection(original, None)
+        connection.set_context(replacement)
+        self.assertIdentical(replacement, connection.get_context())
+        # Lose our references to the contexts, just in case the Connection isn't
+        # properly managing its own contributions to their reference counts.
+        del original, replacement
+        collect()
+
+
+    def test_set_tlsext_host_name_wrong_args(self):
+        """
+        If L{Connection.set_tlsext_host_name} is called with a non-byte string
+        argument or a byte string with an embedded NUL or other than one
+        argument, L{TypeError} is raised.
+        """
+        conn = Connection(Context(TLSv1_METHOD), None)
+        self.assertRaises(TypeError, conn.set_tlsext_host_name)
+        self.assertRaises(TypeError, conn.set_tlsext_host_name, object())
+        self.assertRaises(TypeError, conn.set_tlsext_host_name, 123, 456)
+        self.assertRaises(
+            TypeError, conn.set_tlsext_host_name, b("with\0null"))
+
+        if version_info >= (3,):
+            # On Python 3.x, don't accidentally implicitly convert from text.
+            self.assertRaises(
+                TypeError,
+                conn.set_tlsext_host_name, b("example.com").decode("ascii"))
+
+
+    def test_get_servername_wrong_args(self):
+        """
+        L{Connection.get_servername} raises L{TypeError} if called with any
+        arguments.
+        """
+        connection = Connection(Context(TLSv1_METHOD), None)
+        self.assertRaises(TypeError, connection.get_servername, object())
+        self.assertRaises(TypeError, connection.get_servername, 1)
+        self.assertRaises(TypeError, connection.get_servername, "hello")
 
 
     def test_pending(self):
@@ -1047,6 +1270,68 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertRaises(NotImplementedError, conn.makefile)
 
 
+    def test_get_peer_cert_chain_wrong_args(self):
+        """
+        L{Connection.get_peer_cert_chain} raises L{TypeError} if called with any
+        arguments.
+        """
+        conn = Connection(Context(TLSv1_METHOD), None)
+        self.assertRaises(TypeError, conn.get_peer_cert_chain, 1)
+        self.assertRaises(TypeError, conn.get_peer_cert_chain, "foo")
+        self.assertRaises(TypeError, conn.get_peer_cert_chain, object())
+        self.assertRaises(TypeError, conn.get_peer_cert_chain, [])
+
+
+    def test_get_peer_cert_chain(self):
+        """
+        L{Connection.get_peer_cert_chain} returns a list of certificates which
+        the connected server returned for the certification verification.
+        """
+        chain = _create_certificate_chain()
+        [(cakey, cacert), (ikey, icert), (skey, scert)] = chain
+
+        serverContext = Context(TLSv1_METHOD)
+        serverContext.use_privatekey(skey)
+        serverContext.use_certificate(scert)
+        serverContext.add_extra_chain_cert(icert)
+        serverContext.add_extra_chain_cert(cacert)
+        server = Connection(serverContext, None)
+        server.set_accept_state()
+
+        # Create the client
+        clientContext = Context(TLSv1_METHOD)
+        clientContext.set_verify(VERIFY_NONE, verify_cb)
+        client = Connection(clientContext, None)
+        client.set_connect_state()
+
+        self._interactInMemory(client, server)
+
+        chain = client.get_peer_cert_chain()
+        self.assertEqual(len(chain), 3)
+        self.assertEqual(
+            "Server Certificate", chain[0].get_subject().CN)
+        self.assertEqual(
+            "Intermediate Certificate", chain[1].get_subject().CN)
+        self.assertEqual(
+            "Authority Certificate", chain[2].get_subject().CN)
+
+
+    def test_get_peer_cert_chain_none(self):
+        """
+        L{Connection.get_peer_cert_chain} returns C{None} if the peer sends no
+        certificate chain.
+        """
+        ctx = Context(TLSv1_METHOD)
+        ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
+        ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
+        server = Connection(ctx, None)
+        server.set_accept_state()
+        client = Connection(Context(TLSv1_METHOD), None)
+        client.set_connect_state()
+        self._interactInMemory(client, server)
+        self.assertIdentical(None, server.get_peer_cert_chain())
+
+
 
 class ConnectionGetCipherListTests(TestCase):
     """
@@ -1074,6 +1359,49 @@ class ConnectionGetCipherListTests(TestCase):
 
 
 
+class ConnectionSendTests(TestCase, _LoopbackMixin):
+    """
+    Tests for L{Connection.send}
+    """
+    def test_wrong_args(self):
+        """
+        When called with arguments other than a single string,
+        L{Connection.send} raises L{TypeError}.
+        """
+        connection = Connection(Context(TLSv1_METHOD), None)
+        self.assertRaises(TypeError, connection.send)
+        self.assertRaises(TypeError, connection.send, object())
+        self.assertRaises(TypeError, connection.send, "foo", "bar")
+
+
+    def test_short_bytes(self):
+        """
+        When passed a short byte string, L{Connection.send} transmits all of it
+        and returns the number of bytes sent.
+        """
+        server, client = self._loopback()
+        count = server.send(b('xy'))
+        self.assertEquals(count, 2)
+        self.assertEquals(client.recv(2), b('xy'))
+
+    try:
+        memoryview
+    except NameError:
+        "cannot test sending memoryview without memoryview"
+    else:
+        def test_short_memoryview(self):
+            """
+            When passed a memoryview onto a small number of bytes,
+            L{Connection.send} transmits all of them and returns the number of
+            bytes sent.
+            """
+            server, client = self._loopback()
+            count = server.send(memoryview(b('xy')))
+            self.assertEquals(count, 2)
+            self.assertEquals(client.recv(2), b('xy'))
+
+
+
 class ConnectionSendallTests(TestCase, _LoopbackMixin):
     """
     Tests for L{Connection.sendall}.
@@ -1097,6 +1425,21 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         server, client = self._loopback()
         server.sendall(b('x'))
         self.assertEquals(client.recv(1), b('x'))
+
+
+    try:
+        memoryview
+    except NameError:
+        "cannot test sending memoryview without memoryview"
+    else:
+        def test_short_memoryview(self):
+            """
+            When passed a memoryview onto a small number of bytes,
+            L{Connection.sendall} transmits all of them.
+            """
+            server, client = self._loopback()
+            server.sendall(memoryview(b('x')))
+            self.assertEquals(client.recv(1), b('x'))
 
 
     def test_long(self):
@@ -1616,6 +1959,28 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
             return [cadesc, sedesc]
         self._check_client_ca_list(set_replaces_add_ca)
 
+
+class InfoConstantTests(TestCase):
+    """
+    Tests for assorted constants exposed for use in info callbacks.
+    """
+    def test_integers(self):
+        """
+        All of the info constants are integers.
+
+        This is a very weak test.  It would be nice to have one that actually
+        verifies that as certain info events happen, the value passed to the
+        info callback matches up with the constant exposed by OpenSSL.SSL.
+        """
+        for const in [
+            SSL_ST_CONNECT, SSL_ST_ACCEPT, SSL_ST_MASK, SSL_ST_INIT,
+            SSL_ST_BEFORE, SSL_ST_OK, SSL_ST_RENEGOTIATE,
+            SSL_CB_LOOP, SSL_CB_EXIT, SSL_CB_READ, SSL_CB_WRITE, SSL_CB_ALERT,
+            SSL_CB_READ_ALERT, SSL_CB_WRITE_ALERT, SSL_CB_ACCEPT_LOOP,
+            SSL_CB_ACCEPT_EXIT, SSL_CB_CONNECT_LOOP, SSL_CB_CONNECT_EXIT,
+            SSL_CB_HANDSHAKE_START, SSL_CB_HANDSHAKE_DONE]:
+
+            self.assertTrue(isinstance(const, int))
 
 
 if __name__ == '__main__':

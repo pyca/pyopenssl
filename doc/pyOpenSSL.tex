@@ -2,7 +2,7 @@
 
 \title{Python OpenSSL Manual}
 
-\release{0.11}
+\release{0.12}
 
 \author{Jean-Paul Calderone}
 \authoraddress{\email{exarkun@twistedmatrix.com}}
@@ -269,7 +269,7 @@ pass phrase.
 
 \begin{funcdesc}{load_crl}{type, buffer}
 Load Certificate Revocation List (CRL) data from a string \var{buffer}.
-\var{buffer} encoded with the type \var{type}.  The type \var{type} 
+\var{buffer} encoded with the type \var{type}.  The type \var{type}
 must either \constant{FILETYPE_PEM} or \constant{FILETYPE_ASN1}).
 \end{funcdesc}
 
@@ -319,6 +319,11 @@ Return a PKey object representing the public key of the certificate.
 
 \begin{methoddesc}[X509]{get_serial_number}{}
 Return the certificate serial number.
+\end{methoddesc}
+
+\begin{methoddesc}[X509]{get_signature_algorithm}{}
+Return the signature algorithm used in the certificate.  If the algorithm is
+undefined, raise \code{ValueError}.
 \end{methoddesc}
 
 \begin{methoddesc}[X509]{get_subject}{}
@@ -422,6 +427,20 @@ by OpenSSL (by EVP_get_digestbyname, specifically).  For example,
 
 \begin{methoddesc}[X509]{add_extensions}{extensions}
 Add the extensions in the sequence \var{extensions} to the certificate.
+\end{methoddesc}
+
+\begin{methoddesc}[X509]{get_extension_count}{}
+Return the number of extensions on this certificate.
+\versionadded{0.12}
+\end{methoddesc}
+
+\begin{methoddesc}[X509]{get_extension}{index}
+Retrieve the extension on this certificate at the given index.
+
+Extensions on a certificate are kept in order.  The index parameter selects
+which extension will be returned.  The returned object will be an X509Extension
+instance.
+\versionadded{0.12}
 \end{methoddesc}
 
 \subsubsection{X509Name objects \label{openssl-x509name}}
@@ -616,7 +635,17 @@ Return the critical field of the extension object.
 \end{methoddesc}
 
 \begin{methoddesc}[X509Extension]{get_short_name}{}
-Return the short type name of the extension object.
+Retrieve the short descriptive name for this extension.
+
+The result is a byte string like \code{``basicConstraints''}.
+\versionadded{0.12}
+\end{methoddesc}
+
+\begin{methoddesc}[X509Extension]{get_data}{}
+Retrieve the data for this extension.
+
+The result is the ASN.1 encoded form of the extension data as a byte string.
+\versionadded{0.12}
 \end{methoddesc}
 
 \subsubsection{NetscapeSPKI objects \label{openssl-netscape-spki}}
@@ -816,6 +845,28 @@ when doing RSA operations. \constant{OP_NO_SSLv2}, \constant{OP_NO_SSLv3} and
 interesting if you're using e.g. \constant{SSLv23_METHOD} to get an SSLv2-compatible
 handshake, but don't want to use SSLv2.
 \end{datadesc}
+
+\begin{datadesc}{SSLEAY_VERSION}
+\dataline{SSLEAY_CFLAGS}
+\dataline{SSLEAY_BUILT_ON}
+\dataline{SSLEAY_PLATFORM}
+\dataline{SSLEAY_DIR}
+Constants used with \method{SSLeay_version} to specify what OpenSSL version
+information to retrieve.  See the man page for the \function{SSLeay_version} C
+API for details.
+\end{datadesc}
+
+\begin{datadesc}{OPENSSL_VERSION_NUMBER}
+An integer giving the version number of the OpenSSL library used to build this
+version of pyOpenSSL.  See the man page for the \function{SSLeay_version} C API
+for details.
+\end{datadesc}
+
+\begin{funcdesc}{SSLeay_version}{type}
+Retrieve a string describing some aspect of the underlying OpenSSL version.  The
+type passed in should be one of the \constant{SSLEAY_*} constants defined in
+this module.
+\end{funcdesc}
 
 \begin{datadesc}{ContextType}
 See \class{Context}.
@@ -1071,6 +1122,12 @@ format specified by \var{format}, which is either \constant{FILETYPE_PEM} or
 \constant{FILETYPE_ASN1}. The default is \constant{FILETYPE_PEM}.
 \end{methoddesc}
 
+\begin{methoddesc}[Context]{set_tlsext_servername_callback}{callback}
+Specify a one-argument callable to use as the TLS extension server name
+callback.  When a connection using the server name extension is made using this
+context, the callback will be invoked with the \code{Connection} instance.
+\versionadded{0.13}
+\end{methoddesc}
 
 \subsubsection{Connection objects \label{openssl-connection}}
 
@@ -1148,8 +1205,16 @@ by this \class{Connection}'s \class{Context}.
 Retrieve the Context object associated with this Connection.
 \end{methoddesc}
 
+\begin{methoddesc}[Connection]{set_context}{context}
+Specify a replacement Context object for this Connection.
+\end{methoddesc}
+
 \begin{methoddesc}[Connection]{get_peer_certificate}{}
 Retrieve the other side's certificate (if any)
+\end{methoddesc}
+
+\begin{methoddesc}[Connection]{get_peer_cert_chain}{}
+Retrieve the tuple of the other side's certificate chain (if any)
 \end{methoddesc}
 
 \begin{methoddesc}[Connection]{getpeername}{}
@@ -1277,6 +1342,16 @@ operation.
 \begin{methoddesc}[Connection]{want_write}{}
 Checks if there is data to write to the transport layer to complete an
 operation.
+\end{methoddesc}
+
+\begin{methoddesc}[Connection]{set_tlsext_host_name}{name}
+Specify the byte string to send as the server name in the client hello message.
+\versionadded{0.13}
+\end{methoddesc}
+
+\begin{methoddesc}[Connection]{get_servername}{}
+Get the value of the server name received in the client hello message.
+\versionadded{0.13}
 \end{methoddesc}
 
 

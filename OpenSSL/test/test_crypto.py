@@ -1,4 +1,5 @@
-# Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+# Copyright (c) Jean-Paul Calderone
+# See LICENSE file for details.
 
 """
 Unit tests for L{OpenSSL.crypto}.
@@ -24,6 +25,13 @@ from OpenSSL.crypto import CRL, Revoked, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.crypto import sign, verify
 from OpenSSL.test.util import TestCase, bytes, b
+
+def normalize_certificate_pem(pem):
+    return dump_certificate(FILETYPE_PEM, load_certificate(FILETYPE_PEM, pem))
+
+
+def normalize_privatekey_pem(pem):
+    return dump_privatekey(FILETYPE_PEM, load_privatekey(FILETYPE_PEM, pem))
 
 
 root_cert_pem = b("""-----BEGIN CERTIFICATE-----
@@ -79,7 +87,7 @@ uzujnS8YXWvM7DM1Ilozk4MzPug8jzFp5uhKCQ==
 -----END CERTIFICATE-----
 """)
 
-server_key_pem = b("""-----BEGIN RSA PRIVATE KEY-----
+server_key_pem = normalize_privatekey_pem(b("""-----BEGIN RSA PRIVATE KEY-----
 MIICWwIBAAKBgQC+pvhuud1dLaQQvzipdtlcTotgr5SuE2LvSx0gz/bg1U3u1eQ+
 U5eqsxaEUceaX5p5Kk+QflvW8qdjVNxQuYS5uc0gK2+OZnlIYxCf4n5GYGzVIx3Q
 SBj/TAEFB2WuVinZBiCbxgL7PFM1Kpa+EwVkCAduPpSflJJPwkYGrK2MHQIDAQAB
@@ -94,7 +102,7 @@ FwwOhpahld+vqhYk+pfuWWUpQciE+Bu7ZQJASjfT4sQv4qbbKK/scePicnDdx9th
 NaeNCFfH3aeTrX0LyQJAMBWjWmeKM2G2sCExheeQK0ROnaBC8itCECD4Jsve4nqf
 r50+LF74iLXFwqysVCebPKMOpDWp/qQ1BbJQIPs7/A==
 -----END RSA PRIVATE KEY-----
-""")
+"""))
 
 client_cert_pem = b("""-----BEGIN CERTIFICATE-----
 MIICJjCCAY+gAwIBAgIJAKxpFI5lODkjMA0GCSqGSIb3DQEBBQUAMFgxCzAJBgNV
@@ -112,7 +120,7 @@ PSTJCjJOn3xo2NTKRgV1gaoTf2EhL+RG8TQ=
 -----END CERTIFICATE-----
 """)
 
-client_key_pem = b("""-----BEGIN RSA PRIVATE KEY-----
+client_key_pem = normalize_privatekey_pem(b("""-----BEGIN RSA PRIVATE KEY-----
 MIICXgIBAAKBgQDAZh/SRtNm5ntMT4qb6YzEpTroMlq2rn+GrRHRiZ+xkCw/CGNh
 btPir7/QxaUj26BSmQrHw1bGKEbPsWiW7bdXSespl+xKiku4G/KvnnmWdeJHqsiX
 eUZtqurMELcPQAw9xPHEuhqqUJvvEoMTsnCEqGM+7DtboCRajYyHfluARQIDAQAB
@@ -127,7 +135,7 @@ si6xwT7GzMDkk/ko684AV3KPc/h6G0yGtFIrMg7J3uExpR/VdH2KgwMkZXisSMvw
 JJEQjOMCVsEJlRk54WWjAkEAzoZNH6UhDdBK5F38rVt/y4SEHgbSfJHIAmPS32Kq
 f6GGcfNpip0Uk7q7udTKuX7Q/buZi/C4YW7u3VKAquv9NA==
 -----END RSA PRIVATE KEY-----
-""")
+"""))
 
 cleartextCertificatePEM = b("""-----BEGIN CERTIFICATE-----
 MIIC7TCCAlagAwIBAgIIPQzE4MbeufQwDQYJKoZIhvcNAQEFBQAwWDELMAkGA1UE
@@ -149,7 +157,8 @@ w/njVbKMXrvc83qmTdGl3TAM0fxQIpqgcglFLveEBgzn
 -----END CERTIFICATE-----
 """)
 
-cleartextPrivateKeyPEM = b("""-----BEGIN RSA PRIVATE KEY-----
+cleartextPrivateKeyPEM = normalize_privatekey_pem(b("""\
+-----BEGIN RSA PRIVATE KEY-----
 MIICXQIBAAKBgQD5mkLpi7q6ROdu7khB3S9aanA0Zls7vvfGOmB80/yeylhGpsjA
 jWen0VtSQke/NlEPGtO38tsV7CsuFnSmschvAnGrcJl76b0UOOHUgDTIoRxC6QDU
 3claegwsrBA+sJEBbqx5RdXbIRGicPG/8qQ4Zm1SKOgotcbwiaor2yxZ2wIDAQAB
@@ -164,7 +173,7 @@ ttXigLnCqR486JDPTi9ZscoZkZ+w7y6e/hH8t6d5Vjt48JVyfjPIaJY+km58LcN3
 6AWSeGAdtRFHVzR7oHjVAkB4hutvxiOeiIVQNBhM6RSI9aBPMI21DoX2JRoxvNW2
 cbvAhow217X9V0dVerEOKxnNYspXRrh36h7k4mQA+sDq
 -----END RSA PRIVATE KEY-----
-""")
+"""))
 
 cleartextCertificateRequestPEM = b("""-----BEGIN CERTIFICATE REQUEST-----
 MIIBnjCCAQcCAQAwXjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQH
@@ -350,6 +359,26 @@ class X509ExtTests(TestCase):
         self.assertEqual(ext.get_short_name(), b('basicConstraints'))
         ext = X509Extension(b('nsComment'), True, b('foo bar'))
         self.assertEqual(ext.get_short_name(), b('nsComment'))
+
+
+    def test_get_data(self):
+        """
+        L{X509Extension.get_data} returns a string giving the data of the
+        extension.
+        """
+        ext = X509Extension(b('basicConstraints'), True, b('CA:true'))
+        # Expect to get back the DER encoded form of CA:true.
+        self.assertEqual(ext.get_data(), b('0\x03\x01\x01\xff'))
+
+
+    def test_get_data_wrong_args(self):
+        """
+        L{X509Extension.get_data} raises L{TypeError} if passed any arguments.
+        """
+        ext = X509Extension(b('basicConstraints'), True, b('CA:true'))
+        self.assertRaises(TypeError, ext.get_data, None)
+        self.assertRaises(TypeError, ext.get_data, "foo")
+        self.assertRaises(TypeError, ext.get_data, 7)
 
 
     def test_unused_subject(self):
@@ -595,6 +624,33 @@ class X509NameTests(TestCase):
             isinstance(name, X509NameType),
             "%r is of type %r, should be %r" % (
                 name, type(name), X509NameType))
+
+
+    def test_onlyStringAttributes(self):
+        """
+        Attempting to set a non-L{str} attribute name on an L{X509NameType}
+        instance causes L{TypeError} to be raised.
+        """
+        name = self._x509name()
+        # Beyond these cases, you may also think that unicode should be
+        # rejected.  Sorry, you're wrong.  unicode is automatically converted to
+        # str outside of the control of X509Name, so there's no way to reject
+        # it.
+        self.assertRaises(TypeError, setattr, name, None, "hello")
+        self.assertRaises(TypeError, setattr, name, 30, "hello")
+        class evil(str):
+            pass
+        self.assertRaises(TypeError, setattr, name, evil(), "hello")
+
+
+    def test_setInvalidAttribute(self):
+        """
+        Attempting to set any attribute name on an L{X509NameType} instance for
+        which no corresponding NID is defined causes L{AttributeError} to be
+        raised.
+        """
+        name = self._x509name()
+        self.assertRaises(AttributeError, setattr, name, "no such thing", None)
 
 
     def test_attributes(self):
@@ -946,6 +1002,26 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
     """
     pemData = cleartextCertificatePEM + cleartextPrivateKeyPEM
 
+    extpem = """
+-----BEGIN CERTIFICATE-----
+MIIC3jCCAkegAwIBAgIJAJHFjlcCgnQzMA0GCSqGSIb3DQEBBQUAMEcxCzAJBgNV
+BAYTAlNFMRUwEwYDVQQIEwxXZXN0ZXJib3R0b20xEjAQBgNVBAoTCUNhdGFsb2dp
+eDENMAsGA1UEAxMEUm9vdDAeFw0wODA0MjIxNDQ1MzhaFw0wOTA0MjIxNDQ1Mzha
+MFQxCzAJBgNVBAYTAlNFMQswCQYDVQQIEwJXQjEUMBIGA1UEChMLT3Blbk1ldGFk
+aXIxIjAgBgNVBAMTGW5vZGUxLm9tMi5vcGVubWV0YWRpci5vcmcwgZ8wDQYJKoZI
+hvcNAQEBBQADgY0AMIGJAoGBAPIcQMrwbk2nESF/0JKibj9i1x95XYAOwP+LarwT
+Op4EQbdlI9SY+uqYqlERhF19w7CS+S6oyqx0DRZSk4Y9dZ9j9/xgm2u/f136YS1u
+zgYFPvfUs6PqYLPSM8Bw+SjJ+7+2+TN+Tkiof9WP1cMjodQwOmdsiRbR0/J7+b1B
+hec1AgMBAAGjgcQwgcEwCQYDVR0TBAIwADAsBglghkgBhvhCAQ0EHxYdT3BlblNT
+TCBHZW5lcmF0ZWQgQ2VydGlmaWNhdGUwHQYDVR0OBBYEFIdHsBcMVVMbAO7j6NCj
+03HgLnHaMB8GA1UdIwQYMBaAFL2h9Bf9Mre4vTdOiHTGAt7BRY/8MEYGA1UdEQQ/
+MD2CDSouZXhhbXBsZS5vcmeCESoub20yLmV4bWFwbGUuY29thwSC7wgKgRNvbTJA
+b3Blbm1ldGFkaXIub3JnMA0GCSqGSIb3DQEBBQUAA4GBALd7WdXkp2KvZ7/PuWZA
+MPlIxyjS+Ly11+BNE0xGQRp9Wz+2lABtpgNqssvU156+HkKd02rGheb2tj7MX9hG
+uZzbwDAZzJPjzDQDD7d3cWsrVcfIdqVU7epHqIadnOF+X0ghJ39pAm6VVadnSXCt
+WpOdIpB8KksUTCzV591Nr1wd
+-----END CERTIFICATE-----
+    """
     def signable(self):
         """
         Create and return a new L{X509}.
@@ -1198,6 +1274,77 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
             b("A8:EB:07:F8:53:25:0A:F2:56:05:C5:A5:C4:C4:C7:15"))
 
 
+    def _extcert(self, pkey, extensions):
+        cert = X509()
+        cert.set_pubkey(pkey)
+        cert.get_subject().commonName = "Unit Tests"
+        cert.get_issuer().commonName = "Unit Tests"
+        when = b(datetime.now().strftime("%Y%m%d%H%M%SZ"))
+        cert.set_notBefore(when)
+        cert.set_notAfter(when)
+
+        cert.add_extensions(extensions)
+        return load_certificate(
+            FILETYPE_PEM, dump_certificate(FILETYPE_PEM, cert))
+
+
+    def test_extension_count(self):
+        """
+        L{X509.get_extension_count} returns the number of extensions that are
+        present in the certificate.
+        """
+        pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
+        ca = X509Extension(b('basicConstraints'), True, b('CA:FALSE'))
+        key = X509Extension(b('keyUsage'), True, b('digitalSignature'))
+        subjectAltName = X509Extension(
+            b('subjectAltName'), True, b('DNS:example.com'))
+
+        # Try a certificate with no extensions at all.
+        c = self._extcert(pkey, [])
+        self.assertEqual(c.get_extension_count(), 0)
+
+        # And a certificate with one
+        c = self._extcert(pkey, [ca])
+        self.assertEqual(c.get_extension_count(), 1)
+
+        # And a certificate with several
+        c = self._extcert(pkey, [ca, key, subjectAltName])
+        self.assertEqual(c.get_extension_count(), 3)
+
+
+    def test_get_extension(self):
+        """
+        L{X509.get_extension} takes an integer and returns an L{X509Extension}
+        corresponding to the extension at that index.
+        """
+        pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
+        ca = X509Extension(b('basicConstraints'), True, b('CA:FALSE'))
+        key = X509Extension(b('keyUsage'), True, b('digitalSignature'))
+        subjectAltName = X509Extension(
+            b('subjectAltName'), False, b('DNS:example.com'))
+
+        cert = self._extcert(pkey, [ca, key, subjectAltName])
+
+        ext = cert.get_extension(0)
+        self.assertTrue(isinstance(ext, X509Extension))
+        self.assertTrue(ext.get_critical())
+        self.assertEqual(ext.get_short_name(), b('basicConstraints'))
+
+        ext = cert.get_extension(1)
+        self.assertTrue(isinstance(ext, X509Extension))
+        self.assertTrue(ext.get_critical())
+        self.assertEqual(ext.get_short_name(), b('keyUsage'))
+
+        ext = cert.get_extension(2)
+        self.assertTrue(isinstance(ext, X509Extension))
+        self.assertFalse(ext.get_critical())
+        self.assertEqual(ext.get_short_name(), b('subjectAltName'))
+
+        self.assertRaises(IndexError, cert.get_extension, -1)
+        self.assertRaises(IndexError, cert.get_extension, 4)
+        self.assertRaises(TypeError, cert.get_extension, "hello")
+
+
     def test_invalid_digest_algorithm(self):
         """
         L{X509.digest} raises L{ValueError} if called with an unrecognized hash
@@ -1326,7 +1473,53 @@ class X509Tests(TestCase, _PKeyInteractionTestsMixin):
         name.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        self.assertEquals(cert.subject_name_hash(), 3350047874)
+        self.assertIn(
+            cert.subject_name_hash(),
+            [3350047874, # OpenSSL 0.9.8, MD5
+             3278919224, # OpenSSL 1.0.0, SHA1
+             ])
+
+
+    def test_get_signature_algorithm(self):
+        """
+        L{X509Type.get_signature_algorithm} returns a string which means
+        the algorithm used to sign the certificate.
+        """
+        cert = load_certificate(FILETYPE_PEM, self.pemData)
+        self.assertEqual(
+            b("sha1WithRSAEncryption"), cert.get_signature_algorithm())
+
+
+    def test_get_undefined_signature_algorithm(self):
+        """
+        L{X509Type.get_signature_algorithm} raises L{ValueError} if the
+        signature algorithm is undefined or unknown.
+        """
+        # This certificate has been modified to indicate a bogus OID in the
+        # signature algorithm field so that OpenSSL does not recognize it.
+        certPEM = """\
+-----BEGIN CERTIFICATE-----
+MIIC/zCCAmigAwIBAgIBATAGBgJ8BQUAMHsxCzAJBgNVBAYTAlNHMREwDwYDVQQK
+EwhNMkNyeXB0bzEUMBIGA1UECxMLTTJDcnlwdG8gQ0ExJDAiBgNVBAMTG00yQ3J5
+cHRvIENlcnRpZmljYXRlIE1hc3RlcjEdMBsGCSqGSIb3DQEJARYObmdwc0Bwb3N0
+MS5jb20wHhcNMDAwOTEwMDk1MTMwWhcNMDIwOTEwMDk1MTMwWjBTMQswCQYDVQQG
+EwJTRzERMA8GA1UEChMITTJDcnlwdG8xEjAQBgNVBAMTCWxvY2FsaG9zdDEdMBsG
+CSqGSIb3DQEJARYObmdwc0Bwb3N0MS5jb20wXDANBgkqhkiG9w0BAQEFAANLADBI
+AkEArL57d26W9fNXvOhNlZzlPOACmvwOZ5AdNgLzJ1/MfsQQJ7hHVeHmTAjM664V
++fXvwUGJLziCeBo1ysWLRnl8CQIDAQABo4IBBDCCAQAwCQYDVR0TBAIwADAsBglg
+hkgBhvhCAQ0EHxYdT3BlblNTTCBHZW5lcmF0ZWQgQ2VydGlmaWNhdGUwHQYDVR0O
+BBYEFM+EgpK+eyZiwFU1aOPSbczbPSpVMIGlBgNVHSMEgZ0wgZqAFPuHI2nrnDqT
+FeXFvylRT/7tKDgBoX+kfTB7MQswCQYDVQQGEwJTRzERMA8GA1UEChMITTJDcnlw
+dG8xFDASBgNVBAsTC00yQ3J5cHRvIENBMSQwIgYDVQQDExtNMkNyeXB0byBDZXJ0
+aWZpY2F0ZSBNYXN0ZXIxHTAbBgkqhkiG9w0BCQEWDm5ncHNAcG9zdDEuY29tggEA
+MA0GCSqGSIb3DQEBBAUAA4GBADv8KpPo+gfJxN2ERK1Y1l17sz/ZhzoGgm5XCdbx
+jEY7xKfpQngV599k1xhl11IMqizDwu0855agrckg2MCTmOI9DZzDD77tAYb+Dk0O
+PEVk0Mk/V0aIsDE9bolfCi/i/QWZ3N8s5nTWMNyBBBmoSliWCm4jkkRZRD0ejgTN
+tgI5
+-----END CERTIFICATE-----
+"""
+        cert = load_certificate(FILETYPE_PEM, certPEM)
+        self.assertRaises(ValueError, cert.get_signature_algorithm)
 
 
 
@@ -1547,7 +1740,7 @@ class PKCS12Tests(TestCase):
             dumped_p12 = p12.export(passphrase=passwd, iter=2, maciter=3)
             reloaded_p12 = load_pkcs12(dumped_p12, passwd)
             self.assertEqual(
-                p12.get_friendlyname(),reloaded_p12.get_friendlyname())
+                p12.get_friendlyname(), reloaded_p12.get_friendlyname())
             # We would use the openssl program to confirm the friendly
             # name, but it is not possible.  The pkcs12 command
             # does not store the friendly name in the cert's

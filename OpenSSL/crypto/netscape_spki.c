@@ -1,7 +1,8 @@
 /*
  * netscape_spki.c
  *
- * Copyright (C) Tollef Fog Heen 2003
+ * Copyright (C) Tollef Fog Heen
+ * See LICENSE for details.
  *
  * Netscape SPKI handling, thin wrapper
  */
@@ -297,10 +298,16 @@ init_crypto_netscape_spki(PyObject *module) {
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference
+     */
+    Py_INCREF((PyObject *)&crypto_NetscapeSPKI_Type);
     if (PyModule_AddObject(module, "NetscapeSPKI", (PyObject *)&crypto_NetscapeSPKI_Type) != 0) {
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference
+     */
+    Py_INCREF((PyObject *)&crypto_NetscapeSPKI_Type);
     if (PyModule_AddObject(module, "NetscapeSPKIType", (PyObject *)&crypto_NetscapeSPKI_Type) != 0) {
         return 0;
     }

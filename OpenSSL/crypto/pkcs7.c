@@ -1,7 +1,8 @@
 /*
  * pkcs7.c
  *
- * Copyright (C) AB Strakt 2002, All rights reserved
+ * Copyright (C) AB Strakt
+ * See LICENSE for details.
  *
  * PKCS7 handling code, mostly thin wrappers around OpenSSL.
  * See the file RATIONALE for a short explanation of why this module was written.
@@ -203,6 +204,9 @@ init_crypto_pkcs7(PyObject *module) {
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&crypto_PKCS7_Type);
     if (PyModule_AddObject(module, "PKCS7Type", (PyObject *)&crypto_PKCS7_Type) != 0) {
         return 0;
     }

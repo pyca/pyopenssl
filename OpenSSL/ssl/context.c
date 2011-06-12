@@ -1,8 +1,9 @@
 /*
  * context.c
  *
- * Copyright (C) AB Strakt 2001, All rights reserved
- * Copyright (C) Jean-Paul Calderone 2008, All rights reserved
+ * Copyright (C) AB Strakt
+ * Copyright (C) Jean-Paul Calderone
+ * See LICENSE for details.
  *
  * SSL Context objects and their methods.
  * See the file RATIONALE for a short explanation of why this module was written.
@@ -236,6 +237,54 @@ global_info_callback(const SSL *ssl, int where, int _ret)
     return;
 }
 
+/*
+ * Globally defined TLS extension server name callback.  This is called from
+ * OpenSSL internally.  The GIL will not be held when this function is invoked.
+ * It must not be held when the function returns.
+ *
+ * ssl represents the connection this callback is for
+ *
+ * alert is a pointer to the alert value which maybe will be emitted to the
+ * client if there is an error handling the client hello (which contains the
+ * server name).  This is an out parameter, maybe.
+ *
+ * arg is an arbitrary pointer specified by SSL_CTX_set_tlsext_servername_arg.
+ * It will be NULL for all pyOpenSSL uses.
+ */
+static int
+global_tlsext_servername_callback(const SSL *ssl, int *alert, void *arg) {
+    int result = 0;
+    PyObject *argv, *ret;
+    ssl_ConnectionObj *conn = (ssl_ConnectionObj *)SSL_get_app_data(ssl);
+
+    /*
+     * GIL isn't held yet.  First things first - acquire it, or any Python API
+     * we invoke might segfault or blow up the sun.  The reverse will be done
+     * before returning.
+     */
+    MY_END_ALLOW_THREADS(conn->tstate);
+
+    argv = Py_BuildValue("(O)", (PyObject *)conn);
+    ret = PyEval_CallObject(conn->context->tlsext_servername_callback, argv);
+    Py_DECREF(argv);
+    Py_DECREF(ret);
+
+    /*
+     * This function is returning into OpenSSL.  Release the GIL again.
+     */
+    MY_BEGIN_ALLOW_THREADS(conn->tstate);
+    return result;
+}
+
+/*
+ * More recent builds of OpenSSL may have SSLv2 completely disabled.
+ */
+#ifdef OPENSSL_NO_SSL2
+#define SSLv2_METHOD_TEXT ""
+#else
+#define SSLv2_METHOD_TEXT "SSLv2_METHOD, "
+#endif
+
 
 static char ssl_Context_doc[] = "\n\
 Context(method) -> Context instance\n\
@@ -243,9 +292,11 @@ Context(method) -> Context instance\n\
 OpenSSL.SSL.Context instances define the parameters for setting up new SSL\n\
 connections.\n\
 \n\
-@param method: One of SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, or\n\
+@param method: One of " SSLv2_METHOD_TEXT "SSLv3_METHOD, SSLv23_METHOD, or\n\
                TLSv1_METHOD.\n\
 ";
+
+#undef SSLv2_METHOD_TEXT
 
 static char ssl_Context_load_verify_locations_doc[] = "\n\
 Let SSL know where we can find trusted certificates for the certificate\n\
@@ -1057,6 +1108,34 @@ ssl_Context_set_options(ssl_ContextObj *self, PyObject *args)
     return PyLong_FromLong(SSL_CTX_set_options(self->ctx, options));
 }
 
+static char ssl_Context_set_tlsext_servername_callback_doc[] = "\n\
+Specify a callback function to be called when clients specify a server name.\n\
+\n\
+@param callback: The callback function.  It will be invoked with one\n\
+    argument, the Connection instance.\n\
+\n\
+";
+static PyObject *
+ssl_Context_set_tlsext_servername_callback(ssl_ContextObj *self, PyObject *args) {
+    PyObject *callback;
+    PyObject *old;
+
+    if (!PyArg_ParseTuple(args, "O:set_tlsext_servername_callback", &callback)) {
+        return NULL;
+    }
+
+    Py_INCREF(callback);
+    old = self->tlsext_servername_callback;
+    self->tlsext_servername_callback = callback;
+    Py_DECREF(old);
+
+    SSL_CTX_set_tlsext_servername_callback(self->ctx, global_tlsext_servername_callback);
+    SSL_CTX_set_tlsext_servername_arg(self->ctx, NULL);
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 
 /*
  * Member methods in the Context object
@@ -1095,6 +1174,7 @@ static PyMethodDef ssl_Context_methods[] = {
     ADD_METHOD(set_app_data),
     ADD_METHOD(get_cert_store),
     ADD_METHOD(set_options),
+    ADD_METHOD(set_tlsext_servername_callback),
     { NULL, NULL }
 };
 #undef ADD_METHOD
@@ -1106,11 +1186,19 @@ static PyMethodDef ssl_Context_methods[] = {
  */
 static ssl_ContextObj*
 ssl_Context_init(ssl_ContextObj *self, int i_method) {
+#if (OPENSSL_VERSION_NUMBER >> 28) == 0x01
+    const
+#endif
     SSL_METHOD *method;
 
     switch (i_method) {
         case ssl_SSLv2_METHOD:
+#ifdef OPENSSL_NO_SSL2
+            PyErr_SetString(PyExc_ValueError, "SSLv2_METHOD not supported by this version of OpenSSL");
+            return NULL;
+#else      
             method = SSLv2_method();
+#endif
             break;
         case ssl_SSLv23_METHOD:
             method = SSLv23_method();
@@ -1133,6 +1221,9 @@ ssl_Context_init(ssl_ContextObj *self, int i_method) {
     self->verify_callback = Py_None;
     Py_INCREF(Py_None);
     self->info_callback = Py_None;
+
+    Py_INCREF(Py_None);
+    self->tlsext_servername_callback = Py_None;
 
     Py_INCREF(Py_None);
     self->passphrase_userdata = Py_None;
@@ -1309,10 +1400,16 @@ init_ssl_context(PyObject *module) {
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&ssl_Context_Type);
     if (PyModule_AddObject(module, "Context", (PyObject *)&ssl_Context_Type) < 0) {
         return 0;
     }
 
+    /* PyModule_AddObject steals a reference.
+     */
+    Py_INCREF((PyObject *)&ssl_Context_Type);
     if (PyModule_AddObject(module, "ContextType", (PyObject *)&ssl_Context_Type) < 0) {
         return 0;
     }
