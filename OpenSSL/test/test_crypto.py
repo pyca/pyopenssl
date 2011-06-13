@@ -207,6 +207,7 @@ MbzjS007Oe4qqBnCWaFPSnJX6uLApeTbqAxAeyCql56ULW5x6vDMNC3dwjvS/CEh
 11n8RkgFIQA0AhuKSIg3CbuartRsJnWOLwgLTzsrKYL4yRog1RJrtw==
 -----END RSA PRIVATE KEY-----
 """)
+
 encryptedPrivateKeyPEMPassphrase = b("foobar")
 
 # Some PKCS#7 stuff.  Generated with the openssl command line:
@@ -249,6 +250,21 @@ MAoGA1UdFQQDCgEEMA0GCSqGSIb3DQEBBAUAA4GBAEBt7xTs2htdD3d4ErrcGAw1
 vrzEeLDRiiPl92dyyWmu
 -----END X509 CRL-----
 """)
+
+
+# A broken RSA private key which can be used to test the error path through
+# PKey.check.
+inconsistentPrivateKeyPEM = b("""-----BEGIN RSA PRIVATE KEY-----
+MIIBPAIBAAJBAKy+e3dulvXzV7zoTZWc5TzgApr8DmeQHTYC8ydfzH7EECe4R1Xh
+5kwIzOuuFfn178FBiS84gngaNcrFi0Z5fAkCAwEaAQJBAIqm/bz4NA1H++Vx5Ewx
+OcKp3w19QSaZAwlGRtsUxrP7436QjnREM3Bm8ygU11BjkPVmtrKm6AayQfCHqJoT
+zIECIQDW0BoMoL0HOYM/mrTLhaykYAVqgIeJsPjvkEhTFXWBuQIhAM3deFAvWNu4
+nklUQ37XsCT2c9tmNt1LAT+slG2JOTTRAiAuXDtC/m3NYVwyHfFm+zKHRzHkClk2
+HjubeEgjpj32AQIhAJqMGTaZVOwevTXvvHwNeH+vRWsAYU/gbx+OQB+7VOcBAiEA
+oolb6NMg/R3enNPvS1O4UU1H8wpaF77L4yiSWlE0p4w=
+-----END RSA PRIVATE KEY-----
+""")
+
 
 class X509ExtTests(TestCase):
     """
@@ -512,11 +528,13 @@ class PKeyTests(TestCase):
     def test_pregeneration(self):
         """
         L{PKeyType.bits} and L{PKeyType.type} return C{0} before the key is
+        generated.  L{PKeyType.check} raises L{TypeError} before the key is
         generated.
         """
         key = PKey()
         self.assertEqual(key.type(), 0)
         self.assertEqual(key.bits(), 0)
+        self.assertRaises(TypeError, key.check)
 
 
     def test_failedGeneration(self):
@@ -564,6 +582,7 @@ class PKeyTests(TestCase):
         key.generate_key(TYPE_RSA, bits)
         self.assertEqual(key.type(), TYPE_RSA)
         self.assertEqual(key.bits(), bits)
+        self.assertTrue(key.check())
 
 
     def test_dsaGeneration(self):
@@ -579,6 +598,7 @@ class PKeyTests(TestCase):
         key.generate_key(TYPE_DSA, bits)
         self.assertEqual(key.type(), TYPE_DSA)
         self.assertEqual(key.bits(), bits)
+        self.assertRaises(TypeError, key.check)
 
 
     def test_regeneration(self):
@@ -591,6 +611,23 @@ class PKeyTests(TestCase):
              key.generate_key(type, bits)
              self.assertEqual(key.type(), type)
              self.assertEqual(key.bits(), bits)
+
+
+    def test_inconsistentKey(self):
+        """
+        L{PKeyType.check} returns C{False} if the key is not consistent.
+        """
+        key = load_privatekey(FILETYPE_PEM, inconsistentPrivateKeyPEM)
+        self.assertRaises(Error, key.check)
+
+
+    def test_check_wrong_args(self):
+        """
+        L{PKeyType.check} raises L{TypeError} if called with any arguments.
+        """
+        self.assertRaises(TypeError, PKey().check, None)
+        self.assertRaises(TypeError, PKey().check, object())
+        self.assertRaises(TypeError, PKey().check, 1)
 
 
 
@@ -2077,6 +2114,7 @@ class FunctionTests(TestCase):
         L{dump_privatekey} writes a PEM, DER, and text.
         """
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        self.assertTrue(key.check())
         dumped_pem = dump_privatekey(FILETYPE_PEM, key)
         self.assertEqual(dumped_pem, cleartextPrivateKeyPEM)
         dumped_der = dump_privatekey(FILETYPE_ASN1, key)

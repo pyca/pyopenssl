@@ -1,5 +1,11 @@
 2011-06-12  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
+	* OpenSSL/crypto/pkey.c: Add the PKey.check method, mostly
+	  implemented by Rick Dean, to verify the internal consistency of a
+	  PKey instance.
+
+2011-06-12  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
 	* OpenSSL/crypto/crypto.c: Fix the sign and verify functions so
 	  they handle data with embedded NULs.  Fix by David Brodsky
 	  <lp:~lihalla>.

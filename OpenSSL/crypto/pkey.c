@@ -107,6 +107,37 @@ crypto_PKey_type(crypto_PKeyObj *self, PyObject *args)
     return PyLong_FromLong(self->pkey->type);
 }
 
+static char crypto_PKey_check_doc[] = "\n\
+Check the consistency of an RSA private key.\n\
+\n\
+@return: True if key is consistent.\n\
+@raise Error: if the key is inconsistent.\n\
+@raise TypeError: if the key is of a type which cannot be checked.\n\
+    Only RSA keys can currently be checked.\n\
+";
+
+static PyObject *
+crypto_PKey_check(crypto_PKeyObj *self, PyObject *args) {
+    int r;
+
+    if (!PyArg_ParseTuple(args, ":check")) {
+        return NULL;
+    }
+
+    if (self->pkey->type == EVP_PKEY_RSA) {
+        RSA *rsa;
+        rsa = EVP_PKEY_get1_RSA(self->pkey);
+        r = RSA_check_key(rsa);
+        if (r == 1) {
+            return PyBool_FromLong(1L);
+        } else {
+            FAIL();
+        }
+    } else {
+        PyErr_SetString(PyExc_TypeError, "key type unsupported");
+        return NULL;
+    }
+}
 
 /*
  * ADD_METHOD(name) expands to a correct PyMethodDef declaration
@@ -120,6 +151,7 @@ static PyMethodDef crypto_PKey_methods[] =
     ADD_METHOD(generate_key),
     ADD_METHOD(bits),
     ADD_METHOD(type),
+    ADD_METHOD(check),
     { NULL, NULL }
 };
 #undef ADD_METHOD
