@@ -621,6 +621,16 @@ class PKeyTests(TestCase):
         self.assertRaises(Error, key.check)
 
 
+    def test_check_wrong_args(self):
+        """
+        L{PKeyType.check} raises L{TypeError} if called with any arguments.
+        """
+        self.assertRaises(TypeError, PKey().check, None)
+        self.assertRaises(TypeError, PKey().check, object())
+        self.assertRaises(TypeError, PKey().check, 1)
+
+
+
 class X509NameTests(TestCase):
     """
     Unit tests for L{OpenSSL.crypto.X509Name}.
