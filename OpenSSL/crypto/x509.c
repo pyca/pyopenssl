@@ -23,7 +23,7 @@
 static char crypto_X509_get_version_doc[] = "\n\
 Return version number of the certificate\n\
 \n\
-@return: Version number as a Python integer\n\
+:return: Version number as a Python integer\n\
 ";
 
 static PyObject *
@@ -38,8 +38,8 @@ crypto_X509_get_version(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_set_version_doc[] = "\n\
 Set version number of the certificate\n\
 \n\
-@param version: The version number\n\
-@return: None\n\
+:param version: The version number\n\
+:return: None\n\
 ";
 
 static PyObject *
@@ -59,7 +59,7 @@ crypto_X509_set_version(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_get_serial_number_doc[] = "\n\
 Return serial number of the certificate\n\
 \n\
-@return: Serial number as a Python integer\n\
+:return: Serial number as a Python integer\n\
 ";
 
 static PyObject *
@@ -85,8 +85,8 @@ crypto_X509_get_serial_number(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_set_serial_number_doc[] = "\n\
 Set serial number of the certificate\n\
 \n\
-@param serial: The serial number\n\
-@return: None\n\
+:param serial: The serial number\n\
+:return: None\n\
 ";
 
 static PyObject *
@@ -176,7 +176,7 @@ crypto_X509_set_serial_number(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_get_issuer_doc[] = "\n\
 Create an X509Name object for the issuer of the certificate\n\
 \n\
-@return: An X509Name object\n\
+:return: An X509Name object\n\
 ";
 
 static PyObject *
@@ -201,9 +201,9 @@ crypto_X509_get_issuer(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_set_issuer_doc[] = "\n\
 Set the issuer of the certificate\n\
 \n\
-@param issuer: The issuer name\n\
-@type issuer: L{X509Name}\n\
-@return: None\n\
+:param issuer: The issuer name\n\
+:type issuer: L{X509Name}\n\
+:return: None\n\
 ";
 
 static PyObject *
@@ -228,7 +228,7 @@ crypto_X509_set_issuer(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_get_subject_doc[] = "\n\
 Create an X509Name object for the subject of the certificate\n\
 \n\
-@return: An X509Name object\n\
+:return: An X509Name object\n\
 ";
 
 static PyObject *
@@ -253,9 +253,9 @@ crypto_X509_get_subject(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_set_subject_doc[] = "\n\
 Set the subject of the certificate\n\
 \n\
-@param subject: The subject name\n\
-@type subject: L{X509Name}\n\
-@return: None\n\
+:param subject: The subject name\n\
+:type subject: L{X509Name}\n\
+:return: None\n\
 ";
 
 static PyObject *
@@ -280,7 +280,7 @@ crypto_X509_set_subject(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_get_pubkey_doc[] = "\n\
 Get the public key of the certificate\n\
 \n\
-@return: The public key\n\
+:return: The public key\n\
 ";
 
 static PyObject *
@@ -309,8 +309,8 @@ crypto_X509_get_pubkey(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_set_pubkey_doc[] = "\n\
 Set the public key of the certificate\n\
 \n\
-@param pkey: The public key\n\
-@return: None\n\
+:param pkey: The public key\n\
+:return: None\n\
 ";
 
 static PyObject *
@@ -358,13 +358,13 @@ _set_asn1_time(char *format, ASN1_TIME* timestamp, PyObject *args)
 static char crypto_X509_set_notBefore_doc[] = "\n\
 Set the time stamp for when the certificate starts being valid\n\
 \n\
-@param when: A string giving the timestamp, in the format:\n\
+:param when: A string giving the timestamp, in the format:\n\
 \n\
                  YYYYMMDDhhmmssZ\n\
                  YYYYMMDDhhmmss+hhmm\n\
                  YYYYMMDDhhmmss-hhmm\n\
 \n\
-@return: None\n\
+:return: None\n\
 ";
 
 static PyObject*
@@ -378,13 +378,13 @@ crypto_X509_set_notBefore(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_set_notAfter_doc[] = "\n\
 Set the time stamp for when the certificate stops being valid\n\
 \n\
-@param when: A string giving the timestamp, in the format:\n\
+:param when: A string giving the timestamp, in the format:\n\
 \n\
                  YYYYMMDDhhmmssZ\n\
                  YYYYMMDDhhmmss+hhmm\n\
                  YYYYMMDDhhmmss-hhmm\n\
 \n\
-@return: None\n\
+:return: None\n\
 ";
 
 static PyObject*
@@ -433,7 +433,7 @@ _get_asn1_time(char *format, ASN1_TIME* timestamp, PyObject *args)
 static char crypto_X509_get_notBefore_doc[] = "\n\
 Retrieve the time stamp for when the certificate starts being valid\n\
 \n\
-@return: A string giving the timestamp, in the format:\n\
+:return: A string giving the timestamp, in the format:\n\
 \n\
                  YYYYMMDDhhmmssZ\n\
                  YYYYMMDDhhmmss+hhmm\n\
@@ -455,7 +455,7 @@ crypto_X509_get_notBefore(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_get_notAfter_doc[] = "\n\
 Retrieve the time stamp for when the certificate stops being valid\n\
 \n\
-@return: A string giving the timestamp, in the format:\n\
+:return: A string giving the timestamp, in the format:\n\
 \n\
                  YYYYMMDDhhmmssZ\n\
                  YYYYMMDDhhmmss+hhmm\n\
@@ -478,9 +478,9 @@ static char crypto_X509_gmtime_adj_notBefore_doc[] = "\n\
 Change the timestamp for when the certificate starts being valid to the current\n\
 time plus an offset.\n \
 \n\
-@param amount: The number of seconds by which to adjust the starting validity\n\
+:param amount: The number of seconds by which to adjust the starting validity\n\
                time.\n\
-@return: None\n\
+:return: None\n\
 ";
 
 static PyObject *
@@ -500,9 +500,9 @@ crypto_X509_gmtime_adj_notBefore(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_gmtime_adj_notAfter_doc[] = "\n\
 Adjust the time stamp for when the certificate stops being valid\n\
 \n\
-@param amount: The number of seconds by which to adjust the ending validity\n\
+:param amount: The number of seconds by which to adjust the ending validity\n\
                time.\n\
-@return: None\n\
+:return: None\n\
 ";
 
 static PyObject *
@@ -523,9 +523,9 @@ crypto_X509_gmtime_adj_notAfter(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_get_signature_algorithm_doc[] = "\n\
 Retrieve the signature algorithm used in the certificate\n\
 \n\
-@return: A byte string giving the name of the signature algorithm used in\n\
+:return: A byte string giving the name of the signature algorithm used in\n\
          the certificate.\n\
-@raise ValueError: If the signature algorithm is undefined.\n\
+:raise ValueError: If the signature algorithm is undefined.\n\
 ";
 
 static PyObject *
@@ -550,9 +550,9 @@ crypto_X509_get_signature_algorithm(crypto_X509Obj *self, PyObject *args) {
 static char crypto_X509_sign_doc[] = "\n\
 Sign the certificate using the supplied key and digest\n\
 \n\
-@param pkey: The key to sign with\n\
-@param digest: The message digest to use\n\
-@return: None\n\
+:param pkey: The key to sign with\n\
+:param digest: The message digest to use\n\
+:return: None\n\
 ";
 
 static PyObject *
@@ -595,7 +595,7 @@ crypto_X509_sign(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_has_expired_doc[] = "\n\
 Check whether the certificate has expired.\n\
 \n\
-@return: True if the certificate has expired, false otherwise\n\
+:return: True if the certificate has expired, false otherwise\n\
 ";
 
 static PyObject *
@@ -616,7 +616,7 @@ crypto_X509_has_expired(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_subject_name_hash_doc[] = "\n\
 Return the hash of the X509 subject.\n\
 \n\
-@return: The hash of the subject\n\
+:return: The hash of the subject\n\
 ";
 
 static PyObject *
@@ -631,7 +631,7 @@ crypto_X509_subject_name_hash(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_digest_doc[] = "\n\
 Return the digest of the X509 object.\n\
 \n\
-@return: The digest of the object\n\
+:return: The digest of the object\n\
 ";
 
 static PyObject *
@@ -672,8 +672,8 @@ crypto_X509_digest(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_add_extensions_doc[] = "\n\
 Add extensions to the certificate.\n\
 \n\
-@param extensions: a sequence of X509Extension objects\n\
-@return: None\n\
+:param extensions: a sequence of X509Extension objects\n\
+:return: None\n\
 ";
 
 static PyObject *
@@ -717,7 +717,7 @@ crypto_X509_add_extensions(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_get_extension_count_doc[] = "\n\
 Get the number of extensions on the certificate.\n\
 \n\
-@return: Number of extensions as a Python integer\n\
+:return: Number of extensions as a Python integer\n\
 ";
 
 static PyObject *
@@ -732,8 +732,8 @@ crypto_X509_get_extension_count(crypto_X509Obj *self, PyObject *args) {
 static char crypto_X509_get_extension_doc[] = "\n\
 Get a specific extension of the certificate by index.\n\
 \n\
-@param index: The index of the extension to retrieve.\n\
-@return: The X509Extension object at the specified index.\n\
+:param index: The index of the extension to retrieve.\n\
+:return: The X509Extension object at the specified index.\n\
 ";
 
 static PyObject *
@@ -824,11 +824,11 @@ crypto_X509_New(X509 *cert, int dealloc)
 
 
 static char crypto_X509_doc[] = "\n\
-X509() -> X509 instance\n\
+A class representing X.509 certificates.\n\
 \n\
 Create a new X509 object.\n\
 \n\
-@returns: The X509 object\n\
+:returns: The :class:`X509` object\n\
 ";
 
 static PyObject *

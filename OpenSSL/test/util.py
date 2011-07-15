@@ -54,10 +54,10 @@ class TestCase(TestCase):
         """
         Fail the test if C{containee} is not found in C{container}.
 
-        @param containee: the value that should be in C{container}
-        @param container: a sequence type, or in the case of a mapping type,
+        :param containee: the value that should be in C{container}
+        :param container: a sequence type, or in the case of a mapping type,
                           will follow semantics of 'if key in dict.keys()'
-        @param msg: if msg is None, then the failure message will be
+        :param msg: if msg is None, then the failure message will be
                     '%r not in %r' % (first, second)
         """
         if containee not in container:
@@ -72,7 +72,7 @@ class TestCase(TestCase):
         obect-identity-equality test, not an object equality
         (i.e. C{__eq__}) test.
 
-        @param msg: if msg is None, then the failure message will be
+        :param msg: if msg is None, then the failure message will be
         '%r is not %r' % (first, second)
         """
         if first is not second:
@@ -87,7 +87,7 @@ class TestCase(TestCase):
         obect-identity-equality test, not an object equality
         (i.e. C{__eq__}) test.
 
-        @param msg: if msg is None, then the failure message will be
+        :param msg: if msg is None, then the failure message will be
         '%r is %r' % (first, second)
         """
         if first is second:
@@ -102,11 +102,11 @@ class TestCase(TestCase):
         C{args} and C{kwargs} raises C{exception}. The failure will report
         the traceback and call stack of the unexpected exception.
 
-        @param exception: exception type that is to be expected
-        @param f: the function to call
+        :param exception: exception type that is to be expected
+        :param f: the function to call
 
-        @return: The raised exception instance, if it is of the given type.
-        @raise self.failureException: Raised if the function call does
+        :return: The raised exception instance, if it is of the given type.
+        :raise self.failureException: Raised if the function call does
             not raise an exception or if it raises an exception of a
             different type.
         """
@@ -155,9 +155,9 @@ class TestCase(TestCase):
         pretty easy to do something wacky.  If something about the type is
         unusual, an exception will be raised.
 
-        @param theType: The type object about which to make assertions.
-        @param name: A string giving the name of the type.
-        @param constructionArgs: Positional arguments to use with C{theType} to
+        :param theType: The type object about which to make assertions.
+        :param name: A string giving the name of the type.
+        :param constructionArgs: Positional arguments to use with C{theType} to
             create an instance of it.
         """
         self.assertEqual(theType.__name__, name)

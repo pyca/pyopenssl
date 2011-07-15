@@ -251,7 +251,7 @@ handle_ssl_errors(SSL *ssl, int err, int ret)
 static char ssl_Connection_get_context_doc[] = "\n\
 Get session context\n\
 \n\
-@return: A Context object\n\
+:return: A Context object\n\
 ";
 static PyObject *
 ssl_Connection_get_context(ssl_ConnectionObj *self, PyObject *args) {
@@ -266,7 +266,7 @@ ssl_Connection_get_context(ssl_ConnectionObj *self, PyObject *args) {
 static char ssl_Connection_set_context_doc[] = "\n\
 Switch this connection to a new session context\n\
 \n\
-@param context: A L{Context} instance giving the new session context to use.\n\
+:param context: A L{Context} instance giving the new session context to use.\n\
 \n\
 ";
 static PyObject *
@@ -305,7 +305,7 @@ static char ssl_Connection_get_servername_doc[] = "\n\
 Retrieve the servername extension value if provided in the client hello\n\
 message, or None if there wasn't one.\n\
 \n\
-@return: A byte string giving the server name or C{None}.\n\
+:return: A byte string giving the server name or C{None}.\n\
 \n\
 ";
 static PyObject *
@@ -331,7 +331,7 @@ ssl_Connection_get_servername(ssl_ConnectionObj *self, PyObject *args) {
 static char ssl_Connection_set_tlsext_host_name_doc[] = "\n\
 Set the value of the servername extension to send in the client hello.\n\
 \n\
-@param name: A byte string giving the name.\n\
+:param name: A byte string giving the name.\n\
 \n\
 ";
 static PyObject *
@@ -354,7 +354,7 @@ ssl_Connection_set_tlsext_host_name(ssl_ConnectionObj *self, PyObject *args) {
 static char ssl_Connection_pending_doc[] = "\n\
 Get the number of bytes that can be safely read from the connection\n\
 \n\
-@return: The number of bytes available in the receive buffer.\n\
+:return: The number of bytes available in the receive buffer.\n\
 ";
 static PyObject *
 ssl_Connection_pending(ssl_ConnectionObj *self, PyObject *args) {
@@ -372,8 +372,8 @@ static char ssl_Connection_bio_write_doc[] = "\n\
 When using non-socket connections this function sends\n\
 \"dirty\" data that would have traveled in on the network.\n\
 \n\
-@param buf: The string to put into the memory BIO.\n\
-@return: The number of bytes written\n\
+:param buf: The string to put into the memory BIO.\n\
+:return: The number of bytes written\n\
 ";
 static PyObject *
 ssl_Connection_bio_write(ssl_ConnectionObj *self, PyObject *args)
@@ -414,10 +414,10 @@ Send data on the connection. NOTE: If you get one of the WantRead,\n\
 WantWrite or WantX509Lookup exceptions on this, you have to call the\n\
 method again with the SAME buffer.\n\
 \n\
-@param buf: The string to send\n\
-@param flags: (optional) Included for compatibility with the socket\n\
+:param buf: The string to send\n\
+:param flags: (optional) Included for compatibility with the socket\n\
               API, the value is ignored\n\
-@return: The number of bytes written\n\
+:return: The number of bytes written\n\
 ";
 static PyObject *
 ssl_Connection_send(ssl_ConnectionObj *self, PyObject *args) {
@@ -469,10 +469,10 @@ Send \"all\" data on the connection. This calls send() repeatedly until\n\
 all data is sent. If an error occurs, it's impossible to tell how much data\n\
 has been sent.\n\
 \n\
-@param buf: The string to send\n\
-@param flags: (optional) Included for compatibility with the socket\n\
+:param buf: The string to send\n\
+:param flags: (optional) Included for compatibility with the socket\n\
               API, the value is ignored\n\
-@return: The number of bytes written\n\
+:return: The number of bytes written\n\
 ";
 static PyObject *
 ssl_Connection_sendall(ssl_ConnectionObj *self, PyObject *args)
@@ -532,10 +532,10 @@ Receive data on the connection. NOTE: If you get one of the WantRead,\n\
 WantWrite or WantX509Lookup exceptions on this, you have to call the\n\
 method again with the SAME buffer.\n\
 \n\
-@param bufsiz: The maximum number of bytes to read\n\
-@param flags: (optional) Included for compatibility with the socket\n\
+:param bufsiz: The maximum number of bytes to read\n\
+:param flags: (optional) Included for compatibility with the socket\n\
               API, the value is ignored\n\
-@return: The string read from the Connection\n\
+:return: The string read from the Connection\n\
 ";
 static PyObject *
 ssl_Connection_recv(ssl_ConnectionObj *self, PyObject *args)
@@ -580,8 +580,8 @@ static char ssl_Connection_bio_read_doc[] = "\n\
 When using non-socket connections this function reads\n\
 the \"dirty\" data that would have traveled away on the network.\n\
 \n\
-@param bufsiz: The maximum number of bytes to read\n\
-@return: The string read.\n\
+:param bufsiz: The maximum number of bytes to read\n\
+:return: The string read.\n\
 ";
 static PyObject *
 ssl_Connection_bio_read(ssl_ConnectionObj *self, PyObject *args)
@@ -634,7 +634,7 @@ ssl_Connection_bio_read(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_renegotiate_doc[] = "\n\
 Renegotiate the session\n\
 \n\
-@return: True if the renegotiation can be started, false otherwise\n\
+:return: True if the renegotiation can be started, false otherwise\n\
 ";
 static PyObject *
 ssl_Connection_renegotiate(ssl_ConnectionObj *self, PyObject *args) {
@@ -660,7 +660,7 @@ static char ssl_Connection_do_handshake_doc[] = "\n\
 Perform an SSL handshake (usually called after renegotiate() or one of\n\
 set_*_state()). This can raise the same exceptions as send and recv.\n\
 \n\
-@return: None.\n\
+:return: None.\n\
 ";
 static PyObject *
 ssl_Connection_do_handshake(ssl_ConnectionObj *self, PyObject *args)
@@ -698,7 +698,7 @@ static char ssl_Connection_renegotiate_pending_doc[] = "\n\
 Check if there's a renegotiation in progress, it will return false once\n\
 a renegotiation is finished.\n\
 \n\
-@return: Whether there's a renegotiation in progress\n\
+:return: Whether there's a renegotiation in progress\n\
 ";
 static PyObject *
 ssl_Connection_renegotiate_pending(ssl_ConnectionObj *self, PyObject *args)
@@ -713,7 +713,7 @@ ssl_Connection_renegotiate_pending(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_total_renegotiations_doc[] = "\n\
 Find out the total number of renegotiations.\n\
 \n\
-@return: The number of renegotiations.\n\
+:return: The number of renegotiations.\n\
 ";
 static PyObject *
 ssl_Connection_total_renegotiations(ssl_ConnectionObj *self, PyObject *args)
@@ -728,7 +728,7 @@ static char ssl_Connection_set_accept_state_doc[] = "\n\
 Set the connection to work in server mode. The handshake will be handled\n\
 automatically by read/write.\n\
 \n\
-@return: None\n\
+:return: None\n\
 ";
 static PyObject *
 ssl_Connection_set_accept_state(ssl_ConnectionObj *self, PyObject *args)
@@ -746,7 +746,7 @@ static char ssl_Connection_set_connect_state_doc[] = "\n\
 Set the connection to work in client mode. The handshake will be handled\n\
 automatically by read/write.\n\
 \n\
-@return: None\n\
+:return: None\n\
 ";
 static PyObject *
 ssl_Connection_set_connect_state(ssl_ConnectionObj *self, PyObject *args)
@@ -763,8 +763,8 @@ ssl_Connection_set_connect_state(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_connect_doc[] = "\n\
 Connect to remote host and set up client-side SSL\n\
 \n\
-@param addr: A remote address\n\
-@return: What the socket's connect method returns\n\
+:param addr: A remote address\n\
+:return: What the socket's connect method returns\n\
 ";
 static PyObject *
 ssl_Connection_connect(ssl_ConnectionObj *self, PyObject *args)
@@ -788,8 +788,8 @@ static char ssl_Connection_connect_ex_doc[] = "\n\
 Connect to remote host and set up client-side SSL. Note that if the socket's\n\
 connect_ex method doesn't return 0, SSL won't be initialized.\n\
 \n\
-@param addr: A remove address\n\
-@return: What the socket's connect_ex method returns\n\
+:param addr: A remove address\n\
+:return: What the socket's connect_ex method returns\n\
 ";
 static PyObject *
 ssl_Connection_connect_ex(ssl_ConnectionObj *self, PyObject *args)
@@ -809,7 +809,7 @@ ssl_Connection_connect_ex(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_accept_doc[] = "\n\
 Accept incoming connection and set up SSL on it\n\
 \n\
-@return: A (conn,addr) pair where conn is a Connection and addr is an\n\
+:return: A (conn,addr) pair where conn is a Connection and addr is an\n\
          address\n\
 ";
 static PyObject *
@@ -853,7 +853,7 @@ static char ssl_Connection_bio_shutdown_doc[] = "\n\
 When using non-socket connections this function signals end of\n\
 data on the input for this connection.\n\
 \n\
-@return: None\n\
+:return: None\n\
 ";
 
 static PyObject *
@@ -875,7 +875,7 @@ ssl_Connection_bio_shutdown(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_shutdown_doc[] = "\n\
 Send closure alert\n\
 \n\
-@return: True if the shutdown completed successfully (i.e. both sides\n\
+:return: True if the shutdown completed successfully (i.e. both sides\n\
          have sent closure alerts), false otherwise (i.e. you have to\n\
          wait for a ZeroReturnError on a recv() method call\n\
 ";
@@ -917,7 +917,7 @@ ssl_Connection_shutdown(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_get_cipher_list_doc[] = "\n\
 Get the session cipher list\n\
 \n\
-@return: A list of cipher strings\n\
+:return: A list of cipher strings\n\
 ";
 static PyObject *
 ssl_Connection_get_cipher_list(ssl_ConnectionObj *self, PyObject *args)
@@ -943,7 +943,7 @@ ssl_Connection_get_cipher_list(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_get_client_ca_list_doc[] = "\n\
 Get CAs whose certificates are suggested for client authentication.\n\
 \n\
-@return: If this is a server connection, a list of X509Names representing\n\
+:return: If this is a server connection, a list of X509Names representing\n\
     the acceptable CAs as set by L{OpenSSL.SSL.Context.set_client_ca_list} or\n\
     L{OpenSSL.SSL.Context.add_client_ca}.  If this is a client connection,\n\
     the list of such X509Names sent by the server, or an empty list if that\n\
@@ -997,7 +997,7 @@ static char ssl_Connection_makefile_doc[] = "\n\
 The makefile() method is not implemented, since there is no dup semantics\n\
 for SSL connections\n\
 \n\
-@raise NotImplementedError\n\
+:raise NotImplementedError\n\
 ";
 static PyObject *
 ssl_Connection_makefile(ssl_ConnectionObj *self, PyObject *args)
@@ -1009,7 +1009,7 @@ ssl_Connection_makefile(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_get_app_data_doc[] = "\n\
 Get application data\n\
 \n\
-@return: The application data\n\
+:return: The application data\n\
 ";
 static PyObject *
 ssl_Connection_get_app_data(ssl_ConnectionObj *self, PyObject *args)
@@ -1024,8 +1024,8 @@ ssl_Connection_get_app_data(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_set_app_data_doc[] = "\n\
 Set application data\n\
 \n\
-@param data - The application data\n\
-@return: None\n\
+:param data - The application data\n\
+:return: None\n\
 ";
 static PyObject *
 ssl_Connection_set_app_data(ssl_ConnectionObj *self, PyObject *args)
@@ -1046,7 +1046,7 @@ ssl_Connection_set_app_data(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_get_shutdown_doc[] = "\n\
 Get shutdown state\n\
 \n\
-@return: The shutdown state, a bitvector of SENT_SHUTDOWN, RECEIVED_SHUTDOWN.\n\
+:return: The shutdown state, a bitvector of SENT_SHUTDOWN, RECEIVED_SHUTDOWN.\n\
 ";
 static PyObject *
 ssl_Connection_get_shutdown(ssl_ConnectionObj *self, PyObject *args)
@@ -1060,8 +1060,8 @@ ssl_Connection_get_shutdown(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_set_shutdown_doc[] = "\n\
 Set shutdown state\n\
 \n\
-@param state - bitvector of SENT_SHUTDOWN, RECEIVED_SHUTDOWN.\n\
-@return: None\n\
+:param state - bitvector of SENT_SHUTDOWN, RECEIVED_SHUTDOWN.\n\
+:return: None\n\
 ";
 static PyObject *
 ssl_Connection_set_shutdown(ssl_ConnectionObj *self, PyObject *args)
@@ -1079,7 +1079,7 @@ ssl_Connection_set_shutdown(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_state_string_doc[] = "\n\
 Get a verbose state description\n\
 \n\
-@return: A string representing the state\n\
+:return: A string representing the state\n\
 ";
 static PyObject *
 ssl_Connection_state_string(ssl_ConnectionObj *self, PyObject *args)
@@ -1093,7 +1093,7 @@ ssl_Connection_state_string(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_client_random_doc[] = "\n\
 Get a copy of the client hello nonce.\n\
 \n\
-@return: A string representing the state\n\
+:return: A string representing the state\n\
 ";
 static PyObject *
 ssl_Connection_client_random(ssl_ConnectionObj *self, PyObject *args)
@@ -1111,7 +1111,7 @@ ssl_Connection_client_random(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_server_random_doc[] = "\n\
 Get a copy of the server hello nonce.\n\
 \n\
-@return: A string representing the state\n\
+:return: A string representing the state\n\
 ";
 static PyObject *
 ssl_Connection_server_random(ssl_ConnectionObj *self, PyObject *args)
@@ -1129,7 +1129,7 @@ ssl_Connection_server_random(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_master_key_doc[] = "\n\
 Get a copy of the master key.\n\
 \n\
-@return: A string representing the state\n\
+:return: A string representing the state\n\
 ";
 static PyObject *
 ssl_Connection_master_key(ssl_ConnectionObj *self, PyObject *args)
@@ -1147,7 +1147,7 @@ ssl_Connection_master_key(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_sock_shutdown_doc[] = "\n\
 See shutdown(2)\n\
 \n\
-@return: What the socket's shutdown() method returns\n\
+:return: What the socket's shutdown() method returns\n\
 ";
 static PyObject *
 ssl_Connection_sock_shutdown(ssl_ConnectionObj *self, PyObject *args)
@@ -1164,7 +1164,7 @@ ssl_Connection_sock_shutdown(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_get_peer_certificate_doc[] = "\n\
 Retrieve the other side's certificate (if any)\n\
 \n\
-@return: The peer's certificate\n\
+:return: The peer's certificate\n\
 ";
 static PyObject *
 ssl_Connection_get_peer_certificate(ssl_ConnectionObj *self, PyObject *args)
@@ -1189,7 +1189,7 @@ ssl_Connection_get_peer_certificate(ssl_ConnectionObj *self, PyObject *args)
 static char ssl_Connection_get_peer_cert_chain_doc[] = "\n\
 Retrieve the other side's certificate (if any)\n\
 \n\
-@return: A list of X509 instances giving the peer's certificate chain,\n\
+:return: A list of X509 instances giving the peer's certificate chain,\n\
          or None if it does not have one.\n\
 ";
 static PyObject *
@@ -1228,7 +1228,7 @@ static char ssl_Connection_want_read_doc[] = "\n\
 Checks if more data has to be read from the transport layer to complete an\n\
 operation.\n\
 \n\
-@return: True iff more data has to be read\n\
+:return: True iff more data has to be read\n\
 ";
 static PyObject *
 ssl_Connection_want_read(ssl_ConnectionObj *self, PyObject *args)
@@ -1243,7 +1243,7 @@ static char ssl_Connection_want_write_doc[] = "\n\
 Checks if there is data to write to the transport layer to complete an\n\
 operation.\n\
 \n\
-@return: True iff there is data to write\n\
+:return: True iff there is data to write\n\
 ";
 static PyObject *
 ssl_Connection_want_write(ssl_ConnectionObj *self, PyObject *args)
@@ -1320,8 +1320,8 @@ Connection(context, socket) -> Connection instance\n\
 Create a new Connection object, using the given OpenSSL.SSL.Context instance\n\
 and socket.\n\
 \n\
-@param context: An SSL Context to use for this connection\n\
-@param socket: The socket to use for transport layer\n\
+:param context: An SSL Context to use for this connection\n\
+:param socket: The socket to use for transport layer\n\
 ";
 
 /*

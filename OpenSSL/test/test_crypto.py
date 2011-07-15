@@ -1888,12 +1888,12 @@ def cmdLineQuote(s):
     """
     Internal method for quoting a single command-line argument.
 
-    @type: C{str}
-    @param s: A single unquoted string to quote for something that is expecting
+    :type: C{str}
+    :param s: A single unquoted string to quote for something that is expecting
         cmd.exe-style quoting
 
-    @rtype: C{str}
-    @return: A cmd.exe-style quoted string
+    :rtype: C{str}
+    :return: A cmd.exe-style quoted string
 
     @see: U{http://www.perlmonks.org/?node_id=764004}
     """
@@ -1908,11 +1908,11 @@ def quoteArguments(arguments):
     a similar API.  This allows the list passed to C{reactor.spawnProcess} to
     match the child process's C{sys.argv} properly.
 
-    @type arguments: C{iterable} of C{str}
-    @param arguments: An iterable of unquoted arguments to quote
+    :type arguments: C{iterable} of C{str}
+    :param arguments: An iterable of unquoted arguments to quote
 
-    @rtype: C{str}
-    @return: A space-delimited string containing quoted versions of L{arguments}
+    :rtype: C{str}
+    :return: A space-delimited string containing quoted versions of L{arguments}
     """
     return ' '.join(map(cmdLineQuote, arguments))
 

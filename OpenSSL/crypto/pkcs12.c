@@ -26,7 +26,7 @@ static int crypto_PKCS12_clear(crypto_PKCS12Obj *self);
 static char crypto_PKCS12_get_certificate_doc[] = "\n\
 Return certificate portion of the PKCS12 structure\n\
 \n\
-@return: X509 object containing the certificate\n\
+:return: X509 object containing the certificate\n\
 ";
 static PyObject *
 crypto_PKCS12_get_certificate(crypto_PKCS12Obj *self, PyObject *args)
@@ -41,9 +41,9 @@ crypto_PKCS12_get_certificate(crypto_PKCS12Obj *self, PyObject *args)
 static char crypto_PKCS12_set_certificate_doc[] = "\n\
 Replace the certificate portion of the PKCS12 structure\n\
 \n\
-@param cert: The new certificate.\n\
-@type cert: L{X509} or L{NoneType}\n\
-@return: None\n\
+:param cert: The new certificate.\n\
+:type cert: L{X509} or L{NoneType}\n\
+:return: None\n\
 ";
 static PyObject *
 crypto_PKCS12_set_certificate(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds) {
@@ -70,7 +70,7 @@ crypto_PKCS12_set_certificate(crypto_PKCS12Obj *self, PyObject *args, PyObject *
 static char crypto_PKCS12_get_privatekey_doc[] = "\n\
 Return private key portion of the PKCS12 structure\n\
 \n\
-@returns: PKey object containing the private key\n\
+:returns: PKey object containing the private key\n\
 ";
 static crypto_PKeyObj *
 crypto_PKCS12_get_privatekey(crypto_PKCS12Obj *self, PyObject *args)
@@ -85,9 +85,9 @@ crypto_PKCS12_get_privatekey(crypto_PKCS12Obj *self, PyObject *args)
 static char crypto_PKCS12_set_privatekey_doc[] = "\n\
 Replace or set the certificate portion of the PKCS12 structure\n\
 \n\
-@param pkey: The new private key.\n\
-@type pkey: L{PKey}\n\
-@return: None\n\
+:param pkey: The new private key.\n\
+:type pkey: L{PKey}\n\
+:return: None\n\
 ";
 static PyObject *
 crypto_PKCS12_set_privatekey(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds) {
@@ -114,7 +114,7 @@ crypto_PKCS12_set_privatekey(crypto_PKCS12Obj *self, PyObject *args, PyObject *k
 static char crypto_PKCS12_get_ca_certificates_doc[] = "\n\
 Return CA certificates within of the PKCS12 object\n\
 \n\
-@return: A newly created tuple containing the CA certificates in the chain,\n\
+:return: A newly created tuple containing the CA certificates in the chain,\n\
          if any are present, or None if no CA certificates are present.\n\
 ";
 static PyObject *
@@ -130,9 +130,9 @@ crypto_PKCS12_get_ca_certificates(crypto_PKCS12Obj *self, PyObject *args)
 static char crypto_PKCS12_set_ca_certificates_doc[] = "\n\
 Replace or set the CA certificates withing the PKCS12 object.\n\
 \n\
-@param cacerts: The new CA certificates.\n\
-@type cacerts: Iterable of L{X509} or L{NoneType}\n\
-@return: None\n\
+:param cacerts: The new CA certificates.\n\
+:type cacerts: Iterable of L{X509} or L{NoneType}\n\
+:return: None\n\
 ";
 static PyObject *
 crypto_PKCS12_set_ca_certificates(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds)
@@ -176,7 +176,7 @@ crypto_PKCS12_set_ca_certificates(crypto_PKCS12Obj *self, PyObject *args, PyObje
 static char crypto_PKCS12_get_friendlyname_doc[] = "\n\
 Return friendly name portion of the PKCS12 structure\n\
 \n\
-@returns: String containing the friendlyname\n\
+:returns: String containing the friendlyname\n\
 ";
 static PyObject *
 crypto_PKCS12_get_friendlyname(crypto_PKCS12Obj *self, PyObject *args) {
@@ -190,9 +190,9 @@ crypto_PKCS12_get_friendlyname(crypto_PKCS12Obj *self, PyObject *args) {
 static char crypto_PKCS12_set_friendlyname_doc[] = "\n\
 Replace or set the certificate portion of the PKCS12 structure\n\
 \n\
-@param name: The new friendly name.\n\
-@type name: L{str}\n\
-@return: None\n\
+:param name: The new friendly name.\n\
+:type name: L{str}\n\
+:return: None\n\
 ";
 static PyObject *
 crypto_PKCS12_set_friendlyname(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds) {
@@ -220,13 +220,13 @@ static char crypto_PKCS12_export_doc[] = "\n\
 export([passphrase=None][, friendly_name=None][, iter=2048][, maciter=1]\n\
 Dump a PKCS12 object as a string.  See also \"man PKCS12_create\".\n\
 \n\
-@param passphrase: used to encrypt the PKCS12\n\
-@type passphrase: L{str}\n\
-@param iter: How many times to repeat the encryption\n\
-@type iter: L{int}\n\
-@param maciter: How many times to repeat the MAC\n\
-@type maciter: L{int}\n\
-@return: The string containing the PKCS12\n\
+:param passphrase: used to encrypt the PKCS12\n\
+:type passphrase: L{str}\n\
+:param iter: How many times to repeat the encryption\n\
+:type iter: L{int}\n\
+:param maciter: How many times to repeat the MAC\n\
+:type maciter: L{int}\n\
+:return: The string containing the PKCS12\n\
 ";
 static PyObject *
 crypto_PKCS12_export(crypto_PKCS12Obj *self, PyObject *args, PyObject *keywds) {
@@ -439,7 +439,7 @@ PKCS12() -> PKCS12 instance\n\
 \n\
 Create a new empty PKCS12 object.\n\
 \n\
-@returns: The PKCS12 object\n\
+:returns: The PKCS12 object\n\
 ";
 static PyObject *
 crypto_PKCS12_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs) {

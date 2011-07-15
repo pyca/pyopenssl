@@ -14,8 +14,8 @@
 static char crypto_X509Store_add_cert_doc[] = "\n\
 Add a certificate\n\
 \n\
-@param cert: The certificate to add\n\
-@return: None\n\
+:param cert: The certificate to add\n\
+:return: None\n\
 ";
 
 static PyObject *

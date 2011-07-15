@@ -48,8 +48,8 @@ X509Name(name) -> New X509Name object\n\
 \n\
 Create a new X509Name, copying the given X509Name instance.\n\
 \n\
-@param name: An X509Name object to copy\n\
-@return: The X509Name object\n\
+:param name: An X509Name object to copy\n\
+:return: The X509Name object\n\
 ";
 
 static PyObject *
@@ -320,7 +320,7 @@ crypto_X509Name_repr(crypto_X509NameObj *self)
 static char crypto_X509Name_hash_doc[] = "\n\
 Return the hash value of this name\n\
 \n\
-@return: None\n\
+:return: None\n\
 ";
 
 /*
@@ -344,7 +344,7 @@ crypto_X509Name_hash(crypto_X509NameObj *self, PyObject* args)
 static char crypto_X509Name_der_doc[] = "\n\
 Return the DER encoding of this name\n\
 \n\
-@return: None\n\
+:return: None\n\
 ";
 
 /*
@@ -367,7 +367,7 @@ crypto_X509Name_der(crypto_X509NameObj *self, PyObject *args)
 static char crypto_X509Name_get_components_doc[] = "\n\
 Returns the split-up components of this name.\n\
 \n\
-@return: List of tuples (name, value).\n\
+:return: List of tuples (name, value).\n\
 ";
 
 static PyObject *

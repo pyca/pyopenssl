@@ -38,9 +38,9 @@ crypto_NetscapeSPKI_New(NETSCAPE_SPKI *name, int dealloc)
 static char crypto_NetscapeSPKI_doc[] = "\n\
 NetscapeSPKI([enc]) -> NetscapeSPKI instance\n\
 \n\
-@param enc: Base64 encoded NetscapeSPKI object.\n\
-@type enc: C{str}\n\
-@return: The NetscapeSPKI object\n\
+:param enc: Base64 encoded NetscapeSPKI object.\n\
+:type enc: C{str}\n\
+:return: The NetscapeSPKI object\n\
 ";
 
 static PyObject *
@@ -84,9 +84,9 @@ crypto_NetscapeSPKI_dealloc(crypto_NetscapeSPKIObj *self)
 static char crypto_NetscapeSPKI_sign_doc[] = "\n\
 Sign the certificate request using the supplied key and digest\n\
 \n\
-@param pkey: The key to sign with\n\
-@param digest: The message digest to use\n\
-@return: None\n\
+:param pkey: The key to sign with\n\
+:param digest: The message digest to use\n\
+:return: None\n\
 ";
 
 static PyObject *
@@ -129,9 +129,9 @@ crypto_NetscapeSPKI_sign(crypto_NetscapeSPKIObj *self, PyObject *args)
 static char crypto_NetscapeSPKI_verify_doc[] = "\n\
 Verifies a certificate request using the supplied public key\n\
 \n\
-@param key: a public key\n\
-@return: True if the signature is correct.\n\
-@raise OpenSSL.crypto.Error: If the signature is invalid or there is a\n\
+:param key: a public key\n\
+:return: True if the signature is correct.\n\
+:raise OpenSSL.crypto.Error: If the signature is invalid or there is a\n\
     problem verifying the signature.\n\
 ";
 
@@ -156,7 +156,7 @@ crypto_NetscapeSPKI_verify(crypto_NetscapeSPKIObj *self, PyObject *args)
 static char crypto_NetscapeSPKI_b64_encode_doc[] = "\n\
 Generate a base64 encoded string from an SPKI\n\
 \n\
-@return: The base64 encoded string\n\
+:return: The base64 encoded string\n\
 ";
 
 PyObject *
@@ -175,7 +175,7 @@ crypto_NetscapeSPKI_b64_encode(crypto_NetscapeSPKIObj *self, PyObject *args)
 static char crypto_NetscapeSPKI_get_pubkey_doc[] = "\n\
 Get the public key of the certificate\n\
 \n\
-@return: The public key\n\
+:return: The public key\n\
 ";
 
 static PyObject *
@@ -204,8 +204,8 @@ crypto_NetscapeSPKI_get_pubkey(crypto_NetscapeSPKIObj *self, PyObject *args)
 static char crypto_NetscapeSPKI_set_pubkey_doc[] = "\n\
 Set the public key of the certificate\n\
 \n\
-@param pkey: The public key\n\
-@return: None\n\
+:param pkey: The public key\n\
+:return: None\n\
 ";
 
 static PyObject *

@@ -1753,7 +1753,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         """
         Verify the return value of the C{get_client_ca_list} method for server and client connections.
 
-        @param func: A function which will be called with the server context
+        :param func: A function which will be called with the server context
             before the client and server are connected to each other.  This
             function should specify a list of CAs for the server to send to the
             client and return that same list.  The list will be used to verify
