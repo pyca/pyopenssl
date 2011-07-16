@@ -254,7 +254,7 @@ static char crypto_X509_set_subject_doc[] = "\n\
 Set the subject of the certificate\n\
 \n\
 :param subject: The subject name\n\
-:type subject: :FOOBAR:`X509Name`\n\
+:type subject: :py:class:`X509Name`\n\
 :return: None\n\
 ";
 
@@ -433,12 +433,13 @@ _get_asn1_time(char *format, ASN1_TIME* timestamp, PyObject *args)
 static char crypto_X509_get_notBefore_doc[] = "\n\
 Retrieve the time stamp for when the certificate starts being valid\n\
 \n\
-:return: A string giving the timestamp, in the format:\n\
+:return: A string giving the timestamp, in the format::\n\
 \n\
                  YYYYMMDDhhmmssZ\n\
                  YYYYMMDDhhmmss+hhmm\n\
                  YYYYMMDDhhmmss-hhmm\n\
-           or None if there is no value set.\n\
+\n\
+         or None if there is no value set.\n\
 ";
 
 static PyObject*
@@ -455,12 +456,13 @@ crypto_X509_get_notBefore(crypto_X509Obj *self, PyObject *args)
 static char crypto_X509_get_notAfter_doc[] = "\n\
 Retrieve the time stamp for when the certificate stops being valid\n\
 \n\
-:return: A string giving the timestamp, in the format:\n\
+:return: A string giving the timestamp, in the format::\n\
 \n\
                  YYYYMMDDhhmmssZ\n\
                  YYYYMMDDhhmmss+hhmm\n\
                  YYYYMMDDhhmmss-hhmm\n\
-           or None if there is no value set.\n\
+\n\
+         or None if there is no value set.\n\
 ";
 
 static PyObject*
