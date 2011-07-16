@@ -18,6 +18,7 @@ Contents:
    introduction
    install
    api
+   internals
 
 Indices and tables
 ==================

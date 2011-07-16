@@ -1,3 +1,5 @@
+.. _openssl-ssl:
+
 OpenSSL.SSL module
 ==================
 

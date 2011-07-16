@@ -1,6 +1,9 @@
 API
 ===
 
+.. automodule:: OpenSSL
+
+
 .. toctree::
    :maxdepth: 2
 
