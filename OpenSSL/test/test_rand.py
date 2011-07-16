@@ -2,7 +2,7 @@
 # See LICENSE for details.
 
 """
-Unit tests for L{OpenSSL.rand}.
+Unit tests for :py:obj:`OpenSSL.rand`.
 """
 
 from unittest import main
@@ -16,8 +16,8 @@ from OpenSSL import rand
 class RandTests(TestCase):
     def test_bytes_wrong_args(self):
         """
-        L{OpenSSL.rand.bytes} raises L{TypeError} if called with the wrong
-        number of arguments or with a non-C{int} argument.
+        :py:obj:`OpenSSL.rand.bytes` raises :py:obj:`TypeError` if called with the wrong
+        number of arguments or with a non-:py:obj:`int` argument.
         """
         self.assertRaises(TypeError, rand.bytes)
         self.assertRaises(TypeError, rand.bytes, None)
@@ -44,7 +44,7 @@ class RandTests(TestCase):
     def test_add_wrong_args(self):
         """
         When called with the wrong number of arguments, or with arguments not of
-        type C{str} and C{int}, L{OpenSSL.rand.add} raises L{TypeError}.
+        type :py:obj:`str` and :py:obj:`int`, :py:obj:`OpenSSL.rand.add` raises :py:obj:`TypeError`.
         """
         self.assertRaises(TypeError, rand.add)
         self.assertRaises(TypeError, rand.add, b("foo"), None)
@@ -54,15 +54,15 @@ class RandTests(TestCase):
 
     def test_add(self):
         """
-        L{OpenSSL.rand.add} adds entropy to the PRNG.
+        :py:obj:`OpenSSL.rand.add` adds entropy to the PRNG.
         """
         rand.add(b('hamburger'), 3)
 
 
     def test_seed_wrong_args(self):
         """
-        When called with the wrong number of arguments, or with a non-C{str}
-        argument, L{OpenSSL.rand.seed} raises L{TypeError}.
+        When called with the wrong number of arguments, or with a non-:py:obj:`str`
+        argument, :py:obj:`OpenSSL.rand.seed` raises :py:obj:`TypeError`.
         """
         self.assertRaises(TypeError, rand.seed)
         self.assertRaises(TypeError, rand.seed, None)
@@ -71,14 +71,14 @@ class RandTests(TestCase):
 
     def test_seed(self):
         """
-        L{OpenSSL.rand.seed} adds entropy to the PRNG.
+        :py:obj:`OpenSSL.rand.seed` adds entropy to the PRNG.
         """
         rand.seed(b('milk shake'))
 
 
     def test_status_wrong_args(self):
         """
-        L{OpenSSL.rand.status} raises L{TypeError} when called with any
+        :py:obj:`OpenSSL.rand.status` raises :py:obj:`TypeError` when called with any
         arguments.
         """
         self.assertRaises(TypeError, rand.status, None)
@@ -86,8 +86,8 @@ class RandTests(TestCase):
 
     def test_status(self):
         """
-        L{OpenSSL.rand.status} returns C{True} if the PRNG has sufficient
-        entropy, C{False} otherwise.
+        :py:obj:`OpenSSL.rand.status` returns :py:obj:`True` if the PRNG has sufficient
+        entropy, :py:obj:`False` otherwise.
         """
         # It's hard to know what it is actually going to return.  Different
         # OpenSSL random engines decide differently whether they have enough
@@ -97,8 +97,8 @@ class RandTests(TestCase):
 
     def test_egd_wrong_args(self):
         """
-        L{OpenSSL.rand.egd} raises L{TypeError} when called with the wrong
-        number of arguments or with arguments not of type C{str} and C{int}.
+        :py:obj:`OpenSSL.rand.egd` raises :py:obj:`TypeError` when called with the wrong
+        number of arguments or with arguments not of type :py:obj:`str` and :py:obj:`int`.
         """
         self.assertRaises(TypeError, rand.egd)
         self.assertRaises(TypeError, rand.egd, None)
@@ -109,7 +109,7 @@ class RandTests(TestCase):
 
     def test_egd_missing(self):
         """
-        L{OpenSSL.rand.egd} returns C{0} or C{-1} if the EGD socket passed
+        :py:obj:`OpenSSL.rand.egd` returns :py:obj:`0` or C{-1} if the EGD socket passed
         to it does not exist.
         """
         result = rand.egd(self.mktemp())
@@ -121,7 +121,7 @@ class RandTests(TestCase):
 
     def test_cleanup_wrong_args(self):
         """
-        L{OpenSSL.rand.cleanup} raises L{TypeError} when called with any
+        :py:obj:`OpenSSL.rand.cleanup` raises :py:obj:`TypeError` when called with any
         arguments.
         """
         self.assertRaises(TypeError, rand.cleanup, None)
@@ -129,16 +129,16 @@ class RandTests(TestCase):
 
     def test_cleanup(self):
         """
-        L{OpenSSL.rand.cleanup} releases the memory used by the PRNG and returns
-        C{None}.
+        :py:obj:`OpenSSL.rand.cleanup` releases the memory used by the PRNG and returns
+        :py:obj:`None`.
         """
         self.assertIdentical(rand.cleanup(), None)
 
 
     def test_load_file_wrong_args(self):
         """
-        L{OpenSSL.rand.load_file} raises L{TypeError} when called the wrong
-        number of arguments or arguments not of type C{str} and C{int}.
+        :py:obj:`OpenSSL.rand.load_file` raises :py:obj:`TypeError` when called the wrong
+        number of arguments or arguments not of type :py:obj:`str` and :py:obj:`int`.
         """
         self.assertRaises(TypeError, rand.load_file)
         self.assertRaises(TypeError, rand.load_file, "foo", None)
@@ -148,8 +148,8 @@ class RandTests(TestCase):
 
     def test_write_file_wrong_args(self):
         """
-        L{OpenSSL.rand.write_file} raises L{TypeError} when called with the
-        wrong number of arguments or a non-C{str} argument.
+        :py:obj:`OpenSSL.rand.write_file` raises :py:obj:`TypeError` when called with the
+        wrong number of arguments or a non-:py:obj:`str` argument.
         """
         self.assertRaises(TypeError, rand.write_file)
         self.assertRaises(TypeError, rand.write_file, None)

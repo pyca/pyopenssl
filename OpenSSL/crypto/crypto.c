@@ -141,11 +141,11 @@ Dump a private key to a buffer\n\
 :param pkey: The PKey to dump\n\
 :param cipher: (optional) if encrypted PEM format, the cipher to\n\
                use\n\
-:param passphrase - (optional) if encrypted PEM format, this can be either\n\
-                    the passphrase to use, or a callback for providing the\n\
-                    passphrase.\n\
+:param passphrase: (optional) if encrypted PEM format, this can be either\n\
+                   the passphrase to use, or a callback for providing the\n\
+                   passphrase.\n\
 :return: The buffer with the dumped key in\n\
-:rtype: C{str}\n\
+:rtype: :py:data:`str`\n\
 ";
 
 static PyObject *

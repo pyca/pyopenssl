@@ -39,7 +39,7 @@ static char crypto_NetscapeSPKI_doc[] = "\n\
 NetscapeSPKI([enc]) -> NetscapeSPKI instance\n\
 \n\
 :param enc: Base64 encoded NetscapeSPKI object.\n\
-:type enc: C{str}\n\
+:type enc: :py:data:`str`\n\
 :return: The NetscapeSPKI object\n\
 ";
 

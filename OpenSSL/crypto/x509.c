@@ -202,7 +202,7 @@ static char crypto_X509_set_issuer_doc[] = "\n\
 Set the issuer of the certificate\n\
 \n\
 :param issuer: The issuer name\n\
-:type issuer: L{X509Name}\n\
+:type issuer: :py:class:`X509Name`\n\
 :return: None\n\
 ";
 
@@ -254,7 +254,7 @@ static char crypto_X509_set_subject_doc[] = "\n\
 Set the subject of the certificate\n\
 \n\
 :param subject: The subject name\n\
-:type subject: L{X509Name}\n\
+:type subject: :FOOBAR:`X509Name`\n\
 :return: None\n\
 ";
 

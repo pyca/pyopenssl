@@ -266,7 +266,7 @@ ssl_Connection_get_context(ssl_ConnectionObj *self, PyObject *args) {
 static char ssl_Connection_set_context_doc[] = "\n\
 Switch this connection to a new session context\n\
 \n\
-:param context: A L{Context} instance giving the new session context to use.\n\
+:param context: A :py:class:`Context` instance giving the new session context to use.\n\
 \n\
 ";
 static PyObject *
@@ -305,7 +305,7 @@ static char ssl_Connection_get_servername_doc[] = "\n\
 Retrieve the servername extension value if provided in the client hello\n\
 message, or None if there wasn't one.\n\
 \n\
-:return: A byte string giving the server name or C{None}.\n\
+:return: A byte string giving the server name or :py:data:`None`.\n\
 \n\
 ";
 static PyObject *
@@ -944,8 +944,8 @@ static char ssl_Connection_get_client_ca_list_doc[] = "\n\
 Get CAs whose certificates are suggested for client authentication.\n\
 \n\
 :return: If this is a server connection, a list of X509Names representing\n\
-    the acceptable CAs as set by L{OpenSSL.SSL.Context.set_client_ca_list} or\n\
-    L{OpenSSL.SSL.Context.add_client_ca}.  If this is a client connection,\n\
+    the acceptable CAs as set by :py:meth:`OpenSSL.SSL.Context.set_client_ca_list` or\n\
+    :py:meth:`OpenSSL.SSL.Context.add_client_ca`.  If this is a client connection,\n\
     the list of such X509Names sent by the server, or an empty list if that\n\
     has not yet happened.\n\
 ";

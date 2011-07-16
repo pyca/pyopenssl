@@ -127,7 +127,7 @@ static char crypto_Revoked_set_reason_doc[] = "\n\
 Set the reason of a Revoked object.\n\
 \n\
 :param reason: The reason string.\n\
-:type reason: L{str}\n\
+:type reason: :py:data:`str`\n\
 :return: None\n\
 ";
 static PyObject *
@@ -299,7 +299,7 @@ static char crypto_Revoked_set_serial_doc[] = "\n\
 Set the serial number of a revoked Revoked structure\n\
 \n\
 :param hex_str: The new serial number.\n\
-:type hex_str: L{str}\n\
+:type hex_str: :py:data:`str`\n\
 :return: None\n\
 ";
 static PyObject *

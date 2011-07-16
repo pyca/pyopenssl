@@ -42,7 +42,7 @@ static char crypto_PKCS12_set_certificate_doc[] = "\n\
 Replace the certificate portion of the PKCS12 structure\n\
 \n\
 :param cert: The new certificate.\n\
-:type cert: L{X509} or L{NoneType}\n\
+:type cert: :py:class:`X509` or :py:data:`None`\n\
 :return: None\n\
 ";
 static PyObject *
@@ -86,7 +86,7 @@ static char crypto_PKCS12_set_privatekey_doc[] = "\n\
 Replace or set the certificate portion of the PKCS12 structure\n\
 \n\
 :param pkey: The new private key.\n\
-:type pkey: L{PKey}\n\
+:type pkey: :py:class:`PKey`\n\
 :return: None\n\
 ";
 static PyObject *
@@ -131,7 +131,7 @@ static char crypto_PKCS12_set_ca_certificates_doc[] = "\n\
 Replace or set the CA certificates withing the PKCS12 object.\n\
 \n\
 :param cacerts: The new CA certificates.\n\
-:type cacerts: Iterable of L{X509} or L{NoneType}\n\
+:type cacerts: Iterable of :py:class:`X509` or :py:data:`None`\n\
 :return: None\n\
 ";
 static PyObject *
@@ -191,7 +191,7 @@ static char crypto_PKCS12_set_friendlyname_doc[] = "\n\
 Replace or set the certificate portion of the PKCS12 structure\n\
 \n\
 :param name: The new friendly name.\n\
-:type name: L{str}\n\
+:type name: :py:data:`str`\n\
 :return: None\n\
 ";
 static PyObject *
@@ -221,11 +221,11 @@ export([passphrase=None][, friendly_name=None][, iter=2048][, maciter=1]\n\
 Dump a PKCS12 object as a string.  See also \"man PKCS12_create\".\n\
 \n\
 :param passphrase: used to encrypt the PKCS12\n\
-:type passphrase: L{str}\n\
+:type passphrase: :py:data:`str`\n\
 :param iter: How many times to repeat the encryption\n\
-:type iter: L{int}\n\
+:type iter: :py:data:`int`\n\
 :param maciter: How many times to repeat the MAC\n\
-:type maciter: L{int}\n\
+:type maciter: :py:data:`int`\n\
 :return: The string containing the PKCS12\n\
 ";
 static PyObject *

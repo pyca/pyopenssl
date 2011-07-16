@@ -54,7 +54,7 @@ crypto_X509Extension_get_short_name(crypto_X509ExtensionObj *self, PyObject *arg
 static char crypto_X509Extension_get_data_doc[] = "\n\
 Returns the data of the X509Extension\n\
 \n\
-:return: A C{str} giving the X509Extension's ASN.1 encoded data.\n\
+:return: A :py:data:`str` giving the X509Extension's ASN.1 encoded data.\n\
 ";
 
 static PyObject *
@@ -186,14 +186,14 @@ X509Extension(typename, critical, value[, subject][, issuer]) -> \n\
                 X509Extension instance\n\
 \n\
 :param typename: The name of the extension to create.\n\
-:type typename: C{str}\n\
+:type typename: :py:data:`str`\n\
 :param critical: A flag indicating whether this is a critical extension.\n\
 :param value: The value of the extension.\n\
-:type value: C{str}\n\
+:type value: :py:data:`str`\n\
 :param subject: Optional X509 cert to use as subject.\n\
-:type subject: C{X509}\n\
+:type subject: :py:class:`X509`\n\
 :param issuer: Optional X509 cert to use as issuer.\n\
-:type issuer: C{X509}\n\
+:type issuer: :py:class:`X509`\n\
 :return: The X509Extension object\n\
 ";
 
