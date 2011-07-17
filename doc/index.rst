@@ -13,7 +13,7 @@ calling a corresponding function in the OpenSSL library.
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    introduction
    install

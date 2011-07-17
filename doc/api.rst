@@ -1,7 +1,14 @@
-API
-===
+.. py:module:: OpenSSL
 
-.. automodule:: OpenSSL
+
+.. _api-openssl:
+
+
+OpenSSL -- Python interface to OpenSSL
+======================================
+
+This package provides a high-level interface to the functions in the
+OpenSSL library. The following modules are defined:
 
 
 .. toctree::
@@ -9,4 +16,4 @@ API
 
    api/crypto
    api/rand
-   api/SSL
+   api/ssl
