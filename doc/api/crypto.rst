@@ -1,9 +1,10 @@
+.. _openssl-crypto:
+
+:py:mod:`crypto` --- Generic cryptographic module
+=================================================
+
 .. py:module:: OpenSSL.crypto
-
-.. _api-openssl-crypto:
-
-``crypto`` -- Generic cryptographic module
-==========================================
+   :synopsis: Generic cryptographic module
 
 
 .. py:data:: X509Type
@@ -102,13 +103,13 @@
 
 
 .. py:data:: FILETYPE_PEM
-.. py:data:: FILETYPE_ASN1
+             FILETYPE_ASN1
 
     File type constants.
 
 
 .. py:data:: TYPE_RSA
-.. py:data:: TYPE_DSA
+             TYPE_DSA
 
     Key type constants.
 
@@ -250,9 +251,9 @@ X509 objects have the following methods:
     Return a string giving the time before which the certificate is not valid.  The
     string is formatted as an ASN1 GENERALIZEDTIME::
 
-                 YYYYMMDDhhmmssZ
-                 YYYYMMDDhhmmss+hhmm
-                 YYYYMMDDhhmmss-hhmm
+        YYYYMMDDhhmmssZ
+        YYYYMMDDhhmmss+hhmm
+        YYYYMMDDhhmmss-hhmm
 
     If no value exists for this field, :py:data:`None` is returned.
 
@@ -262,9 +263,9 @@ X509 objects have the following methods:
     Return a string giving the time after which the certificate is not valid.  The
     string is formatted as an ASN1 GENERALIZEDTIME::
 
-                 YYYYMMDDhhmmssZ
-                 YYYYMMDDhhmmss+hhmm
-                 YYYYMMDDhhmmss-hhmm
+        YYYYMMDDhhmmssZ
+        YYYYMMDDhhmmss+hhmm
+        YYYYMMDDhhmmss-hhmm
 
     If no value exists for this field, :py:data:`None` is returned.
 
@@ -274,9 +275,9 @@ X509 objects have the following methods:
     Change the time before which the certificate is not valid.  *when* is a
     string formatted as an ASN1 GENERALIZEDTIME::
 
-                 YYYYMMDDhhmmssZ
-                 YYYYMMDDhhmmss+hhmm
-                 YYYYMMDDhhmmss-hhmm
+        YYYYMMDDhhmmssZ
+        YYYYMMDDhhmmss+hhmm
+        YYYYMMDDhhmmss-hhmm
 
 
 .. py:method:: X509.set_notAfter(when)
@@ -284,9 +285,9 @@ X509 objects have the following methods:
     Change the time after which the certificate is not valid.  *when* is a
     string formatted as an ASN1 GENERALIZEDTIME::
 
-                 YYYYMMDDhhmmssZ
-                 YYYYMMDDhhmmss+hhmm
-                 YYYYMMDDhhmmss-hhmm
+        YYYYMMDDhhmmssZ
+        YYYYMMDDhhmmss+hhmm
+        YYYYMMDDhhmmss-hhmm
 
 
 
@@ -504,23 +505,23 @@ PKey objects
 
 The PKey object has the following methods:
 
-.. py:method:: Pkey.bits()
+.. py:method:: PKey.bits()
 
     Return the number of bits of the key.
 
 
-.. py:method:: Pkey.generate_key(type, bits)
+.. py:method:: PKey.generate_key(type, bits)
 
     Generate a public/private key pair of the type *type* (one of
     :py:const:`TYPE_RSA` and :py:const:`TYPE_DSA`) with the size *bits*.
 
 
-.. py:method:: Pkey.type()
+.. py:method:: PKey.type()
 
     Return the type of the key.
 
 
-.. py:method:: Pkey.check()
+.. py:method:: PKey.check()
 
     Check the consistency of this key, returning True if it is consistent and
     raising an exception otherwise.  This is only valid for RSA keys.  See the
@@ -534,27 +535,27 @@ PKCS7 objects
 
 PKCS7 objects have the following methods:
 
-.. py:method:: Pkey.type_is_signed()
+.. py:method:: PKCS7.type_is_signed()
 
     FIXME
 
 
-.. py:method:: Pkey.type_is_enveloped()
+.. py:method:: PKCS7.type_is_enveloped()
 
     FIXME
 
 
-.. py:method:: Pkey.type_is_signedAndEnveloped()
+.. py:method:: PKCS7.type_is_signedAndEnveloped()
 
     FIXME
 
 
-.. py:method:: Pkey.type_is_data()
+.. py:method:: PKCS7.type_is_data()
 
     FIXME
 
 
-.. py:method:: Pkey.get_type_name()
+.. py:method:: PKCS7.get_type_name()
 
     Get the type name of the PKCS7.
 
@@ -566,7 +567,7 @@ PKCS12 objects
 
 PKCS12 objects have the following methods:
 
-.. py:method:: PKCS12.export([passphrase=None[, iter=2048][, maciter=1])
+.. py:method:: PKCS12.export([passphrase=None][, iter=2048][, maciter=1])
 
     Returns a PKCS12 object as a string.
 

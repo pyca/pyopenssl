@@ -1,42 +1,44 @@
+.. _openssl-ssl:
+
+:py:mod:`SSL` --- An interface to the SSL-specific parts of OpenSSL
+===================================================================
+
 .. py:module:: OpenSSL.SSL
+    :synopsis: An interface to the SSL-specific parts of OpenSSL
 
-.. _api-openssl-ssl:
-
-``SSL`` -- An interface to the SSL-specific parts of OpenSSL
-============================================================
 
 This module handles things specific to SSL. There are two objects defined:
 Context, Connection.
 
 .. py:data:: SSLv2_METHOD
-.. py:data:: SSLv3_METHOD
-.. py:data:: SSLv23_METHOD
-.. py:data:: TLSv1_METHOD
+             SSLv3_METHOD
+             SSLv23_METHOD
+             TLSv1_METHOD
 
     These constants represent the different SSL methods to use when creating a
     context object.
 
 
 .. py:data:: VERIFY_NONE
-.. py:data:: VERIFY_PEER
-.. py:data:: VERIFY_FAIL_IF_NO_PEER_CERT
+             VERIFY_PEER
+             VERIFY_FAIL_IF_NO_PEER_CERT
 
     These constants represent the verification mode used by the Context
     object's :py:meth:`set_verify` method.
 
 
 .. py:data:: FILETYPE_PEM
-.. py:data:: FILETYPE_ASN1
+             FILETYPE_ASN1
 
     File type constants used with the :py:meth:`use_certificate_file` and
     :py:meth:`use_privatekey_file` methods of Context objects.
 
 
 .. py:data:: OP_SINGLE_DH_USE
-.. py:data:: OP_EPHEMERAL_RSA
-.. py:data:: OP_NO_SSLv2
-.. py:data:: OP_NO_SSLv3
-.. py:data:: OP_NO_TLSv1
+             OP_EPHEMERAL_RSA
+             OP_NO_SSLv2
+             OP_NO_SSLv3
+             OP_NO_TLSv1
 
     Constants used with :py:meth:`set_options` of Context objects.
 
@@ -50,10 +52,10 @@ Context, Connection.
 
 
 .. py:data:: SSLEAY_VERSION
-.. py:data:: SSLEAY_CFLAGS
-.. py:data:: SSLEAY_BUILT_ON
-.. py:data:: SSLEAY_PLATFORM
-.. py:data:: SSLEAY_DIR
+             SSLEAY_CFLAGS
+             SSLEAY_BUILT_ON
+             SSLEAY_PLATFORM
+             SSLEAY_DIR
 
     Constants used with :py:meth:`SSLeay_version` to specify what OpenSSL version
     information to retrieve.  See the man page for the :py:func:`SSLeay_version` C
@@ -242,7 +244,7 @@ Context objects have the following methods:
     Specify where CA certificates for verification purposes are located. These
     are trusted certificates. Note that the certificates have to be in PEM
     format.  If capath is passed, it must be a directory prepared using the
-    ``_rehash`` tool included with OpenSSL.  Either, but not both, of
+    ``c_rehash`` tool included with OpenSSL.  Either, but not both, of
     *pemfile* or *capath* may be :py:data:`None`.
 
 
@@ -274,9 +276,9 @@ Context objects have the following methods:
     Set the information callback to *callback*. This function will be called
     from time to time during SSL handshakes.
 
-    *callback* should take three arguments: a Connection object and two
-    integers. The first integer specifies where in the SSL handshake the function
-    was called, and the other the return code from a (possibly failed) internal
+    *callback* should take three arguments: a Connection object and two integers.
+    The first integer specifies where in the SSL handshake the function was
+    called, and the other the return code from a (possibly failed) internal
     function call.
 
 
@@ -374,8 +376,9 @@ Context objects have the following methods:
 .. py:method:: Context.set_tlsext_servername_callback(callback)
 
     Specify a one-argument callable to use as the TLS extension server name
-    callback.  When a connection using the server name extension is made using this
-    context, the callback will be invoked with the \code{Connection} instance.
+    callback.  When a connection using the server name extension is made using
+    this context, the callback will be invoked with the :py:class:`Connection`
+    instance.
 
     .. versionadded:: 0.13
 
@@ -652,6 +655,8 @@ Connection objects have the following methods:
 
     .. versionadded:: 0.13
 
+
+.. Rubric:: Footnotes
 
 .. [#connection-context-socket] Actually, all that is required is an object that
     **behaves** like a socket, you could even use files, even though it'd be

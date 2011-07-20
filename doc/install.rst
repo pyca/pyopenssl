@@ -3,7 +3,6 @@
 Building and Installing
 =======================
 
-
 These instructions can also be found in the file ``INSTALL``.
 
 I have tested this on Debian Linux systems (woody and sid), Solaris 2.6 and

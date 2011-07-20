@@ -1,9 +1,11 @@
+.. _openssl-rand:
+
+:py:mod:`rand` --- An interface to the OpenSSL pseudo random number generator
+=============================================================================
+
 .. py:module:: OpenSSL.rand
+   :synopsis: An interface to the OpenSSL pseudo random number generator
 
-.. _api-openssl-rand:
-
-``rand`` -- An interface to the OpenSSL pseudo random number generator
-======================================================================
 
 This module handles the OpenSSL pseudo random number generator (PRNG) and
 declares the following:
@@ -31,9 +33,9 @@ declares the following:
 
 .. py:function:: egd(path[, bytes])
 
-    Query the Entropy Gathering Daemon [#entropy-gathering-daemon]_ on socket
-    *path* for *bytes* bytes of random data and uses :py:func:`add` to seed
-    the PRNG. The default value of *bytes* is 255.
+    Query the `Entropy Gathering Daemon <http://www.lothar.com/tech/crypto/>`_ on
+    socket *path* for *bytes* bytes of random data and uses :py:func:`add` to
+    seed the PRNG. The default value of *bytes* is 255.
 
 
 .. py:function:: load_file(path[, bytes])
@@ -75,6 +77,3 @@ declares the following:
     from the OpenSSL error queue, where each item is a tuple *(lib, function,
     reason)*. Here *lib*, *function* and *reason* are all strings, describing
     where and what the problem is. See :manpage:`err(3)` for more information.
-
-
-.. [#entropy-gathering-daemon] See http://www.lothar.com/tech/crypto/.

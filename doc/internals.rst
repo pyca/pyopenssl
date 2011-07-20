@@ -53,7 +53,7 @@ by :c:func:`PyEval_SaveState` is stored in a global thread local variable
 (using Python's own TLS API, :c:func:`PyThread_set_key_value`).  When it is
 necessary to re-acquire the GIL, either after the OpenSSL API returns or in a C
 callback invoked by that OpenSSL API, the value of the thread local variable is
-retrieved (:c:func`PyThread_get_key_value`) and used to re-acquire the GIL.
+retrieved (:c:func:`PyThread_get_key_value`) and used to re-acquire the GIL.
 This allows Python threads to execute while OpenSSL APIs are running and allows
 use of any particular pyOpenSSL object from any Python thread, since there is
 no per-thread state associated with any of these objects and since OpenSSL is

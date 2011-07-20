@@ -1,14 +1,12 @@
-.. pyOpenSSL documentation master file, created by
-   sphinx-quickstart on Sat Jul 16 07:12:22 2011.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to pyOpenSSL's documentation!
 =====================================
 
-This module is a rather thin wrapper around (a subset of) the OpenSSL library.
-With thin wrapper I mean that a lot of the object methods do nothing more than
-calling a corresponding function in the OpenSSL library.
+.. topic:: Abstract
+
+   This module is a rather thin wrapper around (a subset of) the OpenSSL library.
+   With thin wrapper I mean that a lot of the object methods do nothing more than
+   calling a corresponding function in the OpenSSL library.
+
 
 Contents:
 
