@@ -1,8 +1,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
 <head>
-<title>3.1.12 Revoked objects </title>
-<META NAME="description" CONTENT="3.1.12 Revoked objects ">
+<title>3.1.11 Revoked objects </title>
+<META NAME="description" CONTENT="3.1.11 Revoked objects ">
 <META NAME="keywords" CONTENT="pyOpenSSL">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
@@ -35,49 +35,49 @@
   border="0" height="32"
   alt="" width="32"></td>
 </tr></table>
-<b class="navlabel">Previous:</b> <a class="sectref" href="crl.html">3.1.11 CRL objects</A>
+<b class="navlabel">Previous:</b> <a class="sectref" href="crl.html">3.1.10 CRL objects</A>
 <b class="navlabel">Up:</b> <a class="sectref" href="openssl-crypto.html">3.1 crypto  </A>
 <b class="navlabel">Next:</b> <a class="sectref" href="openssl-rand.html">3.2 rand  </A>
 <br><hr>
 </DIV>
 <!--End of Navigation Panel-->
 
-<H3><A NAME="SECTION0004112000000000000000">&nbsp;</A>
+<H3><A NAME="SECTION0004111000000000000000">&nbsp;</A>
 <BR>
-3.1.12 Revoked objects 
+3.1.11 Revoked objects 
 </H3>
 
 <P>
 Revoked objects have the following methods:
 
 <P>
-<dl><dt><b><a name='l2h-109'><tt class='method'>all_reasons</tt></a></b>()
+<dl><dt><b><a name='l2h-110'><tt class='method'>all_reasons</tt></a></b>()
 <dd>
 Return a list of all supported reasons.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-110'><tt class='method'>get_reason</tt></a></b>()
+<dl><dt><b><a name='l2h-111'><tt class='method'>get_reason</tt></a></b>()
 <dd>
 Return the revocation reason as a str.  Can be
 None, which differs from "Unspecified".
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-111'><tt class='method'>get_rev_date</tt></a></b>()
+<dl><dt><b><a name='l2h-112'><tt class='method'>get_rev_date</tt></a></b>()
 <dd>
 Return the revocation date as a str.
 The string is formatted as an ASN1 GENERALIZEDTIME.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-112'><tt class='method'>get_serial</tt></a></b>()
+<dl><dt><b><a name='l2h-113'><tt class='method'>get_serial</tt></a></b>()
 <dd>
 Return a str containing a hex number of the serial of the revoked certificate.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-113'><tt class='method'>set_reason</tt></a></b>(<var>reason</var>)
+<dl><dt><b><a name='l2h-114'><tt class='method'>set_reason</tt></a></b>(<var>reason</var>)
 <dd>
 Set the revocation reason.  <var>reason</var> must
 be None or a string, but the values are limited.  
@@ -85,14 +85,14 @@ Spaces and case are ignored.  See <tt class="method">all_reasons</tt>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-114'><tt class='method'>set_rev_date</tt></a></b>(<var>date</var>)
+<dl><dt><b><a name='l2h-115'><tt class='method'>set_rev_date</tt></a></b>(<var>date</var>)
 <dd>
 Set the revocation date.
 The string is formatted as an ASN1 GENERALIZEDTIME.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-115'><tt class='method'>set_serial</tt></a></b>(<var>serial</var>)
+<dl><dt><b><a name='l2h-116'><tt class='method'>set_serial</tt></a></b>(<var>serial</var>)
 <dd>
 <var>serial</var> is a string containing a hex number of the serial of the revoked certificate.
 </dl>
@@ -123,7 +123,7 @@ The string is formatted as an ASN1 GENERALIZEDTIME.
   border="0" height="32"
   alt="" width="32"></td>
 </tr></table>
-<b class="navlabel">Previous:</b> <a class="sectref" href="crl.html">3.1.11 CRL objects</A>
+<b class="navlabel">Previous:</b> <a class="sectref" href="crl.html">3.1.10 CRL objects</A>
 <b class="navlabel">Up:</b> <a class="sectref" href="openssl-crypto.html">3.1 crypto  </A>
 <b class="navlabel">Next:</b> <a class="sectref" href="openssl-rand.html">3.2 rand  </A>
 <hr>
