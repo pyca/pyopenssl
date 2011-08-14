@@ -1,3 +1,7 @@
+2011-08-14  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* Release 0.13
+
 2011-06-12  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL/crypto/pkey.c: Add the PKey.check method, mostly
