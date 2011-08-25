@@ -64,11 +64,15 @@ crypto_PKey_generate_key(crypto_PKeyObj *self, PyObject *args)
         case crypto_TYPE_DSA:
             Py_BEGIN_ALLOW_THREADS;
             dsa = DSA_generate_parameters(bits, NULL, 0, NULL, NULL, NULL, NULL);
+            if (dsa == NULL) {
+                Py_END_ALLOW_THREADS;
+                FAIL();
+            }
+            if (!DSA_generate_key(dsa)) {
+                Py_END_ALLOW_THREADS;
+                FAIL();
+            }
             Py_END_ALLOW_THREADS;
-            if (dsa == NULL)
-                FAIL();
-            if (!DSA_generate_key(dsa))
-                FAIL();
             if (!EVP_PKEY_assign_DSA(self->pkey, dsa))
                 FAIL();
 	    break;
