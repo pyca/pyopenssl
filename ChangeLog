@@ -1,3 +1,9 @@
+2011-08-29  Guillermo Gonzalez  <guillermo.gonzalez@canonical.com>
+
+	* OpenSSL/ssl/context.c: Add Context.set_mode method.
+	* OpenSSL/ssl/ssl.c: Add MODE_RELEASE_BUFFERS and OP_NO_COMPRESSION
+	  constants.
+
 2011-06-12  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL/crypto/pkey.c: Add the PKey.check method, mostly

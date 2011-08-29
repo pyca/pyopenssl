@@ -352,6 +352,17 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, context.set_options, 1, None)
 
 
+    def test_set_mode_wrong_args(self):
+        """
+        L{Context.set_mode} raises L{TypeError} if called with the wrong
+        number of arguments or a non-C{int} argument.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.set_mode)
+        self.assertRaises(TypeError, context.set_mode, None)
+        self.assertRaises(TypeError, context.set_mode, 1, None)
+
+
     def test_set_timeout_wrong_args(self):
         """
         L{Context.set_timeout} raises L{TypeError} if called with the wrong

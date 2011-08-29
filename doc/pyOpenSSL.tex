@@ -1055,6 +1055,11 @@ Add SSL options. Options you have set before are not cleared!
 This method should be used with the \constant{OP_*} constants.
 \end{methoddesc}
 
+\begin{methoddesc}[Context]{set_mode}{mode}
+Add SSL mode. Modes you have set before are not cleared!
+This method should be used with the \constant{MODE_*} constants.
+\end{methoddesc}
+
 \begin{methoddesc}[Context]{set_passwd_cb}{callback\optional{, userdata}}
 Set the passphrase callback to \var{callback}. This function will be called
 when a private key with a passphrase is loaded. \var{callback} must accept

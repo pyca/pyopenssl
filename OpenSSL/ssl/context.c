@@ -1108,6 +1108,23 @@ ssl_Context_set_options(ssl_ContextObj *self, PyObject *args)
     return PyLong_FromLong(SSL_CTX_set_options(self->ctx, options));
 }
 
+static char ssl_Context_set_mode_doc[] = "\n\
+Add modes via bitmask. Modes set before are not cleared!\n\
+\n\
+@param mode: The mode to add.\n\
+@return: The new mode bitmask.\n\
+";
+static PyObject *
+ssl_Context_set_mode(ssl_ContextObj *self, PyObject *args)
+{
+    long mode;
+
+    if (!PyArg_ParseTuple(args, "l:set_mode", &mode))
+        return NULL;
+
+    return PyLong_FromLong(SSL_CTX_set_mode(self->ctx, mode));
+}
+
 static char ssl_Context_set_tlsext_servername_callback_doc[] = "\n\
 Specify a callback function to be called when clients specify a server name.\n\
 \n\
@@ -1174,6 +1191,7 @@ static PyMethodDef ssl_Context_methods[] = {
     ADD_METHOD(set_app_data),
     ADD_METHOD(get_cert_store),
     ADD_METHOD(set_options),
+    ADD_METHOD(set_mode),
     ADD_METHOD(set_tlsext_servername_callback),
     { NULL, NULL }
 };
