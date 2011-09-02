@@ -36,7 +36,7 @@
   border="0" height="32"
   alt="" width="32"></td>
 </tr></table>
-<b class="navlabel">Previous:</b> <a class="sectref" href="revoked.html">3.1.12 Revoked objects</A>
+<b class="navlabel">Previous:</b> <a class="sectref" href="revoked.html">3.1.11 Revoked objects</A>
 <b class="navlabel">Up:</b> <a class="sectref" href="openssl.html">3 OpenSSL  </A>
 <b class="navlabel">Next:</b> <a class="sectref" href="openssl-ssl.html">3.3 SSL  </A>
 <br><hr>
@@ -56,16 +56,16 @@ This module handles the OpenSSL pseudo random number generator (PRNG) and
 declares the following:
 
 <P>
-<dl><dt><b><a name='l2h-117'><tt class='function'>add</tt></a></b>(<var>string, entropy</var>)
+<dl><dt><b><a name='l2h-118'><tt class='function'>add</tt></a></b>(<var>string, entropy</var>)
 <dd>
 Mix bytes from <var>string</var> into the PRNG state. The <var>entropy</var> argument is
 (the lower bound of) an estimate of how much randomness is contained in
-<var>string</var>, measured in bytes. For more information, see e.g. <a class="rfc" name="rfcref-2324"
+<var>string</var>, measured in bytes. For more information, see e.g. <a class="rfc" name="rfcref-2374"
 href="http://www.ietf.org/rfc/rfc1750.txt">RFC 1750</a>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-118'><tt class='function'>bytes</tt></a></b>(<var>num_bytes</var>)
+<dl><dt><b><a name='l2h-119'><tt class='function'>bytes</tt></a></b>(<var>num_bytes</var>)
 <dd>
 Get some random bytes from the PRNG as a string.
 
@@ -74,7 +74,7 @@ This is a wrapper for the C function <tt class="function">RAND_bytes</tt>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-119'><tt class='function'>cleanup</tt></a></b>()
+<dl><dt><b><a name='l2h-120'><tt class='function'>cleanup</tt></a></b>()
 <dd>
 Erase the memory used by the PRNG.
 
@@ -83,50 +83,50 @@ This is a wrapper for the C function <tt class="function">RAND_cleanup</tt>.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-120'><tt class='function'>egd</tt></a></b>(<var>path</var><big>[</big><var>, bytes</var><big>]</big>)
+<dl><dt><b><a name='l2h-121'><tt class='function'>egd</tt></a></b>(<var>path</var><big>[</big><var>, bytes</var><big>]</big>)
 <dd>
 Query the Entropy Gathering Daemon<A NAME="tex2html2"
-  HREF="#foot1227"><SUP>2</SUP></A> on socket <var>path</var> for <var>bytes</var>
+  HREF="#foot1272"><SUP>2</SUP></A> on socket <var>path</var> for <var>bytes</var>
 bytes of random data and and uses <tt class="function">add</tt> to seed the PRNG. The default
 value of <var>bytes</var> is 255.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-121'><tt class='function'>load_file</tt></a></b>(<var>path</var><big>[</big><var>, bytes</var><big>]</big>)
+<dl><dt><b><a name='l2h-122'><tt class='function'>load_file</tt></a></b>(<var>path</var><big>[</big><var>, bytes</var><big>]</big>)
 <dd>
 Read <var>bytes</var> bytes (or all of it, if <var>bytes</var> is negative) of data from
 the file <var>path</var> to seed the PRNG. The default value of <var>bytes</var> is -1.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-122'><tt class='function'>screen</tt></a></b>()
+<dl><dt><b><a name='l2h-123'><tt class='function'>screen</tt></a></b>()
 <dd>
 Add the current contents of the screen to the PRNG state.
 Availability: Windows.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-123'><tt class='function'>seed</tt></a></b>(<var>string</var>)
+<dl><dt><b><a name='l2h-124'><tt class='function'>seed</tt></a></b>(<var>string</var>)
 <dd>
 This is equivalent to calling <tt class="function">add</tt> with <var>entropy</var> as the length
 of the string.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-124'><tt class='function'>status</tt></a></b>()
+<dl><dt><b><a name='l2h-125'><tt class='function'>status</tt></a></b>()
 <dd>
 Returns true if the PRNG has been seeded with enough data, and false otherwise.
 </dl>
 
 <P>
-<dl><dt><b><a name='l2h-125'><tt class='function'>write_file</tt></a></b>(<var>path</var>)
+<dl><dt><b><a name='l2h-126'><tt class='function'>write_file</tt></a></b>(<var>path</var>)
 <dd>
 Write a number of random bytes (currently 1024) to the file <var>path</var>. This
 file can then be used with <tt class="function">load_file</tt> to seed the PRNG again.
 </dl>
 
 <P>
-<dl><dt><b>exception <a name='l2h-126'><tt class='exception'>Error</tt></a></b>
+<dl><dt><b>exception <a name='l2h-127'><tt class='exception'>Error</tt></a></b>
 <dd>
 If the current RAND method supports any errors, this is raised when needed.
 The default method does not raise this when the entropy pool is depleted.
@@ -142,7 +142,7 @@ for more information.
 <P>
 <BR><HR><H4>Footnotes</H4>
 <DL>
-<DT><A NAME="foot1227">... Daemon</A><A
+<DT><A NAME="foot1272">... Daemon</A><A
  href="openssl-rand.html#tex2html2"><SUP>2</SUP></A></DT>
 <DD>See
 <a class="url" href="http://www.lothar.com/tech/crypto/">http://www.lothar.com/tech/crypto/</a>
@@ -173,11 +173,11 @@ for more information.
   border="0" height="32"
   alt="" width="32"></td>
 </tr></table>
-<b class="navlabel">Previous:</b> <a class="sectref" href="revoked.html">3.1.12 Revoked objects</A>
+<b class="navlabel">Previous:</b> <a class="sectref" href="revoked.html">3.1.11 Revoked objects</A>
 <b class="navlabel">Up:</b> <a class="sectref" href="openssl.html">3 OpenSSL  </A>
 <b class="navlabel">Next:</b> <a class="sectref" href="openssl-ssl.html">3.3 SSL  </A>
 <hr>
-<span class="release-info">Release 0.12.</span>
+<span class="release-info">Release 0.13.</span>
 </DIV>
 <!--End of Navigation Panel-->
 
