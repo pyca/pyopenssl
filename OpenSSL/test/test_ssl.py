@@ -52,6 +52,11 @@ except ImportError:
     OP_NO_TICKET = None
 
 try:
+    from OpenSSL.SSL import OP_NO_COMPRESSION
+except ImportError:
+    OP_NO_COMPRESSION = None
+
+try:
     from OpenSSL.SSL import MODE_RELEASE_BUFFERS
 except ImportError:
     MODE_RELEASE_BUFFERS = None
@@ -1609,6 +1614,17 @@ class ConstantsTests(TestCase):
             self.assertEqual(OP_NO_TICKET, 0x4000)
     else:
         "OP_NO_TICKET unavailable - OpenSSL version may be too old"
+
+
+    if OP_NO_COMPRESSION is not None:
+        def test_op_no_compression(self):
+            """
+            The value of L{OpenSSL.SSL.OP_NO_COMPRESSION} is 0x20000, the value
+            of L{SSL_OP_NO_COMPRESSION} defined by I{openssl/ssl.h}.
+            """
+            self.assertEqual(OP_NO_COMPRESSION, 0x20000)
+    else:
+        "OP_NO_COMPRESSION unavailable - OpenSSL version may be too old"
 
 
 
