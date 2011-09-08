@@ -26,6 +26,7 @@ from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
 from OpenSSL.SSL import OP_NO_SSLv2, OP_NO_SSLv3, OP_SINGLE_DH_USE
 from OpenSSL.SSL import (
     VERIFY_PEER, VERIFY_FAIL_IF_NO_PEER_CERT, VERIFY_CLIENT_ONCE, VERIFY_NONE)
+
 from OpenSSL.SSL import (
     Error, SysCallError, WantReadError, ZeroReturnError, SSLeay_version)
 from OpenSSL.SSL import Context, ContextType, Connection, ConnectionType
@@ -49,6 +50,11 @@ try:
     from OpenSSL.SSL import OP_NO_TICKET
 except ImportError:
     OP_NO_TICKET = None
+
+try:
+    from OpenSSL.SSL import MODE_RELEASE_BUFFERS
+except ImportError:
+    MODE_RELEASE_BUFFERS = None
 
 from OpenSSL.SSL import (
     SSL_ST_CONNECT, SSL_ST_ACCEPT, SSL_ST_MASK, SSL_ST_INIT, SSL_ST_BEFORE,
@@ -361,6 +367,19 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, context.set_mode)
         self.assertRaises(TypeError, context.set_mode, None)
         self.assertRaises(TypeError, context.set_mode, 1, None)
+
+
+    if MODE_RELEASE_BUFFERS is not None:
+        def test_set_mode(self):
+            """
+            L{Context.set_mode} accepts a mode bitvector and returns the newly
+            set mode.
+            """
+            context = Context(TLSv1_METHOD)
+            self.assertTrue(
+                MODE_RELEASE_BUFFERS & context.set_mode(MODE_RELEASE_BUFFERS))
+    else:
+        "MODE_RELEASE_BUFFERS unavailable - OpenSSL version may be too old"
 
 
     def test_set_timeout_wrong_args(self):
