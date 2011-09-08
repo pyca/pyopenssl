@@ -1115,12 +1115,12 @@ Add modes via bitmask. Modes set before are not cleared!\n\
 @return: The new mode bitmask.\n\
 ";
 static PyObject *
-ssl_Context_set_mode(ssl_ContextObj *self, PyObject *args)
-{
+ssl_Context_set_mode(ssl_ContextObj *self, PyObject *args) {
     long mode;
 
-    if (!PyArg_ParseTuple(args, "l:set_mode", &mode))
+    if (!PyArg_ParseTuple(args, "l:set_mode", &mode)) {
         return NULL;
+    }
 
     return PyLong_FromLong(SSL_CTX_set_mode(self->ctx, mode));
 }
