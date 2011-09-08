@@ -843,6 +843,8 @@ File type constants used with the \method{use_certificate_file} and
 \dataline{OP_NO_SSLv2}
 \dataline{OP_NO_SSLv3}
 \dataline{OP_NO_TLSv1}
+\dataline{OP_NO_TICKET}
+\dataline{OP_NO_COMPRESSION}
 Constants used with \method{set_options} of Context objects.
 \constant{OP_SINGLE_DH_USE} means to always create a new key when using ephemeral
 Diffie-Hellman. \constant{OP_EPHEMERAL_RSA} means to always use ephemeral RSA keys
@@ -850,6 +852,11 @@ when doing RSA operations. \constant{OP_NO_SSLv2}, \constant{OP_NO_SSLv3} and
 \constant{OP_NO_TLSv1} means to disable those specific protocols. This is
 interesting if you're using e.g. \constant{SSLv23_METHOD} to get an SSLv2-compatible
 handshake, but don't want to use SSLv2.
+\end{datadesc}
+
+\begin{datadesc}{MODE_NO_COMPRESSION}
+Constant used with \method{set_mode} of Context objects to disable automatic
+compression of application traffic.
 \end{datadesc}
 
 \begin{datadesc}{SSLEAY_VERSION}
@@ -1053,6 +1060,11 @@ function call.
 \begin{methoddesc}[Context]{set_options}{options}
 Add SSL options. Options you have set before are not cleared!
 This method should be used with the \constant{OP_*} constants.
+\end{methoddesc}
+
+\begin{methoddesc}[Context]{set_mode}{mode}
+Add SSL mode. Modes you have set before are not cleared!
+This method should be used with the \constant{MODE_*} constants.
 \end{methoddesc}
 
 \begin{methoddesc}[Context]{set_passwd_cb}{callback\optional{, userdata}}
