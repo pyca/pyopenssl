@@ -1111,8 +1111,8 @@ ssl_Context_set_options(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_set_mode_doc[] = "\n\
 Add modes via bitmask. Modes set before are not cleared!\n\
 \n\
-@param mode: The mode to add.\n\
-@return: The new mode bitmask.\n\
+:param mode: The mode to add.\n\
+:return: The new mode bitmask.\n\
 ";
 static PyObject *
 ssl_Context_set_mode(ssl_ContextObj *self, PyObject *args) {
