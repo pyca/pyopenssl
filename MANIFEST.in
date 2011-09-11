@@ -4,4 +4,4 @@ recursive-include   doc         *
 recursive-include   examples    *
 recursive-include   rpm         *
 global-exclude  *.pyc
-prune               doc/_build/
+prune               doc/_build
