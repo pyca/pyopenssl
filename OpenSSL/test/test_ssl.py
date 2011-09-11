@@ -1612,7 +1612,7 @@ class ConstantsTests(TestCase):
             :py:const:`SSL_OP_NO_TICKET` defined by :file:`openssl/ssl.h`.
             """
             self.assertEqual(OP_NO_TICKET, 0x4000)
-3A    else:
+    else:
         "OP_NO_TICKET unavailable - OpenSSL version may be too old"
 
 
