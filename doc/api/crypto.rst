@@ -407,10 +407,7 @@ X509Name objects have the following members:
 .. py:attribute:: X509Name.stateOrProvinceName
 
     The state or province of the entity. :py:attr:`ST` may be used as an alias for
-    :py:attr:`stateOrProvinceName` ·
-
-.. Wut? Sphinx is not happy if there is no space between the ` and the . just
-    above...
+    :py:attr:`stateOrProvinceName`.
 
 
 .. py:attribute:: X509Name.localityName
