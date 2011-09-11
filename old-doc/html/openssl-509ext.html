@@ -1,8 +1,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
 <head>
-<title>3.1.9 X509Extension objects </title>
-<META NAME="description" CONTENT="3.1.9 X509Extension objects ">
+<title>3.1.8 X509Extension objects </title>
+<META NAME="description" CONTENT="3.1.8 X509Extension objects ">
 <META NAME="keywords" CONTENT="pyOpenSSL">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
@@ -36,16 +36,16 @@
   border="0" height="32"
   alt="" width="32"></td>
 </tr></table>
-<b class="navlabel">Previous:</b> <a class="sectref" href="openssl-pkcs12.html">3.1.8 PKCS12 objects</A>
+<b class="navlabel">Previous:</b> <a class="sectref" href="openssl-pkcs12.html">3.1.7 PKCS12 objects</A>
 <b class="navlabel">Up:</b> <a class="sectref" href="openssl-crypto.html">3.1 crypto  </A>
-<b class="navlabel">Next:</b> <a class="sectref" href="openssl-netscape-spki.html">3.1.10 NetscapeSPKI objects</A>
+<b class="navlabel">Next:</b> <a class="sectref" href="openssl-netscape-spki.html">3.1.9 NetscapeSPKI objects</A>
 <br><hr>
 </DIV>
 <!--End of Navigation Panel-->
 
-<H3><A NAME="SECTION000419000000000000000">&nbsp;</A>
+<H3><A NAME="SECTION000418000000000000000">&nbsp;</A>
 <BR>
-3.1.9 X509Extension objects 
+3.1.8 X509Extension objects 
 </H3>
 
 <P>
@@ -60,7 +60,25 @@ Return the critical field of the extension object.
 <P>
 <dl><dt><b><a name='l2h-100'><tt class='method'>get_short_name</tt></a></b>()
 <dd>
-Return the short type name of the extension object.
+Retrieve the short descriptive name for this extension.
+
+<P>
+The result is a byte string like <code>``basicConstraints''</code>.
+
+<span class='versionnote'>New in version 0.12.</span>
+
+</dl>
+
+<P>
+<dl><dt><b><a name='l2h-101'><tt class='method'>get_data</tt></a></b>()
+<dd>
+Retrieve the data for this extension.
+
+<P>
+The result is the ASN.1 encoded form of the extension data as a byte string.
+
+<span class='versionnote'>New in version 0.12.</span>
+
 </dl>
 
 <P>
@@ -89,11 +107,11 @@ Return the short type name of the extension object.
   border="0" height="32"
   alt="" width="32"></td>
 </tr></table>
-<b class="navlabel">Previous:</b> <a class="sectref" href="openssl-pkcs12.html">3.1.8 PKCS12 objects</A>
+<b class="navlabel">Previous:</b> <a class="sectref" href="openssl-pkcs12.html">3.1.7 PKCS12 objects</A>
 <b class="navlabel">Up:</b> <a class="sectref" href="openssl-crypto.html">3.1 crypto  </A>
-<b class="navlabel">Next:</b> <a class="sectref" href="openssl-netscape-spki.html">3.1.10 NetscapeSPKI objects</A>
+<b class="navlabel">Next:</b> <a class="sectref" href="openssl-netscape-spki.html">3.1.9 NetscapeSPKI objects</A>
 <hr>
-<span class="release-info">Release 0.12.</span>
+<span class="release-info">Release 0.13.</span>
 </DIV>
 <!--End of Navigation Panel-->
 

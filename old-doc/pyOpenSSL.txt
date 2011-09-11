@@ -268,24 +268,7 @@ setup.py --help
           ``sha1''. New in version 0.11.
 
 
-  3.1.1 X509Extension objects
-
-   X509Extension objects have the following methods:
-
-   get_short_name()
-          Retrieve the short descriptive name for this extension.
-
-          The result is a byte string like ``basicConstraints''. New in
-          version 0.12.
-
-   get_data()
-          Retrieve the data for this extension.
-
-          The result is the ASN.1 encoded form of the extension data as a
-          byte string. New in version 0.12.
-
-
-  3.1.2 X509 objects
+  3.1.1 X509 objects
 
    X509 objects have the following methods:
 
@@ -299,6 +282,10 @@ setup.py --help
 
    get_serial_number()
           Return the certificate serial number.
+
+   get_signature_algorithm()
+          Return the signature algorithm used in the certificate. If the
+          algorithm is undefined, raise ValueError.
 
    get_subject()
           Return an X509Name object representing the subject of the
@@ -399,7 +386,7 @@ setup.py --help
           object will be an X509Extension instance. New in version 0.12.
 
 
-  3.1.3 X509Name objects
+  3.1.2 X509Name objects
 
    X509Name objects have the following methods:
 
@@ -422,7 +409,7 @@ setup.py --help
 
    stateOrProvinceName
           The state or province of the entity. ST may be used as an alias
-          for stateOrProvinceName·
+          for stateOrProvinceNameÂ·
 
    localityName
           The locality of the entity. L may be used as an alias for
@@ -444,7 +431,7 @@ setup.py --help
           The e-mail address of the entity.
 
 
-  3.1.4 X509Req objects
+  3.1.3 X509Req objects
 
    X509Req objects have the following methods:
 
@@ -474,7 +461,7 @@ setup.py --help
           Get the version (RFC 2459, 4.1.2.1) of the certificate request.
 
 
-  3.1.5 X509Store objects
+  3.1.4 X509Store objects
 
    The X509Store object has currently just one method:
 
@@ -482,7 +469,7 @@ setup.py --help
           Add the certificate cert to the certificate store.
 
 
-  3.1.6 PKey objects
+  3.1.5 PKey objects
 
    The PKey object has the following methods:
 
@@ -496,8 +483,14 @@ setup.py --help
    type()
           Return the type of the key.
 
+   check()
+          Check the consistency of this key, returning True if it is
+          consistent and raising an exception otherwise. This is only
+          valid for RSA keys. See the OpenSSL RSA_check_key man page for
+          further limitations.
 
-  3.1.7 PKCS7 objects
+
+  3.1.6 PKCS7 objects
 
    PKCS7 objects have the following methods:
 
@@ -517,7 +510,7 @@ setup.py --help
           Get the type name of the PKCS7.
 
 
-  3.1.8 PKCS12 objects
+  3.1.7 PKCS12 objects
 
    PKCS12 objects have the following methods:
 
@@ -557,7 +550,7 @@ setup.py --help
           Replace or set private key portion of the PKCS12 structure
 
 
-  3.1.9 X509Extension objects
+  3.1.8 X509Extension objects
 
    X509Extension objects have several methods:
 
@@ -565,10 +558,19 @@ setup.py --help
           Return the critical field of the extension object.
 
    get_short_name()
-          Return the short type name of the extension object.
+          Retrieve the short descriptive name for this extension.
+
+          The result is a byte string like ``basicConstraints''. New in
+          version 0.12.
+
+   get_data()
+          Retrieve the data for this extension.
+
+          The result is the ASN.1 encoded form of the extension data as a
+          byte string. New in version 0.12.
 
 
-  3.1.10 NetscapeSPKI objects
+  3.1.9 NetscapeSPKI objects
 
    NetscapeSPKI objects have the following methods:
 
@@ -591,7 +593,7 @@ setup.py --help
           Verify the NetscapeSPKI object using the given key.
 
 
-  3.1.11 CRL objects
+  3.1.10 CRL objects
 
    CRL objects have the following methods:
 
@@ -606,7 +608,7 @@ setup.py --help
           Return a tuple of Revoked objects, by value not reference.
 
 
-  3.1.12 Revoked objects
+  3.1.11 Revoked objects
 
    Revoked objects have the following methods:
 
@@ -745,6 +747,29 @@ setup.py --help
           protocols. This is interesting if you're using e.g.
           SSLv23_METHOD to get an SSLv2-compatible handshake, but don't
           want to use SSLv2.
+
+   SSLEAY_VERSION
+
+   SSLEAY_CFLAGS
+
+   SSLEAY_BUILT_ON
+
+   SSLEAY_PLATFORM
+
+   SSLEAY_DIR
+          Constants used with SSLeay_version to specify what OpenSSL
+          version information to retrieve. See the man page for the
+          SSLeay_version C API for details.
+
+   OPENSSL_VERSION_NUMBER
+          An integer giving the version number of the OpenSSL library used
+          to build this version of pyOpenSSL. See the man page for the
+          SSLeay_version C API for details.
+
+   SSLeay_version(type)
+          Retrieve a string describing some aspect of the underlying
+          OpenSSL version. The type passed in should be one of the
+          SSLEAY_* constants defined in this module.
 
    ContextType
           See Context.
@@ -967,6 +992,12 @@ setup.py --help
           be in the format specified by format, which is either
           FILETYPE_PEM or FILETYPE_ASN1. The default is FILETYPE_PEM.
 
+   set_tlsext_servername_callback(callback)
+          Specify a one-argument callable to use as the TLS extension
+          server name callback. When a connection using the server name
+          extension is made using this context, the callback will be
+          invoked with the Connection instance. New in version 0.13.
+
 
   3.3.2 Connection objects
 
@@ -1034,8 +1065,15 @@ setup.py --help
    get_context()
           Retrieve the Context object associated with this Connection.
 
+   set_context(context)
+          Specify a replacement Context object for this Connection.
+
    get_peer_certificate()
           Retrieve the other side's certificate (if any)
+
+   get_peer_cert_chain()
+          Retrieve the tuple of the other side's certificate chain (if
+          any)
 
    getpeername()
           Call the getpeername method of the underlying socket.
@@ -1140,6 +1178,14 @@ setup.py --help
           Checks if there is data to write to the transport layer to
           complete an operation.
 
+   set_tlsext_host_name(name)
+          Specify the byte string to send as the server name in the client
+          hello message. New in version 0.13.
+
+   get_servername()
+          Get the value of the server name received in the client hello
+          message. New in version 0.13.
+
 
                                   4 Internals
 
@@ -1235,8 +1281,8 @@ setup.py --help
 
    This document was generated using the LaTeX2HTML translator.
 
-   LaTeX2HTML is Copyright © 1993, 1994, 1995, 1996, 1997, Nikos Drakos,
-   Computer Based Learning Unit, University of Leeds, and Copyright ©
+   LaTeX2HTML is Copyright Â© 1993, 1994, 1995, 1996, 1997, Nikos Drakos,
+   Computer Based Learning Unit, University of Leeds, and Copyright Â©
    1997, 1998, Ross Moore, Mathematics Department, Macquarie University,
    Sydney.
 
@@ -1262,4 +1308,4 @@ setup.py --help
                             Python OpenSSL Manual
      __________________________________________________________________
 
-   Release 0.12.
+   Release 0.13.

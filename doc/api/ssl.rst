@@ -39,6 +39,8 @@ Context, Connection.
              OP_NO_SSLv2
              OP_NO_SSLv3
              OP_NO_TLSv1
+             OP_NO_TICKET
+             OP_NO_COMPRESSION
 
     Constants used with :py:meth:`set_options` of Context objects.
 
@@ -49,6 +51,12 @@ Context, Connection.
     specific protocols. This is interesting if you're using e.g.
     :py:const:`SSLv23_METHOD` to get an SSLv2-compatible handshake, but don't want
     to use SSLv2.
+
+
+.. py:data:: MODE_NO_COMPRESSION
+
+   Constant used with :py:meth:`set_mode` of Context objects to disable
+   automatic compression of application traffic.
 
 
 .. py:data:: SSLEAY_VERSION
@@ -286,6 +294,12 @@ Context objects have the following methods:
 
     Add SSL options. Options you have set before are not cleared!
     This method should be used with the :py:const:`OP_*` constants.
+
+
+.. py:method:: Context.set_mode(mode)
+
+   Add SSL mode. Modes you have set before are not cleared!  This method should
+   be used with the :py:const:`MODE_*` constants.
 
 
 .. py:method:: Context.set_passwd_cb(callback[, userdata])

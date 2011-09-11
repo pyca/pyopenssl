@@ -224,6 +224,10 @@ do {                                                                    \
     PyModule_AddIntConstant(module, "OP_NETSCAPE_CA_DN_BUG", SSL_OP_NETSCAPE_CA_DN_BUG);
     PyModule_AddIntConstant(module, "OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG", SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG);
 
+#ifdef SSL_OP_NO_COMPRESSION
+    PyModule_AddIntConstant(module, "OP_NO_COMPRESSION", SSL_OP_NO_COMPRESSION);
+#endif
+
     /* DTLS related options.  The first two of these were introduced in
      * 2005, the third in 2007.  To accomodate systems which are still using
      * older versions, make them optional. */
@@ -272,6 +276,11 @@ do {                                                                    \
 
     /* Straight up version number */
     PyModule_AddIntConstant(module, "OPENSSL_VERSION_NUMBER", OPENSSL_VERSION_NUMBER);
+
+    /* SSL modes constants */
+#ifdef SSL_MODE_RELEASE_BUFFERS
+    PyModule_AddIntConstant(module, "MODE_RELEASE_BUFFERS", SSL_MODE_RELEASE_BUFFERS);
+#endif
 
     if (!init_ssl_context(module))
         goto error;
