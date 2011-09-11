@@ -53,7 +53,7 @@ PyObject *ssl_Error,                   /* Base class              */
 static char ssl_SSLeay_version_doc[] = "\n\
 Return a string describing the version of OpenSSL in use.\n\
 \n\
-@param type: One of the SSLEAY_ constants defined in this module.\n\
+:param type: One of the SSLEAY_ constants defined in this module.\n\
 ";
 
 static PyObject *

@@ -64,13 +64,13 @@ global_passphrase_callback(char *buf, int len, int rwflag, void *cb_arg)
 static char crypto_load_privatekey_doc[] = "\n\
 Load a private key from a buffer\n\
 \n\
-@param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)\n\
-@param buffer: The buffer the key is stored in\n\
-@param passphrase: (optional) if encrypted PEM format, this can be\n\
+:param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)\n\
+:param buffer: The buffer the key is stored in\n\
+:param passphrase: (optional) if encrypted PEM format, this can be\n\
                    either the passphrase to use, or a callback for\n\
                    providing the passphrase.\n\
 \n\
-@return: The PKey object\n\
+:return: The PKey object\n\
 ";
 
 static PyObject *
@@ -137,15 +137,15 @@ crypto_load_privatekey(PyObject *spam, PyObject *args)
 static char crypto_dump_privatekey_doc[] = "\n\
 Dump a private key to a buffer\n\
 \n\
-@param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)\n\
-@param pkey: The PKey to dump\n\
-@param cipher: (optional) if encrypted PEM format, the cipher to\n\
+:param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)\n\
+:param pkey: The PKey to dump\n\
+:param cipher: (optional) if encrypted PEM format, the cipher to\n\
                use\n\
-@param passphrase - (optional) if encrypted PEM format, this can be either\n\
-                    the passphrase to use, or a callback for providing the\n\
-                    passphrase.\n\
-@return: The buffer with the dumped key in\n\
-@rtype: C{str}\n\
+:param passphrase: (optional) if encrypted PEM format, this can be either\n\
+                   the passphrase to use, or a callback for providing the\n\
+                   passphrase.\n\
+:return: The buffer with the dumped key in\n\
+:rtype: :py:data:`str`\n\
 ";
 
 static PyObject *
@@ -242,9 +242,9 @@ crypto_dump_privatekey(PyObject *spam, PyObject *args)
 static char crypto_load_certificate_doc[] = "\n\
 Load a certificate from a buffer\n\
 \n\
-@param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)\n\
+:param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)\n\
              buffer - The buffer the certificate is stored in\n\
-@return: The X509 object\n\
+:return: The X509 object\n\
 ";
 
 static PyObject *
@@ -289,9 +289,9 @@ crypto_load_certificate(PyObject *spam, PyObject *args)
 static char crypto_dump_certificate_doc[] = "\n\
 Dump a certificate to a buffer\n\
 \n\
-@param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)\n\
-@param cert: The certificate to dump\n\
-@return: The buffer with the dumped certificate in\n\
+:param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)\n\
+:param cert: The certificate to dump\n\
+:return: The buffer with the dumped certificate in\n\
 ";
 
 static PyObject *
@@ -345,9 +345,9 @@ crypto_dump_certificate(PyObject *spam, PyObject *args)
 static char crypto_load_certificate_request_doc[] = "\n\
 Load a certificate request from a buffer\n\
 \n\
-@param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)\n\
+:param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)\n\
              buffer - The buffer the certificate request is stored in\n\
-@return: The X509Req object\n\
+:return: The X509Req object\n\
 ";
 
 static PyObject *
@@ -392,9 +392,9 @@ crypto_load_certificate_request(PyObject *spam, PyObject *args)
 static char crypto_dump_certificate_request_doc[] = "\n\
 Dump a certificate request to a buffer\n\
 \n\
-@param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)\n\
+:param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)\n\
              req  - The certificate request to dump\n\
-@return: The buffer with the dumped certificate request in\n\
+:return: The buffer with the dumped certificate request in\n\
 ";
 
 static PyObject *
@@ -448,10 +448,10 @@ crypto_dump_certificate_request(PyObject *spam, PyObject *args)
 static char crypto_load_crl_doc[] = "\n\
 Load a certificate revocation list from a buffer\n\
 \n\
-@param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)\n\
-@param buffer: The buffer the CRL is stored in\n\
+:param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)\n\
+:param buffer: The buffer the CRL is stored in\n\
 \n\
-@return: The PKey object\n\
+:return: The PKey object\n\
 ";
 
 static PyObject *
@@ -493,9 +493,9 @@ crypto_load_crl(PyObject *spam, PyObject *args) {
 static char crypto_load_pkcs7_data_doc[] = "\n\
 Load pkcs7 data from a buffer\n\
 \n\
-@param type: The file type (one of FILETYPE_PEM or FILETYPE_ASN1)\n\
+:param type: The file type (one of FILETYPE_PEM or FILETYPE_ASN1)\n\
              buffer - The buffer with the pkcs7 data.\n\
-@return: The PKCS7 object\n\
+:return: The PKCS7 object\n\
 ";
 
 static PyObject *
@@ -545,9 +545,9 @@ crypto_load_pkcs7_data(PyObject *spam, PyObject *args)
 static char crypto_load_pkcs12_doc[] = "\n\
 Load a PKCS12 object from a buffer\n\
 \n\
-@param buffer: The buffer the certificate is stored in\n\
+:param buffer: The buffer the certificate is stored in\n\
                passphrase (Optional) - The password to decrypt the PKCS12 lump\n\
-@returns: The PKCS12 object\n\
+:returns: The PKCS12 object\n\
 ";
 
 static PyObject *
@@ -577,8 +577,8 @@ crypto_load_pkcs12(PyObject *spam, PyObject *args)
 static char crypto_X509_verify_cert_error_string_doc[] = "\n\
 Get X509 verify certificate error string.\n\
 \n\
-@param errnum: The error number.\n\
-@return: Error string as a Python string\n\
+:param errnum: The error number.\n\
+:return: Error string as a Python string\n\
 ";
 
 static PyObject *
@@ -607,10 +607,10 @@ crypto_exception_from_error_queue(PyObject *spam, PyObject *eggs) {
 static char crypto_sign_doc[] = "\n\
 Sign data with a digest\n\
 \n\
-@param pkey: Pkey to sign with\n\
-@param data: data to be signed\n\
-@param digest: message digest to use\n\
-@return: signature\n\
+:param pkey: Pkey to sign with\n\
+:param data: data to be signed\n\
+:param digest: message digest to use\n\
+:return: signature\n\
 ";
 
 static PyObject *
@@ -654,11 +654,11 @@ crypto_sign(PyObject *spam, PyObject *args) {
 static char crypto_verify_doc[] = "\n\
 Verify a signature\n\
 \n\
-@param cert: signing certificate (X509 object)\n\
-@param signature: signature returned by sign function\n\
-@param data: data to be verified\n\
-@param digest: message digest to use\n\
-@return: None if the signature is correct, raise exception otherwise\n\
+:param cert: signing certificate (X509 object)\n\
+:param signature: signature returned by sign function\n\
+:param data: data to be verified\n\
+:param digest: message digest to use\n\
+:return: None if the signature is correct, raise exception otherwise\n\
 ";
 
 static PyObject *

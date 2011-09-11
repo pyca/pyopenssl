@@ -37,7 +37,7 @@ static char crypto_CRL_get_revoked_doc[] = "\n\
 Return revoked portion of the CRL structure (by value\n\
 not reference).\n\
 \n\
-@return: A tuple of Revoked objects.\n\
+:return: A tuple of Revoked objects.\n\
 ";
 static PyObject *
 crypto_CRL_get_revoked(crypto_CRLObj *self, PyObject *args) {
@@ -84,9 +84,9 @@ crypto_CRL_get_revoked(crypto_CRLObj *self, PyObject *args) {
 static char crypto_CRL_add_revoked_doc[] = "\n\
 Add a revoked (by value not reference) to the CRL structure\n\
 \n\
-@param cert: The new revoked.\n\
-@type cert: L{X509}\n\
-@return: None\n\
+:param cert: The new revoked.\n\
+:type cert: :class:`X509`\n\
+:return: None\n\
 ";
 static PyObject *
 crypto_CRL_add_revoked(crypto_CRLObj *self, PyObject *args, PyObject *keywds) {
@@ -112,14 +112,14 @@ crypto_CRL_add_revoked(crypto_CRLObj *self, PyObject *args, PyObject *keywds) {
 static char crypto_CRL_export_doc[] = "\n\
 export(cert, key[, type[, days]]) -> export a CRL as a string\n\
 \n\
-@param cert: Used to sign CRL.\n\
-@type cert: L{X509}\n\
-@param key: Used to sign CRL.\n\
-@type key: L{PKey}\n\
-@param type: The export format, either L{FILETYPE_PEM}, L{FILETYPE_ASN1}, or L{FILETYPE_TEXT}.\n\
-@param days: The number of days until the next update of this CRL.\n\
-@type days: L{int}\n\
-@return: L{str}\n\
+:param cert: Used to sign CRL.\n\
+:type cert: :class:`X509`\n\
+:param key: Used to sign CRL.\n\
+:type key: :class:`PKey`\n\
+:param type: The export format, either :py:data:`FILETYPE_PEM`, :py:data:`FILETYPE_ASN1`, or :py:data:`FILETYPE_TEXT`.\n\
+:param days: The number of days until the next update of this CRL.\n\
+:type days: :py:data:`int`\n\
+:return: :py:data:`str`\n\
 ";
 static PyObject *
 crypto_CRL_export(crypto_CRLObj *self, PyObject *args, PyObject *keywds) {
@@ -223,7 +223,7 @@ CRL() -> CRL instance\n\
 \n\
 Create a new empty CRL object.\n\
 \n\
-@returns: The CRL object\n\
+:returns: The CRL object\n\
 ";
 
 static PyObject* crypto_CRL_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs) {

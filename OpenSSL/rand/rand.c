@@ -33,9 +33,9 @@ See the file RATIONALE for a short explanation of why this module was written.\n
 static char rand_add_doc[] = "\n\
 Add data with a given entropy to the PRNG\n\
 \n\
-@param buffer: Buffer with random data\n\
-@param entropy: The entropy (in bytes) measurement of the buffer\n\
-@return: None\n\
+:param buffer: Buffer with random data\n\
+:param entropy: The entropy (in bytes) measurement of the buffer\n\
+:return: None\n\
 ";
 
 static PyObject *
@@ -57,8 +57,8 @@ rand_add(PyObject *spam, PyObject *args)
 static char rand_seed_doc[] = "\n\
 Alias for rand_add, with entropy equal to length\n\
 \n\
-@param buffer: Buffer with random data\n\
-@return: None\n\
+:param buffer: Buffer with random data\n\
+:return: None\n\
 ";
 
 static PyObject *
@@ -79,7 +79,7 @@ rand_seed(PyObject *spam, PyObject *args)
 static char rand_status_doc[] = "\n\
 Retrieve the status of the PRNG\n\
 \n\
-@return: True if the PRNG is seeded enough, false otherwise\n\
+:return: True if the PRNG is seeded enough, false otherwise\n\
 ";
 
 static PyObject *
@@ -96,7 +96,7 @@ static char rand_screen_doc[] = "\n\
 Add the current contents of the screen to the PRNG state. Availability:\n\
 Windows.\n\
 \n\
-@return: None\n\
+:return: None\n\
 ";
 
 static PyObject *
@@ -116,9 +116,9 @@ Query an entropy gathering daemon (EGD) for random data and add it to the\n\
 PRNG. I haven't found any problems when the socket is missing, the function\n\
 just returns 0.\n\
 \n\
-@param path: The path to the EGD socket\n\
-@param bytes: (optional) The number of bytes to read, default is 255\n\
-@returns: The number of bytes read (NB: a value of 0 isn't necessarily an\n\
+:param path: The path to the EGD socket\n\
+:param bytes: (optional) The number of bytes to read, default is 255\n\
+:returns: The number of bytes read (NB: a value of 0 isn't necessarily an\n\
           error, check rand.status())\n\
 ";
 
@@ -137,7 +137,7 @@ rand_egd(PyObject *spam, PyObject *args)
 static char rand_cleanup_doc[] = "\n\
 Erase the memory used by the PRNG.\n\
 \n\
-@return: None\n\
+:return: None\n\
 ";
 
 static PyObject *
@@ -155,10 +155,10 @@ rand_cleanup(PyObject *spam, PyObject *args)
 static char rand_load_file_doc[] = "\n\
 Seed the PRNG with data from a file\n\
 \n\
-@param filename: The file to read data from\n\
-@param maxbytes: (optional) The number of bytes to read, default is\n\
+:param filename: The file to read data from\n\
+:param maxbytes: (optional) The number of bytes to read, default is\n\
                  to read the entire file\n\
-@return: The number of bytes read\n\
+:return: The number of bytes read\n\
 ";
 
 static PyObject *
@@ -176,8 +176,8 @@ rand_load_file(PyObject *spam, PyObject *args)
 static char rand_write_file_doc[] = "\n\
 Save PRNG state to a file\n\
 \n\
-@param filename: The file to write data to\n\
-@return: The number of bytes written\n\
+:param filename: The file to write data to\n\
+:return: The number of bytes written\n\
 ";
 
 static PyObject *
@@ -194,8 +194,8 @@ rand_write_file(PyObject *spam, PyObject *args)
 static char rand_bytes_doc[] = "\n\
 Get some randomm bytes as a string.\n\
 \n\
-@param num_bytes: The number of bytes to fetch\n\
-@return: A string of random bytes\n\
+:param num_bytes: The number of bytes to fetch\n\
+:return: A string of random bytes\n\
 ";
 
 #if PY_VERSION_HEX < 0x02050000

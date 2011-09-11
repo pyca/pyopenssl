@@ -2,7 +2,7 @@
 # See LICENSE for details.
 
 """
-Unit tests for L{OpenSSL.SSL}.
+Unit tests for :py:obj:`OpenSSL.SSL`.
 """
 
 from gc import collect
@@ -203,10 +203,10 @@ class _LoopbackMixin:
 
     def _interactInMemory(self, client_conn, server_conn):
         """
-        Try to read application bytes from each of the two L{Connection}
+        Try to read application bytes from each of the two :py:obj:`Connection`
         objects.  Copy bytes back and forth between their send/receive buffers
         for as long as there is anything to copy.  When there is nothing more
-        to copy, return C{None}.  If one of them actually manages to deliver
+        to copy, return :py:obj:`None`.  If one of them actually manages to deliver
         some application bytes, return a two-tuple of the connection from which
         the bytes were read and the bytes themselves.
         """
@@ -252,12 +252,12 @@ class _LoopbackMixin:
 class VersionTests(TestCase):
     """
     Tests for version information exposed by
-    L{OpenSSL.SSL.SSLeay_version} and
-    L{OpenSSL.SSL.OPENSSL_VERSION_NUMBER}.
+    :py:obj:`OpenSSL.SSL.SSLeay_version` and
+    :py:obj:`OpenSSL.SSL.OPENSSL_VERSION_NUMBER`.
     """
     def test_OPENSSL_VERSION_NUMBER(self):
         """
-        L{OPENSSL_VERSION_NUMBER} is an integer with status in the low
+        :py:obj:`OPENSSL_VERSION_NUMBER` is an integer with status in the low
         byte and the patch, fix, minor, and major versions in the
         nibbles above that.
         """
@@ -266,7 +266,7 @@ class VersionTests(TestCase):
 
     def test_SSLeay_version(self):
         """
-        L{SSLeay_version} takes a version type indicator and returns
+        :py:obj:`SSLeay_version` takes a version type indicator and returns
         one of a number of version strings based on that indicator.
         """
         versions = {}
@@ -281,12 +281,12 @@ class VersionTests(TestCase):
 
 class ContextTests(TestCase, _LoopbackMixin):
     """
-    Unit tests for L{OpenSSL.SSL.Context}.
+    Unit tests for :py:obj:`OpenSSL.SSL.Context`.
     """
     def test_method(self):
         """
-        L{Context} can be instantiated with one of L{SSLv2_METHOD},
-        L{SSLv3_METHOD}, L{SSLv23_METHOD}, or L{TLSv1_METHOD}.
+        :py:obj:`Context` can be instantiated with one of :py:obj:`SSLv2_METHOD`,
+        :py:obj:`SSLv3_METHOD`, :py:obj:`SSLv23_METHOD`, or :py:obj:`TLSv1_METHOD`.
         """
         for meth in [SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD]:
             Context(meth)
@@ -304,7 +304,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_type(self):
         """
-        L{Context} and L{ContextType} refer to the same type object and can be
+        :py:obj:`Context` and :py:obj:`ContextType` refer to the same type object and can be
         used to create instances of that type.
         """
         self.assertIdentical(Context, ContextType)
@@ -313,7 +313,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_use_privatekey(self):
         """
-        L{Context.use_privatekey} takes an L{OpenSSL.crypto.PKey} instance.
+        :py:obj:`Context.use_privatekey` takes an :py:obj:`OpenSSL.crypto.PKey` instance.
         """
         key = PKey()
         key.generate_key(TYPE_RSA, 128)
@@ -324,7 +324,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_set_app_data_wrong_args(self):
         """
-        L{Context.set_app_data} raises L{TypeError} if called with other than
+        :py:obj:`Context.set_app_data` raises :py:obj:`TypeError` if called with other than
         one argument.
         """
         context = Context(TLSv1_METHOD)
@@ -334,7 +334,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_get_app_data_wrong_args(self):
         """
-        L{Context.get_app_data} raises L{TypeError} if called with any
+        :py:obj:`Context.get_app_data` raises :py:obj:`TypeError` if called with any
         arguments.
         """
         context = Context(TLSv1_METHOD)
@@ -343,8 +343,8 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_app_data(self):
         """
-        L{Context.set_app_data} stores an object for later retrieval using
-        L{Context.get_app_data}.
+        :py:obj:`Context.set_app_data` stores an object for later retrieval using
+        :py:obj:`Context.get_app_data`.
         """
         app_data = object()
         context = Context(TLSv1_METHOD)
@@ -354,8 +354,8 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_set_options_wrong_args(self):
         """
-        L{Context.set_options} raises L{TypeError} if called with the wrong
-        number of arguments or a non-C{int} argument.
+        :py:obj:`Context.set_options` raises :py:obj:`TypeError` if called with the wrong
+        number of arguments or a non-:py:obj:`int` argument.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.set_options)
@@ -365,8 +365,8 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_set_mode_wrong_args(self):
         """
-        L{Context.set_mode} raises L{TypeError} if called with the wrong
-        number of arguments or a non-C{int} argument.
+        :py:obj:`Context.set`mode} raises :py:obj:`TypeError` if called with the wrong
+        number of arguments or a non-:py:obj:`int` argument.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.set_mode)
@@ -377,7 +377,7 @@ class ContextTests(TestCase, _LoopbackMixin):
     if MODE_RELEASE_BUFFERS is not None:
         def test_set_mode(self):
             """
-            L{Context.set_mode} accepts a mode bitvector and returns the newly
+            :py:obj:`Context.set_mode` accepts a mode bitvector and returns the newly
             set mode.
             """
             context = Context(TLSv1_METHOD)
@@ -389,8 +389,8 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_set_timeout_wrong_args(self):
         """
-        L{Context.set_timeout} raises L{TypeError} if called with the wrong
-        number of arguments or a non-C{int} argument.
+        :py:obj:`Context.set_timeout` raises :py:obj:`TypeError` if called with the wrong
+        number of arguments or a non-:py:obj:`int` argument.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.set_timeout)
@@ -400,7 +400,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_get_timeout_wrong_args(self):
         """
-        L{Context.get_timeout} raises L{TypeError} if called with any arguments.
+        :py:obj:`Context.get_timeout` raises :py:obj:`TypeError` if called with any arguments.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.get_timeout, None)
@@ -408,8 +408,8 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_timeout(self):
         """
-        L{Context.set_timeout} sets the session timeout for all connections
-        created using the context object.  L{Context.get_timeout} retrieves this
+        :py:obj:`Context.set_timeout` sets the session timeout for all connections
+        created using the context object.  :py:obj:`Context.get_timeout` retrieves this
         value.
         """
         context = Context(TLSv1_METHOD)
@@ -419,8 +419,8 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_set_verify_depth_wrong_args(self):
         """
-        L{Context.set_verify_depth} raises L{TypeError} if called with the wrong
-        number of arguments or a non-C{int} argument.
+        :py:obj:`Context.set_verify_depth` raises :py:obj:`TypeError` if called with the wrong
+        number of arguments or a non-:py:obj:`int` argument.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.set_verify_depth)
@@ -430,7 +430,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_get_verify_depth_wrong_args(self):
         """
-        L{Context.get_verify_depth} raises L{TypeError} if called with any arguments.
+        :py:obj:`Context.get_verify_depth` raises :py:obj:`TypeError` if called with any arguments.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.get_verify_depth, None)
@@ -438,9 +438,9 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_verify_depth(self):
         """
-        L{Context.set_verify_depth} sets the number of certificates in a chain
+        :py:obj:`Context.set_verify_depth` sets the number of certificates in a chain
         to follow before giving up.  The value can be retrieved with
-        L{Context.get_verify_depth}.
+        :py:obj:`Context.get_verify_depth`.
         """
         context = Context(TLSv1_METHOD)
         context.set_verify_depth(11)
@@ -464,7 +464,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_set_passwd_cb_wrong_args(self):
         """
-        L{Context.set_passwd_cb} raises L{TypeError} if called with the
+        :py:obj:`Context.set_passwd_cb` raises :py:obj:`TypeError` if called with the
         wrong arguments or with a non-callable first argument.
         """
         context = Context(TLSv1_METHOD)
@@ -475,7 +475,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_set_passwd_cb(self):
         """
-        L{Context.set_passwd_cb} accepts a callable which will be invoked when
+        :py:obj:`Context.set_passwd_cb` accepts a callable which will be invoked when
         a private key is loaded from an encrypted PEM.
         """
         passphrase = b("foobar")
@@ -495,7 +495,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_passwd_callback_exception(self):
         """
-        L{Context.use_privatekey_file} propagates any exception raised by the
+        :py:obj:`Context.use_privatekey_file` propagates any exception raised by the
         passphrase callback.
         """
         pemFile = self._write_encrypted_pem(b("monkeys are nice"))
@@ -509,7 +509,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_passwd_callback_false(self):
         """
-        L{Context.use_privatekey_file} raises L{OpenSSL.SSL.Error} if the
+        :py:obj:`Context.use_privatekey_file` raises :py:obj:`OpenSSL.SSL.Error` if the
         passphrase callback returns a false value.
         """
         pemFile = self._write_encrypted_pem(b("monkeys are nice"))
@@ -523,7 +523,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_passwd_callback_non_string(self):
         """
-        L{Context.use_privatekey_file} raises L{OpenSSL.SSL.Error} if the
+        :py:obj:`Context.use_privatekey_file` raises :py:obj:`OpenSSL.SSL.Error` if the
         passphrase callback returns a true non-string value.
         """
         pemFile = self._write_encrypted_pem(b("monkeys are nice"))
@@ -556,7 +556,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_set_info_callback(self):
         """
-        L{Context.set_info_callback} accepts a callable which will be invoked
+        :py:obj:`Context.set_info_callback` accepts a callable which will be invoked
         when certain information about an SSL connection is available.
         """
         (server, client) = socket_pair()
@@ -591,8 +591,8 @@ class ContextTests(TestCase, _LoopbackMixin):
     def _load_verify_locations_test(self, *args):
         """
         Create a client context which will verify the peer certificate and call
-        its C{load_verify_locations} method with C{*args}.  Then connect it to a
-        server and ensure that the handshake succeeds.
+        its :py:obj:`load_verify_locations` method with the given arguments.
+        Then connect it to a server and ensure that the handshake succeeds.
         """
         (server, client) = socket_pair()
 
@@ -628,7 +628,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_load_verify_file(self):
         """
-        L{Context.load_verify_locations} accepts a file name and uses the
+        :py:obj:`Context.load_verify_locations` accepts a file name and uses the
         certificates within for verification purposes.
         """
         cafile = self.mktemp()
@@ -641,7 +641,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_load_verify_invalid_file(self):
         """
-        L{Context.load_verify_locations} raises L{Error} when passed a
+        :py:obj:`Context.load_verify_locations` raises :py:obj:`Error` when passed a
         non-existent cafile.
         """
         clientContext = Context(TLSv1_METHOD)
@@ -651,7 +651,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_load_verify_directory(self):
         """
-        L{Context.load_verify_locations} accepts a directory name and uses
+        :py:obj:`Context.load_verify_locations` accepts a directory name and uses
         the certificates within for verification purposes.
         """
         capath = self.mktemp()
@@ -670,8 +670,8 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_load_verify_locations_wrong_args(self):
         """
-        L{Context.load_verify_locations} raises L{TypeError} if called with
-        the wrong number of arguments or with non-C{str} arguments.
+        :py:obj:`Context.load_verify_locations` raises :py:obj:`TypeError` if called with
+        the wrong number of arguments or with non-:py:obj:`str` arguments.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.load_verify_locations)
@@ -686,7 +686,7 @@ class ContextTests(TestCase, _LoopbackMixin):
     else:
         def test_set_default_verify_paths(self):
             """
-            L{Context.set_default_verify_paths} causes the platform-specific CA
+            :py:obj:`Context.set_default_verify_paths` causes the platform-specific CA
             certificate locations to be used for verification purposes.
             """
             # Testing this requires a server with a certificate signed by one of
@@ -715,8 +715,8 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_set_default_verify_paths_signature(self):
         """
-        L{Context.set_default_verify_paths} takes no arguments and raises
-        L{TypeError} if given any.
+        :py:obj:`Context.set_default_verify_paths` takes no arguments and raises
+        :py:obj:`TypeError` if given any.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.set_default_verify_paths, None)
@@ -726,9 +726,9 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_add_extra_chain_cert_invalid_cert(self):
         """
-        L{Context.add_extra_chain_cert} raises L{TypeError} if called with
+        :py:obj:`Context.add_extra_chain_cert` raises :py:obj:`TypeError` if called with
         other than one argument or if called with an object which is not an
-        instance of L{X509}.
+        instance of :py:obj:`X509`.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.add_extra_chain_cert)
@@ -761,10 +761,10 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_add_extra_chain_cert(self):
         """
-        L{Context.add_extra_chain_cert} accepts an L{X509} instance to add to
+        :py:obj:`Context.add_extra_chain_cert` accepts an :py:obj:`X509` instance to add to
         the certificate chain.
 
-        See L{_create_certificate_chain} for the details of the certificate
+        See :py:obj:`_create_certificate_chain` for the details of the certificate
         chain tested.
 
         The chain is tested by starting a server with scert and connecting
@@ -805,7 +805,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_use_certificate_chain_file(self):
         """
-        L{Context.use_certificate_chain_file} reads a certificate chain from
+        :py:obj:`Context.use_certificate_chain_file` reads a certificate chain from
         the specified file.
 
         The chain is tested by starting a server with scert and connecting
@@ -844,7 +844,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_get_verify_mode_wrong_args(self):
         """
-        L{Context.get_verify_mode} raises L{TypeError} if called with any
+        :py:obj:`Context.get_verify_mode` raises :py:obj:`TypeError` if called with any
         arguments.
         """
         context = Context(TLSv1_METHOD)
@@ -853,8 +853,8 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_get_verify_mode(self):
         """
-        L{Context.get_verify_mode} returns the verify mode flags previously
-        passed to L{Context.set_verify}.
+        :py:obj:`Context.get_verify_mode` returns the verify mode flags previously
+        passed to :py:obj:`Context.set_verify`.
         """
         context = Context(TLSv1_METHOD)
         self.assertEquals(context.get_verify_mode(), 0)
@@ -866,8 +866,8 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_load_tmp_dh_wrong_args(self):
         """
-        L{Context.load_tmp_dh} raises L{TypeError} if called with the wrong
-        number of arguments or with a non-C{str} argument.
+        :py:obj:`Context.load_tmp_dh` raises :py:obj:`TypeError` if called with the wrong
+        number of arguments or with a non-:py:obj:`str` argument.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.load_tmp_dh)
@@ -877,7 +877,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_load_tmp_dh_missing_file(self):
         """
-        L{Context.load_tmp_dh} raises L{OpenSSL.SSL.Error} if the specified file
+        :py:obj:`Context.load_tmp_dh` raises :py:obj:`OpenSSL.SSL.Error` if the specified file
         does not exist.
         """
         context = Context(TLSv1_METHOD)
@@ -886,7 +886,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_load_tmp_dh(self):
         """
-        L{Context.load_tmp_dh} loads Diffie-Hellman parameters from the
+        :py:obj:`Context.load_tmp_dh` loads Diffie-Hellman parameters from the
         specified file.
         """
         context = Context(TLSv1_METHOD)
@@ -900,7 +900,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_set_cipher_list(self):
         """
-        L{Context.set_cipher_list} accepts a C{str} naming the ciphers which
+        :py:obj:`Context.set_cipher_list` accepts a :py:obj:`str` naming the ciphers which
         connections created with the context object will be able to choose from.
         """
         context = Context(TLSv1_METHOD)
@@ -912,12 +912,12 @@ class ContextTests(TestCase, _LoopbackMixin):
 
 class ServerNameCallbackTests(TestCase, _LoopbackMixin):
     """
-    Tests for L{Context.set_tlsext_servername_callback} and its interaction with
-    L{Connection}.
+    Tests for :py:obj:`Context.set_tlsext_servername_callback` and its interaction with
+    :py:obj:`Connection`.
     """
     def test_wrong_args(self):
         """
-        L{Context.set_tlsext_servername_callback} raises L{TypeError} if called
+        :py:obj:`Context.set_tlsext_servername_callback` raises :py:obj:`TypeError` if called
         with other than one argument.
         """
         context = Context(TLSv1_METHOD)
@@ -927,7 +927,7 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
 
     def test_old_callback_forgotten(self):
         """
-        If L{Context.set_tlsext_servername_callback} is used to specify a new
+        If :py:obj:`Context.set_tlsext_servername_callback` is used to specify a new
         callback, the one it replaces is dereferenced.
         """
         def callback(connection):
@@ -950,8 +950,8 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
     def test_no_servername(self):
         """
         When a client specifies no server name, the callback passed to
-        L{Context.set_tlsext_servername_callback} is invoked and the result of
-        L{Connection.get_servername} is C{None}.
+        :py:obj:`Context.set_tlsext_servername_callback` is invoked and the result of
+        :py:obj:`Connection.get_servername` is :py:obj:`None`.
         """
         args = []
         def servername(conn):
@@ -983,8 +983,8 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
     def test_servername(self):
         """
         When a client specifies a server name in its hello message, the callback
-        passed to L{Contexts.set_tlsext_servername_callback} is invoked and the
-        result of L{Connection.get_servername} is that server name.
+        passed to :py:obj:`Contexts.set_tlsext_servername_callback` is invoked and the
+        result of :py:obj:`Connection.get_servername` is that server name.
         """
         args = []
         def servername(conn):
@@ -1012,7 +1012,7 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
 
 class ConnectionTests(TestCase, _LoopbackMixin):
     """
-    Unit tests for L{OpenSSL.SSL.Connection}.
+    Unit tests for :py:obj:`OpenSSL.SSL.Connection`.
     """
     # XXX want_write
     # XXX want_read
@@ -1034,7 +1034,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_type(self):
         """
-        L{Connection} and L{ConnectionType} refer to the same type object and
+        :py:obj:`Connection` and :py:obj:`ConnectionType` refer to the same type object and
         can be used to create instances of that type.
         """
         self.assertIdentical(Connection, ConnectionType)
@@ -1044,8 +1044,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_get_context(self):
         """
-        L{Connection.get_context} returns the L{Context} instance used to
-        construct the L{Connection} instance.
+        :py:obj:`Connection.get_context` returns the :py:obj:`Context` instance used to
+        construct the :py:obj:`Connection` instance.
         """
         context = Context(TLSv1_METHOD)
         connection = Connection(context, None)
@@ -1054,7 +1054,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_get_context_wrong_args(self):
         """
-        L{Connection.get_context} raises L{TypeError} if called with any
+        :py:obj:`Connection.get_context` raises :py:obj:`TypeError` if called with any
         arguments.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
@@ -1063,8 +1063,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_set_context_wrong_args(self):
         """
-        L{Connection.set_context} raises L{TypeError} if called with a
-        non-L{Context} instance argument or with any number of arguments other
+        :py:obj:`Connection.set_context` raises :py:obj:`TypeError` if called with a
+        non-:py:obj:`Context` instance argument or with any number of arguments other
         than 1.
         """
         ctx = Context(TLSv1_METHOD)
@@ -1081,7 +1081,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_set_context(self):
         """
-        L{Connection.set_context} specifies a new L{Context} instance to be used
+        :py:obj:`Connection.set_context` specifies a new :py:obj:`Context` instance to be used
         for the connection.
         """
         original = Context(SSLv23_METHOD)
@@ -1097,9 +1097,9 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_set_tlsext_host_name_wrong_args(self):
         """
-        If L{Connection.set_tlsext_host_name} is called with a non-byte string
+        If :py:obj:`Connection.set_tlsext_host_name` is called with a non-byte string
         argument or a byte string with an embedded NUL or other than one
-        argument, L{TypeError} is raised.
+        argument, :py:obj:`TypeError` is raised.
         """
         conn = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, conn.set_tlsext_host_name)
@@ -1117,7 +1117,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_get_servername_wrong_args(self):
         """
-        L{Connection.get_servername} raises L{TypeError} if called with any
+        :py:obj:`Connection.get_servername` raises :py:obj:`TypeError` if called with any
         arguments.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
@@ -1128,7 +1128,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_pending(self):
         """
-        L{Connection.pending} returns the number of bytes available for
+        :py:obj:`Connection.pending` returns the number of bytes available for
         immediate read.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
@@ -1137,7 +1137,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_pending_wrong_args(self):
         """
-        L{Connection.pending} raises L{TypeError} if called with any arguments.
+        :py:obj:`Connection.pending` raises :py:obj:`TypeError` if called with any arguments.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, connection.pending, None)
@@ -1145,7 +1145,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_connect_wrong_args(self):
         """
-        L{Connection.connect} raises L{TypeError} if called with a non-address
+        :py:obj:`Connection.connect` raises :py:obj:`TypeError` if called with a non-address
         argument or with the wrong number of arguments.
         """
         connection = Connection(Context(TLSv1_METHOD), socket())
@@ -1156,7 +1156,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_connect_refused(self):
         """
-        L{Connection.connect} raises L{socket.error} if the underlying socket
+        :py:obj:`Connection.connect` raises :py:obj:`socket.error` if the underlying socket
         connect method raises it.
         """
         client = socket()
@@ -1168,7 +1168,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_connect(self):
         """
-        L{Connection.connect} establishes a connection to the specified address.
+        :py:obj:`Connection.connect` establishes a connection to the specified address.
         """
         port = socket()
         port.bind(('', 0))
@@ -1184,7 +1184,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
     else:
         def test_connect_ex(self):
             """
-            If there is a connection error, L{Connection.connect_ex} returns the
+            If there is a connection error, :py:obj:`Connection.connect_ex` returns the
             errno instead of raising an exception.
             """
             port = socket()
@@ -1201,7 +1201,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_accept_wrong_args(self):
         """
-        L{Connection.accept} raises L{TypeError} if called with any arguments.
+        :py:obj:`Connection.accept` raises :py:obj:`TypeError` if called with any arguments.
         """
         connection = Connection(Context(TLSv1_METHOD), socket())
         self.assertRaises(TypeError, connection.accept, None)
@@ -1209,8 +1209,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_accept(self):
         """
-        L{Connection.accept} accepts a pending connection attempt and returns a
-        tuple of a new L{Connection} (the accepted client) and the address the
+        :py:obj:`Connection.accept` accepts a pending connection attempt and returns a
+        tuple of a new :py:obj:`Connection` (the accepted client) and the address the
         connection originated from.
         """
         ctx = Context(TLSv1_METHOD)
@@ -1236,7 +1236,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_shutdown_wrong_args(self):
         """
-        L{Connection.shutdown} raises L{TypeError} if called with the wrong
+        :py:obj:`Connection.shutdown` raises :py:obj:`TypeError` if called with the wrong
         number of arguments or with arguments other than integers.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
@@ -1249,7 +1249,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_shutdown(self):
         """
-        L{Connection.shutdown} performs an SSL-level connection shutdown.
+        :py:obj:`Connection.shutdown` performs an SSL-level connection shutdown.
         """
         server, client = self._loopback()
         self.assertFalse(server.shutdown())
@@ -1264,7 +1264,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_set_shutdown(self):
         """
-        L{Connection.set_shutdown} sets the state of the SSL connection shutdown
+        :py:obj:`Connection.set_shutdown` sets the state of the SSL connection shutdown
         process.
         """
         connection = Connection(Context(TLSv1_METHOD), socket())
@@ -1274,8 +1274,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_app_data_wrong_args(self):
         """
-        L{Connection.set_app_data} raises L{TypeError} if called with other than
-        one argument.  L{Connection.get_app_data} raises L{TypeError} if called
+        :py:obj:`Connection.set_app_data` raises :py:obj:`TypeError` if called with other than
+        one argument.  :py:obj:`Connection.get_app_data` raises :py:obj:`TypeError` if called
         with any arguments.
         """
         conn = Connection(Context(TLSv1_METHOD), None)
@@ -1287,8 +1287,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
     def test_app_data(self):
         """
         Any object can be set as app data by passing it to
-        L{Connection.set_app_data} and later retrieved with
-        L{Connection.get_app_data}.
+        :py:obj:`Connection.set_app_data` and later retrieved with
+        :py:obj:`Connection.get_app_data`.
         """
         conn = Connection(Context(TLSv1_METHOD), None)
         app_data = object()
@@ -1298,8 +1298,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_makefile(self):
         """
-        L{Connection.makefile} is not implemented and calling that method raises
-        L{NotImplementedError}.
+        :py:obj:`Connection.makefile` is not implemented and calling that method raises
+        :py:obj:`NotImplementedError`.
         """
         conn = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(NotImplementedError, conn.makefile)
@@ -1307,7 +1307,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_get_peer_cert_chain_wrong_args(self):
         """
-        L{Connection.get_peer_cert_chain} raises L{TypeError} if called with any
+        :py:obj:`Connection.get_peer_cert_chain` raises :py:obj:`TypeError` if called with any
         arguments.
         """
         conn = Connection(Context(TLSv1_METHOD), None)
@@ -1319,7 +1319,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_get_peer_cert_chain(self):
         """
-        L{Connection.get_peer_cert_chain} returns a list of certificates which
+        :py:obj:`Connection.get_peer_cert_chain` returns a list of certificates which
         the connected server returned for the certification verification.
         """
         chain = _create_certificate_chain()
@@ -1353,7 +1353,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_get_peer_cert_chain_none(self):
         """
-        L{Connection.get_peer_cert_chain} returns C{None} if the peer sends no
+        :py:obj:`Connection.get_peer_cert_chain` returns :py:obj:`None` if the peer sends no
         certificate chain.
         """
         ctx = Context(TLSv1_METHOD)
@@ -1370,11 +1370,11 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
 class ConnectionGetCipherListTests(TestCase):
     """
-    Tests for L{Connection.get_cipher_list}.
+    Tests for :py:obj:`Connection.get_cipher_list`.
     """
     def test_wrong_args(self):
         """
-        L{Connection.get_cipher_list} raises L{TypeError} if called with any
+        :py:obj:`Connection.get_cipher_list` raises :py:obj:`TypeError` if called with any
         arguments.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
@@ -1383,7 +1383,7 @@ class ConnectionGetCipherListTests(TestCase):
 
     def test_result(self):
         """
-        L{Connection.get_cipher_list} returns a C{list} of C{str} giving the
+        :py:obj:`Connection.get_cipher_list` returns a :py:obj:`list` of :py:obj:`str` giving the
         names of the ciphers which might be used.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
@@ -1396,12 +1396,12 @@ class ConnectionGetCipherListTests(TestCase):
 
 class ConnectionSendTests(TestCase, _LoopbackMixin):
     """
-    Tests for L{Connection.send}
+    Tests for :py:obj:`Connection.send`
     """
     def test_wrong_args(self):
         """
         When called with arguments other than a single string,
-        L{Connection.send} raises L{TypeError}.
+        :py:obj:`Connection.send` raises :py:obj:`TypeError`.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, connection.send)
@@ -1411,7 +1411,7 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
 
     def test_short_bytes(self):
         """
-        When passed a short byte string, L{Connection.send} transmits all of it
+        When passed a short byte string, :py:obj:`Connection.send` transmits all of it
         and returns the number of bytes sent.
         """
         server, client = self._loopback()
@@ -1427,7 +1427,7 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
         def test_short_memoryview(self):
             """
             When passed a memoryview onto a small number of bytes,
-            L{Connection.send} transmits all of them and returns the number of
+            :py:obj:`Connection.send` transmits all of them and returns the number of
             bytes sent.
             """
             server, client = self._loopback()
@@ -1439,12 +1439,12 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
 
 class ConnectionSendallTests(TestCase, _LoopbackMixin):
     """
-    Tests for L{Connection.sendall}.
+    Tests for :py:obj:`Connection.sendall`.
     """
     def test_wrong_args(self):
         """
         When called with arguments other than a single string,
-        L{Connection.sendall} raises L{TypeError}.
+        :py:obj:`Connection.sendall` raises :py:obj:`TypeError`.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, connection.sendall)
@@ -1454,7 +1454,7 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
 
     def test_short(self):
         """
-        L{Connection.sendall} transmits all of the bytes in the string passed to
+        :py:obj:`Connection.sendall` transmits all of the bytes in the string passed to
         it.
         """
         server, client = self._loopback()
@@ -1470,7 +1470,7 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         def test_short_memoryview(self):
             """
             When passed a memoryview onto a small number of bytes,
-            L{Connection.sendall} transmits all of them.
+            :py:obj:`Connection.sendall` transmits all of them.
             """
             server, client = self._loopback()
             server.sendall(memoryview(b('x')))
@@ -1479,7 +1479,7 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
 
     def test_long(self):
         """
-        L{Connection.sendall} transmits all of the bytes in the string passed to
+        :py:obj:`Connection.sendall` transmits all of the bytes in the string passed to
         it even if this requires multiple calls of an underlying write function.
         """
         server, client = self._loopback()
@@ -1499,7 +1499,7 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
 
     def test_closed(self):
         """
-        If the underlying socket is closed, L{Connection.sendall} propagates the
+        If the underlying socket is closed, :py:obj:`Connection.sendall` propagates the
         write error from the low level write call.
         """
         server, client = self._loopback()
@@ -1514,7 +1514,7 @@ class ConnectionRenegotiateTests(TestCase, _LoopbackMixin):
     """
     def test_renegotiate_wrong_args(self):
         """
-        L{Connection.renegotiate} raises L{TypeError} if called with any
+        :py:obj:`Connection.renegotiate` raises :py:obj:`TypeError` if called with any
         arguments.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
@@ -1523,7 +1523,7 @@ class ConnectionRenegotiateTests(TestCase, _LoopbackMixin):
 
     def test_total_renegotiations_wrong_args(self):
         """
-        L{Connection.total_renegotiations} raises L{TypeError} if called with
+        :py:obj:`Connection.total_renegotiations` raises :py:obj:`TypeError` if called with
         any arguments.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
@@ -1532,7 +1532,7 @@ class ConnectionRenegotiateTests(TestCase, _LoopbackMixin):
 
     def test_total_renegotiations(self):
         """
-        L{Connection.total_renegotiations} returns C{0} before any
+        :py:obj:`Connection.total_renegotiations` returns :py:obj:`0` before any
         renegotiations have happened.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
@@ -1563,11 +1563,11 @@ class ConnectionRenegotiateTests(TestCase, _LoopbackMixin):
 
 class ErrorTests(TestCase):
     """
-    Unit tests for L{OpenSSL.SSL.Error}.
+    Unit tests for :py:obj:`OpenSSL.SSL.Error`.
     """
     def test_type(self):
         """
-        L{Error} is an exception type.
+        :py:obj:`Error` is an exception type.
         """
         self.assertTrue(issubclass(Error, Exception))
         self.assertEqual(Error.__name__, 'Error')
@@ -1576,7 +1576,7 @@ class ErrorTests(TestCase):
 
 class ConstantsTests(TestCase):
     """
-    Tests for the values of constants exposed in L{OpenSSL.SSL}.
+    Tests for the values of constants exposed in :py:obj:`OpenSSL.SSL`.
 
     These are values defined by OpenSSL intended only to be used as flags to
     OpenSSL APIs.  The only assertions it seems can be made about them is
@@ -1586,8 +1586,8 @@ class ConstantsTests(TestCase):
     if OP_NO_QUERY_MTU is not None:
         def test_op_no_query_mtu(self):
             """
-            The value of L{OpenSSL.SSL.OP_NO_QUERY_MTU} is 0x1000, the value of
-            I{SSL_OP_NO_QUERY_MTU} defined by I{openssl/ssl.h}.
+            The value of :py:obj:`OpenSSL.SSL.OP_NO_QUERY_MTU` is 0x1000, the value of
+            :py:const:`SSL_OP_NO_QUERY_MTU` defined by :file:`openssl/ssl.h`.
             """
             self.assertEqual(OP_NO_QUERY_MTU, 0x1000)
     else:
@@ -1597,8 +1597,8 @@ class ConstantsTests(TestCase):
     if OP_COOKIE_EXCHANGE is not None:
         def test_op_cookie_exchange(self):
             """
-            The value of L{OpenSSL.SSL.OP_COOKIE_EXCHANGE} is 0x2000, the value
-            of I{SSL_OP_COOKIE_EXCHANGE} defined by I{openssl/ssl.h}.
+            The value of :py:obj:`OpenSSL.SSL.OP_COOKIE_EXCHANGE` is 0x2000, the value
+            of :py:const:`SSL_OP_COOKIE_EXCHANGE` defined by :file:`openssl/ssl.h`.
             """
             self.assertEqual(OP_COOKIE_EXCHANGE, 0x2000)
     else:
@@ -1608,8 +1608,8 @@ class ConstantsTests(TestCase):
     if OP_NO_TICKET is not None:
         def test_op_no_ticket(self):
             """
-            The value of L{OpenSSL.SSL.OP_NO_TICKET} is 0x4000, the value of
-            I{SSL_OP_NO_TICKET} defined by I{openssl/ssl.h}.
+            The value of :py:obj:`OpenSSL.SSL.OP_NO_TICKET` is 0x4000, the value of
+            :py:const:`SSL_OP_NO_TICKET` defined by :file:`openssl/ssl.h`.
             """
             self.assertEqual(OP_NO_TICKET, 0x4000)
     else:
@@ -1619,8 +1619,8 @@ class ConstantsTests(TestCase):
     if OP_NO_COMPRESSION is not None:
         def test_op_no_compression(self):
             """
-            The value of L{OpenSSL.SSL.OP_NO_COMPRESSION} is 0x20000, the value
-            of L{SSL_OP_NO_COMPRESSION} defined by I{openssl/ssl.h}.
+            The value of :py:obj:`OpenSSL.SSL.OP_NO_COMPRESSION` is 0x20000, the value
+            of :py:const:`SSL_OP_NO_COMPRESSION` defined by :file:`openssl/ssl.h`.
             """
             self.assertEqual(OP_NO_COMPRESSION, 0x20000)
     else:
@@ -1630,12 +1630,12 @@ class ConstantsTests(TestCase):
 
 class MemoryBIOTests(TestCase, _LoopbackMixin):
     """
-    Tests for L{OpenSSL.SSL.Connection} using a memory BIO.
+    Tests for :py:obj:`OpenSSL.SSL.Connection` using a memory BIO.
     """
     def _server(self, sock):
         """
-        Create a new server-side SSL L{Connection} object wrapped around
-        C{sock}.
+        Create a new server-side SSL :py:obj:`Connection` object wrapped around
+        :py:obj:`sock`.
         """
         # Create the server side Connection.  This is mostly setup boilerplate
         # - use TLSv1, use a particular certificate, etc.
@@ -1656,8 +1656,8 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
 
     def _client(self, sock):
         """
-        Create a new client-side SSL L{Connection} object wrapped around
-        C{sock}.
+        Create a new client-side SSL :py:obj:`Connection` object wrapped around
+        :py:obj:`sock`.
         """
         # Now create the client side Connection.  Similar boilerplate to the
         # above.
@@ -1676,7 +1676,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
 
     def test_memoryConnect(self):
         """
-        Two L{Connection}s which use memory BIOs can be manually connected by
+        Two :py:obj:`Connection`s which use memory BIOs can be manually connected by
         reading from the output of each and writing those bytes to the input of
         the other and in this way establish a connection and exchange
         application-level bytes with each other.
@@ -1720,10 +1720,10 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
 
     def test_socketConnect(self):
         """
-        Just like L{test_memoryConnect} but with an actual socket.
+        Just like :py:obj:`test_memoryConnect` but with an actual socket.
 
         This is primarily to rule out the memory BIO code as the source of
-        any problems encountered while passing data over a L{Connection} (if
+        any problems encountered while passing data over a :py:obj:`Connection` (if
         this test fails, there must be a problem outside the memory BIO
         code, as no memory BIO is involved here).  Even though this isn't a
         memory BIO test, it's convenient to have it here.
@@ -1744,8 +1744,8 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
 
     def test_socketOverridesMemory(self):
         """
-        Test that L{OpenSSL.SSL.bio_read} and L{OpenSSL.SSL.bio_write} don't
-        work on L{OpenSSL.SSL.Connection}() that use sockets.
+        Test that :py:obj:`OpenSSL.SSL.bio_read` and :py:obj:`OpenSSL.SSL.bio_write` don't
+        work on :py:obj:`OpenSSL.SSL.Connection`() that use sockets.
         """
         context = Context(SSLv3_METHOD)
         client = socket()
@@ -1758,7 +1758,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
     def test_outgoingOverflow(self):
         """
         If more bytes than can be written to the memory BIO are passed to
-        L{Connection.send} at once, the number of bytes which were written is
+        :py:obj:`Connection.send` at once, the number of bytes which were written is
         returned and that many bytes from the beginning of the input can be
         read from the other end of the connection.
         """
@@ -1784,8 +1784,8 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
 
     def test_shutdown(self):
         """
-        L{Connection.bio_shutdown} signals the end of the data stream from
-        which the L{Connection} reads.
+        :py:obj:`Connection.bio_shutdown` signals the end of the data stream from
+        which the :py:obj:`Connection` reads.
         """
         server = self._server(None)
         server.bio_shutdown()
@@ -1797,13 +1797,13 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
 
     def _check_client_ca_list(self, func):
         """
-        Verify the return value of the C{get_client_ca_list} method for server and client connections.
+        Verify the return value of the :py:obj:`get_client_ca_list` method for server and client connections.
 
-        @param func: A function which will be called with the server context
+        :param func: A function which will be called with the server context
             before the client and server are connected to each other.  This
             function should specify a list of CAs for the server to send to the
             client and return that same list.  The list will be used to verify
-            that C{get_client_ca_list} returns the proper value at various
+            that :py:obj:`get_client_ca_list` returns the proper value at various
             times.
         """
         server = self._server(None)
@@ -1821,7 +1821,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
 
     def test_set_client_ca_list_errors(self):
         """
-        L{Context.set_client_ca_list} raises a L{TypeError} if called with a
+        :py:obj:`Context.set_client_ca_list` raises a :py:obj:`TypeError` if called with a
         non-list or a list that contains objects other than X509Names.
         """
         ctx = Context(TLSv1_METHOD)
@@ -1832,9 +1832,9 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
 
     def test_set_empty_ca_list(self):
         """
-        If passed an empty list, L{Context.set_client_ca_list} configures the
+        If passed an empty list, :py:obj:`Context.set_client_ca_list` configures the
         context to send no CA names to the client and, on both the server and
-        client sides, L{Connection.get_client_ca_list} returns an empty list
+        client sides, :py:obj:`Connection.get_client_ca_list` returns an empty list
         after the connection is set up.
         """
         def no_ca(ctx):
@@ -1846,9 +1846,9 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
     def test_set_one_ca_list(self):
         """
         If passed a list containing a single X509Name,
-        L{Context.set_client_ca_list} configures the context to send that CA
+        :py:obj:`Context.set_client_ca_list` configures the context to send that CA
         name to the client and, on both the server and client sides,
-        L{Connection.get_client_ca_list} returns a list containing that
+        :py:obj:`Connection.get_client_ca_list` returns a list containing that
         X509Name after the connection is set up.
         """
         cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
@@ -1862,9 +1862,9 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
     def test_set_multiple_ca_list(self):
         """
         If passed a list containing multiple X509Name objects,
-        L{Context.set_client_ca_list} configures the context to send those CA
+        :py:obj:`Context.set_client_ca_list` configures the context to send those CA
         names to the client and, on both the server and client sides,
-        L{Connection.get_client_ca_list} returns a list containing those
+        :py:obj:`Connection.get_client_ca_list` returns a list containing those
         X509Names after the connection is set up.
         """
         secert = load_certificate(FILETYPE_PEM, server_cert_pem)
@@ -1883,7 +1883,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
     def test_reset_ca_list(self):
         """
         If called multiple times, only the X509Names passed to the final call
-        of L{Context.set_client_ca_list} are used to configure the CA names
+        of :py:obj:`Context.set_client_ca_list` are used to configure the CA names
         sent to the client.
         """
         cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
@@ -1903,7 +1903,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
 
     def test_mutated_ca_list(self):
         """
-        If the list passed to L{Context.set_client_ca_list} is mutated
+        If the list passed to :py:obj:`Context.set_client_ca_list` is mutated
         afterwards, this does not affect the list of CA names sent to the
         client.
         """
@@ -1923,7 +1923,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
 
     def test_add_client_ca_errors(self):
         """
-        L{Context.add_client_ca} raises L{TypeError} if called with a non-X509
+        :py:obj:`Context.add_client_ca` raises :py:obj:`TypeError` if called with a non-X509
         object or with a number of arguments other than one.
         """
         ctx = Context(TLSv1_METHOD)
@@ -1936,7 +1936,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
     def test_one_add_client_ca(self):
         """
         A certificate's subject can be added as a CA to be sent to the client
-        with L{Context.add_client_ca}.
+        with :py:obj:`Context.add_client_ca`.
         """
         cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
         cadesc = cacert.get_subject()
@@ -1949,7 +1949,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
     def test_multiple_add_client_ca(self):
         """
         Multiple CA names can be sent to the client by calling
-        L{Context.add_client_ca} with multiple X509 objects.
+        :py:obj:`Context.add_client_ca` with multiple X509 objects.
         """
         cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
         secert = load_certificate(FILETYPE_PEM, server_cert_pem)
@@ -1966,8 +1966,8 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
 
     def test_set_and_add_client_ca(self):
         """
-        A call to L{Context.set_client_ca_list} followed by a call to
-        L{Context.add_client_ca} results in using the CA names from the first
+        A call to :py:obj:`Context.set_client_ca_list` followed by a call to
+        :py:obj:`Context.add_client_ca` results in using the CA names from the first
         call and the CA name from the second call.
         """
         cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
@@ -1987,8 +1987,8 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
 
     def test_set_after_add_client_ca(self):
         """
-        A call to L{Context.set_client_ca_list} after a call to
-        L{Context.add_client_ca} replaces the CA name specified by the former
+        A call to :py:obj:`Context.set_client_ca_list` after a call to
+        :py:obj:`Context.add_client_ca` replaces the CA name specified by the former
         call with the names specified by the latter cal.
         """
         cacert = load_certificate(FILETYPE_PEM, root_cert_pem)

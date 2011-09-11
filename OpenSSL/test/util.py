@@ -27,12 +27,12 @@ else:
 
 class TestCase(TestCase):
     """
-    L{TestCase} adds useful testing functionality beyond what is available
-    from the standard library L{unittest.TestCase}.
+    :py:class:`TestCase` adds useful testing functionality beyond what is available
+    from the standard library :py:class:`unittest.TestCase`.
     """
     def tearDown(self):
         """
-        Clean up any files or directories created using L{TestCase.mktemp}.
+        Clean up any files or directories created using :py:meth:`TestCase.mktemp`.
         Subclasses must invoke this method if they override it or the
         cleanup will not occur.
         """
@@ -52,12 +52,12 @@ class TestCase(TestCase):
 
     def failUnlessIn(self, containee, container, msg=None):
         """
-        Fail the test if C{containee} is not found in C{container}.
+        Fail the test if :py:data:`containee` is not found in :py:data:`container`.
 
-        @param containee: the value that should be in C{container}
-        @param container: a sequence type, or in the case of a mapping type,
+        :param containee: the value that should be in :py:class:`container`
+        :param container: a sequence type, or in the case of a mapping type,
                           will follow semantics of 'if key in dict.keys()'
-        @param msg: if msg is None, then the failure message will be
+        :param msg: if msg is None, then the failure message will be
                     '%r not in %r' % (first, second)
         """
         if containee not in container:
@@ -68,11 +68,11 @@ class TestCase(TestCase):
 
     def failUnlessIdentical(self, first, second, msg=None):
         """
-        Fail the test if C{first} is not C{second}.  This is an
+        Fail the test if :py:data:`first` is not :py:data:`second`.  This is an
         obect-identity-equality test, not an object equality
-        (i.e. C{__eq__}) test.
+        (i.e. :py:func:`__eq__`) test.
 
-        @param msg: if msg is None, then the failure message will be
+        :param msg: if msg is None, then the failure message will be
         '%r is not %r' % (first, second)
         """
         if first is not second:
@@ -83,11 +83,11 @@ class TestCase(TestCase):
 
     def failIfIdentical(self, first, second, msg=None):
         """
-        Fail the test if C{first} is C{second}.  This is an
+        Fail the test if :py:data:`first` is :py:data:`second`.  This is an
         obect-identity-equality test, not an object equality
-        (i.e. C{__eq__}) test.
+        (i.e. :py:func:`__eq__`) test.
 
-        @param msg: if msg is None, then the failure message will be
+        :param msg: if msg is None, then the failure message will be
         '%r is %r' % (first, second)
         """
         if first is second:
@@ -98,15 +98,16 @@ class TestCase(TestCase):
 
     def failUnlessRaises(self, exception, f, *args, **kwargs):
         """
-        Fail the test unless calling the function C{f} with the given
-        C{args} and C{kwargs} raises C{exception}. The failure will report
-        the traceback and call stack of the unexpected exception.
+        Fail the test unless calling the function :py:data:`f` with the given
+        :py:data:`args` and :py:data:`kwargs` raises :py:data:`exception`. The
+        failure will report the traceback and call stack of the unexpected
+        exception.
 
-        @param exception: exception type that is to be expected
-        @param f: the function to call
+        :param exception: exception type that is to be expected
+        :param f: the function to call
 
-        @return: The raised exception instance, if it is of the given type.
-        @raise self.failureException: Raised if the function call does
+        :return: The raised exception instance, if it is of the given type.
+        :raise self.failureException: Raised if the function call does
             not raise an exception or if it raises an exception of a
             different type.
         """
@@ -150,14 +151,14 @@ class TestCase(TestCase):
     # Other stuff
     def assertConsistentType(self, theType, name, *constructionArgs):
         """
-        Perform various assertions about C{theType} to ensure that it is a
+        Perform various assertions about :py:data:`theType` to ensure that it is a
         well-defined type.  This is useful for extension types, where it's
         pretty easy to do something wacky.  If something about the type is
         unusual, an exception will be raised.
 
-        @param theType: The type object about which to make assertions.
-        @param name: A string giving the name of the type.
-        @param constructionArgs: Positional arguments to use with C{theType} to
+        :param theType: The type object about which to make assertions.
+        :param name: A string giving the name of the type.
+        :param constructionArgs: Positional arguments to use with :py:data:`theType` to
             create an instance of it.
         """
         self.assertEqual(theType.__name__, name)

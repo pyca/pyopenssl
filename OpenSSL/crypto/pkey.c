@@ -30,9 +30,9 @@ do {                                    \
 static char crypto_PKey_generate_key_doc[] = "\n\
 Generate a key of a given type, with a given number of a bits\n\
 \n\
-@param type: The key type (TYPE_RSA or TYPE_DSA)\n\
-@param bits: The number of bits\n\
-@return: None\n\
+:param type: The key type (TYPE_RSA or TYPE_DSA)\n\
+:param bits: The number of bits\n\
+:return: None\n\
 ";
 
 static PyObject *
@@ -80,7 +80,7 @@ crypto_PKey_generate_key(crypto_PKeyObj *self, PyObject *args)
 static char crypto_PKey_bits_doc[] = "\n\
 Returns the number of bits of the key\n\
 \n\
-@return: The number of bits of the key.\n\
+:return: The number of bits of the key.\n\
 ";
 
 static PyObject *
@@ -95,7 +95,7 @@ crypto_PKey_bits(crypto_PKeyObj *self, PyObject *args)
 static char crypto_PKey_type_doc[] = "\n\
 Returns the type of the key\n\
 \n\
-@return: The type of the key.\n\
+:return: The type of the key.\n\
 ";
 
 static PyObject *
@@ -110,9 +110,9 @@ crypto_PKey_type(crypto_PKeyObj *self, PyObject *args)
 static char crypto_PKey_check_doc[] = "\n\
 Check the consistency of an RSA private key.\n\
 \n\
-@return: True if key is consistent.\n\
-@raise Error: if the key is inconsistent.\n\
-@raise TypeError: if the key is of a type which cannot be checked.\n\
+:return: True if key is consistent.\n\
+:raise Error: if the key is inconsistent.\n\
+:raise TypeError: if the key is of a type which cannot be checked.\n\
     Only RSA keys can currently be checked.\n\
 ";
 
@@ -194,7 +194,7 @@ PKey() -> PKey instance\n\
 \n\
 Create a new PKey object.\n\
 \n\
-@return: The PKey object\n\
+:return: The PKey object\n\
 ";
 static PyObject*
 crypto_PKey_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs) {

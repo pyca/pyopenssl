@@ -26,7 +26,7 @@ static const char *crl_reasons[] = {
 static char crypto_Revoked_all_reasons_doc[] = "\n\
 Return a list of all the supported reason strings.\n\
 \n\
-@return: A list of reason strings.\n\
+:return: A list of reason strings.\n\
 ";
 static PyObject *
 crypto_Revoked_all_reasons(crypto_RevokedObj *self, PyObject *args) {
@@ -126,9 +126,9 @@ reason_str_to_code(const char * reason_str) {
 static char crypto_Revoked_set_reason_doc[] = "\n\
 Set the reason of a Revoked object.\n\
 \n\
-@param reason: The reason string.\n\
-@type reason: L{str}\n\
-@return: None\n\
+:param reason: The reason string.\n\
+:type reason: :py:data:`str`\n\
+:return: None\n\
 ";
 static PyObject *
 crypto_Revoked_set_reason(crypto_RevokedObj *self, PyObject *args, PyObject *keywds) {
@@ -176,7 +176,7 @@ crypto_Revoked_set_reason(crypto_RevokedObj *self, PyObject *args, PyObject *key
 static char crypto_Revoked_get_reason_doc[] = "\n\
 Return the reason of a Revoked object.\n\
 \n\
-@return: The reason as a string\n\
+:return: The reason as a string\n\
 ";
 static PyObject *
 crypto_Revoked_get_reason(crypto_RevokedObj *self, PyObject *args) {
@@ -204,7 +204,7 @@ crypto_Revoked_get_reason(crypto_RevokedObj *self, PyObject *args) {
 static char crypto_Revoked_get_rev_date_doc[] = "\n\
 Retrieve the revocation date\n\
 \n\
-@return: A string giving the timestamp, in the format:\n\
+:return: A string giving the timestamp, in the format:\n\
 \n\
                  YYYYMMDDhhmmssZ\n\
                  YYYYMMDDhhmmss+hhmm\n\
@@ -221,13 +221,13 @@ crypto_Revoked_get_rev_date(crypto_RevokedObj *self, PyObject *args) {
 static char crypto_Revoked_set_rev_date_doc[] = "\n\
 Set the revocation timestamp\n\
 \n\
-@param when: A string giving the timestamp, in the format:\n\
+:param when: A string giving the timestamp, in the format:\n\
 \n\
                  YYYYMMDDhhmmssZ\n\
                  YYYYMMDDhhmmss+hhmm\n\
                  YYYYMMDDhhmmss-hhmm\n\
 \n\
-@return: None\n\
+:return: None\n\
 ";
 
 static PyObject*
@@ -278,7 +278,7 @@ ASN1_INTEGER_to_PyString(ASN1_INTEGER *asn1_int) {
 static char crypto_Revoked_get_serial_doc[] = "\n\
 Return the serial number of a Revoked structure\n\
 \n\
-@return: The serial number as a string\n\
+:return: The serial number as a string\n\
 ";
 static PyObject *
 crypto_Revoked_get_serial(crypto_RevokedObj *self, PyObject *args) {
@@ -298,9 +298,9 @@ crypto_Revoked_get_serial(crypto_RevokedObj *self, PyObject *args) {
 static char crypto_Revoked_set_serial_doc[] = "\n\
 Set the serial number of a revoked Revoked structure\n\
 \n\
-@param hex_str: The new serial number.\n\
-@type hex_str: L{str}\n\
-@return: None\n\
+:param hex_str: The new serial number.\n\
+:type hex_str: :py:data:`str`\n\
+:return: None\n\
 ";
 static PyObject *
 crypto_Revoked_set_serial(crypto_RevokedObj *self, PyObject *args, PyObject *keywds) {
@@ -377,7 +377,7 @@ Revoked() -> Revoked instance\n\
 \n\
 Create a new empty Revoked object.\n\
 \n\
-@returns: The Revoked object\n\
+:returns: The Revoked object\n\
 ";
 
 static PyObject* crypto_Revoked_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs) {
