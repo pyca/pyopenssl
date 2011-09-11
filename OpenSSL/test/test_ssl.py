@@ -365,8 +365,8 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_set_mode_wrong_args(self):
         """
-        L{Context.set_mode} raises L{TypeError} if called with the wrong
-        number of arguments or a non-C{int} argument.
+        :py:obj:`Context.set`mode} raises :py:obj:`TypeError` if called with the wrong
+        number of arguments or a non-:py:obj:`int` argument.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.set_mode)
@@ -377,7 +377,7 @@ class ContextTests(TestCase, _LoopbackMixin):
     if MODE_RELEASE_BUFFERS is not None:
         def test_set_mode(self):
             """
-            L{Context.set_mode} accepts a mode bitvector and returns the newly
+            :py:obj:`Context.set_mode` accepts a mode bitvector and returns the newly
             set mode.
             """
             context = Context(TLSv1_METHOD)
@@ -591,8 +591,8 @@ class ContextTests(TestCase, _LoopbackMixin):
     def _load_verify_locations_test(self, *args):
         """
         Create a client context which will verify the peer certificate and call
-        its :py:obj:`load_verify_locations` method with C{*args}.  Then connect it to a
-        server and ensure that the handshake succeeds.
+        its :py:obj:`load_verify_locations` method with the given arguments.
+        Then connect it to a server and ensure that the handshake succeeds.
         """
         (server, client) = socket_pair()
 
@@ -1587,7 +1587,7 @@ class ConstantsTests(TestCase):
         def test_op_no_query_mtu(self):
             """
             The value of :py:obj:`OpenSSL.SSL.OP_NO_QUERY_MTU` is 0x1000, the value of
-            I{SSL_OP_NO_QUERY_MTU} defined by I{openssl/ssl.h}.
+            :py:const:`SSL_OP_NO_QUERY_MTU` defined by :file:`openssl/ssl.h`.
             """
             self.assertEqual(OP_NO_QUERY_MTU, 0x1000)
     else:
@@ -1598,7 +1598,7 @@ class ConstantsTests(TestCase):
         def test_op_cookie_exchange(self):
             """
             The value of :py:obj:`OpenSSL.SSL.OP_COOKIE_EXCHANGE` is 0x2000, the value
-            of I{SSL_OP_COOKIE_EXCHANGE} defined by I{openssl/ssl.h}.
+            of :py:const:`SSL_OP_COOKIE_EXCHANGE` defined by :file:`openssl/ssl.h`.
             """
             self.assertEqual(OP_COOKIE_EXCHANGE, 0x2000)
     else:
@@ -1609,18 +1609,18 @@ class ConstantsTests(TestCase):
         def test_op_no_ticket(self):
             """
             The value of :py:obj:`OpenSSL.SSL.OP_NO_TICKET` is 0x4000, the value of
-            I{SSL_OP_NO_TICKET} defined by I{openssl/ssl.h}.
+            :py:const:`SSL_OP_NO_TICKET` defined by :file:`openssl/ssl.h`.
             """
             self.assertEqual(OP_NO_TICKET, 0x4000)
-    else:
+3A    else:
         "OP_NO_TICKET unavailable - OpenSSL version may be too old"
 
 
     if OP_NO_COMPRESSION is not None:
         def test_op_no_compression(self):
             """
-            The value of L{OpenSSL.SSL.OP_NO_COMPRESSION} is 0x20000, the value
-            of L{SSL_OP_NO_COMPRESSION} defined by I{openssl/ssl.h}.
+            The value of :py:obj:`OpenSSL.SSL.OP_NO_COMPRESSION` is 0x20000, the value
+            of :py:const:`SSL_OP_NO_COMPRESSION` defined by :file:`openssl/ssl.h`.
             """
             self.assertEqual(OP_NO_COMPRESSION, 0x20000)
     else:

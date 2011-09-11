@@ -109,8 +109,8 @@ class RandTests(TestCase):
 
     def test_egd_missing(self):
         """
-        :py:obj:`OpenSSL.rand.egd` returns :py:obj:`0` or C{-1} if the EGD socket passed
-        to it does not exist.
+        :py:obj:`OpenSSL.rand.egd` returns :py:obj:`0` or :py:obj:`-1` if the
+        EGD socket passed to it does not exist.
         """
         result = rand.egd(self.mktemp())
         expected = (-1, 0)

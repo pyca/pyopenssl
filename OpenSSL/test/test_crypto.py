@@ -1768,7 +1768,7 @@ class PKCS12Tests(TestCase):
 
     def test_friendly_name(self):
         """
-        The I{friendlyName} of a PKCS12 can be set and retrieved via
+        The *friendlyName* of a PKCS12 can be set and retrieved via
         :py:obj:`PKCS12.get_friendlyname` and :py:obj:`PKCS12_set_friendlyname`, and a
         :py:obj:`PKCS12` with a friendly name set can be dumped with :py:obj:`PKCS12.export`.
         """
@@ -1818,7 +1818,7 @@ class PKCS12Tests(TestCase):
 
     def test_export_without_mac(self):
         """
-        Exporting a PKCS12 with a :py:obj:`maciter` of C{-1} excludes the MAC
+        Exporting a PKCS12 with a :py:obj:`maciter` of ``-1`` excludes the MAC
         entirely.
         """
         passwd = 'Lake Michigan'
@@ -1891,14 +1891,14 @@ def cmdLineQuote(s):
     """
     Internal method for quoting a single command-line argument.
 
+    See http://www.perlmonks.org/?node_id=764004
+
     :type: :py:obj:`str`
     :param s: A single unquoted string to quote for something that is expecting
         cmd.exe-style quoting
 
     :rtype: :py:obj:`str`
     :return: A cmd.exe-style quoted string
-
-    @see: U{http://www.perlmonks.org/?node_id=764004}
     """
     s = _cmdLineQuoteRe2.sub(r"\1\1", _cmdLineQuoteRe.sub(r'\1\1\\"', s))
     return '"%s"' % s
@@ -1953,7 +1953,7 @@ class FunctionTests(TestCase):
     def test_load_privatekey_invalid_passphrase_type(self):
         """
         :py:obj:`load_privatekey` raises :py:obj:`TypeError` if passed a passphrase that is
-        neither a c{str} nor a callable.
+        neither a :py:obj:`str` nor a callable.
         """
         self.assertRaises(
             TypeError,
@@ -2210,7 +2210,7 @@ class PKCS7Tests(TestCase):
     def test_type_is_signed(self):
         """
         :py:obj:`PKCS7Type.type_is_signed` returns :py:obj:`True` if the PKCS7 object is of
-        the type I{signed}.
+        the type *signed*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertTrue(pkcs7.type_is_signed())
@@ -2228,7 +2228,7 @@ class PKCS7Tests(TestCase):
     def test_type_is_enveloped(self):
         """
         :py:obj:`PKCS7Type.type_is_enveloped` returns :py:obj:`False` if the PKCS7 object is
-        not of the type I{enveloped}.
+        not of the type *enveloped*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertFalse(pkcs7.type_is_enveloped())
@@ -2246,7 +2246,7 @@ class PKCS7Tests(TestCase):
     def test_type_is_signedAndEnveloped(self):
         """
         :py:obj:`PKCS7Type.type_is_signedAndEnveloped` returns :py:obj:`False` if the PKCS7
-        object is not of the type I{signed and enveloped}.
+        object is not of the type *signed and enveloped*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertFalse(pkcs7.type_is_signedAndEnveloped())
@@ -2518,7 +2518,7 @@ class CRLTests(TestCase):
     def test_add_revoked_keyword(self):
         """
         :py:obj:`OpenSSL.CRL.add_revoked` accepts its single argument as the
-        I{revoked} keyword argument.
+        ``revoked`` keyword argument.
         """
         crl = CRL()
         revoked = Revoked()
