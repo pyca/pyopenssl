@@ -131,13 +131,13 @@ crypto_CRL_export(crypto_CRLObj *self, PyObject *args, PyObject *keywds) {
     ASN1_TIME *tmptm;
     crypto_X509Obj *x509;
     static char *kwlist[] = {"cert", "key", "type", "days", NULL};
-    
+
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "O!O!|ii:dump_crl", kwlist,
-                                     &crypto_X509_Type, &x509, 
+                                     &crypto_X509_Type, &x509,
                                      &crypto_PKey_Type, &key, &type, &days)) {
         return NULL;
     }
-    
+
     bio = BIO_new(BIO_s_mem());
     tmptm = ASN1_TIME_new();
     if (!tmptm) {
@@ -149,7 +149,13 @@ crypto_CRL_export(crypto_CRLObj *self, PyObject *args, PyObject *keywds) {
     X509_CRL_set_nextUpdate(self->crl, tmptm);
     ASN1_TIME_free(tmptm);
     X509_CRL_set_issuer_name(self->crl, X509_get_subject_name(x509->x509));
-    X509_CRL_sign(self->crl, key->pkey, EVP_md5());
+
+    if (!X509_CRL_sign(self->crl, key->pkey, EVP_md5())) {
+        exception_from_error_queue(crypto_Error);
+        BIO_free(bio);
+        return NULL;
+    }
+
     switch (type) {
         case X509_FILETYPE_PEM:
             ret = PEM_write_bio_X509_CRL(bio, self->crl);

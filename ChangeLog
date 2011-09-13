@@ -1,3 +1,8 @@
+2011-09-13  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/crypto/crl.c: Add error handling for the use of
+	  X509_CRL_sign.
+
 2011-09-11  Jonathan Ballet  <lp:multani>
 
 	* doc/: Convert the LaTeX documentation to Sphinx-using ReST.

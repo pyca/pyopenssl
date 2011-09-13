@@ -2515,6 +2515,15 @@ class CRLTests(TestCase):
         self.assertEqual(text, dumped_text)
 
 
+    def test_export_invalid(self):
+        """
+        If :py:obj:`CRL.export` is used with an uninitialized :py:obj:`X509`
+        instance, :py:obj:`ValueError` is raised.
+        """
+        crl = CRL()
+        self.assertRaises(Error, crl.export, X509(), PKey())
+
+
     def test_add_revoked_keyword(self):
         """
         :py:obj:`OpenSSL.CRL.add_revoked` accepts its single argument as the
