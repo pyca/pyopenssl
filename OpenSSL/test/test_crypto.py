@@ -2062,6 +2062,9 @@ class FunctionTests(TestCase):
         of arguments.
         """
         self.assertRaises(TypeError, dump_privatekey)
+        # If cipher name is given, password is required.
+        self.assertRaises(
+            ValueError, dump_privatekey, FILETYPE_PEM, PKey(), "foo")
 
 
     def test_dump_privatekey_unknown_cipher(self):
