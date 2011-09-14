@@ -97,7 +97,7 @@ FCB5K3c2kkTv2KjcCAimjxkE+SBKfHg35W0wB0AWkXpVFO5W/TbHg4tqtkpt/KMn
                 load_privatekey(
                     FILETYPE_PEM, self.ENCRYPTED_PEM,
                     lambda *args: {})
-            except Error:
+            except ValueError:
                 pass
 
 
