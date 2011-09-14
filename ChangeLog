@@ -1,3 +1,13 @@
+2011-09-14  Žiga Seilnacht <lp:ziga-seilnacht>
+
+	* OpenSSL/crypto/crypto.c: Allow exceptions from passphrase
+	  callbacks to propagate up out of load_privatekey
+	* OpenSSL/crypto/crypto.c: Raise an exception when a too-long
+	  passphrase is returned from a passphrase callback, instead of
+	  silently truncating it.
+	* OpenSSL/crypto/crypto.c: Fix a memory leak when a passphrase
+	  callback returns the wrong type.
+
 2011-09-13  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL/crypto/crl.c: Add error handling for the use of

@@ -7,7 +7,7 @@ Unit tests for :py:mod:`OpenSSL.crypto`.
 
 from unittest import main
 
-import os, re
+import os, re, sys
 from subprocess import PIPE, Popen
 from datetime import datetime, timedelta
 
@@ -1979,6 +1979,18 @@ class FunctionTests(TestCase):
             load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, b("quack"))
 
 
+    def test_load_privatekey_passphraseWrongType(self):
+        """
+        :py:obj:`load_privatekey` raises :py:obj:`ValueError` when it is passed a passphrase
+        with a private key encoded in a format, that doesn't support
+        encryption.
+        """
+        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        blob = dump_privatekey(FILETYPE_ASN1, key)
+        self.assertRaises(ValueError,
+            load_privatekey, FILETYPE_ASN1, blob, "secret")
+
+
     def test_load_privatekey_passphrase(self):
         """
         :py:obj:`load_privatekey` can create a :py:obj:`PKey` object from an encrypted PEM
@@ -1990,16 +2002,28 @@ class FunctionTests(TestCase):
         self.assertTrue(isinstance(key, PKeyType))
 
 
+    def test_load_privatekey_passphrase_exception(self):
+        """
+        If the passphrase callback raises an exception, that exception is raised
+        by :py:obj:`load_privatekey`.
+        """
+        def cb(ignored):
+            raise ArithmeticError
+
+        self.assertRaises(ArithmeticError,
+            load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
+
+
     def test_load_privatekey_wrongPassphraseCallback(self):
         """
-        :py:obj:`load_privatekey` raises :py:obj:`OpenSSL.crypto.Error` when it is passed an
-        encrypted PEM and a passphrase callback which returns an incorrect
-        passphrase.
+        :py:obj:`load_privatekey` raises :py:obj:`OpenSSL.crypto.Error` when it
+        is passed an encrypted PEM and a passphrase callback which returns an
+        incorrect passphrase.
         """
         called = []
         def cb(*a):
             called.append(None)
-            return "quack"
+            return b("quack")
         self.assertRaises(
             Error,
             load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
@@ -2021,20 +2045,15 @@ class FunctionTests(TestCase):
         self.assertEqual(called, [False])
 
 
-    def test_load_privatekey_passphrase_exception(self):
+    def test_load_privatekey_passphrase_wrong_return_type(self):
         """
-        An exception raised by the passphrase callback passed to
-        :py:obj:`load_privatekey` causes :py:obj:`OpenSSL.crypto.Error` to be raised.
-
-        This isn't as nice as just letting the exception pass through.  The
-        behavior might be changed to that eventually.
+        :py:obj:`load_privatekey` raises :py:obj:`ValueError` if the passphrase
+        callback returns something other than a byte string.
         """
-        def broken(ignored):
-            raise RuntimeError("This is not working.")
         self.assertRaises(
-            Error,
+            ValueError,
             load_privatekey,
-            FILETYPE_PEM, encryptedPrivateKeyPEM, broken)
+            FILETYPE_PEM, encryptedPrivateKeyPEM, lambda *args: 3)
 
 
     def test_dump_privatekey_wrong_args(self):
@@ -2043,6 +2062,9 @@ class FunctionTests(TestCase):
         of arguments.
         """
         self.assertRaises(TypeError, dump_privatekey)
+        # If cipher name is given, password is required.
+        self.assertRaises(
+            ValueError, dump_privatekey, FILETYPE_PEM, PKey(), "foo")
 
 
     def test_dump_privatekey_unknown_cipher(self):
@@ -2079,6 +2101,18 @@ class FunctionTests(TestCase):
         self.assertRaises(ValueError, dump_privatekey, 100, key)
 
 
+    def test_load_privatekey_passphraseCallbackLength(self):
+        """
+        :py:obj:`crypto.load_privatekey` should raise an error when the passphrase
+        provided by the callback is too long, not silently truncate it.
+        """
+        def cb(ignored):
+            return "a" * 1025
+
+        self.assertRaises(ValueError,
+            load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
+
+
     def test_dump_privatekey_passphrase(self):
         """
         :py:obj:`dump_privatekey` writes an encrypted PEM when given a passphrase.
@@ -2091,6 +2125,17 @@ class FunctionTests(TestCase):
         self.assertTrue(isinstance(loadedKey, PKeyType))
         self.assertEqual(loadedKey.type(), key.type())
         self.assertEqual(loadedKey.bits(), key.bits())
+
+
+    def test_dump_privatekey_passphraseWrongType(self):
+        """
+        :py:obj:`dump_privatekey` raises :py:obj:`ValueError` when it is passed a passphrase
+        with a private key encoded in a format, that doesn't support
+        encryption.
+        """
+        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        self.assertRaises(ValueError,
+            dump_privatekey, FILETYPE_ASN1, key, "blowfish", "secret")
 
 
     def test_dump_certificate(self):
@@ -2169,6 +2214,32 @@ class FunctionTests(TestCase):
         self.assertTrue(isinstance(loadedKey, PKeyType))
         self.assertEqual(loadedKey.type(), key.type())
         self.assertEqual(loadedKey.bits(), key.bits())
+
+
+    def test_dump_privatekey_passphrase_exception(self):
+        """
+        :py:obj:`dump_privatekey` should not overwrite the exception raised
+        by the passphrase callback.
+        """
+        def cb(ignored):
+            raise ArithmeticError
+
+        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        self.assertRaises(ArithmeticError,
+            dump_privatekey, FILETYPE_PEM, key, "blowfish", cb)
+
+
+    def test_dump_privatekey_passphraseCallbackLength(self):
+        """
+        :py:obj:`crypto.dump_privatekey` should raise an error when the passphrase
+        provided by the callback is too long, not silently truncate it.
+        """
+        def cb(ignored):
+            return "a" * 1025
+
+        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        self.assertRaises(ValueError,
+            dump_privatekey, FILETYPE_PEM, key, "blowfish", cb)
 
 
     def test_load_pkcs7_data(self):

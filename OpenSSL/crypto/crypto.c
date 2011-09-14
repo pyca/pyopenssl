@@ -45,20 +45,70 @@ global_passphrase_callback(char *buf, int len, int rwflag, void *cb_arg)
 
     func = (PyObject *)cb_arg;
     argv = Py_BuildValue("(i)", rwflag);
+    if (argv == NULL) {
+        return 0;
+    }
     ret = PyEval_CallObject(func, argv);
     Py_DECREF(argv);
-    if (ret == NULL)
+    if (ret == NULL) {
         return 0;
-    if (!PyBytes_Check(ret))
-    {
+    }
+    if (!PyBytes_Check(ret)) {
+        Py_DECREF(ret);
         PyErr_SetString(PyExc_ValueError, "String expected");
         return 0;
     }
     nchars = PyBytes_Size(ret);
-    if (nchars > len)
-        nchars = len;
+    if (nchars > len) {
+        Py_DECREF(ret);
+        PyErr_SetString(PyExc_ValueError,
+                        "passphrase returned by callback is too long");
+        return 0;
+    }
     strncpy(buf, PyBytes_AsString(ret), nchars);
+    Py_DECREF(ret);
     return nchars;
+}
+
+static PyObject *
+raise_current_error(void)
+{
+    if (PyErr_Occurred()) {
+        /*
+         * The python exception from callback is more informative than
+         * OpenSSL's error.
+         */
+        flush_error_queue();
+        return NULL;
+    }
+    exception_from_error_queue(crypto_Error);
+    return NULL;
+}
+
+static int
+setup_callback(int type, PyObject *pw, pem_password_cb **cb, void **cb_arg) {
+    if (pw == NULL) {
+        *cb = NULL;
+        *cb_arg = NULL;
+        return 1;
+    }
+    if (type != X509_FILETYPE_PEM) {
+        PyErr_SetString(PyExc_ValueError,
+                        "only FILETYPE_PEM key format supports encryption");
+        return 0;
+    }
+    if (PyBytes_Check(pw)) {
+        *cb = NULL;
+        *cb_arg = PyBytes_AsString(pw);
+    } else if (PyCallable_Check(pw)) {
+        *cb = global_passphrase_callback;
+        *cb_arg = pw;
+    } else {
+        PyErr_SetString(PyExc_TypeError,
+                        "Last argument must be string or callable");
+        return 0;
+    }
+    return 1;
 }
 
 static char crypto_load_privatekey_doc[] = "\n\
@@ -85,31 +135,20 @@ crypto_load_privatekey(PyObject *spam, PyObject *args)
     BIO *bio;
     EVP_PKEY *pkey;
 
-    if (!PyArg_ParseTuple(args, "is#|O:load_privatekey", &type, &buffer, &len, &pw))
+    if (!PyArg_ParseTuple(args, "is#|O:load_privatekey",
+                          &type, &buffer, &len, &pw)) {
         return NULL;
-
-    if (pw != NULL)
-    {
-        if (PyBytes_Check(pw))
-        {
-            cb = NULL;
-            cb_arg = PyBytes_AsString(pw);
-        }
-        else if (PyCallable_Check(pw))
-        {
-            cb = global_passphrase_callback;
-            cb_arg = pw;
-        }
-        else
-        {
-            PyErr_SetString(PyExc_TypeError, "Last argument must be string or callable");
-            return NULL;
-        }
+    }
+    if (!setup_callback(type, pw, &cb, &cb_arg)) {
+        return NULL;
     }
 
     bio = BIO_new_mem_buf(buffer, len);
-    switch (type)
-    {
+    if (bio == NULL) {
+        exception_from_error_queue(crypto_Error);
+        return NULL;
+    }
+    switch (type) {
         case X509_FILETYPE_PEM:
             pkey = PEM_read_bio_PrivateKey(bio, NULL, cb, cb_arg);
             break;
@@ -125,10 +164,8 @@ crypto_load_privatekey(PyObject *spam, PyObject *args)
     }
     BIO_free(bio);
 
-    if (pkey == NULL)
-    {
-        exception_from_error_queue(crypto_Error);
-        return NULL;
+    if (pkey == NULL) {
+        return raise_current_error();
     }
 
     return (PyObject *)crypto_PKey_New(pkey, 1);
@@ -164,49 +201,32 @@ crypto_dump_privatekey(PyObject *spam, PyObject *args)
     crypto_PKeyObj *pkey;
 
     if (!PyArg_ParseTuple(args, "iO!|sO:dump_privatekey", &type,
-			  &crypto_PKey_Type, &pkey, &cipher_name, &pw))
+                          &crypto_PKey_Type, &pkey, &cipher_name, &pw)) {
         return NULL;
-
-    if (cipher_name != NULL && pw == NULL)
-    {
+    }
+    if (cipher_name != NULL && pw == NULL) {
         PyErr_SetString(PyExc_ValueError, "Illegal number of arguments");
         return NULL;
     }
-    if (cipher_name != NULL)
-    {
+    if (cipher_name != NULL) {
         cipher = EVP_get_cipherbyname(cipher_name);
-        if (cipher == NULL)
-        {
+        if (cipher == NULL) {
             PyErr_SetString(PyExc_ValueError, "Invalid cipher name");
             return NULL;
         }
-        if (PyBytes_Check(pw))
-        {
-            cb = NULL;
-            cb_arg = PyBytes_AsString(pw);
-        }
-        else if (PyCallable_Check(pw))
-        {
-            cb = global_passphrase_callback;
-            cb_arg = pw;
-        }
-        else
-        {
-            PyErr_SetString(PyExc_TypeError, "Last argument must be string or callable");
+        if (!setup_callback(type, pw, &cb, &cb_arg)) {
             return NULL;
         }
     }
 
     bio = BIO_new(BIO_s_mem());
-    switch (type)
-    {
+    if (bio == NULL) {
+        exception_from_error_queue(crypto_Error);
+        return NULL;
+    }
+    switch (type) {
         case X509_FILETYPE_PEM:
             ret = PEM_write_bio_PrivateKey(bio, pkey->pkey, cipher, NULL, 0, cb, cb_arg);
-            if (PyErr_Occurred())
-            {
-                BIO_free(bio);
-                return NULL;
-            }
             break;
 
         case X509_FILETYPE_ASN1:
@@ -215,8 +235,12 @@ crypto_dump_privatekey(PyObject *spam, PyObject *args)
 
         case X509_FILETYPE_TEXT:
             rsa = EVP_PKEY_get1_RSA(pkey->pkey);
+            if (rsa == NULL) {
+                ret = 0;
+                break;
+            }
             ret = RSA_print(bio, rsa, 0);
-            RSA_free(rsa); 
+            RSA_free(rsa);
             break;
 
         default:
@@ -225,11 +249,9 @@ crypto_dump_privatekey(PyObject *spam, PyObject *args)
             return NULL;
     }
 
-    if (ret == 0)
-    {
+    if (ret == 0) {
         BIO_free(bio);
-        exception_from_error_queue(crypto_Error);
-        return NULL;
+        return raise_current_error();
     }
 
     buf_len = BIO_get_mem_data(bio, &temp);
@@ -509,8 +531,8 @@ crypto_load_pkcs7_data(PyObject *spam, PyObject *args)
     if (!PyArg_ParseTuple(args, "is#:load_pkcs7_data", &type, &buffer, &len))
         return NULL;
 
-    /* 
-     * Try to read the pkcs7 data from the bio 
+    /*
+     * Try to read the pkcs7 data from the bio
      */
     bio = BIO_new_mem_buf(buffer, len);
     switch (type)
