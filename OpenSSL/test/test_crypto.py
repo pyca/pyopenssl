@@ -2101,21 +2101,6 @@ class FunctionTests(TestCase):
         self.assertRaises(ValueError, dump_privatekey, 100, key)
 
 
-    def test_load_privatekey_passphraseCallbackLeak(self):
-        """
-        :py:obj:`crypto.load_privatekey` should not leak a reference to the
-        passphrase when the passphrase is provided by a callback.
-        """
-        def cb(ignored):
-            return encryptedPrivateKeyPEMPassphrase
-
-        startCount = sys.getrefcount(encryptedPrivateKeyPEMPassphrase)
-        for i in range(100):
-            load_privatekey(FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
-        endCount = sys.getrefcount(encryptedPrivateKeyPEMPassphrase)
-        self.assert_(endCount - startCount < 5, endCount - startCount)
-
-
     def test_load_privatekey_passphraseCallbackLength(self):
         """
         :py:obj:`crypto.load_privatekey` should raise an error when the passphrase
@@ -2242,22 +2227,6 @@ class FunctionTests(TestCase):
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         self.assertRaises(ArithmeticError,
             dump_privatekey, FILETYPE_PEM, key, "blowfish", cb)
-
-
-    def test_dump_privatekey_passphraseCallbackLeak(self):
-        """
-        :py:obj:`crypto.dump_privatekey` should not leak a reference to the
-        passphrase when the passphrase is provided by a callback.
-        """
-        def cb(ignored):
-            return encryptedPrivateKeyPEMPassphrase
-
-        startCount = sys.getrefcount(encryptedPrivateKeyPEMPassphrase)
-        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
-        for i in range(100):
-            dump_privatekey(FILETYPE_PEM, key, "blowfish", cb)
-        endCount = sys.getrefcount(encryptedPrivateKeyPEMPassphrase)
-        self.assert_(endCount - startCount < 5, endCount - startCount)
 
 
     def test_dump_privatekey_passphraseCallbackLength(self):
