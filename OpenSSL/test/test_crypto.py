@@ -1981,7 +1981,7 @@ class FunctionTests(TestCase):
 
     def test_load_privatekey_passphraseWrongType(self):
         """
-        L{load_privatekey} raises C{ValueError} when it is passed a passphrase
+        :py:obj:`load_privatekey` raises :py:obj:`ValueError` when it is passed a passphrase
         with a private key encoded in a format, that doesn't support
         encryption.
         """
@@ -2089,7 +2089,7 @@ class FunctionTests(TestCase):
 
     def test_load_privatekey_passphraseCallbackLeak(self):
         """
-        L{crypto.load_privatekey} should not leak a reference to the
+        :py:obj:`crypto.load_privatekey` should not leak a reference to the
         passphrase when the passphrase is provided by a callback.
         """
         def cb(ignored):
@@ -2104,7 +2104,7 @@ class FunctionTests(TestCase):
 
     def test_load_privatekey_passphraseCallbackLength(self):
         """
-        L{crypto.load_privatekey} should raise an error when the passphrase
+        :py:obj:`crypto.load_privatekey` should raise an error when the passphrase
         provided by the callback is too long, not silently truncate it.
         """
         def cb(ignored):
@@ -2130,7 +2130,7 @@ class FunctionTests(TestCase):
 
     def test_dump_privatekey_passphraseWrongType(self):
         """
-        L{dump_privatekey} raises C{ValueError} when it is passed a passphrase
+        :py:obj:`dump_privatekey` raises :py:obj:`ValueError` when it is passed a passphrase
         with a private key encoded in a format, that doesn't support
         encryption.
         """
@@ -2219,7 +2219,7 @@ class FunctionTests(TestCase):
 
     def test_dump_privatekey_passphrase_exception(self):
         """
-        L{dump_privatekey} should not overwrite the exception raised
+        :py:obj:`dump_privatekey` should not overwrite the exception raised
         by the passphrase callback.
         """
         def cb(ignored):
@@ -2232,7 +2232,7 @@ class FunctionTests(TestCase):
 
     def test_dump_privatekey_passphraseCallbackLeak(self):
         """
-        L{crypto.dump_privatekey} should not leak a reference to the
+        :py:obj:`crypto.dump_privatekey` should not leak a reference to the
         passphrase when the passphrase is provided by a callback.
         """
         def cb(ignored):
@@ -2248,7 +2248,7 @@ class FunctionTests(TestCase):
 
     def test_dump_privatekey_passphraseCallbackLength(self):
         """
-        L{crypto.dump_privatekey} should raise an error when the passphrase
+        :py:obj:`crypto.dump_privatekey` should raise an error when the passphrase
         provided by the callback is too long, not silently truncate it.
         """
         def cb(ignored):
