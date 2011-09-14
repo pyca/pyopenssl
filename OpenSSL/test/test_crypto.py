@@ -2016,14 +2016,14 @@ class FunctionTests(TestCase):
 
     def test_load_privatekey_wrongPassphraseCallback(self):
         """
-        :py:obj:`load_privatekey` raises :py:obj:`OpenSSL.crypto.Error` when it is passed an
-        encrypted PEM and a passphrase callback which returns an incorrect
-        passphrase.
+        :py:obj:`load_privatekey` raises :py:obj:`OpenSSL.crypto.Error` when it
+        is passed an encrypted PEM and a passphrase callback which returns an
+        incorrect passphrase.
         """
         called = []
         def cb(*a):
             called.append(None)
-            return "quack"
+            return b("quack")
         self.assertRaises(
             Error,
             load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
