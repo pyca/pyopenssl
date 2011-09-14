@@ -2045,6 +2045,17 @@ class FunctionTests(TestCase):
         self.assertEqual(called, [False])
 
 
+    def test_load_privatekey_passphrase_wrong_return_type(self):
+        """
+        :py:obj:`load_privatekey` raises :py:obj:`ValueError` if the passphrase
+        callback returns something other than a byte string.
+        """
+        self.assertRaises(
+            ValueError,
+            load_privatekey,
+            FILETYPE_PEM, encryptedPrivateKeyPEM, lambda *args: 3)
+
+
     def test_dump_privatekey_wrong_args(self):
         """
         :py:obj:`dump_privatekey` raises :py:obj:`TypeError` if called with the wrong number
