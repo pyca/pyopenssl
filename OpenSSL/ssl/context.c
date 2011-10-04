@@ -984,6 +984,24 @@ ssl_Context_set_timeout(ssl_ContextObj *self, PyObject *args)
     return PyLong_FromLong(ret);
 }
 
+static char ssl_Context_set_session_cache_mode_doc[] = "\n\
+Set session cache mode\n\
+\n\
+:param timeout: The mode as an integer\n\
+:return: The previous set cache mode\n\
+";
+static PyObject *
+ssl_Context_set_session_cache_mode(ssl_ContextObj *self, PyObject *args)
+{
+    long t, ret;
+
+    if (!PyArg_ParseTuple(args, "l:set_session_cache_mode", &t))
+        return NULL;
+
+    ret = SSL_CTX_set_session_cache_mode(self->ctx, t);
+    return PyLong_FromLong(ret);
+}
+
 static char ssl_Context_get_timeout_doc[] = "\n\
 Get the session timeout\n\
 \n\
@@ -1186,6 +1204,7 @@ static PyMethodDef ssl_Context_methods[] = {
     ADD_METHOD(add_client_ca),
     ADD_METHOD(set_timeout),
     ADD_METHOD(get_timeout),
+    ADD_METHOD(set_session_cache_mode),
     ADD_METHOD(set_info_callback),
     ADD_METHOD(get_app_data),
     ADD_METHOD(set_app_data),
