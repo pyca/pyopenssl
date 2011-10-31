@@ -127,7 +127,7 @@ crypto_PKey_check(crypto_PKeyObj *self, PyObject *args) {
     if (self->only_public) {
         PyErr_SetString(PyExc_TypeError, "public key only");
         return NULL;
-	}
+    }
 
     if (self->pkey->type == EVP_PKEY_RSA) {
         RSA *rsa;
