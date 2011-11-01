@@ -630,6 +630,20 @@ class PKeyTests(TestCase):
         self.assertRaises(TypeError, PKey().check, 1)
 
 
+    def test_check_public_key(self):
+        """
+        :py:meth:`PKeyType.check` raises :py:exc:`TypeError` if only the public
+        part of the key is available.
+        """
+        # A trick to get a public-only key
+        key = PKey()
+        key.generate_key(TYPE_RSA, 512)
+        cert = X509()
+        cert.set_pubkey(key)
+        pub = cert.get_pubkey()
+        self.assertRaises(TypeError, pub.check)
+
+
 
 class X509NameTests(TestCase):
     """
