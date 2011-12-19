@@ -218,5 +218,23 @@ High-level wrapper around a subset of the OpenSSL library, includes
    sockets
  * Callbacks written in Python
  * Extensive error-handling mechanism, mirroring OpenSSL's error codes
-...  and much more ;)"""
-     )
+...  and much more ;)""",
+      classifiers = [
+        'Development Status :: 6 - Mature',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: Apache Software License',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: POSIX',
+        'Programming Language :: C',
+        'Programming Language :: Python :: 2.4',
+        'Programming Language :: Python :: 2.5',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy',
+        'Topic :: Security :: Cryptography',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: System :: Networking',
+        ])
