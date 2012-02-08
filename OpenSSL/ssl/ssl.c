@@ -274,6 +274,20 @@ do {                                                                    \
     PyModule_AddIntConstant(module, "SSLEAY_PLATFORM", SSLEAY_PLATFORM);
     PyModule_AddIntConstant(module, "SSLEAY_DIR", SSLEAY_DIR);
 
+    /* Cache modes */
+#define CACHE_MODE(mode) \
+    PyModule_AddIntConstant(module, "SESS_CACHE_" #mode, SSL_SESS_CACHE_##mode)
+
+    CACHE_MODE(OFF);
+    CACHE_MODE(CLIENT);
+    CACHE_MODE(SERVER);
+    CACHE_MODE(BOTH);
+    CACHE_MODE(NO_AUTO_CLEAR);
+    CACHE_MODE(NO_INTERNAL_LOOKUP);
+    CACHE_MODE(NO_INTERNAL_STORE);
+    CACHE_MODE(NO_INTERNAL);
+#undef CACHE_MODE
+
     /* Straight up version number */
     PyModule_AddIntConstant(module, "OPENSSL_VERSION_NUMBER", OPENSSL_VERSION_NUMBER);
 

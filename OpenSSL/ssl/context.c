@@ -717,6 +717,38 @@ ssl_Context_set_session_id(ssl_ContextObj *self, PyObject *args)
     }
 }
 
+static char ssl_Context_set_session_cache_mode_doc[] = "\n\
+Enable/disable session caching and the mode used.\n\
+\n\
+@param mode: One or more of the SESS_CACHE_* flags (combine using bitwise or)\n\
+@return: The previously set caching mode.n\
+";
+static PyObject *
+ssl_Context_set_session_cache_mode(ssl_ContextObj *self, PyObject *args)
+{
+    long mode, result;
+
+    if (!PyArg_ParseTuple(args, "l:set_session_cache_mode", &mode))
+        return NULL;
+
+    result = SSL_CTX_set_session_cache_mode(self->ctx, mode);
+    return PyLong_FromLong(result);
+
+}
+
+static char ssl_Context_get_session_cache_mode_doc[] = "\n\
+Returns the currently used cache mode.\n\
+\n\
+@return: The currently used cache mode.\n\
+";
+static PyObject *
+ssl_Context_get_session_cache_mode(ssl_ContextObj *self, PyObject *args)
+{
+    if (!PyArg_ParseTuple(args, ":get_session_cache_mode"))
+        return NULL;
+    return PyLong_FromLong((long)SSL_CTX_get_session_cache_mode(self->ctx));
+}
+
 static char ssl_Context_set_verify_doc[] = "\n\
 Set the verify mode and verify callback\n\
 \n\
@@ -1176,6 +1208,8 @@ static PyMethodDef ssl_Context_methods[] = {
     ADD_METHOD(check_privatekey),
     ADD_METHOD(load_client_ca),
     ADD_METHOD(set_session_id),
+    ADD_METHOD(set_session_cache_mode),
+    ADD_METHOD(get_session_cache_mode),
     ADD_METHOD(set_verify),
     ADD_METHOD(set_verify_depth),
     ADD_METHOD(get_verify_mode),
