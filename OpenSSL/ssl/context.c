@@ -690,8 +690,8 @@ ssl_Context_load_client_ca(ssl_ContextObj *self, PyObject *args)
 }
 
 static char ssl_Context_set_session_id_doc[] = "\n\
-Set the session identifier, this is needed if you want to do session\n\
-resumption (which, ironically, isn't implemented yet)\n\
+Set the session identifier.  This is needed if you want to do session\n\
+resumption.\n\
 \n\
 :param buf: A Python object that can be safely converted to a string\n\
 :returns: None\n\
@@ -720,16 +720,16 @@ ssl_Context_set_session_id(ssl_ContextObj *self, PyObject *args)
 static char ssl_Context_set_session_cache_mode_doc[] = "\n\
 Enable/disable session caching and the mode used.\n\
 \n\
-@param mode: One or more of the SESS_CACHE_* flags (combine using bitwise or)\n\
-@return: The previously set caching mode.n\
+:param mode: One or more of the SESS_CACHE_* flags (combine using bitwise or)\n\
+:returns: The previously set caching mode.\n\
 ";
 static PyObject *
-ssl_Context_set_session_cache_mode(ssl_ContextObj *self, PyObject *args)
-{
+ssl_Context_set_session_cache_mode(ssl_ContextObj *self, PyObject *args) {
     long mode, result;
 
-    if (!PyArg_ParseTuple(args, "l:set_session_cache_mode", &mode))
+    if (!PyArg_ParseTuple(args, "l:set_session_cache_mode", &mode)) {
         return NULL;
+    }
 
     result = SSL_CTX_set_session_cache_mode(self->ctx, mode);
     return PyLong_FromLong(result);
@@ -737,16 +737,17 @@ ssl_Context_set_session_cache_mode(ssl_ContextObj *self, PyObject *args)
 }
 
 static char ssl_Context_get_session_cache_mode_doc[] = "\n\
-Returns the currently used cache mode.\n\
-\n\
-@return: The currently used cache mode.\n\
+:returns: The currently used cache mode.\n\
 ";
 static PyObject *
-ssl_Context_get_session_cache_mode(ssl_ContextObj *self, PyObject *args)
-{
-    if (!PyArg_ParseTuple(args, ":get_session_cache_mode"))
+ssl_Context_get_session_cache_mode(ssl_ContextObj *self, PyObject *args) {
+    long result;
+
+    if (!PyArg_ParseTuple(args, ":get_session_cache_mode")) {
         return NULL;
-    return PyLong_FromLong((long)SSL_CTX_get_session_cache_mode(self->ctx));
+    }
+    result = SSL_CTX_get_session_cache_mode(self->ctx);
+    return PyLong_FromLong(result);
 }
 
 static char ssl_Context_set_verify_doc[] = "\n\
