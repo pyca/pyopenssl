@@ -69,6 +69,20 @@ Context, Connection.
     information to retrieve.  See the man page for the :py:func:`SSLeay_version` C
     API for details.
 
+.. py:data:: SESS_CACHE_OFF
+             SESS_CACHE_CLIENT
+             SESS_CACHE_SERVER
+             SESS_CACHE_BOTH
+             SESS_CACHE_NO_AUTO_CLEAR
+             SESS_CACHE_NO_INTERNAL_LOOKUP
+             SESS_CACHE_NO_INTERNAL_STORE
+             SESS_CACHE_NO_INTERNAL
+
+     Constants used with :py:meth:`Context.set_session_cache_mode` to specify
+     the behavior of the session cache and potential session reuse.  See the man
+     page for the :py:func:`SSL_CTX_set_session_cache_mode` C API for details.
+
+     .. versionadded:: 0.14
 
 .. py:data:: OPENSSL_VERSION_NUMBER
 
@@ -313,6 +327,22 @@ Context objects have the following methods:
     verify that the two values supplied are equal. Third, the value given as the
     *userdata* parameter to :py:meth:`set_passwd_cb`.  If an error occurs,
     *callback* should return a false value (e.g. an empty string).
+
+
+.. py:method:: Context.set_session_cache_mode(mode)
+
+    Set the behavior of the session cache used by all connections using this
+    Context.  The previously set mode is returned.  See :py:const:`SESS_CACHE_*`
+    for details about particular modes.
+
+    .. versionadded:: 0.14
+
+
+.. py:method:: Context.get_session_cache_mode()
+
+    Get the current session cache mode.
+
+    .. versionadded:: 0.14
 
 
 .. py:method:: Context.set_session_id(name)
