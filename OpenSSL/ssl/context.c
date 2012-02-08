@@ -718,7 +718,7 @@ ssl_Context_set_session_id(ssl_ContextObj *self, PyObject *args)
 }
 
 static char ssl_Context_set_session_cache_mode_doc[] = "\n\
-Enable/disable session caching and the mode used.\n\
+Enable/disable session caching and specify the mode used.\n\
 \n\
 :param mode: One or more of the SESS_CACHE_* flags (combine using bitwise or)\n\
 :returns: The previously set caching mode.\n\
