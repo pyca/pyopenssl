@@ -10,7 +10,7 @@ from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK
 from sys import platform, version_info
 from socket import error, socket
 from os import makedirs
-from os.path import join
+from os.path import join, dirname
 from unittest import main
 from weakref import ref
 
@@ -26,6 +26,11 @@ from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
 from OpenSSL.SSL import OP_NO_SSLv2, OP_NO_SSLv3, OP_SINGLE_DH_USE
 from OpenSSL.SSL import (
     VERIFY_PEER, VERIFY_FAIL_IF_NO_PEER_CERT, VERIFY_CLIENT_ONCE, VERIFY_NONE)
+
+from OpenSSL.SSL import (
+    SESS_CACHE_OFF, SESS_CACHE_CLIENT, SESS_CACHE_SERVER, SESS_CACHE_BOTH,
+    SESS_CACHE_NO_AUTO_CLEAR, SESS_CACHE_NO_INTERNAL_LOOKUP,
+    SESS_CACHE_NO_INTERNAL_STORE, SESS_CACHE_NO_INTERNAL)
 
 from OpenSSL.SSL import (
     Error, SysCallError, WantReadError, ZeroReturnError, SSLeay_version)
@@ -909,6 +914,37 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertEquals(conn.get_cipher_list(), ["EXP-RC4-MD5"])
 
 
+    def test_set_session_cache_mode_wrong_args(self):
+        """
+        L{Context.set_session_cache_mode} raises L{TypeError} if called with
+        other than one integer argument.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.set_session_cache_mode)
+        self.assertRaises(TypeError, context.set_session_cache_mode, object())
+
+
+    def test_get_session_cache_mode_wrong_args(self):
+        """
+        L{Context.get_session_cache_mode} raises L{TypeError} if called with any
+        arguments.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.get_session_cache_mode, 1)
+
+
+    def test_session_cache_mode(self):
+        """
+        L{Context.set_session_cache_mode} specifies how sessions are cached.
+        The setting can be retrieved via L{Context.get_session_cache_mode}.
+        """
+        context = Context(TLSv1_METHOD)
+        old = context.set_session_cache_mode(SESS_CACHE_OFF)
+        off = context.set_session_cache_mode(SESS_CACHE_BOTH)
+        self.assertEqual(SESS_CACHE_OFF, off)
+        self.assertEqual(SESS_CACHE_BOTH, context.get_session_cache_mode())
+
+
 
 class ServerNameCallbackTests(TestCase, _LoopbackMixin):
     """
@@ -1625,6 +1661,72 @@ class ConstantsTests(TestCase):
             self.assertEqual(OP_NO_COMPRESSION, 0x20000)
     else:
         "OP_NO_COMPRESSION unavailable - OpenSSL version may be too old"
+
+
+    def test_sess_cache_off(self):
+        """
+        The value of L{OpenSSL.SSL.SESS_CACHE_OFF} 0x0, the value of
+        L{SSL_SESS_CACHE_OFF} defined by I{openssl/ssl.h}.
+        """
+        self.assertEqual(0x0, SESS_CACHE_OFF)
+
+
+    def test_sess_cache_client(self):
+        """
+        The value of L{OpenSSL.SSL.SESS_CACHE_CLIENT} 0x1, the value of
+        L{SSL_SESS_CACHE_CLIENT} defined by I{openssl/ssl.h}.
+        """
+        self.assertEqual(0x1, SESS_CACHE_CLIENT)
+
+
+    def test_sess_cache_server(self):
+        """
+        The value of L{OpenSSL.SSL.SESS_CACHE_SERVER} 0x2, the value of
+        L{SSL_SESS_CACHE_SERVER} defined by I{openssl/ssl.h}.
+        """
+        self.assertEqual(0x2, SESS_CACHE_SERVER)
+
+
+    def test_sess_cache_both(self):
+        """
+        The value of L{OpenSSL.SSL.SESS_CACHE_BOTH} 0x3, the value of
+        L{SSL_SESS_CACHE_BOTH} defined by I{openssl/ssl.h}.
+        """
+        self.assertEqual(0x3, SESS_CACHE_BOTH)
+
+
+    def test_sess_cache_no_auto_clear(self):
+        """
+        The value of L{OpenSSL.SSL.SESS_CACHE_NO_AUTO_CLEAR} 0x80, the value of
+        L{SSL_SESS_CACHE_NO_AUTO_CLEAR} defined by I{openssl/ssl.h}.
+        """
+        self.assertEqual(0x80, SESS_CACHE_NO_AUTO_CLEAR)
+
+
+    def test_sess_cache_no_internal_lookup(self):
+        """
+        The value of L{OpenSSL.SSL.SESS_CACHE_NO_INTERNAL_LOOKUP} 0x100, the
+        value of L{SSL_SESS_CACHE_NO_INTERNAL_LOOKUP} defined by
+        I{openssl/ssl.h}.
+        """
+        self.assertEqual(0x100, SESS_CACHE_NO_INTERNAL_LOOKUP)
+
+
+    def test_sess_cache_no_internal_store(self):
+        """
+        The value of L{OpenSSL.SSL.SESS_CACHE_NO_INTERNAL_STORE} 0x200, the
+        value of L{SSL_SESS_CACHE_NO_INTERNAL_STORE} defined by
+        I{openssl/ssl.h}.
+        """
+        self.assertEqual(0x200, SESS_CACHE_NO_INTERNAL_STORE)
+
+
+    def test_sess_cache_no_internal(self):
+        """
+        The value of L{OpenSSL.SSL.SESS_CACHE_NO_INTERNAL} 0x300, the value of
+        L{SSL_SESS_CACHE_NO_INTERNAL} defined by I{openssl/ssl.h}.
+        """
+        self.assertEqual(0x300, SESS_CACHE_NO_INTERNAL)
 
 
 

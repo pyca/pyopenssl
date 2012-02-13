@@ -1,4 +1,12 @@
-2011-11-01  Jean-Paul Calderone <exarkun@twistedmatrix.com>
+2012-02-13  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/ssl/ssl.c: Add session cache related constants for use
+	  with the new Context.set_session_cache_mode method.
+
+	* OpenSSL/ssl/context.c: Add new Context methods
+	  set_session_cache_mode and get_session_cache_mode.
+
+2011-11-01  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL/crypto/pkey.c: Raise TypeError when trying to check a
 	  PKey instance which has no private component, instead of crashing.
