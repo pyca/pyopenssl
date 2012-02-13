@@ -298,6 +298,8 @@ do {                                                                    \
 
     if (!init_ssl_context(module))
         goto error;
+    if (!init_ssl_session(module))
+        goto error;
     if (!init_ssl_connection(module))
         goto error;
 

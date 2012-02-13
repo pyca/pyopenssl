@@ -34,9 +34,9 @@ crypto_dep = ['OpenSSL/crypto/crypto.h', 'OpenSSL/crypto/x509.h',
 rand_src = ['OpenSSL/rand/rand.c', 'OpenSSL/util.c']
 rand_dep = ['OpenSSL/util.h']
 ssl_src = ['OpenSSL/ssl/connection.c', 'OpenSSL/ssl/context.c', 'OpenSSL/ssl/ssl.c',
-           'OpenSSL/util.c']
+           'OpenSSL/ssl/session.c', 'OpenSSL/util.c']
 ssl_dep = ['OpenSSL/ssl/connection.h', 'OpenSSL/ssl/context.h', 'OpenSSL/ssl/ssl.h',
-           'OpenSSL/util.h']
+           'OpenSSL/ssl/session.h', 'OpenSSL/util.h']
 
 IncludeDirs = None
 LibraryDirs = None

@@ -34,7 +34,8 @@ from OpenSSL.SSL import (
 
 from OpenSSL.SSL import (
     Error, SysCallError, WantReadError, ZeroReturnError, SSLeay_version)
-from OpenSSL.SSL import Context, ContextType, Connection, ConnectionType
+from OpenSSL.SSL import (
+    Context, ContextType, Session, Connection, ConnectionType)
 
 from OpenSSL.test.util import TestCase, bytes, b
 from OpenSSL.test.test_crypto import (
@@ -1043,6 +1044,30 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
         self._interactInMemory(server, client)
 
         self.assertEqual([(server, b("foo1.example.com"))], args)
+
+
+
+class SessionTests(TestCase):
+    """
+    Unit tests for :py:obj:`OpenSSL.SSL.Session`.
+    """
+    def test_construction(self):
+        """
+        :py:class:`Session` can be constructed with no arguments, creating a new
+        instance of that type.
+        """
+        new_session = Session()
+        self.assertTrue(isinstance(new_session, Session))
+
+
+    def test_construction_wrong_args(self):
+        """
+        If any arguments are passed to :py:class:`Session`, :py:obj:`TypeError`
+        is raised.
+        """
+        self.assertRaises(TypeError, Session, 123)
+        self.assertRaises(TypeError, Session, "hello")
+        self.assertRaises(TypeError, Session, object())
 
 
 
