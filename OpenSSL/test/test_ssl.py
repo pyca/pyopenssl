@@ -1428,6 +1428,51 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertIdentical(None, server.get_peer_cert_chain())
 
 
+    def test_get_session_wrong_args(self):
+        """
+        :py:obj:`Connection.get_session` raises :py:obj:`TypeError` if called
+        with any arguments.
+        """
+        ctx = Context(TLSv1_METHOD)
+        server = Connection(ctx, None)
+        self.assertRaises(TypeError, server.get_session, 123)
+        self.assertRaises(TypeError, server.get_session, "hello")
+        self.assertRaises(TypeError, server.get_session, object())
+
+
+    def test_get_session_unconnected(self):
+        """
+        :py:obj:`Connection.get_session` returns :py:obj:`None` when used with
+        an object which has not been connected.
+        """
+        ctx = Context(TLSv1_METHOD)
+        server = Connection(ctx, None)
+        session = server.get_session()
+        self.assertIdentical(None, session)
+
+
+    def test_server_get_session(self):
+        """
+        On the server side of a connection, :py:obj:`Connection.get_session`
+        returns a :py:class:`Session` instance representing the SSL session for
+        that connection.
+        """
+        server, client = self._loopback()
+        session = server.get_session()
+        self.assertTrue(session, Session)
+
+
+    def test_client_get_session(self):
+        """
+        On the client side of a connection, :py:obj:`Connection.get_session`
+        returns a :py:class:`Session` instance representing the SSL session for
+        that connection.
+        """
+        server, client = self._loopback()
+        session = client.get_session()
+        self.assertTrue(session, Session)
+
+
 
 class ConnectionGetCipherListTests(TestCase):
     """

@@ -1254,6 +1254,37 @@ ssl_Connection_want_write(ssl_ConnectionObj *self, PyObject *args)
     return PyLong_FromLong((long)SSL_want_write(self->ssl));
 }
 
+static char ssl_Connection_get_session_doc[] = "\n\
+Returns the Session currently used.\n\
+\n\
+@return: An instance of :py:class:`OpenSSL.SSL.Session` or :py:obj:`None` if\n\
+    no session exists.\n\
+";
+static PyObject *
+ssl_Connection_get_session(ssl_ConnectionObj *self, PyObject *args) {
+    ssl_SessionObj *session;
+    SSL_SESSION *native_session;
+
+    if (!PyArg_ParseTuple(args, ":get_session")) {
+        return NULL;
+    }
+
+    native_session = SSL_get1_session(self->ssl);
+
+    if (native_session == NULL) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+    session = ssl_Session_from_SSL_SESSION(native_session);
+    if (!session) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+    return (PyObject*)session;
+}
+
 /*
  * Member methods in the Connection object
  * ADD_METHOD(name) expands to a correct PyMethodDef declaration
@@ -1309,6 +1340,7 @@ static PyMethodDef ssl_Connection_methods[] =
     ADD_METHOD(want_write),
     ADD_METHOD(set_accept_state),
     ADD_METHOD(set_connect_state),
+    ADD_METHOD(get_session),
     { NULL, NULL }
 };
 #undef ADD_ALIAS

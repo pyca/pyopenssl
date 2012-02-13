@@ -16,10 +16,12 @@
 
 typedef struct {
     PyObject_HEAD
+    SSL_SESSION *session;
 } ssl_SessionObj;
 
 extern PyTypeObject ssl_Session_Type;
 
 extern int init_ssl_session(PyObject *);
+extern ssl_SessionObj *ssl_Session_from_SSL_SESSION(SSL_SESSION *native_session);
 
 #endif

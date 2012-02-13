@@ -18,21 +18,14 @@ Session() -> Session instance\n\
 ";
 
 /*
- * Initialize an already-constructed Session instance.
+ * Initialize an already-constructed Session instance with an OpenSSL session
+ * structure (or NULL).  A reference to the OpenSSL session structure is stolen.
  */
-static ssl_SessionObj *ssl_Session_init(ssl_SessionObj *self) {
-  /*
-    self->sess = d2i_SSL_SESSION(NULL, &buffer, len);
-
-    if (!self->sess) {
-      exception_from_error_queue(ssl_Error);
-      return NULL;
-    }
-  */
+static ssl_SessionObj*
+ssl_Session_init(ssl_SessionObj *self, SSL_SESSION *native_session) {
+    self->session = native_session;
     return self;
-
 }
-
 
 /*
  * Create a Session object
@@ -50,7 +43,37 @@ ssl_Session_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    return (PyObject *)ssl_Session_init(self);
+    return (PyObject *)ssl_Session_init(self, NULL);
+}
+
+/*
+ * Create a Session object from an existing SSL_SESSION*.  A reference to the
+ * SSL_SESSION* is stolen.
+ */
+ssl_SessionObj*
+ssl_Session_from_SSL_SESSION(SSL_SESSION *native_session) {
+    ssl_SessionObj *self;
+
+    self = PyObject_New(ssl_SessionObj, &ssl_Session_Type);
+    if (self == NULL) {
+        return NULL;
+    }
+
+    return ssl_Session_init(self, native_session);
+}
+
+/*
+ * Discard the reference to the OpenSSL session structure, if there is one, so
+ * that it can be freed if it is no longer in use.  Also release the memory for
+ * the Python object.
+ */
+static void
+ssl_Session_dealloc(ssl_SessionObj *self) {
+    if (self->session != NULL) {
+        SSL_SESSION_free(self->session);
+        self->session = NULL;
+    }
+    self->ob_type->tp_free((PyObject*)self);
 }
 
 /*
@@ -63,16 +86,6 @@ ssl_Session_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs) {
  */
 #define ADD_METHOD(name) { #name, (PyCFunction)ssl_Session_##name, METH_VARARGS, ssl_Session_##name##_doc }
 static PyMethodDef ssl_Session_methods[] = {
-#if 0
-    ADD_METHOD(asn1),
-    ADD_METHOD(get_time),
-    ADD_METHOD(get_timeout),
-#ifdef SSL_SESSION_hash
-    ADD_METHOD(hash),
-#endif
-    ADD_METHOD(set_time),
-    ADD_METHOD(set_timeout),
-#endif
     { NULL, NULL }
 };
 #undef ADD_METHOD
@@ -85,7 +98,7 @@ PyTypeObject ssl_Session_Type = {
     "OpenSSL.SSL.Session",
     sizeof(ssl_SessionObj),
     0,
-    NULL, // (destructor)ssl_Session_dealloc, /* tp_dealloc */
+    (destructor)ssl_Session_dealloc, /* tp_dealloc */
     NULL, /* print */
     NULL, /* tp_getattr */
     NULL, /* setattr */
