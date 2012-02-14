@@ -1546,6 +1546,10 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_set_session_wrong_method(self):
         """
+        If :py:obj:`Connection.set_session` is passed a :py:class:`Session`
+        instance associated with a context using a different SSL method than the
+        :py:obj:`Connection` is using, a :py:class:`OpenSSL.SSL.Error` is
+        raised.
         """
         key = load_privatekey(FILETYPE_PEM, server_key_pem)
         cert = load_certificate(FILETYPE_PEM, server_cert_pem)
