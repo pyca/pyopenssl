@@ -1544,6 +1544,37 @@ class ConnectionTests(TestCase, _LoopbackMixin):
             originalServer.master_key(), resumedServer.master_key())
 
 
+    def test_set_session_wrong_method(self):
+        """
+        """
+        key = load_privatekey(FILETYPE_PEM, server_key_pem)
+        cert = load_certificate(FILETYPE_PEM, server_cert_pem)
+        ctx = Context(TLSv1_METHOD)
+        ctx.use_privatekey(key)
+        ctx.use_certificate(cert)
+        ctx.set_session_id("unity-test")
+
+        def makeServer(socket):
+            server = Connection(ctx, socket)
+            server.set_accept_state()
+            return server
+
+        originalServer, originalClient = self._loopback(
+            serverFactory=makeServer)
+        originalSession = originalClient.get_session()
+
+        def makeClient(socket):
+            # Intentionally use a different, incompatible method here.
+            client = Connection(Context(SSLv3_METHOD), socket)
+            client.set_connect_state()
+            client.set_session(originalSession)
+            return client
+
+        self.assertRaises(
+            Error,
+            self._loopback, clientFactory=makeClient, serverFactory=makeServer)
+
+
 
 class ConnectionGetCipherListTests(TestCase):
     """

@@ -1300,7 +1300,8 @@ ssl_Connection_set_session(ssl_ConnectionObj *self, PyObject *args) {
     }
 
     if (SSL_set_session(self->ssl, session->session) == 0) {
-        /* XXX Under what conditions does this fail?  I have no idea.
+        /* The only case which leads to this seems to be a mismatch, between
+         * this connection and the session, of the SSL method.
          */
         exception_from_error_queue(ssl_Error);
         return NULL;
