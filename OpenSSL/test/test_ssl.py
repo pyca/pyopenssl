@@ -189,16 +189,30 @@ class _LoopbackMixin:
     Helper mixin which defines methods for creating a connected socket pair and
     for forcing two connected SSL sockets to talk to each other via memory BIOs.
     """
-    def _loopback(self):
-        (server, client) = socket_pair()
+    def _loopbackClientFactory(self, socket):
+        client = Connection(Context(TLSv1_METHOD), socket)
+        client.set_connect_state()
+        return client
 
+
+    def _loopbackServerFactory(self, socket):
         ctx = Context(TLSv1_METHOD)
         ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
         ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
-        server = Connection(ctx, server)
+        server = Connection(ctx, socket)
         server.set_accept_state()
-        client = Connection(Context(TLSv1_METHOD), client)
-        client.set_connect_state()
+        return server
+
+
+    def _loopback(self, serverFactory=None, clientFactory=None):
+        if serverFactory is None:
+            serverFactory = self._loopbackServerFactory
+        if clientFactory is None:
+            clientFactory = self._loopbackClientFactory
+
+        (server, client) = socket_pair()
+        server = serverFactory(server)
+        client = clientFactory(client)
 
         handshake(client, server)
 
@@ -1471,6 +1485,63 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         server, client = self._loopback()
         session = client.get_session()
         self.assertTrue(session, Session)
+
+
+    def test_set_session_wrong_args(self):
+        """
+        If called with an object that is not an instance of :py:class:`Session`,
+        or with other than one argument, :py:obj:`Connection.set_session` raises
+        :py:obj:`TypeError`.
+        """
+        ctx = Context(TLSv1_METHOD)
+        connection = Connection(ctx, None)
+        self.assertRaises(TypeError, connection.set_session)
+        self.assertRaises(TypeError, connection.set_session, 123)
+        self.assertRaises(TypeError, connection.set_session, "hello")
+        self.assertRaises(TypeError, connection.set_session, object())
+        self.assertRaises(
+            TypeError, connection.set_session, Session(), Session())
+
+
+    def test_client_set_session(self):
+        """
+        :py:obj:`Connection.set_session`, when used prior to a connection being
+        established, accepts a :py:class:`Session` instance and causes an
+        attempt to re-use the session it represents when the SSL handshake is
+        performed.
+        """
+        key = load_privatekey(FILETYPE_PEM, server_key_pem)
+        cert = load_certificate(FILETYPE_PEM, server_cert_pem)
+        ctx = Context(TLSv1_METHOD)
+        ctx.use_privatekey(key)
+        ctx.use_certificate(cert)
+        ctx.set_session_id("unity-test")
+
+        def makeServer(socket):
+            server = Connection(ctx, socket)
+            server.set_accept_state()
+            return server
+
+        originalServer, originalClient = self._loopback(
+            serverFactory=makeServer)
+        originalSession = originalClient.get_session()
+
+        def makeClient(socket):
+            client = self._loopbackClientFactory(socket)
+            client.set_session(originalSession)
+            return client
+        resumedServer, resumedClient = self._loopback(
+            serverFactory=makeServer,
+            clientFactory=makeClient)
+
+        # This is a proxy: in general, we have no access to any unique
+        # identifier for the session (new enough versions of OpenSSL expose a
+        # hash which could be usable, but "new enough" is very, very new).
+        # Instead, exploit the fact that the master key is re-used if the
+        # session is re-used.  As long as the master key for the two connections
+        # is the same, the session was re-used!
+        self.assertEqual(
+            originalServer.master_key(), resumedServer.master_key())
 
 
 
