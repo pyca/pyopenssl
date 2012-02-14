@@ -73,7 +73,7 @@ ssl_Session_dealloc(ssl_SessionObj *self) {
         SSL_SESSION_free(self->session);
         self->session = NULL;
     }
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 /*
