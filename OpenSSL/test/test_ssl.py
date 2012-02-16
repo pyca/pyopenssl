@@ -34,7 +34,8 @@ from OpenSSL.SSL import (
 
 from OpenSSL.SSL import (
     Error, SysCallError, WantReadError, ZeroReturnError, SSLeay_version)
-from OpenSSL.SSL import Context, ContextType, Connection, ConnectionType
+from OpenSSL.SSL import (
+    Context, ContextType, Session, Connection, ConnectionType)
 
 from OpenSSL.test.util import TestCase, bytes, b
 from OpenSSL.test.test_crypto import (
@@ -188,16 +189,30 @@ class _LoopbackMixin:
     Helper mixin which defines methods for creating a connected socket pair and
     for forcing two connected SSL sockets to talk to each other via memory BIOs.
     """
-    def _loopback(self):
-        (server, client) = socket_pair()
+    def _loopbackClientFactory(self, socket):
+        client = Connection(Context(TLSv1_METHOD), socket)
+        client.set_connect_state()
+        return client
 
+
+    def _loopbackServerFactory(self, socket):
         ctx = Context(TLSv1_METHOD)
         ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
         ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
-        server = Connection(ctx, server)
+        server = Connection(ctx, socket)
         server.set_accept_state()
-        client = Connection(Context(TLSv1_METHOD), client)
-        client.set_connect_state()
+        return server
+
+
+    def _loopback(self, serverFactory=None, clientFactory=None):
+        if serverFactory is None:
+            serverFactory = self._loopbackServerFactory
+        if clientFactory is None:
+            clientFactory = self._loopbackClientFactory
+
+        (server, client) = socket_pair()
+        server = serverFactory(server)
+        client = clientFactory(client)
 
         handshake(client, server)
 
@@ -1046,6 +1061,30 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
 
 
 
+class SessionTests(TestCase):
+    """
+    Unit tests for :py:obj:`OpenSSL.SSL.Session`.
+    """
+    def test_construction(self):
+        """
+        :py:class:`Session` can be constructed with no arguments, creating a new
+        instance of that type.
+        """
+        new_session = Session()
+        self.assertTrue(isinstance(new_session, Session))
+
+
+    def test_construction_wrong_args(self):
+        """
+        If any arguments are passed to :py:class:`Session`, :py:obj:`TypeError`
+        is raised.
+        """
+        self.assertRaises(TypeError, Session, 123)
+        self.assertRaises(TypeError, Session, "hello")
+        self.assertRaises(TypeError, Session, object())
+
+
+
 class ConnectionTests(TestCase, _LoopbackMixin):
     """
     Unit tests for :py:obj:`OpenSSL.SSL.Connection`.
@@ -1401,6 +1440,143 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         client.set_connect_state()
         self._interactInMemory(client, server)
         self.assertIdentical(None, server.get_peer_cert_chain())
+
+
+    def test_get_session_wrong_args(self):
+        """
+        :py:obj:`Connection.get_session` raises :py:obj:`TypeError` if called
+        with any arguments.
+        """
+        ctx = Context(TLSv1_METHOD)
+        server = Connection(ctx, None)
+        self.assertRaises(TypeError, server.get_session, 123)
+        self.assertRaises(TypeError, server.get_session, "hello")
+        self.assertRaises(TypeError, server.get_session, object())
+
+
+    def test_get_session_unconnected(self):
+        """
+        :py:obj:`Connection.get_session` returns :py:obj:`None` when used with
+        an object which has not been connected.
+        """
+        ctx = Context(TLSv1_METHOD)
+        server = Connection(ctx, None)
+        session = server.get_session()
+        self.assertIdentical(None, session)
+
+
+    def test_server_get_session(self):
+        """
+        On the server side of a connection, :py:obj:`Connection.get_session`
+        returns a :py:class:`Session` instance representing the SSL session for
+        that connection.
+        """
+        server, client = self._loopback()
+        session = server.get_session()
+        self.assertTrue(session, Session)
+
+
+    def test_client_get_session(self):
+        """
+        On the client side of a connection, :py:obj:`Connection.get_session`
+        returns a :py:class:`Session` instance representing the SSL session for
+        that connection.
+        """
+        server, client = self._loopback()
+        session = client.get_session()
+        self.assertTrue(session, Session)
+
+
+    def test_set_session_wrong_args(self):
+        """
+        If called with an object that is not an instance of :py:class:`Session`,
+        or with other than one argument, :py:obj:`Connection.set_session` raises
+        :py:obj:`TypeError`.
+        """
+        ctx = Context(TLSv1_METHOD)
+        connection = Connection(ctx, None)
+        self.assertRaises(TypeError, connection.set_session)
+        self.assertRaises(TypeError, connection.set_session, 123)
+        self.assertRaises(TypeError, connection.set_session, "hello")
+        self.assertRaises(TypeError, connection.set_session, object())
+        self.assertRaises(
+            TypeError, connection.set_session, Session(), Session())
+
+
+    def test_client_set_session(self):
+        """
+        :py:obj:`Connection.set_session`, when used prior to a connection being
+        established, accepts a :py:class:`Session` instance and causes an
+        attempt to re-use the session it represents when the SSL handshake is
+        performed.
+        """
+        key = load_privatekey(FILETYPE_PEM, server_key_pem)
+        cert = load_certificate(FILETYPE_PEM, server_cert_pem)
+        ctx = Context(TLSv1_METHOD)
+        ctx.use_privatekey(key)
+        ctx.use_certificate(cert)
+        ctx.set_session_id("unity-test")
+
+        def makeServer(socket):
+            server = Connection(ctx, socket)
+            server.set_accept_state()
+            return server
+
+        originalServer, originalClient = self._loopback(
+            serverFactory=makeServer)
+        originalSession = originalClient.get_session()
+
+        def makeClient(socket):
+            client = self._loopbackClientFactory(socket)
+            client.set_session(originalSession)
+            return client
+        resumedServer, resumedClient = self._loopback(
+            serverFactory=makeServer,
+            clientFactory=makeClient)
+
+        # This is a proxy: in general, we have no access to any unique
+        # identifier for the session (new enough versions of OpenSSL expose a
+        # hash which could be usable, but "new enough" is very, very new).
+        # Instead, exploit the fact that the master key is re-used if the
+        # session is re-used.  As long as the master key for the two connections
+        # is the same, the session was re-used!
+        self.assertEqual(
+            originalServer.master_key(), resumedServer.master_key())
+
+
+    def test_set_session_wrong_method(self):
+        """
+        If :py:obj:`Connection.set_session` is passed a :py:class:`Session`
+        instance associated with a context using a different SSL method than the
+        :py:obj:`Connection` is using, a :py:class:`OpenSSL.SSL.Error` is
+        raised.
+        """
+        key = load_privatekey(FILETYPE_PEM, server_key_pem)
+        cert = load_certificate(FILETYPE_PEM, server_cert_pem)
+        ctx = Context(TLSv1_METHOD)
+        ctx.use_privatekey(key)
+        ctx.use_certificate(cert)
+        ctx.set_session_id("unity-test")
+
+        def makeServer(socket):
+            server = Connection(ctx, socket)
+            server.set_accept_state()
+            return server
+
+        originalServer, originalClient = self._loopback(
+            serverFactory=makeServer)
+        originalSession = originalClient.get_session()
+
+        def makeClient(socket):
+            # Intentionally use a different, incompatible method here.
+            client = Connection(Context(SSLv3_METHOD), socket)
+            client.set_connect_state()
+            client.set_session(originalSession)
+            return client
+
+        self.assertRaises(
+            Error,
+            self._loopback, clientFactory=makeClient, serverFactory=makeServer)
 
 
 

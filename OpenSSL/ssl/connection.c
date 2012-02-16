@@ -1254,6 +1254,63 @@ ssl_Connection_want_write(ssl_ConnectionObj *self, PyObject *args)
     return PyLong_FromLong((long)SSL_want_write(self->ssl));
 }
 
+static char ssl_Connection_get_session_doc[] = "\n\
+Returns the Session currently used.\n\
+\n\
+@return: An instance of :py:class:`OpenSSL.SSL.Session` or :py:obj:`None` if\n\
+    no session exists.\n\
+";
+static PyObject *
+ssl_Connection_get_session(ssl_ConnectionObj *self, PyObject *args) {
+    ssl_SessionObj *session;
+    SSL_SESSION *native_session;
+
+    if (!PyArg_ParseTuple(args, ":get_session")) {
+        return NULL;
+    }
+
+    native_session = SSL_get1_session(self->ssl);
+
+    if (native_session == NULL) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+    session = ssl_Session_from_SSL_SESSION(native_session);
+    if (!session) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+    return (PyObject*)session;
+}
+
+static char ssl_Connection_set_session_doc[] = "\n\
+Set the session to be used when the TLS/SSL connection is established.\n\
+\n\
+:param session: A Session instance representing the session to use.\n\
+:returns: None\n\
+";
+static PyObject *
+ssl_Connection_set_session(ssl_ConnectionObj *self, PyObject *args) {
+    ssl_SessionObj *session;
+
+    if (!PyArg_ParseTuple(args, "O!:set_session", &ssl_Session_Type, &session)) {
+        return NULL;
+    }
+
+    if (SSL_set_session(self->ssl, session->session) == 0) {
+        /* The only case which leads to this seems to be a mismatch, between
+         * this connection and the session, of the SSL method.
+         */
+        exception_from_error_queue(ssl_Error);
+        return NULL;
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 /*
  * Member methods in the Connection object
  * ADD_METHOD(name) expands to a correct PyMethodDef declaration
@@ -1309,6 +1366,8 @@ static PyMethodDef ssl_Connection_methods[] =
     ADD_METHOD(want_write),
     ADD_METHOD(set_accept_state),
     ADD_METHOD(set_connect_state),
+    ADD_METHOD(get_session),
+    ADD_METHOD(set_session),
     { NULL, NULL }
 };
 #undef ADD_ALIAS

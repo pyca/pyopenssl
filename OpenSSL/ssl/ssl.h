@@ -16,6 +16,7 @@
 #include <Python.h>
 #include <pythread.h>
 #include "context.h"
+#include "session.h"
 #include "connection.h"
 #include "../util.h"
 #include "../crypto/crypto.h"
