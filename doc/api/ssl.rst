@@ -112,6 +112,15 @@ Context, Connection.
     :py:const:`SSLv23_METHOD` or :py:const:`TLSv1_METHOD`.
 
 
+.. py:class:: Session()
+
+    A class representing an SSL session.  A session defines certain connection
+    parameters which may be re-used to speed up the setup of subsequent
+    connections.
+
+    .. versionadded:: 0.14
+
+
 .. py:data:: ConnectionType
 
     See :py:class:`Connection`.
@@ -427,6 +436,14 @@ Context objects have the following methods:
     .. versionadded:: 0.13
 
 
+.. _openssl-session:
+
+Session objects
+---------------
+
+Session objects have no methods.
+
+
 .. _openssl-connection:
 
 Connection objects
@@ -698,6 +715,22 @@ Connection objects have the following methods:
     Get the value of the server name received in the client hello message.
 
     .. versionadded:: 0.13
+
+
+.. py:method:: Connection.get_session()
+
+    Get a :py:class:`Session` instance representing the SSL session in use by
+    the connection, or :py:obj:`None` if there is no session.
+
+    .. versionadded:: 0.14
+
+
+.. py:method:: Connection.set_session(session)
+
+    Set a new SSL session (using a :py:class:`Session` instance) to be used by
+    the connection.
+
+    .. versionadded:: 0.14
 
 
 .. Rubric:: Footnotes
