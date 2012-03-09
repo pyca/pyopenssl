@@ -138,6 +138,16 @@ crypto_CRL_export(crypto_CRLObj *self, PyObject *args, PyObject *keywds) {
         return NULL;
     }
 
+    /* Some versions of OpenSSL check for this, but more recent versions seem
+     * not to.
+     */
+    if (!key->pkey->ameth) {
+        PyErr_SetString(
+            crypto_Error, "Cannot export with an unitialized key");
+        return NULL;
+    }
+
+
     bio = BIO_new(BIO_s_mem());
     tmptm = ASN1_TIME_new();
     if (!tmptm) {
