@@ -2,7 +2,6 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-
 static X509_REVOKED * X509_REVOKED_dup(X509_REVOKED *orig) {
     X509_REVOKED *dupe = NULL;
 
@@ -138,15 +137,19 @@ crypto_CRL_export(crypto_CRLObj *self, PyObject *args, PyObject *keywds) {
         return NULL;
     }
 
-    /* Some versions of OpenSSL check for this, but more recent versions seem
-     * not to.
+
+#if OPENSSL_VERSION_NUMBER >= 0x01000000L
+    /* Older versions of OpenSSL had no problem with trying to export using an
+     * uninitialized key.  Newer versions segfault, instead.  We can only check
+     * on the new versions, though, because the old versions don't even have the
+     * field that the segfault is triggered by.
      */
     if (!key->pkey->ameth) {
         PyErr_SetString(
             crypto_Error, "Cannot export with an unitialized key");
         return NULL;
     }
-
+#endif
 
     bio = BIO_new(BIO_s_mem());
     tmptm = ASN1_TIME_new();
