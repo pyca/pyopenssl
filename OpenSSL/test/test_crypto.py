@@ -2603,7 +2603,7 @@ class CRLTests(TestCase):
     def test_export_invalid(self):
         """
         If :py:obj:`CRL.export` is used with an uninitialized :py:obj:`X509`
-        instance, :py:obj:`ValueError` is raised.
+        instance, :py:obj:`OpenSSL.crypto.Error` is raised.
         """
         crl = CRL()
         self.assertRaises(Error, crl.export, X509(), PKey())
