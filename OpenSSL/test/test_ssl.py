@@ -313,7 +313,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         try:
             Context(SSLv2_METHOD)
-        except ValueError:
+        except (Error, ValueError):
             # Some versions of OpenSSL have SSLv2, some don't.
             # Difficult to say in advance.
             pass
