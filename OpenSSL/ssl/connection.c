@@ -426,6 +426,84 @@ ssl_Connection_send(ssl_ConnectionObj *self, PyObject *args) {
 
 #if PY_VERSION_HEX >= 0x02060000
 
+    /*
+     * Sit back and I'll tell you a story of intrigue and corruption, deceit and
+     * murder.
+     *
+     * A Py_buffer is used to hold any kind of byte-like data - a string, a
+     * memoryview, a buffer, etc.  PyArg_ParseTuple takes whatever kind of
+     * object was supplied, notices the "s*" format specifier, and tries to copy
+     * the metadata for that object into the Py_buffer also passed in.
+     *
+     * According to the Python documentation:
+     *
+     *     ... the caller is responsible for calling PyBuffer_Release with the
+     *     structure after it has processed the data.
+     *
+     * Correct use of PyBuffer_Release is necessary due to the fact that
+     * Py_buffer must hold a reference to the original Python object from which
+     * it was initialized.  PyBuffer_Release will decrement the reference count
+     * of that original object, allowing it to eventually be deallocated - but
+     * only after the Py_buffer is no longer in use.
+     *
+     * To support failures partway through parsing a format string,
+     * PyArg_ParseTuple maintains an internal PyListObject of PyCObjects it has
+     * created so far.  This allows it to easily clean up these objects when
+     * parsing fails, before returning an error to the caller (incidentally, it
+     * also makes sure to clean up the Py_buffer it initialized in this case, by
+     * calling PyBuffer_Release - which means the caller *must not* use
+     * PyBuffer_Release when PyArg_ParseTuple fails; not exactly what the
+     * documentation directs).
+     *
+     * The PyCObjects are given destructors which clean up some structure
+     * PyArg_ParseTuple has created (or initialized) - often another PyObject
+     * which needs to be decref'd.
+     *
+     * When parsing completes, the reference count of the PyListObject is merely
+     * decremented.  The normal Python garbage collection logic (the reference
+     * counting logic, in this case) takes over and collects both the list and
+     * all of the objects in it.  When each PyCObject in the list is collected,
+     * it triggers its destructor to clean up the structure it wraps.  This all
+     * happens immediately, before the Py_XDECREF of the PyListObject returns.
+     *
+     * The PyListObject is similarly destroyed in the success case, but not
+     * until each PyCObject it contains has had its destructor set to NULL to
+     * prevent it from cleaning up its contents.
+     *
+     * When PyArg_ParseTuple returns in an error case, therefore,
+     * PyRelease_Buffer has already been used on the Py_buffer passed to
+     * PyArg_ParseTuple.
+     *
+     * This is fortuitous, as the Py_buffer is typically (always?) allocated on
+     * the stack of the caller of PyArg_ParseTuple.  Once that caller returns,
+     * that stack memory is no longer valid, and the Py_buffer may no longer be
+     * used.
+     *
+     * On a Python runtime which does not use reference counting, the
+     * PyListObject may not actually be collected before Py_XDECREF returns.  It
+     * may not even be collected before PyArg_ParseTuple returns.  In fact, in
+     * particularly unfortunate cases, it may even not be collected before the
+     * caller of PyArg_ParseTuple returns.  It may not be called until long,
+     * long after the stack memory the Py_buffer was allocated on has been
+     * re-used for some other function call, after the memory holding a pointer
+     * to the structure that owns the memory the Py_buffer wrapped has been
+     * overwritten.  When PyBuffer_Release is used on the Py_buffer in this
+     * case, it will try to decrement a random integer - probably part of a
+     * local variable on some part of the stack.
+     *
+     * The PyPy runtime does not use reference counting.
+     *
+     * The solution adopted here is to allocate the Py_buffer on the heap,
+     * instead.  As there is no mechanism for learning when the PyCObject used
+     * by PyArg_ParseTuple to do its internal cleanup has had its way with the
+     * Py_buffer, the Py_buffer is leaked in the error case, to ensure it is
+     * still valid whenever PyBuffer_Release is called on it.
+     *
+     * Real programs should rarely, if ever, trigger the error case of
+     * PyArg_ParseTuple, so this is probably okay.  Plus, I'm tired of this
+     * stupid bug. -exarkun
+     */
+
     Py_buffer *pbuf = PyMem_Malloc(sizeof *pbuf);
 
     if (!PyArg_ParseTuple(args, "s*|i:send", pbuf, &flags)) {
