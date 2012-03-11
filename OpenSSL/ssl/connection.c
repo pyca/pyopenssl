@@ -425,17 +425,20 @@ ssl_Connection_send(ssl_ConnectionObj *self, PyObject *args) {
     char *buf;
 
 #if PY_VERSION_HEX >= 0x02060000
-    Py_buffer pbuf;
 
-    if (!PyArg_ParseTuple(args, "s*|i:send", &pbuf, &flags))
+    Py_buffer *pbuf = PyMem_Malloc(sizeof *pbuf);
+
+    if (!PyArg_ParseTuple(args, "s*|i:send", pbuf, &flags)) {
         return NULL;
+    }
 
-    buf = pbuf.buf;
-    len = pbuf.len;
+    buf = pbuf->buf;
+    len = pbuf->len;
 #else
 
-    if (!PyArg_ParseTuple(args, "s#|i:send", &buf, &len, &flags))
+    if (!PyArg_ParseTuple(args, "s#|i:send", &buf, &len, &flags)) {
         return NULL;
+    }
 #endif
 
     MY_BEGIN_ALLOW_THREADS(self->tstate)
@@ -443,7 +446,8 @@ ssl_Connection_send(ssl_ConnectionObj *self, PyObject *args) {
     MY_END_ALLOW_THREADS(self->tstate)
 
 #if PY_VERSION_HEX >= 0x02060000
-    PyBuffer_Release(&pbuf);
+    PyBuffer_Release(pbuf);
+    PyMem_Free(pbuf);
 #endif
 
     if (PyErr_Occurred())
@@ -482,16 +486,18 @@ ssl_Connection_sendall(ssl_ConnectionObj *self, PyObject *args)
     PyObject *pyret = Py_None;
 
 #if PY_VERSION_HEX >= 0x02060000
-    Py_buffer pbuf;
+    Py_buffer *pbuf = PyMem_Malloc(sizeof *pbuf);
 
-    if (!PyArg_ParseTuple(args, "s*|i:sendall", &pbuf, &flags))
+    if (!PyArg_ParseTuple(args, "s*|i:sendall", pbuf, &flags)) {
         return NULL;
+    }
 
-    buf = pbuf.buf;
-    len = pbuf.len;
+    buf = pbuf->buf;
+    len = pbuf->len;
 #else
-    if (!PyArg_ParseTuple(args, "s#|i:sendall", &buf, &len, &flags))
+    if (!PyArg_ParseTuple(args, "s#|i:sendall", &buf, &len, &flags)) {
         return NULL;
+    }
 #endif
 
     do {
@@ -520,7 +526,8 @@ ssl_Connection_sendall(ssl_ConnectionObj *self, PyObject *args)
     } while (len > 0);
 
 #if PY_VERSION_HEX >= 0x02060000
-    PyBuffer_Release(&pbuf);
+    PyBuffer_Release(pbuf);
+    PyMem_Free(pbuf);
 #endif
 
     Py_XINCREF(pyret);
