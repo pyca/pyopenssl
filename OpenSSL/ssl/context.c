@@ -1249,7 +1249,7 @@ ssl_Context_init(ssl_ContextObj *self, int i_method) {
 #ifdef OPENSSL_NO_SSL2
             PyErr_SetString(PyExc_ValueError, "SSLv2_METHOD not supported by this version of OpenSSL");
             return NULL;
-#else      
+#else
             method = SSLv2_method();
 #endif
             break;
@@ -1268,6 +1268,11 @@ ssl_Context_init(ssl_ContextObj *self, int i_method) {
     }
 
     self->ctx = SSL_CTX_new(method);
+    if (self->ctx == NULL) {
+        exception_from_error_queue(ssl_Error);
+        return NULL;
+    }
+
     Py_INCREF(Py_None);
     self->passphrase_callback = Py_None;
     Py_INCREF(Py_None);
