@@ -1,3 +1,8 @@
+2012-04-03  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/crypto/pkey.c: Release the GIL around RSA and DSA key
+	  generation, based on code from INADA Naoki.
+
 2012-02-13  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL/ssl/ssl.c: Add session cache related constants for use

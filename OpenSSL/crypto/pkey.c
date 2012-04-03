@@ -52,19 +52,30 @@ crypto_PKey_generate_key(crypto_PKeyObj *self, PyObject *args)
                 PyErr_SetString(PyExc_ValueError, "Invalid number of bits");
                 return NULL;
             }
-            if ((rsa = RSA_generate_key(bits, 0x10001, NULL, NULL)) == NULL)
+            Py_BEGIN_ALLOW_THREADS;
+            rsa = RSA_generate_key(bits, 0x10001, NULL, NULL);
+            Py_END_ALLOW_THREADS;
+            if (rsa == NULL) {
                 FAIL();
-            if (!EVP_PKEY_assign_RSA(self->pkey, rsa))
+            }
+            if (!EVP_PKEY_assign_RSA(self->pkey, rsa)) {
                 FAIL();
+            }
 	    break;
 
         case crypto_TYPE_DSA:
-            if ((dsa = DSA_generate_parameters(bits, NULL, 0, NULL, NULL, NULL, NULL)) == NULL)
+            Py_BEGIN_ALLOW_THREADS;
+            dsa = DSA_generate_parameters(bits, NULL, 0, NULL, NULL, NULL, NULL);
+            Py_END_ALLOW_THREADS;
+            if (dsa == NULL) {
                 FAIL();
-            if (!DSA_generate_key(dsa))
+            }
+            if (!DSA_generate_key(dsa)) {
                 FAIL();
-            if (!EVP_PKEY_assign_DSA(self->pkey, dsa))
+            }
+            if (!EVP_PKEY_assign_DSA(self->pkey, dsa)) {
                 FAIL();
+            }
 	    break;
 
         default:
