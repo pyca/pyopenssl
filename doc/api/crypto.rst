@@ -235,6 +235,8 @@ X509 objects have the following methods:
     Return the signature algorithm used in the certificate.  If the algorithm is
     undefined, raise :py:data:`ValueError`.
 
+    ..versionadded:: 0.13
+
 
 .. py:method:: X509.get_subject()
 
