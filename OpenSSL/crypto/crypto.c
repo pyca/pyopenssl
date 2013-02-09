@@ -816,7 +816,7 @@ static int init_openssl_threads(void) {
 #ifdef PY3
 static struct PyModuleDef cryptomodule = {
     PyModuleDef_HEAD_INIT,
-    "crypto",
+    "xcrypto",
     crypto_doc,
     -1,
     crypto_methods
@@ -829,7 +829,7 @@ static struct PyModuleDef cryptomodule = {
  * Arguments: None
  * Returns:   None
  */
-PyOpenSSL_MODINIT(crypto) {
+PyOpenSSL_MODINIT(xcrypto) {
 #ifndef PY3
     static void *crypto_API[crypto_API_pointers];
     PyObject *c_api_object;
@@ -842,7 +842,7 @@ PyOpenSSL_MODINIT(crypto) {
 #ifdef PY3
     module = PyModule_Create(&cryptomodule);
 #else
-    module = Py_InitModule3("crypto", crypto_methods, crypto_doc);
+    module = Py_InitModule3("xcrypto", crypto_methods, crypto_doc);
 #endif
 
     if (module == NULL) {

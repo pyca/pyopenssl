@@ -118,7 +118,7 @@ extern void **crypto_API;
 
 #define import_crypto() \
 { \
-  PyObject *crypto_module = PyImport_ImportModule("OpenSSL.crypto"); \
+  PyObject *crypto_module = PyImport_ImportModule("OpenSSL.xcrypto"); \
   if (crypto_module != NULL) { \
     PyObject *crypto_dict, *crypto_api_object; \
     crypto_dict = PyModule_GetDict(crypto_module); \

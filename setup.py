@@ -17,21 +17,20 @@ from distutils.command.build_ext import build_ext
 # XXX Deduplicate this
 __version__ = '0.13'
 
-crypto_src = ['OpenSSL/crypto/crypto.c', 'OpenSSL/crypto/x509.c',
+xcrypto_src = ['OpenSSL/crypto/crypto.c', 'OpenSSL/crypto/x509.c',
               'OpenSSL/crypto/x509name.c', 'OpenSSL/crypto/pkey.c',
               'OpenSSL/crypto/x509store.c', 'OpenSSL/crypto/x509req.c',
               'OpenSSL/crypto/x509ext.c', 'OpenSSL/crypto/pkcs7.c',
               'OpenSSL/crypto/pkcs12.c', 'OpenSSL/crypto/netscape_spki.c',
               'OpenSSL/crypto/revoked.c', 'OpenSSL/crypto/crl.c',
               'OpenSSL/util.c']
-crypto_dep = ['OpenSSL/crypto/crypto.h', 'OpenSSL/crypto/x509.h',
+xcrypto_dep = ['OpenSSL/crypto/crypto.h', 'OpenSSL/crypto/x509.h',
               'OpenSSL/crypto/x509name.h', 'OpenSSL/crypto/pkey.h',
               'OpenSSL/crypto/x509store.h', 'OpenSSL/crypto/x509req.h',
               'OpenSSL/crypto/x509ext.h', 'OpenSSL/crypto/pkcs7.h',
               'OpenSSL/crypto/pkcs12.h', 'OpenSSL/crypto/netscape_spki.h',
               'OpenSSL/crypto/revoked.h', 'OpenSSL/crypto/crl.h',
               'OpenSSL/util.h']
-rand_dep = ['OpenSSL/util.h']
 ssl_src = ['OpenSSL/ssl/connection.c', 'OpenSSL/ssl/context.c', 'OpenSSL/ssl/ssl.c',
            'OpenSSL/ssl/session.c', 'OpenSSL/util.c']
 ssl_dep = ['OpenSSL/ssl/connection.h', 'OpenSSL/ssl/context.h', 'OpenSSL/ssl/ssl.h',
@@ -194,7 +193,7 @@ def mkExtension(name):
 setup(name='pyOpenSSL', version=__version__,
       packages = ['OpenSSL'],
       package_dir = {'OpenSSL': 'OpenSSL'},
-      ext_modules = [mkExtension('crypto'), mkExtension('SSL')],
+      ext_modules = [mkExtension('xcrypto'), mkExtension('SSL')],
       py_modules  = ['OpenSSL.__init__', 'OpenSSL.tsafe',
                      'OpenSSL.rand',
                      'OpenSSL.version', 'OpenSSL.test.__init__',
