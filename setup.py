@@ -31,7 +31,6 @@ crypto_dep = ['OpenSSL/crypto/crypto.h', 'OpenSSL/crypto/x509.h',
               'OpenSSL/crypto/pkcs12.h', 'OpenSSL/crypto/netscape_spki.h',
               'OpenSSL/crypto/revoked.h', 'OpenSSL/crypto/crl.h',
               'OpenSSL/util.h']
-rand_src = ['OpenSSL/rand/rand.c', 'OpenSSL/util.c']
 rand_dep = ['OpenSSL/util.h']
 ssl_src = ['OpenSSL/ssl/connection.c', 'OpenSSL/ssl/context.c', 'OpenSSL/ssl/ssl.c',
            'OpenSSL/ssl/session.c', 'OpenSSL/util.c']
@@ -195,9 +194,9 @@ def mkExtension(name):
 setup(name='pyOpenSSL', version=__version__,
       packages = ['OpenSSL'],
       package_dir = {'OpenSSL': 'OpenSSL'},
-      ext_modules = [mkExtension('crypto'), mkExtension('rand'),
-                     mkExtension('SSL')],
+      ext_modules = [mkExtension('crypto'), mkExtension('SSL')],
       py_modules  = ['OpenSSL.__init__', 'OpenSSL.tsafe',
+                     'OpenSSL.rand',
                      'OpenSSL.version', 'OpenSSL.test.__init__',
                      'OpenSSL.test.util',
                      'OpenSSL.test.test_crypto',
