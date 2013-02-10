@@ -119,12 +119,6 @@ crypto_PKey_type(crypto_PKeyObj *self, PyObject *args)
 }
 
 static char crypto_PKey_check_doc[] = "\n\
-Check the consistency of an RSA private key.\n\
-\n\
-:return: True if key is consistent.\n\
-:raise Error: if the key is inconsistent.\n\
-:raise TypeError: if the key is of a type which cannot be checked.\n\
-    Only RSA keys can currently be checked.\n\
 ";
 
 static PyObject *
