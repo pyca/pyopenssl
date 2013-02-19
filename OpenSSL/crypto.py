@@ -47,9 +47,11 @@ class Error(Exception):
 
 class PKey(object):
     _only_public = False
+    _initialized = True
 
     def __init__(self):
         self._pkey = _api.EVP_PKEY_new()
+        self._initialized = False
 
 
     def generate_key(self, type, bits):
@@ -92,6 +94,7 @@ class PKey(object):
         else:
             raise Error("No such key type")
 
+        self._initialized = True
 
 
     def check(self):
@@ -187,6 +190,9 @@ class X509(object):
 
         if pkey._only_public:
             raise ValueError("Key only has public part")
+
+        if not pkey._initialized:
+            raise ValueError("Key is uninitialized")
 
         evp_md = _api.EVP_get_digestbyname(digest)
         if evp_md == _api.NULL:
