@@ -341,7 +341,8 @@ class X509(object):
         """
         now = int(time())
         notAfter = _api.X509_get_notAfter(self._x509)
-        return _api.ASN1_UTCTIME_cmp_time_t(notAfter, now) < 0
+        return _api.ASN1_UTCTIME_cmp_time_t(
+            _api.cast('ASN1_UTCTIME*', notAfter), now) < 0
 
 
     def get_notBefore(self):
@@ -350,12 +351,28 @@ class X509(object):
 
         :return: A string giving the timestamp, in the format::
 
-                         YYYYMMDDhhmmssZ\n\
-                         YYYYMMDDhhmmss+hhmm\n\
-                         YYYYMMDDhhmmss-hhmm\n\
+                         YYYYMMDDhhmmssZ
+                         YYYYMMDDhhmmss+hhmm
+                         YYYYMMDDhhmmss-hhmm
 
                  or None if there is no value set.
         """
+        timestamp = _api.X509_get_notBefore(self._x509)
+        string_timestamp = _api.cast('ASN1_STRING*', timestamp)
+        if _api.ASN1_STRING_length(string_timestamp) == 0:
+            return None
+        elif _api.ASN1_STRING_type(string_timestamp) == _api.V_ASN1_GENERALIZEDTIME:
+            return _api.string(_api.ASN1_STRING_data(string_timestamp))
+        else:
+            generalized_timestamp = _api.new("ASN1_GENERALIZEDTIME**")
+            _api.ASN1_TIME_to_generalizedtime(timestamp, generalized_timestamp)
+            if generalized_timestamp[0] == _api.NULL:
+                1/0
+            else:
+                string_timestamp = _api.string(
+                    _api.cast("char*", generalized_timestamp[0].data))
+                _api.ASN1_GENERALIZEDTIME_free(generalized_timestamp[0])
+                return string_timestamp
 
 
     def set_notBefore(self, when):
@@ -371,8 +388,22 @@ class X509(object):
 
         :return: None
         """
+        if not isinstance(when, bytes):
+            raise TypeError("when must be a byte string")
+
         notBefore = _api.X509_get_notBefore(self._x509)
-        _api.ASN1_GENERALIZEDTIME_set_string(notBefore, when)
+        set_result = _api.ASN1_GENERALIZEDTIME_set_string(
+            _api.cast('ASN1_GENERALIZEDTIME*', notBefore), when)
+        if set_result == 0:
+            dummy = _api.ASN1_STRING_new()
+            _api.ASN1_STRING_set(dummy, when, len(when))
+            check_result = _api.ASN1_GENERALIZEDTIME_check(
+                _api.cast('ASN1_GENERALIZEDTIME*', dummy))
+            if not check_result:
+                raise ValueError("Invalid string")
+            else:
+                # TODO No tests for this case
+                raise RuntimeError("Unknown ASN1_GENERALIZEDTIME_set_string failure")
 
 
     def set_notAfter(self, when):
