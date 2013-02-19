@@ -10,6 +10,9 @@ FILETYPE_ASN1 = _api.SSL_FILETYPE_ASN1
 # TODO This was an API mistake.  OpenSSL has no such constant.
 FILETYPE_TEXT = 2 ** 16 - 1
 
+TYPE_RSA = _api.EVP_PKEY_RSA
+TYPE_DSA = _api.EVP_PKEY_DSA
+
 
 def _bio_to_string(bio):
     """
@@ -44,7 +47,49 @@ class Error(Exception):
 
 class PKey(object):
     def __init__(self):
-        pass
+        self._pkey = _api.EVP_PKEY_new()
+
+
+    def generate_key(self, type, bits):
+        """
+        Generate a key of a given type, with a given number of a bits
+
+        :param type: The key type (TYPE_RSA or TYPE_DSA)
+        :param bits: The number of bits
+
+        :return: None
+        """
+        if not isinstance(type, int):
+            raise TypeError("type must be an integer")
+
+        if not isinstance(bits, int):
+            raise TypeError("bits must be an integer")
+
+        exponent = _api.new("BIGNUM**")
+        # TODO Check error return
+        # TODO Free the exponent[0]
+        _api.BN_hex2bn(exponent, "10001")
+
+        if type == TYPE_RSA:
+            if bits <= 0:
+                raise ValueError("Invalid number of bits")
+
+            rsa = _api.RSA_new();
+
+            # TODO Release GIL?
+            result = _api.RSA_generate_key_ex(rsa, bits, exponent[0], _api.NULL)
+            if result == -1:
+                1/0
+
+            result = _api.EVP_PKEY_assign_RSA(self._pkey, rsa)
+            if not result:
+                1/0
+
+        elif type == TYPE_DSA:
+            pass
+        else:
+            raise Error("No such key type")
+
 
 
     def check(self):
@@ -95,6 +140,42 @@ class X509(object):
         :return: Version number as a Python integer
         """
         return _api.X509_get_version(self._x509)
+
+
+    def set_pubkey(self, pkey):
+        """
+        Set the public key of the certificate
+
+        :param pkey: The public key
+
+        :return: None
+        """
+        if not isinstance(pkey, PKey):
+            raise TypeError("pkey must be a PKey instance")
+
+        set_result = _api.X509_set_pubkey(self._x509, pkey._pkey)
+        if not set_result:
+            _raise_current_error()
+
+
+    def sign(self, pkey, digest):
+        """
+        Sign the certificate using the supplied key and digest
+
+        :param pkey: The key to sign with
+        :param digest: The message digest to use
+        :return: None
+        """
+        if not isinstance(pkey, PKey):
+            raise TypeError("pkey must be a PKey instance")
+
+        evp_md = _api.EVP_get_digestbyname(digest)
+        if evp_md == _api.NULL:
+            raise ValueError("No such digest method")
+
+        sign_result = _api.X509_sign(self._x509, pkey._pkey, evp_md)
+        if not sign_result:
+            _raise_current_error()
 
 
     def subject_name_hash(self):
