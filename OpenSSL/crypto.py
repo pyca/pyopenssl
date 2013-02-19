@@ -197,6 +197,21 @@ class X509(object):
             _raise_current_error()
 
 
+    def get_signature_algorithm(self):
+        """
+        Retrieve the signature algorithm used in the certificate
+
+        :return: A byte string giving the name of the signature algorithm used in
+                 the certificate.
+        :raise ValueError: If the signature algorithm is undefined.
+        """
+        alg = self._x509.cert_info.signature.algorithm
+        nid = _api.OBJ_obj2nid(alg)
+        if nid == _api.NID_undef:
+            raise ValueError("Undefined signature algorithm")
+        return _api.string(_api.OBJ_nid2ln(nid))
+
+
     def digest(self, digest_name):
         """
         Return the digest of the X509 object.
