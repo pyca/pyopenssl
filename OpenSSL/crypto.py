@@ -197,6 +197,34 @@ class X509(object):
             _raise_current_error()
 
 
+    def digest(self, digest_name):
+        """
+        Return the digest of the X509 object.
+
+        :param digest_name: The name of the digest algorithm to use.
+        :type digest_name: :py:class:`bytes`
+
+        :return: The digest of the object
+        """
+        digest = _api.EVP_get_digestbyname(digest_name)
+        if digest == _api.NULL:
+            raise ValueError("No such digest method")
+
+        result_buffer = _api.new("char[]", _api.EVP_MAX_MD_SIZE)
+        result_length = _api.new("unsigned int[]", 1)
+        result_length[0] = len(result_buffer)
+
+        digest_result = _api.X509_digest(
+            self._x509, digest, result_buffer, result_length)
+
+        if not digest_result:
+            1/0
+
+        return ':'.join([
+                ch.encode('hex').upper() for ch
+                in _api.buffer(result_buffer, result_length[0])])
+
+
     def subject_name_hash(self):
         """
         Return the hash of the X509 subject.
