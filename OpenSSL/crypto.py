@@ -97,6 +97,15 @@ class X509(object):
         return _api.X509_get_version(self._x509)
 
 
+    def subject_name_hash(self):
+        """
+        Return the hash of the X509 subject.
+
+        :return: The hash of the subject.
+        """
+        return _api.X509_subject_name_hash(self._x509)
+
+
     def set_serial_number(self, serial):
         """
         Set serial number of the certificate
@@ -106,8 +115,36 @@ class X509(object):
 
         :return: None
         """
-        if not isinstance(serial, int):
+        if not isinstance(serial, (int, long)):
             raise TypeError("serial must be an integer")
+
+        hex_serial = hex(serial)[2:]
+        if not isinstance(hex_serial, bytes):
+            hex_serial = hex_serial.encode('ascii')
+
+        bignum_serial = _api.new("BIGNUM**")
+
+        # BN_hex2bn stores the result in &bignum.  Unless it doesn't feel like
+        # it.  If bignum is still NULL after this call, then the return value is
+        # actually the result.  I hope.  -exarkun
+        small_serial = _api.BN_hex2bn(bignum_serial, hex_serial)
+
+        if bignum_serial[0] == _api.NULL:
+            set_result = ASN1_INTEGER_set(
+                _api.X509_get_serialNumber(self._x509), small_serial)
+            if set_result:
+                # TODO Not tested
+                _raise_current_error()
+        else:
+            asn1_serial = _api.BN_to_ASN1_INTEGER(bignum_serial[0], _api.NULL)
+            _api.BN_free(bignum_serial[0])
+            if asn1_serial == _api.NULL:
+                # TODO Not tested
+                _raise_current_error()
+            set_result = _api.X509_set_serialNumber(self._x509, asn1_serial)
+            if not set_result:
+                # TODO Not tested
+                _raise_current_error()
 
 
     def get_serial_number(self):
@@ -116,6 +153,18 @@ class X509(object):
 
         :return: Serial number as a Python integer
         """
+        asn1_serial = _api.X509_get_serialNumber(self._x509)
+        bignum_serial = _api.ASN1_INTEGER_to_BN(asn1_serial, _api.NULL)
+        try:
+            hex_serial = _api.BN_bn2hex(bignum_serial)
+            try:
+                hexstring_serial = _api.string(hex_serial)
+                serial = int(hexstring_serial, 16)
+                return serial
+            finally:
+                _api.OPENSSL_free(hex_serial)
+        finally:
+            _api.BN_free(bignum_serial)
 
 
     def gmtime_adj_notAfter(self, amount):
