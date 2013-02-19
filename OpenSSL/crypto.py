@@ -46,6 +46,8 @@ class Error(Exception):
 
 
 class PKey(object):
+    _only_public = False
+
     def __init__(self):
         self._pkey = _api.EVP_PKEY_new()
 
@@ -142,6 +144,20 @@ class X509(object):
         return _api.X509_get_version(self._x509)
 
 
+    def get_pubkey(self):
+        """
+        Get the public key of the certificate
+
+        :return: The public key
+        """
+        pkey = PKey.__new__(PKey)
+        pkey._pkey = _api.X509_get_pubkey(self._x509)
+        if pkey._pkey == _api.NULL:
+            _raise_current_error()
+        pkey._only_public = True
+        return pkey
+
+
     def set_pubkey(self, pkey):
         """
         Set the public key of the certificate
@@ -168,6 +184,9 @@ class X509(object):
         """
         if not isinstance(pkey, PKey):
             raise TypeError("pkey must be a PKey instance")
+
+        if pkey._only_public:
+            raise ValueError("Key only has public part")
 
         evp_md = _api.EVP_get_digestbyname(digest)
         if evp_md == _api.NULL:
