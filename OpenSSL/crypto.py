@@ -903,6 +903,61 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
 
 
 
+class _PassphraseHelper(object):
+    def __init__(self, passphrase):
+        self._passphrase = passphrase
+        self._problems = []
+
+
+    @property
+    def callback(self):
+        if self._passphrase is None:
+            return _api.NULL
+        elif isinstance(self._passphrase, bytes):
+            return _api.NULL
+        elif callable(self._passphrase):
+            return _api.callback("pem_password_cb", self._read_passphrase)
+        else:
+            raise TypeError("Last argument must be string or callable")
+
+
+    @property
+    def callback_args(self):
+        if self._passphrase is None:
+            return _api.NULL
+        elif isinstance(self._passphrase, bytes):
+            return self._passphrase
+        elif callable(self._passphrase):
+            return _api.NULL
+        else:
+            raise TypeError("Last argument must be string or callable")
+
+
+    def raise_if_problem(self):
+        if self._problems:
+            try:
+                _raise_current_error()
+            except Error:
+                pass
+            raise self._problems[0]
+
+
+    def _read_passphrase(self, buf, size, rwflag, userdata):
+        try:
+            result = self._passphrase(rwflag)
+            if not isinstance(result, bytes):
+                raise ValueError("String expected")
+            if len(result) > size:
+                raise ValueError("passphrase returned by callback is too long")
+            for i in range(len(result)):
+                buf[i] = result[i]
+            return len(result)
+        except Exception as e:
+            self._problems.append(e)
+            return 0
+
+
+
 def load_privatekey(type, buffer, passphrase=None):
     """
     Load a private key from a buffer
@@ -918,40 +973,11 @@ def load_privatekey(type, buffer, passphrase=None):
     # TODO incomplete
     bio = _api.BIO_new_mem_buf(buffer, len(buffer))
 
-    problems = []
-    if passphrase is None:
-        cb = _api.NULL
-        cb_arg = _api.NULL
-    elif isinstance(passphrase, bytes):
-        cb = _api.NULL
-        cb_arg = passphrase
-    elif callable(passphrase):
-        def read_passphrase(buf, size, rwflag, userdata):
-            try:
-                result = passphrase(rwflag)
-                if not isinstance(result, bytes):
-                    raise ValueError("String expected")
-                if len(result) > size:
-                    raise ValueError("passphrase returned by callback is too long")
-                for i in range(len(result)):
-                    buf[i] = result[i]
-                return len(result)
-            except Exception as e:
-                problems.append(e)
-                return 0
-        cb = _api.callback("pem_password_cb", read_passphrase)
-        cb_arg = _api.NULL
-    else:
-        raise TypeError("Last argument must be string or callable")
-
+    helper = _PassphraseHelper(passphrase)
     if type == FILETYPE_PEM:
-        evp_pkey = _api.PEM_read_bio_PrivateKey(bio, _api.NULL, cb, cb_arg)
-        if problems:
-            try:
-                _raise_current_error()
-            except Error:
-                pass
-            raise problems[0]
+        evp_pkey = _api.PEM_read_bio_PrivateKey(
+            bio, _api.NULL, helper.callback, helper.callback_args)
+        helper.raise_if_problem()
     elif type == FILETYPE_ASN1:
         evp_pkey = _api.d2i_PrivateKey_bio(bio, _api.NULL)
     else:
