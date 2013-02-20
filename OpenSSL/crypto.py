@@ -517,10 +517,12 @@ class X509(object):
             if generalized_timestamp[0] == _api.NULL:
                 1/0
             else:
-                string_timestamp = _api.string(
-                    _api.cast("char*", generalized_timestamp[0].data))
+                string_timestamp = _api.cast(
+                    "ASN1_STRING*", generalized_timestamp[0])
+                string_data = _api.ASN1_STRING_data(string_timestamp)
+                string_result = _api.string(string_data)
                 _api.ASN1_GENERALIZEDTIME_free(generalized_timestamp[0])
-                return string_timestamp
+                return string_result
 
 
     def get_notBefore(self):
