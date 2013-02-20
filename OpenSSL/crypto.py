@@ -442,7 +442,7 @@ class X509Req(object):
 
         for ext in extensions:
             if not isinstance(ext, X509Extension):
-                1/0
+                raise ValueError("One of the elements is not an X509Extension")
 
             _api.sk_X509_EXTENSION_push(stack, ext._extension)
 
