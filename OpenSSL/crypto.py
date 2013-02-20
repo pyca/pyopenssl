@@ -275,6 +275,63 @@ class X509Name(object):
 X509NameType = X509Name
 
 
+class X509Extension(object):
+    def __init__(self, type_name, critical, value, subject=None, issuer=None):
+        """
+        :param typename: The name of the extension to create.
+        :type typename: :py:data:`str`
+
+        :param critical: A flag indicating whether this is a critical extension.
+
+        :param value: The value of the extension.
+        :type value: :py:data:`str`
+
+        :param subject: Optional X509 cert to use as subject.
+        :type subject: :py:class:`X509`
+
+        :param issuer: Optional X509 cert to use as issuer.
+        :type issuer: :py:class:`X509`
+
+        :return: The X509Extension object
+        """
+        ctx = _api.new("X509V3_CTX*")
+        _api.X509V3_set_ctx(ctx, _api.NULL, _api.NULL, _api.NULL, _api.NULL, 0)
+        _api.X509V3_set_ctx_nodb(ctx)
+
+        if critical:
+            # There are other OpenSSL APIs which would let us pass in critical
+            # separately, but they're harder to use, and since value is already
+            # a pile of crappy junk smuggling a ton of utterly important
+            # structured data, what's the point of trying to avoid nasty stuff
+            # with strings? (However, X509V3_EXT_i2d in particular seems like it
+            # would be a better API to invoke.  I do not know where to get the
+            # ext_struc it desires for its last parameter, though.)
+            value = "critical," + value
+
+        self._extension = _api.X509V3_EXT_nconf(
+            _api.NULL, ctx, type_name, value)
+
+
+    def get_critical(self):
+        """
+        Returns the critical field of the X509Extension
+
+        :return: The critical field.
+        """
+        return _api.X509_EXTENSION_get_critical(self._extension)
+
+
+    def get_short_name(self):
+        """
+        Returns the short version of the type name of the X509Extension
+
+        :return: The short type name.
+        """
+        obj = _api.X509_EXTENSION_get_object(self._extension)
+        nid = _api.OBJ_obj2nid(obj)
+        return _api.string(_api.OBJ_nid2sn(nid))
+
+
 
 class X509(object):
     def __init__(self):
@@ -631,6 +688,8 @@ class X509(object):
 
 
     def _set_name(self, which, name):
+        if not isinstance(name, X509Name):
+            raise TypeError("name must be an X509Name")
         set_result = which(self._x509, name._name)
         if not set_result:
             1/0
@@ -675,6 +734,48 @@ class X509(object):
         :return: None
         """
         return self._set_name(_api.X509_set_subject_name, subject)
+
+
+    def get_extension_count(self):
+        """
+        Get the number of extensions on the certificate.
+
+        :return: The number of extensions as an integer.
+        """
+        return _api.X509_get_ext_count(self._x509)
+
+
+    def add_extensions(self, extensions):
+        """
+        Add extensions to the certificate.
+
+        :param extensions: a sequence of X509Extension objects
+        :return: None
+        """
+        for ext in extensions:
+            if not isinstance(ext, X509Extension):
+                raise ValueError("One of the elements is not an X509Extension")
+
+            add_result = _api.X509_add_ext(self._x509, ext._extension, -1)
+            if not add_result:
+                _raise_current_error()
+
+
+    def get_extension(self, index):
+        """
+        Get a specific extension of the certificate by index.
+
+        :param index: The index of the extension to retrieve.
+        :return: The X509Extension object at the specified index.
+        """
+        ext = X509Extension.__new__(X509Extension)
+        ext._extension = _api.X509_get_ext(self._x509, index)
+        if ext._extension == _api.NULL:
+            raise IndexError("extension index out of bounds")
+
+        ext._extension = _api.X509_EXTENSION_dup(ext._extension)
+        return ext
+
 X509Type = X509
 
 
