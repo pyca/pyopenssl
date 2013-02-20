@@ -504,19 +504,8 @@ class X509(object):
             _api.cast('ASN1_UTCTIME*', notAfter), now) < 0
 
 
-    def get_notBefore(self):
-        """
-        Retrieve the time stamp for when the certificate starts being valid
-
-        :return: A string giving the timestamp, in the format::
-
-                         YYYYMMDDhhmmssZ
-                         YYYYMMDDhhmmss+hhmm
-                         YYYYMMDDhhmmss-hhmm
-
-                 or None if there is no value set.
-        """
-        timestamp = _api.X509_get_notBefore(self._x509)
+    def _get_boundary_time(self, which):
+        timestamp = which(self._x509)
         string_timestamp = _api.cast('ASN1_STRING*', timestamp)
         if _api.ASN1_STRING_length(string_timestamp) == 0:
             return None
@@ -534,6 +523,40 @@ class X509(object):
                 return string_timestamp
 
 
+    def get_notBefore(self):
+        """
+        Retrieve the time stamp for when the certificate starts being valid
+
+        :return: A string giving the timestamp, in the format::
+
+                         YYYYMMDDhhmmssZ
+                         YYYYMMDDhhmmss+hhmm
+                         YYYYMMDDhhmmss-hhmm
+
+                 or None if there is no value set.
+        """
+        return self._get_boundary_time(_api.X509_get_notBefore)
+
+
+    def _set_boundary_time(self, which, when):
+        if not isinstance(when, bytes):
+            raise TypeError("when must be a byte string")
+
+        boundary = which(self._x509)
+        set_result = _api.ASN1_GENERALIZEDTIME_set_string(
+            _api.cast('ASN1_GENERALIZEDTIME*', boundary), when)
+        if set_result == 0:
+            dummy = _api.ASN1_STRING_new()
+            _api.ASN1_STRING_set(dummy, when, len(when))
+            check_result = _api.ASN1_GENERALIZEDTIME_check(
+                _api.cast('ASN1_GENERALIZEDTIME*', dummy))
+            if not check_result:
+                raise ValueError("Invalid string")
+            else:
+                # TODO No tests for this case
+                raise RuntimeError("Unknown ASN1_GENERALIZEDTIME_set_string failure")
+
+
     def set_notBefore(self, when):
         """
         Set the time stamp for when the certificate starts being valid
@@ -547,22 +570,22 @@ class X509(object):
 
         :return: None
         """
-        if not isinstance(when, bytes):
-            raise TypeError("when must be a byte string")
+        return self._set_boundary_time(_api.X509_get_notBefore, when)
 
-        notBefore = _api.X509_get_notBefore(self._x509)
-        set_result = _api.ASN1_GENERALIZEDTIME_set_string(
-            _api.cast('ASN1_GENERALIZEDTIME*', notBefore), when)
-        if set_result == 0:
-            dummy = _api.ASN1_STRING_new()
-            _api.ASN1_STRING_set(dummy, when, len(when))
-            check_result = _api.ASN1_GENERALIZEDTIME_check(
-                _api.cast('ASN1_GENERALIZEDTIME*', dummy))
-            if not check_result:
-                raise ValueError("Invalid string")
-            else:
-                # TODO No tests for this case
-                raise RuntimeError("Unknown ASN1_GENERALIZEDTIME_set_string failure")
+
+    def get_notAfter(self):
+        """
+        Retrieve the time stamp for when the certificate stops being valid
+
+        :return: A string giving the timestamp, in the format::
+
+                         YYYYMMDDhhmmssZ
+                         YYYYMMDDhhmmss+hhmm
+                         YYYYMMDDhhmmss-hhmm
+
+                 or None if there is no value set.
+        """
+        return self._get_boundary_time(_api.X509_get_notAfter)
 
 
     def set_notAfter(self, when):
@@ -578,8 +601,42 @@ class X509(object):
 
         :return: None
         """
-        notAfter = _api.X509_get_notAfter(self._x509)
-        _api.ASN1_GENERALIZEDTIME_set_string(notAfter, when)
+        return self._set_boundary_time(_api.X509_get_notAfter, when)
+
+
+    def _get_name(self, which):
+        name = X509Name.__new__(X509Name)
+        name._name = which(self._x509)
+        if name._name == _api.NULL:
+            1/0
+        return name
+
+
+    def _set_name(self, which, name):
+        set_result = which(self._x509, name._name)
+        if not set_result:
+            1/0
+
+
+    def get_issuer(self):
+        """
+        Create an X509Name object for the issuer of the certificate
+
+        :return: An X509Name object
+        """
+        return self._get_name(_api.X509_get_issuer_name)
+
+
+    def set_issuer(self, issuer):
+        """
+        Set the issuer of the certificate
+
+        :param issuer: The issuer name
+        :type issuer: :py:class:`X509Name`
+
+        :return: None
+        """
+        return self._set_name(_api.X509_set_issuer_name, issuer)
 
 
     def get_subject(self):
@@ -588,11 +645,7 @@ class X509(object):
 
         :return: An X509Name object
         """
-        name = X509Name.__new__(X509Name)
-        name._name = _api.X509_get_subject_name(self._x509)
-        if name._name == _api.NULL:
-            1/0
-        return name
+        return self._get_name(_api.X509_get_subject_name)
 
 
     def set_subject(self, subject):
@@ -603,9 +656,7 @@ class X509(object):
         :type subject: :py:class:`X509Name`
         :return: None
         """
-        set_result = _api.X509_set_subject_name(self._x509, subject._name)
-        if not set_result:
-            1/0
+        return self._set_name(_api.X509_set_subject_name, subject)
 X509Type = X509
 
 
