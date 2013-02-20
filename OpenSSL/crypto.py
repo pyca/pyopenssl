@@ -90,7 +90,14 @@ class PKey(object):
                 1/0
 
         elif type == TYPE_DSA:
-            pass
+            dsa = _api.DSA_generate_parameters(
+                bits, _api.NULL, 0, _api.NULL, _api.NULL, _api.NULL, _api.NULL)
+            if dsa == _api.NULL:
+                1/0
+            if not _api.DSA_generate_key(dsa):
+                1/0
+            if not _api.EVP_PKEY_assign_DSA(self._pkey, dsa):
+                1/0
         else:
             raise Error("No such key type")
 
@@ -106,6 +113,9 @@ class PKey(object):
         :raise TypeError: if the key is of a type which cannot be checked.
             Only RSA keys can currently be checked.
         """
+        if self._only_public:
+            raise TypeError("public key only")
+
         if _api.EVP_PKEY_type(self._pkey.type) != _api.EVP_PKEY_RSA:
             raise TypeError("key type unsupported")
 
@@ -114,6 +124,25 @@ class PKey(object):
         if result:
             return True
         _raise_current_error()
+
+
+    def type(self):
+        """
+        Returns the type of the key
+
+        :return: The type of the key.
+        """
+        return self._pkey.type
+
+
+    def bits(self):
+        """
+        Returns the number of bits of the key
+
+        :return: The number of bits of the key.
+        """
+        return _api.EVP_PKEY_bits(self._pkey)
+PKeyType = PKey
 
 
 
