@@ -882,9 +882,12 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
     # TODO incomplete
     bio = _api.BIO_new(_api.BIO_s_mem())
 
+    helper = _PassphraseHelper(type, passphrase)
     if type == FILETYPE_PEM:
         result_code = _api.PEM_write_bio_PrivateKey(
-            bio, pkey._pkey, _api.NULL, _api.NULL, 0, _api.NULL, _api.NULL)
+            bio, pkey._pkey, _api.NULL, _api.NULL, 0,
+            helper.callback, helper.callback_args)
+        helper.raise_if_problem()
     elif type == FILETYPE_ASN1:
         result_code = _api.i2d_PrivateKey_bio(bio, pkey._pkey)
     elif type == FILETYPE_TEXT:
@@ -904,7 +907,9 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
 
 
 class _PassphraseHelper(object):
-    def __init__(self, passphrase):
+    def __init__(self, type, passphrase):
+        if type != FILETYPE_PEM and passphrase is not None:
+            raise ValueError("only FILETYPE_PEM key format supports encryption")
         self._passphrase = passphrase
         self._problems = []
 
@@ -973,7 +978,7 @@ def load_privatekey(type, buffer, passphrase=None):
     # TODO incomplete
     bio = _api.BIO_new_mem_buf(buffer, len(buffer))
 
-    helper = _PassphraseHelper(passphrase)
+    helper = _PassphraseHelper(type, passphrase)
     if type == FILETYPE_PEM:
         evp_pkey = _api.PEM_read_bio_PrivateKey(
             bio, _api.NULL, helper.callback, helper.callback_args)
