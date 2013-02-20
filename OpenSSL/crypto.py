@@ -492,6 +492,22 @@ class X509(object):
         _api.X509_gmtime_adj(notAfter, amount)
 
 
+    def gmtime_adj_notBefore(self, amount):
+        """
+        Change the timestamp for when the certificate starts being valid to the current
+        time plus an offset.
+
+        :param amount: The number of seconds by which to adjust the starting validity
+                       time.
+        :return: None
+        """
+        if not isinstance(amount, int):
+            raise TypeError("amount must be an integer")
+
+        notBefore = _api.X509_get_notBefore(self._x509)
+        _api.X509_gmtime_adj(notBefore, amount)
+
+
     def has_expired(self):
         """
         Check whether the certificate has expired.
