@@ -117,6 +117,165 @@ class PKey(object):
 
 
 
+class X509Name(object):
+    def __init__(self, name):
+        """
+        Create a new X509Name, copying the given X509Name instance.
+
+        :param name: An X509Name object to copy
+        """
+        self._name = _api.X509_NAME_dup(name._name)
+
+
+    def __setattr__(self, name, value):
+        if name.startswith('_'):
+            return super(X509Name, self).__setattr__(name, value)
+
+        if type(name) is not str:
+            raise TypeError("attribute name must be string, not '%.200s'" % (
+                    type(value).__name__,))
+
+        nid = _api.OBJ_txt2nid(name)
+        if nid == _api.NID_undef:
+            try:
+                _raise_current_error()
+            except Error:
+                pass
+            raise AttributeError("No such attribute")
+
+        # If there's an old entry for this NID, remove it
+        for i in range(_api.X509_NAME_entry_count(self._name)):
+            ent = _api.X509_NAME_get_entry(self._name, i)
+            ent_obj = _api.X509_NAME_ENTRY_get_object(ent)
+            ent_nid = _api.OBJ_obj2nid(ent_obj)
+            if nid == ent_nid:
+                ent = _api.X509_NAME_delete_entry(self._name, i)
+                _api.X509_NAME_ENTRY_free(ent)
+                break
+
+        if isinstance(value, unicode):
+            value = value.encode('utf-8')
+
+        add_result = _api.X509_NAME_add_entry_by_NID(
+            self._name, nid, _api.MBSTRING_UTF8, value, -1, -1, 0)
+        if not add_result:
+            # TODO Untested
+            1/0
+
+
+    def __getattr__(self, name):
+        """
+        Find attribute. An X509Name object has the following attributes:
+        countryName (alias C), stateOrProvince (alias ST), locality (alias L),
+        organization (alias O), organizationalUnit (alias OU), commonName (alias
+        CN) and more...
+        """
+        nid = _api.OBJ_txt2nid(name)
+        if nid == _api.NID_undef:
+            # This is a bit weird.  OBJ_txt2nid indicated failure, but it seems
+            # a lower level function, a2d_ASN1_OBJECT, also feels the need to
+            # push something onto the error queue.  If we don't clean that up
+            # now, someone else will bump into it later and be quite confused.
+            # See lp#314814.
+            try:
+                _raise_current_error()
+            except Error:
+                pass
+            return super(X509Name, self).__getattr__(name)
+
+        entry_index = _api.X509_NAME_get_index_by_NID(self._name, nid, -1)
+        if entry_index == -1:
+            return None
+
+        entry = _api.X509_NAME_get_entry(self._name, entry_index)
+        data = _api.X509_NAME_ENTRY_get_data(entry)
+
+        result_buffer = _api.new("unsigned char**")
+        data_length = _api.ASN1_STRING_to_UTF8(result_buffer, data)
+        if data_length < 0:
+            1/0
+
+        result = _api.buffer(result_buffer[0], data_length)[:].decode('utf-8')
+        _api.OPENSSL_free(result_buffer[0])
+        return result
+
+
+    def __cmp__(self, other):
+        if not isinstance(other, X509Name):
+            return NotImplemented
+
+        result = _api.X509_NAME_cmp(self._name, other._name)
+        # TODO result == -2 is an error case that maybe should be checked for
+        return result
+
+
+    def __repr__(self):
+        """
+        String representation of an X509Name
+        """
+        result_buffer = _api.new("char[]", 512);
+        format_result = _api.X509_NAME_oneline(
+            self._name, result_buffer, len(result_buffer))
+
+        if format_result == _api.NULL:
+            1/0
+
+        return "<X509Name object '%s'>" % (_api.string(result_buffer),)
+
+
+    def hash(self):
+        """
+        Return the hash value of this name
+
+        :return: None
+        """
+        return _api.X509_NAME_hash(self._name)
+
+
+    def der(self):
+        """
+        Return the DER encoding of this name
+
+        :return: A :py:class:`bytes` instance giving the DER encoded form of
+            this name.
+        """
+        result_buffer = _api.new('unsigned char**')
+        encode_result = _api.i2d_X509_NAME(self._name, result_buffer)
+        if encode_result < 0:
+            1/0
+
+        string_result = _api.buffer(result_buffer[0], encode_result)[:]
+        _api.OPENSSL_free(result_buffer[0])
+        return string_result
+
+
+    def get_components(self):
+        """
+        Returns the split-up components of this name.
+
+        :return: List of tuples (name, value).
+        """
+        result = []
+        for i in range(_api.X509_NAME_entry_count(self._name)):
+            ent = _api.X509_NAME_get_entry(self._name, i)
+
+            fname = _api.X509_NAME_ENTRY_get_object(ent)
+            fval = _api.X509_NAME_ENTRY_get_data(ent)
+
+            nid = _api.OBJ_obj2nid(fname)
+            name = _api.OBJ_nid2sn(nid)
+
+            result.append((
+                    _api.string(name),
+                    _api.string(
+                        _api.ASN1_STRING_data(fval),
+                        _api.ASN1_STRING_length(fval))))
+
+        return result
+X509NameType = X509Name
+
+
+
 class X509(object):
     def __init__(self):
         # TODO Allocation failure?  And why not __new__ instead of __init__?
@@ -421,6 +580,32 @@ class X509(object):
         """
         notAfter = _api.X509_get_notAfter(self._x509)
         _api.ASN1_GENERALIZEDTIME_set_string(notAfter, when)
+
+
+    def get_subject(self):
+        """
+        Create an X509Name object for the subject of the certificate
+
+        :return: An X509Name object
+        """
+        name = X509Name.__new__(X509Name)
+        name._name = _api.X509_get_subject_name(self._x509)
+        if name._name == _api.NULL:
+            1/0
+        return name
+
+
+    def set_subject(self, subject):
+        """
+        Set the subject of the certificate
+
+        :param subject: The subject name
+        :type subject: :py:class:`X509Name`
+        :return: None
+        """
+        set_result = _api.X509_set_subject_name(self._x509, subject._name)
+        if not set_result:
+            1/0
 X509Type = X509
 
 
