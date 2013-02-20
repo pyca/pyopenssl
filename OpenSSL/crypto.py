@@ -363,7 +363,117 @@ class X509Extension(object):
 
 
 class X509Req(object):
-    pass
+    def __init__(self):
+        self._req = _api.X509_REQ_new()
+
+
+    def set_pubkey(self, pkey):
+        """
+        Set the public key of the certificate request
+
+        :param pkey: The public key to use
+        :return: None
+        """
+        set_result = _api.X509_REQ_set_pubkey(self._req, pkey._pkey)
+        if not set_result:
+            1/0
+
+
+    def get_pubkey(self):
+        """
+        Get the public key from the certificate request
+
+        :return: The public key
+        """
+        pkey = PKey.__new__(PKey)
+        pkey._pkey = _api.X509_REQ_get_pubkey(self._req)
+        if pkey._pkey == _api.NULL:
+            1/0
+        pkey._only_public = True
+        return pkey
+
+
+    def set_version(self, version):
+        """
+        Set the version subfield (RFC 2459, section 4.1.2.1) of the certificate
+        request.
+
+        :param version: The version number
+        :return: None
+        """
+        set_result = _api.X509_REQ_set_version(self._req, version)
+        if not set_result:
+            _raise_current_error()
+
+
+    def get_version(self):
+        """
+        Get the version subfield (RFC 2459, section 4.1.2.1) of the certificate
+        request.
+
+        :return: an integer giving the value of the version subfield
+        """
+        return _api.X509_REQ_get_version(self._req)
+
+
+    def get_subject(self):
+        """
+        Create an X509Name object for the subject of the certificate request
+
+        :return: An X509Name object
+        """
+        name = X509Name.__new__(X509Name)
+        name._name = _api.X509_REQ_get_subject_name(self._req)
+        if name._name == _api.NULL:
+            1/0
+        return name
+
+
+    def add_extensions(self, extensions):
+        """
+        Add extensions to the request.
+
+        :param extensions: a sequence of X509Extension objects
+        :return: None
+        """
+        stack = _api.sk_X509_EXTENSION_new_null()
+        if stack == _api.NULL:
+            1/0
+
+        for ext in extensions:
+            if not isinstance(ext, X509Extension):
+                1/0
+
+            _api.sk_X509_EXTENSION_push(stack, ext._extension)
+
+        add_result = _api.X509_REQ_add_extensions(self._req, stack)
+        if not add_result:
+            1/0
+
+
+    def sign(self, pkey, digest):
+        """
+        Sign the certificate request using the supplied key and digest
+
+        :param pkey: The key to sign with
+        :param digest: The message digest to use
+        :return: None
+        """
+        if pkey._only_public:
+            raise ValueError("Key has only public part")
+
+        if not pkey._initialized:
+            raise ValueError("Key is uninitialized")
+
+        digest_obj = _api.EVP_get_digestbyname(digest)
+        if digest_obj == _api.NULL:
+            raise ValueError("No such digest method")
+
+        sign_result = _api.X509_REQ_sign(self._req, pkey._pkey, digest_obj)
+        if not sign_result:
+            1/0
+
+
 X509ReqType = X509Req
 
 
