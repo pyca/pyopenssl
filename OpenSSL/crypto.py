@@ -362,6 +362,12 @@ class X509Extension(object):
 
 
 
+class X509Req(object):
+    pass
+X509ReqType = X509Req
+
+
+
 class X509(object):
     def __init__(self):
         # TODO Allocation failure?  And why not __new__ instead of __init__?
@@ -821,6 +827,8 @@ def load_certificate(type, buffer):
     :return: The X509 object
     """
     bio = _api.BIO_new_mem_buf(buffer, len(buffer))
+    if bio == _api.NULL:
+        1/0
 
     try:
         if type == FILETYPE_PEM:
@@ -850,6 +858,9 @@ def dump_certificate(type, cert):
     :return: The buffer with the dumped certificate in
     """
     bio = _api.BIO_new(_api.BIO_s_mem())
+    if bio == _api.NULL:
+        1/0
+
     if type == FILETYPE_PEM:
         result_code = _api.PEM_write_bio_X509(bio, cert._x509)
     elif type == FILETYPE_ASN1:
@@ -879,13 +890,21 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
     :return: The buffer with the dumped key in
     :rtype: :py:data:`str`
     """
-    # TODO incomplete
     bio = _api.BIO_new(_api.BIO_s_mem())
+    if bio == _api.NULL:
+        1/0
+
+    if cipher is not None:
+        cipher_obj = _api.EVP_get_cipherbyname(cipher)
+        if cipher_obj == _api.NULL:
+            raise ValueError("Invalid cipher name")
+    else:
+        cipher_obj = _api.NULL
 
     helper = _PassphraseHelper(type, passphrase)
     if type == FILETYPE_PEM:
         result_code = _api.PEM_write_bio_PrivateKey(
-            bio, pkey._pkey, _api.NULL, _api.NULL, 0,
+            bio, pkey._pkey, cipher_obj, _api.NULL, 0,
             helper.callback, helper.callback_args)
         helper.raise_if_problem()
     elif type == FILETYPE_ASN1:
@@ -975,8 +994,9 @@ def load_privatekey(type, buffer, passphrase=None):
 
     :return: The PKey object
     """
-    # TODO incomplete
     bio = _api.BIO_new_mem_buf(buffer, len(buffer))
+    if bio == _api.NULL:
+        1/0
 
     helper = _PassphraseHelper(type, passphrase)
     if type == FILETYPE_PEM:
@@ -1005,6 +1025,23 @@ def dump_certificate_request(type, req):
     :param req: The certificate request to dump
     :return: The buffer with the dumped certificate request in
     """
+    bio = _api.BIO_new(_api.BIO_s_mem())
+    if bio == _api.NULL:
+        1/0
+
+    if type == FILETYPE_PEM:
+        result_code = _api.PEM_write_bio_X509_REQ(bio, req._req)
+    elif type == FILETYPE_ASN1:
+        pass
+    elif type == FILETYPE_TEXT:
+        pass
+    else:
+        1/0
+
+    if result_code == 0:
+        1/0
+
+    return _bio_to_string(bio)
 
 
 
@@ -1016,3 +1053,20 @@ def load_certificate_request(type, buffer):
     :param buffer: The buffer the certificate request is stored in
     :return: The X509Req object
     """
+    bio = _api.BIO_new_mem_buf(buffer, len(buffer))
+    if bio == _api.NULL:
+        1/0
+
+    if type == FILETYPE_PEM:
+        req = _api.PEM_read_bio_X509_REQ(bio, _api.NULL, _api.NULL, _api.NULL)
+    elif type == FILETYPE_ASN1:
+        pass
+    else:
+        1/0
+
+    if req == _api.NULL:
+        1/0
+
+    x509req = X509Req.__new__(X509Req)
+    x509req._req = req
+    return x509req
