@@ -918,12 +918,47 @@ def load_privatekey(type, buffer, passphrase=None):
     # TODO incomplete
     bio = _api.BIO_new_mem_buf(buffer, len(buffer))
 
+    problems = []
+    if passphrase is None:
+        cb = _api.NULL
+        cb_arg = _api.NULL
+    elif isinstance(passphrase, bytes):
+        cb = _api.NULL
+        cb_arg = passphrase
+    elif callable(passphrase):
+        def read_passphrase(buf, size, rwflag, userdata):
+            try:
+                result = passphrase(rwflag)
+                if not isinstance(result, bytes):
+                    raise ValueError("String expected")
+                if len(result) > size:
+                    raise ValueError("passphrase returned by callback is too long")
+                for i in range(len(result)):
+                    buf[i] = result[i]
+                return len(result)
+            except Exception as e:
+                problems.append(e)
+                return 0
+        cb = _api.callback("pem_password_cb", read_passphrase)
+        cb_arg = _api.NULL
+    else:
+        raise TypeError("Last argument must be string or callable")
+
     if type == FILETYPE_PEM:
-        evp_pkey = _api.PEM_read_bio_PrivateKey(bio, _api.NULL, _api.NULL, _api.NULL)
+        evp_pkey = _api.PEM_read_bio_PrivateKey(bio, _api.NULL, cb, cb_arg)
+        if problems:
+            try:
+                _raise_current_error()
+            except Error:
+                pass
+            raise problems[0]
     elif type == FILETYPE_ASN1:
         evp_pkey = _api.d2i_PrivateKey_bio(bio, _api.NULL)
     else:
         raise ValueError("type argument must be FILETYPE_PEM or FILETYPE_ASN1")
+
+    if evp_pkey == _api.NULL:
+        _raise_current_error()
 
     pkey = PKey.__new__(PKey)
     pkey._pkey = evp_pkey
