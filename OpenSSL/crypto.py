@@ -1380,6 +1380,86 @@ class CRL(object):
 CRLType = CRL
 
 
+
+class NetscapeSPKI(object):
+    def __init__(self):
+        self._spki = _api.NETSCAPE_SPKI_new()
+
+
+    def sign(self, pkey, digest):
+        """
+        Sign the certificate request using the supplied key and digest
+
+        :param pkey: The key to sign with
+        :param digest: The message digest to use
+        :return: None
+        """
+        if pkey._only_public:
+            raise ValueError("Key has only public part")
+
+        if not pkey._initialized:
+            raise ValueError("Key is uninitialized")
+
+        digest_obj = _api.EVP_get_digestbyname(digest)
+        if digest_obj == _api.NULL:
+            raise ValueError("No such digest method")
+
+        sign_result = _api.NETSCAPE_SPKI_sign(self._spki, pkey._pkey, digest_obj)
+        if not sign_result:
+            1/0
+
+
+    def verify(self, key):
+        """
+        Verifies a certificate request using the supplied public key
+
+        :param key: a public key
+        :return: True if the signature is correct.
+        :raise OpenSSL.crypto.Error: If the signature is invalid or there is a
+            problem verifying the signature.
+        """
+        answer = _api.NETSCAPE_SPKI_verify(self._spki, key._pkey)
+        if answer <= 0:
+            _raise_current_error()
+        return True
+
+
+    def b64_encode(self):
+        """
+        Generate a base64 encoded string from an SPKI
+
+        :return: The base64 encoded string
+        """
+        return _api.string(_api.NETSCAPE_SPKI_b64_encode(self._spki))
+
+
+    def get_pubkey(self):
+        """
+        Get the public key of the certificate
+
+        :return: The public key
+        """
+        pkey = PKey.__new__(PKey)
+        pkey._pkey = _api.NETSCAPE_SPKI_get_pubkey(self._spki)
+        if pkey._pkey == _api.NULL:
+            1/0
+        pkey._only_public = True
+        return pkey
+
+
+    def set_pubkey(self, pkey):
+        """
+        Set the public key of the certificate
+
+        :param pkey: The public key
+        :return: None
+        """
+        set_result = _api.NETSCAPE_SPKI_set_pubkey(self._spki, pkey._pkey)
+        if not set_result:
+            1/0
+NetscapeSPKIType = NetscapeSPKI
+
+
 class _PassphraseHelper(object):
     def __init__(self, type, passphrase):
         if type != FILETYPE_PEM and passphrase is not None:
