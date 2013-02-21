@@ -1381,6 +1381,168 @@ CRLType = CRL
 
 
 
+class PKCS12(object):
+    def __init__(self):
+        self._pkey = None
+        self._cert = None
+        self._cacerts = None
+        self._friendlyname = None
+
+
+    def get_certificate(self):
+        """
+        Return certificate portion of the PKCS12 structure
+
+        :return: X509 object containing the certificate
+        """
+        return self._cert
+
+
+    def set_certificate(self, cert):
+        """
+        Replace the certificate portion of the PKCS12 structure
+
+        :param cert: The new certificate.
+        :type cert: :py:class:`X509` or :py:data:`None`
+        :return: None
+        """
+        if not isinstance(cert, X509):
+            raise TypeError("cert must be an X509 instance")
+        self._cert = cert
+
+
+    def get_privatekey(self):
+        """
+        Return private key portion of the PKCS12 structure
+
+        :returns: PKey object containing the private key
+        """
+        return self._pkey
+
+
+    def set_privatekey(self, pkey):
+        """
+        Replace or set the certificate portion of the PKCS12 structure
+
+        :param pkey: The new private key.
+        :type pkey: :py:class:`PKey`
+        :return: None
+        """
+        if not isinstance(pkey, PKey):
+            raise TypeError("pkey must be a PKey instance")
+        self._pkey = pkey
+
+
+    def get_ca_certificates(self):
+        """
+        Return CA certificates within of the PKCS12 object
+
+        :return: A newly created tuple containing the CA certificates in the chain,
+                 if any are present, or None if no CA certificates are present.
+        """
+        if self._cacerts is not None:
+            return tuple(self._cacerts)
+
+
+    def set_ca_certificates(self, cacerts):
+        """
+        Replace or set the CA certificates withing the PKCS12 object.
+
+        :param cacerts: The new CA certificates.
+        :type cacerts: :py:data:`None` or an iterable of :py:class:`X509`
+        :return: None
+        """
+        if cacerts is None:
+            self._cacerts = None
+        else:
+            cacerts = list(cacerts)
+            for cert in cacerts:
+                if not isinstance(cert, X509):
+                    raise TypeError("iterable must only contain X509 instances")
+            self._cacerts = cacerts
+
+
+    def set_friendlyname(self, name):
+        """
+        Replace or set the certificate portion of the PKCS12 structure
+
+        :param name: The new friendly name.
+        :type name: :py:class:`bytes`
+        :return: None
+        """
+        if name is None:
+            self._friendlyname = None
+        elif not isinstance(name, bytes):
+            raise TypeError("name must be a byte string or None (not %r)" % (name,))
+        self._friendlyname = name
+
+
+    def get_friendlyname(self):
+        """
+        Return friendly name portion of the PKCS12 structure
+
+        :returns: String containing the friendlyname
+        """
+        return self._friendlyname
+
+
+    def export(self, passphrase=None, iter=2048, maciter=1):
+        """
+        Dump a PKCS12 object as a string.  See also "man PKCS12_create".
+
+        :param passphrase: used to encrypt the PKCS12
+        :type passphrase: :py:data:`bytes`
+
+        :param iter: How many times to repeat the encryption
+        :type iter: :py:data:`int`
+
+        :param maciter: How many times to repeat the MAC
+        :type maciter: :py:data:`int`
+
+        :return: The string containing the PKCS12
+        """
+        if self._cacerts is None:
+            cacerts = _api.NULL
+        else:
+            cacerts = _api.sk_X509_new_null()
+            for cert in self._cacerts:
+                _api.sk_X509_push(cacerts, cert._x509)
+
+        if passphrase is None:
+            passphrase = _api.NULL
+
+        friendlyname = self._friendlyname
+        if friendlyname is None:
+            friendlyname = _api.NULL
+
+        if self._pkey is None:
+            pkey = _api.NULL
+        else:
+            pkey = self._pkey._pkey
+
+        if self._cert is None:
+            cert = _api.NULL
+        else:
+            cert = self._cert._x509
+
+        pkcs12 = _api.PKCS12_create(
+            passphrase, friendlyname, pkey, cert, cacerts,
+            _api.NID_pbe_WithSHA1And3_Key_TripleDES_CBC,
+            _api.NID_pbe_WithSHA1And3_Key_TripleDES_CBC,
+            iter, maciter, 0)
+        if pkcs12 == _api.NULL:
+            _raise_current_error()
+
+        bio = _api.BIO_new(_api.BIO_s_mem())
+        if bio == _api.NULL:
+            1/0
+
+        _api.i2d_PKCS12_bio(bio, pkcs12)
+        return _bio_to_string(bio)
+PKCS12Type = PKCS12
+
+
+
 class NetscapeSPKI(object):
     def __init__(self):
         self._spki = _api.NETSCAPE_SPKI_new()
@@ -1694,3 +1856,71 @@ def load_crl(type, buffer):
     result = CRL.__new__(CRL)
     result._crl = crl
     return result
+
+
+
+def load_pkcs12(buffer, passphrase):
+    """
+    Load a PKCS12 object from a buffer
+
+    :param buffer: The buffer the certificate is stored in
+    :param passphrase: (Optional) The password to decrypt the PKCS12 lump
+    :returns: The PKCS12 object
+    """
+    bio = _api.BIO_new_mem_buf(buffer, len(buffer))
+    if bio == _api.NULL:
+        1/0
+
+    p12 = _api.d2i_PKCS12_bio(bio, _api.NULL)
+    if p12 == _api.NULL:
+        _raise_current_error()
+
+    pkey = _api.new("EVP_PKEY**")
+    cert = _api.new("X509**")
+    cacerts = _api.new("struct stack_st_X509**")
+
+    parse_result = _api.PKCS12_parse(p12, passphrase, pkey, cert, cacerts)
+    if not parse_result:
+        _raise_current_error()
+
+    # openssl 1.0.0 sometimes leaves an X509_check_private_key error in the
+    # queue for no particular reason.  This error isn't interesting to anyone
+    # outside this function.  It's not even interesting to us.  Get rid of it.
+    try:
+        _raise_current_error()
+    except Error:
+        pass
+
+    if pkey[0] == _api.NULL:
+        pykey = None
+    else:
+        pykey = PKey.__new__(PKey)
+        pykey._pkey = pkey[0]
+
+    if cert[0] == _api.NULL:
+        pycert = None
+        friendlyname = None
+    else:
+        pycert = X509.__new__(X509)
+        pycert._x509 = cert[0]
+
+        friendlyname_length = _api.new("int*")
+        friendlyname_buffer = _api.X509_alias_get0(cert[0], friendlyname_length)
+        friendlyname = _api.buffer(friendlyname_buffer, friendlyname_length[0])[:]
+        if friendlyname_buffer == _api.NULL:
+            friendlyname = None
+
+    pycacerts = []
+    for i in range(_api.sk_X509_num(cacerts[0])):
+        pycacert = X509.__new__(X509)
+        pycacert._x509 = _api.sk_X509_value(cacerts[0], i)
+        pycacerts.append(pycacert)
+    if not pycacerts:
+        pycacerts = None
+
+    pkcs12 = PKCS12.__new__(PKCS12)
+    pkcs12._pkey = pykey
+    pkcs12._cert = pycert
+    pkcs12._cacerts = pycacerts
+    pkcs12._friendlyname = friendlyname
+    return pkcs12
