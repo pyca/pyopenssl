@@ -1297,7 +1297,8 @@ class CRL(object):
             pyrev = Revoked.__new__(Revoked)
             pyrev._revoked = revoked_copy
             results.append(pyrev)
-        return tuple(results)
+        if results:
+            return tuple(results)
 
 
     def add_revoked(self, revoked):
@@ -1334,7 +1335,48 @@ class CRL(object):
 
         :return: :py:data:`str`
         """
+        if not isinstance(cert, X509):
+            raise TypeError("cert must be an X509 instance")
+        if not isinstance(key, PKey):
+            raise TypeError("key must be a PKey instance")
+        if not isinstance(type, int):
+            raise TypeError("type must be an integer")
 
+        bio = _api.BIO_new(_api.BIO_s_mem())
+        if bio == _api.NULL:
+            1/0
+
+        # A scratch time object to give different values to different CRL fields
+        sometime = _api.ASN1_TIME_new()
+        if sometime == _api.NULL:
+            1/0
+
+        _api.X509_gmtime_adj(sometime, 0)
+        _api.X509_CRL_set_lastUpdate(self._crl, sometime)
+
+        _api.X509_gmtime_adj(sometime, days * 24 * 60 * 60)
+        _api.X509_CRL_set_nextUpdate(self._crl, sometime)
+
+        _api.X509_CRL_set_issuer_name(self._crl, _api.X509_get_subject_name(cert._x509))
+
+        sign_result = _api.X509_CRL_sign(self._crl, key._pkey, _api.EVP_md5())
+        if not sign_result:
+            _raise_current_error()
+
+        if type == FILETYPE_PEM:
+            ret = _api.PEM_write_bio_X509_CRL(bio, self._crl)
+        elif type == FILETYPE_ASN1:
+            ret = _api.i2d_X509_CRL_bio(bio, self._crl)
+        elif type == FILETYPE_TEXT:
+            ret = _api.X509_CRL_print(bio, self._crl)
+        else:
+            raise ValueError(
+                "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or FILETYPE_TEXT")
+
+        if not ret:
+            1/0
+
+        return _bio_to_string(bio)
 CRLType = CRL
 
 
@@ -1564,7 +1606,6 @@ def load_crl(type, buffer):
     elif type == FILETYPE_ASN1:
         crl = _api.d2i_X509_CRL_bio(bio, _api.NULL)
     else:
-        1/0
         raise ValueError("type argument must be FILETYPE_PEM or FILETYPE_ASN1")
 
     if crl == _api.NULL:
