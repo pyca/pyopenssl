@@ -1,6 +1,6 @@
 from time import time
 
-from OpenSSL.xcrypto import *
+from OpenSSL.xcrypto import PKCS7Type, load_pkcs7_data
 
 from tls.c import api as _api
 
