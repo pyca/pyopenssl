@@ -1230,3 +1230,63 @@ def load_certificate_request(type, buffer):
     x509req = X509Req.__new__(X509Req)
     x509req._req = req
     return x509req
+
+
+
+def sign(pkey, data, digest):
+    """
+    Sign data with a digest
+
+    :param pkey: Pkey to sign with
+    :param data: data to be signed
+    :param digest: message digest to use
+    :return: signature
+    """
+    digest_obj = _api.EVP_get_digestbyname(digest)
+    if digest_obj == _api.NULL:
+        raise ValueError("No such digest method")
+
+    md_ctx = _api.new("EVP_MD_CTX*")
+
+    _api.EVP_SignInit(md_ctx, digest_obj)
+    _api.EVP_SignUpdate(md_ctx, data, len(data))
+
+    signature_buffer = _api.new("unsigned char[]", 512)
+    signature_length = _api.new("unsigned int*")
+    signature_length[0] = len(signature_buffer)
+    final_result = _api.EVP_SignFinal(
+        md_ctx, signature_buffer, signature_length, pkey._pkey)
+
+    if final_result != 1:
+        1/0
+
+    return _api.buffer(signature_buffer, signature_length[0])[:]
+
+
+
+def verify(cert, signature, data, digest):
+    """
+    Verify a signature
+
+    :param cert: signing certificate (X509 object)
+    :param signature: signature returned by sign function
+    :param data: data to be verified
+    :param digest: message digest to use
+    :return: None if the signature is correct, raise exception otherwise
+    """
+    digest_obj = _api.EVP_get_digestbyname(digest)
+    if digest_obj == _api.NULL:
+        raise ValueError("No such digest method")
+
+    pkey = _api.X509_get_pubkey(cert._x509)
+    if pkey == _api.NULL:
+        1/0
+
+    md_ctx = _api.new("EVP_MD_CTX*")
+
+    _api.EVP_VerifyInit(md_ctx, digest_obj)
+    _api.EVP_VerifyUpdate(md_ctx, data, len(data))
+    verify_result = _api.EVP_VerifyFinal(md_ctx, signature, len(signature), pkey)
+
+    if verify_result != 1:
+        _raise_current_error()
