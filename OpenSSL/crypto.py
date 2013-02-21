@@ -24,6 +24,46 @@ def _bio_to_string(bio):
 
 
 
+def _set_asn1_time(boundary, when):
+    if not isinstance(when, bytes):
+        raise TypeError("when must be a byte string")
+
+    set_result = _api.ASN1_GENERALIZEDTIME_set_string(
+        _api.cast('ASN1_GENERALIZEDTIME*', boundary), when)
+    if set_result == 0:
+        dummy = _api.ASN1_STRING_new()
+        _api.ASN1_STRING_set(dummy, when, len(when))
+        check_result = _api.ASN1_GENERALIZEDTIME_check(
+            _api.cast('ASN1_GENERALIZEDTIME*', dummy))
+        if not check_result:
+            raise ValueError("Invalid string")
+        else:
+            # TODO No tests for this case
+            raise RuntimeError("Unknown ASN1_GENERALIZEDTIME_set_string failure")
+
+
+
+def _get_asn1_time(timestamp):
+    string_timestamp = _api.cast('ASN1_STRING*', timestamp)
+    if _api.ASN1_STRING_length(string_timestamp) == 0:
+        return None
+    elif _api.ASN1_STRING_type(string_timestamp) == _api.V_ASN1_GENERALIZEDTIME:
+        return _api.string(_api.ASN1_STRING_data(string_timestamp))
+    else:
+        generalized_timestamp = _api.new("ASN1_GENERALIZEDTIME**")
+        _api.ASN1_TIME_to_generalizedtime(timestamp, generalized_timestamp)
+        if generalized_timestamp[0] == _api.NULL:
+            1/0
+        else:
+            string_timestamp = _api.cast(
+                "ASN1_STRING*", generalized_timestamp[0])
+            string_data = _api.ASN1_STRING_data(string_timestamp)
+            string_result = _api.string(string_data)
+            _api.ASN1_GENERALIZEDTIME_free(generalized_timestamp[0])
+            return string_result
+
+
+
 def _raise_current_error():
     errors = []
     while True:
@@ -773,24 +813,7 @@ class X509(object):
 
 
     def _get_boundary_time(self, which):
-        timestamp = which(self._x509)
-        string_timestamp = _api.cast('ASN1_STRING*', timestamp)
-        if _api.ASN1_STRING_length(string_timestamp) == 0:
-            return None
-        elif _api.ASN1_STRING_type(string_timestamp) == _api.V_ASN1_GENERALIZEDTIME:
-            return _api.string(_api.ASN1_STRING_data(string_timestamp))
-        else:
-            generalized_timestamp = _api.new("ASN1_GENERALIZEDTIME**")
-            _api.ASN1_TIME_to_generalizedtime(timestamp, generalized_timestamp)
-            if generalized_timestamp[0] == _api.NULL:
-                1/0
-            else:
-                string_timestamp = _api.cast(
-                    "ASN1_STRING*", generalized_timestamp[0])
-                string_data = _api.ASN1_STRING_data(string_timestamp)
-                string_result = _api.string(string_data)
-                _api.ASN1_GENERALIZEDTIME_free(generalized_timestamp[0])
-                return string_result
+        return _get_asn1_time(which(self._x509))
 
 
     def get_notBefore(self):
@@ -809,22 +832,7 @@ class X509(object):
 
 
     def _set_boundary_time(self, which, when):
-        if not isinstance(when, bytes):
-            raise TypeError("when must be a byte string")
-
-        boundary = which(self._x509)
-        set_result = _api.ASN1_GENERALIZEDTIME_set_string(
-            _api.cast('ASN1_GENERALIZEDTIME*', boundary), when)
-        if set_result == 0:
-            dummy = _api.ASN1_STRING_new()
-            _api.ASN1_STRING_set(dummy, when, len(when))
-            check_result = _api.ASN1_GENERALIZEDTIME_check(
-                _api.cast('ASN1_GENERALIZEDTIME*', dummy))
-            if not check_result:
-                raise ValueError("Invalid string")
-            else:
-                # TODO No tests for this case
-                raise RuntimeError("Unknown ASN1_GENERALIZEDTIME_set_string failure")
+        return _set_asn1_time(which(self._x509), when)
 
 
     def set_notBefore(self, when):
@@ -1085,6 +1093,251 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
 
 
 
+def _X509_REVOKED_dup(original):
+    copy = _api.X509_REVOKED_new()
+    if copy == _api.NULL:
+        1/0
+
+    if original.serialNumber != _api.NULL:
+        copy.serialNumber = _api.ASN1_INTEGER_dup(original.serialNumber)
+
+    if original.revocationDate != _api.NULL:
+        copy.revocationDate = _api.M_ASN1_TIME_dup(original.revocationDate)
+
+    if original.extensions != _api.NULL:
+        extension_stack = _api.sk_X509_EXTENSION_new_null()
+        for i in range(_api.sk_X509_EXTENSION_num(original.extensions)):
+            original_ext = _api.sk_X509_EXTENSION_value(original.extensions, i)
+            copy_ext = _api.X509_EXTENSION_dup(original_ext)
+            _api.sk_X509_EXTENSION_push(extension_stack, copy_ext)
+        copy.extensions = extension_stack
+
+    copy.sequence = original.sequence
+    return copy
+
+
+
+class Revoked(object):
+    # http://www.openssl.org/docs/apps/x509v3_config.html#CRL_distribution_points_
+    # which differs from crl_reasons of crypto/x509v3/v3_enum.c that matches
+    # OCSP_crl_reason_str.  We use the latter, just like the command line
+    # program.
+    _crl_reasons = [
+        "unspecified",
+        "keyCompromise",
+        "CACompromise",
+        "affiliationChanged",
+        "superseded",
+        "cessationOfOperation",
+        "certificateHold",
+        # "removeFromCRL",
+        ]
+
+    def __init__(self):
+        self._revoked = _api.X509_REVOKED_new()
+
+
+    def set_serial(self, hex_str):
+        """
+        Set the serial number of a revoked Revoked structure
+
+        :param hex_str: The new serial number.
+        :type hex_str: :py:data:`str`
+        :return: None
+        """
+        bignum_serial = _api.new("BIGNUM**")
+        bn_result = _api.BN_hex2bn(bignum_serial, hex_str)
+        if not bn_result:
+            raise ValueError("bad hex string")
+
+        asn1_serial = _api.BN_to_ASN1_INTEGER(bignum_serial[0], _api.NULL)
+        _api.X509_REVOKED_set_serialNumber(self._revoked, asn1_serial)
+
+
+    def get_serial(self):
+        """
+        Return the serial number of a Revoked structure
+
+        :return: The serial number as a string
+        """
+        bio = _api.BIO_new(_api.BIO_s_mem())
+        if bio == _api.NULL:
+            1/0
+
+        result = _api.i2a_ASN1_INTEGER(bio, self._revoked.serialNumber)
+        if result < 0:
+            1/0
+
+        return _bio_to_string(bio)
+
+
+    def _delete_reason(self):
+        stack = self._revoked.extensions
+        for i in range(_api.sk_X509_EXTENSION_num(stack)):
+            ext = _api.sk_X509_EXTENSION_value(stack, i)
+            if _api.OBJ_obj2nid(ext.object) == _api.NID_crl_reason:
+                _api.sk_X509_EXTENSION_delete(stack, i)
+                break
+
+
+    def set_reason(self, reason):
+        """
+        Set the reason of a Revoked object.
+
+        If :py:data:`reason` is :py:data:`None`, delete the reason instead.
+
+        :param reason: The reason string.
+        :type reason: :py:class:`str` or :py:class:`NoneType`
+        :return: None
+        """
+        if reason is None:
+            self._delete_reason()
+        elif not isinstance(reason, bytes):
+            raise TypeError("reason must be None or a byte string")
+        else:
+            reason = reason.lower().replace(' ', '')
+            reason_code = [r.lower() for r in self._crl_reasons].index(reason)
+
+            new_reason_ext = _api.ASN1_ENUMERATED_new()
+            if new_reason_ext == _api.NULL:
+                1/0
+
+            set_result = _api.ASN1_ENUMERATED_set(new_reason_ext, reason_code)
+            if set_result == _api.NULL:
+                1/0
+
+            self._delete_reason()
+            add_result = _api.X509_REVOKED_add1_ext_i2d(
+                self._revoked, _api.NID_crl_reason, new_reason_ext, 0, 0)
+
+            if not add_result:
+                1/0
+
+
+    def get_reason(self):
+        """
+        Return the reason of a Revoked object.
+
+        :return: The reason as a string
+        """
+        extensions = self._revoked.extensions
+        for i in range(_api.sk_X509_EXTENSION_num(extensions)):
+            ext = _api.sk_X509_EXTENSION_value(extensions, i)
+            if _api.OBJ_obj2nid(ext.object) == _api.NID_crl_reason:
+                bio = _api.BIO_new(_api.BIO_s_mem())
+                if bio == _api.NULL:
+                    1/0
+
+                print_result = _api.X509V3_EXT_print(bio, ext, 0, 0)
+                if not print_result:
+                    print_result = _api.M_ASN1_OCTET_STRING_print(bio, ext.value)
+                    if print_result == 0:
+                        1/0
+
+                return _bio_to_string(bio)
+
+
+    def all_reasons(self):
+        """
+        Return a list of all the supported reason strings.
+
+        :return: A list of reason strings.
+        """
+        return self._crl_reasons[:]
+
+
+    def set_rev_date(self, when):
+        """
+        Set the revocation timestamp
+
+        :param when: A string giving the timestamp, in the format:
+
+                         YYYYMMDDhhmmssZ
+                         YYYYMMDDhhmmss+hhmm
+                         YYYYMMDDhhmmss-hhmm
+
+        :return: None
+        """
+        return _set_asn1_time(self._revoked.revocationDate, when)
+
+
+    def get_rev_date(self):
+        """
+        Retrieve the revocation date
+
+        :return: A string giving the timestamp, in the format:
+
+                         YYYYMMDDhhmmssZ
+                         YYYYMMDDhhmmss+hhmm
+                         YYYYMMDDhhmmss-hhmm
+        """
+        return _get_asn1_time(self._revoked.revocationDate)
+
+
+
+class CRL(object):
+    def __init__(self):
+        """
+        Create a new empty CRL object.
+        """
+        self._crl = _api.X509_CRL_new()
+
+
+    def get_revoked(self):
+        """
+        Return revoked portion of the CRL structure (by value not reference).
+
+        :return: A tuple of Revoked objects.
+        """
+        results = []
+        revoked_stack = self._crl.crl.revoked
+        for i in range(_api.sk_X509_REVOKED_num(revoked_stack)):
+            revoked = _api.sk_X509_REVOKED_value(revoked_stack, i)
+            revoked_copy = _X509_REVOKED_dup(revoked)
+            pyrev = Revoked.__new__(Revoked)
+            pyrev._revoked = revoked_copy
+            results.append(pyrev)
+        return tuple(results)
+
+
+    def add_revoked(self, revoked):
+        """
+        Add a revoked (by value not reference) to the CRL structure
+
+        :param revoked: The new revoked.
+        :type revoked: :class:`X509`
+
+        :return: None
+        """
+        copy = _X509_REVOKED_dup(revoked._revoked)
+        if copy == _api.NULL:
+            1/0
+
+        add_result = _api.X509_CRL_add0_revoked(self._crl, copy)
+        # TODO what check on add_result?
+
+
+    def export(self, cert, key, type=FILETYPE_PEM, days=100):
+        """
+        export a CRL as a string
+
+        :param cert: Used to sign CRL.
+        :type cert: :class:`X509`
+
+        :param key: Used to sign CRL.
+        :type key: :class:`PKey`
+
+        :param type: The export format, either :py:data:`FILETYPE_PEM`, :py:data:`FILETYPE_ASN1`, or :py:data:`FILETYPE_TEXT`.
+
+        :param days: The number of days until the next update of this CRL.
+        :type days: :py:data:`int`
+
+        :return: :py:data:`str`
+        """
+
+CRLType = CRL
+
+
 class _PassphraseHelper(object):
     def __init__(self, type, passphrase):
         if type != FILETYPE_PEM and passphrase is not None:
@@ -1290,3 +1543,33 @@ def verify(cert, signature, data, digest):
 
     if verify_result != 1:
         _raise_current_error()
+
+
+
+def load_crl(type, buffer):
+    """
+    Load a certificate revocation list from a buffer
+
+    :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)
+    :param buffer: The buffer the CRL is stored in
+
+    :return: The PKey object
+    """
+    bio = _api.BIO_new_mem_buf(buffer, len(buffer))
+    if bio == _api.NULL:
+        1/0
+
+    if type == FILETYPE_PEM:
+        crl = _api.PEM_read_bio_X509_CRL(bio, _api.NULL, _api.NULL, _api.NULL)
+    elif type == FILETYPE_ASN1:
+        crl = _api.d2i_X509_CRL_bio(bio, _api.NULL)
+    else:
+        1/0
+        raise ValueError("type argument must be FILETYPE_PEM or FILETYPE_ASN1")
+
+    if crl == _api.NULL:
+        _raise_current_error()
+
+    result = CRL.__new__(CRL)
+    result._crl = crl
+    return result
