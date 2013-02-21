@@ -1192,11 +1192,11 @@ def dump_certificate_request(type, req):
     if type == FILETYPE_PEM:
         result_code = _api.PEM_write_bio_X509_REQ(bio, req._req)
     elif type == FILETYPE_ASN1:
-        pass
+        result_code = _api.i2d_X509_REQ_bio(bio, req._req)
     elif type == FILETYPE_TEXT:
-        pass
+        result_code = _api.X509_REQ_print_ex(bio, req._req, 0, 0)
     else:
-        1/0
+        raise ValueError("type argument must be FILETYPE_PEM, FILETYPE_ASN1, or FILETYPE_TEXT")
 
     if result_code == 0:
         1/0
@@ -1220,7 +1220,7 @@ def load_certificate_request(type, buffer):
     if type == FILETYPE_PEM:
         req = _api.PEM_read_bio_X509_REQ(bio, _api.NULL, _api.NULL, _api.NULL)
     elif type == FILETYPE_ASN1:
-        pass
+        req = _api.d2i_X509_REQ_bio(bio, _api.NULL)
     else:
         1/0
 
