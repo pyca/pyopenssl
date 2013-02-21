@@ -324,8 +324,27 @@ class X509Extension(object):
         :return: The X509Extension object
         """
         ctx = _api.new("X509V3_CTX*")
+
+        # A context is necessary for any extension which uses the r2i conversion
+        # method.  That is, X509V3_EXT_nconf may segfault if passed a NULL ctx.
+        # Start off by initializing most of the fields to NULL.
         _api.X509V3_set_ctx(ctx, _api.NULL, _api.NULL, _api.NULL, _api.NULL, 0)
+
+        # We have no configuration database - but perhaps we should (some
+        # extensions may require it).
         _api.X509V3_set_ctx_nodb(ctx)
+
+        # Initialize the subject and issuer, if appropriate.  ctx is a local,
+        # and as far as I can tell none of the X509V3_* APIs invoked here steal
+        # any references, so no need to mess with reference counts or duplicates.
+        if issuer is not None:
+            if not isinstance(issuer, X509):
+                raise TypeError("issuer must be an X509 instance")
+            ctx.issuer_cert = issuer._x509
+        if subject is not None:
+            if not isinstance(subject, X509):
+                raise TypeError("subject must be an X509 instance")
+            ctx.subject_cert = subject._x509
 
         if critical:
             # There are other OpenSSL APIs which would let us pass in critical
@@ -339,6 +358,23 @@ class X509Extension(object):
 
         self._extension = _api.X509V3_EXT_nconf(
             _api.NULL, ctx, type_name, value)
+        if self._extension == _api.NULL:
+            _raise_current_error()
+
+
+    def __str__(self):
+        """
+        :return: a nice text representation of the extension
+        """
+        bio = _api.BIO_new(_api.BIO_s_mem())
+        if bio == _api.NULL:
+            1/0
+
+        print_result = _api.X509V3_EXT_print(bio, self._extension, 0, 0)
+        if not print_result:
+            1/0
+
+        return _bio_to_string(bio)
 
 
     def get_critical(self):
@@ -360,6 +396,20 @@ class X509Extension(object):
         nid = _api.OBJ_obj2nid(obj)
         return _api.string(_api.OBJ_nid2sn(nid))
 
+
+    def get_data(self):
+        """
+        Returns the data of the X509Extension
+
+        :return: A :py:data:`str` giving the X509Extension's ASN.1 encoded data.
+        """
+        octet_result = _api.X509_EXTENSION_get_data(self._extension)
+        string_result = _api.cast('ASN1_STRING*', octet_result)
+        char_result = _api.ASN1_STRING_data(string_result)
+        result_length = _api.ASN1_STRING_length(string_result)
+        return _api.buffer(char_result, result_length)[:]
+
+X509ExtensionType = X509Extension
 
 
 class X509Req(object):
