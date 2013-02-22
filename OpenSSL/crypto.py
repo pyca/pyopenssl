@@ -1,7 +1,5 @@
 from time import time
 
-from OpenSSL.xcrypto import PKCS7Type, load_pkcs7_data
-
 from tls.c import api as _api
 
 FILETYPE_PEM = _api.SSL_FILETYPE_PEM
@@ -1381,6 +1379,65 @@ CRLType = CRL
 
 
 
+class PKCS7(object):
+    def type_is_signed(self):
+        """
+        Check if this NID_pkcs7_signed object
+
+        :return: True if the PKCS7 is of type signed
+        """
+        if _api.PKCS7_type_is_signed(self._pkcs7):
+            return True
+        return False
+
+
+    def type_is_enveloped(self):
+        """
+        Check if this NID_pkcs7_enveloped object
+
+        :returns: True if the PKCS7 is of type enveloped
+        """
+        if _api.PKCS7_type_is_enveloped(self._pkcs7):
+            return True
+        return False
+
+
+    def type_is_signedAndEnveloped(self):
+        """
+        Check if this NID_pkcs7_signedAndEnveloped object
+
+        :returns: True if the PKCS7 is of type signedAndEnveloped
+        """
+        if _api.PKCS7_type_is_signedAndEnveloped(self._pkcs7):
+            return True
+        return False
+
+
+    def type_is_data(self):
+        """
+        Check if this NID_pkcs7_data object
+
+        :return: True if the PKCS7 is of type data
+        """
+        if _api.PKCS7_type_is_data(self._pkcs7):
+            return True
+        return False
+
+
+    def get_type_name(self):
+        """
+        Returns the type name of the PKCS7 structure
+
+        :return: A string with the typename
+        """
+        nid = _api.OBJ_obj2nid(self._pkcs7.type)
+        string_type = _api.OBJ_nid2sn(nid)
+        return _api.string(string_type)
+
+PKCS7Type = PKCS7
+
+
+
 class PKCS12(object):
     def __init__(self):
         self._pkey = None
@@ -1856,6 +1913,35 @@ def load_crl(type, buffer):
     result = CRL.__new__(CRL)
     result._crl = crl
     return result
+
+
+
+def load_pkcs7_data(type, buffer):
+    """
+    Load pkcs7 data from a buffer
+
+    :param type: The file type (one of FILETYPE_PEM or FILETYPE_ASN1)
+    :param buffer: The buffer with the pkcs7 data.
+    :return: The PKCS7 object
+    """
+    bio = _api.BIO_new_mem_buf(buffer, len(buffer))
+    if bio == _api.NULL:
+        1/0
+
+    if type == FILETYPE_PEM:
+        pkcs7 = _api.PEM_read_bio_PKCS7(bio, _api.NULL, _api.NULL, _api.NULL)
+    elif type == FILETYPE_ASN1:
+        pass
+    else:
+        1/0
+        raise ValueError("type argument must be FILETYPE_PEM or FILETYPE_ASN1")
+
+    if pkcs7 == _api.NULL:
+        1/0
+
+    pypkcs7 = PKCS7.__new__(PKCS7)
+    pypkcs7._pkcs7 = pkcs7
+    return pypkcs7
 
 
 
