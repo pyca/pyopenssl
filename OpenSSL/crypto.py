@@ -82,13 +82,13 @@ class Error(Exception):
     pass
 
 
-
 class PKey(object):
     _only_public = False
     _initialized = True
 
     def __init__(self):
-        self._pkey = _api.EVP_PKEY_new()
+        pkey = _api.EVP_PKEY_new()
+        self._pkey = _api.ffi.gc(pkey, _api.EVP_PKEY_free)
         self._initialized = False
 
 
@@ -107,19 +107,18 @@ class PKey(object):
         if not isinstance(bits, int):
             raise TypeError("bits must be an integer")
 
-        exponent = _api.new("BIGNUM**")
         # TODO Check error return
-        # TODO Free the exponent[0]
-        _api.BN_hex2bn(exponent, "10001")
+        exponent = _api.BN_new()
+        exponent = _api.ffi.gc(exponent, _api.BN_free)
+        _api.BN_set_word(exponent, _api.RSA_F4)
 
         if type == TYPE_RSA:
             if bits <= 0:
                 raise ValueError("Invalid number of bits")
 
-            rsa = _api.RSA_new();
+            rsa = _api.RSA_new()
 
-            # TODO Release GIL?
-            result = _api.RSA_generate_key_ex(rsa, bits, exponent[0], _api.NULL)
+            result = _api.RSA_generate_key_ex(rsa, bits, exponent, _api.NULL)
             if result == -1:
                 1/0
 
@@ -158,6 +157,7 @@ class PKey(object):
             raise TypeError("key type unsupported")
 
         rsa = _api.EVP_PKEY_get1_RSA(self._pkey)
+        rsa = _api.ffi.gc(rsa, _api.RSA_free)
         result = _api.RSA_check_key(rsa)
         if result:
             return True
@@ -191,7 +191,8 @@ class X509Name(object):
 
         :param name: An X509Name object to copy
         """
-        self._name = _api.X509_NAME_dup(name._name)
+        name = _api.X509_NAME_dup(name._name)
+        self._name = _api.ffi.gc(name, _api.X509_NAME_free)
 
 
     def __setattr__(self, name, value):
@@ -394,10 +395,10 @@ class X509Extension(object):
             # ext_struc it desires for its last parameter, though.)
             value = "critical," + value
 
-        self._extension = _api.X509V3_EXT_nconf(
-            _api.NULL, ctx, type_name, value)
-        if self._extension == _api.NULL:
+        extension = _api.X509V3_EXT_nconf(_api.NULL, ctx, type_name, value)
+        if extension == _api.NULL:
             _raise_current_error()
+        self._extension = _api.ffi.gc(extension, _api.X509_EXTENSION_free)
 
 
     def __str__(self):
@@ -452,7 +453,8 @@ X509ExtensionType = X509Extension
 
 class X509Req(object):
     def __init__(self):
-        self._req = _api.X509_REQ_new()
+        req = _api.X509_REQ_new()
+        self._req = _api.ffi.gc(req, _api.X509_REQ_free)
 
 
     def set_pubkey(self, pkey):
@@ -477,6 +479,7 @@ class X509Req(object):
         pkey._pkey = _api.X509_REQ_get_pubkey(self._req)
         if pkey._pkey == _api.NULL:
             1/0
+        pkey._pkey = _api.ffi.gc(pkey._pkey, _api.EVP_PKEY_free)
         pkey._only_public = True
         return pkey
 
@@ -514,6 +517,11 @@ class X509Req(object):
         name._name = _api.X509_REQ_get_subject_name(self._req)
         if name._name == _api.NULL:
             1/0
+
+        # The name is owned by the X509Req structure.  As long as the X509Name
+        # Python object is alive, keep the X509Req Python object alive.
+        name._owner = self
+
         return name
 
 
@@ -527,6 +535,8 @@ class X509Req(object):
         stack = _api.sk_X509_EXTENSION_new_null()
         if stack == _api.NULL:
             1/0
+
+        stack = _api.ffi.gc(stack, _api.sk_X509_EXTENSION_free)
 
         for ext in extensions:
             if not isinstance(ext, X509Extension):
@@ -569,7 +579,8 @@ X509ReqType = X509Req
 class X509(object):
     def __init__(self):
         # TODO Allocation failure?  And why not __new__ instead of __init__?
-        self._x509 = _api.X509_new()
+        x509 = _api.X509_new()
+        self._x509 = _api.ffi.gc(x509, _api.X509_free)
 
 
     def set_version(self, version):
@@ -606,6 +617,7 @@ class X509(object):
         pkey._pkey = _api.X509_get_pubkey(self._x509)
         if pkey._pkey == _api.NULL:
             _raise_current_error()
+        pkey._pkey = _api.ffi.gc(pkey._pkey, _api.EVP_PKEY_free)
         pkey._only_public = True
         return pkey
 
@@ -885,6 +897,11 @@ class X509(object):
         name._name = which(self._x509)
         if name._name == _api.NULL:
             1/0
+
+        # The name is owned by the X509 structure.  As long as the X509Name
+        # Python object is alive, keep the X509 Python object alive.
+        name._owner = self
+
         return name
 
 
@@ -992,26 +1009,21 @@ def load_certificate(type, buffer):
 
     :return: The X509 object
     """
-    bio = _api.BIO_new_mem_buf(buffer, len(buffer))
-    if bio == _api.NULL:
-        1/0
+    bio = _new_mem_buf(buffer)
 
-    try:
-        if type == FILETYPE_PEM:
-            x509 = _api.PEM_read_bio_X509(bio, _api.NULL, _api.NULL, _api.NULL)
-        elif type == FILETYPE_ASN1:
-            x509 = _api.d2i_X509_bio(bio, _api.NULL);
-        else:
-            raise ValueError(
-                "type argument must be FILETYPE_PEM or FILETYPE_ASN1")
-    finally:
-        _api.BIO_free(bio)
+    if type == FILETYPE_PEM:
+        x509 = _api.PEM_read_bio_X509(bio, _api.NULL, _api.NULL, _api.NULL)
+    elif type == FILETYPE_ASN1:
+        x509 = _api.d2i_X509_bio(bio, _api.NULL);
+    else:
+        raise ValueError(
+            "type argument must be FILETYPE_PEM or FILETYPE_ASN1")
 
     if x509 == _api.NULL:
         _raise_current_error()
 
     cert = X509.__new__(X509)
-    cert._x509 = x509
+    cert._x509 = _api.ffi.gc(x509, _api.X509_free)
     return cert
 
 
@@ -1736,6 +1748,15 @@ class _PassphraseHelper(object):
 
 
 
+def _new_mem_buf(buffer):
+    bio = _api.BIO_new_mem_buf(buffer, len(buffer))
+    if bio == _api.NULL:
+        1/0
+    bio = _api.ffi.gc(bio, _api.BIO_free)
+    return bio
+
+
+
 def load_privatekey(type, buffer, passphrase=None):
     """
     Load a private key from a buffer
@@ -1748,9 +1769,7 @@ def load_privatekey(type, buffer, passphrase=None):
 
     :return: The PKey object
     """
-    bio = _api.BIO_new_mem_buf(buffer, len(buffer))
-    if bio == _api.NULL:
-        1/0
+    bio = _new_mem_buf(buffer)
 
     helper = _PassphraseHelper(type, passphrase)
     if type == FILETYPE_PEM:
@@ -1766,7 +1785,7 @@ def load_privatekey(type, buffer, passphrase=None):
         _raise_current_error()
 
     pkey = PKey.__new__(PKey)
-    pkey._pkey = evp_pkey
+    pkey._pkey = _api.ffi.gc(evp_pkey, _api.EVP_PKEY_free)
     return pkey
 
 
@@ -1807,9 +1826,7 @@ def load_certificate_request(type, buffer):
     :param buffer: The buffer the certificate request is stored in
     :return: The X509Req object
     """
-    bio = _api.BIO_new_mem_buf(buffer, len(buffer))
-    if bio == _api.NULL:
-        1/0
+    bio = _new_mem_buf(buffer)
 
     if type == FILETYPE_PEM:
         req = _api.PEM_read_bio_X509_REQ(bio, _api.NULL, _api.NULL, _api.NULL)
@@ -1896,9 +1913,7 @@ def load_crl(type, buffer):
 
     :return: The PKey object
     """
-    bio = _api.BIO_new_mem_buf(buffer, len(buffer))
-    if bio == _api.NULL:
-        1/0
+    bio = _new_mem_buf(buffer)
 
     if type == FILETYPE_PEM:
         crl = _api.PEM_read_bio_X509_CRL(bio, _api.NULL, _api.NULL, _api.NULL)
@@ -1924,9 +1939,7 @@ def load_pkcs7_data(type, buffer):
     :param buffer: The buffer with the pkcs7 data.
     :return: The PKCS7 object
     """
-    bio = _api.BIO_new_mem_buf(buffer, len(buffer))
-    if bio == _api.NULL:
-        1/0
+    bio = _new_mem_buf(buffer)
 
     if type == FILETYPE_PEM:
         pkcs7 = _api.PEM_read_bio_PKCS7(bio, _api.NULL, _api.NULL, _api.NULL)
@@ -1953,9 +1966,7 @@ def load_pkcs12(buffer, passphrase):
     :param passphrase: (Optional) The password to decrypt the PKCS12 lump
     :returns: The PKCS12 object
     """
-    bio = _api.BIO_new_mem_buf(buffer, len(buffer))
-    if bio == _api.NULL:
-        1/0
+    bio = _new_mem_buf(buffer)
 
     p12 = _api.d2i_PKCS12_bio(bio, _api.NULL)
     if p12 == _api.NULL:

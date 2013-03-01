@@ -24,18 +24,45 @@ else:
         return s.encode("charmap")
     bytes = bytes
 
+from tls.c import api
 
 class TestCase(TestCase):
     """
     :py:class:`TestCase` adds useful testing functionality beyond what is available
     from the standard library :py:class:`unittest.TestCase`.
     """
+    def setUp(self):
+        super(TestCase, self).setUp()
+        # Enable OpenSSL's memory debugging feature
+        api.CRYPTO_malloc_debug_init()
+        api.CRYPTO_mem_ctrl(api.CRYPTO_MEM_CHECK_ON)
+
+
     def tearDown(self):
         """
         Clean up any files or directories created using :py:meth:`TestCase.mktemp`.
         Subclasses must invoke this method if they override it or the
         cleanup will not occur.
         """
+        import gc
+        gc.collect(); gc.collect(); gc.collect()
+
+        api.CRYPTO_mem_ctrl(api.CRYPTO_MEM_CHECK_OFF)
+        api.CRYPTO_malloc_init()
+
+        bio = api.BIO_new(api.BIO_s_mem())
+        if bio == api.NULL:
+            1/0
+
+        api.CRYPTO_mem_leaks(bio)
+
+        result_buffer = api.new('char**')
+        buffer_length = api.BIO_get_mem_data(bio, result_buffer)
+        s = api.buffer(result_buffer[0], buffer_length)[:]
+        if s:
+            self.fail(s)
+
+
         if False and self._temporaryFiles is not None:
             for temp in self._temporaryFiles:
                 if os.path.isdir(temp):
