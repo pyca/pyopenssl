@@ -8,12 +8,15 @@ U{Twisted<http://twistedmatrix.com/>}.
 """
 
 import shutil
+import traceback
 import os, os.path
 from tempfile import mktemp
 from unittest import TestCase
 import sys
 
 from OpenSSL.crypto import Error, _exception_from_error_queue
+
+import memdbg
 
 if sys.version_info < (3, 0):
     def b(s):
@@ -33,10 +36,7 @@ class TestCase(TestCase):
     """
     def setUp(self):
         super(TestCase, self).setUp()
-        # Enable OpenSSL's memory debugging feature
-        api.CRYPTO_malloc_debug_init()
-        api.CRYPTO_mem_ctrl(api.CRYPTO_MEM_CHECK_ON)
-
+        self._before = set(memdbg.heap)
 
     def tearDown(self):
         """
@@ -47,21 +47,72 @@ class TestCase(TestCase):
         import gc
         gc.collect(); gc.collect(); gc.collect()
 
-        api.CRYPTO_mem_ctrl(api.CRYPTO_MEM_CHECK_OFF)
-        api.CRYPTO_malloc_init()
+        def format_leak(p):
+            stacks = memdbg.heap[p]
+            # Eventually look at multiple stacks for the realloc() case.  For
+            # now just look at the original allocation location.
+            (python_stack, c_stack) = stacks[0]
 
-        bio = api.BIO_new(api.BIO_s_mem())
-        if bio == api.NULL:
-            1/0
+            stack = traceback.format_list(python_stack)[:-1]
 
-        api.CRYPTO_mem_leaks(bio)
+            # c_stack looks something like this (interesting parts indicated
+            # with inserted arrows not part of the data):
+            #
+            # /home/exarkun/Projects/pyOpenSSL/branches/use-opentls/__pycache__/_cffi__x89095113xb9185b9b.so(+0x12cf) [0x7fe2e20582cf]
+            # /home/exarkun/Projects/cpython/2.7/python(PyCFunction_Call+0x8b) [0x56265a]
+            # /home/exarkun/Projects/cpython/2.7/python() [0x4d5f52]
+            # /home/exarkun/Projects/cpython/2.7/python(PyEval_EvalFrameEx+0x753b) [0x4d0e1e]
+            # /home/exarkun/Projects/cpython/2.7/python() [0x4d6419]
+            # /home/exarkun/Projects/cpython/2.7/python() [0x4d6129]
+            # /home/exarkun/Projects/cpython/2.7/python(PyEval_EvalFrameEx+0x753b) [0x4d0e1e]
+            # /home/exarkun/Projects/cpython/2.7/python(PyEval_EvalCodeEx+0x1043) [0x4d3726]
+            # /home/exarkun/Projects/cpython/2.7/python() [0x55fd51]
+            # /home/exarkun/Projects/cpython/2.7/python(PyObject_Call+0x7e) [0x420ee6]
+            # /home/exarkun/Projects/cpython/2.7/python(PyEval_CallObjectWithKeywords+0x158) [0x4d56ec]
+            # /home/exarkun/.local/lib/python2.7/site-packages/cffi-0.5-py2.7-linux-x86_64.egg/_cffi_backend.so(+0xe96e) [0x7fe2e38be96e]
+            # /usr/lib/x86_64-linux-gnu/libffi.so.6(ffi_closure_unix64_inner+0x1b9) [0x7fe2e36ad819]
+            # /usr/lib/x86_64-linux-gnu/libffi.so.6(ffi_closure_unix64+0x46) [0x7fe2e36adb7c]
+            # /lib/x86_64-linux-gnu/libcrypto.so.1.0.0(CRYPTO_malloc+0x64) [0x7fe2e1cef784]           <------ end interesting
+            # /lib/x86_64-linux-gnu/libcrypto.so.1.0.0(lh_insert+0x16b) [0x7fe2e1d6a24b]                      .
+            # /lib/x86_64-linux-gnu/libcrypto.so.1.0.0(+0x61c18) [0x7fe2e1cf0c18]                             .
+            # /lib/x86_64-linux-gnu/libcrypto.so.1.0.0(+0x625ec) [0x7fe2e1cf15ec]                             .
+            # /lib/x86_64-linux-gnu/libcrypto.so.1.0.0(DSA_new_method+0xe6) [0x7fe2e1d524d6]                  .
+            # /lib/x86_64-linux-gnu/libcrypto.so.1.0.0(DSA_generate_parameters+0x3a) [0x7fe2e1d5364a] <------ begin interesting
+            # /home/exarkun/Projects/opentls/trunk/tls/c/__pycache__/_cffi__x305d4698xb539baaa.so(+0x1f397) [0x7fe2df84d397]
+            # /home/exarkun/Projects/cpython/2.7/python(PyCFunction_Call+0x8b) [0x56265a]
+            # /home/exarkun/Projects/cpython/2.7/python() [0x4d5f52]
+            # /home/exarkun/Projects/cpython/2.7/python(PyEval_EvalFrameEx+0x753b) [0x4d0e1e]
+            # /home/exarkun/Projects/cpython/2.7/python() [0x4d6419]
+            # ...
+            #
+            # Notice the stack is upside down compared to a Python traceback.
+            # Identify the start and end of interesting bits and stuff it into the stack we report.
 
-        result_buffer = api.new('char**')
-        buffer_length = api.BIO_get_mem_data(bio, result_buffer)
-        s = api.buffer(result_buffer[0], buffer_length)[:]
-        if s:
-            self.fail(s)
+            # Figure the first interesting frame will be after a the cffi-compiled module
+            while '/__pycache__/_cffi__' not in c_stack[-1]:
+                c_stack.pop()
 
+            # Figure the last interesting frame will always be CRYPTO_malloc,
+            # since that's where we hooked in to things.
+            while 'CRYPTO_malloc' not in c_stack[0]:
+                c_stack.pop(0)
+
+            c_stack.reverse()
+            stack.extend([frame + "\n" for frame in c_stack])
+
+            # XXX :(
+            ptr = int(str(p).split()[-1][:-1], 16)
+            stack.insert(0, "Leaked 0x%x at:\n" % (ptr,))
+            return "".join(stack)
+
+        after = set(memdbg.heap)
+        leak = after - self._before
+        if leak:
+            reasons = []
+            for p in leak:
+                reasons.append(format_leak(p))
+                del memdbg.heap[p]
+            self.fail('\n'.join(reasons))
 
         if False and self._temporaryFiles is not None:
             for temp in self._temporaryFiles:

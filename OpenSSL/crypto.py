@@ -22,6 +22,15 @@ def _bio_to_string(bio):
 
 
 
+def _new_mem_buf(buffer):
+    bio = _api.BIO_new_mem_buf(buffer, len(buffer))
+    if bio == _api.NULL:
+        1/0
+    bio = _api.ffi.gc(bio, _api.BIO_free)
+    return bio
+
+
+
 def _set_asn1_time(boundary, when):
     if not isinstance(when, bytes):
         raise TypeError("when must be a byte string")
@@ -1745,15 +1754,6 @@ class _PassphraseHelper(object):
         except Exception as e:
             self._problems.append(e)
             return 0
-
-
-
-def _new_mem_buf(buffer):
-    bio = _api.BIO_new_mem_buf(buffer, len(buffer))
-    if bio == _api.NULL:
-        1/0
-    bio = _api.ffi.gc(bio, _api.BIO_free)
-    return bio
 
 
 
