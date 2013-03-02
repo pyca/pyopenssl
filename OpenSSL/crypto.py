@@ -1004,7 +1004,8 @@ class X509(object):
         if ext._extension == _api.NULL:
             raise IndexError("extension index out of bounds")
 
-        ext._extension = _api.X509_EXTENSION_dup(ext._extension)
+        extension = _api.X509_EXTENSION_dup(ext._extension)
+        ext._extension = _api.ffi.gc(extension, _api.X509_EXTENSION_free)
         return ext
 
 X509Type = X509
@@ -1048,9 +1049,7 @@ def dump_certificate(type, cert):
     :param cert: The certificate to dump
     :return: The buffer with the dumped certificate in
     """
-    bio = _api.BIO_new(_api.BIO_s_mem())
-    if bio == _api.NULL:
-        1/0
+    bio = _new_mem_buf()
 
     if type == FILETYPE_PEM:
         result_code = _api.PEM_write_bio_X509(bio, cert._x509)
