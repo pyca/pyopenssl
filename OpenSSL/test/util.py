@@ -38,6 +38,7 @@ class TestCase(TestCase):
         super(TestCase, self).setUp()
         self._before = set(memdbg.heap)
 
+
     def tearDown(self):
         """
         Clean up any files or directories created using :py:meth:`TestCase.mktemp`.
@@ -104,6 +105,10 @@ class TestCase(TestCase):
             ptr = int(str(p).split()[-1][:-1], 16)
             stack.insert(0, "Leaked 0x%x at:\n" % (ptr,))
             return "".join(stack)
+
+        # Clean up some long-lived allocations so they won't be reported as
+        # memory leaks.
+        api.CRYPTO_cleanup_all_ex_data()
 
         after = set(memdbg.heap)
         leak = after - self._before
