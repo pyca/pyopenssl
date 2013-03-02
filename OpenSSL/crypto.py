@@ -22,8 +22,11 @@ def _bio_to_string(bio):
 
 
 
-def _new_mem_buf(buffer):
-    bio = _api.BIO_new_mem_buf(buffer, len(buffer))
+def _new_mem_buf(buffer=None):
+    if buffer is None:
+        bio = _api.BIO_new(_api.BIO_s_mem())
+    else:
+        bio = _api.BIO_new_mem_buf(buffer, len(buffer))
     if bio == _api.NULL:
         1/0
     bio = _api.ffi.gc(bio, _api.BIO_free)
@@ -1153,7 +1156,8 @@ class Revoked(object):
         ]
 
     def __init__(self):
-        self._revoked = _api.X509_REVOKED_new()
+        revoked = _api.X509_REVOKED_new()
+        self._revoked = _api.ffi.gc(revoked, _api.X509_REVOKED_free)
 
 
     def set_serial(self, hex_str):
@@ -1164,12 +1168,16 @@ class Revoked(object):
         :type hex_str: :py:data:`str`
         :return: None
         """
-        bignum_serial = _api.new("BIGNUM**")
-        bn_result = _api.BN_hex2bn(bignum_serial, hex_str)
+        bignum_serial = _api.ffi.gc(_api.BN_new(), _api.BN_free)
+        bignum_ptr = _api.new("BIGNUM**")
+        bignum_ptr[0] = bignum_serial
+        bn_result = _api.BN_hex2bn(bignum_ptr, hex_str)
         if not bn_result:
             raise ValueError("bad hex string")
 
-        asn1_serial = _api.BN_to_ASN1_INTEGER(bignum_serial[0], _api.NULL)
+        asn1_serial = _api.ffi.gc(
+            _api.BN_to_ASN1_INTEGER(bignum_serial, _api.NULL),
+            _api.ASN1_INTEGER_free)
         _api.X509_REVOKED_set_serialNumber(self._revoked, asn1_serial)
 
 
@@ -1179,9 +1187,7 @@ class Revoked(object):
 
         :return: The serial number as a string
         """
-        bio = _api.BIO_new(_api.BIO_s_mem())
-        if bio == _api.NULL:
-            1/0
+        bio = _new_mem_buf()
 
         result = _api.i2a_ASN1_INTEGER(bio, self._revoked.serialNumber)
         if result < 0:
@@ -1195,6 +1201,7 @@ class Revoked(object):
         for i in range(_api.sk_X509_EXTENSION_num(stack)):
             ext = _api.sk_X509_EXTENSION_value(stack, i)
             if _api.OBJ_obj2nid(ext.object) == _api.NID_crl_reason:
+                _api.X509_EXTENSION_free(ext)
                 _api.sk_X509_EXTENSION_delete(stack, i)
                 break
 
@@ -1220,6 +1227,7 @@ class Revoked(object):
             new_reason_ext = _api.ASN1_ENUMERATED_new()
             if new_reason_ext == _api.NULL:
                 1/0
+            new_reason_ext = _api.ffi.gc(new_reason_ext, _api.ASN1_ENUMERATED_free)
 
             set_result = _api.ASN1_ENUMERATED_set(new_reason_ext, reason_code)
             if set_result == _api.NULL:
@@ -1243,9 +1251,7 @@ class Revoked(object):
         for i in range(_api.sk_X509_EXTENSION_num(extensions)):
             ext = _api.sk_X509_EXTENSION_value(extensions, i)
             if _api.OBJ_obj2nid(ext.object) == _api.NID_crl_reason:
-                bio = _api.BIO_new(_api.BIO_s_mem())
-                if bio == _api.NULL:
-                    1/0
+                bio = _new_mem_buf()
 
                 print_result = _api.X509V3_EXT_print(bio, ext, 0, 0)
                 if not print_result:
