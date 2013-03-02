@@ -41,7 +41,7 @@ def _set_asn1_time(boundary, when):
     set_result = _api.ASN1_GENERALIZEDTIME_set_string(
         _api.cast('ASN1_GENERALIZEDTIME*', boundary), when)
     if set_result == 0:
-        dummy = _api.ASN1_STRING_new()
+        dummy = _api.ffi.gc(_api.ASN1_STRING_new(), _api.ASN1_STRING_free)
         _api.ASN1_STRING_set(dummy, when, len(when))
         check_result = _api.ASN1_GENERALIZEDTIME_check(
             _api.cast('ASN1_GENERALIZEDTIME*', dummy))
@@ -763,6 +763,7 @@ class X509(object):
             if asn1_serial == _api.NULL:
                 # TODO Not tested
                 _raise_current_error()
+            asn1_serial = _api.ffi.gc(asn1_serial, _api.ASN1_INTEGER_free)
             set_result = _api.X509_set_serialNumber(self._x509, asn1_serial)
             if not set_result:
                 # TODO Not tested
