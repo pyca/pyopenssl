@@ -52,7 +52,7 @@ class TestCase(TestCase):
             stacks = memdbg.heap[p]
             # Eventually look at multiple stacks for the realloc() case.  For
             # now just look at the original allocation location.
-            (python_stack, c_stack) = stacks[0]
+            (size, python_stack, c_stack) = stacks[0]
 
             stack = traceback.format_list(python_stack)[:-1]
 
@@ -89,34 +89,43 @@ class TestCase(TestCase):
             # Notice the stack is upside down compared to a Python traceback.
             # Identify the start and end of interesting bits and stuff it into the stack we report.
 
+            saved = list(c_stack)
+
             # Figure the first interesting frame will be after a the cffi-compiled module
-            while '/__pycache__/_cffi__' not in c_stack[-1]:
+            while c_stack and '/__pycache__/_cffi__' not in c_stack[-1]:
                 c_stack.pop()
 
             # Figure the last interesting frame will always be CRYPTO_malloc,
             # since that's where we hooked in to things.
-            while 'CRYPTO_malloc' not in c_stack[0]:
+            while c_stack and 'CRYPTO_malloc' not in c_stack[0] and 'CRYPTO_realloc' not in c_stack[0]:
                 c_stack.pop(0)
 
-            c_stack.reverse()
+            if c_stack:
+                c_stack.reverse()
+            else:
+                c_stack = saved[::-1]
             stack.extend([frame + "\n" for frame in c_stack])
 
             # XXX :(
             ptr = int(str(p).split()[-1][:-1], 16)
-            stack.insert(0, "Leaked 0x%x at:\n" % (ptr,))
+            stack.insert(0, "Leaked %d bytes (0x%x) at:\n" % (size, ptr))
             return "".join(stack)
 
         # Clean up some long-lived allocations so they won't be reported as
         # memory leaks.
         api.CRYPTO_cleanup_all_ex_data()
+        api.ERR_remove_thread_state(api.NULL)
 
         after = set(memdbg.heap)
         leak = after - self._before
         if leak:
-            reasons = []
+            total = 0
+            reasons = [""]
             for p in leak:
+                total += memdbg.heap[p][-1][0]
                 reasons.append(format_leak(p))
-                del memdbg.heap[p]
+                memdbg.free(p)
+            reasons.append("\nLeaked %d bytes in %d pointers\n" % (total, len(leak)))
             self.fail('\n'.join(reasons))
 
         if False and self._temporaryFiles is not None:

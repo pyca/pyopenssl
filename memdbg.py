@@ -38,7 +38,7 @@ def _malloc(n):
     memory = C.malloc(n)
     python_stack = traceback.extract_stack(limit=3)
     c_stack = _backtrace()
-    heap[memory] = [(python_stack, c_stack)]
+    heap[memory] = [(n, python_stack, c_stack)]
     return memory
 malloc = _ffi.callback("void*(*)(size_t)", _malloc)
 
@@ -51,7 +51,7 @@ def realloc(p, n):
     python_stack = traceback.extract_stack(limit=3)
     c_stack = _backtrace()
 
-    old.append((python_stack, c_stack))
+    old.append((n, python_stack, c_stack))
     heap[memory] = old
     return memory
 
