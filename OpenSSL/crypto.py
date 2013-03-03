@@ -417,9 +417,7 @@ class X509Extension(object):
         """
         :return: a nice text representation of the extension
         """
-        bio = _api.BIO_new(_api.BIO_s_mem())
-        if bio == _api.NULL:
-            1/0
+        bio = _new_mem_buf()
 
         print_result = _api.X509V3_EXT_print(bio, self._extension, 0, 0)
         if not print_result:
@@ -1080,9 +1078,7 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
     :return: The buffer with the dumped key in
     :rtype: :py:data:`str`
     """
-    bio = _api.BIO_new(_api.BIO_s_mem())
-    if bio == _api.NULL:
-        1/0
+    bio = _new_mem_buf()
 
     if cipher is not None:
         cipher_obj = _api.EVP_get_cipherbyname(cipher)
@@ -1589,6 +1585,7 @@ class PKCS12(object):
             cacerts = _api.NULL
         else:
             cacerts = _api.sk_X509_new_null()
+            cacerts = _api.ffi.gc(cacerts, _api.sk_X509_free)
             for cert in self._cacerts:
                 _api.sk_X509_push(cacerts, cert._x509)
 
@@ -1616,13 +1613,12 @@ class PKCS12(object):
             iter, maciter, 0)
         if pkcs12 == _api.NULL:
             _raise_current_error()
+        pkcs12 = _api.ffi.gc(pkcs12, _api.PKCS12_free)
 
-        bio = _api.BIO_new(_api.BIO_s_mem())
-        if bio == _api.NULL:
-            1/0
-
+        bio = _new_mem_buf()
         _api.i2d_PKCS12_bio(bio, pkcs12)
         return _bio_to_string(bio)
+
 PKCS12Type = PKCS12
 
 
@@ -1804,9 +1800,7 @@ def dump_certificate_request(type, req):
     :param req: The certificate request to dump
     :return: The buffer with the dumped certificate request in
     """
-    bio = _api.BIO_new(_api.BIO_s_mem())
-    if bio == _api.NULL:
-        1/0
+    bio = _new_mem_buf()
 
     if type == FILETYPE_PEM:
         result_code = _api.PEM_write_bio_X509_REQ(bio, req._req)
@@ -1845,7 +1839,7 @@ def load_certificate_request(type, buffer):
         1/0
 
     x509req = X509Req.__new__(X509Req)
-    x509req._req = req
+    x509req._req = _api.ffi.gc(req, _api.X509_REQ_free)
     return x509req
 
 
@@ -1864,6 +1858,7 @@ def sign(pkey, data, digest):
         raise ValueError("No such digest method")
 
     md_ctx = _api.new("EVP_MD_CTX*")
+    md_ctx = _api.ffi.gc(md_ctx, _api.EVP_MD_CTX_cleanup)
 
     _api.EVP_SignInit(md_ctx, digest_obj)
     _api.EVP_SignUpdate(md_ctx, data, len(data))
@@ -1898,8 +1893,10 @@ def verify(cert, signature, data, digest):
     pkey = _api.X509_get_pubkey(cert._x509)
     if pkey == _api.NULL:
         1/0
+    pkey = _api.ffi.gc(pkey, _api.EVP_PKEY_free)
 
     md_ctx = _api.new("EVP_MD_CTX*")
+    md_ctx = _api.ffi.gc(md_ctx, _api.EVP_MD_CTX_cleanup)
 
     _api.EVP_VerifyInit(md_ctx, digest_obj)
     _api.EVP_VerifyUpdate(md_ctx, data, len(data))
@@ -1959,7 +1956,7 @@ def load_pkcs7_data(type, buffer):
         1/0
 
     pypkcs7 = PKCS7.__new__(PKCS7)
-    pypkcs7._pkcs7 = pkcs7
+    pypkcs7._pkcs7 = _api.ffi.gc(pkcs7, _api.PKCS7_free)
     return pypkcs7
 
 
@@ -1977,14 +1974,19 @@ def load_pkcs12(buffer, passphrase):
     p12 = _api.d2i_PKCS12_bio(bio, _api.NULL)
     if p12 == _api.NULL:
         _raise_current_error()
+    p12 = _api.ffi.gc(p12, _api.PKCS12_free)
 
     pkey = _api.new("EVP_PKEY**")
     cert = _api.new("X509**")
     cacerts = _api.new("struct stack_st_X509**")
 
+    import pdb; pdb.set_trace()
+
     parse_result = _api.PKCS12_parse(p12, passphrase, pkey, cert, cacerts)
     if not parse_result:
         _raise_current_error()
+
+    cacerts = _api.ffi.gc(cacerts[0], _api.sk_X509_free)
 
     # openssl 1.0.0 sometimes leaves an X509_check_private_key error in the
     # queue for no particular reason.  This error isn't interesting to anyone
@@ -1998,14 +2000,14 @@ def load_pkcs12(buffer, passphrase):
         pykey = None
     else:
         pykey = PKey.__new__(PKey)
-        pykey._pkey = pkey[0]
+        pykey._pkey = _api.ffi.gc(pkey[0], _api.EVP_PKEY_free)
 
     if cert[0] == _api.NULL:
         pycert = None
         friendlyname = None
     else:
         pycert = X509.__new__(X509)
-        pycert._x509 = cert[0]
+        pycert._x509 = _api.ffi.gc(cert[0], _api.X509_free)
 
         friendlyname_length = _api.new("int*")
         friendlyname_buffer = _api.X509_alias_get0(cert[0], friendlyname_length)
@@ -2014,9 +2016,9 @@ def load_pkcs12(buffer, passphrase):
             friendlyname = None
 
     pycacerts = []
-    for i in range(_api.sk_X509_num(cacerts[0])):
+    for i in range(_api.sk_X509_num(cacerts)):
         pycacert = X509.__new__(X509)
-        pycacert._x509 = _api.sk_X509_value(cacerts[0], i)
+        pycacert._x509 = _api.sk_X509_value(cacerts, i)
         pycacerts.append(pycacert)
     if not pycacerts:
         pycacerts = None

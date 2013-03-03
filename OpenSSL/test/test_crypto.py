@@ -276,6 +276,7 @@ class X509ExtTests(TestCase):
         Create a new private key and start a certificate request (for a test
         method to finish in one way or another).
         """
+        super(X509ExtTests, self).setUp()
         # Basic setup stuff to generate a certificate
         self.pkey = PKey()
         self.pkey.generate_key(TYPE_RSA, 384)
@@ -292,6 +293,15 @@ class X509ExtTests(TestCase):
         expire  = b((datetime.now() + timedelta(days=100)).strftime("%Y%m%d%H%M%SZ"))
         self.x509.set_notBefore(now)
         self.x509.set_notAfter(expire)
+
+
+    def tearDown(self):
+        """
+        Forget all of the pyOpenSSL objects so they can be garbage collected,
+        their memory released, and not interfere with the leak detection code.
+        """
+        self.pkey = self.req = self.x509 = self.subject = None
+        super(X509ExtTests, self).tearDown()
 
 
     def test_str(self):
