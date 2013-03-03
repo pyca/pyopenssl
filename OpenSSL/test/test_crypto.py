@@ -1958,7 +1958,10 @@ def _runopenssl(pem, *args):
     proc = Popen(command, shell=True, stdin=PIPE, stdout=PIPE)
     proc.stdin.write(pem)
     proc.stdin.close()
-    return proc.stdout.read()
+    output = proc.stdout.read()
+    proc.stdout.close()
+    proc.wait()
+    return output
 
 
 
@@ -2181,14 +2184,23 @@ class FunctionTests(TestCase):
         self.assertEqual(dumped_text, good_text)
 
 
-    def test_dump_privatekey(self):
+    def test_dump_privatekey_pem(self):
         """
-        :py:obj:`dump_privatekey` writes a PEM, DER, and text.
+        :py:obj:`dump_privatekey` writes a PEM
         """
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         self.assertTrue(key.check())
         dumped_pem = dump_privatekey(FILETYPE_PEM, key)
         self.assertEqual(dumped_pem, cleartextPrivateKeyPEM)
+
+
+    def test_dump_privatekey_asn1(self):
+        """
+        :py:obj:`dump_privatekey` writes a DER
+        """
+        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        dumped_pem = dump_privatekey(FILETYPE_PEM, key)
+
         dumped_der = dump_privatekey(FILETYPE_ASN1, key)
         # XXX This OpenSSL call writes "writing RSA key" to standard out.  Sad.
         good_der = _runopenssl(dumped_pem, "rsa", "-outform", "DER")
@@ -2196,6 +2208,15 @@ class FunctionTests(TestCase):
         key2 = load_privatekey(FILETYPE_ASN1, dumped_der)
         dumped_pem2 = dump_privatekey(FILETYPE_PEM, key2)
         self.assertEqual(dumped_pem2, cleartextPrivateKeyPEM)
+
+
+    def test_dump_privatekey_text(self):
+        """
+        :py:obj:`dump_privatekey` writes a text
+        """
+        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        dumped_pem = dump_privatekey(FILETYPE_PEM, key)
+
         dumped_text = dump_privatekey(FILETYPE_TEXT, key)
         good_text = _runopenssl(dumped_pem, "rsa", "-noout", "-text")
         self.assertEqual(dumped_text, good_text)
@@ -2273,6 +2294,14 @@ class FunctionTests(TestCase):
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertTrue(isinstance(pkcs7, PKCS7Type))
+
+
+    def test_load_pkcs7_data_invalid(self):
+        """
+        If the data passed to :py:obj:`load_pkcs7_data` is invalid,
+        :py:obj:`Error` is raised.
+        """
+        self.assertRaises(Error, load_pkcs7_data, FILETYPE_PEM, "foo")
 
 
 
