@@ -1301,7 +1301,9 @@ class CRL(object):
         """
         Create a new empty CRL object.
         """
-        self._crl = _api.X509_CRL_new()
+        crl = _api.X509_CRL_new()
+        self._crl = _api.ffi.gc(crl, _api.X509_CRL_free)
+        
 
 
     def get_revoked(self):
@@ -1625,7 +1627,8 @@ PKCS12Type = PKCS12
 
 class NetscapeSPKI(object):
     def __init__(self):
-        self._spki = _api.NETSCAPE_SPKI_new()
+        spki = _api.NETSCAPE_SPKI_new()
+        self._spki = _api.ffi.gc(spki, _api.NETSCAPE_SPKI_free)
 
 
     def sign(self, pkey, digest):
@@ -1672,7 +1675,10 @@ class NetscapeSPKI(object):
 
         :return: The base64 encoded string
         """
-        return _api.string(_api.NETSCAPE_SPKI_b64_encode(self._spki))
+        encoded = _api.NETSCAPE_SPKI_b64_encode(self._spki)
+        result = _api.string(encoded)
+        _api.CRYPTO_free(encoded)
+        return result
 
 
     def get_pubkey(self):
@@ -1685,6 +1691,7 @@ class NetscapeSPKI(object):
         pkey._pkey = _api.NETSCAPE_SPKI_get_pubkey(self._spki)
         if pkey._pkey == _api.NULL:
             1/0
+        pkey._pkey = _api.ffi.gc(pkey._pkey, _api.EVP_PKEY_free)
         pkey._only_public = True
         return pkey
 
@@ -1979,8 +1986,6 @@ def load_pkcs12(buffer, passphrase):
     pkey = _api.new("EVP_PKEY**")
     cert = _api.new("X509**")
     cacerts = _api.new("struct stack_st_X509**")
-
-    import pdb; pdb.set_trace()
 
     parse_result = _api.PKCS12_parse(p12, passphrase, pkey, cert, cacerts)
     if not parse_result:
