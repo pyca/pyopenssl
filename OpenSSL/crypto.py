@@ -218,6 +218,8 @@ class X509Name(object):
         if name.startswith('_'):
             return super(X509Name, self).__setattr__(name, value)
 
+        # Note: we really do not want str subclasses here, so we do not use
+        # isinstance.
         if type(name) is not str:
             raise TypeError("attribute name must be string, not '%.200s'" % (
                     type(value).__name__,))

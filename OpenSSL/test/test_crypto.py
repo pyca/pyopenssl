@@ -697,12 +697,14 @@ class X509NameTests(TestCase):
         # rejected.  Sorry, you're wrong.  unicode is automatically converted to
         # str outside of the control of X509Name, so there's no way to reject
         # it.
+
+        # Also, this used to test str subclasses, but that test is less relevant
+        # now that the implementation is in Python instead of C.  Also PyPy
+        # automatically converts str subclasses to str when they are passed to
+        # setattr, so we can't test it on PyPy.  Apparently CPython does this
+        # sometimes as well.
         self.assertRaises(TypeError, setattr, name, None, "hello")
         self.assertRaises(TypeError, setattr, name, 30, "hello")
-        class evil(str):
-            pass
-        self.assertRaises(TypeError, setattr, name, evil(), "hello")
-
 
     def test_setInvalidAttribute(self):
         """
