@@ -1303,7 +1303,6 @@ class CRL(object):
         """
         crl = _api.X509_CRL_new()
         self._crl = _api.ffi.gc(crl, _api.X509_CRL_free)
-        
 
 
     def get_revoked(self):
@@ -1318,7 +1317,7 @@ class CRL(object):
             revoked = _api.sk_X509_REVOKED_value(revoked_stack, i)
             revoked_copy = _X509_REVOKED_dup(revoked)
             pyrev = Revoked.__new__(Revoked)
-            pyrev._revoked = revoked_copy
+            pyrev._revoked = _api.ffi.gc(revoked_copy, _api.X509_REVOKED_free)
             results.append(pyrev)
         if results:
             return tuple(results)
