@@ -25,11 +25,18 @@ def _bio_to_string(bio):
 def _new_mem_buf(buffer=None):
     if buffer is None:
         bio = _api.BIO_new(_api.BIO_s_mem())
+        free = _api.BIO_free
     else:
-        bio = _api.BIO_new_mem_buf(buffer, len(buffer))
+        data = _api.ffi.new("char[]", buffer)
+        bio = _api.BIO_new_mem_buf(data, len(buffer))
+        # Keep the memory alive as long as the bio is alive!
+        def free(bio, ref=data):
+            return _api.BIO_free(bio)
+
     if bio == _api.NULL:
         1/0
-    bio = _api.ffi.gc(bio, _api.BIO_free)
+
+    bio = _api.ffi.gc(bio, free)
     return bio
 
 
@@ -1959,7 +1966,7 @@ def load_pkcs7_data(type, buffer):
         raise ValueError("type argument must be FILETYPE_PEM or FILETYPE_ASN1")
 
     if pkcs7 == _api.NULL:
-        1/0
+        _raise_current_error()
 
     pypkcs7 = PKCS7.__new__(PKCS7)
     pypkcs7._pkcs7 = _api.ffi.gc(pkcs7, _api.PKCS7_free)
