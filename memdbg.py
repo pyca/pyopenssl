@@ -1,3 +1,7 @@
+import sys
+sys.modules['ssl'] = None
+sys.modules['_hashlib'] = None
+
 
 import traceback
 
@@ -24,6 +28,11 @@ _api = _ffi.verify(
 C = _ffi.dlopen(None)
 
 heap = {}
+verbose = False
+
+def log(s):
+    if verbose:
+        print s
 
 def _backtrace():
     buf = _ffi.new("void*[]", 64)
@@ -34,13 +43,14 @@ def _backtrace():
     return stack
 
 
-def _malloc(n):
+@_ffi.callback("void*(*)(size_t)")
+def malloc(n):
     memory = C.malloc(n)
     python_stack = traceback.extract_stack(limit=3)
     c_stack = _backtrace()
     heap[memory] = [(n, python_stack, c_stack)]
+    log("malloc(%d) -> %s" % (n, memory))
     return memory
-malloc = _ffi.callback("void*(*)(size_t)", _malloc)
 
 
 @_ffi.callback("void*(*)(void*, size_t)")
@@ -53,6 +63,7 @@ def realloc(p, n):
 
     old.append((n, python_stack, c_stack))
     heap[memory] = old
+    log("realloc(0x%x, %d) -> %s" % (int(_ffi.cast("int", p)), n, memory))
     return memory
 
 
@@ -61,6 +72,7 @@ def free(p):
     if p != _ffi.NULL:
         C.free(p)
         del heap[p]
+        log("free(0x%x)" % (int(_ffi.cast("int", p)),))
 
 
 if _api.CRYPTO_set_mem_functions(malloc, realloc, free):
