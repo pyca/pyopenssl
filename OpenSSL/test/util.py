@@ -34,20 +34,37 @@ class TestCase(TestCase):
     :py:class:`TestCase` adds useful testing functionality beyond what is available
     from the standard library :py:class:`unittest.TestCase`.
     """
-    def setUp(self):
-        super(TestCase, self).setUp()
-        self._before = set(memdbg.heap)
+    def run(self, result):
+        # Run the test as usual
+        before = set(memdbg.heap)
+        super(TestCase, self).run(result)
+
+        # Clean up some long-lived allocations so they won't be reported as
+        # memory leaks.
+        api.CRYPTO_cleanup_all_ex_data()
+        api.ERR_remove_thread_state(api.NULL)
+        after = set(memdbg.heap)
+
+        if not after - before:
+            # No leaks, fast succeed
+            return
+
+        if result.wasSuccessful():
+            # If it passed, run it again with memory debugging
+            before = set(memdbg.heap)
+            super(TestCase, self).run(result)
+
+            # Clean up some long-lived allocations so they won't be reported as
+            # memory leaks.
+            api.CRYPTO_cleanup_all_ex_data()
+            api.ERR_remove_thread_state(api.NULL)
+
+            after = set(memdbg.heap)
+
+            self._reportLeaks(after - before, result)
 
 
-    def tearDown(self):
-        """
-        Clean up any files or directories created using :py:meth:`TestCase.mktemp`.
-        Subclasses must invoke this method if they override it or the
-        cleanup will not occur.
-        """
-        import gc
-        gc.collect(); gc.collect(); gc.collect()
-
+    def _reportLeaks(self, leaks, result):
         def format_leak(p):
             stacks = memdbg.heap[p]
             # Eventually look at multiple stacks for the realloc() case.  For
@@ -107,27 +124,26 @@ class TestCase(TestCase):
             stack.extend([frame + "\n" for frame in c_stack])
 
             # XXX :(
-            ptr = int(str(p).split()[-1][:-1], 16)
-            stack.insert(0, "Leaked %d bytes (0x%x) at:\n" % (size, ptr))
+            # ptr = int(str(p).split()[-1][:-1], 16)
+            stack.insert(0, "Leaked %d bytes at:\n" % (size,))
             return "".join(stack)
 
-        # Clean up some long-lived allocations so they won't be reported as
-        # memory leaks.
-        api.CRYPTO_cleanup_all_ex_data()
-        api.ERR_remove_thread_state(api.NULL)
-
-        after = set(memdbg.heap)
-        leak = after - self._before
-        if leak:
+        if leaks:
             total = 0
-            reasons = [""]
-            for p in leak:
+            for p in leaks:
                 total += memdbg.heap[p][-1][0]
-                reasons.append(format_leak(p))
+                result.addError(
+                    self,
+                    (None, Exception(format_leak(p)), None))
                 memdbg.free(p)
-            reasons.append("\nLeaked %d bytes in %d pointers\n" % (total, len(leak)))
-            self.fail('\n'.join(reasons))
 
+
+    def tearDown(self):
+        """
+        Clean up any files or directories created using :py:meth:`TestCase.mktemp`.
+        Subclasses must invoke this method if they override it or the
+        cleanup will not occur.
+        """
         if False and self._temporaryFiles is not None:
             for temp in self._temporaryFiles:
                 if os.path.isdir(temp):
