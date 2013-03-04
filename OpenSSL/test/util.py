@@ -123,19 +123,31 @@ class TestCase(TestCase):
                 c_stack = saved[::-1]
             stack.extend([frame + "\n" for frame in c_stack])
 
-            # XXX :(
-            # ptr = int(str(p).split()[-1][:-1], 16)
-            stack.insert(0, "Leaked %d bytes at:\n" % (size,))
+            stack.insert(0, "Leaked (%s) at:\n")
             return "".join(stack)
 
         if leaks:
-            total = 0
+            unique_leaks = {}
             for p in leaks:
-                total += memdbg.heap[p][-1][0]
+                size = memdbg.heap[p][-1][0]
+                new_leak = format_leak(p)
+                if new_leak not in unique_leaks:
+                    unique_leaks[new_leak] = [(size, p)]
+                else:
+                    unique_leaks[new_leak].append((size, p))
+                memdbg.free(p)
+
+            for (stack, allocs) in unique_leaks.iteritems():
+                allocs_accum = []
+                for (size, pointer) in allocs:
+
+                    addr = int(api.ffi.cast('uintptr_t', pointer))
+                    allocs_accum.append("%d@0x%x" % (size, addr))
+                allocs_report = ", ".join(sorted(allocs_accum))
+
                 result.addError(
                     self,
-                    (None, Exception(format_leak(p)), None))
-                memdbg.free(p)
+                    (None, Exception(stack % (allocs_report,)), None))
 
 
     def tearDown(self):
