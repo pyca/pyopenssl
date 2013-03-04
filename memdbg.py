@@ -27,7 +27,6 @@ _api = _ffi.verify(
     """, libraries=["crypto"])
 C = _ffi.dlopen(None)
 
-heap = {}
 verbose = False
 
 def log(s):
@@ -77,5 +76,7 @@ def free(p):
 
 if _api.CRYPTO_set_mem_functions(malloc, realloc, free):
     print 'Enabled memory debugging'
+    heap = {}
 else:
     print 'Failed to enable memory debugging'
+    heap = None
