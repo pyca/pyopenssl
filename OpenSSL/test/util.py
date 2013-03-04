@@ -35,9 +35,13 @@ class TestCase(TestCase):
     from the standard library :py:class:`unittest.TestCase`.
     """
     def run(self, result):
+        run = super(TestCase, self).run
+        if memdbg.heap is None:
+            return run(result)
+
         # Run the test as usual
         before = set(memdbg.heap)
-        super(TestCase, self).run(result)
+        run(result)
 
         # Clean up some long-lived allocations so they won't be reported as
         # memory leaks.
@@ -52,7 +56,7 @@ class TestCase(TestCase):
         if result.wasSuccessful():
             # If it passed, run it again with memory debugging
             before = set(memdbg.heap)
-            super(TestCase, self).run(result)
+            run(result)
 
             # Clean up some long-lived allocations so they won't be reported as
             # memory leaks.
