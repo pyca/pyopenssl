@@ -31,9 +31,9 @@ xcrypto_dep = ['OpenSSL/crypto/crypto.h', 'OpenSSL/crypto/x509.h',
               'OpenSSL/crypto/pkcs12.h', 'OpenSSL/crypto/netscape_spki.h',
               'OpenSSL/crypto/revoked.h', 'OpenSSL/crypto/crl.h',
               'OpenSSL/util.h']
-ssl_src = ['OpenSSL/ssl/connection.c', 'OpenSSL/ssl/context.c', 'OpenSSL/ssl/ssl.c',
+xssl_src = ['OpenSSL/ssl/connection.c', 'OpenSSL/ssl/context.c', 'OpenSSL/ssl/ssl.c',
            'OpenSSL/ssl/session.c', 'OpenSSL/util.c']
-ssl_dep = ['OpenSSL/ssl/connection.h', 'OpenSSL/ssl/context.h', 'OpenSSL/ssl/ssl.h',
+xssl_dep = ['OpenSSL/ssl/connection.h', 'OpenSSL/ssl/context.h', 'OpenSSL/ssl/ssl.h',
            'OpenSSL/ssl/session.h', 'OpenSSL/util.h']
 
 IncludeDirs = None
@@ -193,7 +193,7 @@ def mkExtension(name):
 setup(name='pyOpenSSL', version=__version__,
       packages = ['OpenSSL'],
       package_dir = {'OpenSSL': 'OpenSSL'},
-      ext_modules = [mkExtension('xcrypto'), mkExtension('SSL')],
+      ext_modules = [mkExtension('xcrypto'), mkExtension('xSSL')],
       py_modules  = ['OpenSSL.__init__', 'OpenSSL.tsafe',
                      'OpenSSL.rand',
                      'OpenSSL.version', 'OpenSSL.test.__init__',

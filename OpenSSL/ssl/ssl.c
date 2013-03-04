@@ -80,7 +80,7 @@ static PyMethodDef ssl_methods[] = {
 #ifdef PY3
 static struct PyModuleDef sslmodule = {
     PyModuleDef_HEAD_INIT,
-    "SSL",
+    "xSSL",
     ssl_doc,
     -1,
     ssl_methods
@@ -93,7 +93,7 @@ static struct PyModuleDef sslmodule = {
  * Arguments: None
  * Returns:   None
  */
-PyOpenSSL_MODINIT(SSL) {
+PyOpenSSL_MODINIT(xSSL) {
     PyObject *module;
 #ifndef PY3
     static void *ssl_API[ssl_API_pointers];
@@ -128,7 +128,7 @@ PyOpenSSL_MODINIT(SSL) {
 #ifdef PY3
     module = PyModule_Create(&sslmodule);
 #else
-    module = Py_InitModule3("SSL", ssl_methods, ssl_doc);
+    module = Py_InitModule3("xSSL", ssl_methods, ssl_doc);
 #endif
     if (module == NULL) {
         PyOpenSSL_MODRETURN(NULL);
