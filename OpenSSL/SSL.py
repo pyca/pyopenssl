@@ -36,3 +36,11 @@ SESS_CACHE_NO_AUTO_CLEAR = _api.SSL_SESS_CACHE_NO_AUTO_CLEAR
 SESS_CACHE_NO_INTERNAL_LOOKUP = _api.SSL_SESS_CACHE_NO_INTERNAL_LOOKUP
 SESS_CACHE_NO_INTERNAL_STORE = _api.SSL_SESS_CACHE_NO_INTERNAL_STORE
 SESS_CACHE_NO_INTERNAL = _api.SSL_SESS_CACHE_NO_INTERNAL
+
+def SSLeay_version(type):
+    """
+    Return a string describing the version of OpenSSL in use.
+
+    :param type: One of the SSLEAY_ constants defined in this module.
+    """
+    return _api.string(_api.SSLeay_version(type))
