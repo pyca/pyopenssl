@@ -859,6 +859,22 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         self._handshake_test(serverContext, clientContext)
 
+
+    def test_use_certificate_chain_file_wrong_args(self):
+        """
+        :py:obj:`Context.use_certificate_chain_file` raises :py:obj:`TypeError`
+        if passed zero or more than one argument or when passed a non-byte
+        string single argument.  It also raises :py:obj:`OpenSSL.SSL.Error` when
+        passed a bad chain file name (for example, the name of a file which does
+        not exist).
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.use_certificate_chain_file)
+        self.assertRaises(TypeError, context.use_certificate_chain_file, object())
+        self.assertRaises(TypeError, context.use_certificate_chain_file, b"foo", object())
+
+        self.assertRaises(Error, context.use_certificate_chain_file, self.mktemp())
+
     # XXX load_client_ca
     # XXX set_session_id
 
@@ -927,6 +943,21 @@ class ContextTests(TestCase, _LoopbackMixin):
         context.set_cipher_list("hello world:EXP-RC4-MD5")
         conn = Connection(context, None)
         self.assertEquals(conn.get_cipher_list(), ["EXP-RC4-MD5"])
+
+
+    def test_set_cipher_list_wrong_args(self):
+        """
+        :py:obj:`Context.set_cipher_list` raises :py:obj:`TypeError` when passed
+        zero arguments or more than one argument or when passed a non-byte
+        string single argument and raises :py:obj:`OpenSSL.SSL.Error` when
+        passed an incorrect cipher list string.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.set_cipher_list)
+        self.assertRaises(TypeError, context.set_cipher_list, object())
+        self.assertRaises(TypeError, context.set_cipher_list, b"EXP-RC4-MD5", object())
+
+        self.assertRaises(Error, context.set_cipher_list, b"imaginary-cipher")
 
 
     def test_set_session_cache_mode_wrong_args(self):
