@@ -81,7 +81,12 @@ def _get_asn1_time(timestamp):
 
 
 
-def _raise_current_error():
+class Error(Exception):
+    pass
+
+
+
+def _raise_current_error(exceptionType=Error):
     errors = []
     while True:
         error = _api.ERR_get_error()
@@ -92,13 +97,10 @@ def _raise_current_error():
                 _api.string(_api.ERR_func_error_string(error)),
                 _api.string(_api.ERR_reason_error_string(error))))
 
-    raise Error(errors)
+    raise exceptionType(errors)
 
 _exception_from_error_queue = _raise_current_error
 
-
-class Error(Exception):
-    pass
 
 
 class PKey(object):
@@ -1718,10 +1720,12 @@ NetscapeSPKIType = NetscapeSPKI
 
 
 class _PassphraseHelper(object):
-    def __init__(self, type, passphrase):
+    def __init__(self, type, passphrase, more_args=False, truncate=False):
         if type != FILETYPE_PEM and passphrase is not None:
             raise ValueError("only FILETYPE_PEM key format supports encryption")
         self._passphrase = passphrase
+        self._more_args = more_args
+        self._truncate = truncate
         self._problems = []
 
 
@@ -1749,22 +1753,29 @@ class _PassphraseHelper(object):
             raise TypeError("Last argument must be string or callable")
 
 
-    def raise_if_problem(self):
+    def raise_if_problem(self, exceptionType=Error):
+        try:
+            _raise_current_error(exceptionType)
+        except exceptionType as e:
+            pass
         if self._problems:
-            try:
-                _raise_current_error()
-            except Error:
-                pass
             raise self._problems[0]
+        return e
 
 
     def _read_passphrase(self, buf, size, rwflag, userdata):
         try:
-            result = self._passphrase(rwflag)
+            if self._more_args:
+                result = self._passphrase(size, rwflag, userdata)
+            else:
+                result = self._passphrase(rwflag)
             if not isinstance(result, bytes):
                 raise ValueError("String expected")
             if len(result) > size:
-                raise ValueError("passphrase returned by callback is too long")
+                if self._truncate:
+                    result = result[:size]
+                else:
+                    raise ValueError("passphrase returned by callback is too long")
             for i in range(len(result)):
                 buf[i] = result[i]
             return len(result)

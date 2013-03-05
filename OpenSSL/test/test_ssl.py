@@ -534,7 +534,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         pemFile = self._write_encrypted_pem(b("monkeys are nice"))
         def passphraseCallback(maxlen, verify, extra):
-            return None
+            return ""
 
         context = Context(TLSv1_METHOD)
         context.set_passwd_cb(passphraseCallback)
@@ -552,7 +552,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         context = Context(TLSv1_METHOD)
         context.set_passwd_cb(passphraseCallback)
-        self.assertRaises(Error, context.use_privatekey_file, pemFile)
+        self.assertRaises(ValueError, context.use_privatekey_file, pemFile)
 
 
     def test_passwd_callback_too_long(self):
