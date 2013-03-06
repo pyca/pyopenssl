@@ -193,10 +193,11 @@ class Context(object):
         self._passphrase_userdata = None
         self._app_data = None
 
-    # SSL_CTX_set_app_data(self->ctx, self);
-    # SSL_CTX_set_mode(self->ctx, SSL_MODE_ENABLE_PARTIAL_WRITE |
-    #                             SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER |
-    #                             SSL_MODE_AUTO_RETRY);
+        # SSL_CTX_set_app_data(self->ctx, self);
+        # SSL_CTX_set_mode(self->ctx, SSL_MODE_ENABLE_PARTIAL_WRITE |
+        #                             SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER |
+        #                             SSL_MODE_AUTO_RETRY);
+        self.set_mode(_api.SSL_MODE_ENABLE_PARTIAL_WRITE)
 
 
     def load_verify_locations(self, cafile, capath=None):
@@ -830,6 +831,8 @@ class Connection(object):
                       API, the value is ignored
         :return: The number of bytes written
         """
+        if isinstance(buf, memoryview):
+            buf = buf.tobytes()
         if not isinstance(buf, bytes):
             raise TypeError("data must be a byte string")
         if not isinstance(flags, int):
@@ -852,6 +855,8 @@ class Connection(object):
                       API, the value is ignored
         :return: The number of bytes written
         """
+        if isinstance(buf, memoryview):
+            buf = buf.tobytes()
         if not isinstance(buf, bytes):
             raise TypeError("buf must be a byte string")
         if not isinstance(flags, int):
