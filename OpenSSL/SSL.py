@@ -1,14 +1,15 @@
 
 from functools import wraps
 from itertools import count
-
-from OpenSSL.xSSL import *
+from weakref import WeakValueDictionary
+from errno import errorcode
 
 from tls.c import api as _api
 
 from OpenSSL.crypto import (
-    FILETYPE_PEM, _PassphraseHelper, PKey, X509, _raise_current_error,
-    _new_mem_buf)
+    FILETYPE_PEM, _PassphraseHelper, PKey, X509Name, X509, X509Store,
+
+    _raise_current_error, _new_mem_buf)
 
 _unspecified = object()
 
@@ -29,8 +30,35 @@ TLSv1_METHOD = 4
 
 OP_NO_SSLv2 = _api.SSL_OP_NO_SSLv2
 OP_NO_SSLv3 = _api.SSL_OP_NO_SSLv3
+OP_NO_TLSv1 = _api.SSL_OP_NO_TLSv1
+
+MODE_RELEASE_BUFFERS = _api.SSL_MODE_RELEASE_BUFFERS
 
 OP_SINGLE_DH_USE = _api.SSL_OP_SINGLE_DH_USE
+OP_EPHEMERAL_RSA = _api.SSL_OP_EPHEMERAL_RSA
+OP_MICROSOFT_SESS_ID_BUG = _api.SSL_OP_MICROSOFT_SESS_ID_BUG
+OP_NETSCAPE_CHALLENGE_BUG = _api.SSL_OP_NETSCAPE_CHALLENGE_BUG
+OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG = _api.SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG
+OP_SSLREF2_REUSE_CERT_TYPE_BUG = _api.SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG
+OP_MICROSOFT_BIG_SSLV3_BUFFER = _api.SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER
+OP_MSIE_SSLV2_RSA_PADDING = _api.SSL_OP_MSIE_SSLV2_RSA_PADDING
+OP_SSLEAY_080_CLIENT_DH_BUG = _api.SSL_OP_SSLEAY_080_CLIENT_DH_BUG
+OP_TLS_D5_BUG = _api.SSL_OP_TLS_D5_BUG
+OP_TLS_BLOCK_PADDING_BUG = _api.SSL_OP_TLS_BLOCK_PADDING_BUG
+OP_DONT_INSERT_EMPTY_FRAGMENTS = _api.SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS
+OP_CIPHER_SERVER_PREFERENCE = _api.SSL_OP_CIPHER_SERVER_PREFERENCE
+OP_TLS_ROLLBACK_BUG = _api.SSL_OP_TLS_ROLLBACK_BUG
+OP_PKCS1_CHECK_1 = _api.SSL_OP_PKCS1_CHECK_1
+OP_PKCS1_CHECK_2 = _api.SSL_OP_PKCS1_CHECK_2
+OP_NETSCAPE_CA_DN_BUG = _api.SSL_OP_NETSCAPE_CA_DN_BUG
+OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG= _api.SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG
+OP_NO_COMPRESSION = _api.SSL_OP_NO_COMPRESSION
+
+OP_NO_QUERY_MTU = _api.SSL_OP_NO_QUERY_MTU
+OP_COOKIE_EXCHANGE = _api.SSL_OP_COOKIE_EXCHANGE
+OP_NO_TICKET = _api.SSL_OP_NO_TICKET
+
+OP_ALL   = _api.SSL_OP_ALL
 
 VERIFY_PEER = _api.SSL_VERIFY_PEER
 VERIFY_FAIL_IF_NO_PEER_CERT = _api.SSL_VERIFY_FAIL_IF_NO_PEER_CERT
@@ -46,6 +74,28 @@ SESS_CACHE_NO_INTERNAL_LOOKUP = _api.SSL_SESS_CACHE_NO_INTERNAL_LOOKUP
 SESS_CACHE_NO_INTERNAL_STORE = _api.SSL_SESS_CACHE_NO_INTERNAL_STORE
 SESS_CACHE_NO_INTERNAL = _api.SSL_SESS_CACHE_NO_INTERNAL
 
+SSL_ST_CONNECT = _api.SSL_ST_CONNECT
+SSL_ST_ACCEPT = _api.SSL_ST_ACCEPT
+SSL_ST_MASK = _api.SSL_ST_MASK
+SSL_ST_INIT = _api.SSL_ST_INIT
+SSL_ST_BEFORE = _api.SSL_ST_BEFORE
+SSL_ST_OK = _api.SSL_ST_OK
+SSL_ST_RENEGOTIATE = _api.SSL_ST_RENEGOTIATE
+
+SSL_CB_LOOP = _api.SSL_CB_LOOP
+SSL_CB_EXIT = _api.SSL_CB_EXIT
+SSL_CB_READ = _api.SSL_CB_READ
+SSL_CB_WRITE = _api.SSL_CB_WRITE
+SSL_CB_ALERT = _api.SSL_CB_ALERT
+SSL_CB_READ_ALERT = _api.SSL_CB_READ_ALERT
+SSL_CB_WRITE_ALERT = _api.SSL_CB_WRITE_ALERT
+SSL_CB_ACCEPT_LOOP = _api.SSL_CB_ACCEPT_LOOP
+SSL_CB_ACCEPT_EXIT = _api.SSL_CB_ACCEPT_EXIT
+SSL_CB_CONNECT_LOOP = _api.SSL_CB_CONNECT_LOOP
+SSL_CB_CONNECT_EXIT = _api.SSL_CB_CONNECT_EXIT
+SSL_CB_HANDSHAKE_START = _api.SSL_CB_HANDSHAKE_START
+SSL_CB_HANDSHAKE_DONE = _api.SSL_CB_HANDSHAKE_DONE
+
 
 
 class Error(Exception):
@@ -56,6 +106,14 @@ class Error(Exception):
 class WantReadError(Error):
     pass
 
+
+
+class ZeroReturnError(Error):
+    pass
+
+
+class SysCallError(Error):
+    pass
 
 
 def _asFileDescriptor(obj):
@@ -86,6 +144,11 @@ def SSLeay_version(type):
     :param type: One of the SSLEAY_ constants defined in this module.
     """
     return _api.string(_api.SSLeay_version(type))
+
+
+
+class Session(object):
+    pass
 
 
 
@@ -459,6 +522,32 @@ class Context(object):
         :param certificate_authorities: a sequence of X509Names.
         :return: None
         """
+        # TODO need to free name_stack on error
+        name_stack = _api.sk_X509_NAME_new_null()
+        if name_stack == _api.NULL:
+            1/0
+            _raise_current_error(Error)
+
+        try:
+            for ca_name in certificate_authorities:
+                if not isinstance(ca_name, X509Name):
+                    raise TypeError(
+                        "client CAs must be X509Name objects, not %s objects" % (
+                            type(ca_name).__name__,))
+                copy = _api.X509_NAME_dup(ca_name._name)
+                if copy == _api.NULL:
+                    1/0
+                    _raise_current_error(Error)
+                push_result = _api.sk_X509_NAME_push(name_stack, copy)
+                if not push_result:
+                    _api.X509_NAME_free(copy)
+                    _raise_current_error(Error)
+        except:
+            _api.sk_X509_NAME_free(name_stack)
+            raise
+
+        _api.SSL_CTX_set_client_CA_list(self._context, name_stack)
+
 
     def add_client_ca(self, certificate_authority):
         """
@@ -470,6 +559,15 @@ class Context(object):
         :param certificate_authority: certificate authority's X509 certificate.
         :return: None
         """
+        if not isinstance(certificate_authority, X509):
+            raise TypeError("certificate_authority must be an X509 instance")
+
+        add_result = _api.SSL_CTX_add_client_CA(
+            self._context, certificate_authority._x509)
+        if not add_result:
+            1/0
+            _raise_current_error(Error)
+
 
     def set_timeout(self, timeout):
         """
@@ -532,6 +630,15 @@ class Context(object):
 
         :return: A X509Store object
         """
+        store = _api.SSL_CTX_get_cert_store(self._context)
+        if store == _api.NULL:
+            1/0
+            return None
+
+        pystore = X509Store.__new__(X509Store)
+        pystore._store = store
+        return pystore
+
 
     def set_options(self, options):
         """
@@ -540,7 +647,7 @@ class Context(object):
         :param options: The options to add.
         :return: The new option bitmask.
         """
-        if not isinstance(options, options):
+        if not isinstance(options, int):
             raise TypeError("options must be an integer")
 
         return _api.SSL_CTX_set_options(self._context, options)
@@ -566,6 +673,15 @@ class Context(object):
         :param callback: The callback function.  It will be invoked with one
             argument, the Connection instance.
         """
+        @wraps(callback)
+        def wrapper(ssl, alert, arg):
+            callback(Connection._reverse_mapping[ssl])
+            return 0
+
+        self._tlsext_servername_callback = _api.callback(
+            "tlsext_servername_callback", wrapper)
+        _api.SSL_CTX_set_tlsext_servername_callback(
+            self._context, self._tlsext_servername_callback)
 
 ContextType = Context
 
@@ -574,6 +690,8 @@ ContextType = Context
 class Connection(object):
     """
     """
+    _reverse_mapping = WeakValueDictionary()
+
     def __init__(self, context, socket=None):
         """
         Create a new Connection object, using the given OpenSSL.SSL.Context
@@ -586,6 +704,9 @@ class Connection(object):
             raise TypeError("context must be a Context instance")
 
         self._ssl = _api.SSL_new(context._context)
+        self._context = context
+
+        self._reverse_mapping[self._ssl] = self
 
         if socket is None:
             self._socket = None
@@ -597,6 +718,8 @@ class Connection(object):
 
             _api.SSL_set_bio(self._ssl, self._into_ssl, self._from_ssl)
         else:
+            self._into_ssl = None
+            self._from_ssl = None
             self._socket = socket
             set_result = _api.SSL_set_fd(self._ssl, _asFileDescriptor(self._socket))
             if not set_result:
@@ -611,9 +734,25 @@ class Connection(object):
         return getattr(self._socket, name)
 
 
-    def _raise_ssl_error(self, error, result):
+    def _raise_ssl_error(self, ssl, result):
+        error = _api.SSL_get_error(ssl, result)
         if error == _api.SSL_ERROR_WANT_READ:
             raise WantReadError()
+        elif error == _api.SSL_ERROR_ZERO_RETURN:
+            raise ZeroReturnError()
+        elif error == _api.SSL_ERROR_NONE:
+            pass
+        elif error == _api.SSL_ERROR_SYSCALL:
+            if _api.ERR_peek_error() == 0:
+                if result < 0:
+                    raise SysCallError(
+                        _api.ffi.errno, errorcode[_api.ffi.errno])
+                else:
+                    # TODO
+                    raise Exception("unknown syscall error")
+            else:
+                # TODO
+                _raise_current_error(Error)
         else:
             _raise_current_error(Error)
 
@@ -622,14 +761,22 @@ class Connection(object):
         """
         Get session context
         """
+        return self._context
 
 
-    def set_context(self):
+    def set_context(self, context):
         """
         Switch this connection to a new session context
 
-        :param context: A :py:class:`Context` instance giving the new session context to use.
+        :param context: A :py:class:`Context` instance giving the new session
+            context to use.
         """
+        if not isinstance(context, Context):
+            raise TypeError("context must be a Context instance")
+
+        _api.SSL_set_SSL_CTX(self._ssl, context._context)
+        self._context = context
+
 
     def get_servername(self):
         """
@@ -638,13 +785,27 @@ class Connection(object):
 
         :return: A byte string giving the server name or :py:data:`None`.
         """
+        name = _api.SSL_get_servername(self._ssl, _api.TLSEXT_NAMETYPE_host_name)
+        if name == _api.NULL:
+            return None
 
-    def set_tlsext_host_name(self):
+        return _api.string(name)
+
+
+    def set_tlsext_host_name(self, name):
         """
         Set the value of the servername extension to send in the client hello.
 
         :param name: A byte string giving the name.
         """
+        if not isinstance(name, bytes):
+            raise TypeError("name must be a byte string")
+        elif "\0" in name:
+            raise TypeError("name must not contain NUL byte")
+
+        # XXX I guess this can fail sometimes?
+        _api.SSL_set_tlsext_host_name(self._ssl, name)
+
 
     def pending(self):
         """
@@ -652,15 +813,10 @@ class Connection(object):
 
         :return: The number of bytes available in the receive buffer.
         """
+        return _api.SSL_pending(self._ssl)
 
 
-    def _handle_SSL_result(self, ssl, result):
-        error = _api.SSL_get_error(ssl, result)
-        if error != _api.SSL_ERROR_NONE:
-            self._raise_ssl_error(error, result)
-
-
-    def send(self, data, flags=None):
+    def send(self, buf, flags=0):
         """
         Send data on the connection. NOTE: If you get one of the WantRead,
         WantWrite or WantX509Lookup exceptions on this, you have to call the
@@ -671,23 +827,43 @@ class Connection(object):
                       API, the value is ignored
         :return: The number of bytes written
         """
-        result = _api.SSL_write(self._ssl, data, len(data))
-        self._handle_SSL_result(self._ssl, result)
+        if not isinstance(buf, bytes):
+            raise TypeError("data must be a byte string")
+        if not isinstance(flags, int):
+            raise TypeError("flags must be an integer")
+
+        result = _api.SSL_write(self._ssl, buf, len(buf))
+        self._raise_ssl_error(self._ssl, result)
         return result
     write = send
 
 
-    def sendall(self):
+    def sendall(self, buf, flags=0):
         """
-        Send \"all\" data on the connection. This calls send() repeatedly until
-        all data is sent. If an error occurs, it's impossible to tell how much data
-        has been sent.
+        Send "all" data on the connection. This calls send() repeatedly until
+        all data is sent. If an error occurs, it's impossible to tell how much
+        data has been sent.
 
         :param buf: The string to send
         :param flags: (optional) Included for compatibility with the socket
                       API, the value is ignored
         :return: The number of bytes written
         """
+        if not isinstance(buf, bytes):
+            raise TypeError("buf must be a byte string")
+        if not isinstance(flags, int):
+            raise TypeError("flags must be an integer")
+
+        left_to_send = len(buf)
+        total_sent = 0
+        data = _api.new("char[]", buf)
+
+        while left_to_send:
+            result = _api.SSL_write(self._ssl, data + total_sent, left_to_send)
+            self._raise_ssl_error(self._ssl, result)
+            total_sent += result
+            left_to_send -= result
+
 
     def recv(self, bufsiz, flags=None):
         """
@@ -702,28 +878,59 @@ class Connection(object):
         """
         buf = _api.new("char[]", bufsiz)
         result = _api.SSL_read(self._ssl, buf, bufsiz)
-        self._handle_SSL_result(self._ssl, result)
-        return _api.buffer(buf, result)
+        self._raise_ssl_error(self._ssl, result)
+        return _api.buffer(buf, result)[:]
     read = recv
 
 
-    def bio_read(self):
+    def _handle_bio_errors(self, bio, result):
+        if _api.BIO_should_retry(bio):
+            if _api.BIO_should_read(bio):
+                raise WantReadError()
+        1/0
+
+
+    def bio_read(self, bufsiz):
         """
-        When using non-socket connections this function reads
-        the \"dirty\" data that would have traveled away on the network.
+        When using non-socket connections this function reads the "dirty" data
+        that would have traveled away on the network.
 
         :param bufsiz: The maximum number of bytes to read
         :return: The string read.
         """
+        if self._from_ssl == _api.NULL:
+            raise TypeError("Connection sock was not None")
 
-    def bio_write(self):
+        if not isinstance(bufsiz, int):
+            raise TypeError("bufsiz must be an integer")
+
+        buf = _api.new("char[]", bufsiz)
+        result = _api.BIO_read(self._from_ssl, buf, bufsiz)
+        if result <= 0:
+            self._handle_bio_errors(self._from_ssl, result)
+
+        return _api.buffer(buf, result)[:]
+
+
+    def bio_write(self, buf):
         """
-        When using non-socket connections this function sends
-        \"dirty\" data that would have traveled in on the network.
+        When using non-socket connections this function sends "dirty" data that
+        would have traveled in on the network.
 
         :param buf: The string to put into the memory BIO.
         :return: The number of bytes written
         """
+        if self._into_ssl is None:
+            raise TypeError("Connection sock was not None")
+
+        if not isinstance(buf, bytes):
+            raise TypeError("buf must be a byte string")
+
+        result = _api.BIO_write(self._into_ssl, buf, len(buf))
+        if result <= 0:
+            self._handle_bio_errors(self._into_ssl, result)
+        return result
+
 
     def renegotiate(self):
         """
@@ -740,7 +947,7 @@ class Connection(object):
         :return: None.
         """
         result = _api.SSL_do_handshake(self._ssl)
-        self._handle_SSL_result(self._ssl, result)
+        self._raise_ssl_error(self._ssl, result)
 
 
     def renegotiate_pending(self):
@@ -757,16 +964,21 @@ class Connection(object):
 
         :return: The number of renegotiations.
         """
+        return _api.SSL_total_renegotiations(self._ssl)
 
-    def connect(self):
+
+    def connect(self, addr):
         """
         Connect to remote host and set up client-side SSL
 
         :param addr: A remote address
         :return: What the socket's connect method returns
         """
+        _api.SSL_set_connect_state(self._ssl)
+        return self._socket.connect(addr)
 
-    def connect_ex(self):
+
+    def connect_ex(self, addr):
         """
         Connect to remote host and set up client-side SSL. Note that if the socket's
         connect_ex method doesn't return 0, SSL won't be initialized.
@@ -774,6 +986,10 @@ class Connection(object):
         :param addr: A remove address
         :return: What the socket's connect_ex method returns
         """
+        connect_ex = self._socket.connect_ex
+        self.set_connect_state()
+        return connect_ex(addr)
+
 
     def accept(self):
         """
@@ -782,6 +998,10 @@ class Connection(object):
         :return: A (conn,addr) pair where conn is a Connection and addr is an
                  address
         """
+        client, addr = self._socket.accept()
+        conn = Connection(self._context, client)
+        conn.set_accept_state()
+        return (conn, addr)
 
 
     def bio_shutdown(self):
@@ -791,6 +1011,11 @@ class Connection(object):
 
         :return: None
         """
+        if self._from_ssl is None:
+            raise TypeError("Connection sock was not None")
+
+        _api.BIO_set_mem_eof_return(self._into_ssl, 0)
+
 
     def shutdown(self):
         """
@@ -804,7 +1029,7 @@ class Connection(object):
         if result < 0:
             1/0
         elif result > 0:
-            2/0
+            return True
         else:
             return False
 
@@ -834,6 +1059,24 @@ class Connection(object):
             the list of such X509Names sent by the server, or an empty list if that
             has not yet happened.
         """
+        ca_names = _api.SSL_get_client_CA_list(self._ssl)
+        if ca_names == _api.NULL:
+            1/0
+            return []
+
+        result = []
+        for i in range(_api.sk_X509_NAME_num(ca_names)):
+            name = _api.sk_X509_NAME_value(ca_names, i)
+            copy = _api.X509_NAME_dup(name)
+            if copy == _api.NULL:
+                1/0
+                _raise_current_error(Error)
+
+            pyname = X509Name.__new__(X509Name)
+            pyname._name = _api.ffi.gc(copy, _api.X509_NAME_free)
+            result.append(pyname)
+        return result
+
 
     def makefile(self):
         """
@@ -842,6 +1085,7 @@ class Connection(object):
 
         :raise NotImplementedError
         """
+        raise NotImplementedError("Cannot make file object of OpenSSL.SSL.Connection")
 
 
     def get_app_data(self):
@@ -850,14 +1094,18 @@ class Connection(object):
 
         :return: The application data
         """
+        return self._app_data
 
-    def set_app_data(self):
+
+    def set_app_data(self, data):
         """
         Set application data
 
         :param data - The application data
         :return: None
         """
+        self._app_data = data
+
 
     def get_shutdown(self):
         """
@@ -868,13 +1116,18 @@ class Connection(object):
         return _api.SSL_get_shutdown(self._ssl)
 
 
-    def set_shutdown(self):
+    def set_shutdown(self, state):
         """
         Set shutdown state
 
         :param state - bitvector of SENT_SHUTDOWN, RECEIVED_SHUTDOWN.
         :return: None
         """
+        if not isinstance(state, int):
+            raise TypeError("state must be an integer")
+
+        _api.SSL_set_shutdown(self._ssl, state)
+
 
     def state_string(self):
         """
@@ -889,6 +1142,12 @@ class Connection(object):
 
         :return: A string representing the state
         """
+        if self._ssl.session == _api.NULL:
+            return None
+        return _api.buffer(
+            self._ssl.s3.server_random,
+            _api.SSL3_RANDOM_SIZE)[:]
+
 
     def client_random(self):
         """
@@ -896,6 +1155,12 @@ class Connection(object):
 
         :return: A string representing the state
         """
+        if self._ssl.session == _api.NULL:
+            return None
+        return _api.buffer(
+            self._ssl.s3.client_random,
+            _api.SSL3_RANDOM_SIZE)[:]
+
 
     def master_key(self):
         """
@@ -903,13 +1168,21 @@ class Connection(object):
 
         :return: A string representing the state
         """
+        if self._ssl.session == _api.NULL:
+            return None
+        return _api.buffer(
+            self._ssl.session.master_key,
+            self._ssl.session.master_key_length)[:]
 
-    def sock_shutdown(self):
+
+    def sock_shutdown(self, *args, **kwargs):
         """
         See shutdown(2)
 
         :return: What the socket's shutdown() method returns
         """
+        return self._socket.shutdown(*args, **kwargs)
+
 
     def get_peer_certificate(self):
         """
@@ -932,6 +1205,19 @@ class Connection(object):
         :return: A list of X509 instances giving the peer's certificate chain,
                  or None if it does not have one.
         """
+        cert_stack = _api.SSL_get_peer_cert_chain(self._ssl)
+        if cert_stack == _api.NULL:
+            return None
+
+        result = []
+        for i in range(_api.sk_X509_num(cert_stack)):
+            cert = _api.sk_X509_value(cert_stack, i)
+            # Oops, this will crash if any pycert outlives self
+            pycert = X509.__new__(X509)
+            pycert._x509 = cert
+            result.append(pycert)
+        return result
+
 
     def want_read(self):
         """
@@ -940,6 +1226,8 @@ class Connection(object):
 
         :return: True iff more data has to be read
         """
+        return _api.SSL_want_read(self._ssl)
+
 
     def want_write(self):
         """
@@ -948,6 +1236,8 @@ class Connection(object):
 
         :return: True iff there is data to write
         """
+        return _api.SSL_want_write(self._ssl)
+
 
     def set_accept_state(self):
         """
@@ -976,13 +1266,27 @@ class Connection(object):
         @return: An instance of :py:class:`OpenSSL.SSL.Session` or :py:obj:`None` if
             no session exists.
         """
+        session = _api.SSL_get1_session(self._ssl)
+        if session == _api.NULL:
+            return None
 
-    def set_session(self):
+        pysession = Session.__new__(Session)
+        pysession._session = _api.ffi.gc(session, _api.SSL_SESSION_free)
+        return pysession
+
+
+    def set_session(self, session):
         """
         Set the session to be used when the TLS/SSL connection is established.
 
         :param session: A Session instance representing the session to use.
         :returns: None
         """
+        if not isinstance(session, Session):
+            raise TypeError("session must be a Session instance")
+
+        result = _api.SSL_set_session(self._ssl, session._session)
+        if not result:
+            _raise_current_error(Error)
 
 ConnectionType = Connection

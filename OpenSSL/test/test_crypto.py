@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
-from OpenSSL.crypto import X509Req, X509ReqType
+from OpenSSL.crypto import X509Store, X509StoreType, X509Req, X509ReqType
 from OpenSSL.crypto import X509Extension, X509ExtensionType
 from OpenSSL.crypto import load_certificate, load_privatekey
 from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT
@@ -1586,6 +1586,31 @@ tgI5
 """
         cert = load_certificate(FILETYPE_PEM, certPEM)
         self.assertRaises(ValueError, cert.get_signature_algorithm)
+
+
+
+class X509StoreTests(TestCase):
+    """
+    Test for :py:obj:`OpenSSL.crypto.X509Store`.
+    """
+    def test_type(self):
+        """
+        :py:obj:`X509StoreType` is a type object.
+        """
+        self.assertIdentical(X509Store, X509StoreType)
+        self.assertConsistentType(X509Store, 'X509Store')
+
+
+    def test_add_cert_wrong_args(self):
+        store = X509Store()
+        self.assertRaises(TypeError, store.add_cert)
+        self.assertRaises(TypeError, store.add_cert, object())
+        self.assertRaises(TypeError, store.add_cert, X509(), object())
+
+
+    def test_add_cert(self):
+        store = X509Store()
+        store.add_cert(X509())
 
 
 

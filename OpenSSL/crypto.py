@@ -563,6 +563,7 @@ class X509Req(object):
             if not isinstance(ext, X509Extension):
                 raise ValueError("One of the elements is not an X509Extension")
 
+            # TODO push can fail (here and elsewhere)
             _api.sk_X509_EXTENSION_push(stack, ext._extension)
 
         add_result = _api.X509_REQ_add_extensions(self._req, stack)
@@ -1018,6 +1019,25 @@ class X509(object):
         return ext
 
 X509Type = X509
+
+
+
+class X509Store(object):
+    def __init__(self):
+        store = _api.X509_STORE_new()
+        self._store = _api.ffi.gc(store, _api.X509_STORE_free)
+
+
+    def add_cert(self, cert):
+        if not isinstance(cert, X509):
+            raise TypeError()
+
+        result = _api.X509_STORE_add_cert(self._store, cert._x509)
+        if not result:
+            1/0
+            _raise_current_error()
+
+X509StoreType = X509Store
 
 
 

@@ -6,7 +6,7 @@ Unit tests for :py:obj:`OpenSSL.SSL`.
 """
 
 from gc import collect
-from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK
+from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE
 from sys import platform, version_info
 from socket import error, socket
 from os import makedirs
@@ -15,7 +15,7 @@ from unittest import main
 from weakref import ref
 
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
-from OpenSSL.crypto import PKey, X509, X509Extension
+from OpenSSL.crypto import PKey, X509, X509Extension, X509Store
 from OpenSSL.crypto import dump_privatekey, load_privatekey
 from OpenSSL.crypto import dump_certificate, load_certificate
 
@@ -991,6 +991,15 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertEqual(SESS_CACHE_BOTH, context.get_session_cache_mode())
 
 
+    def test_get_cert_store(self):
+        """
+        :py:obj:`Context.get_cert_store` returns a :py:obj:`X509Store` instance.
+        """
+        context = Context(TLSv1_METHOD)
+        store = context.get_cert_store()
+        self.assertIsInstance(store, X509Store)
+
+
 
 class ServerNameCallbackTests(TestCase, _LoopbackMixin):
     """
@@ -1504,7 +1513,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
         session = server.get_session()
-        self.assertTrue(session, Session)
+        self.assertIsInstance(session, Session)
 
 
     def test_client_get_session(self):
@@ -1515,7 +1524,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
         session = client.get_session()
-        self.assertTrue(session, Session)
+        self.assertIsInstance(session, Session)
 
 
     def test_set_session_wrong_args(self):
@@ -1747,7 +1756,8 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
         server.sock_shutdown(2)
-        self.assertRaises(SysCallError, server.sendall, "hello, world")
+        exc = self.assertRaises(SysCallError, server.sendall, "hello, world")
+        self.assertEqual(exc.args[0], EPIPE)
 
 
 
