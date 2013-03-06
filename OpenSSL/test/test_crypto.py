@@ -1609,8 +1609,24 @@ class X509StoreTests(TestCase):
 
 
     def test_add_cert(self):
+        """
+        :py:obj:`X509Store.add_cert` adds a :py:obj:`X509` instance to the
+        certificate store.
+        """
+        cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
         store = X509Store()
-        store.add_cert(X509())
+        store.add_cert(cert)
+
+
+    def test_add_cert_rejects_duplicate(self):
+        """
+        :py:obj:`X509Store.add_cert` raises :py:obj:`OpenSSL.crypto.Error` if an
+        attempt is made to add the same certificate to the store more than once.
+        """
+        cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+        store = X509Store()
+        store.add_cert(cert)
+        self.assertRaises(Error, store.add_cert, cert)
 
 
 

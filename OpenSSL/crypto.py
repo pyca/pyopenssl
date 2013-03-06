@@ -1034,8 +1034,8 @@ class X509Store(object):
 
         result = _api.X509_STORE_add_cert(self._store, cert._x509)
         if not result:
-            1/0
-            _raise_current_error()
+            _raise_current_error(Error)
+
 
 X509StoreType = X509Store
 
