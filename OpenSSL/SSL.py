@@ -186,11 +186,12 @@ class Context(object):
         context = _api.ffi.gc(context, _api.SSL_CTX_free)
 
         self._context = context
+        self._passphrase_helper = None
         self._passphrase_callback = None
+        self._passphrase_userdata = None
         self._verify_callback = None
         self._info_callback = None
         self._tlsext_servername_callback = None
-        self._passphrase_userdata = None
         self._app_data = None
 
         # SSL_CTX_set_app_data(self->ctx, self);
@@ -278,7 +279,7 @@ class Context(object):
             _raise_current_error(Error)
 
 
-    def use_certificate_file(self, certfile, filetype=_unspecified):
+    def use_certificate_file(self, certfile, filetype=FILETYPE_PEM):
         """
         Load a certificate from a file
 
@@ -286,6 +287,15 @@ class Context(object):
         :param filetype: (optional) The encoding of the file, default is PEM
         :return: None
         """
+        if not isinstance(certfile, bytes):
+            raise TypeError("certfile must be a byte string")
+        if not isinstance(filetype, int):
+            raise TypeError("filetype must be an integer")
+
+        use_result = _api.SSL_CTX_use_certificate_file(self._context, certfile, filetype)
+        if not use_result:
+            _raise_current_error(Error)
+
 
     def use_certificate(self, cert):
         """
@@ -299,7 +309,7 @@ class Context(object):
 
         use_result = _api.SSL_CTX_use_certificate(self._context, cert._x509)
         if not use_result:
-            1/0
+            _raise_current_error(Error)
 
 
     def add_extra_chain_cert(self, certobj):
@@ -318,6 +328,15 @@ class Context(object):
             # _api.X509_free(copy)
             # _raise_current_error(Error)
             1/0
+
+
+    def _raise_passphrase_exception(self):
+        if self._passphrase_helper is None:
+            _raise_current_error(Error)
+        exception = self._passphrase_helper.raise_if_problem(Error)
+        if exception is not None:
+            raise exception
+
 
     def use_privatekey_file(self, keyfile, filetype=_unspecified):
         """
@@ -338,9 +357,7 @@ class Context(object):
         use_result = _api.SSL_CTX_use_PrivateKey_file(
             self._context, keyfile, filetype)
         if not use_result:
-            exception = self._passphrase_helper.raise_if_problem(Error)
-            if exception is not None:
-                raise exception
+            self._raise_passphrase_exception()
 
 
     def use_privatekey(self, pkey):
@@ -355,9 +372,7 @@ class Context(object):
 
         use_result = _api.SSL_CTX_use_PrivateKey(self._context, pkey._pkey)
         if not use_result:
-            exception = self._passphrase_helper.raise_if_problem(Error)
-            if exception is not None:
-                raise exception
+            self._raise_passphrase_exception()
 
 
     def check_privatekey(self):

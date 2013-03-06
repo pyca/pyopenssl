@@ -342,6 +342,94 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, ctx.use_privatekey, "")
 
 
+    def test_use_privatekey_file_missing(self):
+        """
+        :py:obj:`Context.use_privatekey_file` raises :py:obj:`OpenSSL.SSL.Error`
+        when passed the name of a file which does not exist.
+        """
+        ctx = Context(TLSv1_METHOD)
+        self.assertRaises(Error, ctx.use_privatekey_file, self.mktemp())
+
+
+    def test_use_certificate_wrong_args(self):
+        """
+        :py:obj:`Context.use_certificate_wrong_args` raises :py:obj:`TypeError`
+        when not passed exactly one :py:obj:`OpenSSL.crypto.X509` instance as an
+        argument.
+        """
+        ctx = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, ctx.use_certificate)
+        self.assertRaises(TypeError, ctx.use_certificate, "hello, world")
+        self.assertRaises(TypeError, ctx.use_certificate, X509(), "hello, world")
+
+
+    def test_use_certificate_uninitialized(self):
+        """
+        :py:obj:`Context.use_certificate` raises :py:obj:`OpenSSL.SSL.Error`
+        when passed a :py:obj:`OpenSSL.crypto.X509` instance which has not been
+        initialized (ie, which does not actually have any certificate data).
+        """
+        ctx = Context(TLSv1_METHOD)
+        self.assertRaises(Error, ctx.use_certificate, X509())
+
+
+    def test_use_certificate(self):
+        """
+        :py:obj:`Context.use_certificate` sets the certificate which will be
+        used to identify connections created using the context.
+        """
+        # TODO
+        # Hard to assert anything.  But we could set a privatekey then ask
+        # OpenSSL if the cert and key agree using check_privatekey.  Then as
+        # long as check_privatekey works right we're good...
+        ctx = Context(TLSv1_METHOD)
+        ctx.use_certificate(load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
+
+
+    def test_use_certificate_file_wrong_args(self):
+        """
+        :py:obj:`Context.use_certificate_file` raises :py:obj:`TypeError` if
+        called with zero arguments or more than two arguments, or if the first
+        argument is not a byte string or the second argumnent is not an integer.
+        """
+        ctx = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, ctx.use_certificate_file)
+        self.assertRaises(TypeError, ctx.use_certificate_file, b"somefile", object())
+        self.assertRaises(
+            TypeError, ctx.use_certificate_file, b"somefile", FILETYPE_PEM, object())
+        self.assertRaises(
+            TypeError, ctx.use_certificate_file, object(), FILETYPE_PEM)
+        self.assertRaises(
+            TypeError, ctx.use_certificate_file, b"somefile", object())
+
+
+    def test_use_certificate_file_missing(self):
+        """
+        :py:obj:`Context.use_certificate_file` raises
+        `:py:obj:`OpenSSL.SSL.Error` if passed the name of a file which does not
+        exist.
+        """
+        ctx = Context(TLSv1_METHOD)
+        self.assertRaises(Error, ctx.use_certificate_file, self.mktemp())
+
+
+    def test_use_certificate_file(self):
+        """
+        :py:obj:`Context.use_certificate` sets the certificate which will be
+        used to identify connections created using the context.
+        """
+        # TODO
+        # Hard to assert anything.  But we could set a privatekey then ask
+        # OpenSSL if the cert and key agree using check_privatekey.  Then as
+        # long as check_privatekey works right we're good...
+        pem_filename = self.mktemp()
+        with open(pem_filename, "w") as pem_file:
+            pem_file.write(cleartextCertificatePEM)
+
+        ctx = Context(TLSv1_METHOD)
+        ctx.use_certificate_file(pem_filename)
+
+
     def test_set_app_data_wrong_args(self):
         """
         :py:obj:`Context.set_app_data` raises :py:obj:`TypeError` if called with other than
