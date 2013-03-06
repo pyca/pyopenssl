@@ -594,6 +594,26 @@ class X509Req(object):
             1/0
 
 
+    def verify(self, pkey):
+        """
+        Verifies a certificate request using the supplied public key
+
+        :param key: a public key
+        :return: True if the signature is correct.
+
+        :raise OpenSSL.crypto.Error: If the signature is invalid or there is a
+            problem verifying the signature.
+        """
+        if not isinstance(pkey, PKey):
+            raise TypeError("pkey must be a PKey instance")
+
+        result = _api.X509_REQ_verify(self._req, pkey._pkey)
+        if result <= 0:
+            _raise_current_error(Error)
+
+        return result
+
+
 X509ReqType = X509Req
 
 

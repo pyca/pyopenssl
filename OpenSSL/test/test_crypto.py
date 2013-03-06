@@ -1061,6 +1061,53 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
         self.assertRaises(TypeError, request.add_extensions, [], None)
 
 
+    def test_verify_wrong_args(self):
+        """
+        :py:obj:`X509Req.verify` raises :py:obj:`TypeError` if called with zero
+        arguments or more than one argument or if passed anything other than a
+        :py:obj:`PKey` instance as its single argument.
+        """
+        request = X509Req()
+        self.assertRaises(TypeError, request.verify)
+        self.assertRaises(TypeError, request.verify, object())
+        self.assertRaises(TypeError, request.verify, PKey(), object())
+
+
+    def test_verify_uninitialized_key(self):
+        """
+        :py:obj:`X509Req.verify` raises :py:obj:`OpenSSL.crypto.Error` if called
+        with a :py:obj:`OpenSSL.crypto.PKey` which contains no key data.
+        """
+        request = X509Req()
+        pkey = PKey()
+        self.assertRaises(Error, request.verify, pkey)
+
+
+    def test_verify_wrong_key(self):
+        """
+        :py:obj:`X509Req.verify` raises :py:obj:`OpenSSL.crypto.Error` if called
+        with a :py:obj:`OpenSSL.crypto.PKey` which does not represent the public
+        part of the key which signed the request.
+        """
+        request = X509Req()
+        pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        request.sign(pkey, b"SHA1")
+        another_pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
+        self.assertRaises(Error, request.verify, another_pkey)
+
+
+    def test_verify_success(self):
+        """
+        :py:obj:`X509Req.verify` returns :py:obj:`True` if called with a
+        :py:obj:`OpenSSL.crypto.PKey` which represents the public part ofthe key
+        which signed the request.
+        """
+        request = X509Req()
+        pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        request.sign(pkey, b"SHA1")
+        self.assertEqual(True, request.verify(pkey))
+
+
 
 class X509Tests(TestCase, _PKeyInteractionTestsMixin):
     """
