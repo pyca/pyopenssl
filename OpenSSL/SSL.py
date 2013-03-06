@@ -524,7 +524,6 @@ class Context(object):
         :param certificate_authorities: a sequence of X509Names.
         :return: None
         """
-        # TODO need to free name_stack on error
         name_stack = _api.sk_X509_NAME_new_null()
         if name_stack == _api.NULL:
             1/0
@@ -906,7 +905,7 @@ class Connection(object):
         :param bufsiz: The maximum number of bytes to read
         :return: The string read.
         """
-        if self._from_ssl == _api.NULL:
+        if self._from_ssl is None:
             raise TypeError("Connection sock was not None")
 
         if not isinstance(bufsiz, int):
