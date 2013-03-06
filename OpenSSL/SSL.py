@@ -183,6 +183,7 @@ class Context(object):
         context = _api.SSL_CTX_new(method_obj)
         if context == _api.NULL:
             1/0
+        context = _api.ffi.gc(context, _api.SSL_CTX_free)
 
         self._context = context
         self._passphrase_callback = None
@@ -311,7 +312,7 @@ class Context(object):
             raise TypeError("certobj must be an X509 instance")
 
         copy = _api.X509_dup(certobj._x509)
-        add_result = _api.SSL_CTX_add_extra_chain_cert(self._context, certobj._x509)
+        add_result = _api.SSL_CTX_add_extra_chain_cert(self._context, copy)
         if not add_result:
             # _api.X509_free(copy)
             # _raise_current_error(Error)
@@ -703,15 +704,17 @@ class Connection(object):
         if not isinstance(context, Context):
             raise TypeError("context must be a Context instance")
 
-        self._ssl = _api.SSL_new(context._context)
+        ssl = _api.SSL_new(context._context)
+        self._ssl = _api.ffi.gc(ssl, _api.SSL_free)
         self._context = context
 
         self._reverse_mapping[self._ssl] = self
 
         if socket is None:
             self._socket = None
-            self._into_ssl = _new_mem_buf()
-            self._from_ssl = _new_mem_buf()
+            # Don't set up any gc for these, SSL_free will take care of them.
+            self._into_ssl = _api.BIO_new(_api.BIO_s_mem())
+            self._from_ssl = _api.BIO_new(_api.BIO_s_mem())
 
             if self._into_ssl == _api.NULL or self._from_ssl == _api.NULL:
                 1/0
@@ -1211,10 +1214,10 @@ class Connection(object):
 
         result = []
         for i in range(_api.sk_X509_num(cert_stack)):
-            cert = _api.sk_X509_value(cert_stack, i)
-            # Oops, this will crash if any pycert outlives self
+            # TODO could incref instead of dup here
+            cert = _api.X509_dup(_api.sk_X509_value(cert_stack, i))
             pycert = X509.__new__(X509)
-            pycert._x509 = cert
+            pycert._x509 = _api.ffi.gc(cert, _api.X509_free)
             result.append(pycert)
         return result
 
