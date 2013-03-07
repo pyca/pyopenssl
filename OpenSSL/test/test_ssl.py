@@ -867,6 +867,28 @@ class ContextTests(TestCase, _LoopbackMixin):
                     pass
 
 
+    def test_set_verify_callback_exception(self):
+        """
+        If the verify callback passed to :py:obj:`Context.set_verify` raises an
+        exception, verification fails and the exception is propagated to the
+        caller of :py:obj:`Connection.do_handshake`.
+        """
+        serverContext = Context(TLSv1_METHOD)
+        serverContext.use_privatekey(
+            load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM))
+        serverContext.use_certificate(
+            load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
+
+        clientContext = Context(TLSv1_METHOD)
+        def verify_callback(*args):
+            raise Exception("silly verify failure")
+        clientContext.set_verify(VERIFY_PEER, verify_callback)
+
+        exc = self.assertRaises(
+            Exception, self._handshake_test, serverContext, clientContext)
+        self.assertEqual("silly verify failure", str(exc))
+
+
     def test_add_extra_chain_cert(self):
         """
         :py:obj:`Context.add_extra_chain_cert` accepts an :py:obj:`X509` instance to add to

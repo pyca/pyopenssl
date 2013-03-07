@@ -97,6 +97,41 @@ SSL_CB_HANDSHAKE_START = _api.SSL_CB_HANDSHAKE_START
 SSL_CB_HANDSHAKE_DONE = _api.SSL_CB_HANDSHAKE_DONE
 
 
+class _VerifyHelper(object):
+    def __init__(self, connection, callback):
+        self._problems = []
+
+        @wraps(callback)
+        def wrapper(ok, store_ctx):
+            cert = X509.__new__(X509)
+            cert._x509 = _api.X509_STORE_CTX_get_current_cert(store_ctx)
+            error_number = _api.X509_STORE_CTX_get_error(store_ctx)
+            error_depth = _api.X509_STORE_CTX_get_error_depth(store_ctx)
+
+            try:
+                result = callback(connection, cert, error_number, error_depth, ok)
+            except Exception as e:
+                self._problems.append(e)
+                return 0
+            else:
+                if result:
+                    _api.X509_STORE_CTX_set_error(store_ctx, _api.X509_V_OK)
+                    return 1
+                else:
+                    return 0
+
+        self.callback = _api.ffi.callback("verify_callback", wrapper)
+
+
+    def raise_if_problem(self):
+        if self._problems:
+            try:
+                _raise_current_error(Error)
+            except Error:
+                pass
+            raise self._problems.pop(0)
+
+
 
 class Error(Exception):
     pass
@@ -189,6 +224,7 @@ class Context(object):
         self._passphrase_helper = None
         self._passphrase_callback = None
         self._passphrase_userdata = None
+        self._verify_helper = None
         self._verify_callback = None
         self._info_callback = None
         self._tlsext_servername_callback = None
@@ -440,26 +476,8 @@ class Context(object):
         if not callable(callback):
             raise TypeError("callback must be callable")
 
-        @wraps(callback)
-        def wrapper(ok, store_ctx):
-            cert = X509.__new__(X509)
-            cert._x509 = _api.X509_STORE_CTX_get_current_cert(store_ctx)
-            error_number = _api.X509_STORE_CTX_get_error(store_ctx)
-            error_depth = _api.X509_STORE_CTX_get_error_depth(store_ctx)
-
-            try:
-                result = callback(self, cert, error_number, error_depth, ok)
-            except Exception as e:
-                # TODO
-                pass
-            else:
-                if result:
-                    _api.X509_STORE_CTX_set_error(store_ctx, _api.X509_V_OK)
-                    return 1
-                else:
-                    return 0
-
-        self._verify_callback = _api.ffi.callback("verify_callback", wrapper)
+        self._verify_helper = _VerifyHelper(self, callback)
+        self._verify_callback = self._verify_helper.callback
         _api.SSL_CTX_set_verify(self._context, mode, self._verify_callback)
 
 
@@ -753,6 +771,9 @@ class Connection(object):
 
 
     def _raise_ssl_error(self, ssl, result):
+        if self._context._verify_helper is not None:
+            self._context._verify_helper.raise_if_problem()
+
         error = _api.SSL_get_error(ssl, result)
         if error == _api.SSL_ERROR_WANT_READ:
             raise WantReadError()
