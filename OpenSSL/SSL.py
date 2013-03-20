@@ -203,12 +203,13 @@ class Context(object):
     new SSL connections.
     """
     _methods = {
-        # TODO
-        # SSLv2_METHOD: _api.SSLv2_method,
         SSLv3_METHOD: _api.SSLv3_method,
         TLSv1_METHOD: _api.TLSv1_method,
         SSLv23_METHOD: _api.SSLv23_method,
         }
+
+    if not _api.PYOPENSSL_NO_SSL2:
+        _methods[SSLv2_METHOD] = _api.SSLv2_method
 
     def __init__(self, method):
         """
@@ -224,6 +225,9 @@ class Context(object):
             raise ValueError("No such protocol")
 
         method_obj = method_func()
+        if method_obj == _api.NULL:
+            # XXX TODO what :(
+            1/0
 
         context = _api.SSL_CTX_new(method_obj)
         if context == _api.NULL:
