@@ -8,7 +8,7 @@ Unit tests for :py:obj:`OpenSSL.SSL`.
 from gc import collect
 from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE
 from sys import platform, version_info
-from socket import error, socket
+from socket import SHUT_RDWR, error, socket
 from os import makedirs
 from os.path import join, dirname
 from unittest import main
@@ -33,9 +33,9 @@ from OpenSSL.SSL import (
     SESS_CACHE_NO_INTERNAL_STORE, SESS_CACHE_NO_INTERNAL)
 
 from OpenSSL.SSL import (
-    Error, SysCallError, WantReadError, ZeroReturnError, SSLeay_version)
+    Error, SysCallError, WantReadError, WantWriteError, ZeroReturnError)
 from OpenSSL.SSL import (
-    Context, ContextType, Session, Connection, ConnectionType)
+    Context, ContextType, Session, Connection, ConnectionType, SSLeay_version)
 
 from OpenSSL.test.util import TestCase, bytes, b
 from OpenSSL.test.test_crypto import (
@@ -1239,8 +1239,6 @@ class ConnectionTests(TestCase, _LoopbackMixin):
     """
     Unit tests for :py:obj:`OpenSSL.SSL.Connection`.
     """
-    # XXX want_write
-    # XXX want_read
     # XXX get_peer_certificate -> None
     # XXX sock_shutdown
     # XXX master_key -> TypeError
@@ -1727,6 +1725,36 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertRaises(
             Error,
             self._loopback, clientFactory=makeClient, serverFactory=makeServer)
+
+
+    def test_wantWriteError(self):
+        """
+        :py:obj:`Connection` methods which generate output raise
+        :py:obj:`OpenSSL.SSL.WantWriteError` if writing to the connection's BIO
+        fail indicating a should-write state.
+        """
+        client_socket, server_socket = socket_pair()
+        # Fill up the client's send buffer so Connection won't be able to write
+        # anything.
+        msg = 'x' * 1024
+        for i in range(1024):
+            try:
+                client_socket.send(msg)
+            except error as e:
+                if e.errno == EWOULDBLOCK:
+                    break
+                raise
+        else:
+            self.fail(
+                "Failed to fill socket buffer, cannot test BIO want write")
+
+        ctx = Context(TLSv1_METHOD)
+        conn = Connection(ctx, client_socket)
+        # Client's speak first, so make it an SSL client
+        conn.set_connect_state()
+        self.assertRaises(WantWriteError, conn.do_handshake)
+
+    # XXX want_read
 
 
 
@@ -2224,6 +2252,18 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         self.assertEquals(e.__class__, Error)
 
 
+    def test_unexpectedEndOfFile(self):
+        """
+        If the connection is lost before an orderly SSL shutdown occurs,
+        :py:obj:`OpenSSL.SSL.SysCallError` is raised with a message of
+        "Unexpected EOF".
+        """
+        server_conn, client_conn = self._loopback()
+        client_conn.sock_shutdown(SHUT_RDWR)
+        exc = self.assertRaises(SysCallError, server_conn.recv, 1024)
+        self.assertEqual(exc.args, (-1, "Unexpected EOF"))
+
+
     def _check_client_ca_list(self, func):
         """
         Verify the return value of the :py:obj:`get_client_ca_list` method for server and client connections.
@@ -2433,6 +2473,22 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
             ctx.add_client_ca(secert)
             return [cadesc, sedesc]
         self._check_client_ca_list(set_replaces_add_ca)
+
+
+
+class ConnectionBIOTests(TestCase):
+    """
+    Tests for :py:obj:`Connection.bio_read` and :py:obj:`Connection.bio_write`.
+    """
+    def test_wantReadError(self):
+        """
+        :py:obj:`Connection.bio_read` raises :py:obj:`OpenSSL.SSL.WantReadError`
+        if there are no bytes available to be read from the BIO.
+        """
+        ctx = Context(TLSv1_METHOD)
+        conn = Connection(ctx, None)
+        self.assertRaises(WantReadError, conn.bio_read, 1024)
+
 
 
 class InfoConstantTests(TestCase):

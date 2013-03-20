@@ -286,8 +286,11 @@ class X509Name(object):
         if data_length < 0:
             1/0
 
-        result = _api.buffer(result_buffer[0], data_length)[:].decode('utf-8')
-        _api.OPENSSL_free(result_buffer[0])
+        try:
+            result = _api.buffer(result_buffer[0], data_length)[:].decode('utf-8')
+        finally:
+            # XXX untested
+            _api.OPENSSL_free(result_buffer[0])
         return result
 
 

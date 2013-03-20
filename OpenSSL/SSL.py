@@ -143,6 +143,16 @@ class WantReadError(Error):
 
 
 
+class WantWriteError(Error):
+    pass
+
+
+
+class WantX509LookupError(Error):
+    pass
+
+
+
 class ZeroReturnError(Error):
     pass
 
@@ -777,21 +787,27 @@ class Connection(object):
         error = _api.SSL_get_error(ssl, result)
         if error == _api.SSL_ERROR_WANT_READ:
             raise WantReadError()
+        elif error == _api.SSL_ERROR_WANT_WRITE:
+            raise WantWriteError()
         elif error == _api.SSL_ERROR_ZERO_RETURN:
             raise ZeroReturnError()
-        elif error == _api.SSL_ERROR_NONE:
-            pass
+        elif error == _api.SSL_ERROR_WANT_X509_LOOKUP:
+            # TODO Untested
+            1/0
+            raise WantX509LookupError()
         elif error == _api.SSL_ERROR_SYSCALL:
             if _api.ERR_peek_error() == 0:
                 if result < 0:
                     raise SysCallError(
                         _api.ffi.errno, errorcode[_api.ffi.errno])
                 else:
-                    # TODO
-                    raise Exception("unknown syscall error")
+                    raise SysCallError(-1, "Unexpected EOF")
             else:
-                # TODO
+                # TODO Untested
+                1/0
                 _raise_current_error(Error)
+        elif error == _api.SSL_ERROR_NONE:
+            pass
         else:
             _raise_current_error(Error)
 
@@ -930,7 +946,23 @@ class Connection(object):
         if _api.BIO_should_retry(bio):
             if _api.BIO_should_read(bio):
                 raise WantReadError()
-        1/0
+            elif _api.BIO_should_write(bio):
+                # TODO Untested
+                1/0
+                raise WantWriteError()
+            elif _api.BIO_should_io_special(bio):
+                1/0
+                # TODO Untested.  I think io_special means the socket BIO has a
+                # not-yet connected socket.
+                raise ValueError("BIO_should_io_special")
+            else:
+                1/0
+                # TODO Untested
+                raise ValueError("unknown bio failure")
+        else:
+            1/0
+            # TODO Untested
+            _raise_current_error(Error)
 
 
     def bio_read(self, bufsiz):
