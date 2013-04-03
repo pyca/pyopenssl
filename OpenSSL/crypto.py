@@ -1123,7 +1123,8 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
     """
     Dump a private key to a buffer
 
-    :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)
+    :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1, or
+        FILETYPE_TEXT)
     :param pkey: The PKey to dump
     :param cipher: (optional) if encrypted PEM format, the cipher to
                    use
