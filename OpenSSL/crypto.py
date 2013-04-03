@@ -1097,7 +1097,8 @@ def dump_certificate(type, cert):
     """
     Dump a certificate to a buffer
 
-    :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)
+    :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1, or
+        FILETYPE_TEXT)
     :param cert: The certificate to dump
     :return: The buffer with the dumped certificate in
     """
