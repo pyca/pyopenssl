@@ -756,6 +756,7 @@ crypto_X509_get_extension(crypto_X509Obj *self, PyObject *args) {
 
     extobj = PyObject_New(crypto_X509ExtensionObj, &crypto_X509Extension_Type);
     extobj->x509_extension = X509_EXTENSION_dup(ext);
+    extobj->dealloc = 1;
 
     return (PyObject*)extobj;
 }
