@@ -242,8 +242,7 @@ crypto_X509Extension_dealloc(crypto_X509ExtensionObj *self)
  * does not accurately reflect what's in the extension.
  */
 int
-crypto_X509Extension_str_san(crypto_X509ExtensionObj *self, BIO *bio)
-{
+crypto_X509Extension_str_subjectAltName(crypto_X509ExtensionObj *self, BIO *bio) {
     GENERAL_NAMES *names;
     const X509V3_EXT_METHOD *method = NULL;
     long i, length, num;
@@ -269,38 +268,38 @@ crypto_X509Extension_str_san(crypto_X509ExtensionObj *self, BIO *bio)
 
     num = sk_GENERAL_NAME_num(names);
     for (i = 0; i < num; i++) {
-            GENERAL_NAME *name;
-            ASN1_STRING *as;
-            name = sk_GENERAL_NAME_value(names, i);
-            switch (name->type) {
-                case GEN_EMAIL:
-                    BIO_puts(bio, "email:");
-                    as = name->d.rfc822Name;
-                    BIO_write(bio, ASN1_STRING_data(as),
-                              ASN1_STRING_length(as));
-                    break;
-                case GEN_DNS:
-                    BIO_puts(bio, "DNS:");
-                    as = name->d.dNSName;
-                    BIO_write(bio, ASN1_STRING_data(as),
-                              ASN1_STRING_length(as));
-                    break;
-                case GEN_URI:
-                    BIO_puts(bio, "URI:");
-                    as = name->d.uniformResourceIdentifier;
-                    BIO_write(bio, ASN1_STRING_data(as),
-                              ASN1_STRING_length(as));
-                    break;
-                default:
-                    /* use builtin print for GEN_OTHERNAME, GEN_X400,
-                     * GEN_EDIPARTY, GEN_DIRNAME, GEN_IPADD and GEN_RID
-                     */
-                    GENERAL_NAME_print(bio, name);
-            }
-            /* trailing ', ' except for last element */
-            if (i < (num - 1)) {
-                BIO_puts(bio, ", ");
-            }
+        GENERAL_NAME *name;
+        ASN1_STRING *as;
+        name = sk_GENERAL_NAME_value(names, i);
+        switch (name->type) {
+            case GEN_EMAIL:
+                BIO_puts(bio, "email:");
+                as = name->d.rfc822Name;
+                BIO_write(bio, ASN1_STRING_data(as),
+                          ASN1_STRING_length(as));
+                break;
+            case GEN_DNS:
+                BIO_puts(bio, "DNS:");
+                as = name->d.dNSName;
+                BIO_write(bio, ASN1_STRING_data(as),
+                          ASN1_STRING_length(as));
+                break;
+            case GEN_URI:
+                BIO_puts(bio, "URI:");
+                as = name->d.uniformResourceIdentifier;
+                BIO_write(bio, ASN1_STRING_data(as),
+                          ASN1_STRING_length(as));
+                break;
+            default:
+                /* use builtin print for GEN_OTHERNAME, GEN_X400,
+                 * GEN_EDIPARTY, GEN_DIRNAME, GEN_IPADD and GEN_RID
+                 */
+                GENERAL_NAME_print(bio, name);
+        }
+        /* trailing ', ' except for last element */
+        if (i < (num - 1)) {
+            BIO_puts(bio, ", ");
+        }
     }
     sk_GENERAL_NAME_pop_free(names, GENERAL_NAME_free);
 
@@ -311,15 +310,14 @@ crypto_X509Extension_str_san(crypto_X509ExtensionObj *self, BIO *bio)
  * Print a nice text representation of the certificate request.
  */
 static PyObject *
-crypto_X509Extension_str(crypto_X509ExtensionObj *self)
-{
+crypto_X509Extension_str(crypto_X509ExtensionObj *self) {
     int str_len;
     char *tmp_str;
     PyObject *str;
     BIO *bio = BIO_new(BIO_s_mem());
 
     if (OBJ_obj2nid(self->x509_extension->object) == NID_subject_alt_name) {
-        if (crypto_X509Extension_str_san(self, bio) == -1) {
+        if (crypto_X509Extension_str_subjectAltName(self, bio) == -1) {
             BIO_free(bio);
             exception_from_error_queue(crypto_Error);
             return NULL;
