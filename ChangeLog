@@ -1,7 +1,8 @@
 2013-08-11  Christian Heimes  <christian@python.org>
 
 	* OpenSSL/crypto/x509ext.c: Fix handling of NULL bytes inside
-	  subjectAltName general names, CVE-2013-4073.
+	  subjectAltName general names when formatting an X509 extension
+	  as a string.
 	* OpenSSL/crypto/x509.c: Fix memory leak in get_extension().
 
 2011-08-14  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
