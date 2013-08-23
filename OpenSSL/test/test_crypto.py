@@ -895,7 +895,7 @@ class X509NameTests(TestCase):
         cert = load_certificate(FILETYPE_PEM, nulbyteSubjectAltNamePEM)
         subject = cert.get_subject()
         self.assertEqual(
-            b("null.python.org\x00example.org"), subject.commonName)
+            "null.python.org\x00example.org", subject.commonName)
 
 
 
