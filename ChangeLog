@@ -1,3 +1,10 @@
+2013-08-11  Christian Heimes  <christian@python.org>
+
+	* OpenSSL/crypto/x509ext.c: Fix handling of NULL bytes inside
+	  subjectAltName general names when formatting an X509 extension
+	  as a string.
+	* OpenSSL/crypto/x509.c: Fix memory leak in get_extension().
+
 2012-04-03  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL/crypto/pkey.c: Release the GIL around RSA and DSA key
