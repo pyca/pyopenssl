@@ -237,8 +237,10 @@ crypto_X509Extension_dealloc(crypto_X509ExtensionObj *self)
 }
 
 
-/* Special handling of subjectAltName, see CVE-2013-4073 */
-
+/* Special handling of subjectAltName.  OpenSSL's builtin formatter,
+ * X509V3_EXT_print, mishandles NUL bytes allowing a truncated display that
+ * does not accurately reflect what's in the extension.
+ */
 int
 crypto_X509Extension_str_san(crypto_X509ExtensionObj *self, BIO *bio)
 {
