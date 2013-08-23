@@ -7,7 +7,7 @@ Unit tests for :py:mod:`OpenSSL.crypto`.
 
 from unittest import main
 
-import os, re, sys
+import os, re
 from subprocess import PIPE, Popen
 from datetime import datetime, timedelta
 
@@ -264,6 +264,37 @@ HjubeEgjpj32AQIhAJqMGTaZVOwevTXvvHwNeH+vRWsAYU/gbx+OQB+7VOcBAiEA
 oolb6NMg/R3enNPvS1O4UU1H8wpaF77L4yiSWlE0p4w=
 -----END RSA PRIVATE KEY-----
 """)
+
+# certificate with NULL bytes in subjectAltName and common name
+
+nulbyteSubjectAltNamePEM = b("""-----BEGIN CERTIFICATE-----
+MIIE2DCCA8CgAwIBAgIBADANBgkqhkiG9w0BAQUFADCBxTELMAkGA1UEBhMCVVMx
+DzANBgNVBAgMBk9yZWdvbjESMBAGA1UEBwwJQmVhdmVydG9uMSMwIQYDVQQKDBpQ
+eXRob24gU29mdHdhcmUgRm91bmRhdGlvbjEgMB4GA1UECwwXUHl0aG9uIENvcmUg
+RGV2ZWxvcG1lbnQxJDAiBgNVBAMMG251bGwucHl0aG9uLm9yZwBleGFtcGxlLm9y
+ZzEkMCIGCSqGSIb3DQEJARYVcHl0aG9uLWRldkBweXRob24ub3JnMB4XDTEzMDgw
+NzEzMTE1MloXDTEzMDgwNzEzMTI1MlowgcUxCzAJBgNVBAYTAlVTMQ8wDQYDVQQI
+DAZPcmVnb24xEjAQBgNVBAcMCUJlYXZlcnRvbjEjMCEGA1UECgwaUHl0aG9uIFNv
+ZnR3YXJlIEZvdW5kYXRpb24xIDAeBgNVBAsMF1B5dGhvbiBDb3JlIERldmVsb3Bt
+ZW50MSQwIgYDVQQDDBtudWxsLnB5dGhvbi5vcmcAZXhhbXBsZS5vcmcxJDAiBgkq
+hkiG9w0BCQEWFXB5dGhvbi1kZXZAcHl0aG9uLm9yZzCCASIwDQYJKoZIhvcNAQEB
+BQADggEPADCCAQoCggEBALXq7cn7Rn1vO3aA3TrzA5QLp6bb7B3f/yN0CJ2XFj+j
+pHs+Gw6WWSUDpybiiKnPec33BFawq3kyblnBMjBU61ioy5HwQqVkJ8vUVjGIUq3P
+vX/wBmQfzCe4o4uM89gpHyUL9UYGG8oCRa17dgqcv7u5rg0Wq2B1rgY+nHwx3JIv
+KRrgSwyRkGzpN8WQ1yrXlxWjgI9de0mPVDDUlywcWze1q2kwaEPTM3hLAmD1PESA
+oY/n8A/RXoeeRs9i/Pm/DGUS8ZPINXk/yOzsR/XvvkTVroIeLZqfmFpnZeF0cHzL
+08LODkVJJ9zjLdT7SA4vnne4FEbAxDbKAq5qkYzaL4UCAwEAAaOB0DCBzTAMBgNV
+HRMBAf8EAjAAMB0GA1UdDgQWBBSIWlXAUv9hzVKjNQ/qWpwkOCL3XDALBgNVHQ8E
+BAMCBeAwgZAGA1UdEQSBiDCBhYIeYWx0bnVsbC5weXRob24ub3JnAGV4YW1wbGUu
+Y29tgSBudWxsQHB5dGhvbi5vcmcAdXNlckBleGFtcGxlLm9yZ4YpaHR0cDovL251
+bGwucHl0aG9uLm9yZwBodHRwOi8vZXhhbXBsZS5vcmeHBMAAAgGHECABDbgAAAAA
+AAAAAAAAAAEwDQYJKoZIhvcNAQEFBQADggEBAKxPRe99SaghcI6IWT7UNkJw9aO9
+i9eo0Fj2MUqxpKbdb9noRDy2CnHWf7EIYZ1gznXPdwzSN4YCjV5d+Q9xtBaowT0j
+HPERs1ZuytCNNJTmhyqZ8q6uzMLoht4IqH/FBfpvgaeC5tBTnTT0rD5A/olXeimk
+kX4LxlEx5RAvpGB2zZVRGr6LobD9rVK91xuHYNIxxxfEGE8tCCWjp0+3ksri9SXx
+VHWBnbM9YaL32u3hxm8sYB/Yb8WSBavJCWJJqRStVRHM1koZlJmXNx2BX4vPo6iW
+RFEIPQsFZRLrtnCAiEhyT8bC2s/Njlu6ly9gtJZWSV46Q3ZjBL4q9sHKqZQ=
+-----END CERTIFICATE-----""")
 
 
 class X509ExtTests(TestCase):
@@ -871,6 +902,19 @@ class X509NameTests(TestCase):
             [(b("CN"), b("foo")), (b("OU"), b("bar"))])
 
 
+    def test_load_nul_byte_attribute(self):
+        """
+        An :py:class:`OpenSSL.crypto.X509Name` from an
+        :py:class:`OpenSSL.crypto.X509` instance loaded from a file can have a
+        NUL byte in the value of one of its attributes.
+        """
+        cert = load_certificate(FILETYPE_PEM, nulbyteSubjectAltNamePEM)
+        subject = cert.get_subject()
+        self.assertEqual(
+            "null.python.org\x00example.org", subject.commonName)
+
+
+
 class _PKeyInteractionTestsMixin:
     """
     Tests which involve another thing and a PKey.
@@ -1397,6 +1441,24 @@ WpOdIpB8KksUTCzV591Nr1wd
         self.assertRaises(IndexError, cert.get_extension, -1)
         self.assertRaises(IndexError, cert.get_extension, 4)
         self.assertRaises(TypeError, cert.get_extension, "hello")
+
+
+    def test_nullbyte_subjectAltName(self):
+        """
+        The fields of a `subjectAltName` extension on an X509 may contain NUL
+        bytes and this value is reflected in the string representation of the
+        extension object.
+        """
+        cert = load_certificate(FILETYPE_PEM, nulbyteSubjectAltNamePEM)
+
+        ext = cert.get_extension(3)
+        self.assertEqual(ext.get_short_name(), b('subjectAltName'))
+        self.assertEqual(
+            b("DNS:altnull.python.org\x00example.com, "
+              "email:null@python.org\x00user@example.org, "
+              "URI:http://null.python.org\x00http://example.org, "
+              "IP Address:192.0.2.1, IP Address:2001:DB8:0:0:0:0:0:1\n"),
+            b(str(ext)))
 
 
     def test_invalid_digest_algorithm(self):
