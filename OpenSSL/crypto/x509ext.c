@@ -258,8 +258,7 @@ crypto_X509Extension_str_subjectAltName(crypto_X509ExtensionObj *self, BIO *bio)
     if (method->it) {
         names = (GENERAL_NAMES*)(ASN1_item_d2i(NULL, &p, length,
                                                ASN1_ITEM_ptr(method->it)));
-    }
-    else {
+    } else {
         names = (GENERAL_NAMES*)(method->d2i(NULL, &p, length));
     }
     if (names == NULL) {
@@ -322,9 +321,7 @@ crypto_X509Extension_str(crypto_X509ExtensionObj *self) {
             exception_from_error_queue(crypto_Error);
             return NULL;
         }
-    }
-    else if (!X509V3_EXT_print(bio, self->x509_extension, 0, 0))
-    {
+    } else if (!X509V3_EXT_print(bio, self->x509_extension, 0, 0)) {
         BIO_free(bio);
         exception_from_error_queue(crypto_Error);
         return NULL;
@@ -343,7 +340,7 @@ PyTypeObject crypto_X509Extension_Type = {
     "X509Extension",
     sizeof(crypto_X509ExtensionObj),
     0,
-    (destructor)crypto_X509Extension_dealloc, 
+    (destructor)crypto_X509Extension_dealloc,
     NULL, /* print */
     NULL, /* getattr */
     NULL, /* setattr  (setattrfunc)crypto_X509Name_setattr, */
