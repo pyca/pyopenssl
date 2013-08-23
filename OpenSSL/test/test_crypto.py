@@ -267,7 +267,7 @@ oolb6NMg/R3enNPvS1O4UU1H8wpaF77L4yiSWlE0p4w=
 
 # certificate with NULL bytes in subjectAltName and common name
 
-nullbyte_san_PEM = b("""-----BEGIN CERTIFICATE-----
+nulbyteSubjectAltNamePEM = b("""-----BEGIN CERTIFICATE-----
 MIIE2DCCA8CgAwIBAgIBADANBgkqhkiG9w0BAQUFADCBxTELMAkGA1UEBhMCVVMx
 DzANBgNVBAgMBk9yZWdvbjESMBAGA1UEBwwJQmVhdmVydG9uMSMwIQYDVQQKDBpQ
 eXRob24gU29mdHdhcmUgRm91bmRhdGlvbjEgMB4GA1UECwwXUHl0aG9uIENvcmUg
@@ -887,6 +887,18 @@ class X509NameTests(TestCase):
             [(b("CN"), b("foo")), (b("OU"), b("bar"))])
 
 
+    def test_load_nul_byte_attribute(self):
+        """
+        An L{X509Name} from an L{X509} instance loaded from a file can have a
+        NUL byte in the value of one of its attributes.
+        """
+        cert = load_certificate(FILETYPE_PEM, nulbyteSubjectAltNamePEM)
+        subject = cert.get_subject()
+        self.assertEqual(
+            b("null.python.org\x00example.org"), subject.commonName)
+
+
+
 class _PKeyInteractionTestsMixin:
     """
     Tests which involve another thing and a PKey.
@@ -1412,34 +1424,24 @@ WpOdIpB8KksUTCzV591Nr1wd
         self.assertRaises(IndexError, cert.get_extension, 4)
         self.assertRaises(TypeError, cert.get_extension, "hello")
 
-    def test_nullbyte_san(self):
+
+    def test_nullbyte_subjectAltName(self):
         """
-        Test correct handling of CN and SAN with NULL bytes
-
-        see CVE-2013-4073
+        The fields of a I{subjectAltName} extension on an X509 may contain NUL
+        bytes and this value is reflected in the string representation of the
+        extension object.
         """
-        cert = load_certificate(FILETYPE_PEM, nullbyte_san_PEM)
-        subject = cert.get_subject()
-        self.assertEqual(subject.CN, 'null.python.org\x00example.org')
-        issuer = cert.get_issuer()
-        self.assertEqual(issuer.CN, 'null.python.org\x00example.org')
-
-        ext = cert.get_extension(0)
-        self.assertEqual(ext.get_short_name(), b('basicConstraints'))
-
-        ext = cert.get_extension(1)
-        self.assertEqual(ext.get_short_name(), b('subjectKeyIdentifier'))
-
-        ext = cert.get_extension(2)
-        self.assertEqual(ext.get_short_name(), b('keyUsage'))
+        cert = load_certificate(FILETYPE_PEM, nulbyteSubjectAltNamePEM)
 
         ext = cert.get_extension(3)
         self.assertEqual(ext.get_short_name(), b('subjectAltName'))
-        self.assertEqual(str(ext), 
-            'DNS:altnull.python.org\x00example.com, '
-            'email:null@python.org\x00user@example.org, '
-            'URI:http://null.python.org\x00http://example.org, '
-            'IP Address:192.0.2.1, IP Address:2001:DB8:0:0:0:0:0:1\n')
+        self.assertEqual(
+            b("DNS:altnull.python.org\x00example.com, "
+              "email:null@python.org\x00user@example.org, "
+              "URI:http://null.python.org\x00http://example.org, "
+              "IP Address:192.0.2.1, IP Address:2001:DB8:0:0:0:0:0:1\n"),
+            b(str(ext)))
+
 
     def test_invalid_digest_algorithm(self):
         """
