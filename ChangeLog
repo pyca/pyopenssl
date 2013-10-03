@@ -1,3 +1,9 @@
+2013-10-03  Christian Heimes  <christian@python.org>
+
+	* OpenSSL/crypto/x509.c: Fix an inconsistency in memory management
+	  in X509.get_serial_number which leads to crashes on some runtimes
+	  (certain Windows/Python 3.3 environments, at least).
+
 2013-08-11  Christian Heimes  <christian@python.org>
 
 	* OpenSSL/crypto/x509ext.c: Fix handling of NULL bytes inside

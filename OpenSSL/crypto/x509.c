@@ -78,7 +78,7 @@ crypto_X509_get_serial_number(crypto_X509Obj *self, PyObject *args)
     hex = BN_bn2hex(bignum);
     res = PyLong_FromString(hex, NULL, 16);
     BN_free(bignum);
-    free(hex);
+    OPENSSL_free(hex);
     return res;
 }
 
