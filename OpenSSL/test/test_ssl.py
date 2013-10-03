@@ -10,7 +10,7 @@ from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK
 from sys import platform, version_info
 from socket import error, socket
 from os import makedirs
-from os.path import join, dirname
+from os.path import join
 from unittest import main
 from weakref import ref
 
@@ -22,8 +22,10 @@ from OpenSSL.crypto import dump_certificate, load_certificate
 from OpenSSL.SSL import OPENSSL_VERSION_NUMBER, SSLEAY_VERSION, SSLEAY_CFLAGS
 from OpenSSL.SSL import SSLEAY_PLATFORM, SSLEAY_DIR, SSLEAY_BUILT_ON
 from OpenSSL.SSL import SENT_SHUTDOWN, RECEIVED_SHUTDOWN
-from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
-from OpenSSL.SSL import OP_NO_SSLv2, OP_NO_SSLv3, OP_SINGLE_DH_USE
+from OpenSSL.SSL import (
+    SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD,
+    TLSv1_1_METHOD, TLSv1_2_METHOD)
+from OpenSSL.SSL import OP_SINGLE_DH_USE, OP_NO_SSLv2, OP_NO_SSLv3
 from OpenSSL.SSL import (
     VERIFY_PEER, VERIFY_FAIL_IF_NO_PEER_CERT, VERIFY_CLIENT_ONCE, VERIFY_NONE)
 
@@ -66,6 +68,11 @@ try:
     from OpenSSL.SSL import MODE_RELEASE_BUFFERS
 except ImportError:
     MODE_RELEASE_BUFFERS = None
+
+try:
+    from OpenSSL.SSL import OP_NO_TLSv1, OP_NO_TLSv1_1, OP_NO_TLSv1_2
+except ImportError:
+    OP_NO_TLSv1 = OP_NO_TLSv1_1 = OP_NO_TLSv1_2 = None
 
 from OpenSSL.SSL import (
     SSL_ST_CONNECT, SSL_ST_ACCEPT, SSL_ST_MASK, SSL_ST_INIT, SSL_ST_BEFORE,
@@ -306,17 +313,23 @@ class ContextTests(TestCase, _LoopbackMixin):
     def test_method(self):
         """
         :py:obj:`Context` can be instantiated with one of :py:obj:`SSLv2_METHOD`,
-        :py:obj:`SSLv3_METHOD`, :py:obj:`SSLv23_METHOD`, or :py:obj:`TLSv1_METHOD`.
+        :py:obj:`SSLv3_METHOD`, :py:obj:`SSLv23_METHOD`, :py:obj:`TLSv1_METHOD`,
+        :py:obj:`TLSv1_1_METHOD`, or :py:obj:`TLSv1_2_METHOD`.
         """
-        for meth in [SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD]:
+        methods = [
+            SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD]
+        for meth in methods:
             Context(meth)
 
-        try:
-            Context(SSLv2_METHOD)
-        except (Error, ValueError):
-            # Some versions of OpenSSL have SSLv2, some don't.
-            # Difficult to say in advance.
-            pass
+
+        maybe = [SSLv2_METHOD, TLSv1_1_METHOD, TLSv1_2_METHOD]
+        for meth in maybe:
+            try:
+                Context(meth)
+            except (Error, ValueError):
+                # Some versions of OpenSSL have SSLv2 / TLSv1.1 / TLSv1.2, some
+                # don't.  Difficult to say in advance.
+                pass
 
         self.assertRaises(TypeError, Context, "")
         self.assertRaises(ValueError, Context, 10)

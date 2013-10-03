@@ -185,6 +185,8 @@ do {                                                                    \
     PyModule_AddIntConstant(module, "SSLv3_METHOD",  ssl_SSLv3_METHOD);
     PyModule_AddIntConstant(module, "SSLv23_METHOD", ssl_SSLv23_METHOD);
     PyModule_AddIntConstant(module, "TLSv1_METHOD",  ssl_TLSv1_METHOD);
+    PyModule_AddIntConstant(module, "TLSv1_1_METHOD",  ssl_TLSv1_1_METHOD);
+    PyModule_AddIntConstant(module, "TLSv1_2_METHOD",  ssl_TLSv1_2_METHOD);
 
     /* Verify constants */
     PyModule_AddIntConstant(module, "VERIFY_NONE", SSL_VERIFY_NONE);
@@ -204,6 +206,12 @@ do {                                                                    \
     PyModule_AddIntConstant(module, "OP_NO_SSLv2", SSL_OP_NO_SSLv2);
     PyModule_AddIntConstant(module, "OP_NO_SSLv3", SSL_OP_NO_SSLv3);
     PyModule_AddIntConstant(module, "OP_NO_TLSv1", SSL_OP_NO_TLSv1);
+#ifdef SSL_OP_NO_TLSv1_1
+    PyModule_AddIntConstant(module, "OP_NO_TLSv1_1", SSL_OP_NO_TLSv1_1);
+#endif
+#ifdef SSL_OP_NO_TLSv1_2
+    PyModule_AddIntConstant(module, "OP_NO_TLSv1_2", SSL_OP_NO_TLSv1_2);
+#endif
 
     /* More SSL option constants */
     PyModule_AddIntConstant(module, "OP_MICROSOFT_SESS_ID_BUG", SSL_OP_MICROSOFT_SESS_ID_BUG);

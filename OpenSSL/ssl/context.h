@@ -38,6 +38,8 @@ typedef struct {
 #define ssl_SSLv3_METHOD      (2)
 #define ssl_SSLv23_METHOD     (3)
 #define ssl_TLSv1_METHOD      (4)
+#define ssl_TLSv1_1_METHOD    (5)
+#define ssl_TLSv1_2_METHOD    (6)
 
 
 #endif
