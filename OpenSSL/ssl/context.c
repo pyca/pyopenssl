@@ -289,7 +289,7 @@ global_tlsext_servername_callback(const SSL *ssl, int *alert, void *arg) {
 #define TLSv1_1_METHOD_TEXT " TLSv1_1_METHOD"
 #endif
 
-#ifdef SSL_OP_NO_TLSv1_1
+#ifdef SSL_OP_NO_TLSv1_2
 #define TLSv1_2_METHOD_TEXT " TLSv1_2_METHOD"
 #endif
 
