@@ -1,3 +1,8 @@
+2013-10-06  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/ssl/context.c: Add support for negotiating TLS v1.1 or
+	  v1.2.
+
 2013-10-03  Christian Heimes  <christian@python.org>
 
 	* OpenSSL/crypto/x509.c: Fix an inconsistency in memory management
