@@ -427,12 +427,60 @@ class X509Extension(object):
         self._extension = _api.ffi.gc(extension, _api.X509_EXTENSION_free)
 
 
+    @property
+    def _nid(self):
+        return _api.OBJ_obj2nid(self._extension.object)
+
+    _prefixes = {
+        _api.GEN_EMAIL: b"email",
+        _api.GEN_DNS: b"DNS",
+        _api.GEN_URI: b"URI",
+        }
+
+    def _subjectAltNameString(self):
+        method = _api.X509V3_EXT_get(self._extension)
+        if method == _api.NULL:
+            1/0
+        payload = self._extension.value.data
+        length = self._extension.value.length
+
+        payloadptr = _api.new("unsigned char**")
+        payloadptr[0] = payload
+
+        if method.it != _api.NULL:
+            names = _api.cast(
+                "GENERAL_NAMES*",
+                _api.ASN1_item_d2i(
+                    _api.NULL, payloadptr, length,
+                    _api.ASN1_ITEM_ptr(method.it)))
+        else:
+            names = _api.cast(
+                "GENERAL_NAMES*",
+                method.d2i(_api.NULL, payloadptr, length))
+
+        parts = []
+        for i in range(_api.sk_GENERAL_NAME_num(names)):
+            name = _api.sk_GENERAL_NAME_value(names, i)
+            try:
+                label = self._prefixes[name.type]
+            except KeyError:
+                bio = _new_mem_buf()
+                _api.GENERAL_NAME_print(bio, name)
+                parts.append(_bio_to_string(bio))
+            else:
+                value = _api.buffer(name.d.ia5.data, name.d.ia5.length)[:]
+                parts.append(label + b":" + value)
+        return b", ".join(parts)
+
+
     def __str__(self):
         """
         :return: a nice text representation of the extension
         """
-        bio = _new_mem_buf()
+        if _api.NID_subject_alt_name == self._nid:
+            return self._subjectAltNameString()
 
+        bio = _new_mem_buf()
         print_result = _api.X509V3_EXT_print(bio, self._extension, 0, 0)
         if not print_result:
             1/0
