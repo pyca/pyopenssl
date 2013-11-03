@@ -27,10 +27,14 @@ SSLv2_METHOD = 1
 SSLv3_METHOD = 2
 SSLv23_METHOD = 3
 TLSv1_METHOD = 4
+TLSv1_1_METHOD = 5
+TLSv1_2_METHOD = 6
 
 OP_NO_SSLv2 = _api.SSL_OP_NO_SSLv2
 OP_NO_SSLv3 = _api.SSL_OP_NO_SSLv3
 OP_NO_TLSv1 = _api.SSL_OP_NO_TLSv1
+OP_NO_TLSv1_1 = _api.SSL_OP_NO_TLSv1_1
+OP_NO_TLSv1_2 = _api.SSL_OP_NO_TLSv1_2
 
 MODE_RELEASE_BUFFERS = _api.SSL_MODE_RELEASE_BUFFERS
 
@@ -205,6 +209,8 @@ class Context(object):
     _methods = {
         SSLv3_METHOD: _api.SSLv3_method,
         TLSv1_METHOD: _api.TLSv1_method,
+        TLSv1_1_METHOD: _api.TLSv1_1_method,
+        TLSv1_2_METHOD: _api.TLSv1_2_method,
         SSLv23_METHOD: _api.SSLv23_method,
         }
 
