@@ -14,9 +14,13 @@ Context, Connection.
              SSLv3_METHOD
              SSLv23_METHOD
              TLSv1_METHOD
+             TLSv1_1_METHOD
+             TLSv1_2_METHOD
 
     These constants represent the different SSL methods to use when creating a
-    context object.
+    context object.  If the underlying OpenSSL build is missing support for any
+    of these protocols, constructing a :py:class:`Context` using the
+    corresponding :py:const:`*_METHOD` will raise an exception.
 
 
 .. py:data:: VERIFY_NONE
@@ -35,22 +39,48 @@ Context, Connection.
 
 
 .. py:data:: OP_SINGLE_DH_USE
-             OP_EPHEMERAL_RSA
-             OP_NO_SSLv2
+
+    Constant used with :py:meth:`set_options` of Context objects.
+
+    When this option is used, a new key will always be created when using
+    ephemeral Diffie-Hellman.
+
+
+.. py:data:: OP_EPHEMERAL_RSA
+
+    Constant used with :py:meth:`set_options` of Context objects.
+
+    When this option is used, ephemeral RSA keys will always be used when doing
+    RSA operations.
+
+
+.. py:data:: OP_NO_TICKET
+
+    Constant used with :py:meth:`set_options` of Context objects.
+
+    When this option is used, the session ticket extension will not be used.
+
+
+.. py:data:: OP_NO_COMPRESSION
+
+    Constant used with :py:meth:`set_options` of Context objects.
+
+    When this option is used, compression will not be used.
+
+
+.. py:data:: OP_NO_SSLv2
              OP_NO_SSLv3
              OP_NO_TLSv1
-             OP_NO_TICKET
-             OP_NO_COMPRESSION
+             OP_NO_TLSv1_1
+             OP_NO_TLSv1_2
 
     Constants used with :py:meth:`set_options` of Context objects.
 
-    :py:const:`OP_SINGLE_DH_USE` means to always create a new key when using
-    ephemeral Diffie-Hellman. :py:const:`OP_EPHEMERAL_RSA` means to always use
-    ephemeral RSA keys when doing RSA operations. :py:const:`OP_NO_SSLv2`,
-    :py:const:`OP_NO_SSLv3` and :py:const:`OP_NO_TLSv1` means to disable those
-    specific protocols. This is interesting if you're using e.g.
-    :py:const:`SSLv23_METHOD` to get an SSLv2-compatible handshake, but don't want
-    to use SSLv2.
+    Each of these options disables one version of the SSL/TLS protocol.  This
+    is interesting if you're using e.g. :py:const:`SSLv23_METHOD` to get an
+    SSLv2-compatible handshake, but don't want to use SSLv2.  If the underlying
+    OpenSSL build is missing support for any of these protocols, the
+    :py:const:`OP_NO_*` constant may be undefined.
 
 
 .. py:data:: MODE_NO_COMPRESSION
@@ -69,6 +99,7 @@ Context, Connection.
     information to retrieve.  See the man page for the :py:func:`SSLeay_version` C
     API for details.
 
+
 .. py:data:: SESS_CACHE_OFF
              SESS_CACHE_CLIENT
              SESS_CACHE_SERVER
@@ -83,6 +114,7 @@ Context, Connection.
      page for the :py:func:`SSL_CTX_set_session_cache_mode` C API for details.
 
      .. versionadded:: 0.14
+
 
 .. py:data:: OPENSSL_VERSION_NUMBER
 
@@ -109,7 +141,8 @@ Context, Connection.
     more SSL connections.
 
     *method* should be :py:const:`SSLv2_METHOD`, :py:const:`SSLv3_METHOD`,
-    :py:const:`SSLv23_METHOD` or :py:const:`TLSv1_METHOD`.
+    :py:const:`SSLv23_METHOD`, :py:const:`TLSv1_METHOD`, :py:const:`TLSv1_1_METHOD`,
+    or :py:const:`TLSv1_2_METHOD`.
 
 
 .. py:class:: Session()

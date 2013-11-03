@@ -282,9 +282,16 @@ global_tlsext_servername_callback(const SSL *ssl, int *alert, void *arg) {
 #ifdef OPENSSL_NO_SSL2
 #define SSLv2_METHOD_TEXT ""
 #else
-#define SSLv2_METHOD_TEXT "SSLv2_METHOD, "
+#define SSLv2_METHOD_TEXT " SSLv2_METHOD"
 #endif
 
+#ifdef SSL_OP_NO_TLSv1_1
+#define TLSv1_1_METHOD_TEXT " TLSv1_1_METHOD"
+#endif
+
+#ifdef SSL_OP_NO_TLSv1_2
+#define TLSv1_2_METHOD_TEXT " TLSv1_2_METHOD"
+#endif
 
 static char ssl_Context_doc[] = "\n\
 Context(method) -> Context instance\n\
@@ -292,11 +299,12 @@ Context(method) -> Context instance\n\
 OpenSSL.SSL.Context instances define the parameters for setting up new SSL\n\
 connections.\n\
 \n\
-:param method: One of " SSLv2_METHOD_TEXT "SSLv3_METHOD, SSLv23_METHOD, or\n\
-               TLSv1_METHOD.\n\
+:param method: One of:" SSLv2_METHOD_TEXT " SSLv3_METHOD SSLv23_METHOD TLSv1_METHOD" TLSv1_1_METHOD_TEXT TLSv1_2_METHOD_TEXT "\n\
 ";
 
 #undef SSLv2_METHOD_TEXT
+#undef TLSv1_1_METHOD_TEXT
+#undef TLSv1_2_METHOD_TEXT
 
 static char ssl_Context_load_verify_locations_doc[] = "\n\
 Let SSL know where we can find trusted certificates for the certificate\n\
@@ -1261,6 +1269,22 @@ ssl_Context_init(ssl_ContextObj *self, int i_method) {
             break;
         case ssl_TLSv1_METHOD:
             method = TLSv1_method();
+            break;
+        case ssl_TLSv1_1_METHOD:
+#ifdef SSL_OP_NO_TLSv1_1
+            method = TLSv1_1_method();
+#else
+            PyErr_SetString(PyExc_ValueError, "TLSv1_1_method not supported by this version of OpenSSL");
+            return NULL;
+#endif
+            break;
+        case ssl_TLSv1_2_METHOD:
+#ifdef SSL_OP_NO_TLSv1_2
+            method = TLSv1_2_method();
+#else
+            PyErr_SetString(PyExc_ValueError, "TLSv1_2_method not supported by this version of OpenSSL");
+            return NULL;
+#endif
             break;
         default:
             PyErr_SetString(PyExc_ValueError, "No such protocol");
