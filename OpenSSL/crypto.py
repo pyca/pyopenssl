@@ -1,42 +1,44 @@
 from time import time
 
-from tls.c import api as _api
+from cryptography.hazmat.backends.openssl import backend
+_ffi = backend.ffi
+_lib = backend.lib
 
-FILETYPE_PEM = _api.SSL_FILETYPE_PEM
-FILETYPE_ASN1 = _api.SSL_FILETYPE_ASN1
+FILETYPE_PEM = _lib.SSL_FILETYPE_PEM
+FILETYPE_ASN1 = _lib.SSL_FILETYPE_ASN1
 
 # TODO This was an API mistake.  OpenSSL has no such constant.
 FILETYPE_TEXT = 2 ** 16 - 1
 
-TYPE_RSA = _api.EVP_PKEY_RSA
-TYPE_DSA = _api.EVP_PKEY_DSA
+TYPE_RSA = _lib.EVP_PKEY_RSA
+TYPE_DSA = _lib.EVP_PKEY_DSA
 
 
 def _bio_to_string(bio):
     """
     Copy the contents of an OpenSSL BIO object into a Python byte string.
     """
-    result_buffer = _api.new('char**')
-    buffer_length = _api.BIO_get_mem_data(bio, result_buffer)
-    return _api.buffer(result_buffer[0], buffer_length)[:]
+    result_buffer = _ffi.new('char**')
+    buffer_length = _lib.BIO_get_mem_data(bio, result_buffer)
+    return _ffi.buffer(result_buffer[0], buffer_length)[:]
 
 
 
 def _new_mem_buf(buffer=None):
     if buffer is None:
-        bio = _api.BIO_new(_api.BIO_s_mem())
-        free = _api.BIO_free
+        bio = _lib.BIO_new(_lib.BIO_s_mem())
+        free = _lib.BIO_free
     else:
-        data = _api.ffi.new("char[]", buffer)
-        bio = _api.BIO_new_mem_buf(data, len(buffer))
+        data = _ffi.new("char[]", buffer)
+        bio = _lib.BIO_new_mem_buf(data, len(buffer))
         # Keep the memory alive as long as the bio is alive!
         def free(bio, ref=data):
-            return _api.BIO_free(bio)
+            return _lib.BIO_free(bio)
 
-    if bio == _api.NULL:
+    if bio == _ffi.NULL:
         1/0
 
-    bio = _api.ffi.gc(bio, free)
+    bio = _ffi.gc(bio, free)
     return bio
 
 
@@ -45,13 +47,13 @@ def _set_asn1_time(boundary, when):
     if not isinstance(when, bytes):
         raise TypeError("when must be a byte string")
 
-    set_result = _api.ASN1_GENERALIZEDTIME_set_string(
-        _api.cast('ASN1_GENERALIZEDTIME*', boundary), when)
+    set_result = _lib.ASN1_GENERALIZEDTIME_set_string(
+        _ffi.cast('ASN1_GENERALIZEDTIME*', boundary), when)
     if set_result == 0:
-        dummy = _api.ffi.gc(_api.ASN1_STRING_new(), _api.ASN1_STRING_free)
-        _api.ASN1_STRING_set(dummy, when, len(when))
-        check_result = _api.ASN1_GENERALIZEDTIME_check(
-            _api.cast('ASN1_GENERALIZEDTIME*', dummy))
+        dummy = _ffi.gc(_lib.ASN1_STRING_new(), _lib.ASN1_STRING_free)
+        _lib.ASN1_STRING_set(dummy, when, len(when))
+        check_result = _lib.ASN1_GENERALIZEDTIME_check(
+            _ffi.cast('ASN1_GENERALIZEDTIME*', dummy))
         if not check_result:
             raise ValueError("Invalid string")
         else:
@@ -61,22 +63,22 @@ def _set_asn1_time(boundary, when):
 
 
 def _get_asn1_time(timestamp):
-    string_timestamp = _api.cast('ASN1_STRING*', timestamp)
-    if _api.ASN1_STRING_length(string_timestamp) == 0:
+    string_timestamp = _ffi.cast('ASN1_STRING*', timestamp)
+    if _lib.ASN1_STRING_length(string_timestamp) == 0:
         return None
-    elif _api.ASN1_STRING_type(string_timestamp) == _api.V_ASN1_GENERALIZEDTIME:
-        return _api.string(_api.ASN1_STRING_data(string_timestamp))
+    elif _lib.ASN1_STRING_type(string_timestamp) == _lib.V_ASN1_GENERALIZEDTIME:
+        return _ffi.string(_lib.ASN1_STRING_data(string_timestamp))
     else:
-        generalized_timestamp = _api.new("ASN1_GENERALIZEDTIME**")
-        _api.ASN1_TIME_to_generalizedtime(timestamp, generalized_timestamp)
-        if generalized_timestamp[0] == _api.NULL:
+        generalized_timestamp = _ffi.new("ASN1_GENERALIZEDTIME**")
+        _lib.ASN1_TIME_to_generalizedtime(timestamp, generalized_timestamp)
+        if generalized_timestamp[0] == _ffi.NULL:
             1/0
         else:
-            string_timestamp = _api.cast(
+            string_timestamp = _ffi.cast(
                 "ASN1_STRING*", generalized_timestamp[0])
-            string_data = _api.ASN1_STRING_data(string_timestamp)
-            string_result = _api.string(string_data)
-            _api.ASN1_GENERALIZEDTIME_free(generalized_timestamp[0])
+            string_data = _lib.ASN1_STRING_data(string_timestamp)
+            string_result = _ffi.string(string_data)
+            _lib.ASN1_GENERALIZEDTIME_free(generalized_timestamp[0])
             return string_result
 
 
@@ -89,13 +91,13 @@ class Error(Exception):
 def _raise_current_error(exceptionType=Error):
     errors = []
     while True:
-        error = _api.ERR_get_error()
+        error = _lib.ERR_get_error()
         if error == 0:
             break
         errors.append((
-                _api.string(_api.ERR_lib_error_string(error)),
-                _api.string(_api.ERR_func_error_string(error)),
-                _api.string(_api.ERR_reason_error_string(error))))
+                _ffi.string(_lib.ERR_lib_error_string(error)),
+                _ffi.string(_lib.ERR_func_error_string(error)),
+                _ffi.string(_lib.ERR_reason_error_string(error))))
 
     raise exceptionType(errors)
 
@@ -108,8 +110,8 @@ class PKey(object):
     _initialized = True
 
     def __init__(self):
-        pkey = _api.EVP_PKEY_new()
-        self._pkey = _api.ffi.gc(pkey, _api.EVP_PKEY_free)
+        pkey = _lib.EVP_PKEY_new()
+        self._pkey = _ffi.gc(pkey, _lib.EVP_PKEY_free)
         self._initialized = False
 
 
@@ -129,32 +131,32 @@ class PKey(object):
             raise TypeError("bits must be an integer")
 
         # TODO Check error return
-        exponent = _api.BN_new()
-        exponent = _api.ffi.gc(exponent, _api.BN_free)
-        _api.BN_set_word(exponent, _api.RSA_F4)
+        exponent = _lib.BN_new()
+        exponent = _ffi.gc(exponent, _lib.BN_free)
+        _lib.BN_set_word(exponent, _lib.RSA_F4)
 
         if type == TYPE_RSA:
             if bits <= 0:
                 raise ValueError("Invalid number of bits")
 
-            rsa = _api.RSA_new()
+            rsa = _lib.RSA_new()
 
-            result = _api.RSA_generate_key_ex(rsa, bits, exponent, _api.NULL)
+            result = _lib.RSA_generate_key_ex(rsa, bits, exponent, _ffi.NULL)
             if result == -1:
                 1/0
 
-            result = _api.EVP_PKEY_assign_RSA(self._pkey, rsa)
+            result = _lib.EVP_PKEY_assign_RSA(self._pkey, rsa)
             if not result:
                 1/0
 
         elif type == TYPE_DSA:
-            dsa = _api.DSA_generate_parameters(
-                bits, _api.NULL, 0, _api.NULL, _api.NULL, _api.NULL, _api.NULL)
-            if dsa == _api.NULL:
+            dsa = _lib.DSA_generate_parameters(
+                bits, _ffi.NULL, 0, _ffi.NULL, _ffi.NULL, _ffi.NULL, _ffi.NULL)
+            if dsa == _ffi.NULL:
                 1/0
-            if not _api.DSA_generate_key(dsa):
+            if not _lib.DSA_generate_key(dsa):
                 1/0
-            if not _api.EVP_PKEY_assign_DSA(self._pkey, dsa):
+            if not _lib.EVP_PKEY_assign_DSA(self._pkey, dsa):
                 1/0
         else:
             raise Error("No such key type")
@@ -174,12 +176,12 @@ class PKey(object):
         if self._only_public:
             raise TypeError("public key only")
 
-        if _api.EVP_PKEY_type(self._pkey.type) != _api.EVP_PKEY_RSA:
+        if _lib.EVP_PKEY_type(self._pkey.type) != _lib.EVP_PKEY_RSA:
             raise TypeError("key type unsupported")
 
-        rsa = _api.EVP_PKEY_get1_RSA(self._pkey)
-        rsa = _api.ffi.gc(rsa, _api.RSA_free)
-        result = _api.RSA_check_key(rsa)
+        rsa = _lib.EVP_PKEY_get1_RSA(self._pkey)
+        rsa = _ffi.gc(rsa, _lib.RSA_free)
+        result = _lib.RSA_check_key(rsa)
         if result:
             return True
         _raise_current_error()
@@ -200,7 +202,7 @@ class PKey(object):
 
         :return: The number of bits of the key.
         """
-        return _api.EVP_PKEY_bits(self._pkey)
+        return _lib.EVP_PKEY_bits(self._pkey)
 PKeyType = PKey
 
 
@@ -212,8 +214,8 @@ class X509Name(object):
 
         :param name: An X509Name object to copy
         """
-        name = _api.X509_NAME_dup(name._name)
-        self._name = _api.ffi.gc(name, _api.X509_NAME_free)
+        name = _lib.X509_NAME_dup(name._name)
+        self._name = _ffi.gc(name, _lib.X509_NAME_free)
 
 
     def __setattr__(self, name, value):
@@ -226,8 +228,8 @@ class X509Name(object):
             raise TypeError("attribute name must be string, not '%.200s'" % (
                     type(value).__name__,))
 
-        nid = _api.OBJ_txt2nid(name)
-        if nid == _api.NID_undef:
+        nid = _lib.OBJ_txt2nid(name)
+        if nid == _lib.NID_undef:
             try:
                 _raise_current_error()
             except Error:
@@ -235,20 +237,20 @@ class X509Name(object):
             raise AttributeError("No such attribute")
 
         # If there's an old entry for this NID, remove it
-        for i in range(_api.X509_NAME_entry_count(self._name)):
-            ent = _api.X509_NAME_get_entry(self._name, i)
-            ent_obj = _api.X509_NAME_ENTRY_get_object(ent)
-            ent_nid = _api.OBJ_obj2nid(ent_obj)
+        for i in range(_lib.X509_NAME_entry_count(self._name)):
+            ent = _lib.X509_NAME_get_entry(self._name, i)
+            ent_obj = _lib.X509_NAME_ENTRY_get_object(ent)
+            ent_nid = _lib.OBJ_obj2nid(ent_obj)
             if nid == ent_nid:
-                ent = _api.X509_NAME_delete_entry(self._name, i)
-                _api.X509_NAME_ENTRY_free(ent)
+                ent = _lib.X509_NAME_delete_entry(self._name, i)
+                _lib.X509_NAME_ENTRY_free(ent)
                 break
 
         if isinstance(value, unicode):
             value = value.encode('utf-8')
 
-        add_result = _api.X509_NAME_add_entry_by_NID(
-            self._name, nid, _api.MBSTRING_UTF8, value, -1, -1, 0)
+        add_result = _lib.X509_NAME_add_entry_by_NID(
+            self._name, nid, _lib.MBSTRING_UTF8, value, -1, -1, 0)
         if not add_result:
             # TODO Untested
             1/0
@@ -261,8 +263,8 @@ class X509Name(object):
         organization (alias O), organizationalUnit (alias OU), commonName (alias
         CN) and more...
         """
-        nid = _api.OBJ_txt2nid(name)
-        if nid == _api.NID_undef:
+        nid = _lib.OBJ_txt2nid(name)
+        if nid == _lib.NID_undef:
             # This is a bit weird.  OBJ_txt2nid indicated failure, but it seems
             # a lower level function, a2d_ASN1_OBJECT, also feels the need to
             # push something onto the error queue.  If we don't clean that up
@@ -274,23 +276,23 @@ class X509Name(object):
                 pass
             return super(X509Name, self).__getattr__(name)
 
-        entry_index = _api.X509_NAME_get_index_by_NID(self._name, nid, -1)
+        entry_index = _lib.X509_NAME_get_index_by_NID(self._name, nid, -1)
         if entry_index == -1:
             return None
 
-        entry = _api.X509_NAME_get_entry(self._name, entry_index)
-        data = _api.X509_NAME_ENTRY_get_data(entry)
+        entry = _lib.X509_NAME_get_entry(self._name, entry_index)
+        data = _lib.X509_NAME_ENTRY_get_data(entry)
 
-        result_buffer = _api.new("unsigned char**")
-        data_length = _api.ASN1_STRING_to_UTF8(result_buffer, data)
+        result_buffer = _ffi.new("unsigned char**")
+        data_length = _lib.ASN1_STRING_to_UTF8(result_buffer, data)
         if data_length < 0:
             1/0
 
         try:
-            result = _api.buffer(result_buffer[0], data_length)[:].decode('utf-8')
+            result = _ffi.buffer(result_buffer[0], data_length)[:].decode('utf-8')
         finally:
             # XXX untested
-            _api.OPENSSL_free(result_buffer[0])
+            _lib.OPENSSL_free(result_buffer[0])
         return result
 
 
@@ -298,7 +300,7 @@ class X509Name(object):
         if not isinstance(other, X509Name):
             return NotImplemented
 
-        result = _api.X509_NAME_cmp(self._name, other._name)
+        result = _lib.X509_NAME_cmp(self._name, other._name)
         # TODO result == -2 is an error case that maybe should be checked for
         return result
 
@@ -307,14 +309,14 @@ class X509Name(object):
         """
         String representation of an X509Name
         """
-        result_buffer = _api.new("char[]", 512);
-        format_result = _api.X509_NAME_oneline(
+        result_buffer = _ffi.new("char[]", 512);
+        format_result = _lib.X509_NAME_oneline(
             self._name, result_buffer, len(result_buffer))
 
-        if format_result == _api.NULL:
+        if format_result == _ffi.NULL:
             1/0
 
-        return "<X509Name object '%s'>" % (_api.string(result_buffer),)
+        return "<X509Name object '%s'>" % (_ffi.string(result_buffer),)
 
 
     def hash(self):
@@ -323,7 +325,7 @@ class X509Name(object):
 
         :return: None
         """
-        return _api.X509_NAME_hash(self._name)
+        return _lib.X509_NAME_hash(self._name)
 
 
     def der(self):
@@ -333,13 +335,13 @@ class X509Name(object):
         :return: A :py:class:`bytes` instance giving the DER encoded form of
             this name.
         """
-        result_buffer = _api.new('unsigned char**')
-        encode_result = _api.i2d_X509_NAME(self._name, result_buffer)
+        result_buffer = _ffi.new('unsigned char**')
+        encode_result = _lib.i2d_X509_NAME(self._name, result_buffer)
         if encode_result < 0:
             1/0
 
-        string_result = _api.buffer(result_buffer[0], encode_result)[:]
-        _api.OPENSSL_free(result_buffer[0])
+        string_result = _ffi.buffer(result_buffer[0], encode_result)[:]
+        _lib.OPENSSL_free(result_buffer[0])
         return string_result
 
 
@@ -350,20 +352,20 @@ class X509Name(object):
         :return: List of tuples (name, value).
         """
         result = []
-        for i in range(_api.X509_NAME_entry_count(self._name)):
-            ent = _api.X509_NAME_get_entry(self._name, i)
+        for i in range(_lib.X509_NAME_entry_count(self._name)):
+            ent = _lib.X509_NAME_get_entry(self._name, i)
 
-            fname = _api.X509_NAME_ENTRY_get_object(ent)
-            fval = _api.X509_NAME_ENTRY_get_data(ent)
+            fname = _lib.X509_NAME_ENTRY_get_object(ent)
+            fval = _lib.X509_NAME_ENTRY_get_data(ent)
 
-            nid = _api.OBJ_obj2nid(fname)
-            name = _api.OBJ_nid2sn(nid)
+            nid = _lib.OBJ_obj2nid(fname)
+            name = _lib.OBJ_nid2sn(nid)
 
             result.append((
-                    _api.string(name),
-                    _api.string(
-                        _api.ASN1_STRING_data(fval),
-                        _api.ASN1_STRING_length(fval))))
+                    _ffi.string(name),
+                    _ffi.string(
+                        _lib.ASN1_STRING_data(fval),
+                        _lib.ASN1_STRING_length(fval))))
 
         return result
 X509NameType = X509Name
@@ -388,16 +390,16 @@ class X509Extension(object):
 
         :return: The X509Extension object
         """
-        ctx = _api.new("X509V3_CTX*")
+        ctx = _ffi.new("X509V3_CTX*")
 
         # A context is necessary for any extension which uses the r2i conversion
         # method.  That is, X509V3_EXT_nconf may segfault if passed a NULL ctx.
         # Start off by initializing most of the fields to NULL.
-        _api.X509V3_set_ctx(ctx, _api.NULL, _api.NULL, _api.NULL, _api.NULL, 0)
+        _lib.X509V3_set_ctx(ctx, _ffi.NULL, _ffi.NULL, _ffi.NULL, _ffi.NULL, 0)
 
         # We have no configuration database - but perhaps we should (some
         # extensions may require it).
-        _api.X509V3_set_ctx_nodb(ctx)
+        _lib.X509V3_set_ctx_nodb(ctx)
 
         # Initialize the subject and issuer, if appropriate.  ctx is a local,
         # and as far as I can tell none of the X509V3_* APIs invoked here steal
@@ -421,54 +423,52 @@ class X509Extension(object):
             # ext_struc it desires for its last parameter, though.)
             value = "critical," + value
 
-        extension = _api.X509V3_EXT_nconf(_api.NULL, ctx, type_name, value)
-        if extension == _api.NULL:
+        extension = _lib.X509V3_EXT_nconf(_ffi.NULL, ctx, type_name, value)
+        if extension == _ffi.NULL:
             _raise_current_error()
-        self._extension = _api.ffi.gc(extension, _api.X509_EXTENSION_free)
+        self._extension = _ffi.gc(extension, _lib.X509_EXTENSION_free)
 
 
     @property
     def _nid(self):
-        return _api.OBJ_obj2nid(self._extension.object)
+        return _lib.OBJ_obj2nid(self._extension.object)
 
     _prefixes = {
-        _api.GEN_EMAIL: b"email",
-        _api.GEN_DNS: b"DNS",
-        _api.GEN_URI: b"URI",
+        _lib.GEN_EMAIL: b"email",
+        _lib.GEN_DNS: b"DNS",
+        _lib.GEN_URI: b"URI",
         }
 
     def _subjectAltNameString(self):
-        method = _api.X509V3_EXT_get(self._extension)
-        if method == _api.NULL:
+        method = _lib.X509V3_EXT_get(self._extension)
+        if method == _ffi.NULL:
             1/0
         payload = self._extension.value.data
         length = self._extension.value.length
 
-        payloadptr = _api.new("unsigned char**")
+        payloadptr = _ffi.new("unsigned char**")
         payloadptr[0] = payload
 
-        if method.it != _api.NULL:
-            names = _api.cast(
-                "GENERAL_NAMES*",
-                _api.ASN1_item_d2i(
-                    _api.NULL, payloadptr, length,
-                    _api.ASN1_ITEM_ptr(method.it)))
+        if method.it != _ffi.NULL:
+            ptr = _lib.ASN1_ITEM_ptr(method.it)
+            data = _lib.ASN1_item_d2i(_ffi.NULL, payloadptr, length, ptr)
+            names = _ffi.cast("GENERAL_NAMES*", data)
         else:
-            names = _api.cast(
+            names = _ffi.cast(
                 "GENERAL_NAMES*",
-                method.d2i(_api.NULL, payloadptr, length))
+                method.d2i(_ffi.NULL, payloadptr, length))
 
         parts = []
-        for i in range(_api.sk_GENERAL_NAME_num(names)):
-            name = _api.sk_GENERAL_NAME_value(names, i)
+        for i in range(_lib.sk_GENERAL_NAME_num(names)):
+            name = _lib.sk_GENERAL_NAME_value(names, i)
             try:
                 label = self._prefixes[name.type]
             except KeyError:
                 bio = _new_mem_buf()
-                _api.GENERAL_NAME_print(bio, name)
+                _lib.GENERAL_NAME_print(bio, name)
                 parts.append(_bio_to_string(bio))
             else:
-                value = _api.buffer(name.d.ia5.data, name.d.ia5.length)[:]
+                value = _ffi.buffer(name.d.ia5.data, name.d.ia5.length)[:]
                 parts.append(label + b":" + value)
         return b", ".join(parts)
 
@@ -477,11 +477,11 @@ class X509Extension(object):
         """
         :return: a nice text representation of the extension
         """
-        if _api.NID_subject_alt_name == self._nid:
+        if _lib.NID_subject_alt_name == self._nid:
             return self._subjectAltNameString()
 
         bio = _new_mem_buf()
-        print_result = _api.X509V3_EXT_print(bio, self._extension, 0, 0)
+        print_result = _lib.X509V3_EXT_print(bio, self._extension, 0, 0)
         if not print_result:
             1/0
 
@@ -494,7 +494,7 @@ class X509Extension(object):
 
         :return: The critical field.
         """
-        return _api.X509_EXTENSION_get_critical(self._extension)
+        return _lib.X509_EXTENSION_get_critical(self._extension)
 
 
     def get_short_name(self):
@@ -503,9 +503,9 @@ class X509Extension(object):
 
         :return: The short type name.
         """
-        obj = _api.X509_EXTENSION_get_object(self._extension)
-        nid = _api.OBJ_obj2nid(obj)
-        return _api.string(_api.OBJ_nid2sn(nid))
+        obj = _lib.X509_EXTENSION_get_object(self._extension)
+        nid = _lib.OBJ_obj2nid(obj)
+        return _ffi.string(_lib.OBJ_nid2sn(nid))
 
 
     def get_data(self):
@@ -514,19 +514,19 @@ class X509Extension(object):
 
         :return: A :py:data:`str` giving the X509Extension's ASN.1 encoded data.
         """
-        octet_result = _api.X509_EXTENSION_get_data(self._extension)
-        string_result = _api.cast('ASN1_STRING*', octet_result)
-        char_result = _api.ASN1_STRING_data(string_result)
-        result_length = _api.ASN1_STRING_length(string_result)
-        return _api.buffer(char_result, result_length)[:]
+        octet_result = _lib.X509_EXTENSION_get_data(self._extension)
+        string_result = _ffi.cast('ASN1_STRING*', octet_result)
+        char_result = _lib.ASN1_STRING_data(string_result)
+        result_length = _lib.ASN1_STRING_length(string_result)
+        return _ffi.buffer(char_result, result_length)[:]
 
 X509ExtensionType = X509Extension
 
 
 class X509Req(object):
     def __init__(self):
-        req = _api.X509_REQ_new()
-        self._req = _api.ffi.gc(req, _api.X509_REQ_free)
+        req = _lib.X509_REQ_new()
+        self._req = _ffi.gc(req, _lib.X509_REQ_free)
 
 
     def set_pubkey(self, pkey):
@@ -536,7 +536,7 @@ class X509Req(object):
         :param pkey: The public key to use
         :return: None
         """
-        set_result = _api.X509_REQ_set_pubkey(self._req, pkey._pkey)
+        set_result = _lib.X509_REQ_set_pubkey(self._req, pkey._pkey)
         if not set_result:
             1/0
 
@@ -548,10 +548,10 @@ class X509Req(object):
         :return: The public key
         """
         pkey = PKey.__new__(PKey)
-        pkey._pkey = _api.X509_REQ_get_pubkey(self._req)
-        if pkey._pkey == _api.NULL:
+        pkey._pkey = _lib.X509_REQ_get_pubkey(self._req)
+        if pkey._pkey == _ffi.NULL:
             1/0
-        pkey._pkey = _api.ffi.gc(pkey._pkey, _api.EVP_PKEY_free)
+        pkey._pkey = _ffi.gc(pkey._pkey, _lib.EVP_PKEY_free)
         pkey._only_public = True
         return pkey
 
@@ -564,7 +564,7 @@ class X509Req(object):
         :param version: The version number
         :return: None
         """
-        set_result = _api.X509_REQ_set_version(self._req, version)
+        set_result = _lib.X509_REQ_set_version(self._req, version)
         if not set_result:
             _raise_current_error()
 
@@ -576,7 +576,7 @@ class X509Req(object):
 
         :return: an integer giving the value of the version subfield
         """
-        return _api.X509_REQ_get_version(self._req)
+        return _lib.X509_REQ_get_version(self._req)
 
 
     def get_subject(self):
@@ -586,8 +586,8 @@ class X509Req(object):
         :return: An X509Name object
         """
         name = X509Name.__new__(X509Name)
-        name._name = _api.X509_REQ_get_subject_name(self._req)
-        if name._name == _api.NULL:
+        name._name = _lib.X509_REQ_get_subject_name(self._req)
+        if name._name == _ffi.NULL:
             1/0
 
         # The name is owned by the X509Req structure.  As long as the X509Name
@@ -604,20 +604,20 @@ class X509Req(object):
         :param extensions: a sequence of X509Extension objects
         :return: None
         """
-        stack = _api.sk_X509_EXTENSION_new_null()
-        if stack == _api.NULL:
+        stack = _lib.sk_X509_EXTENSION_new_null()
+        if stack == _ffi.NULL:
             1/0
 
-        stack = _api.ffi.gc(stack, _api.sk_X509_EXTENSION_free)
+        stack = _ffi.gc(stack, _lib.sk_X509_EXTENSION_free)
 
         for ext in extensions:
             if not isinstance(ext, X509Extension):
                 raise ValueError("One of the elements is not an X509Extension")
 
             # TODO push can fail (here and elsewhere)
-            _api.sk_X509_EXTENSION_push(stack, ext._extension)
+            _lib.sk_X509_EXTENSION_push(stack, ext._extension)
 
-        add_result = _api.X509_REQ_add_extensions(self._req, stack)
+        add_result = _lib.X509_REQ_add_extensions(self._req, stack)
         if not add_result:
             1/0
 
@@ -636,11 +636,11 @@ class X509Req(object):
         if not pkey._initialized:
             raise ValueError("Key is uninitialized")
 
-        digest_obj = _api.EVP_get_digestbyname(digest)
-        if digest_obj == _api.NULL:
+        digest_obj = _lib.EVP_get_digestbyname(digest)
+        if digest_obj == _ffi.NULL:
             raise ValueError("No such digest method")
 
-        sign_result = _api.X509_REQ_sign(self._req, pkey._pkey, digest_obj)
+        sign_result = _lib.X509_REQ_sign(self._req, pkey._pkey, digest_obj)
         if not sign_result:
             1/0
 
@@ -658,7 +658,7 @@ class X509Req(object):
         if not isinstance(pkey, PKey):
             raise TypeError("pkey must be a PKey instance")
 
-        result = _api.X509_REQ_verify(self._req, pkey._pkey)
+        result = _lib.X509_REQ_verify(self._req, pkey._pkey)
         if result <= 0:
             _raise_current_error(Error)
 
@@ -672,8 +672,8 @@ X509ReqType = X509Req
 class X509(object):
     def __init__(self):
         # TODO Allocation failure?  And why not __new__ instead of __init__?
-        x509 = _api.X509_new()
-        self._x509 = _api.ffi.gc(x509, _api.X509_free)
+        x509 = _lib.X509_new()
+        self._x509 = _ffi.gc(x509, _lib.X509_free)
 
 
     def set_version(self, version):
@@ -688,7 +688,7 @@ class X509(object):
         if not isinstance(version, int):
             raise TypeError("version must be an integer")
 
-        _api.X509_set_version(self._x509, version)
+        _lib.X509_set_version(self._x509, version)
 
 
     def get_version(self):
@@ -697,7 +697,7 @@ class X509(object):
 
         :return: Version number as a Python integer
         """
-        return _api.X509_get_version(self._x509)
+        return _lib.X509_get_version(self._x509)
 
 
     def get_pubkey(self):
@@ -707,10 +707,10 @@ class X509(object):
         :return: The public key
         """
         pkey = PKey.__new__(PKey)
-        pkey._pkey = _api.X509_get_pubkey(self._x509)
-        if pkey._pkey == _api.NULL:
+        pkey._pkey = _lib.X509_get_pubkey(self._x509)
+        if pkey._pkey == _ffi.NULL:
             _raise_current_error()
-        pkey._pkey = _api.ffi.gc(pkey._pkey, _api.EVP_PKEY_free)
+        pkey._pkey = _ffi.gc(pkey._pkey, _lib.EVP_PKEY_free)
         pkey._only_public = True
         return pkey
 
@@ -726,7 +726,7 @@ class X509(object):
         if not isinstance(pkey, PKey):
             raise TypeError("pkey must be a PKey instance")
 
-        set_result = _api.X509_set_pubkey(self._x509, pkey._pkey)
+        set_result = _lib.X509_set_pubkey(self._x509, pkey._pkey)
         if not set_result:
             _raise_current_error()
 
@@ -748,11 +748,11 @@ class X509(object):
         if not pkey._initialized:
             raise ValueError("Key is uninitialized")
 
-        evp_md = _api.EVP_get_digestbyname(digest)
-        if evp_md == _api.NULL:
+        evp_md = _lib.EVP_get_digestbyname(digest)
+        if evp_md == _ffi.NULL:
             raise ValueError("No such digest method")
 
-        sign_result = _api.X509_sign(self._x509, pkey._pkey, evp_md)
+        sign_result = _lib.X509_sign(self._x509, pkey._pkey, evp_md)
         if not sign_result:
             _raise_current_error()
 
@@ -766,10 +766,10 @@ class X509(object):
         :raise ValueError: If the signature algorithm is undefined.
         """
         alg = self._x509.cert_info.signature.algorithm
-        nid = _api.OBJ_obj2nid(alg)
-        if nid == _api.NID_undef:
+        nid = _lib.OBJ_obj2nid(alg)
+        if nid == _lib.NID_undef:
             raise ValueError("Undefined signature algorithm")
-        return _api.string(_api.OBJ_nid2ln(nid))
+        return _ffi.string(_lib.OBJ_nid2ln(nid))
 
 
     def digest(self, digest_name):
@@ -781,15 +781,15 @@ class X509(object):
 
         :return: The digest of the object
         """
-        digest = _api.EVP_get_digestbyname(digest_name)
-        if digest == _api.NULL:
+        digest = _lib.EVP_get_digestbyname(digest_name)
+        if digest == _ffi.NULL:
             raise ValueError("No such digest method")
 
-        result_buffer = _api.new("char[]", _api.EVP_MAX_MD_SIZE)
-        result_length = _api.new("unsigned int[]", 1)
+        result_buffer = _ffi.new("char[]", _lib.EVP_MAX_MD_SIZE)
+        result_length = _ffi.new("unsigned int[]", 1)
         result_length[0] = len(result_buffer)
 
-        digest_result = _api.X509_digest(
+        digest_result = _lib.X509_digest(
             self._x509, digest, result_buffer, result_length)
 
         if not digest_result:
@@ -797,7 +797,7 @@ class X509(object):
 
         return ':'.join([
                 ch.encode('hex').upper() for ch
-                in _api.buffer(result_buffer, result_length[0])])
+                in _ffi.buffer(result_buffer, result_length[0])])
 
 
     def subject_name_hash(self):
@@ -806,7 +806,7 @@ class X509(object):
 
         :return: The hash of the subject.
         """
-        return _api.X509_subject_name_hash(self._x509)
+        return _lib.X509_subject_name_hash(self._x509)
 
 
     def set_serial_number(self, serial):
@@ -825,27 +825,27 @@ class X509(object):
         if not isinstance(hex_serial, bytes):
             hex_serial = hex_serial.encode('ascii')
 
-        bignum_serial = _api.new("BIGNUM**")
+        bignum_serial = _ffi.new("BIGNUM**")
 
         # BN_hex2bn stores the result in &bignum.  Unless it doesn't feel like
         # it.  If bignum is still NULL after this call, then the return value is
         # actually the result.  I hope.  -exarkun
-        small_serial = _api.BN_hex2bn(bignum_serial, hex_serial)
+        small_serial = _lib.BN_hex2bn(bignum_serial, hex_serial)
 
-        if bignum_serial[0] == _api.NULL:
-            set_result = ASN1_INTEGER_set(
-                _api.X509_get_serialNumber(self._x509), small_serial)
+        if bignum_serial[0] == _ffi.NULL:
+            set_result = _lib.ASN1_INTEGER_set(
+                _lib.X509_get_serialNumber(self._x509), small_serial)
             if set_result:
                 # TODO Not tested
                 _raise_current_error()
         else:
-            asn1_serial = _api.BN_to_ASN1_INTEGER(bignum_serial[0], _api.NULL)
-            _api.BN_free(bignum_serial[0])
-            if asn1_serial == _api.NULL:
+            asn1_serial = _lib.BN_to_ASN1_INTEGER(bignum_serial[0], _ffi.NULL)
+            _lib.BN_free(bignum_serial[0])
+            if asn1_serial == _ffi.NULL:
                 # TODO Not tested
                 _raise_current_error()
-            asn1_serial = _api.ffi.gc(asn1_serial, _api.ASN1_INTEGER_free)
-            set_result = _api.X509_set_serialNumber(self._x509, asn1_serial)
+            asn1_serial = _ffi.gc(asn1_serial, _lib.ASN1_INTEGER_free)
+            set_result = _lib.X509_set_serialNumber(self._x509, asn1_serial)
             if not set_result:
                 # TODO Not tested
                 _raise_current_error()
@@ -857,18 +857,18 @@ class X509(object):
 
         :return: Serial number as a Python integer
         """
-        asn1_serial = _api.X509_get_serialNumber(self._x509)
-        bignum_serial = _api.ASN1_INTEGER_to_BN(asn1_serial, _api.NULL)
+        asn1_serial = _lib.X509_get_serialNumber(self._x509)
+        bignum_serial = _lib.ASN1_INTEGER_to_BN(asn1_serial, _ffi.NULL)
         try:
-            hex_serial = _api.BN_bn2hex(bignum_serial)
+            hex_serial = _lib.BN_bn2hex(bignum_serial)
             try:
-                hexstring_serial = _api.string(hex_serial)
+                hexstring_serial = _ffi.string(hex_serial)
                 serial = int(hexstring_serial, 16)
                 return serial
             finally:
-                _api.OPENSSL_free(hex_serial)
+                _lib.OPENSSL_free(hex_serial)
         finally:
-            _api.BN_free(bignum_serial)
+            _lib.BN_free(bignum_serial)
 
 
     def gmtime_adj_notAfter(self, amount):
@@ -884,8 +884,8 @@ class X509(object):
         if not isinstance(amount, int):
             raise TypeError("amount must be an integer")
 
-        notAfter = _api.X509_get_notAfter(self._x509)
-        _api.X509_gmtime_adj(notAfter, amount)
+        notAfter = _lib.X509_get_notAfter(self._x509)
+        _lib.X509_gmtime_adj(notAfter, amount)
 
 
     def gmtime_adj_notBefore(self, amount):
@@ -900,8 +900,8 @@ class X509(object):
         if not isinstance(amount, int):
             raise TypeError("amount must be an integer")
 
-        notBefore = _api.X509_get_notBefore(self._x509)
-        _api.X509_gmtime_adj(notBefore, amount)
+        notBefore = _lib.X509_get_notBefore(self._x509)
+        _lib.X509_gmtime_adj(notBefore, amount)
 
 
     def has_expired(self):
@@ -911,9 +911,9 @@ class X509(object):
         :return: True if the certificate has expired, false otherwise
         """
         now = int(time())
-        notAfter = _api.X509_get_notAfter(self._x509)
-        return _api.ASN1_UTCTIME_cmp_time_t(
-            _api.cast('ASN1_UTCTIME*', notAfter), now) < 0
+        notAfter = _lib.X509_get_notAfter(self._x509)
+        return _lib.ASN1_UTCTIME_cmp_time_t(
+            _ffi.cast('ASN1_UTCTIME*', notAfter), now) < 0
 
 
     def _get_boundary_time(self, which):
@@ -932,7 +932,7 @@ class X509(object):
 
                  or None if there is no value set.
         """
-        return self._get_boundary_time(_api.X509_get_notBefore)
+        return self._get_boundary_time(_lib.X509_get_notBefore)
 
 
     def _set_boundary_time(self, which, when):
@@ -952,7 +952,7 @@ class X509(object):
 
         :return: None
         """
-        return self._set_boundary_time(_api.X509_get_notBefore, when)
+        return self._set_boundary_time(_lib.X509_get_notBefore, when)
 
 
     def get_notAfter(self):
@@ -967,7 +967,7 @@ class X509(object):
 
                  or None if there is no value set.
         """
-        return self._get_boundary_time(_api.X509_get_notAfter)
+        return self._get_boundary_time(_lib.X509_get_notAfter)
 
 
     def set_notAfter(self, when):
@@ -983,13 +983,13 @@ class X509(object):
 
         :return: None
         """
-        return self._set_boundary_time(_api.X509_get_notAfter, when)
+        return self._set_boundary_time(_lib.X509_get_notAfter, when)
 
 
     def _get_name(self, which):
         name = X509Name.__new__(X509Name)
         name._name = which(self._x509)
-        if name._name == _api.NULL:
+        if name._name == _ffi.NULL:
             1/0
 
         # The name is owned by the X509 structure.  As long as the X509Name
@@ -1013,7 +1013,7 @@ class X509(object):
 
         :return: An X509Name object
         """
-        return self._get_name(_api.X509_get_issuer_name)
+        return self._get_name(_lib.X509_get_issuer_name)
 
 
     def set_issuer(self, issuer):
@@ -1025,7 +1025,7 @@ class X509(object):
 
         :return: None
         """
-        return self._set_name(_api.X509_set_issuer_name, issuer)
+        return self._set_name(_lib.X509_set_issuer_name, issuer)
 
 
     def get_subject(self):
@@ -1034,7 +1034,7 @@ class X509(object):
 
         :return: An X509Name object
         """
-        return self._get_name(_api.X509_get_subject_name)
+        return self._get_name(_lib.X509_get_subject_name)
 
 
     def set_subject(self, subject):
@@ -1045,7 +1045,7 @@ class X509(object):
         :type subject: :py:class:`X509Name`
         :return: None
         """
-        return self._set_name(_api.X509_set_subject_name, subject)
+        return self._set_name(_lib.X509_set_subject_name, subject)
 
 
     def get_extension_count(self):
@@ -1054,7 +1054,7 @@ class X509(object):
 
         :return: The number of extensions as an integer.
         """
-        return _api.X509_get_ext_count(self._x509)
+        return _lib.X509_get_ext_count(self._x509)
 
 
     def add_extensions(self, extensions):
@@ -1068,7 +1068,7 @@ class X509(object):
             if not isinstance(ext, X509Extension):
                 raise ValueError("One of the elements is not an X509Extension")
 
-            add_result = _api.X509_add_ext(self._x509, ext._extension, -1)
+            add_result = _lib.X509_add_ext(self._x509, ext._extension, -1)
             if not add_result:
                 _raise_current_error()
 
@@ -1081,12 +1081,12 @@ class X509(object):
         :return: The X509Extension object at the specified index.
         """
         ext = X509Extension.__new__(X509Extension)
-        ext._extension = _api.X509_get_ext(self._x509, index)
-        if ext._extension == _api.NULL:
+        ext._extension = _lib.X509_get_ext(self._x509, index)
+        if ext._extension == _ffi.NULL:
             raise IndexError("extension index out of bounds")
 
-        extension = _api.X509_EXTENSION_dup(ext._extension)
-        ext._extension = _api.ffi.gc(extension, _api.X509_EXTENSION_free)
+        extension = _lib.X509_EXTENSION_dup(ext._extension)
+        ext._extension = _ffi.gc(extension, _lib.X509_EXTENSION_free)
         return ext
 
 X509Type = X509
@@ -1095,15 +1095,15 @@ X509Type = X509
 
 class X509Store(object):
     def __init__(self):
-        store = _api.X509_STORE_new()
-        self._store = _api.ffi.gc(store, _api.X509_STORE_free)
+        store = _lib.X509_STORE_new()
+        self._store = _ffi.gc(store, _lib.X509_STORE_free)
 
 
     def add_cert(self, cert):
         if not isinstance(cert, X509):
             raise TypeError()
 
-        result = _api.X509_STORE_add_cert(self._store, cert._x509)
+        result = _lib.X509_STORE_add_cert(self._store, cert._x509)
         if not result:
             _raise_current_error(Error)
 
@@ -1126,18 +1126,18 @@ def load_certificate(type, buffer):
     bio = _new_mem_buf(buffer)
 
     if type == FILETYPE_PEM:
-        x509 = _api.PEM_read_bio_X509(bio, _api.NULL, _api.NULL, _api.NULL)
+        x509 = _lib.PEM_read_bio_X509(bio, _ffi.NULL, _ffi.NULL, _ffi.NULL)
     elif type == FILETYPE_ASN1:
-        x509 = _api.d2i_X509_bio(bio, _api.NULL);
+        x509 = _lib.d2i_X509_bio(bio, _ffi.NULL);
     else:
         raise ValueError(
             "type argument must be FILETYPE_PEM or FILETYPE_ASN1")
 
-    if x509 == _api.NULL:
+    if x509 == _ffi.NULL:
         _raise_current_error()
 
     cert = X509.__new__(X509)
-    cert._x509 = _api.ffi.gc(x509, _api.X509_free)
+    cert._x509 = _ffi.gc(x509, _lib.X509_free)
     return cert
 
 
@@ -1153,11 +1153,11 @@ def dump_certificate(type, cert):
     bio = _new_mem_buf()
 
     if type == FILETYPE_PEM:
-        result_code = _api.PEM_write_bio_X509(bio, cert._x509)
+        result_code = _lib.PEM_write_bio_X509(bio, cert._x509)
     elif type == FILETYPE_ASN1:
-        result_code = _api.i2d_X509_bio(bio, cert._x509)
+        result_code = _lib.i2d_X509_bio(bio, cert._x509)
     elif type == FILETYPE_TEXT:
-        result_code = _api.X509_print_ex(bio, cert._x509, 0, 0)
+        result_code = _lib.X509_print_ex(bio, cert._x509, 0, 0)
     else:
         raise ValueError(
             "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or "
@@ -1185,23 +1185,23 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
     bio = _new_mem_buf()
 
     if cipher is not None:
-        cipher_obj = _api.EVP_get_cipherbyname(cipher)
-        if cipher_obj == _api.NULL:
+        cipher_obj = _lib.EVP_get_cipherbyname(cipher)
+        if cipher_obj == _ffi.NULL:
             raise ValueError("Invalid cipher name")
     else:
-        cipher_obj = _api.NULL
+        cipher_obj = _ffi.NULL
 
     helper = _PassphraseHelper(type, passphrase)
     if type == FILETYPE_PEM:
-        result_code = _api.PEM_write_bio_PrivateKey(
-            bio, pkey._pkey, cipher_obj, _api.NULL, 0,
+        result_code = _lib.PEM_write_bio_PrivateKey(
+            bio, pkey._pkey, cipher_obj, _ffi.NULL, 0,
             helper.callback, helper.callback_args)
         helper.raise_if_problem()
     elif type == FILETYPE_ASN1:
-        result_code = _api.i2d_PrivateKey_bio(bio, pkey._pkey)
+        result_code = _lib.i2d_PrivateKey_bio(bio, pkey._pkey)
     elif type == FILETYPE_TEXT:
-        rsa = _api.EVP_PKEY_get1_RSA(pkey._pkey)
-        result_code = _api.RSA_print(bio, rsa, 0)
+        rsa = _lib.EVP_PKEY_get1_RSA(pkey._pkey)
+        result_code = _lib.RSA_print(bio, rsa, 0)
         # TODO RSA_free(rsa)?
     else:
         raise ValueError(
@@ -1216,22 +1216,22 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
 
 
 def _X509_REVOKED_dup(original):
-    copy = _api.X509_REVOKED_new()
-    if copy == _api.NULL:
+    copy = _lib.X509_REVOKED_new()
+    if copy == _ffi.NULL:
         1/0
 
-    if original.serialNumber != _api.NULL:
-        copy.serialNumber = _api.ASN1_INTEGER_dup(original.serialNumber)
+    if original.serialNumber != _ffi.NULL:
+        copy.serialNumber = _lib.ASN1_INTEGER_dup(original.serialNumber)
 
-    if original.revocationDate != _api.NULL:
-        copy.revocationDate = _api.M_ASN1_TIME_dup(original.revocationDate)
+    if original.revocationDate != _ffi.NULL:
+        copy.revocationDate = _lib.M_ASN1_TIME_dup(original.revocationDate)
 
-    if original.extensions != _api.NULL:
-        extension_stack = _api.sk_X509_EXTENSION_new_null()
-        for i in range(_api.sk_X509_EXTENSION_num(original.extensions)):
-            original_ext = _api.sk_X509_EXTENSION_value(original.extensions, i)
-            copy_ext = _api.X509_EXTENSION_dup(original_ext)
-            _api.sk_X509_EXTENSION_push(extension_stack, copy_ext)
+    if original.extensions != _ffi.NULL:
+        extension_stack = _lib.sk_X509_EXTENSION_new_null()
+        for i in range(_lib.sk_X509_EXTENSION_num(original.extensions)):
+            original_ext = _lib.sk_X509_EXTENSION_value(original.extensions, i)
+            copy_ext = _lib.X509_EXTENSION_dup(original_ext)
+            _lib.sk_X509_EXTENSION_push(extension_stack, copy_ext)
         copy.extensions = extension_stack
 
     copy.sequence = original.sequence
@@ -1256,8 +1256,8 @@ class Revoked(object):
         ]
 
     def __init__(self):
-        revoked = _api.X509_REVOKED_new()
-        self._revoked = _api.ffi.gc(revoked, _api.X509_REVOKED_free)
+        revoked = _lib.X509_REVOKED_new()
+        self._revoked = _ffi.gc(revoked, _lib.X509_REVOKED_free)
 
 
     def set_serial(self, hex_str):
@@ -1268,17 +1268,17 @@ class Revoked(object):
         :type hex_str: :py:data:`str`
         :return: None
         """
-        bignum_serial = _api.ffi.gc(_api.BN_new(), _api.BN_free)
-        bignum_ptr = _api.new("BIGNUM**")
+        bignum_serial = _ffi.gc(_lib.BN_new(), _lib.BN_free)
+        bignum_ptr = _ffi.new("BIGNUM**")
         bignum_ptr[0] = bignum_serial
-        bn_result = _api.BN_hex2bn(bignum_ptr, hex_str)
+        bn_result = _lib.BN_hex2bn(bignum_ptr, hex_str)
         if not bn_result:
             raise ValueError("bad hex string")
 
-        asn1_serial = _api.ffi.gc(
-            _api.BN_to_ASN1_INTEGER(bignum_serial, _api.NULL),
-            _api.ASN1_INTEGER_free)
-        _api.X509_REVOKED_set_serialNumber(self._revoked, asn1_serial)
+        asn1_serial = _ffi.gc(
+            _lib.BN_to_ASN1_INTEGER(bignum_serial, _ffi.NULL),
+            _lib.ASN1_INTEGER_free)
+        _lib.X509_REVOKED_set_serialNumber(self._revoked, asn1_serial)
 
 
     def get_serial(self):
@@ -1289,7 +1289,7 @@ class Revoked(object):
         """
         bio = _new_mem_buf()
 
-        result = _api.i2a_ASN1_INTEGER(bio, self._revoked.serialNumber)
+        result = _lib.i2a_ASN1_INTEGER(bio, self._revoked.serialNumber)
         if result < 0:
             1/0
 
@@ -1298,11 +1298,11 @@ class Revoked(object):
 
     def _delete_reason(self):
         stack = self._revoked.extensions
-        for i in range(_api.sk_X509_EXTENSION_num(stack)):
-            ext = _api.sk_X509_EXTENSION_value(stack, i)
-            if _api.OBJ_obj2nid(ext.object) == _api.NID_crl_reason:
-                _api.X509_EXTENSION_free(ext)
-                _api.sk_X509_EXTENSION_delete(stack, i)
+        for i in range(_lib.sk_X509_EXTENSION_num(stack)):
+            ext = _lib.sk_X509_EXTENSION_value(stack, i)
+            if _lib.OBJ_obj2nid(ext.object) == _lib.NID_crl_reason:
+                _lib.X509_EXTENSION_free(ext)
+                _lib.sk_X509_EXTENSION_delete(stack, i)
                 break
 
 
@@ -1324,18 +1324,18 @@ class Revoked(object):
             reason = reason.lower().replace(' ', '')
             reason_code = [r.lower() for r in self._crl_reasons].index(reason)
 
-            new_reason_ext = _api.ASN1_ENUMERATED_new()
-            if new_reason_ext == _api.NULL:
+            new_reason_ext = _lib.ASN1_ENUMERATED_new()
+            if new_reason_ext == _ffi.NULL:
                 1/0
-            new_reason_ext = _api.ffi.gc(new_reason_ext, _api.ASN1_ENUMERATED_free)
+            new_reason_ext = _ffi.gc(new_reason_ext, _lib.ASN1_ENUMERATED_free)
 
-            set_result = _api.ASN1_ENUMERATED_set(new_reason_ext, reason_code)
-            if set_result == _api.NULL:
+            set_result = _lib.ASN1_ENUMERATED_set(new_reason_ext, reason_code)
+            if set_result == _ffi.NULL:
                 1/0
 
             self._delete_reason()
-            add_result = _api.X509_REVOKED_add1_ext_i2d(
-                self._revoked, _api.NID_crl_reason, new_reason_ext, 0, 0)
+            add_result = _lib.X509_REVOKED_add1_ext_i2d(
+                self._revoked, _lib.NID_crl_reason, new_reason_ext, 0, 0)
 
             if not add_result:
                 1/0
@@ -1348,14 +1348,14 @@ class Revoked(object):
         :return: The reason as a string
         """
         extensions = self._revoked.extensions
-        for i in range(_api.sk_X509_EXTENSION_num(extensions)):
-            ext = _api.sk_X509_EXTENSION_value(extensions, i)
-            if _api.OBJ_obj2nid(ext.object) == _api.NID_crl_reason:
+        for i in range(_lib.sk_X509_EXTENSION_num(extensions)):
+            ext = _lib.sk_X509_EXTENSION_value(extensions, i)
+            if _lib.OBJ_obj2nid(ext.object) == _lib.NID_crl_reason:
                 bio = _new_mem_buf()
 
-                print_result = _api.X509V3_EXT_print(bio, ext, 0, 0)
+                print_result = _lib.X509V3_EXT_print(bio, ext, 0, 0)
                 if not print_result:
-                    print_result = _api.M_ASN1_OCTET_STRING_print(bio, ext.value)
+                    print_result = _lib.M_ASN1_OCTET_STRING_print(bio, ext.value)
                     if print_result == 0:
                         1/0
 
@@ -1405,8 +1405,8 @@ class CRL(object):
         """
         Create a new empty CRL object.
         """
-        crl = _api.X509_CRL_new()
-        self._crl = _api.ffi.gc(crl, _api.X509_CRL_free)
+        crl = _lib.X509_CRL_new()
+        self._crl = _ffi.gc(crl, _lib.X509_CRL_free)
 
 
     def get_revoked(self):
@@ -1417,11 +1417,11 @@ class CRL(object):
         """
         results = []
         revoked_stack = self._crl.crl.revoked
-        for i in range(_api.sk_X509_REVOKED_num(revoked_stack)):
-            revoked = _api.sk_X509_REVOKED_value(revoked_stack, i)
+        for i in range(_lib.sk_X509_REVOKED_num(revoked_stack)):
+            revoked = _lib.sk_X509_REVOKED_value(revoked_stack, i)
             revoked_copy = _X509_REVOKED_dup(revoked)
             pyrev = Revoked.__new__(Revoked)
-            pyrev._revoked = _api.ffi.gc(revoked_copy, _api.X509_REVOKED_free)
+            pyrev._revoked = _ffi.gc(revoked_copy, _lib.X509_REVOKED_free)
             results.append(pyrev)
         if results:
             return tuple(results)
@@ -1437,10 +1437,10 @@ class CRL(object):
         :return: None
         """
         copy = _X509_REVOKED_dup(revoked._revoked)
-        if copy == _api.NULL:
+        if copy == _ffi.NULL:
             1/0
 
-        add_result = _api.X509_CRL_add0_revoked(self._crl, copy)
+        add_result = _lib.X509_CRL_add0_revoked(self._crl, copy)
         # TODO what check on add_result?
 
 
@@ -1468,33 +1468,33 @@ class CRL(object):
         if not isinstance(type, int):
             raise TypeError("type must be an integer")
 
-        bio = _api.BIO_new(_api.BIO_s_mem())
-        if bio == _api.NULL:
+        bio = _lib.BIO_new(_lib.BIO_s_mem())
+        if bio == _ffi.NULL:
             1/0
 
         # A scratch time object to give different values to different CRL fields
-        sometime = _api.ASN1_TIME_new()
-        if sometime == _api.NULL:
+        sometime = _lib.ASN1_TIME_new()
+        if sometime == _ffi.NULL:
             1/0
 
-        _api.X509_gmtime_adj(sometime, 0)
-        _api.X509_CRL_set_lastUpdate(self._crl, sometime)
+        _lib.X509_gmtime_adj(sometime, 0)
+        _lib.X509_CRL_set_lastUpdate(self._crl, sometime)
 
-        _api.X509_gmtime_adj(sometime, days * 24 * 60 * 60)
-        _api.X509_CRL_set_nextUpdate(self._crl, sometime)
+        _lib.X509_gmtime_adj(sometime, days * 24 * 60 * 60)
+        _lib.X509_CRL_set_nextUpdate(self._crl, sometime)
 
-        _api.X509_CRL_set_issuer_name(self._crl, _api.X509_get_subject_name(cert._x509))
+        _lib.X509_CRL_set_issuer_name(self._crl, _lib.X509_get_subject_name(cert._x509))
 
-        sign_result = _api.X509_CRL_sign(self._crl, key._pkey, _api.EVP_md5())
+        sign_result = _lib.X509_CRL_sign(self._crl, key._pkey, _lib.EVP_md5())
         if not sign_result:
             _raise_current_error()
 
         if type == FILETYPE_PEM:
-            ret = _api.PEM_write_bio_X509_CRL(bio, self._crl)
+            ret = _lib.PEM_write_bio_X509_CRL(bio, self._crl)
         elif type == FILETYPE_ASN1:
-            ret = _api.i2d_X509_CRL_bio(bio, self._crl)
+            ret = _lib.i2d_X509_CRL_bio(bio, self._crl)
         elif type == FILETYPE_TEXT:
-            ret = _api.X509_CRL_print(bio, self._crl)
+            ret = _lib.X509_CRL_print(bio, self._crl)
         else:
             raise ValueError(
                 "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or FILETYPE_TEXT")
@@ -1514,7 +1514,7 @@ class PKCS7(object):
 
         :return: True if the PKCS7 is of type signed
         """
-        if _api.PKCS7_type_is_signed(self._pkcs7):
+        if _lib.PKCS7_type_is_signed(self._pkcs7):
             return True
         return False
 
@@ -1525,7 +1525,7 @@ class PKCS7(object):
 
         :returns: True if the PKCS7 is of type enveloped
         """
-        if _api.PKCS7_type_is_enveloped(self._pkcs7):
+        if _lib.PKCS7_type_is_enveloped(self._pkcs7):
             return True
         return False
 
@@ -1536,7 +1536,7 @@ class PKCS7(object):
 
         :returns: True if the PKCS7 is of type signedAndEnveloped
         """
-        if _api.PKCS7_type_is_signedAndEnveloped(self._pkcs7):
+        if _lib.PKCS7_type_is_signedAndEnveloped(self._pkcs7):
             return True
         return False
 
@@ -1547,7 +1547,7 @@ class PKCS7(object):
 
         :return: True if the PKCS7 is of type data
         """
-        if _api.PKCS7_type_is_data(self._pkcs7):
+        if _lib.PKCS7_type_is_data(self._pkcs7):
             return True
         return False
 
@@ -1558,9 +1558,9 @@ class PKCS7(object):
 
         :return: A string with the typename
         """
-        nid = _api.OBJ_obj2nid(self._pkcs7.type)
-        string_type = _api.OBJ_nid2sn(nid)
-        return _api.string(string_type)
+        nid = _lib.OBJ_obj2nid(self._pkcs7.type)
+        string_type = _lib.OBJ_nid2sn(nid)
+        return _ffi.string(string_type)
 
 PKCS7Type = PKCS7
 
@@ -1687,41 +1687,41 @@ class PKCS12(object):
         :return: The string containing the PKCS12
         """
         if self._cacerts is None:
-            cacerts = _api.NULL
+            cacerts = _ffi.NULL
         else:
-            cacerts = _api.sk_X509_new_null()
-            cacerts = _api.ffi.gc(cacerts, _api.sk_X509_free)
+            cacerts = _lib.sk_X509_new_null()
+            cacerts = _ffi.gc(cacerts, _lib.sk_X509_free)
             for cert in self._cacerts:
-                _api.sk_X509_push(cacerts, cert._x509)
+                _lib.sk_X509_push(cacerts, cert._x509)
 
         if passphrase is None:
-            passphrase = _api.NULL
+            passphrase = _ffi.NULL
 
         friendlyname = self._friendlyname
         if friendlyname is None:
-            friendlyname = _api.NULL
+            friendlyname = _ffi.NULL
 
         if self._pkey is None:
-            pkey = _api.NULL
+            pkey = _ffi.NULL
         else:
             pkey = self._pkey._pkey
 
         if self._cert is None:
-            cert = _api.NULL
+            cert = _ffi.NULL
         else:
             cert = self._cert._x509
 
-        pkcs12 = _api.PKCS12_create(
+        pkcs12 = _lib.PKCS12_create(
             passphrase, friendlyname, pkey, cert, cacerts,
-            _api.NID_pbe_WithSHA1And3_Key_TripleDES_CBC,
-            _api.NID_pbe_WithSHA1And3_Key_TripleDES_CBC,
+            _lib.NID_pbe_WithSHA1And3_Key_TripleDES_CBC,
+            _lib.NID_pbe_WithSHA1And3_Key_TripleDES_CBC,
             iter, maciter, 0)
-        if pkcs12 == _api.NULL:
+        if pkcs12 == _ffi.NULL:
             _raise_current_error()
-        pkcs12 = _api.ffi.gc(pkcs12, _api.PKCS12_free)
+        pkcs12 = _ffi.gc(pkcs12, _lib.PKCS12_free)
 
         bio = _new_mem_buf()
-        _api.i2d_PKCS12_bio(bio, pkcs12)
+        _lib.i2d_PKCS12_bio(bio, pkcs12)
         return _bio_to_string(bio)
 
 PKCS12Type = PKCS12
@@ -1730,8 +1730,8 @@ PKCS12Type = PKCS12
 
 class NetscapeSPKI(object):
     def __init__(self):
-        spki = _api.NETSCAPE_SPKI_new()
-        self._spki = _api.ffi.gc(spki, _api.NETSCAPE_SPKI_free)
+        spki = _lib.NETSCAPE_SPKI_new()
+        self._spki = _ffi.gc(spki, _lib.NETSCAPE_SPKI_free)
 
 
     def sign(self, pkey, digest):
@@ -1748,11 +1748,11 @@ class NetscapeSPKI(object):
         if not pkey._initialized:
             raise ValueError("Key is uninitialized")
 
-        digest_obj = _api.EVP_get_digestbyname(digest)
-        if digest_obj == _api.NULL:
+        digest_obj = _lib.EVP_get_digestbyname(digest)
+        if digest_obj == _ffi.NULL:
             raise ValueError("No such digest method")
 
-        sign_result = _api.NETSCAPE_SPKI_sign(self._spki, pkey._pkey, digest_obj)
+        sign_result = _lib.NETSCAPE_SPKI_sign(self._spki, pkey._pkey, digest_obj)
         if not sign_result:
             1/0
 
@@ -1766,7 +1766,7 @@ class NetscapeSPKI(object):
         :raise OpenSSL.crypto.Error: If the signature is invalid or there is a
             problem verifying the signature.
         """
-        answer = _api.NETSCAPE_SPKI_verify(self._spki, key._pkey)
+        answer = _lib.NETSCAPE_SPKI_verify(self._spki, key._pkey)
         if answer <= 0:
             _raise_current_error()
         return True
@@ -1778,9 +1778,9 @@ class NetscapeSPKI(object):
 
         :return: The base64 encoded string
         """
-        encoded = _api.NETSCAPE_SPKI_b64_encode(self._spki)
-        result = _api.string(encoded)
-        _api.CRYPTO_free(encoded)
+        encoded = _lib.NETSCAPE_SPKI_b64_encode(self._spki)
+        result = _ffi.string(encoded)
+        _lib.CRYPTO_free(encoded)
         return result
 
 
@@ -1791,10 +1791,10 @@ class NetscapeSPKI(object):
         :return: The public key
         """
         pkey = PKey.__new__(PKey)
-        pkey._pkey = _api.NETSCAPE_SPKI_get_pubkey(self._spki)
-        if pkey._pkey == _api.NULL:
+        pkey._pkey = _lib.NETSCAPE_SPKI_get_pubkey(self._spki)
+        if pkey._pkey == _ffi.NULL:
             1/0
-        pkey._pkey = _api.ffi.gc(pkey._pkey, _api.EVP_PKEY_free)
+        pkey._pkey = _ffi.gc(pkey._pkey, _lib.EVP_PKEY_free)
         pkey._only_public = True
         return pkey
 
@@ -1806,7 +1806,7 @@ class NetscapeSPKI(object):
         :param pkey: The public key
         :return: None
         """
-        set_result = _api.NETSCAPE_SPKI_set_pubkey(self._spki, pkey._pkey)
+        set_result = _lib.NETSCAPE_SPKI_set_pubkey(self._spki, pkey._pkey)
         if not set_result:
             1/0
 NetscapeSPKIType = NetscapeSPKI
@@ -1825,11 +1825,11 @@ class _PassphraseHelper(object):
     @property
     def callback(self):
         if self._passphrase is None:
-            return _api.NULL
+            return _ffi.NULL
         elif isinstance(self._passphrase, bytes):
-            return _api.NULL
+            return _ffi.NULL
         elif callable(self._passphrase):
-            return _api.callback("pem_password_cb", self._read_passphrase)
+            return _ffi.callback("pem_password_cb", self._read_passphrase)
         else:
             raise TypeError("Last argument must be string or callable")
 
@@ -1837,11 +1837,11 @@ class _PassphraseHelper(object):
     @property
     def callback_args(self):
         if self._passphrase is None:
-            return _api.NULL
+            return _ffi.NULL
         elif isinstance(self._passphrase, bytes):
             return self._passphrase
         elif callable(self._passphrase):
-            return _api.NULL
+            return _ffi.NULL
         else:
             raise TypeError("Last argument must be string or callable")
 
@@ -1894,19 +1894,19 @@ def load_privatekey(type, buffer, passphrase=None):
 
     helper = _PassphraseHelper(type, passphrase)
     if type == FILETYPE_PEM:
-        evp_pkey = _api.PEM_read_bio_PrivateKey(
-            bio, _api.NULL, helper.callback, helper.callback_args)
+        evp_pkey = _lib.PEM_read_bio_PrivateKey(
+            bio, _ffi.NULL, helper.callback, helper.callback_args)
         helper.raise_if_problem()
     elif type == FILETYPE_ASN1:
-        evp_pkey = _api.d2i_PrivateKey_bio(bio, _api.NULL)
+        evp_pkey = _lib.d2i_PrivateKey_bio(bio, _ffi.NULL)
     else:
         raise ValueError("type argument must be FILETYPE_PEM or FILETYPE_ASN1")
 
-    if evp_pkey == _api.NULL:
+    if evp_pkey == _ffi.NULL:
         _raise_current_error()
 
     pkey = PKey.__new__(PKey)
-    pkey._pkey = _api.ffi.gc(evp_pkey, _api.EVP_PKEY_free)
+    pkey._pkey = _ffi.gc(evp_pkey, _lib.EVP_PKEY_free)
     return pkey
 
 
@@ -1922,11 +1922,11 @@ def dump_certificate_request(type, req):
     bio = _new_mem_buf()
 
     if type == FILETYPE_PEM:
-        result_code = _api.PEM_write_bio_X509_REQ(bio, req._req)
+        result_code = _lib.PEM_write_bio_X509_REQ(bio, req._req)
     elif type == FILETYPE_ASN1:
-        result_code = _api.i2d_X509_REQ_bio(bio, req._req)
+        result_code = _lib.i2d_X509_REQ_bio(bio, req._req)
     elif type == FILETYPE_TEXT:
-        result_code = _api.X509_REQ_print_ex(bio, req._req, 0, 0)
+        result_code = _lib.X509_REQ_print_ex(bio, req._req, 0, 0)
     else:
         raise ValueError("type argument must be FILETYPE_PEM, FILETYPE_ASN1, or FILETYPE_TEXT")
 
@@ -1948,17 +1948,17 @@ def load_certificate_request(type, buffer):
     bio = _new_mem_buf(buffer)
 
     if type == FILETYPE_PEM:
-        req = _api.PEM_read_bio_X509_REQ(bio, _api.NULL, _api.NULL, _api.NULL)
+        req = _lib.PEM_read_bio_X509_REQ(bio, _ffi.NULL, _ffi.NULL, _ffi.NULL)
     elif type == FILETYPE_ASN1:
-        req = _api.d2i_X509_REQ_bio(bio, _api.NULL)
+        req = _lib.d2i_X509_REQ_bio(bio, _ffi.NULL)
     else:
         1/0
 
-    if req == _api.NULL:
+    if req == _ffi.NULL:
         1/0
 
     x509req = X509Req.__new__(X509Req)
-    x509req._req = _api.ffi.gc(req, _api.X509_REQ_free)
+    x509req._req = _ffi.gc(req, _lib.X509_REQ_free)
     return x509req
 
 
@@ -1972,26 +1972,26 @@ def sign(pkey, data, digest):
     :param digest: message digest to use
     :return: signature
     """
-    digest_obj = _api.EVP_get_digestbyname(digest)
-    if digest_obj == _api.NULL:
+    digest_obj = _lib.EVP_get_digestbyname(digest)
+    if digest_obj == _ffi.NULL:
         raise ValueError("No such digest method")
 
-    md_ctx = _api.new("EVP_MD_CTX*")
-    md_ctx = _api.ffi.gc(md_ctx, _api.EVP_MD_CTX_cleanup)
+    md_ctx = _ffi.new("EVP_MD_CTX*")
+    md_ctx = _ffi.gc(md_ctx, _lib.EVP_MD_CTX_cleanup)
 
-    _api.EVP_SignInit(md_ctx, digest_obj)
-    _api.EVP_SignUpdate(md_ctx, data, len(data))
+    _lib.EVP_SignInit(md_ctx, digest_obj)
+    _lib.EVP_SignUpdate(md_ctx, data, len(data))
 
-    signature_buffer = _api.new("unsigned char[]", 512)
-    signature_length = _api.new("unsigned int*")
+    signature_buffer = _ffi.new("unsigned char[]", 512)
+    signature_length = _ffi.new("unsigned int*")
     signature_length[0] = len(signature_buffer)
-    final_result = _api.EVP_SignFinal(
+    final_result = _lib.EVP_SignFinal(
         md_ctx, signature_buffer, signature_length, pkey._pkey)
 
     if final_result != 1:
         1/0
 
-    return _api.buffer(signature_buffer, signature_length[0])[:]
+    return _ffi.buffer(signature_buffer, signature_length[0])[:]
 
 
 
@@ -2005,21 +2005,21 @@ def verify(cert, signature, data, digest):
     :param digest: message digest to use
     :return: None if the signature is correct, raise exception otherwise
     """
-    digest_obj = _api.EVP_get_digestbyname(digest)
-    if digest_obj == _api.NULL:
+    digest_obj = _lib.EVP_get_digestbyname(digest)
+    if digest_obj == _ffi.NULL:
         raise ValueError("No such digest method")
 
-    pkey = _api.X509_get_pubkey(cert._x509)
-    if pkey == _api.NULL:
+    pkey = _lib.X509_get_pubkey(cert._x509)
+    if pkey == _ffi.NULL:
         1/0
-    pkey = _api.ffi.gc(pkey, _api.EVP_PKEY_free)
+    pkey = _ffi.gc(pkey, _lib.EVP_PKEY_free)
 
-    md_ctx = _api.new("EVP_MD_CTX*")
-    md_ctx = _api.ffi.gc(md_ctx, _api.EVP_MD_CTX_cleanup)
+    md_ctx = _ffi.new("EVP_MD_CTX*")
+    md_ctx = _ffi.gc(md_ctx, _lib.EVP_MD_CTX_cleanup)
 
-    _api.EVP_VerifyInit(md_ctx, digest_obj)
-    _api.EVP_VerifyUpdate(md_ctx, data, len(data))
-    verify_result = _api.EVP_VerifyFinal(md_ctx, signature, len(signature), pkey)
+    _lib.EVP_VerifyInit(md_ctx, digest_obj)
+    _lib.EVP_VerifyUpdate(md_ctx, data, len(data))
+    verify_result = _lib.EVP_VerifyFinal(md_ctx, signature, len(signature), pkey)
 
     if verify_result != 1:
         _raise_current_error()
@@ -2038,13 +2038,13 @@ def load_crl(type, buffer):
     bio = _new_mem_buf(buffer)
 
     if type == FILETYPE_PEM:
-        crl = _api.PEM_read_bio_X509_CRL(bio, _api.NULL, _api.NULL, _api.NULL)
+        crl = _lib.PEM_read_bio_X509_CRL(bio, _ffi.NULL, _ffi.NULL, _ffi.NULL)
     elif type == FILETYPE_ASN1:
-        crl = _api.d2i_X509_CRL_bio(bio, _api.NULL)
+        crl = _lib.d2i_X509_CRL_bio(bio, _ffi.NULL)
     else:
         raise ValueError("type argument must be FILETYPE_PEM or FILETYPE_ASN1")
 
-    if crl == _api.NULL:
+    if crl == _ffi.NULL:
         _raise_current_error()
 
     result = CRL.__new__(CRL)
@@ -2064,18 +2064,18 @@ def load_pkcs7_data(type, buffer):
     bio = _new_mem_buf(buffer)
 
     if type == FILETYPE_PEM:
-        pkcs7 = _api.PEM_read_bio_PKCS7(bio, _api.NULL, _api.NULL, _api.NULL)
+        pkcs7 = _lib.PEM_read_bio_PKCS7(bio, _ffi.NULL, _ffi.NULL, _ffi.NULL)
     elif type == FILETYPE_ASN1:
         pass
     else:
         1/0
         raise ValueError("type argument must be FILETYPE_PEM or FILETYPE_ASN1")
 
-    if pkcs7 == _api.NULL:
+    if pkcs7 == _ffi.NULL:
         _raise_current_error()
 
     pypkcs7 = PKCS7.__new__(PKCS7)
-    pypkcs7._pkcs7 = _api.ffi.gc(pkcs7, _api.PKCS7_free)
+    pypkcs7._pkcs7 = _ffi.gc(pkcs7, _lib.PKCS7_free)
     return pypkcs7
 
 
@@ -2090,20 +2090,20 @@ def load_pkcs12(buffer, passphrase):
     """
     bio = _new_mem_buf(buffer)
 
-    p12 = _api.d2i_PKCS12_bio(bio, _api.NULL)
-    if p12 == _api.NULL:
+    p12 = _lib.d2i_PKCS12_bio(bio, _ffi.NULL)
+    if p12 == _ffi.NULL:
         _raise_current_error()
-    p12 = _api.ffi.gc(p12, _api.PKCS12_free)
+    p12 = _ffi.gc(p12, _lib.PKCS12_free)
 
-    pkey = _api.new("EVP_PKEY**")
-    cert = _api.new("X509**")
-    cacerts = _api.new("struct stack_st_X509**")
+    pkey = _ffi.new("EVP_PKEY**")
+    cert = _ffi.new("X509**")
+    cacerts = _ffi.new("Cryptography_STACK_OF_X509**")
 
-    parse_result = _api.PKCS12_parse(p12, passphrase, pkey, cert, cacerts)
+    parse_result = _lib.PKCS12_parse(p12, passphrase, pkey, cert, cacerts)
     if not parse_result:
         _raise_current_error()
 
-    cacerts = _api.ffi.gc(cacerts[0], _api.sk_X509_free)
+    cacerts = _ffi.gc(cacerts[0], _lib.sk_X509_free)
 
     # openssl 1.0.0 sometimes leaves an X509_check_private_key error in the
     # queue for no particular reason.  This error isn't interesting to anyone
@@ -2113,29 +2113,29 @@ def load_pkcs12(buffer, passphrase):
     except Error:
         pass
 
-    if pkey[0] == _api.NULL:
+    if pkey[0] == _ffi.NULL:
         pykey = None
     else:
         pykey = PKey.__new__(PKey)
-        pykey._pkey = _api.ffi.gc(pkey[0], _api.EVP_PKEY_free)
+        pykey._pkey = _ffi.gc(pkey[0], _lib.EVP_PKEY_free)
 
-    if cert[0] == _api.NULL:
+    if cert[0] == _ffi.NULL:
         pycert = None
         friendlyname = None
     else:
         pycert = X509.__new__(X509)
-        pycert._x509 = _api.ffi.gc(cert[0], _api.X509_free)
+        pycert._x509 = _ffi.gc(cert[0], _lib.X509_free)
 
-        friendlyname_length = _api.new("int*")
-        friendlyname_buffer = _api.X509_alias_get0(cert[0], friendlyname_length)
-        friendlyname = _api.buffer(friendlyname_buffer, friendlyname_length[0])[:]
-        if friendlyname_buffer == _api.NULL:
+        friendlyname_length = _ffi.new("int*")
+        friendlyname_buffer = _lib.X509_alias_get0(cert[0], friendlyname_length)
+        friendlyname = _ffi.buffer(friendlyname_buffer, friendlyname_length[0])[:]
+        if friendlyname_buffer == _ffi.NULL:
             friendlyname = None
 
     pycacerts = []
-    for i in range(_api.sk_X509_num(cacerts)):
+    for i in range(_lib.sk_X509_num(cacerts)):
         pycacert = X509.__new__(X509)
-        pycacert._x509 = _api.sk_X509_value(cacerts, i)
+        pycacert._x509 = _lib.sk_X509_value(cacerts, i)
         pycacerts.append(pycacert)
     if not pycacerts:
         pycacerts = None

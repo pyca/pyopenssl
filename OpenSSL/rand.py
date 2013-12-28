@@ -6,7 +6,9 @@ See the file RATIONALE for a short explanation of why this module was written.
 
 import __builtin__
 
-from tls.c import api as _api
+from cryptography.hazmat.backends.openssl import backend
+_lib = backend.lib
+_ffi = backend.ffi
 
 # TODO Nothing tests the existence or use of this
 class Error(Exception):
@@ -28,11 +30,11 @@ def bytes(num_bytes):
     if num_bytes < 0:
         raise ValueError("num_bytes must not be negative")
 
-    result_buffer = _api.new("char[]", num_bytes)
-    result_code = _api.RAND_bytes(result_buffer, num_bytes)
+    result_buffer = _ffi.new("char[]", num_bytes)
+    result_code = _lib.RAND_bytes(result_buffer, num_bytes)
     if result_code == -1:
         raise Exception("zoops") # TODO
-    return _api.buffer(result_buffer)[:]
+    return _ffi.buffer(result_buffer)[:]
 
 
 
@@ -51,7 +53,7 @@ def add(buffer, entropy):
         raise TypeError("entropy must be an integer")
 
     # TODO Nothing tests this call actually being made, or made properly.
-    _api.RAND_add(buffer, len(buffer), entropy)
+    _lib.RAND_add(buffer, len(buffer), entropy)
 
 
 
@@ -66,7 +68,7 @@ def seed(buffer):
         raise TypeError("buffer must be a byte string")
 
     # TODO Nothing tests this call actually being made, or made properly.
-    _api.RAND_seed(buffer, len(buffer))
+    _lib.RAND_seed(buffer, len(buffer))
 
 
 
@@ -76,7 +78,7 @@ def status():
 
     :return: True if the PRNG is seeded enough, false otherwise
     """
-    return _api.RAND_status()
+    return _lib.RAND_status()
 
 
 
@@ -99,7 +101,7 @@ def egd(path, bytes=_unspecified):
     elif not isinstance(bytes, int):
         raise TypeError("bytes must be an integer")
 
-    return _api.RAND_egd_bytes(path, bytes)
+    return _lib.RAND_egd_bytes(path, bytes)
 
 
 
@@ -110,7 +112,7 @@ def cleanup():
     :return: None
     """
     # TODO Nothing tests this call actually being made, or made properly.
-    _api.RAND_cleanup()
+    _lib.RAND_cleanup()
 
 
 
@@ -131,7 +133,7 @@ def load_file(filename, maxbytes=_unspecified):
     elif not isinstance(maxbytes, int):
         raise TypeError("maxbytes must be an integer")
 
-    return _api.RAND_load_file(filename, maxbytes)
+    return _lib.RAND_load_file(filename, maxbytes)
 
 
 
@@ -145,7 +147,7 @@ def write_file(filename):
     if not isinstance(filename, str):
         raise TypeError("filename must be a string")
 
-    return _api.RAND_write_file(filename)
+    return _lib.RAND_write_file(filename)
 
 
 # TODO There are no tests for screen at all
@@ -156,12 +158,12 @@ def screen():
 
     :return: None
     """
-    _api.RAND_screen()
+    _lib.RAND_screen()
 
-if getattr(_api, 'RAND_screen', None) is None:
+if getattr(_lib, 'RAND_screen', None) is None:
     del screen
 
 
 # TODO There are no tests for the RAND strings being loaded, whatever that
 # means.
-_api.ERR_load_RAND_strings()
+_lib.ERR_load_RAND_strings()

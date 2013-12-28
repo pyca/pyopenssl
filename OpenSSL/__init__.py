@@ -33,13 +33,13 @@ else:
         del DLFCN
 
     sys.setdlopenflags(flags)
-    from OpenSSL import crypto
+    # from OpenSSL import crypto
     sys.setdlopenflags(orig)
     del orig, flags
 del sys
 
-from OpenSSL import rand, SSL
-from OpenSSL.version import __version__
+# from OpenSSL import rand, SSL
+# from OpenSSL.version import __version__
 
 __all__ = [
     'rand', 'crypto', 'SSL', 'tsafe', '__version__']
