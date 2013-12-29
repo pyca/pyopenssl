@@ -18,7 +18,9 @@ TYPE_DSA = _lib.EVP_PKEY_DSA
 
 
 class Error(Exception):
-    pass
+    """
+    An error occurred in an `OpenSSL.crypto` API.
+    """
 
 
 _raise_current_error = partial(_exception_from_error_queue, Error)

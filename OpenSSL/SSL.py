@@ -105,7 +105,9 @@ SSL_CB_HANDSHAKE_DONE = _lib.SSL_CB_HANDSHAKE_DONE
 
 
 class Error(Exception):
-    pass
+    """
+    An error occurred in an `OpenSSL.SSL` API.
+    """
 
 
 
