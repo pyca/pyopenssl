@@ -7,7 +7,6 @@ from errno import errorcode
 from OpenSSL._util import (
     ffi as _ffi,
     lib as _lib,
-    new_mem_buf as _new_mem_buf,
     exception_from_error_queue as _exception_from_error_queue)
 
 from OpenSSL.crypto import (
