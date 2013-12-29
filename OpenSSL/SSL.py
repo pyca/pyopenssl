@@ -244,12 +244,13 @@ class Context(object):
 
         method_obj = method_func()
         if method_obj == _ffi.NULL:
-            # XXX TODO what :(
-            1/0
+            # TODO: This is untested.
+            _raise_current_error()
 
         context = _lib.SSL_CTX_new(method_obj)
         if context == _ffi.NULL:
-            1/0
+            # TODO: This is untested.
+            _raise_current_error()
         context = _ffi.gc(context, _lib.SSL_CTX_free)
 
         self._context = context
@@ -328,7 +329,7 @@ class Context(object):
         """
         set_result = _lib.SSL_CTX_set_default_verify_paths(self._context)
         if not set_result:
-            1/0
+            # TODO: This is untested.
             _raise_current_error()
 
 
@@ -393,9 +394,9 @@ class Context(object):
         copy = _lib.X509_dup(certobj._x509)
         add_result = _lib.SSL_CTX_add_extra_chain_cert(self._context, copy)
         if not add_result:
-            # _lib.X509_free(copy)
-            # _raise_current_error()
-            1/0
+            # TODO: This is untested.
+            _lib.X509_free(copy)
+            _raise_current_error()
 
 
     def _raise_passphrase_exception(self):
@@ -591,7 +592,7 @@ class Context(object):
         """
         name_stack = _lib.sk_X509_NAME_new_null()
         if name_stack == _ffi.NULL:
-            1/0
+            # TODO: This is untested.
             _raise_current_error()
 
         try:
@@ -602,7 +603,7 @@ class Context(object):
                             type(ca_name).__name__,))
                 copy = _lib.X509_NAME_dup(ca_name._name)
                 if copy == _ffi.NULL:
-                    1/0
+                    # TODO: This is untested.
                     _raise_current_error()
                 push_result = _lib.sk_X509_NAME_push(name_stack, copy)
                 if not push_result:
@@ -631,7 +632,7 @@ class Context(object):
         add_result = _lib.SSL_CTX_add_client_CA(
             self._context, certificate_authority._x509)
         if not add_result:
-            1/0
+            # TODO: This is untested.
             _raise_current_error()
 
 
@@ -693,13 +694,13 @@ class Context(object):
 
     def get_cert_store(self):
         """
-        Get the certificate store for the context
+        Get the certificate store for the context.
 
-        :return: A X509Store object
+        :return: A X509Store object or None if it does not have one.
         """
         store = _lib.SSL_CTX_get_cert_store(self._context)
         if store == _ffi.NULL:
-            1/0
+            # TODO: This is untested.
             return None
 
         pystore = X509Store.__new__(X509Store)
@@ -783,7 +784,8 @@ class Connection(object):
             self._from_ssl = _lib.BIO_new(_lib.BIO_s_mem())
 
             if self._into_ssl == _ffi.NULL or self._from_ssl == _ffi.NULL:
-                1/0
+                # TODO: This is untested.
+                _raise_current_error()
 
             _lib.SSL_set_bio(self._ssl, self._into_ssl, self._from_ssl)
         else:
@@ -792,7 +794,8 @@ class Connection(object):
             self._socket = socket
             set_result = _lib.SSL_set_fd(self._ssl, _asFileDescriptor(self._socket))
             if not set_result:
-                1/0
+                # TODO: This is untested.
+                _raise_current_error()
 
 
     def __getattr__(self, name):
@@ -815,8 +818,7 @@ class Connection(object):
         elif error == _lib.SSL_ERROR_ZERO_RETURN:
             raise ZeroReturnError()
         elif error == _lib.SSL_ERROR_WANT_X509_LOOKUP:
-            # TODO Untested
-            1/0
+            # TODO: This is untested.
             raise WantX509LookupError()
         elif error == _lib.SSL_ERROR_SYSCALL:
             if _lib.ERR_peek_error() == 0:
@@ -826,8 +828,7 @@ class Connection(object):
                 else:
                     raise SysCallError(-1, "Unexpected EOF")
             else:
-                # TODO Untested
-                1/0
+                # TODO: This is untested.
                 _raise_current_error()
         elif error == _lib.SSL_ERROR_NONE:
             pass
@@ -970,21 +971,17 @@ class Connection(object):
             if _lib.BIO_should_read(bio):
                 raise WantReadError()
             elif _lib.BIO_should_write(bio):
-                # TODO Untested
-                1/0
+                # TODO: This is untested.
                 raise WantWriteError()
             elif _lib.BIO_should_io_special(bio):
-                1/0
-                # TODO Untested.  I think io_special means the socket BIO has a
-                # not-yet connected socket.
+                # TODO: This is untested.  I think io_special means the socket
+                # BIO has a not-yet connected socket.
                 raise ValueError("BIO_should_io_special")
             else:
-                1/0
-                # TODO Untested
+                # TODO: This is untested.
                 raise ValueError("unknown bio failure")
         else:
-            1/0
-            # TODO Untested
+            # TODO: This is untested.
             _raise_current_error()
 
 
@@ -1125,7 +1122,8 @@ class Connection(object):
         """
         result = _lib.SSL_shutdown(self._ssl)
         if result < 0:
-            1/0
+            # TODO: This is untested.
+            _raise_current_error()
         elif result > 0:
             return True
         else:
@@ -1159,7 +1157,7 @@ class Connection(object):
         """
         ca_names = _lib.SSL_get_client_CA_list(self._ssl)
         if ca_names == _ffi.NULL:
-            1/0
+            # TODO: This is untested.
             return []
 
         result = []
@@ -1167,7 +1165,7 @@ class Connection(object):
             name = _lib.sk_X509_NAME_value(ca_names, i)
             copy = _lib.X509_NAME_dup(name)
             if copy == _ffi.NULL:
-                1/0
+                # TODO: This is untested.
                 _raise_current_error()
 
             pyname = X509Name.__new__(X509Name)
