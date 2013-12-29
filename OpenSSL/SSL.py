@@ -35,8 +35,9 @@ TLSv1_2_METHOD = 6
 OP_NO_SSLv2 = _lib.SSL_OP_NO_SSLv2
 OP_NO_SSLv3 = _lib.SSL_OP_NO_SSLv3
 OP_NO_TLSv1 = _lib.SSL_OP_NO_TLSv1
-# OP_NO_TLSv1_1 = _lib.SSL_OP_NO_TLSv1_1
-# OP_NO_TLSv1_2 = _lib.SSL_OP_NO_TLSv1_2
+
+OP_NO_TLSv1_1 = getattr(_lib, "SSL_OP_NO_TLSv1_1", 0)
+OP_NO_TLSv1_2 = getattr(_lib, "SSL_OP_NO_TLSv1_2", 0)
 
 MODE_RELEASE_BUFFERS = _lib.SSL_MODE_RELEASE_BUFFERS
 
@@ -210,15 +211,17 @@ class Context(object):
     new SSL connections.
     """
     _methods = {
-        SSLv3_METHOD: _lib.SSLv3_method,
-        TLSv1_METHOD: _lib.TLSv1_method,
-        # TLSv1_1_METHOD: _lib.TLSv1_1_method,
-        # TLSv1_2_METHOD: _lib.TLSv1_2_method,
-        SSLv23_METHOD: _lib.SSLv23_method,
+        SSLv3_METHOD: "SSLv3_method",
+        SSLv23_METHOD: "SSLv23_method",
+        TLSv1_METHOD: "TLSv1_method",
+        TLSv1_1_METHOD: "TLSv1_1_method",
+        TLSv1_2_METHOD: "TLSv1_2_method",
         }
+    _methods = dict(
+        (identifier, getattr(_lib, name))
+        for (identifier, name) in _methods.items()
+        if getattr(_lib, name, None) is not None)
 
-    if False and not _lib.PYOPENSSL_NO_SSL2:
-        _methods[SSLv2_METHOD] = _lib.SSLv2_method
 
     def __init__(self, method):
         """
