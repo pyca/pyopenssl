@@ -37,6 +37,19 @@ def _bio_to_string(bio):
 
 
 def _set_asn1_time(boundary, when):
+    """
+    The the time value of an ASN1 time object.
+
+    @param boundary: An ASN1_GENERALIZEDTIME pointer (or an object safely
+        castable to that type) which will have its value set.
+    @param when: A string representation of the desired time value.
+
+    @raise TypeError: If C{when} is not a L{bytes} string.
+    @raise ValueError: If C{when} does not represent a time in the required
+        format.
+    @raise RuntimeError: If the time value cannot be set for some other
+        (unspecified) reason.
+    """
     if not isinstance(when, bytes):
         raise TypeError("when must be a byte string")
 
@@ -56,6 +69,15 @@ def _set_asn1_time(boundary, when):
 
 
 def _get_asn1_time(timestamp):
+    """
+    Retrieve the time value of an ASN1 time object.
+
+    @param timestamp: An ASN1_GENERALIZEDTIME* (or an object safely castable to
+        that type) from which the time value will be retrieved.
+
+    @return: The time value from C{timestamp} as a L{bytes} string in a certain
+        format.  Or C{None} if the object contains no time value.
+    """
     string_timestamp = _ffi.cast('ASN1_STRING*', timestamp)
     if _lib.ASN1_STRING_length(string_timestamp) == 0:
         return None
