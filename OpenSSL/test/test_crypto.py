@@ -2468,6 +2468,20 @@ class FunctionTests(TestCase):
 
 
 
+class LoadCertificateTests(TestCase):
+    """
+    Tests for :py:obj:`load_certificate_request`.
+    """
+    def test_badFileType(self):
+        """
+        If the file type passed to :py:obj:`load_certificate_request` is
+        neither :py:obj:`FILETYPE_PEM` nor :py:obj:`FILETYPE_ASN1` then
+        :py:class:`ValueError` is raised.
+        """
+        self.assertRaises(ValueError, load_certificate_request, object(), b"")
+
+
+
 class PKCS7Tests(TestCase):
     """
     Tests for :py:obj:`PKCS7Type`.

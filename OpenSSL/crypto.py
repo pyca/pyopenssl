@@ -1944,10 +1944,11 @@ def load_certificate_request(type, buffer):
     elif type == FILETYPE_ASN1:
         req = _lib.d2i_X509_REQ_bio(bio, _ffi.NULL)
     else:
-        1/0
+        raise ValueError("type argument must be FILETYPE_PEM or FILETYPE_ASN1")
 
     if req == _ffi.NULL:
-        1/0
+        # TODO: This is untested.
+        _raise_current_error()
 
     x509req = X509Req.__new__(X509Req)
     x509req._req = _ffi.gc(req, _lib.X509_REQ_free)
