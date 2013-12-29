@@ -737,6 +737,7 @@ class X509NameTests(TestCase):
         self.assertRaises(TypeError, setattr, name, None, "hello")
         self.assertRaises(TypeError, setattr, name, 30, "hello")
 
+
     def test_setInvalidAttribute(self):
         """
         Attempting to set any attribute name on an :py:class:`X509NameType` instance for
@@ -924,6 +925,16 @@ class X509NameTests(TestCase):
         subject = cert.get_subject()
         self.assertEqual(
             "null.python.org\x00example.org", subject.commonName)
+
+
+    def test_setAttributeFailure(self):
+        """
+        If the value of an attribute cannot be set for some reason then
+        :py:class:`OpenSSL.crypto.Error` is raised.
+        """
+        name = self._x509name()
+        # This value is too long
+        self.assertRaises(Error, setattr, name, "O", b"x" * 512)
 
 
 
@@ -2936,6 +2947,7 @@ class CRLTests(TestCase):
         be loaded raises a :py:obj:`OpenSSL.crypto.Error`.
         """
         self.assertRaises(Error, load_crl, FILETYPE_PEM, "hello, world")
+
 
 
 class SignVerifyTests(TestCase):
