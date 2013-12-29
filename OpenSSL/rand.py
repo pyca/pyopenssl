@@ -6,14 +6,18 @@ See the file RATIONALE for a short explanation of why this module was written.
 
 import __builtin__
 
-from cryptography.hazmat.backends.openssl import backend
-_lib = backend.lib
-_ffi = backend.ffi
+from functools import partial
 
-# TODO Nothing tests the existence or use of this
+from OpenSSL._util import (
+    ffi as _ffi,
+    lib as _lib,
+    exception_from_error_queue as _exception_from_error_queue)
+
+
 class Error(Exception):
     pass
 
+_raise_current_error = partial(_exception_from_error_queue, Error)
 
 _unspecified = object()
 
@@ -33,7 +37,10 @@ def bytes(num_bytes):
     result_buffer = _ffi.new("char[]", num_bytes)
     result_code = _lib.RAND_bytes(result_buffer, num_bytes)
     if result_code == -1:
-        raise Exception("zoops") # TODO
+        # TODO: No tests for this code path.  Triggering a RAND_bytes failure
+        # might involve supplying a custom ENGINE?  That's hard.
+        _raise_current_error()
+
     return _ffi.buffer(result_buffer)[:]
 
 

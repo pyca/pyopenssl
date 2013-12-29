@@ -1,8 +1,11 @@
 from time import time
+from functools import partial
 
-from cryptography.hazmat.backends.openssl import backend
-_ffi = backend.ffi
-_lib = backend.lib
+from OpenSSL._util import (
+    ffi as _ffi,
+    lib as _lib,
+    new_mem_buf as _new_mem_buf,
+    exception_from_error_queue as _exception_from_error_queue)
 
 FILETYPE_PEM = _lib.SSL_FILETYPE_PEM
 FILETYPE_ASN1 = _lib.SSL_FILETYPE_ASN1
@@ -14,6 +17,13 @@ TYPE_RSA = _lib.EVP_PKEY_RSA
 TYPE_DSA = _lib.EVP_PKEY_DSA
 
 
+class Error(Exception):
+    pass
+
+
+_raise_current_error = partial(_exception_from_error_queue, Error)
+
+
 def _bio_to_string(bio):
     """
     Copy the contents of an OpenSSL BIO object into a Python byte string.
@@ -21,25 +31,6 @@ def _bio_to_string(bio):
     result_buffer = _ffi.new('char**')
     buffer_length = _lib.BIO_get_mem_data(bio, result_buffer)
     return _ffi.buffer(result_buffer[0], buffer_length)[:]
-
-
-
-def _new_mem_buf(buffer=None):
-    if buffer is None:
-        bio = _lib.BIO_new(_lib.BIO_s_mem())
-        free = _lib.BIO_free
-    else:
-        data = _ffi.new("char[]", buffer)
-        bio = _lib.BIO_new_mem_buf(data, len(buffer))
-        # Keep the memory alive as long as the bio is alive!
-        def free(bio, ref=data):
-            return _lib.BIO_free(bio)
-
-    if bio == _ffi.NULL:
-        1/0
-
-    bio = _ffi.gc(bio, free)
-    return bio
 
 
 
@@ -80,28 +71,6 @@ def _get_asn1_time(timestamp):
             string_result = _ffi.string(string_data)
             _lib.ASN1_GENERALIZEDTIME_free(generalized_timestamp[0])
             return string_result
-
-
-
-class Error(Exception):
-    pass
-
-
-
-def _raise_current_error(exceptionType=Error):
-    errors = []
-    while True:
-        error = _lib.ERR_get_error()
-        if error == 0:
-            break
-        errors.append((
-                _ffi.string(_lib.ERR_lib_error_string(error)),
-                _ffi.string(_lib.ERR_func_error_string(error)),
-                _ffi.string(_lib.ERR_reason_error_string(error))))
-
-    raise exceptionType(errors)
-
-_exception_from_error_queue = _raise_current_error
 
 
 
@@ -660,7 +629,7 @@ class X509Req(object):
 
         result = _lib.X509_REQ_verify(self._req, pkey._pkey)
         if result <= 0:
-            _raise_current_error(Error)
+            _raise_current_error()
 
         return result
 
@@ -1105,7 +1074,7 @@ class X509Store(object):
 
         result = _lib.X509_STORE_add_cert(self._store, cert._x509)
         if not result:
-            _raise_current_error(Error)
+            _raise_current_error()
 
 
 X509StoreType = X509Store
@@ -1848,7 +1817,7 @@ class _PassphraseHelper(object):
 
     def raise_if_problem(self, exceptionType=Error):
         try:
-            _raise_current_error(exceptionType)
+            _exception_from_error_queue(exceptionType)
         except exceptionType as e:
             pass
         if self._problems:

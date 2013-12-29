@@ -1,17 +1,17 @@
 
-from functools import wraps
+from functools import wraps, partial
 from itertools import count
 from weakref import WeakValueDictionary
 from errno import errorcode
 
-from cryptography.hazmat.backends.openssl import backend
-_ffi = backend.ffi
-_lib = backend.lib
+from OpenSSL._util import (
+    ffi as _ffi,
+    lib as _lib,
+    new_mem_buf as _new_mem_buf,
+    exception_from_error_queue as _exception_from_error_queue)
 
 from OpenSSL.crypto import (
-    FILETYPE_PEM, _PassphraseHelper, PKey, X509Name, X509, X509Store,
-
-    _raise_current_error, _new_mem_buf)
+    FILETYPE_PEM, _PassphraseHelper, PKey, X509Name, X509, X509Store)
 
 _unspecified = object()
 
@@ -104,6 +104,39 @@ SSL_CB_HANDSHAKE_START = _lib.SSL_CB_HANDSHAKE_START
 SSL_CB_HANDSHAKE_DONE = _lib.SSL_CB_HANDSHAKE_DONE
 
 
+class Error(Exception):
+    pass
+
+
+
+_raise_current_error = partial(_exception_from_error_queue, Error)
+
+
+class WantReadError(Error):
+    pass
+
+
+
+class WantWriteError(Error):
+    pass
+
+
+
+class WantX509LookupError(Error):
+    pass
+
+
+
+class ZeroReturnError(Error):
+    pass
+
+
+
+class SysCallError(Error):
+    pass
+
+
+
 class _VerifyHelper(object):
     def __init__(self, connection, callback):
         self._problems = []
@@ -134,39 +167,11 @@ class _VerifyHelper(object):
     def raise_if_problem(self):
         if self._problems:
             try:
-                _raise_current_error(Error)
+                _raise_current_error()
             except Error:
                 pass
             raise self._problems.pop(0)
 
-
-
-class Error(Exception):
-    pass
-
-
-
-class WantReadError(Error):
-    pass
-
-
-
-class WantWriteError(Error):
-    pass
-
-
-
-class WantX509LookupError(Error):
-    pass
-
-
-
-class ZeroReturnError(Error):
-    pass
-
-
-class SysCallError(Error):
-    pass
 
 
 def _asFileDescriptor(obj):
@@ -284,7 +289,7 @@ class Context(object):
 
         load_result = _lib.SSL_CTX_load_verify_locations(self._context, cafile, capath)
         if not load_result:
-            _raise_current_error(Error)
+            _raise_current_error()
 
 
     def _wrap_callback(self, callback):
@@ -323,7 +328,7 @@ class Context(object):
         set_result = _lib.SSL_CTX_set_default_verify_paths(self._context)
         if not set_result:
             1/0
-            _raise_current_error(Error)
+            _raise_current_error()
 
 
     def use_certificate_chain_file(self, certfile):
@@ -338,7 +343,7 @@ class Context(object):
 
         result = _lib.SSL_CTX_use_certificate_chain_file(self._context, certfile)
         if not result:
-            _raise_current_error(Error)
+            _raise_current_error()
 
 
     def use_certificate_file(self, certfile, filetype=FILETYPE_PEM):
@@ -356,7 +361,7 @@ class Context(object):
 
         use_result = _lib.SSL_CTX_use_certificate_file(self._context, certfile, filetype)
         if not use_result:
-            _raise_current_error(Error)
+            _raise_current_error()
 
 
     def use_certificate(self, cert):
@@ -371,7 +376,7 @@ class Context(object):
 
         use_result = _lib.SSL_CTX_use_certificate(self._context, cert._x509)
         if not use_result:
-            _raise_current_error(Error)
+            _raise_current_error()
 
 
     def add_extra_chain_cert(self, certobj):
@@ -388,13 +393,13 @@ class Context(object):
         add_result = _lib.SSL_CTX_add_extra_chain_cert(self._context, copy)
         if not add_result:
             # _lib.X509_free(copy)
-            # _raise_current_error(Error)
+            # _raise_current_error()
             1/0
 
 
     def _raise_passphrase_exception(self):
         if self._passphrase_helper is None:
-            _raise_current_error(Error)
+            _raise_current_error()
         exception = self._passphrase_helper.raise_if_problem(Error)
         if exception is not None:
             raise exception
@@ -550,7 +555,7 @@ class Context(object):
 
         bio = _lib.BIO_new_file(dhfile, "r")
         if bio == _ffi.NULL:
-            _raise_current_error(Error)
+            _raise_current_error()
         bio = _ffi.gc(bio, _lib.BIO_free)
 
         dh = _lib.PEM_read_bio_DHparams(bio, _ffi.NULL, _ffi.NULL, _ffi.NULL)
@@ -570,7 +575,7 @@ class Context(object):
 
         result = _lib.SSL_CTX_set_cipher_list(self._context, cipher_list)
         if not result:
-            _raise_current_error(Error)
+            _raise_current_error()
 
 
     def set_client_ca_list(self, certificate_authorities):
@@ -586,7 +591,7 @@ class Context(object):
         name_stack = _lib.sk_X509_NAME_new_null()
         if name_stack == _ffi.NULL:
             1/0
-            _raise_current_error(Error)
+            _raise_current_error()
 
         try:
             for ca_name in certificate_authorities:
@@ -597,11 +602,11 @@ class Context(object):
                 copy = _lib.X509_NAME_dup(ca_name._name)
                 if copy == _ffi.NULL:
                     1/0
-                    _raise_current_error(Error)
+                    _raise_current_error()
                 push_result = _lib.sk_X509_NAME_push(name_stack, copy)
                 if not push_result:
                     _lib.X509_NAME_free(copy)
-                    _raise_current_error(Error)
+                    _raise_current_error()
         except:
             _lib.sk_X509_NAME_free(name_stack)
             raise
@@ -626,7 +631,7 @@ class Context(object):
             self._context, certificate_authority._x509)
         if not add_result:
             1/0
-            _raise_current_error(Error)
+            _raise_current_error()
 
 
     def set_timeout(self, timeout):
@@ -822,11 +827,11 @@ class Connection(object):
             else:
                 # TODO Untested
                 1/0
-                _raise_current_error(Error)
+                _raise_current_error()
         elif error == _lib.SSL_ERROR_NONE:
             pass
         else:
-            _raise_current_error(Error)
+            _raise_current_error()
 
 
     def get_context(self):
@@ -979,7 +984,7 @@ class Connection(object):
         else:
             1/0
             # TODO Untested
-            _raise_current_error(Error)
+            _raise_current_error()
 
 
     def bio_read(self, bufsiz):
@@ -1162,7 +1167,7 @@ class Connection(object):
             copy = _lib.X509_NAME_dup(name)
             if copy == _ffi.NULL:
                 1/0
-                _raise_current_error(Error)
+                _raise_current_error()
 
             pyname = X509Name.__new__(X509Name)
             pyname._name = _ffi.gc(copy, _lib.X509_NAME_free)
@@ -1379,6 +1384,6 @@ class Connection(object):
 
         result = _lib.SSL_set_session(self._ssl, session._session)
         if not result:
-            _raise_current_error(Error)
+            _raise_current_error()
 
 ConnectionType = Connection

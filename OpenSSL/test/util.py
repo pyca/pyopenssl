@@ -14,7 +14,8 @@ from tempfile import mktemp
 from unittest import TestCase
 import sys
 
-from OpenSSL.crypto import Error, _exception_from_error_queue
+from OpenSSL._util import exception_from_error_queue
+from OpenSSL.crypto import Error
 
 import memdbg
 
@@ -167,7 +168,7 @@ class TestCase(TestCase):
                 elif os.path.exists(temp):
                     os.unlink(temp)
         try:
-            _exception_from_error_queue()
+            exception_from_error_queue(Error)
         except Error:
             e = sys.exc_info()[1]
             if e.args != ([],):
