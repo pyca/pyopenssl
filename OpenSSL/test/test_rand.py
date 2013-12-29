@@ -126,6 +126,19 @@ class RandTests(TestCase):
             "%r not in %r" % (result, expected))
 
 
+    def test_egd_missing_and_bytes(self):
+        """
+        :py:obj:`OpenSSL.rand.egd` returns :py:obj:`0` or :py:obj:`-1` if the
+        EGD socket passed to it does not exist even if a size argument is
+        explicitly passed.
+        """
+        result = rand.egd(self.mktemp(), 1024)
+        expected = (-1, 0)
+        self.assertTrue(
+            result in expected,
+            "%r not in %r" % (result, expected))
+
+
     def test_cleanup_wrong_args(self):
         """
         :py:obj:`OpenSSL.rand.cleanup` raises :py:obj:`TypeError` when called with any
