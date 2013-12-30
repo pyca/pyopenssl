@@ -14,6 +14,13 @@ from OpenSSL.crypto import (
 
 _unspecified = object()
 
+try:
+    _memoryview = memoryview
+except NameError:
+    class _memoryview(object):
+        pass
+
+
 OPENSSL_VERSION_NUMBER = _lib.OPENSSL_VERSION_NUMBER
 SSLEAY_VERSION = _lib.SSLEAY_VERSION
 SSLEAY_CFLAGS = _lib.SSLEAY_CFLAGS
@@ -906,7 +913,7 @@ class Connection(object):
                       API, the value is ignored
         :return: The number of bytes written
         """
-        if isinstance(buf, memoryview):
+        if isinstance(buf, _memoryview):
             buf = buf.tobytes()
         if not isinstance(buf, bytes):
             raise TypeError("data must be a byte string")
@@ -930,7 +937,7 @@ class Connection(object):
                       API, the value is ignored
         :return: The number of bytes written
         """
-        if isinstance(buf, memoryview):
+        if isinstance(buf, _memoryview):
             buf = buf.tobytes()
         if not isinstance(buf, bytes):
             raise TypeError("buf must be a byte string")
