@@ -6,7 +6,6 @@ pyOpenSSL - A simple wrapper around the OpenSSL library
 """
 
 from OpenSSL import rand, crypto, SSL
-from OpenSSL import tsafe
 from OpenSSL.version import __version__
 
 __all__ = [
