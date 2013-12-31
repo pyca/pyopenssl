@@ -28,7 +28,7 @@ else:
         return s.encode("charmap")
     bytes = bytes
 
-from tls.c import api
+from OpenSSL._util import ffi, lib
 
 class TestCase(TestCase):
     """
@@ -46,8 +46,8 @@ class TestCase(TestCase):
 
         # Clean up some long-lived allocations so they won't be reported as
         # memory leaks.
-        api.CRYPTO_cleanup_all_ex_data()
-        api.ERR_remove_thread_state(api.NULL)
+        lib.CRYPTO_cleanup_all_ex_data()
+        lib.ERR_remove_thread_state(ffi.NULL)
         after = set(memdbg.heap)
 
         if not after - before:
@@ -61,8 +61,8 @@ class TestCase(TestCase):
 
             # Clean up some long-lived allocations so they won't be reported as
             # memory leaks.
-            api.CRYPTO_cleanup_all_ex_data()
-            api.ERR_remove_thread_state(api.NULL)
+            libCRYPTO_cleanup_all_ex_data()
+            libERR_remove_thread_state(ffiNULL)
 
             after = set(memdbg.heap)
 
@@ -146,7 +146,7 @@ class TestCase(TestCase):
                 allocs_accum = []
                 for (size, pointer) in allocs:
 
-                    addr = int(api.ffi.cast('uintptr_t', pointer))
+                    addr = int(ffi.cast('uintptr_t', pointer))
                     allocs_accum.append("%d@0x%x" % (size, addr))
                 allocs_report = ", ".join(sorted(allocs_accum))
 
