@@ -8,6 +8,7 @@ Unit tests for :py:obj:`OpenSSL.rand`.
 from unittest import main
 import os
 import stat
+import sys
 
 from OpenSSL.test.util import TestCase, b
 from OpenSSL import rand
@@ -29,7 +30,7 @@ class RandTests(TestCase):
         :py:obj:`OpenSSL.rand.bytes` raises :py:obj:`MemoryError` if more bytes
         are requested than will fit in memory.
         """
-        self.assertRaises(MemoryError, rand.bytes, 1024 * 1024 * 1024 * 1024)
+        self.assertRaises(MemoryError, rand.bytes, sys.maxint)
 
 
     def test_bytes(self):

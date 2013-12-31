@@ -30,7 +30,7 @@ def bytes(num_bytes):
     :param num_bytes: The number of bytes to fetch
     :return: A string of random bytes
     """
-    if not isinstance(num_bytes, int):
+    if not isinstance(num_bytes, (int, long)):
         raise TypeError("num_bytes must be an integer")
 
     if num_bytes < 0:
