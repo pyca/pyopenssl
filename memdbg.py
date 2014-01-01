@@ -43,7 +43,7 @@ def _backtrace():
 
 
 @_ffi.callback("void*(*)(size_t)")
-def malloc(n):
+def _pymalloc(n):
     memory = C.malloc(n)
     python_stack = traceback.extract_stack(limit=3)
     c_stack = _backtrace()
@@ -53,7 +53,7 @@ def malloc(n):
 
 
 @_ffi.callback("void*(*)(void*, size_t)")
-def realloc(p, n):
+def _pyrealloc(p, n):
     memory = C.realloc(p, n)
     old = heap.pop(p)
 
@@ -67,14 +67,14 @@ def realloc(p, n):
 
 
 @_ffi.callback("void(*)(void*)")
-def free(p):
+def _pyfree(p):
     if p != _ffi.NULL:
         C.free(p)
         del heap[p]
         log("free(0x%x)" % (int(_ffi.cast("int", p)),))
 
 
-if _api.CRYPTO_set_mem_functions(malloc, realloc, free):
+if _api.CRYPTO_set_mem_functions(_pymalloc, _pyrealloc, _pyfree):
     print 'Enabled memory debugging'
     heap = {}
 else:
