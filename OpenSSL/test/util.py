@@ -61,8 +61,8 @@ class TestCase(TestCase):
 
             # Clean up some long-lived allocations so they won't be reported as
             # memory leaks.
-            libCRYPTO_cleanup_all_ex_data()
-            libERR_remove_thread_state(ffiNULL)
+            lib.CRYPTO_cleanup_all_ex_data()
+            lib.ERR_remove_thread_state(ffi.NULL)
 
             after = set(memdbg.heap)
 
