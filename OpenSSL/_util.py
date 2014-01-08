@@ -1,6 +1,7 @@
-from cryptography.hazmat.backends.openssl import backend
-ffi = backend.ffi
-lib = backend.lib
+from cryptography.hazmat.bindings.openssl.binding import Binding
+binding = Binding()
+ffi = binding.ffi
+lib = binding.lib
 
 def exception_from_error_queue(exceptionType):
     errors = []
