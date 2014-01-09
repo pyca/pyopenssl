@@ -4,8 +4,6 @@ PRNG management routines, thin wrappers.
 See the file RATIONALE for a short explanation of why this module was written.
 """
 
-import __builtin__
-
 from functools import partial
 
 from OpenSSL._util import (
@@ -22,6 +20,8 @@ class Error(Exception):
 _raise_current_error = partial(_exception_from_error_queue, Error)
 
 _unspecified = object()
+
+_builtin_bytes = bytes
 
 def bytes(num_bytes):
     """
@@ -55,7 +55,7 @@ def add(buffer, entropy):
     :param entropy: The entropy (in bytes) measurement of the buffer
     :return: None
     """
-    if not isinstance(buffer, __builtin__.bytes):
+    if not isinstance(buffer, _builtin_bytes):
         raise TypeError("buffer must be a byte string")
 
     if not isinstance(entropy, int):
@@ -73,7 +73,7 @@ def seed(buffer):
     :param buffer: Buffer with random data
     :return: None
     """
-    if not isinstance(buffer, __builtin__.bytes):
+    if not isinstance(buffer, _builtin_bytes):
         raise TypeError("buffer must be a byte string")
 
     # TODO Nothing tests this call actually being made, or made properly.
