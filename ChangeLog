@@ -1,3 +1,8 @@
+2014-01-09  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL: Port to the cffi-based OpenSSL bindings provided by
+	  <https://github.com/pyca/cryptography>
+
 2013-10-06  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL/ssl/context.c: Add support for negotiating TLS v1.1 or

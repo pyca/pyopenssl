@@ -6,16 +6,16 @@ Unit tests for :py:obj:`OpenSSL.SSL`.
 """
 
 from gc import collect
-from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK
+from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE
 from sys import platform, version_info
-from socket import error, socket
+from socket import SHUT_RDWR, error, socket
 from os import makedirs
 from os.path import join
 from unittest import main
 from weakref import ref
 
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
-from OpenSSL.crypto import PKey, X509, X509Extension
+from OpenSSL.crypto import PKey, X509, X509Extension, X509Store
 from OpenSSL.crypto import dump_privatekey, load_privatekey
 from OpenSSL.crypto import dump_certificate, load_certificate
 
@@ -35,9 +35,9 @@ from OpenSSL.SSL import (
     SESS_CACHE_NO_INTERNAL_STORE, SESS_CACHE_NO_INTERNAL)
 
 from OpenSSL.SSL import (
-    Error, SysCallError, WantReadError, ZeroReturnError, SSLeay_version)
+    Error, SysCallError, WantReadError, WantWriteError, ZeroReturnError)
 from OpenSSL.SSL import (
-    Context, ContextType, Session, Connection, ConnectionType)
+    Context, ContextType, Session, Connection, ConnectionType, SSLeay_version)
 
 from OpenSSL.test.util import TestCase, bytes, b
 from OpenSSL.test.test_crypto import (
@@ -355,6 +355,94 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, ctx.use_privatekey, "")
 
 
+    def test_use_privatekey_file_missing(self):
+        """
+        :py:obj:`Context.use_privatekey_file` raises :py:obj:`OpenSSL.SSL.Error`
+        when passed the name of a file which does not exist.
+        """
+        ctx = Context(TLSv1_METHOD)
+        self.assertRaises(Error, ctx.use_privatekey_file, self.mktemp())
+
+
+    def test_use_certificate_wrong_args(self):
+        """
+        :py:obj:`Context.use_certificate_wrong_args` raises :py:obj:`TypeError`
+        when not passed exactly one :py:obj:`OpenSSL.crypto.X509` instance as an
+        argument.
+        """
+        ctx = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, ctx.use_certificate)
+        self.assertRaises(TypeError, ctx.use_certificate, "hello, world")
+        self.assertRaises(TypeError, ctx.use_certificate, X509(), "hello, world")
+
+
+    def test_use_certificate_uninitialized(self):
+        """
+        :py:obj:`Context.use_certificate` raises :py:obj:`OpenSSL.SSL.Error`
+        when passed a :py:obj:`OpenSSL.crypto.X509` instance which has not been
+        initialized (ie, which does not actually have any certificate data).
+        """
+        ctx = Context(TLSv1_METHOD)
+        self.assertRaises(Error, ctx.use_certificate, X509())
+
+
+    def test_use_certificate(self):
+        """
+        :py:obj:`Context.use_certificate` sets the certificate which will be
+        used to identify connections created using the context.
+        """
+        # TODO
+        # Hard to assert anything.  But we could set a privatekey then ask
+        # OpenSSL if the cert and key agree using check_privatekey.  Then as
+        # long as check_privatekey works right we're good...
+        ctx = Context(TLSv1_METHOD)
+        ctx.use_certificate(load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
+
+
+    def test_use_certificate_file_wrong_args(self):
+        """
+        :py:obj:`Context.use_certificate_file` raises :py:obj:`TypeError` if
+        called with zero arguments or more than two arguments, or if the first
+        argument is not a byte string or the second argumnent is not an integer.
+        """
+        ctx = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, ctx.use_certificate_file)
+        self.assertRaises(TypeError, ctx.use_certificate_file, b"somefile", object())
+        self.assertRaises(
+            TypeError, ctx.use_certificate_file, b"somefile", FILETYPE_PEM, object())
+        self.assertRaises(
+            TypeError, ctx.use_certificate_file, object(), FILETYPE_PEM)
+        self.assertRaises(
+            TypeError, ctx.use_certificate_file, b"somefile", object())
+
+
+    def test_use_certificate_file_missing(self):
+        """
+        :py:obj:`Context.use_certificate_file` raises
+        `:py:obj:`OpenSSL.SSL.Error` if passed the name of a file which does not
+        exist.
+        """
+        ctx = Context(TLSv1_METHOD)
+        self.assertRaises(Error, ctx.use_certificate_file, self.mktemp())
+
+
+    def test_use_certificate_file(self):
+        """
+        :py:obj:`Context.use_certificate` sets the certificate which will be
+        used to identify connections created using the context.
+        """
+        # TODO
+        # Hard to assert anything.  But we could set a privatekey then ask
+        # OpenSSL if the cert and key agree using check_privatekey.  Then as
+        # long as check_privatekey works right we're good...
+        pem_filename = self.mktemp()
+        with open(pem_filename, "w") as pem_file:
+            pem_file.write(cleartextCertificatePEM)
+
+        ctx = Context(TLSv1_METHOD)
+        ctx.use_certificate_file(pem_filename)
+
+
     def test_set_app_data_wrong_args(self):
         """
         :py:obj:`Context.set_app_data` raises :py:obj:`TypeError` if called with other than
@@ -547,7 +635,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         pemFile = self._write_encrypted_pem(b("monkeys are nice"))
         def passphraseCallback(maxlen, verify, extra):
-            return None
+            return ""
 
         context = Context(TLSv1_METHOD)
         context.set_passwd_cb(passphraseCallback)
@@ -565,7 +653,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         context = Context(TLSv1_METHOD)
         context.set_passwd_cb(passphraseCallback)
-        self.assertRaises(Error, context.use_privatekey_file, pemFile)
+        self.assertRaises(ValueError, context.use_privatekey_file, pemFile)
 
 
     def test_passwd_callback_too_long(self):
@@ -792,6 +880,28 @@ class ContextTests(TestCase, _LoopbackMixin):
                     pass
 
 
+    def test_set_verify_callback_exception(self):
+        """
+        If the verify callback passed to :py:obj:`Context.set_verify` raises an
+        exception, verification fails and the exception is propagated to the
+        caller of :py:obj:`Connection.do_handshake`.
+        """
+        serverContext = Context(TLSv1_METHOD)
+        serverContext.use_privatekey(
+            load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM))
+        serverContext.use_certificate(
+            load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
+
+        clientContext = Context(TLSv1_METHOD)
+        def verify_callback(*args):
+            raise Exception("silly verify failure")
+        clientContext.set_verify(VERIFY_PEER, verify_callback)
+
+        exc = self.assertRaises(
+            Exception, self._handshake_test, serverContext, clientContext)
+        self.assertEqual("silly verify failure", str(exc))
+
+
     def test_add_extra_chain_cert(self):
         """
         :py:obj:`Context.add_extra_chain_cert` accepts an :py:obj:`X509` instance to add to
@@ -872,6 +982,22 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         self._handshake_test(serverContext, clientContext)
 
+
+    def test_use_certificate_chain_file_wrong_args(self):
+        """
+        :py:obj:`Context.use_certificate_chain_file` raises :py:obj:`TypeError`
+        if passed zero or more than one argument or when passed a non-byte
+        string single argument.  It also raises :py:obj:`OpenSSL.SSL.Error` when
+        passed a bad chain file name (for example, the name of a file which does
+        not exist).
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.use_certificate_chain_file)
+        self.assertRaises(TypeError, context.use_certificate_chain_file, object())
+        self.assertRaises(TypeError, context.use_certificate_chain_file, b"foo", object())
+
+        self.assertRaises(Error, context.use_certificate_chain_file, self.mktemp())
+
     # XXX load_client_ca
     # XXX set_session_id
 
@@ -942,6 +1068,21 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertEquals(conn.get_cipher_list(), ["EXP-RC4-MD5"])
 
 
+    def test_set_cipher_list_wrong_args(self):
+        """
+        :py:obj:`Context.set_cipher_list` raises :py:obj:`TypeError` when passed
+        zero arguments or more than one argument or when passed a non-byte
+        string single argument and raises :py:obj:`OpenSSL.SSL.Error` when
+        passed an incorrect cipher list string.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.set_cipher_list)
+        self.assertRaises(TypeError, context.set_cipher_list, object())
+        self.assertRaises(TypeError, context.set_cipher_list, b"EXP-RC4-MD5", object())
+
+        self.assertRaises(Error, context.set_cipher_list, b"imaginary-cipher")
+
+
     def test_set_session_cache_mode_wrong_args(self):
         """
         L{Context.set_session_cache_mode} raises L{TypeError} if called with
@@ -971,6 +1112,15 @@ class ContextTests(TestCase, _LoopbackMixin):
         off = context.set_session_cache_mode(SESS_CACHE_BOTH)
         self.assertEqual(SESS_CACHE_OFF, off)
         self.assertEqual(SESS_CACHE_BOTH, context.get_session_cache_mode())
+
+
+    def test_get_cert_store(self):
+        """
+        :py:obj:`Context.get_cert_store` returns a :py:obj:`X509Store` instance.
+        """
+        context = Context(TLSv1_METHOD)
+        store = context.get_cert_store()
+        self.assertIsInstance(store, X509Store)
 
 
 
@@ -1102,8 +1252,6 @@ class ConnectionTests(TestCase, _LoopbackMixin):
     """
     Unit tests for :py:obj:`OpenSSL.SSL.Connection`.
     """
-    # XXX want_write
-    # XXX want_read
     # XXX get_peer_certificate -> None
     # XXX sock_shutdown
     # XXX master_key -> TypeError
@@ -1486,7 +1634,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
         session = server.get_session()
-        self.assertTrue(session, Session)
+        self.assertIsInstance(session, Session)
 
 
     def test_client_get_session(self):
@@ -1497,7 +1645,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
         session = client.get_session()
-        self.assertTrue(session, Session)
+        self.assertIsInstance(session, Session)
 
 
     def test_set_session_wrong_args(self):
@@ -1590,6 +1738,36 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertRaises(
             Error,
             self._loopback, clientFactory=makeClient, serverFactory=makeServer)
+
+
+    def test_wantWriteError(self):
+        """
+        :py:obj:`Connection` methods which generate output raise
+        :py:obj:`OpenSSL.SSL.WantWriteError` if writing to the connection's BIO
+        fail indicating a should-write state.
+        """
+        client_socket, server_socket = socket_pair()
+        # Fill up the client's send buffer so Connection won't be able to write
+        # anything.
+        msg = 'x' * 1024
+        for i in range(1024):
+            try:
+                client_socket.send(msg)
+            except error as e:
+                if e.errno == EWOULDBLOCK:
+                    break
+                raise
+        else:
+            self.fail(
+                "Failed to fill socket buffer, cannot test BIO want write")
+
+        ctx = Context(TLSv1_METHOD)
+        conn = Connection(ctx, client_socket)
+        # Client's speak first, so make it an SSL client
+        conn.set_connect_state()
+        self.assertRaises(WantWriteError, conn.do_handshake)
+
+    # XXX want_read
 
 
 
@@ -1729,7 +1907,8 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
         server.sock_shutdown(2)
-        self.assertRaises(SysCallError, server.sendall, "hello, world")
+        exc = self.assertRaises(SysCallError, server.sendall, "hello, world")
+        self.assertEqual(exc.args[0], EPIPE)
 
 
 
@@ -2086,6 +2265,18 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         self.assertEquals(e.__class__, Error)
 
 
+    def test_unexpectedEndOfFile(self):
+        """
+        If the connection is lost before an orderly SSL shutdown occurs,
+        :py:obj:`OpenSSL.SSL.SysCallError` is raised with a message of
+        "Unexpected EOF".
+        """
+        server_conn, client_conn = self._loopback()
+        client_conn.sock_shutdown(SHUT_RDWR)
+        exc = self.assertRaises(SysCallError, server_conn.recv, 1024)
+        self.assertEqual(exc.args, (-1, "Unexpected EOF"))
+
+
     def _check_client_ca_list(self, func):
         """
         Verify the return value of the :py:obj:`get_client_ca_list` method for server and client connections.
@@ -2295,6 +2486,22 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
             ctx.add_client_ca(secert)
             return [cadesc, sedesc]
         self._check_client_ca_list(set_replaces_add_ca)
+
+
+
+class ConnectionBIOTests(TestCase):
+    """
+    Tests for :py:obj:`Connection.bio_read` and :py:obj:`Connection.bio_write`.
+    """
+    def test_wantReadError(self):
+        """
+        :py:obj:`Connection.bio_read` raises :py:obj:`OpenSSL.SSL.WantReadError`
+        if there are no bytes available to be read from the BIO.
+        """
+        ctx = Context(TLSv1_METHOD)
+        conn = Connection(ctx, None)
+        self.assertRaises(WantReadError, conn.bio_read, 1024)
+
 
 
 class InfoConstantTests(TestCase):

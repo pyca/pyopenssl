@@ -8,6 +8,7 @@ Unit tests for :py:obj:`OpenSSL.rand`.
 from unittest import main
 import os
 import stat
+import sys
 
 from OpenSSL.test.util import TestCase, b
 from OpenSSL import rand
@@ -23,7 +24,14 @@ class RandTests(TestCase):
         self.assertRaises(TypeError, rand.bytes, None)
         self.assertRaises(TypeError, rand.bytes, 3, None)
 
-    # XXX Test failure of the malloc() in rand_bytes.
+
+    def test_insufficientMemory(self):
+        """
+        :py:obj:`OpenSSL.rand.bytes` raises :py:obj:`MemoryError` if more bytes
+        are requested than will fit in memory.
+        """
+        self.assertRaises(MemoryError, rand.bytes, sys.maxint)
+
 
     def test_bytes(self):
         """
@@ -113,6 +121,19 @@ class RandTests(TestCase):
         EGD socket passed to it does not exist.
         """
         result = rand.egd(self.mktemp())
+        expected = (-1, 0)
+        self.assertTrue(
+            result in expected,
+            "%r not in %r" % (result, expected))
+
+
+    def test_egd_missing_and_bytes(self):
+        """
+        :py:obj:`OpenSSL.rand.egd` returns :py:obj:`0` or :py:obj:`-1` if the
+        EGD socket passed to it does not exist even if a size argument is
+        explicitly passed.
+        """
+        result = rand.egd(self.mktemp(), 1024)
         expected = (-1, 0)
         self.assertTrue(
             result in expected,

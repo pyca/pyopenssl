@@ -8,12 +8,16 @@ U{Twisted<http://twistedmatrix.com/>}.
 """
 
 import shutil
+import traceback
 import os, os.path
 from tempfile import mktemp
 from unittest import TestCase
 import sys
 
-from OpenSSL.crypto import Error, _exception_from_error_queue
+from OpenSSL._util import exception_from_error_queue
+from OpenSSL.crypto import Error
+
+import memdbg
 
 if sys.version_info < (3, 0):
     def b(s):
@@ -24,12 +28,133 @@ else:
         return s.encode("charmap")
     bytes = bytes
 
+from OpenSSL._util import ffi, lib
 
 class TestCase(TestCase):
     """
     :py:class:`TestCase` adds useful testing functionality beyond what is available
     from the standard library :py:class:`unittest.TestCase`.
     """
+    def run(self, result):
+        run = super(TestCase, self).run
+        if memdbg.heap is None:
+            return run(result)
+
+        # Run the test as usual
+        before = set(memdbg.heap)
+        run(result)
+
+        # Clean up some long-lived allocations so they won't be reported as
+        # memory leaks.
+        lib.CRYPTO_cleanup_all_ex_data()
+        lib.ERR_remove_thread_state(ffi.NULL)
+        after = set(memdbg.heap)
+
+        if not after - before:
+            # No leaks, fast succeed
+            return
+
+        if result.wasSuccessful():
+            # If it passed, run it again with memory debugging
+            before = set(memdbg.heap)
+            run(result)
+
+            # Clean up some long-lived allocations so they won't be reported as
+            # memory leaks.
+            lib.CRYPTO_cleanup_all_ex_data()
+            lib.ERR_remove_thread_state(ffi.NULL)
+
+            after = set(memdbg.heap)
+
+            self._reportLeaks(after - before, result)
+
+
+    def _reportLeaks(self, leaks, result):
+        def format_leak(p):
+            stacks = memdbg.heap[p]
+            # Eventually look at multiple stacks for the realloc() case.  For
+            # now just look at the original allocation location.
+            (size, python_stack, c_stack) = stacks[0]
+
+            stack = traceback.format_list(python_stack)[:-1]
+
+            # c_stack looks something like this (interesting parts indicated
+            # with inserted arrows not part of the data):
+            #
+            # /home/exarkun/Projects/pyOpenSSL/branches/use-opentls/__pycache__/_cffi__x89095113xb9185b9b.so(+0x12cf) [0x7fe2e20582cf]
+            # /home/exarkun/Projects/cpython/2.7/python(PyCFunction_Call+0x8b) [0x56265a]
+            # /home/exarkun/Projects/cpython/2.7/python() [0x4d5f52]
+            # /home/exarkun/Projects/cpython/2.7/python(PyEval_EvalFrameEx+0x753b) [0x4d0e1e]
+            # /home/exarkun/Projects/cpython/2.7/python() [0x4d6419]
+            # /home/exarkun/Projects/cpython/2.7/python() [0x4d6129]
+            # /home/exarkun/Projects/cpython/2.7/python(PyEval_EvalFrameEx+0x753b) [0x4d0e1e]
+            # /home/exarkun/Projects/cpython/2.7/python(PyEval_EvalCodeEx+0x1043) [0x4d3726]
+            # /home/exarkun/Projects/cpython/2.7/python() [0x55fd51]
+            # /home/exarkun/Projects/cpython/2.7/python(PyObject_Call+0x7e) [0x420ee6]
+            # /home/exarkun/Projects/cpython/2.7/python(PyEval_CallObjectWithKeywords+0x158) [0x4d56ec]
+            # /home/exarkun/.local/lib/python2.7/site-packages/cffi-0.5-py2.7-linux-x86_64.egg/_cffi_backend.so(+0xe96e) [0x7fe2e38be96e]
+            # /usr/lib/x86_64-linux-gnu/libffi.so.6(ffi_closure_unix64_inner+0x1b9) [0x7fe2e36ad819]
+            # /usr/lib/x86_64-linux-gnu/libffi.so.6(ffi_closure_unix64+0x46) [0x7fe2e36adb7c]
+            # /lib/x86_64-linux-gnu/libcrypto.so.1.0.0(CRYPTO_malloc+0x64) [0x7fe2e1cef784]           <------ end interesting
+            # /lib/x86_64-linux-gnu/libcrypto.so.1.0.0(lh_insert+0x16b) [0x7fe2e1d6a24b]                      .
+            # /lib/x86_64-linux-gnu/libcrypto.so.1.0.0(+0x61c18) [0x7fe2e1cf0c18]                             .
+            # /lib/x86_64-linux-gnu/libcrypto.so.1.0.0(+0x625ec) [0x7fe2e1cf15ec]                             .
+            # /lib/x86_64-linux-gnu/libcrypto.so.1.0.0(DSA_new_method+0xe6) [0x7fe2e1d524d6]                  .
+            # /lib/x86_64-linux-gnu/libcrypto.so.1.0.0(DSA_generate_parameters+0x3a) [0x7fe2e1d5364a] <------ begin interesting
+            # /home/exarkun/Projects/opentls/trunk/tls/c/__pycache__/_cffi__x305d4698xb539baaa.so(+0x1f397) [0x7fe2df84d397]
+            # /home/exarkun/Projects/cpython/2.7/python(PyCFunction_Call+0x8b) [0x56265a]
+            # /home/exarkun/Projects/cpython/2.7/python() [0x4d5f52]
+            # /home/exarkun/Projects/cpython/2.7/python(PyEval_EvalFrameEx+0x753b) [0x4d0e1e]
+            # /home/exarkun/Projects/cpython/2.7/python() [0x4d6419]
+            # ...
+            #
+            # Notice the stack is upside down compared to a Python traceback.
+            # Identify the start and end of interesting bits and stuff it into the stack we report.
+
+            saved = list(c_stack)
+
+            # Figure the first interesting frame will be after a the cffi-compiled module
+            while c_stack and '/__pycache__/_cffi__' not in c_stack[-1]:
+                c_stack.pop()
+
+            # Figure the last interesting frame will always be CRYPTO_malloc,
+            # since that's where we hooked in to things.
+            while c_stack and 'CRYPTO_malloc' not in c_stack[0] and 'CRYPTO_realloc' not in c_stack[0]:
+                c_stack.pop(0)
+
+            if c_stack:
+                c_stack.reverse()
+            else:
+                c_stack = saved[::-1]
+            stack.extend([frame + "\n" for frame in c_stack])
+
+            stack.insert(0, "Leaked (%s) at:\n")
+            return "".join(stack)
+
+        if leaks:
+            unique_leaks = {}
+            for p in leaks:
+                size = memdbg.heap[p][-1][0]
+                new_leak = format_leak(p)
+                if new_leak not in unique_leaks:
+                    unique_leaks[new_leak] = [(size, p)]
+                else:
+                    unique_leaks[new_leak].append((size, p))
+                memdbg.free(p)
+
+            for (stack, allocs) in unique_leaks.iteritems():
+                allocs_accum = []
+                for (size, pointer) in allocs:
+
+                    addr = int(ffi.cast('uintptr_t', pointer))
+                    allocs_accum.append("%d@0x%x" % (size, addr))
+                allocs_report = ", ".join(sorted(allocs_accum))
+
+                result.addError(
+                    self,
+                    (None, Exception(stack % (allocs_report,)), None))
+
+
     def tearDown(self):
         """
         Clean up any files or directories created using :py:meth:`TestCase.mktemp`.
@@ -43,11 +168,35 @@ class TestCase(TestCase):
                 elif os.path.exists(temp):
                     os.unlink(temp)
         try:
-            _exception_from_error_queue()
+            exception_from_error_queue(Error)
         except Error:
             e = sys.exc_info()[1]
             if e.args != ([],):
                 self.fail("Left over errors in OpenSSL error queue: " + repr(e))
+
+
+    def assertIsInstance(self, instance, classOrTuple, message=None):
+        """
+        Fail if C{instance} is not an instance of the given class or of
+        one of the given classes.
+
+        @param instance: the object to test the type (first argument of the
+            C{isinstance} call).
+        @type instance: any.
+        @param classOrTuple: the class or classes to test against (second
+            argument of the C{isinstance} call).
+        @type classOrTuple: class, type, or tuple.
+
+        @param message: Custom text to include in the exception text if the
+            assertion fails.
+        """
+        if not isinstance(instance, classOrTuple):
+            if message is None:
+                suffix = ""
+            else:
+                suffix = ": " + message
+            self.fail("%r is not an instance of %s%s" % (
+                    instance, classOrTuple, suffix))
 
 
     def failUnlessIn(self, containee, container, msg=None):
