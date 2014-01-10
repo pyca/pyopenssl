@@ -32,7 +32,7 @@ setup(name='pyOpenSSL', version=__version__,
       author_email = 'exarkun@twistedmatrix.com',
       maintainer = 'Jean-Paul Calderone',
       maintainer_email = 'exarkun@twistedmatrix.com',
-      url = 'https://launchpad.net/pyopenssl',
+      url = 'https://github.com/pyca/pyopenssl',
       license = 'APL2',
       long_description = """\
 High-level wrapper around a subset of the OpenSSL library, includes
