@@ -1926,10 +1926,10 @@ class _PassphraseHelper(object):
         try:
             _exception_from_error_queue(exceptionType)
         except exceptionType as e:
-            pass
+            from_queue = e
         if self._problems:
             raise self._problems[0]
-        return e
+        return from_queue
 
 
     def _read_passphrase(self, buf, size, rwflag, userdata):
