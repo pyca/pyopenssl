@@ -59,4 +59,5 @@ High-level wrapper around a subset of the OpenSSL library, includes
         'Topic :: Security :: Cryptography',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: System :: Networking',
-        ])
+        ],
+      test_suite="OpenSSL.test")

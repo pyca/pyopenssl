@@ -16,4 +16,4 @@ install:
   - pip install --verbose unittest2
 
 script:
-  - unit2 discover -v
+  - python setup.py test
