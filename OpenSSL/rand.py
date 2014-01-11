@@ -6,6 +6,8 @@ See the file RATIONALE for a short explanation of why this module was written.
 
 from functools import partial
 
+from six import integer_types as _integer_types
+
 from OpenSSL._util import (
     ffi as _ffi,
     lib as _lib,
@@ -22,12 +24,6 @@ _raise_current_error = partial(_exception_from_error_queue, Error)
 _unspecified = object()
 
 _builtin_bytes = bytes
-
-try:
-    _integer_types = (int, long)
-except NameError:
-    _integer_types = (int,)
-
 
 def bytes(num_bytes):
     """

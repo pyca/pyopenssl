@@ -34,7 +34,7 @@ setup(name='pyOpenSSL', version=__version__,
       maintainer_email = 'exarkun@twistedmatrix.com',
       url = 'https://github.com/pyca/pyopenssl',
       license = 'APL2',
-      install_requires=["cryptography>=0.1"],
+      install_requires=["cryptography>=0.1", "six>=1.5.2"],
       long_description = """\
 High-level wrapper around a subset of the OpenSSL library, includes
  * SSL.Connection objects, wrapping the methods of Python's portable
@@ -60,4 +60,4 @@ High-level wrapper around a subset of the OpenSSL library, includes
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: System :: Networking',
         ],
-      test_suite="OpenSSL.test")
+      test_suite="OpenSSL")

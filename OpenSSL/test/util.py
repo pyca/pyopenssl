@@ -19,16 +19,7 @@ from OpenSSL.crypto import Error
 
 import memdbg
 
-if sys.version_info < (3, 0):
-    def b(s):
-        return s
-    bytes = str
-else:
-    def b(s):
-        return s.encode("charmap")
-    bytes = bytes
-
-from OpenSSL._util import ffi, lib
+from OpenSSL._util import ffi, lib, byte_string as b
 
 class TestCase(TestCase):
     """

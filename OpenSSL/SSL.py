@@ -7,7 +7,8 @@ from errno import errorcode
 from OpenSSL._util import (
     ffi as _ffi,
     lib as _lib,
-    exception_from_error_queue as _exception_from_error_queue)
+    exception_from_error_queue as _exception_from_error_queue,
+    native as _native)
 
 from OpenSSL.crypto import (
     FILETYPE_PEM, _PassphraseHelper, PKey, X509Name, X509, X509Store)
@@ -19,7 +20,6 @@ try:
 except NameError:
     class _memoryview(object):
         pass
-
 
 OPENSSL_VERSION_NUMBER = _lib.OPENSSL_VERSION_NUMBER
 SSLEAY_VERSION = _lib.SSLEAY_VERSION
@@ -571,7 +571,7 @@ class Context(object):
         if not isinstance(dhfile, bytes):
             raise TypeError("dhfile must be a byte string")
 
-        bio = _lib.BIO_new_file(dhfile, "r")
+        bio = _lib.BIO_new_file(dhfile, b"r")
         if bio == _ffi.NULL:
             _raise_current_error()
         bio = _ffi.gc(bio, _lib.BIO_free)
@@ -895,7 +895,7 @@ class Connection(object):
         """
         if not isinstance(name, bytes):
             raise TypeError("name must be a byte string")
-        elif "\0" in name:
+        elif b"\0" in name:
             raise TypeError("name must not contain NUL byte")
 
         # XXX I guess this can fail sometimes?
@@ -1157,7 +1157,7 @@ class Connection(object):
             result = _lib.SSL_get_cipher_list(self._ssl, i)
             if result == _ffi.NULL:
                 break
-            ciphers.append(_ffi.string(result))
+            ciphers.append(_native(_ffi.string(result)))
         return ciphers
 
 
