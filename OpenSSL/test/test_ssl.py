@@ -5,7 +5,7 @@
 Unit tests for :py:obj:`OpenSSL.SSL`.
 """
 
-from gc import collect
+from gc import collect, get_referrers
 from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE
 from sys import platform, version_info
 from socket import SHUT_RDWR, error, socket
@@ -1139,6 +1139,7 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
         self.assertRaises(
             TypeError, context.set_tlsext_servername_callback, 1, 2)
 
+
     def test_old_callback_forgotten(self):
         """
         If :py:obj:`Context.set_tlsext_servername_callback` is used to specify a new
@@ -1157,8 +1158,19 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
         del callback
 
         context.set_tlsext_servername_callback(replacement)
+
+        # One run of the garbage collector happens to work on CPython.  PyPy
+        # doesn't collect the underlying object until a second run for whatever
+        # reason.  That's fine, it still demonstrates our code has properly
+        # dropped the reference.
         collect()
-        self.assertIdentical(None, tracker())
+        collect()
+
+        callback = tracker()
+        if callback is not None:
+            referrers = get_referrers(callback)
+            if len(referrers) > 1:
+                self.fail("Some references remain: %r" % (referrers,))
 
 
     def test_no_servername(self):

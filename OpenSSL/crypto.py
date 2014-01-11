@@ -2257,3 +2257,14 @@ except ImportError:
 else:
     _initialize_openssl_threads(get_ident, Lock)
     del get_ident, Lock
+
+# There are no direct unit tests for this initialization.  It is tested
+# indirectly since it is necessary for functions like dump_privatekey when
+# using encryption.
+#
+# Thus OpenSSL.test.test_crypto.FunctionTests.test_dump_privatekey_passphrase
+# and some other similar tests may fail without this (though they may not if
+# the Python runtime has already done some initialization of the underlying
+# OpenSSL library (and is linked against the same one that cryptography is
+# using)).
+_lib.OpenSSL_add_all_algorithms()
