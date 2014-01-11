@@ -1158,6 +1158,12 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
         del callback
 
         context.set_tlsext_servername_callback(replacement)
+
+        # One run of the garbage collector happens to work on CPython.  PyPy
+        # doesn't collect the underlying object until a second run for whatever
+        # reason.  That's fine, it still demonstrates our code has properly
+        # dropped the reference.
+        collect()
         collect()
 
         callback = tracker()
