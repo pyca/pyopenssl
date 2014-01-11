@@ -19,16 +19,7 @@ from OpenSSL.crypto import Error
 
 import memdbg
 
-if sys.version_info < (3, 0):
-    def b(s):
-        return s
-    bytes = str
-else:
-    def b(s):
-        return s.encode("charmap")
-    bytes = bytes
-
-from OpenSSL._util import ffi, lib
+from OpenSSL._util import ffi, lib, byte_string as b
 
 class TestCase(TestCase):
     """
@@ -283,18 +274,9 @@ class TestCase(TestCase):
         """
         if self._temporaryFiles is None:
             self._temporaryFiles = []
-        temp = mktemp(dir=".")
+        temp = b(mktemp(dir="."))
         self._temporaryFiles.append(temp)
         return temp
-
-
-    # Python 2.3 compatibility.
-    def assertTrue(self, *a, **kw):
-        return self.failUnless(*a, **kw)
-
-
-    def assertFalse(self, *a, **kw):
-        return self.failIf(*a, **kw)
 
 
     # Other stuff

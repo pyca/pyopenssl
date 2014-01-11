@@ -5,7 +5,7 @@
 Unit tests for :py:obj:`OpenSSL.SSL`.
 """
 
-from gc import collect
+from gc import collect, get_referrers
 from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE
 from sys import platform, version_info
 from socket import SHUT_RDWR, error, socket
@@ -39,7 +39,7 @@ from OpenSSL.SSL import (
 from OpenSSL.SSL import (
     Context, ContextType, Session, Connection, ConnectionType, SSLeay_version)
 
-from OpenSSL.test.util import TestCase, bytes, b
+from OpenSSL.test.util import TestCase, b
 from OpenSSL.test.test_crypto import (
     cleartextCertificatePEM, cleartextPrivateKeyPEM)
 from OpenSSL.test.test_crypto import (
@@ -436,7 +436,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         # OpenSSL if the cert and key agree using check_privatekey.  Then as
         # long as check_privatekey works right we're good...
         pem_filename = self.mktemp()
-        with open(pem_filename, "w") as pem_file:
+        with open(pem_filename, "wb") as pem_file:
             pem_file.write(cleartextCertificatePEM)
 
         ctx = Context(TLSv1_METHOD)
@@ -635,7 +635,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         pemFile = self._write_encrypted_pem(b("monkeys are nice"))
         def passphraseCallback(maxlen, verify, extra):
-            return ""
+            return b""
 
         context = Context(TLSv1_METHOD)
         context.set_passwd_cb(passphraseCallback)
@@ -780,7 +780,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         # Hash values computed manually with c_rehash to avoid depending on
         # c_rehash in the test suite.  One is from OpenSSL 0.9.8, the other
         # from OpenSSL 1.0.0.
-        for name in ['c7adac82.0', 'c3705638.0']:
+        for name in [b'c7adac82.0', b'c3705638.0']:
             cafile = join(capath, name)
             fObj = open(cafile, 'w')
             fObj.write(cleartextCertificatePEM.decode('ascii'))
@@ -830,7 +830,7 @@ class ContextTests(TestCase, _LoopbackMixin):
             clientSSL = Connection(context, client)
             clientSSL.set_connect_state()
             clientSSL.do_handshake()
-            clientSSL.send('GET / HTTP/1.0\r\n\r\n')
+            clientSSL.send(b"GET / HTTP/1.0\r\n\r\n")
             self.assertTrue(clientSSL.recv(1024))
 
 
@@ -940,7 +940,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         clientContext = Context(TLSv1_METHOD)
         clientContext.set_verify(
             VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT, verify_cb)
-        clientContext.load_verify_locations('ca.pem')
+        clientContext.load_verify_locations(b"ca.pem")
 
         # Try it out.
         self._handshake_test(serverContext, clientContext)
@@ -978,7 +978,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         clientContext = Context(TLSv1_METHOD)
         clientContext.set_verify(
             VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT, verify_cb)
-        clientContext.load_verify_locations('ca.pem')
+        clientContext.load_verify_locations(b"ca.pem")
 
         self._handshake_test(serverContext, clientContext)
 
@@ -1040,7 +1040,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         does not exist.
         """
         context = Context(TLSv1_METHOD)
-        self.assertRaises(Error, context.load_tmp_dh, "hello")
+        self.assertRaises(Error, context.load_tmp_dh, b"hello")
 
 
     def test_load_tmp_dh(self):
@@ -1063,7 +1063,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         connections created with the context object will be able to choose from.
         """
         context = Context(TLSv1_METHOD)
-        context.set_cipher_list("hello world:EXP-RC4-MD5")
+        context.set_cipher_list(b"hello world:EXP-RC4-MD5")
         conn = Connection(context, None)
         self.assertEquals(conn.get_cipher_list(), ["EXP-RC4-MD5"])
 
@@ -1139,6 +1139,7 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
         self.assertRaises(
             TypeError, context.set_tlsext_servername_callback, 1, 2)
 
+
     def test_old_callback_forgotten(self):
         """
         If :py:obj:`Context.set_tlsext_servername_callback` is used to specify a new
@@ -1157,8 +1158,19 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
         del callback
 
         context.set_tlsext_servername_callback(replacement)
+
+        # One run of the garbage collector happens to work on CPython.  PyPy
+        # doesn't collect the underlying object until a second run for whatever
+        # reason.  That's fine, it still demonstrates our code has properly
+        # dropped the reference.
         collect()
-        self.assertIdentical(None, tracker())
+        collect()
+
+        callback = tracker()
+        if callback is not None:
+            referrers = get_referrers(callback)
+            if len(referrers) > 1:
+                self.fail("Some references remain: %r" % (referrers,))
 
 
     def test_no_servername(self):
@@ -1749,7 +1761,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         client_socket, server_socket = socket_pair()
         # Fill up the client's send buffer so Connection won't be able to write
         # anything.
-        msg = 'x' * 1024
+        msg = b"x" * 1024
         for i in range(1024):
             try:
                 client_socket.send(msg)
@@ -1786,8 +1798,8 @@ class ConnectionGetCipherListTests(TestCase):
 
     def test_result(self):
         """
-        :py:obj:`Connection.get_cipher_list` returns a :py:obj:`list` of :py:obj:`str` giving the
-        names of the ciphers which might be used.
+        :py:obj:`Connection.get_cipher_list` returns a :py:obj:`list` of
+        :py:obj:`bytes` giving the names of the ciphers which might be used.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
         ciphers = connection.get_cipher_list()
@@ -1907,7 +1919,7 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
         server.sock_shutdown(2)
-        exc = self.assertRaises(SysCallError, server.sendall, "hello, world")
+        exc = self.assertRaises(SysCallError, server.sendall, b"hello, world")
         self.assertEqual(exc.args[0], EPIPE)
 
 
@@ -2238,7 +2250,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         self._interactInMemory(client, server)
 
         size = 2 ** 15
-        sent = client.send("x" * size)
+        sent = client.send(b"x" * size)
         # Sanity check.  We're trying to test what happens when the entire
         # input can't be sent.  If the entire input was sent, this test is
         # meaningless.
