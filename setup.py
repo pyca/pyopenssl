@@ -8,7 +8,7 @@
 Installation script for the OpenSSL module
 """
 
-from distutils.core import setup
+from setuptools import setup
 
 # XXX Deduplicate this
 __version__ = '0.13'
@@ -34,6 +34,7 @@ setup(name='pyOpenSSL', version=__version__,
       maintainer_email = 'exarkun@twistedmatrix.com',
       url = 'https://github.com/pyca/pyopenssl',
       license = 'APL2',
+      install_requires=["cryptography>=0.1"],
       long_description = """\
 High-level wrapper around a subset of the OpenSSL library, includes
  * SSL.Connection objects, wrapping the methods of Python's portable
@@ -58,4 +59,5 @@ High-level wrapper around a subset of the OpenSSL library, includes
         'Topic :: Security :: Cryptography',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: System :: Networking',
-        ])
+        ],
+      test_suite="OpenSSL.test")

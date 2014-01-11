@@ -31,7 +31,7 @@ verbose = False
 
 def log(s):
     if verbose:
-        print s
+        print(s)
 
 def _backtrace():
     buf = _ffi.new("void*[]", 64)
@@ -75,8 +75,8 @@ def free(p):
 
 
 if _api.CRYPTO_set_mem_functions(malloc, realloc, free):
-    print 'Enabled memory debugging'
+    log('Enabled memory debugging')
     heap = {}
 else:
-    print 'Failed to enable memory debugging'
+    log('Failed to enable memory debugging')
     heap = None
