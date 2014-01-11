@@ -1163,8 +1163,7 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
         callback = tracker()
         if callback is not None:
             referrers = get_referrers(callback)
-            referrers.remove(locals())
-            if referrers:
+            if len(referrers) > 1:
                 self.fail("Some references remain: %r" % (referrers,))
 
 
