@@ -11,9 +11,5 @@ python:
   - "3.2"
   - "3.3"
 
-install:
-  - pip install --verbose .
-  - pip install --verbose unittest2
-
 script:
   - python setup.py test
