@@ -283,7 +283,7 @@ class TestCase(TestCase):
         """
         if self._temporaryFiles is None:
             self._temporaryFiles = []
-        temp = mktemp(dir=".")
+        temp = b(mktemp(dir="."))
         self._temporaryFiles.append(temp)
         return temp
 
