@@ -9,6 +9,7 @@ python:
   - "3.3"
 
 install:
+  - pip install .
   - pip install unittest2
 
 script:
