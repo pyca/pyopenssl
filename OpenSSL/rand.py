@@ -108,8 +108,8 @@ def egd(path, bytes=_unspecified):
     :returns: The number of bytes read (NB: a value of 0 isn't necessarily an
               error, check rand.status())
     """
-    if not isinstance(path, str):
-        raise TypeError("path must be a string")
+    if not isinstance(path, _builtin_bytes):
+        raise TypeError("path must be a byte string")
 
     if bytes is _unspecified:
         bytes = 255
