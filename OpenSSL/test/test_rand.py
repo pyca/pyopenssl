@@ -30,7 +30,7 @@ class RandTests(TestCase):
         :py:obj:`OpenSSL.rand.bytes` raises :py:obj:`MemoryError` if more bytes
         are requested than will fit in memory.
         """
-        self.assertRaises(MemoryError, rand.bytes, sys.maxint)
+        self.assertRaises(MemoryError, rand.bytes, sys.maxsize)
 
 
     def test_bytes(self):
