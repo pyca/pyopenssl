@@ -23,6 +23,12 @@ _unspecified = object()
 
 _builtin_bytes = bytes
 
+try:
+    _integer_types = (int, long)
+except NameError:
+    _integer_types = (int,)
+
+
 def bytes(num_bytes):
     """
     Get some random bytes as a string.
@@ -30,7 +36,7 @@ def bytes(num_bytes):
     :param num_bytes: The number of bytes to fetch
     :return: A string of random bytes
     """
-    if not isinstance(num_bytes, (int, long)):
+    if not isinstance(num_bytes, _integer_types):
         raise TypeError("num_bytes must be an integer")
 
     if num_bytes < 0:
