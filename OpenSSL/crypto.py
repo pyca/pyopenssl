@@ -2257,3 +2257,5 @@ except ImportError:
 else:
     _initialize_openssl_threads(get_ident, Lock)
     del get_ident, Lock
+
+_lib.OpenSSL_add_all_algorithms()
