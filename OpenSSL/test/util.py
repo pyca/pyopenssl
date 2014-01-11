@@ -288,15 +288,6 @@ class TestCase(TestCase):
         return temp
 
 
-    # Python 2.3 compatibility.
-    def assertTrue(self, *a, **kw):
-        return self.failUnless(*a, **kw)
-
-
-    def assertFalse(self, *a, **kw):
-        return self.failIf(*a, **kw)
-
-
     # Other stuff
     def assertConsistentType(self, theType, name, *constructionArgs):
         """
