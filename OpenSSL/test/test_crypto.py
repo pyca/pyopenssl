@@ -11,6 +11,8 @@ import os, re
 from subprocess import PIPE, Popen
 from datetime import datetime, timedelta
 
+from six import binary_type
+
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
 from OpenSSL.crypto import X509Store, X509StoreType, X509Req, X509ReqType
@@ -24,7 +26,8 @@ from OpenSSL.crypto import PKCS12, PKCS12Type, load_pkcs12
 from OpenSSL.crypto import CRL, Revoked, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.crypto import sign, verify
-from OpenSSL.test.util import TestCase, bytes, b
+from OpenSSL.test.util import TestCase, b
+from OpenSSL._util import native
 
 def normalize_certificate_pem(pem):
     return dump_certificate(FILETYPE_PEM, load_certificate(FILETYPE_PEM, pem))
@@ -33,6 +36,12 @@ def normalize_certificate_pem(pem):
 def normalize_privatekey_pem(pem):
     return dump_privatekey(FILETYPE_PEM, load_privatekey(FILETYPE_PEM, pem))
 
+
+GOOD_CIPHER = "blowfish"
+BAD_CIPHER = "zippers"
+
+GOOD_DIGEST = "MD5"
+BAD_DIGEST = "monkeys"
 
 root_cert_pem = b("""-----BEGIN CERTIFICATE-----
 MIIC7TCCAlagAwIBAgIIPQzE4MbeufQwDQYJKoZIhvcNAQEFBQAwWDELMAkGA1UE
@@ -957,7 +966,7 @@ class _PKeyInteractionTestsMixin:
         """
         request = self.signable()
         key = PKey()
-        self.assertRaises(ValueError, request.sign, key, 'MD5')
+        self.assertRaises(ValueError, request.sign, key, GOOD_DIGEST)
 
 
     def test_signWithPublicKey(self):
@@ -970,7 +979,7 @@ class _PKeyInteractionTestsMixin:
         key.generate_key(TYPE_RSA, 512)
         request.set_pubkey(key)
         pub = request.get_pubkey()
-        self.assertRaises(ValueError, request.sign, pub, 'MD5')
+        self.assertRaises(ValueError, request.sign, pub, GOOD_DIGEST)
 
 
     def test_signWithUnknownDigest(self):
@@ -981,7 +990,7 @@ class _PKeyInteractionTestsMixin:
         request = self.signable()
         key = PKey()
         key.generate_key(TYPE_RSA, 512)
-        self.assertRaises(ValueError, request.sign, key, "monkeys")
+        self.assertRaises(ValueError, request.sign, key, BAD_DIGEST)
 
 
     def test_sign(self):
@@ -993,7 +1002,7 @@ class _PKeyInteractionTestsMixin:
         key = PKey()
         key.generate_key(TYPE_RSA, 512)
         request.set_pubkey(key)
-        request.sign(key, 'MD5')
+        request.sign(key, GOOD_DIGEST)
         # If the type has a verify method, cover that too.
         if getattr(request, 'verify', None) is not None:
             pub = request.get_pubkey()
@@ -1146,7 +1155,7 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
         """
         request = X509Req()
         pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
-        request.sign(pkey, b"SHA1")
+        request.sign(pkey, GOOD_DIGEST)
         another_pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
         self.assertRaises(Error, request.verify, another_pkey)
 
@@ -1159,7 +1168,7 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
         """
         request = X509Req()
         pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
-        request.sign(pkey, b"SHA1")
+        request.sign(pkey, GOOD_DIGEST)
         self.assertEqual(True, request.verify(pkey))
 
 
@@ -1438,7 +1447,10 @@ WpOdIpB8KksUTCzV591Nr1wd
         """
         cert = X509()
         self.assertEqual(
-            cert.digest("md5"),
+            # This is MD5 instead of GOOD_DIGEST because the digest algorithm
+            # actually matters to the assertion (ie, another arbitrary, good
+            # digest will not product the same digest).
+            cert.digest("MD5"),
             b("A8:EB:07:F8:53:25:0A:F2:56:05:C5:A5:C4:C4:C7:15"))
 
 
@@ -1537,7 +1549,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         algorithm.
         """
         cert = X509()
-        self.assertRaises(ValueError, cert.digest, "monkeys")
+        self.assertRaises(ValueError, cert.digest, BAD_DIGEST)
 
 
     def test_get_subject_wrong_args(self):
@@ -1683,7 +1695,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         """
         # This certificate has been modified to indicate a bogus OID in the
         # signature algorithm field so that OpenSSL does not recognize it.
-        certPEM = """\
+        certPEM = b("""\
 -----BEGIN CERTIFICATE-----
 MIIC/zCCAmigAwIBAgIBATAGBgJ8BQUAMHsxCzAJBgNVBAYTAlNHMREwDwYDVQQK
 EwhNMkNyeXB0bzEUMBIGA1UECxMLTTJDcnlwdG8gQ0ExJDAiBgNVBAMTG00yQ3J5
@@ -1703,7 +1715,7 @@ jEY7xKfpQngV599k1xhl11IMqizDwu0855agrckg2MCTmOI9DZzDD77tAYb+Dk0O
 PEVk0Mk/V0aIsDE9bolfCi/i/QWZ3N8s5nTWMNyBBBmoSliWCm4jkkRZRD0ejgTN
 tgI5
 -----END CERTIFICATE-----
-"""
+""")
         cert = load_certificate(FILETYPE_PEM, certPEM)
         self.assertRaises(ValueError, cert.get_signature_algorithm)
 
@@ -1802,7 +1814,7 @@ class PKCS12Tests(TestCase):
         A :py:obj:`PKCS12` with only a private key can be exported using
         :py:obj:`PKCS12.export` and loaded again using :py:obj:`load_pkcs12`.
         """
-        passwd = 'blah'
+        passwd = b"blah"
         p12 = PKCS12()
         pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         p12.set_privatekey(pkey)
@@ -1829,7 +1841,7 @@ class PKCS12Tests(TestCase):
         A :py:obj:`PKCS12` with only a certificate can be exported using
         :py:obj:`PKCS12.export` and loaded again using :py:obj:`load_pkcs12`.
         """
-        passwd = 'blah'
+        passwd = b"blah"
         p12 = PKCS12()
         cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
         p12.set_certificate(cert)
@@ -1880,7 +1892,7 @@ class PKCS12Tests(TestCase):
         return p12
 
 
-    def check_recovery(self, p12_str, key=None, cert=None, ca=None, passwd='',
+    def check_recovery(self, p12_str, key=None, cert=None, ca=None, passwd=b"",
                        extra=()):
         """
         Use openssl program to confirm three components are recoverable from a
@@ -1888,18 +1900,18 @@ class PKCS12Tests(TestCase):
         """
         if key:
             recovered_key = _runopenssl(
-                p12_str, "pkcs12", '-nocerts', '-nodes', '-passin',
-                'pass:' + passwd, *extra)
+                p12_str, b"pkcs12", b"-nocerts", b"-nodes", b"-passin",
+                b"pass:" + passwd, *extra)
             self.assertEqual(recovered_key[-len(key):], key)
         if cert:
             recovered_cert = _runopenssl(
-                p12_str, "pkcs12", '-clcerts', '-nodes', '-passin',
-                'pass:' + passwd, '-nokeys', *extra)
+                p12_str, b"pkcs12", b"-clcerts", b"-nodes", b"-passin",
+                b"pass:" + passwd, b"-nokeys", *extra)
             self.assertEqual(recovered_cert[-len(cert):], cert)
         if ca:
             recovered_cert = _runopenssl(
-                p12_str, "pkcs12", '-cacerts', '-nodes', '-passin',
-                'pass:' + passwd, '-nokeys', *extra)
+                p12_str, b"pkcs12", b"-cacerts", b"-nodes", b"-passin",
+                b"pass:" + passwd, b"-nokeys", *extra)
             self.assertEqual(recovered_cert[-len(ca):], ca)
 
 
@@ -1908,10 +1920,10 @@ class PKCS12Tests(TestCase):
         A PKCS12 string generated using the openssl command line can be loaded
         with :py:obj:`load_pkcs12` and its components extracted and examined.
         """
-        passwd = 'whatever'
+        passwd = b"whatever"
         pem = client_key_pem + client_cert_pem
         p12_str = _runopenssl(
-            pem, "pkcs12", '-export', '-clcerts', '-passout', 'pass:' + passwd)
+            pem, b"pkcs12", b"-export", b"-clcerts", b"-passout", b"pass:" + passwd)
         p12 = load_pkcs12(p12_str, passwd)
         # verify
         self.assertTrue(isinstance(p12, PKCS12))
@@ -1928,8 +1940,8 @@ class PKCS12Tests(TestCase):
         which is not a PKCS12 dump.
         """
         passwd = 'whatever'
-        e = self.assertRaises(Error, load_pkcs12, 'fruit loops', passwd)
-        self.assertEqual( e.args[0][0][0], 'asn1 encoding routines')
+        e = self.assertRaises(Error, load_pkcs12, b'fruit loops', passwd)
+        self.assertEqual( e.args[0][0][0], b'asn1 encoding routines')
         self.assertEqual( len(e.args[0][0]), 3)
 
 
@@ -1959,7 +1971,7 @@ class PKCS12Tests(TestCase):
         :py:obj:`PKCS12.get_friendlyname` and :py:obj:`PKCS12_set_friendlyname`, and a
         :py:obj:`PKCS12` with a friendly name set can be dumped with :py:obj:`PKCS12.export`.
         """
-        passwd = 'Dogmeat[]{}!@#$%^&*()~`?/.,<>-_+=";:'
+        passwd = b'Dogmeat[]{}!@#$%^&*()~`?/.,<>-_+=";:'
         p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
         for friendly_name in [b('Serverlicious'), None, b('###')]:
             p12.set_friendlyname(friendly_name)
@@ -1983,7 +1995,7 @@ class PKCS12Tests(TestCase):
         export.
         """
         p12 = self.gen_pkcs12(client_cert_pem, client_key_pem, root_cert_pem)
-        passwd = ''
+        passwd = b""
         dumped_p12_empty = p12.export(iter=2, maciter=0, passphrase=passwd)
         dumped_p12_none = p12.export(iter=3, maciter=2, passphrase=None)
         dumped_p12_nopw = p12.export(iter=9, maciter=4)
@@ -2008,19 +2020,19 @@ class PKCS12Tests(TestCase):
         Exporting a PKCS12 with a :py:obj:`maciter` of ``-1`` excludes the MAC
         entirely.
         """
-        passwd = 'Lake Michigan'
+        passwd = b"Lake Michigan"
         p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
         dumped_p12 = p12.export(maciter=-1, passphrase=passwd, iter=2)
         self.check_recovery(
             dumped_p12, key=server_key_pem, cert=server_cert_pem,
-            passwd=passwd, extra=('-nomacver',))
+            passwd=passwd, extra=(b"-nomacver",))
 
 
     def test_load_without_mac(self):
         """
         Loading a PKCS12 without a MAC does something other than crash.
         """
-        passwd = 'Lake Michigan'
+        passwd = b"Lake Michigan"
         p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
         dumped_p12 = p12.export(maciter=-1, passphrase=passwd, iter=2)
         try:
@@ -2058,7 +2070,7 @@ class PKCS12Tests(TestCase):
         p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
         dumped_p12 = p12.export()  # no args
         self.check_recovery(
-            dumped_p12, key=server_key_pem, cert=server_cert_pem, passwd='')
+            dumped_p12, key=server_key_pem, cert=server_cert_pem, passwd=b"")
 
 
     def test_key_cert_mismatch(self):
@@ -2072,8 +2084,8 @@ class PKCS12Tests(TestCase):
 
 
 # These quoting functions taken directly from Twisted's twisted.python.win32.
-_cmdLineQuoteRe = re.compile(r'(\\*)"')
-_cmdLineQuoteRe2 = re.compile(r'(\\+)\Z')
+_cmdLineQuoteRe = re.compile(br'(\\*)"')
+_cmdLineQuoteRe2 = re.compile(br'(\\+)\Z')
 def cmdLineQuote(s):
     """
     Internal method for quoting a single command-line argument.
@@ -2087,8 +2099,8 @@ def cmdLineQuote(s):
     :rtype: :py:obj:`str`
     :return: A cmd.exe-style quoted string
     """
-    s = _cmdLineQuoteRe2.sub(r"\1\1", _cmdLineQuoteRe.sub(r'\1\1\\"', s))
-    return '"%s"' % s
+    s = _cmdLineQuoteRe2.sub(br"\1\1", _cmdLineQuoteRe.sub(br'\1\1\\"', s))
+    return b'"' + s + b'"'
 
 
 
@@ -2104,7 +2116,7 @@ def quoteArguments(arguments):
     :rtype: :py:obj:`str`
     :return: A space-delimited string containing quoted versions of :py:obj:`arguments`
     """
-    return ' '.join(map(cmdLineQuote, arguments))
+    return b' '.join(map(cmdLineQuote, arguments))
 
 
 
@@ -2114,11 +2126,12 @@ def _runopenssl(pem, *args):
     the given PEM to its stdin.  Not safe for quotes.
     """
     if os.name == 'posix':
-        command = "openssl " + " ".join([
-                "'%s'" % (arg.replace("'", "'\\''"),) for arg in args])
+        command = b"openssl " + b" ".join([
+                (b"'" + arg.replace(b"'", b"'\\''") + b"'")
+                for arg in args])
     else:
-        command = "openssl " + quoteArguments(args)
-    proc = Popen(command, shell=True, stdin=PIPE, stdout=PIPE)
+        command = b"openssl " + quoteArguments(args)
+    proc = Popen(native(command), shell=True, stdin=PIPE, stdout=PIPE)
     proc.stdin.write(pem)
     proc.stdin.close()
     output = proc.stdout.read()
@@ -2254,7 +2267,7 @@ class FunctionTests(TestCase):
         self.assertRaises(TypeError, dump_privatekey)
         # If cipher name is given, password is required.
         self.assertRaises(
-            ValueError, dump_privatekey, FILETYPE_PEM, PKey(), "foo")
+            TypeError, dump_privatekey, FILETYPE_PEM, PKey(), GOOD_CIPHER)
 
 
     def test_dump_privatekey_unknown_cipher(self):
@@ -2266,7 +2279,7 @@ class FunctionTests(TestCase):
         key.generate_key(TYPE_RSA, 512)
         self.assertRaises(
             ValueError, dump_privatekey,
-            FILETYPE_PEM, key, "zippers", "passphrase")
+            FILETYPE_PEM, key, BAD_CIPHER, "passphrase")
 
 
     def test_dump_privatekey_invalid_passphrase_type(self):
@@ -2278,7 +2291,7 @@ class FunctionTests(TestCase):
         key.generate_key(TYPE_RSA, 512)
         self.assertRaises(
             TypeError,
-            dump_privatekey, FILETYPE_PEM, key, "blowfish", object())
+            dump_privatekey, FILETYPE_PEM, key, GOOD_CIPHER, object())
 
 
     def test_dump_privatekey_invalid_filetype(self):
@@ -2309,8 +2322,8 @@ class FunctionTests(TestCase):
         """
         passphrase = b("foo")
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
-        pem = dump_privatekey(FILETYPE_PEM, key, "blowfish", passphrase)
-        self.assertTrue(isinstance(pem, bytes))
+        pem = dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, passphrase)
+        self.assertTrue(isinstance(pem, binary_type))
         loadedKey = load_privatekey(FILETYPE_PEM, pem, passphrase)
         self.assertTrue(isinstance(loadedKey, PKeyType))
         self.assertEqual(loadedKey.type(), key.type())
@@ -2325,7 +2338,7 @@ class FunctionTests(TestCase):
         """
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         self.assertRaises(ValueError,
-            dump_privatekey, FILETYPE_ASN1, key, "blowfish", "secret")
+            dump_privatekey, FILETYPE_ASN1, key, GOOD_CIPHER, "secret")
 
 
     def test_dump_certificate(self):
@@ -2337,13 +2350,13 @@ class FunctionTests(TestCase):
         dumped_pem = dump_certificate(FILETYPE_PEM, cert)
         self.assertEqual(dumped_pem, cleartextCertificatePEM)
         dumped_der = dump_certificate(FILETYPE_ASN1, cert)
-        good_der = _runopenssl(dumped_pem, "x509", "-outform", "DER")
+        good_der = _runopenssl(dumped_pem, b"x509", b"-outform", b"DER")
         self.assertEqual(dumped_der, good_der)
         cert2 = load_certificate(FILETYPE_ASN1, dumped_der)
         dumped_pem2 = dump_certificate(FILETYPE_PEM, cert2)
         self.assertEqual(dumped_pem2, cleartextCertificatePEM)
         dumped_text = dump_certificate(FILETYPE_TEXT, cert)
-        good_text = _runopenssl(dumped_pem, "x509", "-noout", "-text")
+        good_text = _runopenssl(dumped_pem, b"x509", b"-noout", b"-text")
         self.assertEqual(dumped_text, good_text)
 
 
@@ -2366,7 +2379,7 @@ class FunctionTests(TestCase):
 
         dumped_der = dump_privatekey(FILETYPE_ASN1, key)
         # XXX This OpenSSL call writes "writing RSA key" to standard out.  Sad.
-        good_der = _runopenssl(dumped_pem, "rsa", "-outform", "DER")
+        good_der = _runopenssl(dumped_pem, b"rsa", b"-outform", b"DER")
         self.assertEqual(dumped_der, good_der)
         key2 = load_privatekey(FILETYPE_ASN1, dumped_der)
         dumped_pem2 = dump_privatekey(FILETYPE_PEM, key2)
@@ -2381,7 +2394,7 @@ class FunctionTests(TestCase):
         dumped_pem = dump_privatekey(FILETYPE_PEM, key)
 
         dumped_text = dump_privatekey(FILETYPE_TEXT, key)
-        good_text = _runopenssl(dumped_pem, "rsa", "-noout", "-text")
+        good_text = _runopenssl(dumped_pem, b"rsa", b"-noout", b"-text")
         self.assertEqual(dumped_text, good_text)
 
 
@@ -2393,13 +2406,13 @@ class FunctionTests(TestCase):
         dumped_pem = dump_certificate_request(FILETYPE_PEM, req)
         self.assertEqual(dumped_pem, cleartextCertificateRequestPEM)
         dumped_der = dump_certificate_request(FILETYPE_ASN1, req)
-        good_der = _runopenssl(dumped_pem, "req", "-outform", "DER")
+        good_der = _runopenssl(dumped_pem, b"req", b"-outform", b"DER")
         self.assertEqual(dumped_der, good_der)
         req2 = load_certificate_request(FILETYPE_ASN1, dumped_der)
         dumped_pem2 = dump_certificate_request(FILETYPE_PEM, req2)
         self.assertEqual(dumped_pem2, cleartextCertificateRequestPEM)
         dumped_text = dump_certificate_request(FILETYPE_TEXT, req)
-        good_text = _runopenssl(dumped_pem, "req", "-noout", "-text")
+        good_text = _runopenssl(dumped_pem, b"req", b"-noout", b"-text")
         self.assertEqual(dumped_text, good_text)
         self.assertRaises(ValueError, dump_certificate_request, 100, req)
 
@@ -2415,8 +2428,8 @@ class FunctionTests(TestCase):
             called.append(writing)
             return passphrase
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
-        pem = dump_privatekey(FILETYPE_PEM, key, "blowfish", cb)
-        self.assertTrue(isinstance(pem, bytes))
+        pem = dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, cb)
+        self.assertTrue(isinstance(pem, binary_type))
         self.assertEqual(called, [True])
         loadedKey = load_privatekey(FILETYPE_PEM, pem, passphrase)
         self.assertTrue(isinstance(loadedKey, PKeyType))
@@ -2434,7 +2447,7 @@ class FunctionTests(TestCase):
 
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         self.assertRaises(ArithmeticError,
-            dump_privatekey, FILETYPE_PEM, key, "blowfish", cb)
+            dump_privatekey, FILETYPE_PEM, key, GOOD_CIPHER, cb)
 
 
     def test_dump_privatekey_passphraseCallbackLength(self):
@@ -2447,7 +2460,7 @@ class FunctionTests(TestCase):
 
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         self.assertRaises(ValueError,
-            dump_privatekey, FILETYPE_PEM, key, "blowfish", cb)
+            dump_privatekey, FILETYPE_PEM, key, GOOD_CIPHER, cb)
 
 
     def test_load_pkcs7_data(self):
@@ -2464,7 +2477,7 @@ class FunctionTests(TestCase):
         If the data passed to :py:obj:`load_pkcs7_data` is invalid,
         :py:obj:`Error` is raised.
         """
-        self.assertRaises(Error, load_pkcs7_data, FILETYPE_PEM, "foo")
+        self.assertRaises(Error, load_pkcs7_data, FILETYPE_PEM, b"foo")
 
 
 
@@ -2641,7 +2654,7 @@ class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):
         """
         nspki = NetscapeSPKI()
         blob = nspki.b64_encode()
-        self.assertTrue(isinstance(blob, bytes))
+        self.assertTrue(isinstance(blob, binary_type))
 
 
 
@@ -2799,14 +2812,14 @@ class CRLTests(TestCase):
 
         # PEM format
         dumped_crl = crl.export(self.cert, self.pkey, days=20)
-        text = _runopenssl(dumped_crl, "crl", "-noout", "-text")
+        text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
         text.index(b('Serial Number: 03AB'))
         text.index(b('Superseded'))
         text.index(b('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA'))
 
         # DER format
         dumped_crl = crl.export(self.cert, self.pkey, FILETYPE_ASN1)
-        text = _runopenssl(dumped_crl, "crl", "-noout", "-text", "-inform", "DER")
+        text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text", b"-inform", b"DER")
         text.index(b('Serial Number: 03AB'))
         text.index(b('Superseded'))
         text.index(b('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA'))
@@ -2927,7 +2940,7 @@ class CRLTests(TestCase):
         self.assertEqual(revs[1].get_serial(), b('0100'))
         self.assertEqual(revs[1].get_reason(), b('Superseded'))
 
-        der = _runopenssl(crlData, "crl", "-outform", "DER")
+        der = _runopenssl(crlData, b"crl", b"-outform", b"DER")
         crl = load_crl(FILETYPE_ASN1, der)
         revs = crl.get_revoked()
         self.assertEqual(len(revs), 2)
@@ -2960,7 +2973,7 @@ class CRLTests(TestCase):
         Calling :py:obj:`OpenSSL.crypto.load_crl` with file data which can't
         be loaded raises a :py:obj:`OpenSSL.crypto.Error`.
         """
-        self.assertRaises(Error, load_crl, FILETYPE_PEM, "hello, world")
+        self.assertRaises(Error, load_crl, FILETYPE_PEM, b"hello, world")
 
 
 

@@ -6,6 +6,8 @@ See the file RATIONALE for a short explanation of why this module was written.
 
 from functools import partial
 
+from six import integer_types as _integer_types
+
 from OpenSSL._util import (
     ffi as _ffi,
     lib as _lib,
@@ -30,7 +32,7 @@ def bytes(num_bytes):
     :param num_bytes: The number of bytes to fetch
     :return: A string of random bytes
     """
-    if not isinstance(num_bytes, (int, long)):
+    if not isinstance(num_bytes, _integer_types):
         raise TypeError("num_bytes must be an integer")
 
     if num_bytes < 0:
@@ -102,8 +104,8 @@ def egd(path, bytes=_unspecified):
     :returns: The number of bytes read (NB: a value of 0 isn't necessarily an
               error, check rand.status())
     """
-    if not isinstance(path, str):
-        raise TypeError("path must be a string")
+    if not isinstance(path, _builtin_bytes):
+        raise TypeError("path must be a byte string")
 
     if bytes is _unspecified:
         bytes = 255
@@ -134,7 +136,7 @@ def load_file(filename, maxbytes=_unspecified):
                      to read the entire file
     :return: The number of bytes read
     """
-    if not isinstance(filename, str):
+    if not isinstance(filename, _builtin_bytes):
         raise TypeError("filename must be a string")
 
     if maxbytes is _unspecified:
@@ -153,7 +155,7 @@ def write_file(filename):
     :param filename: The file to write data to
     :return: The number of bytes written
     """
-    if not isinstance(filename, str):
+    if not isinstance(filename, _builtin_bytes):
         raise TypeError("filename must be a string")
 
     return _lib.RAND_write_file(filename)
