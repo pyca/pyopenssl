@@ -23,7 +23,7 @@ def exception_from_error_queue(exceptionType):
 def native(s):
     """
     Convert :py:class:`bytes` or :py:class:`unicode` to the native
-    :py:class:`str` type, using UTF-9 encoding if conversion is necessary.
+    :py:class:`str` type, using UTF-8 encoding if conversion is necessary.
 
     :raise UnicodeError: The input string is not UTF-8 decodeable.
 
