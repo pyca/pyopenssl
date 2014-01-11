@@ -5,22 +5,11 @@ os:
   - osx
 
 python:
-  - "pypy"
-  - "2.6"
   - "2.7"
-  - "3.2"
   - "3.3"
 
-env:
-  - TOX_ENV=pypy
-  - TOX_ENV=py26
-  - TOX_ENV=py27
-  - TOX_ENV=py32
-  - TOX_ENV=py33
-
 install:
-  - pip install tox
+  - pip install unittest2
 
 script:
-  - tox -e "${TOX_ENV}"
-
+  - python -m unittest2 OpenSSL.test.test_rand OpenSSL.test.test_crypto OpenSSL.test.test_ssl
