@@ -5,7 +5,7 @@
 Unit tests for :py:obj:`OpenSSL.SSL`.
 """
 
-from gc import collect
+from gc import collect, get_referrers
 from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE
 from sys import platform, version_info
 from socket import SHUT_RDWR, error, socket
@@ -1139,6 +1139,7 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
         self.assertRaises(
             TypeError, context.set_tlsext_servername_callback, 1, 2)
 
+
     def test_old_callback_forgotten(self):
         """
         If :py:obj:`Context.set_tlsext_servername_callback` is used to specify a new
@@ -1158,7 +1159,13 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
 
         context.set_tlsext_servername_callback(replacement)
         collect()
-        self.assertIdentical(None, tracker())
+
+        callback = tracker()
+        if callback is not None:
+            referrers = get_referrers(callback)
+            referrers.remove(locals())
+            if referrers:
+                self.fail("Some references remain: %r" % (referrers,))
 
 
     def test_no_servername(self):
