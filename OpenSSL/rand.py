@@ -140,7 +140,7 @@ def load_file(filename, maxbytes=_unspecified):
                      to read the entire file
     :return: The number of bytes read
     """
-    if not isinstance(filename, str):
+    if not isinstance(filename, _builtin_bytes):
         raise TypeError("filename must be a string")
 
     if maxbytes is _unspecified:
@@ -159,7 +159,7 @@ def write_file(filename):
     :param filename: The file to write data to
     :return: The number of bytes written
     """
-    if not isinstance(filename, str):
+    if not isinstance(filename, _builtin_bytes):
         raise TypeError("filename must be a string")
 
     return _lib.RAND_write_file(filename)
