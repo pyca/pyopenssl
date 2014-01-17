@@ -127,6 +127,8 @@ NID_X9_62_prime239v2 = _lib.NID_X9_62_prime239v2
 NID_X9_62_prime239v3 = _lib.NID_X9_62_prime239v3
 NID_X9_62_prime256v1 = _lib.NID_X9_62_prime256v1
 
+OPENSSL_NO_EC = not _lib.Cryptography_HAS_EC
+
 
 class Error(Exception):
     """

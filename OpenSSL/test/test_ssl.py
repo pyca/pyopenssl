@@ -33,6 +33,7 @@ from OpenSSL.SSL import (
     SESS_CACHE_OFF, SESS_CACHE_CLIENT, SESS_CACHE_SERVER, SESS_CACHE_BOTH,
     SESS_CACHE_NO_AUTO_CLEAR, SESS_CACHE_NO_INTERNAL_LOOKUP,
     SESS_CACHE_NO_INTERNAL_STORE, SESS_CACHE_NO_INTERNAL)
+from OpenSSL.SSL import NID_X9_62_prime256v1, OPENSSL_NO_EC
 
 from OpenSSL.SSL import (
     Error, SysCallError, WantReadError, WantWriteError, ZeroReturnError)
@@ -1055,6 +1056,17 @@ class ContextTests(TestCase, _LoopbackMixin):
         dhfile.close()
         context.load_tmp_dh(dhfilename)
         # XXX What should I assert here? -exarkun
+
+
+    if not OPENSSL_NO_EC:
+        def test_set_tmp_ecdh_by_curve_name(self):
+            """
+            :py:obj:`Context.set_tmp_ecdh_by_curve_name` sets the Eliptical
+            Curve for Diffie-Hellman by the named curve.
+            """
+            context = Context(TLSv1_METHOD)
+            context.set_tmp_ecdh_by_curve_name(NID_X9_62_prime256v1)
+            # XXX What should I assert here? -alex
 
 
     def test_set_cipher_list(self):
