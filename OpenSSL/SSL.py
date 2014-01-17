@@ -595,7 +595,7 @@ class Context(object):
         Configure this connection to people to use Elliptical Curve
         Diffie-Hellman key exchanges.
 
-        :param curve_name: One of the named curve constsants.
+        :param curve_name: One of the named curve constants.
         :return: None
         """
         if _lib.Cryptography_HAS_EC:
