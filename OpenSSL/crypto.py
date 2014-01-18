@@ -1202,6 +1202,9 @@ def load_certificate(type, buffer):
 
     :return: The X509 object
     """
+    if isinstance(buffer, _text_type):
+        buffer = buffer.encode("ascii")
+
     bio = _new_mem_buf(buffer)
 
     if type == FILETYPE_PEM:
@@ -1988,6 +1991,9 @@ def load_privatekey(type, buffer, passphrase=None):
 
     :return: The PKey object
     """
+    if isinstance(buffer, _text_type):
+        buffer = buffer.encode("ascii")
+
     bio = _new_mem_buf(buffer)
 
     helper = _PassphraseHelper(type, passphrase)
@@ -2044,6 +2050,9 @@ def load_certificate_request(type, buffer):
     :param buffer: The buffer the certificate request is stored in
     :return: The X509Req object
     """
+    if isinstance(buffer, _text_type):
+        buffer = buffer.encode("ascii")
+
     bio = _new_mem_buf(buffer)
 
     if type == FILETYPE_PEM:
@@ -2137,6 +2146,9 @@ def load_crl(type, buffer):
 
     :return: The PKey object
     """
+    if isinstance(buffer, _text_type):
+        buffer = buffer.encode("ascii")
+
     bio = _new_mem_buf(buffer)
 
     if type == FILETYPE_PEM:
@@ -2163,6 +2175,9 @@ def load_pkcs7_data(type, buffer):
     :param buffer: The buffer with the pkcs7 data.
     :return: The PKCS7 object
     """
+    if isinstance(buffer, _text_type):
+        buffer = buffer.encode("ascii")
+
     bio = _new_mem_buf(buffer)
 
     if type == FILETYPE_PEM:
@@ -2191,6 +2206,9 @@ def load_pkcs12(buffer, passphrase):
     :param passphrase: (Optional) The password to decrypt the PKCS12 lump
     :returns: The PKCS12 object
     """
+    if isinstance(buffer, _text_type):
+        buffer = buffer.encode("ascii")
+
     bio = _new_mem_buf(buffer)
 
     p12 = _lib.d2i_PKCS12_bio(bio, _ffi.NULL)
