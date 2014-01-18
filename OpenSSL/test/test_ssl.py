@@ -1057,13 +1057,26 @@ class ContextTests(TestCase, _LoopbackMixin):
         # XXX What should I assert here? -exarkun
 
 
-    def test_set_cipher_list(self):
+    def test_set_cipher_list_bytes(self):
         """
-        :py:obj:`Context.set_cipher_list` accepts a :py:obj:`str` naming the ciphers which
-        connections created with the context object will be able to choose from.
+        :py:obj:`Context.set_cipher_list` accepts a :py:obj:`bytes` naming the
+        ciphers which connections created with the context object will be able
+        to choose from.
         """
         context = Context(TLSv1_METHOD)
         context.set_cipher_list(b"hello world:EXP-RC4-MD5")
+        conn = Connection(context, None)
+        self.assertEquals(conn.get_cipher_list(), ["EXP-RC4-MD5"])
+
+
+    def test_set_cipher_list_text(self):
+        """
+        :py:obj:`Context.set_cipher_list` accepts a :py:obj:`unicode` naming
+        the ciphers which connections created with the context object will be
+        able to choose from.
+        """
+        context = Context(TLSv1_METHOD)
+        context.set_cipher_list(u"hello world:EXP-RC4-MD5")
         conn = Connection(context, None)
         self.assertEquals(conn.get_cipher_list(), ["EXP-RC4-MD5"])
 
@@ -1080,7 +1093,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, context.set_cipher_list, object())
         self.assertRaises(TypeError, context.set_cipher_list, b"EXP-RC4-MD5", object())
 
-        self.assertRaises(Error, context.set_cipher_list, b"imaginary-cipher")
+        self.assertRaises(Error, context.set_cipher_list, "imaginary-cipher")
 
 
     def test_set_session_cache_mode_wrong_args(self):

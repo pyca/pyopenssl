@@ -4,6 +4,9 @@ from itertools import count
 from weakref import WeakValueDictionary
 from errno import errorcode
 
+from six import text_type as _text_type
+
+
 from OpenSSL._util import (
     ffi as _ffi,
     lib as _lib,
@@ -588,8 +591,11 @@ class Context(object):
         :param cipher_list: A cipher list, see ciphers(1)
         :return: None
         """
+        if isinstance(cipher_list, _text_type):
+            cipher_list = cipher_list.encode("ascii")
+
         if not isinstance(cipher_list, bytes):
-            raise TypeError("cipher_list must be a byte string")
+            raise TypeError("cipher_list must be bytes or unicode")
 
         result = _lib.SSL_CTX_set_cipher_list(self._context, cipher_list)
         if not result:
