@@ -1083,9 +1083,9 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_set_cipher_list_wrong_args(self):
         """
-        :py:obj:`Context.set_cipher_list` raises :py:obj:`TypeError` when passed
-        zero arguments or more than one argument or when passed a non-byte
-        string single argument and raises :py:obj:`OpenSSL.SSL.Error` when
+        :py:obj:`Context.set_cipher_list` raises :py:obj:`TypeError` when
+        passed zero arguments or more than one argument or when passed a
+        non-string single argument and raises :py:obj:`OpenSSL.SSL.Error` when
         passed an incorrect cipher list string.
         """
         context = Context(TLSv1_METHOD)
