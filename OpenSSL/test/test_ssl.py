@@ -14,6 +14,8 @@ from os.path import join
 from unittest import main
 from weakref import ref
 
+from six import u
+
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
 from OpenSSL.crypto import PKey, X509, X509Extension, X509Store
 from OpenSSL.crypto import dump_privatekey, load_privatekey
@@ -1076,7 +1078,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         able to choose from.
         """
         context = Context(TLSv1_METHOD)
-        context.set_cipher_list(u"hello world:EXP-RC4-MD5")
+        context.set_cipher_list(u("hello world:EXP-RC4-MD5"))
         conn = Connection(context, None)
         self.assertEquals(conn.get_cipher_list(), ["EXP-RC4-MD5"])
 
