@@ -2290,3 +2290,6 @@ else:
 # OpenSSL library (and is linked against the same one that cryptography is
 # using)).
 _lib.OpenSSL_add_all_algorithms()
+
+# This is similar but exercised mainly by exception_from_error_queue.
+_lib.ERR_load_crypto_strings()

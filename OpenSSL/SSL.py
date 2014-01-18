@@ -1408,3 +1408,17 @@ class Connection(object):
             _raise_current_error()
 
 ConnectionType = Connection
+
+# There are no direct unit tests for this initialization.  It is tested
+# indirectly since it is necessary for all proper error reporting (via
+# exception_from_error_queue).
+#
+# Thus OpenSSL.test.test_crypto.FunctionTests.test_dump_privatekey_passphrase
+# and some other similar tests may fail without this (though they may not if
+# the Python runtime has already done some initialization of the underlying
+# OpenSSL library (and is linked against the same one that cryptography is
+# using)).
+_lib.ERR_load_SSL_strings()
+
+# This is similar but exercised more by the Context initializer.
+_lib.SSL_library_init()
