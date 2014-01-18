@@ -359,8 +359,12 @@ class Context(object):
         :param certfile: The name of the certificate chain file
         :return: None
         """
+        if isinstance(certfile, _text_type):
+            # Perhaps sys.getfilesystemencoding() could be better?
+            certfile = certfile.encode("utf-8")
+
         if not isinstance(certfile, bytes):
-            raise TypeError("certfile must be a byte string")
+            raise TypeError("certfile must be bytes or unicode")
 
         result = _lib.SSL_CTX_use_certificate_chain_file(self._context, certfile)
         if not result:

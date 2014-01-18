@@ -960,11 +960,11 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         # Write out the chain file.
         chainFile = self.mktemp()
-        fObj = open(chainFile, 'w')
+        fObj = open(chainFile, 'wb')
         # Most specific to least general.
-        fObj.write(dump_certificate(FILETYPE_PEM, scert).decode('ascii'))
-        fObj.write(dump_certificate(FILETYPE_PEM, icert).decode('ascii'))
-        fObj.write(dump_certificate(FILETYPE_PEM, cacert).decode('ascii'))
+        fObj.write(dump_certificate(FILETYPE_PEM, scert))
+        fObj.write(dump_certificate(FILETYPE_PEM, icert))
+        fObj.write(dump_certificate(FILETYPE_PEM, cacert))
         fObj.close()
 
         serverContext = Context(TLSv1_METHOD)
