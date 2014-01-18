@@ -2309,5 +2309,6 @@ else:
 # using)).
 _lib.OpenSSL_add_all_algorithms()
 
-# This is similar but exercised mainly by exception_from_error_queue.
-_lib.ERR_load_crypto_strings()
+# This is similar but exercised mainly by exception_from_error_queue.  It calls
+# both ERR_load_crypto_strings() and ERR_load_SSL_strings().
+_lib.SSL_load_error_strings()
