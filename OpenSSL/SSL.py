@@ -441,6 +441,10 @@ class Context(object):
         :param filetype: (optional) The encoding of the file, default is PEM
         :return: None
         """
+        if isinstance(keyfile, _text_type):
+            # Perhaps sys.getfilesystemencoding() could be better?
+            keyfile = keyfile.encode("utf-8")
+
         if not isinstance(keyfile, bytes):
             raise TypeError("keyfile must be a byte string")
 
