@@ -4,6 +4,9 @@ from itertools import count
 from weakref import WeakValueDictionary
 from errno import errorcode
 
+from six import text_type as _text_type
+
+
 from OpenSSL._util import (
     ffi as _ffi,
     lib as _lib,
@@ -356,8 +359,12 @@ class Context(object):
         :param certfile: The name of the certificate chain file
         :return: None
         """
+        if isinstance(certfile, _text_type):
+            # Perhaps sys.getfilesystemencoding() could be better?
+            certfile = certfile.encode("utf-8")
+
         if not isinstance(certfile, bytes):
-            raise TypeError("certfile must be a byte string")
+            raise TypeError("certfile must be bytes or unicode")
 
         result = _lib.SSL_CTX_use_certificate_chain_file(self._context, certfile)
         if not result:
@@ -372,8 +379,11 @@ class Context(object):
         :param filetype: (optional) The encoding of the file, default is PEM
         :return: None
         """
+        if isinstance(certfile, _text_type):
+            # Perhaps sys.getfilesystemencoding() could be better?
+            certfile = certfile.encode("utf-8")
         if not isinstance(certfile, bytes):
-            raise TypeError("certfile must be a byte string")
+            raise TypeError("certfile must be bytes or unicode")
         if not isinstance(filetype, int):
             raise TypeError("filetype must be an integer")
 
@@ -431,6 +441,10 @@ class Context(object):
         :param filetype: (optional) The encoding of the file, default is PEM
         :return: None
         """
+        if isinstance(keyfile, _text_type):
+            # Perhaps sys.getfilesystemencoding() could be better?
+            keyfile = keyfile.encode("utf-8")
+
         if not isinstance(keyfile, bytes):
             raise TypeError("keyfile must be a byte string")
 
@@ -588,8 +602,11 @@ class Context(object):
         :param cipher_list: A cipher list, see ciphers(1)
         :return: None
         """
+        if isinstance(cipher_list, _text_type):
+            cipher_list = cipher_list.encode("ascii")
+
         if not isinstance(cipher_list, bytes):
-            raise TypeError("cipher_list must be a byte string")
+            raise TypeError("cipher_list must be bytes or unicode")
 
         result = _lib.SSL_CTX_set_cipher_list(self._context, cipher_list)
         if not result:
@@ -1402,3 +1419,7 @@ class Connection(object):
             _raise_current_error()
 
 ConnectionType = Connection
+
+# This is similar to the initialization calls at the end of OpenSSL/crypto.py
+# but is exercised mostly by the Context initializer.
+_lib.SSL_library_init()
