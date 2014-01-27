@@ -196,16 +196,15 @@ class _VerifyHelper(object):
 
 def _asFileDescriptor(obj):
     fd = None
-
-    if not isinstance(obj, int):
+    if not isinstance(obj, (int, long)):
         meth = getattr(obj, "fileno", None)
         if meth is not None:
             obj = meth()
 
-    if isinstance(obj, int):
+    if isinstance(obj, (int, long)):
         fd = obj
 
-    if not isinstance(fd, int):
+    if not isinstance(fd, (int, long)):
         raise TypeError("argument must be an int, or have a fileno() method.")
     elif fd < 0:
         raise ValueError(
