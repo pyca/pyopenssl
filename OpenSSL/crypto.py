@@ -697,6 +697,21 @@ class X509Req(object):
             _raise_current_error()
 
 
+    def get_extensions(self):
+      """
+      Get extensions to the request.
+
+      :return: A list of X509Extension objects.
+      """
+      exts = []
+      _exts = _lib.X509_REQ_get_extensions(self._req)
+      for i in range(0, _lib.sk_X509_EXTENSION_num(_exts)):
+          ext = X509Extension.__new__(X509Extension)
+          ext._extension = _lib.sk_X509_EXTENSION_value(_exts, i)
+          exts.append(ext)
+      return exts
+
+
     def sign(self, pkey, digest):
         """
         Sign the certificate request using the supplied key and digest
