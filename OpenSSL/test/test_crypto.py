@@ -1108,7 +1108,11 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
         request = X509Req()
         request.add_extensions([
                 X509Extension(b('basicConstraints'), True, b('CA:false'))])
-        # XXX Add get_extensions so the rest of this unit test can be written.
+        exts = request.get_extensions()
+        self.assertEquals(len(exts), 1)
+        self.assertEquals(exts[0].get_short_name(), 'basicConstraints')
+        self.assertEquals(exts[0].get_critical(), 1)
+        self.assertEquals(exts[0].get_data(), 0)
 
 
     def test_add_extensions_wrong_args(self):
