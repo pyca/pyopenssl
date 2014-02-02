@@ -17,7 +17,11 @@ import sys
 from OpenSSL._util import exception_from_error_queue
 from OpenSSL.crypto import Error
 
-import memdbg
+try:
+    import memdbg
+except Exception:
+    class _memdbg(object): heap = None
+    memdbg = _memdbg()
 
 from OpenSSL._util import ffi, lib, byte_string as b
 
