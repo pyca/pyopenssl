@@ -702,11 +702,11 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         handshake(clientSSL, serverSSL)
 
-        # The callback must always be called with the connection it is a
-        # callback for as the first argument.  It would probably be better to
-        # split this into separate tests for client and server side info
-        # callbacks.  It would also be good to at least assert *something*
-        # about `where` and `ret`.
+        # The callback must always be called with a Connection instance as the
+        # first argument.  It would probably be better to split this into
+        # separate tests for client and server side info callbacks so we could
+        # assert it is called with the right Connection instance.  It would
+        # also be good to assert *something* about `where` and `ret`.
         notConnections = [
             conn for (conn, where, ret) in called
             if not isinstance(conn, Connection)]
