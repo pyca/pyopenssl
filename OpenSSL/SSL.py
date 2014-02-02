@@ -1,4 +1,4 @@
-
+from sys import platform
 from functools import wraps, partial
 from itertools import count
 from weakref import WeakValueDictionary
@@ -856,8 +856,11 @@ class Connection(object):
         elif error == _lib.SSL_ERROR_SYSCALL:
             if _lib.ERR_peek_error() == 0:
                 if result < 0:
-                    raise SysCallError(
-                        _ffi.errno, errorcode[_ffi.errno])
+                    if platform == "win32":
+                        errno = _ffi.getwinerror()[0]
+                    else:
+                        errno = _ffi.errno
+                    raise SysCallError(errno, errorcode[errno])
                 else:
                     raise SysCallError(-1, "Unexpected EOF")
             else:
