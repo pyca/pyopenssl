@@ -700,15 +700,19 @@ class ContextTests(TestCase, _LoopbackMixin):
         serverSSL = Connection(context, server)
         serverSSL.set_accept_state()
 
-        while not called:
-            for ssl in clientSSL, serverSSL:
-                try:
-                    ssl.do_handshake()
-                except WantReadError:
-                    pass
+        handshake(clientSSL, serverSSL)
 
-        # Kind of lame.  Just make sure it got called somehow.
-        self.assertTrue(called)
+        # The callback must always be called with the connection it is a
+        # callback for as the first argument.  It would probably be better to
+        # split this into separate tests for client and server side info
+        # callbacks.  It would also be good to at least assert *something*
+        # about `where` and `ret`.
+        notConnections = [
+            conn for (conn, where, ret) in called
+            if not isinstance(conn, Connection)]
+        self.assertEqual(
+            [], notConnections,
+            "Some info callback arguments were not Connection instaces.")
 
 
     def _load_verify_locations_test(self, *args):
