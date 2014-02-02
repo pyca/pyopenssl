@@ -699,7 +699,7 @@ class Context(object):
         """
         @wraps(callback)
         def wrapper(ssl, where, return_code):
-            callback(self, where, return_code)
+            callback(Connection._reverse_mapping[ssl], where, return_code)
         self._info_callback = _ffi.callback(
             "void (*)(const SSL *, int, int)", wrapper)
         _lib.SSL_CTX_set_info_callback(self._context, self._info_callback)
