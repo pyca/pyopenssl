@@ -40,6 +40,7 @@ SSLv23_METHOD = 3
 TLSv1_METHOD = 4
 TLSv1_1_METHOD = 5
 TLSv1_2_METHOD = 6
+DTLSv1_METHOD = 7
 
 OP_NO_SSLv2 = _lib.SSL_OP_NO_SSLv2
 OP_NO_SSLv3 = _lib.SSL_OP_NO_SSLv3
@@ -240,6 +241,7 @@ class Context(object):
         TLSv1_METHOD: "TLSv1_method",
         TLSv1_1_METHOD: "TLSv1_1_method",
         TLSv1_2_METHOD: "TLSv1_2_method",
+        DTLSv1_METHOD: "DTLSv1_method",
         }
     _methods = dict(
         (identifier, getattr(_lib, name))
