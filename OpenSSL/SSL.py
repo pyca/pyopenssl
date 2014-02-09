@@ -252,7 +252,7 @@ class Context(object):
         :param method: One of SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, or
             TLSv1_METHOD.
         """
-        if not isinstance(method, int):
+        if not isinstance(method, integer_types):
             raise TypeError("method must be an integer")
 
         try:
@@ -383,7 +383,7 @@ class Context(object):
             certfile = certfile.encode("utf-8")
         if not isinstance(certfile, bytes):
             raise TypeError("certfile must be bytes or unicode")
-        if not isinstance(filetype, int):
+        if not isinstance(filetype, integer_types):
             raise TypeError("filetype must be an integer")
 
         use_result = _lib.SSL_CTX_use_certificate_file(self._context, certfile, filetype)
@@ -449,7 +449,7 @@ class Context(object):
 
         if filetype is _unspecified:
             filetype = FILETYPE_PEM
-        elif not isinstance(filetype, int):
+        elif not isinstance(filetype, integer_types):
             raise TypeError("filetype must be an integer")
 
         use_result = _lib.SSL_CTX_use_PrivateKey_file(
@@ -1250,7 +1250,7 @@ class Connection(object):
         :param state - bitvector of SENT_SHUTDOWN, RECEIVED_SHUTDOWN.
         :return: None
         """
-        if not isinstance(state, int):
+        if not isinstance(state, integer_types):
             raise TypeError("state must be an integer")
 
         _lib.SSL_set_shutdown(self._ssl, state)

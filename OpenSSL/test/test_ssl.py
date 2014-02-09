@@ -337,6 +337,16 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(ValueError, Context, 10)
 
 
+    if not PY3:
+        def test_method_long(self):
+            """
+            On Python 2 :py:class:`Context` accepts values of type
+            :py:obj:`long` as well as :py:obj:`int`.
+            """
+            Context(long(TLSv1_METHOD))
+
+
+
     def test_type(self):
         """
         :py:obj:`Context` and :py:obj:`ContextType` refer to the same type object and can be
@@ -364,6 +374,25 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         ctx = Context(TLSv1_METHOD)
         self.assertRaises(Error, ctx.use_privatekey_file, self.mktemp())
+
+
+    if not PY3:
+        def test_use_privatekey_file_long(self):
+            """
+            On Python 2 :py:obj:`Context.use_privatekey_file` accepts a
+            filetype of type :py:obj:`long` as well as :py:obj:`int`.
+            """
+            pemfile = self.mktemp()
+
+            key = PKey()
+            key.generate_key(TYPE_RSA, 128)
+
+            with open(pemfile, "wt") as pem:
+                pem.write(
+                    dump_privatekey(FILETYPE_PEM, key).decode("ascii"))
+
+            ctx = Context(TLSv1_METHOD)
+            ctx.use_privatekey_file(pemfile, long(FILETYPE_PEM))
 
 
     def test_use_certificate_wrong_args(self):
@@ -443,6 +472,20 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         ctx = Context(TLSv1_METHOD)
         ctx.use_certificate_file(pem_filename)
+
+
+    if not PY3:
+        def test_use_certificate_file_long(self):
+            """
+            On Python 2 :py:obj:`Context.use_certificate_file` accepts a
+            filetype of type :py:obj:`long` as well as :py:obj:`int`.
+            """
+            pem_filename = self.mktemp()
+            with open(pem_filename, "wb") as pem_file:
+                pem_file.write(cleartextCertificatePEM)
+
+            ctx = Context(TLSv1_METHOD)
+            ctx.use_certificate_file(pem_filename, long(FILETYPE_PEM))
 
 
     def test_set_app_data_wrong_args(self):
@@ -1615,6 +1658,17 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         connection = Connection(Context(TLSv1_METHOD), socket())
         connection.set_shutdown(RECEIVED_SHUTDOWN)
         self.assertEquals(connection.get_shutdown(), RECEIVED_SHUTDOWN)
+
+
+    if not PY3:
+        def test_set_shutdown_long(self):
+            """
+            On Python 2 :py:obj:`Connection.set_shutdown` accepts an argument
+            of type :py:obj:`long` as well as :py:obj:`int`.
+            """
+            connection = Connection(Context(TLSv1_METHOD), socket())
+            connection.set_shutdown(long(RECEIVED_SHUTDOWN))
+            self.assertEquals(connection.get_shutdown(), RECEIVED_SHUTDOWN)
 
 
     def test_app_data_wrong_args(self):
