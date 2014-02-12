@@ -6,7 +6,7 @@ Unit tests for :py:obj:`OpenSSL.SSL`.
 """
 
 from gc import collect, get_referrers
-from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE
+from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE, ESHUTDOWN
 from sys import platform, version_info
 from socket import SHUT_RDWR, error, socket
 from os import makedirs
@@ -1935,7 +1935,10 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         server, client = self._loopback()
         server.sock_shutdown(2)
         exc = self.assertRaises(SysCallError, server.sendall, b"hello, world")
-        self.assertEqual(exc.args[0], EPIPE)
+        if platform == "win32":
+            self.assertEqual(exc.args[0], ESHUTDOWN)
+        else:
+            self.assertEqual(exc.args[0], EPIPE)
 
 
 
