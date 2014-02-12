@@ -5,7 +5,7 @@ from weakref import WeakValueDictionary
 from errno import errorcode
 
 from six import text_type as _text_type
-
+from six import integer_types as integer_types
 
 from OpenSSL._util import (
     ffi as _ffi,
@@ -196,16 +196,15 @@ class _VerifyHelper(object):
 
 def _asFileDescriptor(obj):
     fd = None
-
-    if not isinstance(obj, int):
+    if not isinstance(obj, integer_types):
         meth = getattr(obj, "fileno", None)
         if meth is not None:
             obj = meth()
 
-    if isinstance(obj, int):
+    if isinstance(obj, integer_types):
         fd = obj
 
-    if not isinstance(fd, int):
+    if not isinstance(fd, integer_types):
         raise TypeError("argument must be an int, or have a fileno() method.")
     elif fd < 0:
         raise ValueError(
