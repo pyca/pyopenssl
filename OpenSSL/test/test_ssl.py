@@ -1913,7 +1913,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         # Fill up the client's send buffer so Connection won't be able to write
         # anything.
         msg = b"x" * 512
-        for i in range(1024):
+        for i in range(2048):
             try:
                 client_socket.send(msg)
             except error as e:
