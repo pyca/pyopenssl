@@ -1430,8 +1430,8 @@ class Connection(object):
         if cipher == _ffi.NULL:
             return None
         else:
-            return (_ffi.string(_lib.SSL_CIPHER_get_name(cipher)),
-                    _ffi.string(_lib.SSL_CIPHER_get_version(cipher)),
+            return (_native(_ffi.string(_lib.SSL_CIPHER_get_name(cipher))),
+                    _native(_ffi.string(_lib.SSL_CIPHER_get_version(cipher))),
                     _lib.SSL_CIPHER_get_bits(cipher, _ffi.NULL))
 
 ConnectionType = Connection
