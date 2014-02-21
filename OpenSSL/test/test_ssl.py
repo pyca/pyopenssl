@@ -6,13 +6,15 @@ Unit tests for :py:obj:`OpenSSL.SSL`.
 """
 
 from gc import collect, get_referrers
-from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE
+from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE, ESHUTDOWN
 from sys import platform, version_info
 from socket import SHUT_RDWR, error, socket
 from os import makedirs
 from os.path import join
 from unittest import main
 from weakref import ref
+
+from six import PY3, u
 
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
 from OpenSSL.crypto import PKey, X509, X509Extension, X509Store
@@ -336,6 +338,16 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(ValueError, Context, 10)
 
 
+    if not PY3:
+        def test_method_long(self):
+            """
+            On Python 2 :py:class:`Context` accepts values of type
+            :py:obj:`long` as well as :py:obj:`int`.
+            """
+            Context(long(TLSv1_METHOD))
+
+
+
     def test_type(self):
         """
         :py:obj:`Context` and :py:obj:`ContextType` refer to the same type object and can be
@@ -363,6 +375,25 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         ctx = Context(TLSv1_METHOD)
         self.assertRaises(Error, ctx.use_privatekey_file, self.mktemp())
+
+
+    if not PY3:
+        def test_use_privatekey_file_long(self):
+            """
+            On Python 2 :py:obj:`Context.use_privatekey_file` accepts a
+            filetype of type :py:obj:`long` as well as :py:obj:`int`.
+            """
+            pemfile = self.mktemp()
+
+            key = PKey()
+            key.generate_key(TYPE_RSA, 128)
+
+            with open(pemfile, "wt") as pem:
+                pem.write(
+                    dump_privatekey(FILETYPE_PEM, key).decode("ascii"))
+
+            ctx = Context(TLSv1_METHOD)
+            ctx.use_privatekey_file(pemfile, long(FILETYPE_PEM))
 
 
     def test_use_certificate_wrong_args(self):
@@ -444,6 +475,20 @@ class ContextTests(TestCase, _LoopbackMixin):
         ctx.use_certificate_file(pem_filename)
 
 
+    if not PY3:
+        def test_use_certificate_file_long(self):
+            """
+            On Python 2 :py:obj:`Context.use_certificate_file` accepts a
+            filetype of type :py:obj:`long` as well as :py:obj:`int`.
+            """
+            pem_filename = self.mktemp()
+            with open(pem_filename, "wb") as pem_file:
+                pem_file.write(cleartextCertificatePEM)
+
+            ctx = Context(TLSv1_METHOD)
+            ctx.use_certificate_file(pem_filename, long(FILETYPE_PEM))
+
+
     def test_set_app_data_wrong_args(self):
         """
         :py:obj:`Context.set_app_data` raises :py:obj:`TypeError` if called with other than
@@ -485,6 +530,26 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, context.set_options, 1, None)
 
 
+    def test_set_options(self):
+        """
+        :py:obj:`Context.set_options` returns the new options value.
+        """
+        context = Context(TLSv1_METHOD)
+        options = context.set_options(OP_NO_SSLv2)
+        self.assertTrue(OP_NO_SSLv2 & options)
+
+
+    if not PY3:
+        def test_set_options_long(self):
+            """
+            On Python 2 :py:obj:`Context.set_options` accepts values of type
+            :py:obj:`long` as well as :py:obj:`int`.
+            """
+            context = Context(TLSv1_METHOD)
+            options = context.set_options(long(OP_NO_SSLv2))
+            self.assertTrue(OP_NO_SSLv2 & options)
+
+
     def test_set_mode_wrong_args(self):
         """
         :py:obj:`Context.set`mode} raises :py:obj:`TypeError` if called with the wrong
@@ -505,6 +570,16 @@ class ContextTests(TestCase, _LoopbackMixin):
             context = Context(TLSv1_METHOD)
             self.assertTrue(
                 MODE_RELEASE_BUFFERS & context.set_mode(MODE_RELEASE_BUFFERS))
+
+        if not PY3:
+            def test_set_mode_long(self):
+                """
+                On Python 2 :py:obj:`Context.set_mode` accepts values of type
+                :py:obj:`long` as well as :py:obj:`int`.
+                """
+                context = Context(TLSv1_METHOD)
+                mode = context.set_mode(long(MODE_RELEASE_BUFFERS))
+                self.assertTrue(MODE_RELEASE_BUFFERS & mode)
     else:
         "MODE_RELEASE_BUFFERS unavailable - OpenSSL version may be too old"
 
@@ -539,6 +614,17 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertEquals(context.get_timeout(), 1234)
 
 
+    if not PY3:
+        def test_timeout_long(self):
+            """
+            On Python 2 :py:obj:`Context.set_timeout` accepts values of type
+            `long` as well as int.
+            """
+            context = Context(TLSv1_METHOD)
+            context.set_timeout(long(1234))
+            self.assertEquals(context.get_timeout(), 1234)
+
+
     def test_set_verify_depth_wrong_args(self):
         """
         :py:obj:`Context.set_verify_depth` raises :py:obj:`TypeError` if called with the wrong
@@ -567,6 +653,17 @@ class ContextTests(TestCase, _LoopbackMixin):
         context = Context(TLSv1_METHOD)
         context.set_verify_depth(11)
         self.assertEquals(context.get_verify_depth(), 11)
+
+
+    if not PY3:
+        def test_verify_depth_long(self):
+            """
+            On Python 2 :py:obj:`Context.set_verify_depth` accepts values of
+            type `long` as well as int.
+            """
+            context = Context(TLSv1_METHOD)
+            context.set_verify_depth(long(11))
+            self.assertEquals(context.get_verify_depth(), 11)
 
 
     def _write_encrypted_pem(self, passphrase):
@@ -699,15 +796,19 @@ class ContextTests(TestCase, _LoopbackMixin):
         serverSSL = Connection(context, server)
         serverSSL.set_accept_state()
 
-        while not called:
-            for ssl in clientSSL, serverSSL:
-                try:
-                    ssl.do_handshake()
-                except WantReadError:
-                    pass
+        handshake(clientSSL, serverSSL)
 
-        # Kind of lame.  Just make sure it got called somehow.
-        self.assertTrue(called)
+        # The callback must always be called with a Connection instance as the
+        # first argument.  It would probably be better to split this into
+        # separate tests for client and server side info callbacks so we could
+        # assert it is called with the right Connection instance.  It would
+        # also be good to assert *something* about `where` and `ret`.
+        notConnections = [
+            conn for (conn, where, ret) in called
+            if not isinstance(conn, Connection)]
+        self.assertEqual(
+            [], notConnections,
+            "Some info callback arguments were not Connection instaces.")
 
 
     def _load_verify_locations_test(self, *args):
@@ -961,11 +1062,11 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         # Write out the chain file.
         chainFile = self.mktemp()
-        fObj = open(chainFile, 'w')
+        fObj = open(chainFile, 'wb')
         # Most specific to least general.
-        fObj.write(dump_certificate(FILETYPE_PEM, scert).decode('ascii'))
-        fObj.write(dump_certificate(FILETYPE_PEM, icert).decode('ascii'))
-        fObj.write(dump_certificate(FILETYPE_PEM, cacert).decode('ascii'))
+        fObj.write(dump_certificate(FILETYPE_PEM, scert))
+        fObj.write(dump_certificate(FILETYPE_PEM, icert))
+        fObj.write(dump_certificate(FILETYPE_PEM, cacert))
         fObj.close()
 
         serverContext = Context(TLSv1_METHOD)
@@ -1011,7 +1112,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, context.get_verify_mode, None)
 
 
-    def test_get_verify_mode(self):
+    def test_set_verify_mode(self):
         """
         :py:obj:`Context.get_verify_mode` returns the verify mode flags previously
         passed to :py:obj:`Context.set_verify`.
@@ -1022,6 +1123,20 @@ class ContextTests(TestCase, _LoopbackMixin):
             VERIFY_PEER | VERIFY_CLIENT_ONCE, lambda *args: None)
         self.assertEquals(
             context.get_verify_mode(), VERIFY_PEER | VERIFY_CLIENT_ONCE)
+
+
+    if not PY3:
+        def test_set_verify_mode_long(self):
+            """
+            On Python 2 :py:obj:`Context.set_verify_mode` accepts values of
+            type :py:obj:`long` as well as :py:obj:`int`.
+            """
+            context = Context(TLSv1_METHOD)
+            self.assertEquals(context.get_verify_mode(), 0)
+            context.set_verify(
+                long(VERIFY_PEER | VERIFY_CLIENT_ONCE), lambda *args: None)
+            self.assertEquals(
+                context.get_verify_mode(), VERIFY_PEER | VERIFY_CLIENT_ONCE)
 
 
     def test_load_tmp_dh_wrong_args(self):
@@ -1069,10 +1184,11 @@ class ContextTests(TestCase, _LoopbackMixin):
             # XXX What should I assert here? -alex
 
 
-    def test_set_cipher_list(self):
+    def test_set_cipher_list_bytes(self):
         """
-        :py:obj:`Context.set_cipher_list` accepts a :py:obj:`str` naming the ciphers which
-        connections created with the context object will be able to choose from.
+        :py:obj:`Context.set_cipher_list` accepts a :py:obj:`bytes` naming the
+        ciphers which connections created with the context object will be able
+        to choose from.
         """
         context = Context(TLSv1_METHOD)
         context.set_cipher_list(b"hello world:EXP-RC4-MD5")
@@ -1080,11 +1196,23 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertEquals(conn.get_cipher_list(), ["EXP-RC4-MD5"])
 
 
+    def test_set_cipher_list_text(self):
+        """
+        :py:obj:`Context.set_cipher_list` accepts a :py:obj:`unicode` naming
+        the ciphers which connections created with the context object will be
+        able to choose from.
+        """
+        context = Context(TLSv1_METHOD)
+        context.set_cipher_list(u("hello world:EXP-RC4-MD5"))
+        conn = Connection(context, None)
+        self.assertEquals(conn.get_cipher_list(), ["EXP-RC4-MD5"])
+
+
     def test_set_cipher_list_wrong_args(self):
         """
-        :py:obj:`Context.set_cipher_list` raises :py:obj:`TypeError` when passed
-        zero arguments or more than one argument or when passed a non-byte
-        string single argument and raises :py:obj:`OpenSSL.SSL.Error` when
+        :py:obj:`Context.set_cipher_list` raises :py:obj:`TypeError` when
+        passed zero arguments or more than one argument or when passed a
+        non-string single argument and raises :py:obj:`OpenSSL.SSL.Error` when
         passed an incorrect cipher list string.
         """
         context = Context(TLSv1_METHOD)
@@ -1092,13 +1220,13 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, context.set_cipher_list, object())
         self.assertRaises(TypeError, context.set_cipher_list, b"EXP-RC4-MD5", object())
 
-        self.assertRaises(Error, context.set_cipher_list, b"imaginary-cipher")
+        self.assertRaises(Error, context.set_cipher_list, "imaginary-cipher")
 
 
     def test_set_session_cache_mode_wrong_args(self):
         """
-        L{Context.set_session_cache_mode} raises L{TypeError} if called with
-        other than one integer argument.
+        :py:obj:`Context.set_session_cache_mode` raises :py:obj:`TypeError` if
+        called with other than one integer argument.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.set_session_cache_mode)
@@ -1107,8 +1235,8 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_get_session_cache_mode_wrong_args(self):
         """
-        L{Context.get_session_cache_mode} raises L{TypeError} if called with any
-        arguments.
+        :py:obj:`Context.get_session_cache_mode` raises :py:obj:`TypeError` if
+        called with any arguments.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.get_session_cache_mode, 1)
@@ -1116,14 +1244,26 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_session_cache_mode(self):
         """
-        L{Context.set_session_cache_mode} specifies how sessions are cached.
-        The setting can be retrieved via L{Context.get_session_cache_mode}.
+        :py:obj:`Context.set_session_cache_mode` specifies how sessions are
+        cached.  The setting can be retrieved via
+        :py:obj:`Context.get_session_cache_mode`.
         """
         context = Context(TLSv1_METHOD)
-        old = context.set_session_cache_mode(SESS_CACHE_OFF)
+        context.set_session_cache_mode(SESS_CACHE_OFF)
         off = context.set_session_cache_mode(SESS_CACHE_BOTH)
         self.assertEqual(SESS_CACHE_OFF, off)
         self.assertEqual(SESS_CACHE_BOTH, context.get_session_cache_mode())
+
+    if not PY3:
+        def test_session_cache_mode_long(self):
+            """
+            On Python 2 :py:obj:`Context.set_session_cache_mode` accepts values
+            of type :py:obj:`long` as well as :py:obj:`int`.
+            """
+            context = Context(TLSv1_METHOD)
+            context.set_session_cache_mode(long(SESS_CACHE_BOTH))
+            self.assertEqual(
+                SESS_CACHE_BOTH, context.get_session_cache_mode())
 
 
     def test_get_cert_store(self):
@@ -1532,6 +1672,17 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertEquals(connection.get_shutdown(), RECEIVED_SHUTDOWN)
 
 
+    if not PY3:
+        def test_set_shutdown_long(self):
+            """
+            On Python 2 :py:obj:`Connection.set_shutdown` accepts an argument
+            of type :py:obj:`long` as well as :py:obj:`int`.
+            """
+            connection = Connection(Context(TLSv1_METHOD), socket())
+            connection.set_shutdown(long(RECEIVED_SHUTDOWN))
+            self.assertEquals(connection.get_shutdown(), RECEIVED_SHUTDOWN)
+
+
     def test_app_data_wrong_args(self):
         """
         :py:obj:`Connection.set_app_data` raises :py:obj:`TypeError` if called with other than
@@ -1827,13 +1978,14 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
     """
     def test_wrong_args(self):
         """
-        When called with arguments other than a single string,
-        :py:obj:`Connection.send` raises :py:obj:`TypeError`.
+        When called with arguments other than string argument for its first
+        parameter or more than two arguments, :py:obj:`Connection.send` raises
+        :py:obj:`TypeError`.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, connection.send)
         self.assertRaises(TypeError, connection.send, object())
-        self.assertRaises(TypeError, connection.send, "foo", "bar")
+        self.assertRaises(TypeError, connection.send, "foo", object(), "bar")
 
 
     def test_short_bytes(self):
@@ -1870,13 +2022,15 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
     """
     def test_wrong_args(self):
         """
-        When called with arguments other than a single string,
-        :py:obj:`Connection.sendall` raises :py:obj:`TypeError`.
+        When called with arguments other than a string argument for its first
+        parameter or with more than two arguments, :py:obj:`Connection.sendall`
+        raises :py:obj:`TypeError`.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, connection.sendall)
         self.assertRaises(TypeError, connection.sendall, object())
-        self.assertRaises(TypeError, connection.sendall, "foo", "bar")
+        self.assertRaises(
+            TypeError, connection.sendall, "foo", object(), "bar")
 
 
     def test_short(self):
@@ -1932,7 +2086,10 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         server, client = self._loopback()
         server.sock_shutdown(2)
         exc = self.assertRaises(SysCallError, server.sendall, b"hello, world")
-        self.assertEqual(exc.args[0], EPIPE)
+        if platform == "win32":
+            self.assertEqual(exc.args[0], ESHUTDOWN)
+        else:
+            self.assertEqual(exc.args[0], EPIPE)
 
 
 
@@ -2057,66 +2214,68 @@ class ConstantsTests(TestCase):
 
     def test_sess_cache_off(self):
         """
-        The value of L{OpenSSL.SSL.SESS_CACHE_OFF} 0x0, the value of
-        L{SSL_SESS_CACHE_OFF} defined by I{openssl/ssl.h}.
+        The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_OFF` 0x0, the value of
+        :py:obj:`SSL_SESS_CACHE_OFF` defined by ``openssl/ssl.h``.
         """
         self.assertEqual(0x0, SESS_CACHE_OFF)
 
 
     def test_sess_cache_client(self):
         """
-        The value of L{OpenSSL.SSL.SESS_CACHE_CLIENT} 0x1, the value of
-        L{SSL_SESS_CACHE_CLIENT} defined by I{openssl/ssl.h}.
+        The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_CLIENT` 0x1, the value of
+        :py:obj:`SSL_SESS_CACHE_CLIENT` defined by ``openssl/ssl.h``.
         """
         self.assertEqual(0x1, SESS_CACHE_CLIENT)
 
 
     def test_sess_cache_server(self):
         """
-        The value of L{OpenSSL.SSL.SESS_CACHE_SERVER} 0x2, the value of
-        L{SSL_SESS_CACHE_SERVER} defined by I{openssl/ssl.h}.
+        The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_SERVER` 0x2, the value of
+        :py:obj:`SSL_SESS_CACHE_SERVER` defined by ``openssl/ssl.h``.
         """
         self.assertEqual(0x2, SESS_CACHE_SERVER)
 
 
     def test_sess_cache_both(self):
         """
-        The value of L{OpenSSL.SSL.SESS_CACHE_BOTH} 0x3, the value of
-        L{SSL_SESS_CACHE_BOTH} defined by I{openssl/ssl.h}.
+        The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_BOTH` 0x3, the value of
+        :py:obj:`SSL_SESS_CACHE_BOTH` defined by ``openssl/ssl.h``.
         """
         self.assertEqual(0x3, SESS_CACHE_BOTH)
 
 
     def test_sess_cache_no_auto_clear(self):
         """
-        The value of L{OpenSSL.SSL.SESS_CACHE_NO_AUTO_CLEAR} 0x80, the value of
-        L{SSL_SESS_CACHE_NO_AUTO_CLEAR} defined by I{openssl/ssl.h}.
+        The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_NO_AUTO_CLEAR` 0x80, the
+        value of :py:obj:`SSL_SESS_CACHE_NO_AUTO_CLEAR` defined by
+        ``openssl/ssl.h``.
         """
         self.assertEqual(0x80, SESS_CACHE_NO_AUTO_CLEAR)
 
 
     def test_sess_cache_no_internal_lookup(self):
         """
-        The value of L{OpenSSL.SSL.SESS_CACHE_NO_INTERNAL_LOOKUP} 0x100, the
-        value of L{SSL_SESS_CACHE_NO_INTERNAL_LOOKUP} defined by
-        I{openssl/ssl.h}.
+        The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_NO_INTERNAL_LOOKUP` 0x100,
+        the value of :py:obj:`SSL_SESS_CACHE_NO_INTERNAL_LOOKUP` defined by
+        ``openssl/ssl.h``.
         """
         self.assertEqual(0x100, SESS_CACHE_NO_INTERNAL_LOOKUP)
 
 
     def test_sess_cache_no_internal_store(self):
         """
-        The value of L{OpenSSL.SSL.SESS_CACHE_NO_INTERNAL_STORE} 0x200, the
-        value of L{SSL_SESS_CACHE_NO_INTERNAL_STORE} defined by
-        I{openssl/ssl.h}.
+        The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_NO_INTERNAL_STORE` 0x200,
+        the value of :py:obj:`SSL_SESS_CACHE_NO_INTERNAL_STORE` defined by
+        ``openssl/ssl.h``.
         """
         self.assertEqual(0x200, SESS_CACHE_NO_INTERNAL_STORE)
 
 
     def test_sess_cache_no_internal(self):
         """
-        The value of L{OpenSSL.SSL.SESS_CACHE_NO_INTERNAL} 0x300, the value of
-        L{SSL_SESS_CACHE_NO_INTERNAL} defined by I{openssl/ssl.h}.
+        The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_NO_INTERNAL` 0x300, the
+        value of :py:obj:`SSL_SESS_CACHE_NO_INTERNAL` defined by
+        ``openssl/ssl.h``.
         """
         self.assertEqual(0x300, SESS_CACHE_NO_INTERNAL)
 
@@ -2525,6 +2684,40 @@ class ConnectionBIOTests(TestCase):
         ctx = Context(TLSv1_METHOD)
         conn = Connection(ctx, None)
         self.assertRaises(WantReadError, conn.bio_read, 1024)
+
+
+    def test_buffer_size(self):
+        """
+        :py:obj:`Connection.bio_read` accepts an integer giving the maximum
+        number of bytes to read and return.
+        """
+        ctx = Context(TLSv1_METHOD)
+        conn = Connection(ctx, None)
+        conn.set_connect_state()
+        try:
+            conn.do_handshake()
+        except WantReadError:
+            pass
+        data = conn.bio_read(2)
+        self.assertEqual(2, len(data))
+
+
+    if not PY3:
+        def test_buffer_size_long(self):
+            """
+            On Python 2 :py:obj:`Connection.bio_read` accepts values of type
+            :py:obj:`long` as well as :py:obj:`int`.
+            """
+            ctx = Context(TLSv1_METHOD)
+            conn = Connection(ctx, None)
+            conn.set_connect_state()
+            try:
+                conn.do_handshake()
+            except WantReadError:
+                pass
+            data = conn.bio_read(long(2))
+            self.assertEqual(2, len(data))
+
 
 
 

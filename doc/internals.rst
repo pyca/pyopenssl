@@ -27,38 +27,10 @@ For more information about this, see section :ref:`openssl-ssl`.
 Callbacks
 ---------
 
-There are a number of problems with callbacks. First of all, OpenSSL is written
-as a C library, it's not meant to have Python callbacks, so a way around that
-is needed. Another problem is thread support. A lot of the OpenSSL I/O
-functions can block if the socket is in blocking mode, and then you want other
-Python threads to be able to do other things. The real trouble is if you've
-released the global CPython interpreter lock to do a potentially blocking
-operation, and the operation calls a callback. Then we must take the GIL back,
-since calling Python APIs without holding it is not allowed.
-
-There are two solutions to the first problem, both of which are necessary. The
-first solution to use is if the C callback allows ''userdata'' to be passed to
-it (an arbitrary pointer normally). This is great! We can set our Python
-function object as the real userdata and emulate userdata for the Python
-function in another way. The other solution can be used if an object with an
-''app_data'' system always is passed to the callback. For example, the SSL
-object in OpenSSL has app_data functions and in e.g. the verification
-callbacks, you can retrieve the related SSL object. What we do is to set our
-wrapper :py:class:`.Connection` object as app_data for the SSL object, and we can
-easily find the Python callback.
-
-The other problem is solved using thread local variables.  Whenever the GIL is
-released before calling into an OpenSSL API, the PyThreadState pointer returned
-by :c:func:`PyEval_SaveState` is stored in a global thread local variable
-(using Python's own TLS API, :c:func:`PyThread_set_key_value`).  When it is
-necessary to re-acquire the GIL, either after the OpenSSL API returns or in a C
-callback invoked by that OpenSSL API, the value of the thread local variable is
-retrieved (:c:func:`PyThread_get_key_value`) and used to re-acquire the GIL.
-This allows Python threads to execute while OpenSSL APIs are running and allows
-use of any particular pyOpenSSL object from any Python thread, since there is
-no per-thread state associated with any of these objects and since OpenSSL is
-threadsafe (as long as properly initialized, as pyOpenSSL initializes it).
-
+Callbacks were more of a problem when pyOpenSSL was written in C.
+Having switched to being written in Python using cffi, callbacks are now straightforward.
+The problems that originally existed no longer do
+(if you are interested in the details you can find descriptions of those problems in the version control history for this document).
 
 .. _socket-methods:
 

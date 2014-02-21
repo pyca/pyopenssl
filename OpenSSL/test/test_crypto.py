@@ -1941,7 +1941,7 @@ class PKCS12Tests(TestCase):
         """
         passwd = 'whatever'
         e = self.assertRaises(Error, load_pkcs12, b'fruit loops', passwd)
-        self.assertEqual( e.args[0][0][0], b'asn1 encoding routines')
+        self.assertEqual( e.args[0][0][0], 'asn1 encoding routines')
         self.assertEqual( len(e.args[0][0]), 3)
 
 
