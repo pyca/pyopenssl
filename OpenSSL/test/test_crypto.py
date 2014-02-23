@@ -1110,9 +1110,9 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
                 X509Extension(b('basicConstraints'), True, b('CA:false'))])
         exts = request.get_extensions()
         self.assertEquals(len(exts), 1)
-        self.assertEquals(exts[0].get_short_name(), 'basicConstraints')
+        self.assertEquals(exts[0].get_short_name(), b('basicConstraints'))
         self.assertEquals(exts[0].get_critical(), 1)
-        self.assertEquals(exts[0].get_data(), 0)
+        self.assertEquals(exts[0].get_data(), b('0\x00'))
 
 
     def test_add_extensions_wrong_args(self):
