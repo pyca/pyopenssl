@@ -11,7 +11,7 @@ Installation script for the OpenSSL module
 from setuptools import setup
 
 # XXX Deduplicate this
-__version__ = '0.13'
+__version__ = '0.14'
 
 setup(name='pyOpenSSL', version=__version__,
       packages = ['OpenSSL'],
@@ -49,11 +49,10 @@ High-level wrapper around a subset of the OpenSSL library, includes
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
-        'Programming Language :: Python :: 2.4',
-        'Programming Language :: Python :: 2.5',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Security :: Cryptography',
