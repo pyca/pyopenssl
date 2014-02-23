@@ -14,7 +14,6 @@ Contents:
    :maxdepth: 3
 
    introduction
-   install
    api
    internals
 
