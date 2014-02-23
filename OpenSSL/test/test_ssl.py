@@ -1932,7 +1932,30 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     # XXX want_read
 
+    def test_get_channel_binding(self):
+        """
+        :py:obj:`Connection` methods which generate output raise
+        :py:obj:`OpenSSL.SSL.WantWriteError` if writing to the connection's BIO
+        fail indicating a should-write state.
+        """
 
+        ctx = Context(TLSv1_METHOD)
+        conn = Connection(ctx, socket())
+        self.assertEqual(conn.get_channel_binding(), None)
+
+        self.assertRaises(ValueError, conn.get_channel_binding,
+                          "bogus channel binding type")
+
+        client_socket, server_socket = self._loopback()
+
+        # Default channel binding type is tls-unique
+        client_channel_binding = client_socket.get_channel_binding()
+        server_channel_binding = server_socket.get_channel_binding("tls-unique")
+
+        self.assertEqual(client_channel_binding, server_channel_binding)
+
+        # Minimal length 12 bytes from TLS 1.0
+        self.assertTrue(len(client_channel_binding) >= 12)
 
 class ConnectionGetCipherListTests(TestCase):
     """
