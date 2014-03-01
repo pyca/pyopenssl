@@ -1416,6 +1416,33 @@ class Connection(object):
         if not result:
             _raise_current_error()
 
+    def get_channel_binding(self, cb_type="tls-unique"):
+        if cb_type == "tls-unique":
+
+            if self._ssl.session == _ffi.NULL:
+                return None
+
+        # In case of 'tls-unique' it will be 12 bytes for TLS, 36 bytes for
+        # older SSL, but let's be safe
+            bufsiz = 128
+            buf = _ffi.new("char[]", bufsiz)
+
+            if (bool(_lib.SSL_session_reused(self._ssl))
+                ^ (self._ssl.type & _lib.SSL_ST_CONNECT)):
+                # if session is resumed XOR we are the client
+                result = _lib.SSL_get_finished(self._ssl, buf, bufsiz)
+            else:
+                # if a new session XOR we are the server
+                result = _lib.SSL_get_peer_finished(self._ssl, buf, bufsiz)
+
+            if result == 0:
+                return None
+
+            self._raise_ssl_error(self._ssl, result)
+            return _ffi.buffer(buf, result)[:]
+        else:
+            raise ValueError("Unsupported channel binding type")
+
 ConnectionType = Connection
 
 # This is similar to the initialization calls at the end of OpenSSL/crypto.py
