@@ -8,6 +8,8 @@ Unit tests for :py:obj:`OpenSSL.SSL`.
 from gc import collect, get_referrers
 from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE, ESHUTDOWN
 from sys import platform, version_info
+if platform == "win32":
+    from errno import WSAECONNREFUSED, WSAEWOULDBLOCK, WSAEINPROGRESS
 from socket import SHUT_RDWR, error, socket
 from os import makedirs
 from os.path import join
@@ -1551,7 +1553,10 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         context = Context(TLSv1_METHOD)
         clientSSL = Connection(context, client)
         exc = self.assertRaises(error, clientSSL.connect, ("127.0.0.1", 1))
-        self.assertEquals(exc.args[0], ECONNREFUSED)
+        if platform == "win32":
+            self.assertEquals(exc.args[0], WSAECONNREFUSED)
+        else:
+            self.assertEquals(exc.args[0], ECONNREFUSED)
 
 
     def test_connect(self):
@@ -1582,7 +1587,10 @@ class ConnectionTests(TestCase, _LoopbackMixin):
             clientSSL = Connection(Context(TLSv1_METHOD), socket())
             clientSSL.setblocking(False)
             result = clientSSL.connect_ex(port.getsockname())
-            expected = (EINPROGRESS, EWOULDBLOCK)
+            if platform == "win32":
+                expected = (WSAEINPROGRESS, WSAEWOULDBLOCK)
+            else:
+                expected = (EINPROGRESS, EWOULDBLOCK)
             self.assertTrue(
                     result in expected, "%r not in %r" % (result, expected))
 
@@ -1917,6 +1925,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
             try:
                 client_socket.send(msg)
             except error as e:
+                if platform == "win32" and e.errno == WSAEWOULDBLOCK:
+                    break;         
                 if e.errno == EWOULDBLOCK:
                     break
                 raise
