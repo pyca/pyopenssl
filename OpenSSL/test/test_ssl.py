@@ -1932,7 +1932,38 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     # XXX want_read
 
+    def test_cipher(self):
+        """
+        :py:obj:`Connection.cipher` returns information about cipher of
+        the established connection.
+        """
+        # if connection is not established Connection.cipher returns None.
+        ctx = Context(TLSv1_METHOD)
+        conn = Connection(ctx, socket())
+        self.assertEquals(conn.cipher(), None)
 
+        server, client = self._loopback()
+
+        server_cipher_name, server_cipher_version, server_cipher_bits = \
+          server.cipher()
+
+        client_cipher_name, client_cipher_version, client_cipher_bits = \
+          client.cipher()
+
+        self.assertTrue(isinstance(server_cipher_name, str))
+        self.assertTrue(isinstance(server_cipher_version, str))
+        self.assertTrue(isinstance(server_cipher_bits, int))
+
+        self.assertTrue(isinstance(client_cipher_name, str))
+        self.assertTrue(isinstance(client_cipher_version, str))
+        self.assertTrue(isinstance(client_cipher_bits, int))
+
+        self.assertEquals(server_cipher_name, client_cipher_name)
+        self.assertEquals(server_cipher_version, client_cipher_version)
+        self.assertEquals(server_cipher_bits, client_cipher_bits)
+
+        # It's zero for NULL ciphers
+        self.assertTrue(server_cipher_bits >= 0)
 
 class ConnectionGetCipherListTests(TestCase):
     """

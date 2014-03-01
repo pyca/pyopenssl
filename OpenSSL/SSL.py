@@ -1417,6 +1417,24 @@ class Connection(object):
         if not result:
             _raise_current_error()
 
+    def cipher(self):
+        """
+        Get the actually used cipher of the established connection.
+
+        @return: Returns a three-value tuple containing the name of
+                 the cipher being used, the version of the SSL protocol
+                 that defines its use, and the number of secret bits
+                 being used. If no connection has been established,
+                 returns :py:obj:`None`.
+        """
+        cipher = _lib.SSL_get_current_cipher(self._ssl)
+        if cipher == _ffi.NULL:
+            return None
+        else:
+            return (_native(_ffi.string(_lib.SSL_CIPHER_get_name(cipher))),
+                    _native(_ffi.string(_lib.SSL_CIPHER_get_version(cipher))),
+                    _lib.SSL_CIPHER_get_bits(cipher, _ffi.NULL))
+
 ConnectionType = Connection
 
 # This is similar to the initialization calls at the end of OpenSSL/crypto.py
