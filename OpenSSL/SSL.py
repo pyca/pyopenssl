@@ -122,6 +122,17 @@ SSL_CB_HANDSHAKE_START = _lib.SSL_CB_HANDSHAKE_START
 SSL_CB_HANDSHAKE_DONE = _lib.SSL_CB_HANDSHAKE_DONE
 
 
+NID_X9_62_prime192v1 = _lib.NID_X9_62_prime192v1
+NID_X9_62_prime192v2 = _lib.NID_X9_62_prime192v2
+NID_X9_62_prime192v3 = _lib.NID_X9_62_prime192v3
+NID_X9_62_prime239v1 = _lib.NID_X9_62_prime239v1
+NID_X9_62_prime239v2 = _lib.NID_X9_62_prime239v2
+NID_X9_62_prime239v3 = _lib.NID_X9_62_prime239v3
+NID_X9_62_prime256v1 = _lib.NID_X9_62_prime256v1
+
+_Cryptography_HAS_EC = _lib.Cryptography_HAS_EC
+
+
 class Error(Exception):
     """
     An error occurred in an `OpenSSL.SSL` API.
@@ -593,6 +604,26 @@ class Context(object):
         dh = _lib.PEM_read_bio_DHparams(bio, _ffi.NULL, _ffi.NULL, _ffi.NULL)
         dh = _ffi.gc(dh, _lib.DH_free)
         _lib.SSL_CTX_set_tmp_dh(self._context, dh)
+
+
+    def set_tmp_ecdh_by_curve_name(self, curve_name):
+        """
+        Configure this connection to people to use Elliptical Curve
+        Diffie-Hellman key exchanges.
+
+        :param curve_name: One of the named curve constants.
+        :return: None
+        """
+        if _lib.Cryptography_HAS_EC:
+            ecdh = _lib.EC_KEY_new_by_curve_name(curve_name)
+            if ecdh == _ffi.NULL:
+                raise ValueError(
+                    "OpenSSL could not load the requested elliptic curve"
+                )
+            _lib.SSL_CTX_set_tmp_ecdh(self._context, ecdh)
+            _lib.EC_KEY_free(ecdh)
+        else:
+            raise ValueError("OpenSSL is compiled without ECDH support")
 
 
     def set_cipher_list(self, cipher_list):

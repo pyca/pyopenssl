@@ -116,6 +116,18 @@ Context, Connection.
      .. versionadded:: 0.14
 
 
+.. py:data:: NID_X9_62_prime192v1
+             NID_X9_62_prime192v2
+             NID_X9_62_prime192v3
+             NID_X9_62_prime239v1
+             NID_X9_62_prime239v2
+             NID_X9_62_prime239v3
+             NID_X9_62_prime256v1
+
+    Constants used with :py:meth:`Context.set_tmp_ecdh_by_curve_name` to
+    specify which elliptical curve should be used.
+
+
 .. py:data:: OPENSSL_VERSION_NUMBER
 
     An integer giving the version number of the OpenSSL library used to build this
@@ -322,6 +334,16 @@ Context objects have the following methods:
 
     Load parameters for Ephemeral Diffie-Hellman from *dhfile*.
 
+.. py:method:: Context.set_tmp_ecdh_by_curve_name(curve_name)
+
+    Configure this connection to people to use Elliptical Curve Diffie-Hellman
+    key exchanges.
+
+    ``curve_name`` should be one of the named curve constants, such as
+    :py:data:`NID_X9_62_prime256v1`.
+
+    Raises a ``ValueError`` if the linked OpenSSL was not compiled with
+    elliptical curve support, or the specified curve is not available.
 
 .. py:method:: Context.set_app_data(data)
 
