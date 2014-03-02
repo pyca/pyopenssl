@@ -235,6 +235,7 @@ class Context(object):
     new SSL connections.
     """
     _methods = {
+        SSLv2_METHOD: "SSLv2_method",
         SSLv3_METHOD: "SSLv3_method",
         SSLv23_METHOD: "SSLv23_method",
         TLSv1_METHOD: "TLSv1_method",
