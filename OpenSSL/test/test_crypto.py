@@ -1109,10 +1109,31 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
         request.add_extensions([
                 X509Extension(b('basicConstraints'), True, b('CA:false'))])
         exts = request.get_extensions()
-        self.assertEquals(len(exts), 1)
-        self.assertEquals(exts[0].get_short_name(), b('basicConstraints'))
-        self.assertEquals(exts[0].get_critical(), 1)
-        self.assertEquals(exts[0].get_data(), b('0\x00'))
+        self.assertEqual(len(exts), 1)
+        self.assertEqual(exts[0].get_short_name(), b('basicConstraints'))
+        self.assertEqual(exts[0].get_critical(), 1)
+        self.assertEqual(exts[0].get_data(), b('0\x00'))
+
+
+    def test_get_extensions(self):
+        """
+        :py:obj:`X509Req.get_extensions` returns a :py:obj:`list` of
+        extensions added to this X509 request.
+        """
+        request = X509Req()
+        exts = request.get_extensions()
+        self.assertEqual(exts, [])
+        request.add_extensions([
+                X509Extension(b('basicConstraints'), True, b('CA:true')),
+                X509Extension(b('keyUsage'), False, b('digitalSignature'))])
+        exts = request.get_extensions()
+        self.assertEqual(len(exts), 2)
+        self.assertEqual(exts[0].get_short_name(), b('basicConstraints'))
+        self.assertEqual(exts[0].get_critical(), 1)
+        self.assertEqual(exts[0].get_data(), b('0\x03\x01\x01\xff'))
+        self.assertEqual(exts[1].get_short_name(), b('keyUsage'))
+        self.assertEqual(exts[1].get_critical(), 0)
+        self.assertEqual(exts[1].get_data(), b('\x03\x02\x07\x80'))
 
 
     def test_add_extensions_wrong_args(self):
