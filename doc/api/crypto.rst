@@ -485,6 +485,13 @@ X509Req objects have the following methods:
     Get the version (RFC 2459, 4.1.2.1) of the certificate request.
 
 
+.. py:method:: X509Req.get_extensions()
+
+    Get extensions to the request.
+
+    .. versionadded:: 0.15
+
+
 .. _openssl-x509store:
 
 X509Store objects
