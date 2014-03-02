@@ -705,7 +705,7 @@ class X509Req(object):
         """
         exts = []
         native_exts_obj = _lib.X509_REQ_get_extensions(self._req)
-        for i in range(0, _lib.sk_X509_EXTENSION_num(native_exts_obj)):
+        for i in range(_lib.sk_X509_EXTENSION_num(native_exts_obj)):
             ext = X509Extension.__new__(X509Extension)
             ext._extension = _lib.sk_X509_EXTENSION_value(native_exts_obj, i)
             exts.append(ext)
