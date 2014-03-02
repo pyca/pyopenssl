@@ -701,7 +701,7 @@ class X509Req(object):
         """
         Get extensions to the request.
 
-        :return: A list of X509Extension objects.
+        :return: A :py:class:`list` of :py:class:`X509Extension` objects.
         """
         exts = []
         native_exts_obj = _lib.X509_REQ_get_extensions(self._req)
