@@ -49,11 +49,23 @@ High-level wrapper around a subset of the OpenSSL library, includes
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
+
+        # General classifiers to indicate "this project supports Python 2" and
+        # "this project supports Python 3".
+        'Programming Language :: Python :: 2',
+        # In particular, this makes pyOpenSSL show up on
+        # https://pypi.python.org/pypi?:action=browse&c=533&show=all and is in
+        # accordance with
+        # http://docs.python.org/2/howto/pyporting.html#universal-bits-of-advice
+        'Programming Language :: Python :: 3',
+
+        # More specific classifiers to indicate more precisely which versions
+        # of those languages the project supports.
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
+
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Security :: Cryptography',
