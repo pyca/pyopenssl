@@ -1932,7 +1932,62 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     # XXX want_read
 
+    def test_get_cipher_name(self):
+        """
+        :py:obj:`Connection.get_cipher_name` returns the name of the currently
+                 used cipher or :py:obj:`None` if no connection has been established. 
+        """
+        # if connection is not established Connection.cipher returns None.
+        ctx = Context(TLSv1_METHOD)
+        conn = Connection(ctx, None)
+        self.assertEqual(conn.get_cipher_name(), None)
 
+        server, client = self._loopback()
+        server_cipher_name, client_cipher_name = \
+            server.get_cipher_name(), client.get_cipher_name()
+
+        self.assertTrue(isinstance(server_cipher_name, str))
+        self.assertTrue(isinstance(client_cipher_name, str))
+
+        self.assertEqual(server_cipher_name, client_cipher_name)
+
+    def test_get_cipher_version(self):
+        """
+        :py:obj:`Connection.get_cipher_version` returns the protocol name of the currently
+                 used cipher or :py:obj:`None` if no connection has been established. 
+        """
+        # if connection is not established Connection.cipher returns None.
+        ctx = Context(TLSv1_METHOD)
+        conn = Connection(ctx, None)
+        self.assertEqual(conn.get_cipher_version(), None)
+
+        server, client = self._loopback()
+        server_cipher_version, client_cipher_version = \
+            server.get_cipher_version(), client.get_cipher_version()
+
+        self.assertTrue(isinstance(server_cipher_version, str))
+        self.assertTrue(isinstance(client_cipher_version, str))
+
+        self.assertEqual(server_cipher_version, client_cipher_version)
+
+    def test_get_cipher_bits(self):
+        """
+        :py:obj:`Connection.get_cipher_bits` returns the number of secret bits of the currently
+                 used cipher or :py:obj:`None` if no connection has been established. 
+        """
+        # if connection is not established Connection.cipher returns None.
+        ctx = Context(TLSv1_METHOD)
+        conn = Connection(ctx, None)
+        self.assertEqual(conn.get_cipher_bits(), None)
+
+        server, client = self._loopback()
+        server_cipher_bits, client_cipher_bits = \
+            server.get_cipher_bits(), client.get_cipher_bits()
+
+        self.assertTrue(isinstance(server_cipher_bits, int))
+        self.assertTrue(isinstance(client_cipher_bits, int))
+
+        self.assertEqual(server_cipher_bits, client_cipher_bits)
 
 class ConnectionGetCipherListTests(TestCase):
     """
