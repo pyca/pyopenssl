@@ -266,6 +266,15 @@ NID_ipsec4 = _lib.NID_ipsec4
 SN_ipsec4 = _ffi.string(_lib.SN_ipsec4)
 
 _Cryptography_HAS_EC = _lib.Cryptography_HAS_EC
+ELLIPTIC_CURVE_DESCRIPTIONS = {}  # In case there's no EC support
+if _Cryptography_HAS_EC:
+    _num_curves = _lib.EC_get_builtin_curves(_ffi.NULL, 0)
+    _curves = _ffi.new('EC_builtin_curve[]', _num_curves)
+    if _lib.EC_get_builtin_curves(_curves, _num_curves) == _num_curves:
+        ELLIPTIC_CURVE_DESCRIPTIONS = {c.nid : _ffi.string(c.comment)
+                                       for c in _curves}
+    del _num_curves
+    del _curves
 
 
 class Error(Exception):
