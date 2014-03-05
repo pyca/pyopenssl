@@ -1417,6 +1417,38 @@ class Connection(object):
         if not result:
             _raise_current_error()
 
+    def get_finished(self):
+        """
+        Obtain latest Finished message that we sent.
+
+        :return: A string representing the Finished message
+        """
+        # The size of Finished message is 12 bytes in TLS,
+        # 36 bytes in SSL protocol, but let's be safe with
+        # 128 bytes buffer
+        bufsiz = 128
+        buf = _ffi.new("char[]", bufsiz)
+        result = _lib.SSL_get_finished(self._ssl, buf, bufsiz)
+        if result == 0:
+            return None # no Finished so far
+        else:
+            return _ffi.buffer(buf, result)[:]
+
+    def get_peer_finished(self):
+        """
+        Obtain latest Finished message that we expected from peer.
+
+        :return: A string representing the Finished message
+        """
+        # Same buffer size as in get_finished
+        bufsiz = 128
+        buf = _ffi.new("char[]", bufsiz)
+        result = _lib.SSL_get_peer_finished(self._ssl, buf, bufsiz)
+        if result == 0:
+            return None # no Finished so far
+        else:
+            return _ffi.buffer(buf, result)[:]
+
 ConnectionType = Connection
 
 # This is similar to the initialization calls at the end of OpenSSL/crypto.py
