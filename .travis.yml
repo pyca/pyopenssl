@@ -11,5 +11,12 @@ python:
   - "3.2"
   - "3.3"
 
+install:
+  # Install the wheel library explicitly here.  It is not really a setup
+  # dependency.  It is not an install dependency.  It is only a dependency for
+  # the script directive below - because we want to exercise wheel building on
+  # travis.
+  - pip install wheel
+
 script:
-  - python setup.py test
+  - python setup.py bdist_wheel test
