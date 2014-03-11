@@ -81,7 +81,10 @@ except AttributeError:
 
 OP_NO_QUERY_MTU = _lib.SSL_OP_NO_QUERY_MTU
 OP_COOKIE_EXCHANGE = _lib.SSL_OP_COOKIE_EXCHANGE
-OP_NO_TICKET = _lib.SSL_OP_NO_TICKET
+try:
+    OP_NO_TICKET = _lib.SSL_OP_NO_TICKET
+except AttributeError:
+    pass
 
 OP_ALL   = _lib.SSL_OP_ALL
 
