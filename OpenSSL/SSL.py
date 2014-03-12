@@ -271,8 +271,8 @@ if _Cryptography_HAS_EC:
     _num_curves = _lib.EC_get_builtin_curves(_ffi.NULL, 0)
     _curves = _ffi.new('EC_builtin_curve[]', _num_curves)
     if _lib.EC_get_builtin_curves(_curves, _num_curves) == _num_curves:
-        ELLIPTIC_CURVE_DESCRIPTIONS = {c.nid : _ffi.string(c.comment)
-                                       for c in _curves}
+        ELLIPTIC_CURVE_DESCRIPTIONS = dict((c.nid, _ffi.string(c.comment))
+                                           for c in _curves)
     del _num_curves
     del _curves
 
@@ -751,10 +751,10 @@ class Context(object):
 
     def set_tmp_ecdh_by_curve_name(self, curve_name):
         """
-        Configure this connection to people to use Elliptical Curve
-        Diffie-Hellman key exchanges.
+        Select a curve to use for ECDHE key exchange.
 
         :param curve_name: One of the named curve constants.
+        :type curve_name: int
         :return: None
         """
         if _lib.Cryptography_HAS_EC:
