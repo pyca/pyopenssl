@@ -116,16 +116,15 @@ Context, Connection.
      .. versionadded:: 0.14
 
 
-.. py:data:: NID_X9_62_prime192v1
-             NID_X9_62_prime192v2
-             NID_X9_62_prime192v3
-             NID_X9_62_prime239v1
-             NID_X9_62_prime239v2
-             NID_X9_62_prime239v3
-             NID_X9_62_prime256v1
+.. py:data:: ELLIPTIC_CURVE_DESCRIPTIONS
 
-    Constants used with :py:meth:`Context.set_tmp_ecdh_by_curve_name` to
-    specify which elliptical curve should be used.
+    A dictionary mapping short names of elliptic curves to textual
+    descriptions.  This dictionary contains exactly the set of curves
+    supported by the OpenSSL build in use.
+
+    The keys are the curve names that can be passed into
+    Constants used with :py:meth:`Context.set_tmp_ecdh_curve` to
+    specify which elliptical curve should be used for ECDHE key exchange.
 
 
 .. py:data:: OPENSSL_VERSION_NUMBER
@@ -334,16 +333,19 @@ Context objects have the following methods:
 
     Load parameters for Ephemeral Diffie-Hellman from *dhfile*.
 
-.. py:method:: Context.set_tmp_ecdh_by_curve_name(curve_name)
+.. py:method:: Context.set_tmp_ecdh_curve(curve_name)
 
-    Configure this connection to people to use Elliptical Curve Diffie-Hellman
-    key exchanges.
+   Select a curve to use for ECDHE key exchange.
 
-    ``curve_name`` should be one of the named curve constants, such as
-    :py:data:`NID_X9_62_prime256v1`.
+   The valid values of *curve_name* are the keys in
+   :py:data:`ELLIPTIC_CURVE_DESCRIPTIONS`.
 
-    Raises a ``ValueError`` if the linked OpenSSL was not compiled with
-    elliptical curve support, or the specified curve is not available.
+   Raises a ``ValueError`` if the linked OpenSSL was not compiled with
+   elliptical curve support, or the specified curve is not available.
+
+   :param curve_name: The 'short name' of a curve, e.g. 'prime256v1'
+   :type curve_name: str
+   :return: None
 
 .. py:method:: Context.set_app_data(data)
 

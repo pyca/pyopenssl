@@ -35,7 +35,8 @@ from OpenSSL.SSL import (
     SESS_CACHE_OFF, SESS_CACHE_CLIENT, SESS_CACHE_SERVER, SESS_CACHE_BOTH,
     SESS_CACHE_NO_AUTO_CLEAR, SESS_CACHE_NO_INTERNAL_LOOKUP,
     SESS_CACHE_NO_INTERNAL_STORE, SESS_CACHE_NO_INTERNAL)
-from OpenSSL.SSL import NID_X9_62_prime256v1, _Cryptography_HAS_EC
+from OpenSSL.SSL import (
+    _Cryptography_HAS_EC, ELLIPTIC_CURVE_DESCRIPTIONS)
 
 from OpenSSL.SSL import (
     Error, SysCallError, WantReadError, WantWriteError, ZeroReturnError)
@@ -1173,15 +1174,21 @@ class ContextTests(TestCase, _LoopbackMixin):
         # XXX What should I assert here? -exarkun
 
 
-    if _Cryptography_HAS_EC:
-        def test_set_tmp_ecdh_by_curve_name(self):
-            """
-            :py:obj:`Context.set_tmp_ecdh_by_curve_name` sets the Eliptical
-            Curve for Diffie-Hellman by the named curve.
-            """
-            context = Context(TLSv1_METHOD)
-            context.set_tmp_ecdh_by_curve_name(NID_X9_62_prime256v1)
-            # XXX What should I assert here? -alex
+    def test_set_tmp_ecdh_curve(self):
+        """
+        :py:obj:`Context.set_tmp_ecdh_curve` sets the Eliptical
+        Curve for Diffie-Hellman by the named curve.
+        """
+        context = Context(TLSv1_METHOD)
+        for curve in ELLIPTIC_CURVE_DESCRIPTIONS.keys():
+            context.set_tmp_ecdh_curve(curve)  # Must not throw.
+
+        if _Cryptography_HAS_EC:
+            # If EC is compiled in, there must be at least one curve
+            # Tn theory there could be an OpenSSL that violates this
+            # assumption.  If so, this test will fail and we'll find
+            # out.
+            self.assertTrue(ELLIPTIC_CURVE_DESCRIPTIONS)
 
 
     def test_set_cipher_list_bytes(self):
