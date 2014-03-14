@@ -13,7 +13,15 @@ python:
 
 matrix:
   include:
+  - python: "2.6"
+    env: CRYPTOGRAPHY_GIT_MASTER=true
   - python: "2.7"
+    env: CRYPTOGRAPHY_GIT_MASTER=true
+  - python: "3.2"
+    env: CRYPTOGRAPHY_GIT_MASTER=true
+  - python: "3.3"
+    env: CRYPTOGRAPHY_GIT_MASTER=true
+  - python: "pypy"
     env: CRYPTOGRAPHY_GIT_MASTER=true
   allow_failures:
   - env: CRYPTOGRAPHY_GIT_MASTER=true
