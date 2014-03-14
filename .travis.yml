@@ -16,8 +16,7 @@ matrix:
   - python: "2.7"
     env: CRYPTOGRAPHY_GIT_MASTER=true
   allow_failures:
-  - python: "2.7"
-    env: CRYPTOGRAPHY_GIT_MASTER=true
+  - env: CRYPTOGRAPHY_GIT_MASTER=true
 
 before_install:
   - if [ -n "$CRYPTOGRAPHY_GIT_MASTER" ]; then pip install git+https://github.com/pyca/cryptography.git;fi
