@@ -1,7 +1,7 @@
 # Contributing
 
 First of all, thank you for your interest in contributing to
-PyOpenSSL!
+pyOpenSSL!
 
 ## Filing bug reports
 
@@ -12,8 +12,8 @@ include an [SSCCE](http://www.sscce.org/).
 
 ## Patches
 
-All patches to PyOpenSSL should be submitted in the form of pull
-requests to the main PyOpenSSL repository, `pyca/pyopenssl`. These
+All patches to pyOpenSSL should be submitted in the form of pull
+requests to the main pyOpenSSL repository, `pyca/pyopenssl`. These
 pull requests should satisfy the following properties:
 
 - Pull requests that involve code must follow the
@@ -37,7 +37,7 @@ of course keeping in mind all the requirements detailed in this
 document as well as the pyca/cryptography merge requirements.
 
 The final responsibility for the reviewing of merged code lies with
-the person merging it; since PyOpenSSL is obviously a sensitive
+the person merging it; since pyOpenSSL is obviously a sensitive
 project from a security perspective, so reviewers are strongly
 encouraged to take this review and merge process very seriously.
 
