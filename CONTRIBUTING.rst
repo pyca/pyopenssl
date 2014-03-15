@@ -19,10 +19,12 @@ All patches to pyOpenSSL should be submitted in the form of pull
 requests to the main pyOpenSSL repository, ``pyca/pyopenssl``. These
 pull requests should satisfy the following properties:
 
-- Pull requests that involve code must follow the
-  `Twisted Coding Standard`_. For example, ``methodNamesLikeThis``,
-  three empty lines between module-level elements, and two empty lines
-  between class-level elements.
+- Code should mostly follow `PEP 8`_, especially in the "do what code
+  around you does" sense. One notable way pyOpenSSL code differs, for
+  example, is that there should be three empty lines between
+  module-level elements, and two empty lines between class-level
+  elements. Methods and functions are named in ``snake_case``. Follow
+  OpenSSL naming for callables whenever possible is preferred.
 - Pull requests that introduce code must test all new behavior they
   introduce, as well as previously untested or poorly tested behavior
   that they touch.
@@ -46,4 +48,5 @@ the person merging it; since pyOpenSSL is obviously a sensitive
 project from a security perspective, so reviewers are strongly
 encouraged to take this review and merge process very seriously.
 
+.. _PEP 8: http://legacy.python.org/dev/peps/pep-0008/
 .. _cryptography code review process: https://cryptography.io/en/latest/development/reviewing-patches/
