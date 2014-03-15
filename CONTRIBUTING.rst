@@ -28,7 +28,9 @@ pull requests should satisfy the following properties:
   that they touch.
 - Pull requests are not allowed to break existing tests.
 - Pull requests that introduce features or fix bugs should note those
-  changes in the ``ChangeLog`` text file in the root of the repository.
+  changes in the ``ChangeLog`` text file in the root of the
+  repository. They should also document the changes, both in
+  docstrings and in the documentation in the ``doc/`` directory.
 
 Finally, pull requests must be reviewed before merging. This process
 mirrors the `cryptography code review process`_. Everyone can perform
