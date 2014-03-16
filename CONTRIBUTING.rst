@@ -30,7 +30,8 @@ Finally, pull requests must be reviewed before merging.
 This process mirrors the `cryptography code review process`_.
 Everyone can perform reviews; this is a very valuable way to contribute, and is highly encouraged.
 
-All members of the pyca Github organization can merge pull requests, of course keeping in mind all the requirements detailed in this document as well as the pyca/cryptography merge requirements.
+Pull requests are merged by members of the `pyopenssl-committers team <https://github.com/orgs/pyca/teams/pyopenssl-committers>`_.
+They should, of course, keep all the requirements detailed in this document as well as the pyca/cryptography merge requirements in mind.
 
 The final responsibility for the reviewing of merged code lies with the person merging it; since pyOpenSSL is obviously a sensitive project from a security perspective, so reviewers are strongly encouraged to take this review and merge process very seriously.
 
