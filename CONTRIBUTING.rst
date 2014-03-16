@@ -17,7 +17,7 @@ Patches
 All patches to pyOpenSSL should be submitted in the form of pull requests to the main pyOpenSSL repository, ``pyca/pyopenssl``.
 These pull requests should satisfy the following properties:
 
-- The branch referenced should be a feature branch focusing on one particular improvement to pyOpenSSL.
+- The branch referenced should be a `feature branch`_ focusing on one particular improvement to pyOpenSSL.
   Create different branches and different pull requests for unrelated features or bugfixes.
 - The branch referenced should have a distinctive name (in particular, please do not open pull requests for your ``master`` branch).
 - Code should follow `PEP 8`_, especially in the "do what code around you does" sense.
@@ -40,3 +40,4 @@ The final responsibility for the reviewing of merged code lies with the person m
 
 .. _PEP 8: http://legacy.python.org/dev/peps/pep-0008/
 .. _cryptography code review process: https://cryptography.io/en/latest/development/reviewing-patches/
+.. _feature branch: http://nvie.com/posts/a-successful-git-branching-model/
