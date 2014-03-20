@@ -7,6 +7,9 @@
 
 	* OpenSSL/tsafe.py: Replace the use of ``apply`` (which has been
 	  removed in Python 3) with the equivalent syntax.
+2014-03-20  Jonathan Giannuzzi  <jonathan@giannuzzi.be>
+
+	* OpenSSL/crypto.py: Fix memory leak in _X509_REVOKED_dup.
 
 2014-03-02  Stephen Holsapple  <sholsapp@gmail.com>
 
