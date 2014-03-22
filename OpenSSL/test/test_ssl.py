@@ -1911,9 +1911,13 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         client_socket, server_socket = socket_pair()
         # Fill up the client's send buffer so Connection won't be able to write
-        # anything.
-        msg = b"x" * 512
-        for i in range(2048):
+        # anything.  Only write a single byte at a time so we can be sure we
+        # completely fill the buffer.  Even though the socket API is allowed to
+        # signal a short write via its return value it seems this doesn't
+        # always happen on all platforms (FreeBSD and OS X particular) for the
+        # very last bit of available buffer space.
+        msg = b"x"
+        for i in range(1024 * 1024 * 4):
             try:
                 client_socket.send(msg)
             except error as e:
