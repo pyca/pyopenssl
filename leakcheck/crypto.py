@@ -2,7 +2,7 @@
 # See LICENSE for details.
 
 import sys
-import datetime
+from datetime import datetime
 
 from OpenSSL.crypto import (
     FILETYPE_PEM, TYPE_DSA, Error, PKey, X509, load_privatekey, CRL, Revoked)
@@ -116,7 +116,7 @@ class Checker_CRL_get_revoked(BaseChecker):
         for serial in xrange(1000):
             revoked = Revoked()
             revoked.set_serial(str(serial))
-            revoked.set_rev_date(datetime.datetime.utcnow().strftime('%Y%m%d%H%M%SZ'))
+            revoked.set_rev_date(datetime.utcnow().strftime('%Y%m%d%H%M%SZ'))
             crl.add_revoked(revoked)
         for i in xrange(self.iterations):
             crl.get_revoked()
