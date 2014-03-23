@@ -2,9 +2,10 @@
 # See LICENSE for details.
 
 import sys
+import datetime
 
 from OpenSSL.crypto import (
-    FILETYPE_PEM, TYPE_DSA, Error, PKey, X509, load_privatekey)
+    FILETYPE_PEM, TYPE_DSA, Error, PKey, X509, load_privatekey, CRL, Revoked)
 
 
 
@@ -99,6 +100,27 @@ FCB5K3c2kkTv2KjcCAimjxkE+SBKfHg35W0wB0AWkXpVFO5W/TbHg4tqtkpt/KMn
                     lambda *args: {})
             except ValueError:
                 pass
+
+
+
+class Checker_CRL_get_revoked(BaseChecker):
+    """
+    Leak checks for L{CRL.get_revoked}.
+    """
+    def check_get_revoked(self):
+        """
+        Create a CRL object with 1000 Revoked objects, then call the
+        get_revoked method repeatedly.
+        """
+        crl = CRL()
+        for serial in xrange(1000):
+            revoked = Revoked()
+            revoked.set_serial(str(serial))
+            revoked.set_rev_date(datetime.datetime.utcnow().strftime('%Y%m%d%H%M%SZ'))
+            crl.add_revoked(revoked)
+        for i in xrange(self.iterations):
+            crl.get_revoked()
+
 
 
 def vmsize():
