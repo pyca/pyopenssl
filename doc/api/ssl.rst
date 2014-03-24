@@ -83,12 +83,6 @@ Context, Connection.
     :py:const:`OP_NO_*` constant may be undefined.
 
 
-.. py:data:: MODE_NO_COMPRESSION
-
-   Constant used with :py:meth:`set_mode` of Context objects to disable
-   automatic compression of application traffic.
-
-
 .. py:data:: SSLEAY_VERSION
              SSLEAY_CFLAGS
              SSLEAY_BUILT_ON

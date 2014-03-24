@@ -1,3 +1,7 @@
+2014-03-02  Stephen Holsapple  <sholsapp@gmail.com>
+
+	* OpenSSL/crypto.py: Add ``get_extensions`` method to ``X509Req``.
+
 2014-01-09  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL: Port to the cffi-based OpenSSL bindings provided by

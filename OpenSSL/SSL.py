@@ -81,7 +81,10 @@ except AttributeError:
 
 OP_NO_QUERY_MTU = _lib.SSL_OP_NO_QUERY_MTU
 OP_COOKIE_EXCHANGE = _lib.SSL_OP_COOKIE_EXCHANGE
-OP_NO_TICKET = _lib.SSL_OP_NO_TICKET
+try:
+    OP_NO_TICKET = _lib.SSL_OP_NO_TICKET
+except AttributeError:
+    pass
 
 OP_ALL   = _lib.SSL_OP_ALL
 
@@ -235,6 +238,7 @@ class Context(object):
     new SSL connections.
     """
     _methods = {
+        SSLv2_METHOD: "SSLv2_method",
         SSLv3_METHOD: "SSLv3_method",
         SSLv23_METHOD: "SSLv23_method",
         TLSv1_METHOD: "TLSv1_method",
