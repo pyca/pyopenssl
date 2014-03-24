@@ -102,10 +102,18 @@ FCB5K3c2kkTv2KjcCAimjxkE+SBKfHg35W0wB0AWkXpVFO5W/TbHg4tqtkpt/KMn
 
 
 
-class Checker_CRL_get_revoked(BaseChecker):
+class Checker_CRL(BaseChecker):
     """
-    Leak checks for L{CRL.get_revoked}.
+    Leak checks for L{CRL.add_revoked} and L{CRL.get_revoked}.
     """
+    def check_add_revoked(self):
+        """
+        Call the add_revoked method repeatedly on an empty CRL.
+        """
+        for i in xrange(self.iterations * 200):
+            CRL().add_revoked(Revoked())
+
+
     def check_get_revoked(self):
         """
         Create a CRL object with 100 Revoked objects, then call the
