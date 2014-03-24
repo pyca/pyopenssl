@@ -4,7 +4,10 @@
 import sys
 
 from OpenSSL.crypto import (
-    FILETYPE_PEM, TYPE_DSA, Error, PKey, X509, load_privatekey, CRL, Revoked)
+    FILETYPE_PEM, TYPE_DSA, Error, PKey, X509, load_privatekey, CRL, Revoked,
+    _X509_REVOKED_dup)
+
+from OpenSSL._util import lib as _lib
 
 
 
@@ -124,6 +127,21 @@ class Checker_CRL(BaseChecker):
             crl.add_revoked(Revoked())
         for i in xrange(self.iterations):
             crl.get_revoked()
+
+
+
+class Checker_X509_REVOKED_dup(BaseChecker):
+    """
+    Leak checks for :py:obj:`_X509_REVOKED_dup`.
+    """
+    def check_X509_REVOKED_dup(self):
+        """
+        Copy an empty Revoked object repeatedly. The copy is not garbage
+        collected, therefore it needs to be manually freed.
+        """
+        for i in xrange(self.iterations * 100):
+            revoked_copy = _X509_REVOKED_dup(Revoked()._revoked)
+            _lib.X509_REVOKED_free(revoked_copy)
 
 
 
