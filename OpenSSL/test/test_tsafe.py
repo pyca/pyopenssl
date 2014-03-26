@@ -1,27 +1,23 @@
+# Copyright (C) Jean-Paul Calderone
+# See LICENSE for details.
 
 """
 Unit tests for :py:obj:`OpenSSL.tsafe`.
 """
 
-from OpenSSL import tsafe
-from OpenSSL.SSL import SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD
-from OpenSSL.SSL import Context
-from OpenSSL.test.util import TestCase, bytes, b
+from OpenSSL.SSL import TLSv1_METHOD, Context
+from OpenSSL.tsafe import Connection
+from OpenSSL.test.util import TestCase
 from OpenSSL.test.test_ssl import _create_certificate_chain
 
 
 class ConnectionTest(TestCase):
     """
-    Unit tests for :py:obj:`OpenSSL.tsafe.Connection`.
+    Tests for :py:obj:`OpenSSL.tsafe.Connection`.
     """
-
-    def test_instantiating_works_under_all_supported_Python_versions(self):
+    def test_instantiation(self):
         """
-        At least one library (namely `Werkzeug`_) is instantiating
-        :py:obj:`Connection` directly which previously did not work under
-        Python 3 (Bug #1211834: Python 3 Code Uses "apply" function).
-
-        .. _Werkzeug: http://werkzeug.pocoo.org
+        :py:obj:`OpenSSL.tsafe.Connection` can be instantiated.
         """
         chain = _create_certificate_chain()
         [(_, _), (ikey, icert), (skey, scert)] = chain
@@ -31,5 +27,7 @@ class ConnectionTest(TestCase):
         ctx.use_privatekey(skey)
         ctx.use_certificate(scert)
 
-        # The following line should not throw an error
-        socket = tsafe.Connection(ctx, None)
+        # The following line should not throw an error.  This isn't an ideal
+        # test.  It would be great to refactor the other Connection tests so
+        # they could automatically be applied to this class too.
+        Connection(ctx, None)
