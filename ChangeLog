@@ -7,9 +7,13 @@
 
 	* OpenSSL/tsafe.py: Replace the use of ``apply`` (which has been
 	  removed in Python 3) with the equivalent syntax.
-2014-03-20  Jonathan Giannuzzi  <jonathan@giannuzzi.be>
+
+2014-03-28  Jonathan Giannuzzi  <jonathan@giannuzzi.be>
 
 	* OpenSSL/crypto.py: Fix memory leak in _X509_REVOKED_dup.
+	* leakcheck/crypto.py: Add checks for _X509_REVOKED_dup, CRL.add_revoked
+	  and CRL.get_revoked.
+	* setup.py: Require cryptography 0.3 to have the ASN1_TIME_free binding.
 
 2014-03-02  Stephen Holsapple  <sholsapp@gmail.com>
 
