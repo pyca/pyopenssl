@@ -1932,24 +1932,60 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     # XXX want_read
 
-    def test_finished(self):
+    def test_get_finished_before_connect(self):
         """
-        :py:obj:`Connection.get_finished` and :py:obj:`Connection.get_peer_finished`
-        methods return the TLS Finished messages. Finished messages are send
-        during TLS handshake. Before handshake :py:obj:`Connection.get_finished` and
-        :py:obj:`Connection.get_peer_finished` return None.
+        :py:obj:`Connection.get_finished` returns  :py:obj:`None`
+            before TLS handshake is completed.
         """
 
         ctx = Context(TLSv1_METHOD)
         connection = Connection(ctx, None)
         self.assertEqual(connection.get_finished(), None)
+
+    def test_get_peer_finished_before_connect(self):
+        """
+        :py:obj:`Connection.get_peer_finished` returns  :py:obj:`None`
+            before TLS handshake is completed.
+        """
+
+        ctx = Context(TLSv1_METHOD)
+        connection = Connection(ctx, None)
         self.assertEqual(connection.get_peer_finished(), None)
+
+    def test_get_finished(self):
+        """
+        :py:obj:`Connection.get_finished` method returns the TLS Finished
+            message send from client, or server. Finished messages are send
+            during TLS handshake.
+        """
 
         server, client = self._loopback()
 
         self.assertNotEqual(server.get_finished(), None)
         self.assertTrue(len(server.get_finished()) > 0)
+
+    def test_get_peer_finished(self):
+        """
+        :py:obj:`Connection.get_peer_finished` method returns the TLS Finished
+            message received from client, or server. Finished messages are send
+            during TLS handshake.
+        """
+
+        server, client = self._loopback()
+
+        self.assertNotEqual(server.get_peer_finished(), None)
         self.assertTrue(len(server.get_peer_finished()) > 0)
+
+    def test_tls_finished_message_symmetry(self):
+        """
+        The TLS Finished message send by server muss be the TLS Finished message
+        received by client.
+
+        The TLS Finished message send by client muss be the TLS Finished message
+        received by server.
+        """
+
+        server, client = self._loopback()
 
         self.assertEqual(server.get_finished(), client.get_peer_finished())
         self.assertEqual(client.get_finished(), server.get_peer_finished())

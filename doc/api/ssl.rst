@@ -765,6 +765,19 @@ Connection objects have the following methods:
 
     .. versionadded:: 0.14
 
+.. py:method:: Connection.get_finished()
+
+    Obtain latest TLS Finished message that we sent, or :py:obj:`None` if
+    handshake is not completed.
+
+    .. versionadded:: 0.15
+
+.. py:method:: Connection.get_peer_finished()
+
+    Obtain latest TLS Finished message that we expected from peer, or
+    :py:obj:`None` if handshake is not completed.
+
+    .. versionadded:: 0.15
 
 .. Rubric:: Footnotes
 

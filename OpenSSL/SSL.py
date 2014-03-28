@@ -1421,7 +1421,10 @@ class Connection(object):
         """
         Obtain latest Finished message that we sent.
 
-        :return: A string representing the Finished message
+        :return: The Finished message or :py:obj:`None` if the TLS handshake
+            is not completed.
+        :rtype: :py:data:`bytes`
+
         """
         # The size of Finished message is 12 bytes in TLS,
         # 36 bytes in SSL protocol, but let's be safe with
@@ -1438,7 +1441,10 @@ class Connection(object):
         """
         Obtain latest Finished message that we expected from peer.
 
-        :return: A string representing the Finished message
+        :return: The Finished message or :py:obj:`None` if the TLS handshake
+            is not completed.
+        :rtype: :py:data:`bytes`
+
         """
         # Same buffer size as in get_finished
         bufsiz = 128
