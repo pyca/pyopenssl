@@ -3,6 +3,11 @@
 	* OpenSSL/SSL.py: Add ``get_cipher_name``, ``get_cipher_bits``,
 	  and ``get_cipher_version`` to ``Connection``.
 
+2014-03-28  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/tsafe.py: Replace the use of ``apply`` (which has been
+	  removed in Python 3) with the equivalent syntax.
+
 2014-03-02  Stephen Holsapple  <sholsapp@gmail.com>
 
 	* OpenSSL/crypto.py: Add ``get_extensions`` method to ``X509Req``.
