@@ -1417,6 +1417,7 @@ class Connection(object):
         if not result:
             _raise_current_error()
 
+
     def get_cipher_name(self):
         """
         Obtain the name of the currently used cipher.
@@ -1429,6 +1430,7 @@ class Connection(object):
         else:
             return _native(_ffi.string(_lib.SSL_CIPHER_get_name(cipher)))
 
+
     def get_cipher_bits(self):
         """
         Obtain the number of secret bits of the currently used cipher.
@@ -1440,6 +1442,7 @@ class Connection(object):
             return None
         else:
             return _lib.SSL_CIPHER_get_bits(cipher, _ffi.NULL)
+
 
     def get_cipher_version(self):
         """

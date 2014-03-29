@@ -1941,6 +1941,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         conn = Connection(ctx, None)
         self.assertTrue(conn.get_cipher_name() is None)
 
+
     def test_get_cipher_name(self):
         """
         :py:obj:`Connection.get_cipher_name` returns the name of the currently
@@ -1955,6 +1956,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
         self.assertEqual(server_cipher_name, client_cipher_name)
 
+
     def test_get_cipher_version_before_connect(self):
         """
         :py:obj:`Connection.get_cipher_version` returns :py:obj:`None`
@@ -1963,6 +1965,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         ctx = Context(TLSv1_METHOD)
         conn = Connection(ctx, None)
         self.assertTrue(conn.get_cipher_version() is None)
+
 
     def test_get_cipher_version(self):
         """
@@ -1978,6 +1981,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
         self.assertEqual(server_cipher_version, client_cipher_version)
 
+
     def test_get_cipher_bits_before_connect(self):
         """
         :py:obj:`Connection.get_cipher_bits` returns :py:obj:`None`
@@ -1986,6 +1990,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         ctx = Context(TLSv1_METHOD)
         conn = Connection(ctx, None)
         self.assertTrue(conn.get_cipher_bits() is None)
+
 
     def test_get_cipher_bits(self):
         """
@@ -2000,6 +2005,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertIsInstance(client_cipher_bits, int)
 
         self.assertEqual(server_cipher_bits, client_cipher_bits)
+
+
 
 class ConnectionGetCipherListTests(TestCase):
     """
