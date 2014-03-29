@@ -1421,8 +1421,10 @@ class Connection(object):
     def get_cipher_name(self):
         """
         Obtain the name of the currently used cipher.
+
         :returns: The name of the currently used cipher or :py:obj:`None`
             if no connection has been established.
+        :rtype: :py:class:`str` or :py:class:`NoneType`
         """
         cipher = _lib.SSL_get_current_cipher(self._ssl)
         if cipher == _ffi.NULL:
@@ -1434,8 +1436,10 @@ class Connection(object):
     def get_cipher_bits(self):
         """
         Obtain the number of secret bits of the currently used cipher.
+
         :returns: The number of secret bits of the currently used cipher
             or :py:obj:`None` if no connection has been established.
+        :rtype: :py:class:`int` or :py:class:`NoneType`
         """
         cipher = _lib.SSL_get_current_cipher(self._ssl)
         if cipher == _ffi.NULL:
@@ -1446,9 +1450,11 @@ class Connection(object):
 
     def get_cipher_version(self):
         """
-        Obtain the protocol name of the currently used cipher.
+        Obtain the protocol version of the currently used cipher.
+
         :returns: The protocol name of the currently used cipher
             or :py:obj:`None` if no connection has been established.
+        :rtype: :py:class:`str` or :py:class:`NoneType`
         """
         cipher = _lib.SSL_get_current_cipher(self._ssl)
         if cipher == _ffi.NULL:
