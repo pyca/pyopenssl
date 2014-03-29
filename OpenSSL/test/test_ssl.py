@@ -1939,7 +1939,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         ctx = Context(TLSv1_METHOD)
         conn = Connection(ctx, None)
-        self.assertTrue(conn.get_cipher_name() is None)
+        self.assertIdentical(conn.get_cipher_name(), None)
 
 
     def test_get_cipher_name(self):
@@ -1964,7 +1964,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         ctx = Context(TLSv1_METHOD)
         conn = Connection(ctx, None)
-        self.assertTrue(conn.get_cipher_version() is None)
+        self.assertIdentical(conn.get_cipher_version(), None)
 
 
     def test_get_cipher_version(self):
@@ -1989,7 +1989,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         ctx = Context(TLSv1_METHOD)
         conn = Connection(ctx, None)
-        self.assertTrue(conn.get_cipher_bits() is None)
+        self.assertIdentical(conn.get_cipher_bits(), None)
 
 
     def test_get_cipher_bits(self):
