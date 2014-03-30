@@ -1433,7 +1433,20 @@ class Connection(object):
             received, otherwise the contents of the message.
         :rtype: :py:class:`bytes` or :py:class:`NoneType`
         """
-        size = function(self._ssl, _ffi.NULL, 0)
+        # The OpenSSL documentation says nothing about what might happen if the
+        # count argument given is zero.  Specifically, it doesn't say whether
+        # the output buffer may be NULL in that case or not.  Inspection of the
+        # implementation reveals that it calls memcpy() unconditionally.
+        # Section 7.1.4, paragraph 1 of the C standard suggests that
+        # memcpy(NULL, source, 0) is not guaranteed to produce defined (let
+        # alone desirable) behavior (though it probably does on just about
+        # every implementation...)
+        #
+        # Allocate a tiny buffer to pass in (instead of just passing NULL as
+        # one might expect) for the initial call so as to be safe against this
+        # potentially undefined behavior.
+        empty = _ffi.new("char[]", 0)
+        size = function(self._ssl, empty, 0)
         if size == 0:
             # No Finished message so far.
             return None
