@@ -1964,6 +1964,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertNotEqual(server.get_finished(), None)
         self.assertTrue(len(server.get_finished()) > 0)
 
+
     def test_get_peer_finished(self):
         """
         :py:obj:`Connection.get_peer_finished` method returns the TLS Finished
