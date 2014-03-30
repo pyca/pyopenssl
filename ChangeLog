@@ -1,4 +1,4 @@
-2014-03-28  Fedor Brunner  <fedor.brunner@azet.sk>
+2014-03-30  Fedor Brunner  <fedor.brunner@azet.sk>
 
 	* OpenSSL/ssl.py: Add ``get_finished``, ``get_peer_finished``
 	  methods to ``Connection``. If you use these methods to
@@ -6,6 +6,16 @@
 	  resumption because triple handshake attacks against TLS.
 	  <https://www.ietf.org/mail-archive/web/tls/current/msg11337.html>
 	  <https://secure-resumption.com/tlsauth.pdf>
+
+2014-03-29  Fedor Brunner  <fedor.brunner@azet.sk>
+
+	* OpenSSL/SSL.py: Add ``get_cipher_name``, ``get_cipher_bits``,
+	  and ``get_cipher_version`` to ``Connection``.
+
+2014-03-28  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/tsafe.py: Replace the use of ``apply`` (which has been
+	  removed in Python 3) with the equivalent syntax.
 
 2014-03-02  Stephen Holsapple  <sholsapp@gmail.com>
 

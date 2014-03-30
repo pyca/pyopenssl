@@ -83,12 +83,6 @@ Context, Connection.
     :py:const:`OP_NO_*` constant may be undefined.
 
 
-.. py:data:: MODE_NO_COMPRESSION
-
-   Constant used with :py:meth:`set_mode` of Context objects to disable
-   automatic compression of application traffic.
-
-
 .. py:data:: SSLEAY_VERSION
              SSLEAY_CFLAGS
              SSLEAY_BUILT_ON
@@ -765,6 +759,7 @@ Connection objects have the following methods:
 
     .. versionadded:: 0.14
 
+
 .. py:method:: Connection.get_finished()
 
     Obtain latest TLS Finished message that we sent, or :py:obj:`None` if
@@ -772,12 +767,35 @@ Connection objects have the following methods:
 
     .. versionadded:: 0.15
 
+
 .. py:method:: Connection.get_peer_finished()
 
     Obtain latest TLS Finished message that we expected from peer, or
     :py:obj:`None` if handshake is not completed.
 
     .. versionadded:: 0.15
+
+
+.. py:method:: Connection.get_cipher_name()
+
+    Obtain the name of the currently used cipher.
+
+    .. versionadded:: 0.15
+
+
+.. py:method:: Connection.get_cipher_bits()
+
+    Obtain the number of secret bits of the currently used cipher.
+
+    .. versionadded:: 0.15
+
+
+.. py:method:: Connection.get_cipher_version()
+
+    Obtain the protocol name of the currently used cipher.
+
+    .. versionadded:: 0.15
+
 
 .. Rubric:: Footnotes
 
