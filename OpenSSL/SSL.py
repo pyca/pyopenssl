@@ -1421,43 +1421,48 @@ class Connection(object):
             _raise_current_error()
 
 
+    def _get_finished_message(self, function):
+        """
+        Helper to implement :py:meth:`get_finished` and
+        :py:meth:`get_peer_finished`.
+
+        :param function: Either :py:data:`SSL_get_finished`: or
+            :py:data:`SSL_get_peer_finished`.
+
+        :return: :py:data:`None` if the desired message has not yet been
+            received, otherwise the contents of the message.
+        :rtype: :py:class:`bytes` or :py:class:`NoneType`
+        """
+        size = function(self._ssl, _ffi.NULL, 0)
+        if size == 0:
+            # No Finished message so far.
+            return None
+
+        buf = _ffi.new("char[]", size)
+        function(self._ssl, buf, size)
+        return _ffi.buffer(buf, size)[:]
+
+
     def get_finished(self):
         """
-        Obtain latest Finished message that we sent.
+        Obtain the latest `handshake finished` message sent to the peer.
 
-        :return: The Finished message or :py:obj:`None` if the TLS handshake
-            is not completed.
-        :rtype: :py:data:`bytes`
-
+        :return: The contents of the message or :py:obj:`None` if the TLS
+            handshake has not yet completed.
+        :rtype: :py:class:`bytes` or :py:class:`NoneType`
         """
-        # The size of Finished message is 12 bytes in TLS,
-        # 36 bytes in SSL protocol, but let's be safe with
-        # 128 bytes buffer
-        bufsiz = 128
-        buf = _ffi.new("char[]", bufsiz)
-        result = _lib.SSL_get_finished(self._ssl, buf, bufsiz)
-        if result == 0:
-            return None # no Finished so far
-        else:
-            return _ffi.buffer(buf, result)[:]
+        return self._get_finished_message(_lib.SSL_get_finished)
+
 
     def get_peer_finished(self):
         """
-        Obtain latest Finished message that we expected from peer.
+        Obtain the latest `handshake finished` message received from the peer.
 
-        :return: The Finished message or :py:obj:`None` if the TLS handshake
-            is not completed.
-        :rtype: :py:data:`bytes`
-
+        :return: The contents of the message or :py:obj:`None` if the TLS
+            handshake has not yet completed.
+        :rtype: :py:class:`bytes` or :py:class:`NoneType`
         """
-        # Same buffer size as in get_finished
-        bufsiz = 128
-        buf = _ffi.new("char[]", bufsiz)
-        result = _lib.SSL_get_peer_finished(self._ssl, buf, bufsiz)
-        if result == 0:
-            return None # no Finished so far
-        else:
-            return _ffi.buffer(buf, result)[:]
+        return self._get_finished_message(_lib.SSL_get_peer_finished)
 
 
     def get_cipher_name(self):
