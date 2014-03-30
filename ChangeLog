@@ -1,6 +1,6 @@
 2014-03-30  Fedor Brunner  <fedor.brunner@azet.sk>
 
-	* OpenSSL/ssl.py: Add ``get_finished``, ``get_peer_finished``
+	* OpenSSL/SSL.py: Add ``get_finished``, ``get_peer_finished``
 	  methods to ``Connection``. If you use these methods to
 	  implement TLS channel binding (RFC 5929) disable session
 	  resumption because triple handshake attacks against TLS.
