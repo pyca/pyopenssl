@@ -1934,29 +1934,29 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_get_finished_before_connect(self):
         """
-        :py:obj:`Connection.get_finished` returns  :py:obj:`None`
-            before TLS handshake is completed.
+        :py:obj:`Connection.get_finished` returns :py:obj:`None` before TLS
+        handshake is completed.
         """
-
         ctx = Context(TLSv1_METHOD)
         connection = Connection(ctx, None)
         self.assertEqual(connection.get_finished(), None)
 
+
     def test_get_peer_finished_before_connect(self):
         """
-        :py:obj:`Connection.get_peer_finished` returns  :py:obj:`None`
-            before TLS handshake is completed.
+        :py:obj:`Connection.get_peer_finished` returns :py:obj:`None` before
+        TLS handshake is completed.
         """
-
         ctx = Context(TLSv1_METHOD)
         connection = Connection(ctx, None)
         self.assertEqual(connection.get_peer_finished(), None)
 
+
     def test_get_finished(self):
         """
         :py:obj:`Connection.get_finished` method returns the TLS Finished
-            message send from client, or server. Finished messages are send
-            during TLS handshake.
+        message send from client, or server. Finished messages are send during
+        TLS handshake.
         """
 
         server, client = self._loopback()
@@ -1967,33 +1967,33 @@ class ConnectionTests(TestCase, _LoopbackMixin):
     def test_get_peer_finished(self):
         """
         :py:obj:`Connection.get_peer_finished` method returns the TLS Finished
-            message received from client, or server. Finished messages are send
-            during TLS handshake.
+        message received from client, or server. Finished messages are send
+        during TLS handshake.
         """
-
         server, client = self._loopback()
 
         self.assertNotEqual(server.get_peer_finished(), None)
         self.assertTrue(len(server.get_peer_finished()) > 0)
 
+
     def test_tls_finished_message_symmetry(self):
         """
-        The TLS Finished message send by server muss be the TLS Finished message
+        The TLS Finished message send by server must be the TLS Finished message
         received by client.
 
-        The TLS Finished message send by client muss be the TLS Finished message
+        The TLS Finished message send by client must be the TLS Finished message
         received by server.
         """
-
         server, client = self._loopback()
 
         self.assertEqual(server.get_finished(), client.get_peer_finished())
         self.assertEqual(client.get_finished(), server.get_peer_finished())
 
+
     def test_get_cipher_name_before_connect(self):
         """
-        :py:obj:`Connection.get_cipher_name` returns  :py:obj:`None`
-        if no connection has been established.
+        :py:obj:`Connection.get_cipher_name` returns :py:obj:`None` if no
+        connection has been established.
         """
         ctx = Context(TLSv1_METHOD)
         conn = Connection(ctx, None)
@@ -2017,8 +2017,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_get_cipher_version_before_connect(self):
         """
-        :py:obj:`Connection.get_cipher_version` returns :py:obj:`None`
-        if no connection has been established.
+        :py:obj:`Connection.get_cipher_version` returns :py:obj:`None` if no
+        connection has been established.
         """
         ctx = Context(TLSv1_METHOD)
         conn = Connection(ctx, None)
@@ -2042,8 +2042,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_get_cipher_bits_before_connect(self):
         """
-        :py:obj:`Connection.get_cipher_bits` returns :py:obj:`None`
-        if no connection has been established.
+        :py:obj:`Connection.get_cipher_bits` returns :py:obj:`None` if no
+        connection has been established.
         """
         ctx = Context(TLSv1_METHOD)
         conn = Connection(ctx, None)
@@ -2052,8 +2052,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_get_cipher_bits(self):
         """
-        :py:obj:`Connection.get_cipher_bits` returns the number of secret bits of the currently
-        used cipher.
+        :py:obj:`Connection.get_cipher_bits` returns the number of secret bits
+        of the currently used cipher.
         """
         server, client = self._loopback()
         server_cipher_bits, client_cipher_bits = \
