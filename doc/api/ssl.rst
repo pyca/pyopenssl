@@ -759,6 +759,23 @@ Connection objects have the following methods:
 
     .. versionadded:: 0.14
 
+.. py:method:: Connection.get_cipher_name()
+
+    Obtain the name of the currently used cipher.
+
+    .. versionadded:: 0.15
+
+.. py:method:: Connection.get_cipher_bits()
+
+    Obtain the number of secret bits of the currently used cipher.
+
+    .. versionadded:: 0.15
+
+.. py:method:: Connection.get_cipher_version()
+
+    Obtain the protocol name of the currently used cipher.
+
+    .. versionadded:: 0.15
 
 .. Rubric:: Footnotes
 
