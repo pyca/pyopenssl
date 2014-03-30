@@ -14,7 +14,7 @@ from os.path import join
 from unittest import main
 from weakref import ref
 
-from six import PY3, u
+from six import PY3, text_type, u
 
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
 from OpenSSL.crypto import PKey, X509, X509Extension, X509Store
@@ -1944,15 +1944,15 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_get_cipher_name(self):
         """
-        :py:obj:`Connection.get_cipher_name` returns the name of the currently
-        used cipher.
+        :py:obj:`Connection.get_cipher_name` returns a :py:class:`unicode`
+        string giving the name of the currently used cipher.
         """
         server, client = self._loopback()
         server_cipher_name, client_cipher_name = \
             server.get_cipher_name(), client.get_cipher_name()
 
-        self.assertIsInstance(server_cipher_name, str)
-        self.assertIsInstance(client_cipher_name, str)
+        self.assertIsInstance(server_cipher_name, text_type)
+        self.assertIsInstance(client_cipher_name, text_type)
 
         self.assertEqual(server_cipher_name, client_cipher_name)
 
@@ -1969,15 +1969,15 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_get_cipher_version(self):
         """
-        :py:obj:`Connection.get_cipher_version` returns the protocol name of the currently
-        used cipher.
+        :py:obj:`Connection.get_cipher_version` returns a :py:class:`unicode`
+        string giving the protocol name of the currently used cipher.
         """
         server, client = self._loopback()
         server_cipher_version, client_cipher_version = \
             server.get_cipher_version(), client.get_cipher_version()
 
-        self.assertIsInstance(server_cipher_version, str)
-        self.assertIsInstance(client_cipher_version, str)
+        self.assertIsInstance(server_cipher_version, text_type)
+        self.assertIsInstance(client_cipher_version, text_type)
 
         self.assertEqual(server_cipher_version, client_cipher_version)
 
