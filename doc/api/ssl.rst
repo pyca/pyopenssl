@@ -252,7 +252,7 @@ Context objects have the following methods:
 .. py:method:: Context.get_cert_store()
 
     Retrieve the certificate store (a X509Store object) that the context uses.
-    This can be used to add "trusted" certificates without using the.
+    This can be used to add "trusted" certificates without using the
     :py:meth:`load_verify_locations` method.
 
 
