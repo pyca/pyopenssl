@@ -1323,9 +1323,11 @@ def _X509_REVOKED_dup(original):
         _raise_current_error()
 
     if original.serialNumber != _ffi.NULL:
+        _lib.ASN1_INTEGER_free(copy.serialNumber)
         copy.serialNumber = _lib.ASN1_INTEGER_dup(original.serialNumber)
 
     if original.revocationDate != _ffi.NULL:
+        _lib.ASN1_TIME_free(copy.revocationDate)
         copy.revocationDate = _lib.M_ASN1_TIME_dup(original.revocationDate)
 
     if original.extensions != _ffi.NULL:
