@@ -1421,6 +1421,63 @@ class Connection(object):
             _raise_current_error()
 
 
+    def _get_finished_message(self, function):
+        """
+        Helper to implement :py:meth:`get_finished` and
+        :py:meth:`get_peer_finished`.
+
+        :param function: Either :py:data:`SSL_get_finished`: or
+            :py:data:`SSL_get_peer_finished`.
+
+        :return: :py:data:`None` if the desired message has not yet been
+            received, otherwise the contents of the message.
+        :rtype: :py:class:`bytes` or :py:class:`NoneType`
+        """
+        # The OpenSSL documentation says nothing about what might happen if the
+        # count argument given is zero.  Specifically, it doesn't say whether
+        # the output buffer may be NULL in that case or not.  Inspection of the
+        # implementation reveals that it calls memcpy() unconditionally.
+        # Section 7.1.4, paragraph 1 of the C standard suggests that
+        # memcpy(NULL, source, 0) is not guaranteed to produce defined (let
+        # alone desirable) behavior (though it probably does on just about
+        # every implementation...)
+        #
+        # Allocate a tiny buffer to pass in (instead of just passing NULL as
+        # one might expect) for the initial call so as to be safe against this
+        # potentially undefined behavior.
+        empty = _ffi.new("char[]", 0)
+        size = function(self._ssl, empty, 0)
+        if size == 0:
+            # No Finished message so far.
+            return None
+
+        buf = _ffi.new("char[]", size)
+        function(self._ssl, buf, size)
+        return _ffi.buffer(buf, size)[:]
+
+
+    def get_finished(self):
+        """
+        Obtain the latest `handshake finished` message sent to the peer.
+
+        :return: The contents of the message or :py:obj:`None` if the TLS
+            handshake has not yet completed.
+        :rtype: :py:class:`bytes` or :py:class:`NoneType`
+        """
+        return self._get_finished_message(_lib.SSL_get_finished)
+
+
+    def get_peer_finished(self):
+        """
+        Obtain the latest `handshake finished` message received from the peer.
+
+        :return: The contents of the message or :py:obj:`None` if the TLS
+            handshake has not yet completed.
+        :rtype: :py:class:`bytes` or :py:class:`NoneType`
+        """
+        return self._get_finished_message(_lib.SSL_get_peer_finished)
+
+
     def get_cipher_name(self):
         """
         Obtain the name of the currently used cipher.
