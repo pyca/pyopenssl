@@ -35,6 +35,8 @@ from OpenSSL.SSL import (
     SESS_CACHE_OFF, SESS_CACHE_CLIENT, SESS_CACHE_SERVER, SESS_CACHE_BOTH,
     SESS_CACHE_NO_AUTO_CLEAR, SESS_CACHE_NO_INTERNAL_LOOKUP,
     SESS_CACHE_NO_INTERNAL_STORE, SESS_CACHE_NO_INTERNAL)
+from OpenSSL.SSL import (
+    _Cryptography_HAS_EC, ELLIPTIC_CURVE_DESCRIPTIONS)
 
 from OpenSSL.SSL import (
     Error, SysCallError, WantReadError, WantWriteError, ZeroReturnError)
@@ -1170,6 +1172,29 @@ class ContextTests(TestCase, _LoopbackMixin):
         dhfile.close()
         context.load_tmp_dh(dhfilename)
         # XXX What should I assert here? -exarkun
+
+
+    def test_set_tmp_ecdh_curve(self):
+        """
+        :py:obj:`Context.set_tmp_ecdh_curve` sets the Eliptical
+        Curve for Diffie-Hellman by the named curve.
+        """
+        context = Context(TLSv1_METHOD)
+        for curve in ELLIPTIC_CURVE_DESCRIPTIONS.keys():
+            context.set_tmp_ecdh_curve(curve)  # Must not throw.
+
+
+    def test_has_curve_descriptions(self):
+        """
+        If the underlying cryptography bindings claim to have elliptic
+        curve support, there should be at least one curve.
+
+        (In theory there could be an OpenSSL that violates this
+        assumption. If so, this test will fail and we'll find out.)
+
+        """
+        if _Cryptography_HAS_EC:
+            self.assertNotEqual(len(ELLIPTIC_CURVE_DESCRIPTIONS), 0)
 
 
     def test_set_cipher_list_bytes(self):

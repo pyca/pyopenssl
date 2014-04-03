@@ -124,6 +124,18 @@ SSL_CB_CONNECT_EXIT = _lib.SSL_CB_CONNECT_EXIT
 SSL_CB_HANDSHAKE_START = _lib.SSL_CB_HANDSHAKE_START
 SSL_CB_HANDSHAKE_DONE = _lib.SSL_CB_HANDSHAKE_DONE
 
+_Cryptography_HAS_EC = _lib.Cryptography_HAS_EC
+ELLIPTIC_CURVE_DESCRIPTIONS = {}  # In case there's no EC support
+if _Cryptography_HAS_EC:
+    _num_curves = _lib.EC_get_builtin_curves(_ffi.NULL, 0)
+    _curves = _ffi.new('EC_builtin_curve[]', _num_curves)
+    if _lib.EC_get_builtin_curves(_curves, _num_curves) == _num_curves:
+        ELLIPTIC_CURVE_DESCRIPTIONS = dict((_ffi.string(_lib.OBJ_nid2sn(c.nid)),
+                                            _ffi.string(c.comment))
+                                           for c in _curves)
+    del _num_curves
+    del _curves
+
 
 class Error(Exception):
     """
@@ -596,6 +608,35 @@ class Context(object):
         dh = _lib.PEM_read_bio_DHparams(bio, _ffi.NULL, _ffi.NULL, _ffi.NULL)
         dh = _ffi.gc(dh, _lib.DH_free)
         _lib.SSL_CTX_set_tmp_dh(self._context, dh)
+
+
+    def set_tmp_ecdh_curve(self, curve_name):
+        """
+        Select a curve to use for ECDHE key exchange.
+
+        The valid values of *curve_name* are the keys in
+        :py:data:OpenSSL.SSL.ELLIPTIC_CURVE_DESCRIPTIONS.
+
+        Raises a ``ValueError`` if the linked OpenSSL was not compiled with
+        elliptical curve support, or the specified curve is not available.
+
+        :param curve_name: The 'short name' of a curve, e.g. 'prime256v1'
+        :type curve_name: str
+        :return: None
+        """
+        if _lib.Cryptography_HAS_EC:
+            nid = _lib.OBJ_sn2nid(curve_name)
+            if nid == _lib.NID_undef:
+                raise ValueError("No such OpenSSL object '%s'" % curve_name)
+            ecdh = _lib.EC_KEY_new_by_curve_name(nid)
+            if ecdh == _ffi.NULL:
+                raise ValueError(
+                    "OpenSSL could not load the requested elliptic curve"
+                )
+            _lib.SSL_CTX_set_tmp_ecdh(self._context, ecdh)
+            _lib.EC_KEY_free(ecdh)
+        else:
+            raise ValueError("OpenSSL is compiled without ECDH support")
 
 
     def set_cipher_list(self, cipher_list):
