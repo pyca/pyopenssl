@@ -1183,12 +1183,18 @@ class ContextTests(TestCase, _LoopbackMixin):
         for curve in ELLIPTIC_CURVE_DESCRIPTIONS.keys():
             context.set_tmp_ecdh_curve(curve)  # Must not throw.
 
+
+    def test_has_curve_descriptions(self):
+        """
+        If the underlying cryptography bindings claim to have elliptic
+        curve support, there should be at least one curve.
+
+        (In theory there could be an OpenSSL that violates this
+        assumption. If so, this test will fail and we'll find out.)
+
+        """
         if _Cryptography_HAS_EC:
-            # If EC is compiled in, there must be at least one curve
-            # Tn theory there could be an OpenSSL that violates this
-            # assumption.  If so, this test will fail and we'll find
-            # out.
-            self.assertTrue(ELLIPTIC_CURVE_DESCRIPTIONS)
+            self.assertNotEqual(len(ELLIPTIC_CURVE_DESCRIPTIONS), 0)
 
 
     def test_set_cipher_list_bytes(self):
