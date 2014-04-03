@@ -161,7 +161,7 @@ class SysCallError(Error):
 
 
 class _VerifyHelper(object):
-    def __init__(self, connection, callback):
+    def __init__(self, callback):
         self._problems = []
 
         @wraps(callback)
@@ -170,6 +170,10 @@ class _VerifyHelper(object):
             cert._x509 = _lib.X509_STORE_CTX_get_current_cert(store_ctx)
             error_number = _lib.X509_STORE_CTX_get_error(store_ctx)
             error_depth = _lib.X509_STORE_CTX_get_error_depth(store_ctx)
+
+            index = _lib.SSL_get_ex_data_X509_STORE_CTX_idx()
+            ssl = _lib.X509_STORE_CTX_get_ex_data(store_ctx, index)
+            connection = Connection._reverse_mapping[ssl]
 
             try:
                 result = callback(connection, cert, error_number, error_depth, ok)
@@ -542,7 +546,7 @@ class Context(object):
         if not callable(callback):
             raise TypeError("callback must be callable")
 
-        self._verify_helper = _VerifyHelper(self, callback)
+        self._verify_helper = _VerifyHelper(callback)
         self._verify_callback = self._verify_helper.callback
         _lib.SSL_CTX_set_verify(self._context, mode, self._verify_callback)
 
