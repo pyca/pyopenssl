@@ -334,8 +334,10 @@ Context objects have the following methods:
    The valid values of *curve_name* are the keys in
    :py:data:`ELLIPTIC_CURVE_DESCRIPTIONS`.
 
-   Raises a ``ValueError`` if the linked OpenSSL was not compiled with
-   elliptical curve support, or the specified curve is not available.
+   Raises a subclass of ``ValueError`` if the linked OpenSSL was not
+   compiled with elliptical curve support or the specified curve is
+   not available.  You can check the specific subclass, but, in
+   general, you should just handle ``ValueError``.
 
    :param curve_name: The 'short name' of a curve, e.g. 'prime256v1'
    :type curve_name: str

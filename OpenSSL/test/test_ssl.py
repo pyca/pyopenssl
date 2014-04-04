@@ -36,7 +36,8 @@ from OpenSSL.SSL import (
     SESS_CACHE_NO_AUTO_CLEAR, SESS_CACHE_NO_INTERNAL_LOOKUP,
     SESS_CACHE_NO_INTERNAL_STORE, SESS_CACHE_NO_INTERNAL)
 from OpenSSL.SSL import (
-    _Cryptography_HAS_EC, ELLIPTIC_CURVE_DESCRIPTIONS)
+    _Cryptography_HAS_EC, ELLIPTIC_CURVE_DESCRIPTIONS,
+    ECNotAvailable, UnknownObject)
 
 from OpenSSL.SSL import (
     Error, SysCallError, WantReadError, WantWriteError, ZeroReturnError)
@@ -1176,12 +1177,48 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_set_tmp_ecdh_curve(self):
         """
-        :py:obj:`Context.set_tmp_ecdh_curve` sets the Eliptical
-        Curve for Diffie-Hellman by the named curve.
+        :py:obj:`Context.set_tmp_ecdh_curve` sets the elliptic
+        curve for Diffie-Hellman to the specified named curve.
         """
         context = Context(TLSv1_METHOD)
         for curve in ELLIPTIC_CURVE_DESCRIPTIONS.keys():
             context.set_tmp_ecdh_curve(curve)  # Must not throw.
+
+
+    def test_set_tmp_ecdh_curve_bad_sn(self):
+        """
+        :py:obj:`Context.set_tmp_ecdh_curve` raises
+        :py:obj:`UnknownObject` if passed a curve_name that OpenSSL
+        does not recognize and EC is available.  It raises
+        :py:obj:`ECNotAvailable` if EC is not available at all.
+        """
+        context = Context(TLSv1_METHOD)
+        try:
+            context.set_tmp_ecdh_curve('not_an_elliptic_curve')
+        except ECNotAvailable:
+            self.assertFalse(_Cryptography_HAS_EC)
+        except UnknownObject:
+            self.assertTrue(_Cryptography_HAS_EC)
+        else:
+            self.assertFalse(True)
+
+
+    def test_set_tmp_ecdh_curve_not_a_curve(self):
+        """
+        :py:obj:`Context.set_tmp_ecdh_curve` raises
+        :py:obj:`UnsupportedEllipticCurve` if passed a curve_name that
+        OpenSSL cannot instantiate as an elliptic curve.  It raises
+        :py:obj:`ECNotAvailable` if EC is not available at all.
+        """
+        context = Context(TLSv1_METHOD)
+        try:
+            context.set_tmp_ecdh_curve('sha256')
+        except ECNotAvailable:
+            self.assertFalse(_Cryptography_HAS_EC)
+        except UnknownObject:
+            self.assertTrue(_Cryptography_HAS_EC)
+        else:
+            self.assertFalse(True)
 
 
     def test_has_curve_descriptions(self):

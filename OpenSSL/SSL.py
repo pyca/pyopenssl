@@ -230,6 +230,37 @@ def _asFileDescriptor(obj):
 
 
 
+class ECNotAvailable(ValueError):
+    """
+    Raised if a request for an elliptic curve fails because OpenSSL
+    is compiled without elliptic curve support.
+    """
+    def __init__(self):
+        ValueError.__init__(self, "OpenSSL is compiled without EC support")
+
+
+
+class UnknownObject(ValueError):
+    """
+    Raised if OpenSSL does not recognize the requested object.
+    """
+    def __init__(self, sn):
+        ValueError.__init__(self, "OpenSSL does not recognize %r" % sn)
+        self.sn = sn
+
+
+
+class UnsupportedEllipticCurve(ValueError):
+    """
+    Raised if OpenSSL does not support the requested elliptic curve.
+    """
+    def __init__(self, sn):
+        ValueError.__init__(
+            self, "OpenSSL does not support the elliptic curve %r" % sn)
+        self.sn = sn
+
+
+
 def SSLeay_version(type):
     """
     Return a string describing the version of OpenSSL in use.
@@ -618,8 +649,10 @@ class Context(object):
         The valid values of *curve_name* are the keys in
         :py:data:OpenSSL.SSL.ELLIPTIC_CURVE_DESCRIPTIONS.
 
-        Raises a ``ValueError`` if the linked OpenSSL was not compiled with
-        elliptical curve support, or the specified curve is not available.
+        Raises a subclass of ``ValueError`` if the linked OpenSSL was
+        not compiled with elliptical curve support or the specified
+        curve is not available.  You can check the specific subclass,
+        but, in general, you should just handle ``ValueError``.
 
         :param curve_name: The 'short name' of a curve, e.g. 'prime256v1'
         :type curve_name: str
@@ -628,16 +661,14 @@ class Context(object):
         if _lib.Cryptography_HAS_EC:
             nid = _lib.OBJ_sn2nid(curve_name.encode('ascii'))
             if nid == _lib.NID_undef:
-                raise ValueError("No such OpenSSL object '%s'" % curve_name)
+                raise UnknownObject(curve_name)
             ecdh = _lib.EC_KEY_new_by_curve_name(nid)
             if ecdh == _ffi.NULL:
-                raise ValueError(
-                    "OpenSSL could not load the requested elliptic curve"
-                )
+                raise UnsupportedEllipticCurve(sn)
             _lib.SSL_CTX_set_tmp_ecdh(self._context, ecdh)
             _lib.EC_KEY_free(ecdh)
         else:
-            raise ValueError("OpenSSL is compiled without ECDH support")
+            raise ECNotAvailable()
 
 
     def set_cipher_list(self, cipher_list):
