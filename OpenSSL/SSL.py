@@ -130,9 +130,10 @@ if _Cryptography_HAS_EC:
     _num_curves = _lib.EC_get_builtin_curves(_ffi.NULL, 0)
     _curves = _ffi.new('EC_builtin_curve[]', _num_curves)
     if _lib.EC_get_builtin_curves(_curves, _num_curves) == _num_curves:
-        ELLIPTIC_CURVE_DESCRIPTIONS = dict((_ffi.string(_lib.OBJ_nid2sn(c.nid)),
-                                            _ffi.string(c.comment))
-                                           for c in _curves)
+        ELLIPTIC_CURVE_DESCRIPTIONS = dict(
+            (_ffi.string(_lib.OBJ_nid2sn(c.nid)).decode('ascii'),
+             _ffi.string(c.comment).decode('utf-8'))
+            for c in _curves)
     del _num_curves
     del _curves
 
@@ -625,7 +626,7 @@ class Context(object):
         :return: None
         """
         if _lib.Cryptography_HAS_EC:
-            nid = _lib.OBJ_sn2nid(curve_name)
+            nid = _lib.OBJ_sn2nid(curve_name.encode('ascii'))
             if nid == _lib.NID_undef:
                 raise ValueError("No such OpenSSL object '%s'" % curve_name)
             ecdh = _lib.EC_KEY_new_by_curve_name(nid)
