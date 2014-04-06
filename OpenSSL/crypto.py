@@ -2215,7 +2215,7 @@ def load_pkcs7_data(type, buffer):
 
 
 
-def load_pkcs12(buffer, passphrase):
+def load_pkcs12(buffer, passphrase=None):
     """
     Load a PKCS12 object from a buffer
 
@@ -2227,6 +2227,13 @@ def load_pkcs12(buffer, passphrase):
         buffer = buffer.encode("ascii")
 
     bio = _new_mem_buf(buffer)
+
+    # Use null passphrase if passphrase is None or empty string. With PKCS#12
+    # password based encryption no password and a zero length password are two
+    # different things, but OpenSSL implementation will try both to figure out
+    # which one works.
+    if not passphrase:
+        passphrase = _ffi.NULL
 
     p12 = _lib.d2i_PKCS12_bio(bio, _ffi.NULL)
     if p12 == _ffi.NULL:
