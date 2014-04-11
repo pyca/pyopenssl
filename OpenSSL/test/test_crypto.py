@@ -810,6 +810,15 @@ class X509NameTests(TestCase):
             "<X509Name object '/emailAddress=bar/CN=foo'>")
 
 
+    def test_dict_key(self):
+        """
+        :py:class:`X509NameType` instances are usable as dictionary keys.
+        """
+        name = self._x509name(commonName="foo", emailAddress="bar")
+        mapping = {name: 42}
+        self.assertEqual(mapping[self._x509name(commonName="foo", emailAddress="bar")], 42)
+
+
     def test_comparison(self):
         """
         :py:class:`X509NameType` instances should compare based on their NIDs.

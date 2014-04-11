@@ -394,6 +394,10 @@ class X509Name(object):
         return _lib.X509_NAME_hash(self._name)
 
 
+    def __hash__(self):
+        return _lib.X509_NAME_hash(self._name)
+
+
     def der(self):
         """
         Return the DER encoding of this name
