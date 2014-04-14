@@ -45,3 +45,4 @@ install:
 
 script:
   - coverage run --branch --source=OpenSSL setup.py bdist_wheel test
+  - coverage report -m
