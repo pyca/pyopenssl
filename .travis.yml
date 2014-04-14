@@ -29,6 +29,9 @@ matrix:
 before_install:
   - if [ -n "$CRYPTOGRAPHY_GIT_MASTER" ]; then pip install git+https://github.com/pyca/cryptography.git;fi
 
+after_success:
+    - coveralls
+
 install:
   # Install the wheel library explicitly here.  It is not really a setup
   # dependency.  It is not an install dependency.  It is only a dependency for
