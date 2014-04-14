@@ -39,5 +39,9 @@ install:
   # travis.
   - pip install wheel
 
+  # Also install some tools for measuring code coverage and sending the results
+    to coveralls.
+  - pip install coveralls coverage
+
 script:
-  - python setup.py bdist_wheel test
+  - coverage run --branch --source=OpenSSL setup.py bdist_wheel test
