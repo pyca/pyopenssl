@@ -40,7 +40,7 @@ install:
   - pip install wheel
 
   # Also install some tools for measuring code coverage and sending the results
-    to coveralls.
+  # to coveralls.
   - pip install coveralls coverage
 
 script:
