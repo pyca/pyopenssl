@@ -263,7 +263,7 @@ Context objects have the following methods:
 .. py:method:: Context.get_cert_store()
 
     Retrieve the certificate store (a X509Store object) that the context uses.
-    This can be used to add "trusted" certificates without using the.
+    This can be used to add "trusted" certificates without using the
     :py:meth:`load_verify_locations` method.
 
 
@@ -784,6 +784,43 @@ Connection objects have the following methods:
     the connection.
 
     .. versionadded:: 0.14
+
+
+.. py:method:: Connection.get_finished()
+
+    Obtain latest TLS Finished message that we sent, or :py:obj:`None` if
+    handshake is not completed.
+
+    .. versionadded:: 0.15
+
+
+.. py:method:: Connection.get_peer_finished()
+
+    Obtain latest TLS Finished message that we expected from peer, or
+    :py:obj:`None` if handshake is not completed.
+
+    .. versionadded:: 0.15
+
+
+.. py:method:: Connection.get_cipher_name()
+
+    Obtain the name of the currently used cipher.
+
+    .. versionadded:: 0.15
+
+
+.. py:method:: Connection.get_cipher_bits()
+
+    Obtain the number of secret bits of the currently used cipher.
+
+    .. versionadded:: 0.15
+
+
+.. py:method:: Connection.get_cipher_version()
+
+    Obtain the protocol name of the currently used cipher.
+
+    .. versionadded:: 0.15
 
 
 .. Rubric:: Footnotes
