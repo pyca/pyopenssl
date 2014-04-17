@@ -70,7 +70,7 @@ script:
   - |
     coverage report -m
   - |
-    python -c "import OpenSSL.SSL; print OpenSSL.SSL.SSLeay_version(OpenSSL.SSL.SSLEAY_VERSION)"
+    python -c "import OpenSSL.SSL; print(OpenSSL.SSL.SSLeay_version(OpenSSL.SSL.SSLEAY_VERSION))"
 
 after_success:
     - coveralls
