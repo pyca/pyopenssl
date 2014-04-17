@@ -180,6 +180,9 @@ class PKey(object):
         if not isinstance(bits, int):
             raise TypeError("bits must be an integer")
 
+        if type == TYPE_EC and curve is None:
+            raise ValueError("curve must be specified")
+
         if curve and not isinstance(curve, str):
             raise TypeError("curve must be a string")
 
