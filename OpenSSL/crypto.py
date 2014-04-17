@@ -22,7 +22,11 @@ FILETYPE_TEXT = 2 ** 16 - 1
 
 TYPE_RSA = _lib.EVP_PKEY_RSA
 TYPE_DSA = _lib.EVP_PKEY_DSA
-
+# Some versions of OpenSSL do not support EC
+try:
+    TYPE_EC = _lib.EVP_PKEY_EC
+except AttributeError:
+    TYPE_EC = None
 
 class Error(Exception):
     """
@@ -160,12 +164,13 @@ class PKey(object):
         self._initialized = False
 
 
-    def generate_key(self, type, bits):
+    def generate_key(self, type, bits, curve=None):
         """
         Generate a key of a given type, with a given number of a bits
 
-        :param type: The key type (TYPE_RSA or TYPE_DSA)
+        :param type: The key type (TYPE_RSA or TYPE_DSA or TYPE_EC)
         :param bits: The number of bits
+        :param curve: None or the curve name for TYPE_EC
 
         :return: None
         """
@@ -174,6 +179,12 @@ class PKey(object):
 
         if not isinstance(bits, int):
             raise TypeError("bits must be an integer")
+
+        if type == TYPE_EC and curve is None:
+            raise ValueError("curve must be specified")
+
+        if curve and not isinstance(curve, str):
+            raise TypeError("curve must be a string")
 
         # TODO Check error return
         exponent = _lib.BN_new()
@@ -212,6 +223,24 @@ class PKey(object):
                 # TODO: This is untested.
                 _raise_current_error()
             if not _lib.EVP_PKEY_assign_DSA(self._pkey, dsa):
+                # TODO: This is untested.
+                _raise_current_error()
+
+        elif type == TYPE_EC:
+            nid = _lib.OBJ_sn2nid(curve.encode())
+            if nid == _lib.NID_undef:
+                raise Error("No such curve name: %s", curve)
+
+            ec = _lib.EC_KEY_new_by_curve_name(nid)
+            if ec == _ffi.NULL:
+                # TODO: This is untested.
+                _raise_current_error()
+
+            if not _lib.EC_KEY_generate_key(ec):
+                # TODO: This is untested.
+                _raise_current_error()
+
+            if not _lib.EVP_PKEY_assign_EC_KEY(self._pkey, ec):
                 # TODO: This is untested.
                 _raise_current_error()
         else:

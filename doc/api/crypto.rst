@@ -52,7 +52,7 @@
 
 .. py:class:: PKey()
 
-    A class representing DSA or RSA keys.
+    A class representing DSA or RSA or EC keys.
 
 
 .. py:data:: PKCS7Type
@@ -110,6 +110,7 @@
 
 .. py:data:: TYPE_RSA
              TYPE_DSA
+             TYPE_EC
 
     Key type constants.
 
@@ -516,10 +517,13 @@ The PKey object has the following methods:
     Return the number of bits of the key.
 
 
-.. py:method:: PKey.generate_key(type, bits)
+.. py:method:: PKey.generate_key(type, bits, curve)
 
     Generate a public/private key pair of the type *type* (one of
-    :py:const:`TYPE_RSA` and :py:const:`TYPE_DSA`) with the size *bits*.
+    :py:const:`TYPE_RSA` and :py:const:`TYPE_DSA` and :py:const:`TYPE_EC`) with
+    the size *bits* and.  For PKeys with :py:const:`TYPE_EC`, the *bits*
+    parameter is ignored and the *curve* name is used. Valid *curve* names are
+    determined by the underlying OpenSSL build (openssl ecparam -list_curves).
 
 
 .. py:method:: PKey.type()

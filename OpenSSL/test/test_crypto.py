@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 
 from six import binary_type
 
-from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
+from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, TYPE_EC, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
 from OpenSSL.crypto import X509Store, X509StoreType, X509Req, X509ReqType
 from OpenSSL.crypto import X509Extension, X509ExtensionType
@@ -589,11 +589,14 @@ class PKeyTests(TestCase):
 
     def test_failedGeneration(self):
         """
-        :py:meth:`PKeyType.generate_key` takes two arguments, the first giving the key
-        type as one of :py:data:`TYPE_RSA` or :py:data:`TYPE_DSA` and the second giving the
-        number of bits to generate.  If an invalid type is specified or
-        generation fails, :py:exc:`Error` is raised.  If an invalid number of bits is
-        specified, :py:exc:`ValueError` or :py:exc:`Error` is raised.
+        :py:meth:`PKeyType.generate_key` takes three arguments, the first
+        giving the key type as one of :py:data:`TYPE_RSA` or
+        :py:data:`TYPE_DSA` or :py:data:`TYPE_EC` and the second giving the
+        number of bits to generate, and a third argument when
+        :py:data:`TYPE_EC` is used to specify the elliptic curve.  If an
+        invalid type is specified or generation fails, :py:exc:`Error` is
+        raised.  If an invalid number of bits or curve is specified,
+        :py:exc:`ValueError` or :py:exc:`Error` is raised.
         """
         key = PKey()
         self.assertRaises(TypeError, key.generate_key)
@@ -620,6 +623,18 @@ class PKeyTests(TestCase):
         # TYPE_DSA with a bits argument which is at least an int.
 
         # self.assertRaises(Error, key.generate_key, TYPE_DSA, -7)
+
+        # Skip these tests when EC is not available in OpenSSL
+        if TYPE_EC is not None:
+            # Invalid curve name
+            self.assertRaises(TypeError, key.generate_key, TYPE_EC, 0, 2)
+            # Non-existant curve
+            self.assertRaises(Error, key.generate_key, TYPE_EC, 0, 'bad-curve')
+            # Missing curve name
+            self.assertRaises(ValueError, key.generate_key, TYPE_EC, 0)
+        else:
+            self.assertRaises(TypeError, key.generate_key, TYPE_EC, 0,
+                              'secp384r1')
 
 
     def test_rsaGeneration(self):
@@ -650,6 +665,19 @@ class PKeyTests(TestCase):
         # self.assertEqual(key.bits(), bits)
         # self.assertRaises(TypeError, key.check)
 
+    if TYPE_EC is not None:
+        def test_ecGeneration(self):
+            """
+            :py:meth:`PKeyType.generate_key` generates an EC key when passed
+            :py:data:`TYPE_EC` as a type and a supported curve name.
+            """
+            curve = 'secp384r1'
+            bits = 384
+            key = PKey()
+            key.generate_key(TYPE_EC, 0, curve)
+            self.assertEqual(key.type(), TYPE_EC)
+            self.assertEqual(key.bits(), bits)
+            self.assertRaises(TypeError, key.check)
 
     def test_regeneration(self):
         """
@@ -662,6 +690,12 @@ class PKeyTests(TestCase):
              self.assertEqual(key.type(), type)
              self.assertEqual(key.bits(), bits)
 
+        if TYPE_EC is not None:
+            for type, bits, curve in [(TYPE_EC, 384, 'secp384r1'),
+                                      (TYPE_EC, 256, 'prime256v1')]:
+                 key.generate_key(type, bits, curve)
+                 self.assertEqual(key.type(), type)
+                 self.assertEqual(key.bits(), bits)
 
     def test_inconsistentKey(self):
         """

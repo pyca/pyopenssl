@@ -1,3 +1,7 @@
+2014-04-17  Jeff Tang  <mrjefftang@gmail.com>
+
+    * OpenSSL/crypto.py: Add EC_Key support to ``PKey``
+
 2014-03-30  Fedor Brunner  <fedor.brunner@azet.sk>
 
 	* OpenSSL/SSL.py: Add ``get_finished``, ``get_peer_finished``
