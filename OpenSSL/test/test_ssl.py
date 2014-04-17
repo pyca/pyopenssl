@@ -1217,7 +1217,9 @@ class ContextTests(TestCase, _LoopbackMixin):
         except UnknownObject:
             self.assertTrue(_Cryptography_HAS_EC)
         else:
-            self.assertFalse(True)
+            self.fail(
+                "set_tmp_ecdh_curve did not fail when called with "
+                "non-existent curve name")
 
 
     def test_set_tmp_ecdh_curve_not_a_curve(self):
@@ -1235,7 +1237,9 @@ class ContextTests(TestCase, _LoopbackMixin):
         except UnknownObject:
             self.assertTrue(_Cryptography_HAS_EC)
         else:
-            self.assertFalse(True)
+            self.fail(
+                "set_tmp_ecdh_curve did not fail when called with "
+                "a name that is not an elliptic curve")
 
 
     def test_has_curve_descriptions(self):
