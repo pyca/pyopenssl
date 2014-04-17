@@ -21,6 +21,7 @@ from OpenSSL.crypto import PKey, X509, X509Extension, X509Store
 from OpenSSL.crypto import dump_privatekey, load_privatekey
 from OpenSSL.crypto import dump_certificate, load_certificate
 
+from OpenSSL.SSL import _lib
 from OpenSSL.SSL import OPENSSL_VERSION_NUMBER, SSLEAY_VERSION, SSLEAY_CFLAGS
 from OpenSSL.SSL import SSLEAY_PLATFORM, SSLEAY_DIR, SSLEAY_BUILT_ON
 from OpenSSL.SSL import SENT_SHUTDOWN, RECEIVED_SHUTDOWN
@@ -1183,6 +1184,23 @@ class ContextTests(TestCase, _LoopbackMixin):
         context = Context(TLSv1_METHOD)
         for curve in ELLIPTIC_CURVE_DESCRIPTIONS.keys():
             context.set_tmp_ecdh_curve(curve)  # Must not throw.
+
+
+    def test_set_tmp_ecdh_curve_not_available(self):
+        """
+        :py:obj:`Context.set_tmp_ecdh_curve` raises :py:obj:`ECNotAvailable` if
+        elliptic curve support is not available from the underlying OpenSSL
+        version at all.
+        """
+        self.addCleanup(
+            setattr,
+            _lib, "Cryptography_HAS_EC", _lib.Cryptography_HAS_EC)
+        _lib.Cryptography_HAS_EC = False
+
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(
+            ECNotAvailable,
+            context.set_tmp_ecdh_curve, next(iter(ELLIPTIC_CURVE_DESCRIPTIONS)))
 
 
     def test_set_tmp_ecdh_curve_bad_sn(self):
