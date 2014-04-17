@@ -168,7 +168,7 @@ class PKey(object):
         """
         Generate a key of a given type, with a given number of a bits
 
-        :param type: The key type (TYPE_RSA or TYPE_DSA)
+        :param type: The key type (TYPE_RSA or TYPE_DSA or TYPE_EC)
         :param bits: The number of bits
         :param curve: None or the curve name for TYPE_EC
 
