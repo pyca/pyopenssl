@@ -1299,7 +1299,7 @@ class Connection(object):
         The makefile() method is not implemented, since there is no dup semantics
         for SSL connections
 
-        :raise NotImplementedError
+        :raise: NotImplementedError
         """
         raise NotImplementedError("Cannot make file object of OpenSSL.SSL.Connection")
 
