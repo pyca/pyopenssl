@@ -64,6 +64,8 @@ script:
       sudo apt-get install -y --force-yes libssl-dev/lucid
     fi
   - |
+    pip install -e .
+  - |
     coverage run --branch --source=OpenSSL setup.py bdist_wheel test
   - |
     coverage report -m
