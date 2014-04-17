@@ -23,9 +23,9 @@ FILETYPE_TEXT = 2 ** 16 - 1
 TYPE_RSA = _lib.EVP_PKEY_RSA
 TYPE_DSA = _lib.EVP_PKEY_DSA
 # Some versions of OpenSSL do not support EC
-if _lib.Cryptography_HAS_EC == 1:
+try:
     TYPE_EC = _lib.EVP_PKEY_EC
-else:
+except AttributeError:
     TYPE_EC = None
 
 class Error(Exception):
