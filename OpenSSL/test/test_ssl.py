@@ -1233,7 +1233,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         context = Context(TLSv1_METHOD)
         try:
             context._set_tmp_ecdh_curve_by_nid(
-                u"curve", _lib.OBJ_sn2nid(b"sha256"))
+                u("curve"), _lib.OBJ_sn2nid(b"sha256"))
         except UnsupportedEllipticCurve:
             pass
         else:
