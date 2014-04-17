@@ -642,6 +642,23 @@ class Context(object):
         _lib.SSL_CTX_set_tmp_dh(self._context, dh)
 
 
+    def _set_tmp_ecdh_curve_by_nid(self, nid):
+        """
+        Select a curve to use by the OpenSSL NID associated with that curve.
+
+        :param nid: The OpenSSL NID to use.
+        :type nid: int
+
+        :raise UnsupportedEllipticCurve: If the given NID does not identify a
+            supported curve.
+        """
+        ecdh = _lib.EC_KEY_new_by_curve_name(nid)
+        if ecdh == _ffi.NULL:
+            raise UnsupportedEllipticCurve(sn)
+        _lib.SSL_CTX_set_tmp_ecdh(self._context, ecdh)
+        _lib.EC_KEY_free(ecdh)
+
+
     def set_tmp_ecdh_curve(self, curve_name):
         """
         Select a curve to use for ECDHE key exchange.
@@ -662,13 +679,8 @@ class Context(object):
             nid = _lib.OBJ_sn2nid(curve_name.encode('ascii'))
             if nid == _lib.NID_undef:
                 raise UnknownObject(curve_name)
-            ecdh = _lib.EC_KEY_new_by_curve_name(nid)
-            if ecdh == _ffi.NULL:
-                raise UnsupportedEllipticCurve(sn)
-            _lib.SSL_CTX_set_tmp_ecdh(self._context, ecdh)
-            _lib.EC_KEY_free(ecdh)
-        else:
-            raise ECNotAvailable()
+            return self._set_tmp_ecdh_curve_by_nid(nid)
+        raise ECNotAvailable()
 
 
     def set_cipher_list(self, cipher_list):
