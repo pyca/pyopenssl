@@ -38,7 +38,7 @@ from OpenSSL.SSL import (
     SESS_CACHE_NO_INTERNAL_STORE, SESS_CACHE_NO_INTERNAL)
 from OpenSSL.SSL import (
     _Cryptography_HAS_EC, ELLIPTIC_CURVE_DESCRIPTIONS,
-    ECNotAvailable, UnknownObject)
+    ECNotAvailable, UnknownObject, UnsupportedEllipticCurve)
 
 from OpenSSL.SSL import (
     Error, SysCallError, WantReadError, WantWriteError, ZeroReturnError)
@@ -1204,7 +1204,7 @@ class ContextTests(TestCase, _LoopbackMixin):
             _lib.Cryptography_HAS_EC = has_ec
 
 
-    def test_set_tmp_ecdh_curve_bad_sn(self):
+    def test_set_tmp_ecdh_curve_bad_curve_name(self):
         """
         :py:obj:`Context.set_tmp_ecdh_curve` raises :py:obj:`UnknownObject` if
         passed a curve_name that OpenSSL does not recognize and EC is
@@ -1221,6 +1221,26 @@ class ContextTests(TestCase, _LoopbackMixin):
             self.fail(
                 "set_tmp_ecdh_curve did not fail when called with "
                 "non-existent curve name")
+
+
+    def test_set_tmp_ecdh_curve_bad_nid(self):
+        """
+        :py:obj:`Context._set_tmp_ecdh_curve_by_nid`, an implementation detail
+        of :py:obj:`Context.set_tmp_ecdh_curve`, raises
+        :py:obj:`UnsupportedEllipticCurve` raises if passed a NID that does not
+        identify a supported curve.
+        """
+        context = Context(TLSv1_METHOD)
+        try:
+            context._set_tmp_ecdh_curve_by_nid(
+                u"curve", _lib.OBJ_sn2nid(b"sha256"))
+        except UnsupportedEllipticCurve:
+            pass
+        else:
+            self.fail(
+                "_set_tmp_ecdh_curve_by_nid did not raise "
+                "UnsupportedEllipticCurve for a NID that does not "
+                "identify a supported curve.")
 
 
     def test_set_tmp_ecdh_curve_not_a_curve(self):
