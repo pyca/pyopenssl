@@ -39,6 +39,8 @@ matrix:
   allow_failures:
   - env:
       CRYPTOGRAPHY_GIT_MASTER=true
+  - env:
+      OPENSSL=0.9.8
 
 before_install:
   - if [ -n "$CRYPTOGRAPHY_GIT_MASTER" ]; then pip install git+https://github.com/pyca/cryptography.git;fi
