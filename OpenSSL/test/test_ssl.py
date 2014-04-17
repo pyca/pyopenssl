@@ -1192,15 +1192,16 @@ class ContextTests(TestCase, _LoopbackMixin):
         elliptic curve support is not available from the underlying OpenSSL
         version at all.
         """
-        self.addCleanup(
-            setattr,
-            _lib, "Cryptography_HAS_EC", _lib.Cryptography_HAS_EC)
-        _lib.Cryptography_HAS_EC = False
+        has_ec = _lib.Cryptography_HAS_EC
+        try:
+            _lib.Cryptography_HAS_EC = False
 
-        context = Context(TLSv1_METHOD)
-        self.assertRaises(
-            ECNotAvailable,
-            context.set_tmp_ecdh_curve, next(iter(ELLIPTIC_CURVE_DESCRIPTIONS)))
+            context = Context(TLSv1_METHOD)
+            self.assertRaises(
+                ECNotAvailable,
+                context.set_tmp_ecdh_curve, next(iter(ELLIPTIC_CURVE_DESCRIPTIONS)))
+        finally:
+            _lib.Cryptography_HAS_EC = has_ec
 
 
     def test_set_tmp_ecdh_curve_bad_sn(self):
