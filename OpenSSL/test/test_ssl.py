@@ -1178,8 +1178,8 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_set_tmp_ecdh_curve(self):
         """
-        :py:obj:`Context.set_tmp_ecdh_curve` sets the elliptic
-        curve for Diffie-Hellman to the specified named curve.
+        :py:obj:`Context.set_tmp_ecdh_curve` sets the elliptic curve for
+        Diffie-Hellman to the specified named curve.
         """
         context = Context(TLSv1_METHOD)
         for curve in ELLIPTIC_CURVE_DESCRIPTIONS.keys():
@@ -1205,10 +1205,9 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_set_tmp_ecdh_curve_bad_sn(self):
         """
-        :py:obj:`Context.set_tmp_ecdh_curve` raises
-        :py:obj:`UnknownObject` if passed a curve_name that OpenSSL
-        does not recognize and EC is available.  It raises
-        :py:obj:`ECNotAvailable` if EC is not available at all.
+        :py:obj:`Context.set_tmp_ecdh_curve` raises :py:obj:`UnknownObject` if
+        passed a curve_name that OpenSSL does not recognize and EC is
+        available.
         """
         context = Context(TLSv1_METHOD)
         try:
@@ -1224,8 +1223,8 @@ class ContextTests(TestCase, _LoopbackMixin):
     def test_set_tmp_ecdh_curve_not_a_curve(self):
         """
         :py:obj:`Context.set_tmp_ecdh_curve` raises
-        :py:obj:`UnsupportedEllipticCurve` if passed a curve_name that
-        OpenSSL cannot instantiate as an elliptic curve.  It raises
+        :py:obj:`UnsupportedEllipticCurve` if passed a curve_name that OpenSSL
+        cannot instantiate as an elliptic curve.  It raises
         :py:obj:`ECNotAvailable` if EC is not available at all.
         """
         context = Context(TLSv1_METHOD)
