@@ -1,3 +1,8 @@
+2014-04-19  Markus Unterwaditzer <markus@unterwaditzer.net>
+
+	* OpenSSL/SSL.py: ``Connection.send`` and ``Connection.sendall``
+	  now also accept the ``buffer`` type as data.
+
 2014-03-30  Fedor Brunner  <fedor.brunner@azet.sk>
 
 	* OpenSSL/SSL.py: Add ``get_finished``, ``get_peer_finished``
