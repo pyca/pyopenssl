@@ -317,7 +317,7 @@ Context objects have the following methods:
     Load parameters for Ephemeral Diffie-Hellman from *dhfile*.
 
 
-.. py:method:: Context.set_tmp_ecdh_curve(curve)
+.. py:method:: Context.set_tmp_ecdh(curve)
 
    Select a curve to use for ECDHE key exchange.
 

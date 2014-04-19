@@ -1174,16 +1174,16 @@ class ContextTests(TestCase, _LoopbackMixin):
         # XXX What should I assert here? -exarkun
 
 
-    def test_set_tmp_ecdh_curve(self):
+    def test_set_tmp_ecdh(self):
         """
-        :py:obj:`Context.set_tmp_ecdh_curve` sets the elliptic curve for
+        :py:obj:`Context.set_tmp_ecdh` sets the elliptic curve for
         Diffie-Hellman to the specified curve.
         """
         context = Context(TLSv1_METHOD)
         for curve in get_elliptic_curves():
             # The only easily "assertable" thing is that it does not raise an
             # exception.
-            context.set_tmp_ecdh_curve(curve)
+            context.set_tmp_ecdh(curve)
 
 
     def test_set_cipher_list_bytes(self):

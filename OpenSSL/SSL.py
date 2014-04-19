@@ -597,7 +597,7 @@ class Context(object):
         _lib.SSL_CTX_set_tmp_dh(self._context, dh)
 
 
-    def set_tmp_ecdh_curve(self, curve):
+    def set_tmp_ecdh(self, curve):
         """
         Select a curve to use for ECDHE key exchange.
 
