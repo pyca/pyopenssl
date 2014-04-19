@@ -11,7 +11,7 @@ import os, re
 from subprocess import PIPE, Popen
 from datetime import datetime, timedelta
 
-from six import binary_type
+from six import u, b, binary_type
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
@@ -27,7 +27,7 @@ from OpenSSL.crypto import CRL, Revoked, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.crypto import (
     sign, verify, get_elliptic_curve, get_elliptic_curves)
-from OpenSSL.test.util import TestCase, b
+from OpenSSL.test.util import TestCase
 from OpenSSL._util import native, lib
 
 def normalize_certificate_pem(pem):
@@ -3098,7 +3098,7 @@ class EllipticCurveTests(TestCase):
             curve = next(iter(curves))
             self.assertEqual(curve.name, get_elliptic_curve(curve.name).name)
         else:
-            self.assertRaises(ValueError, get_elliptic_curve, u"prime256v1")
+            self.assertRaises(ValueError, get_elliptic_curve, u("prime256v1"))
 
 
     def test_not_a_curve(self):
