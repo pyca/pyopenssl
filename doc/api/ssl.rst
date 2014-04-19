@@ -110,6 +110,17 @@ Context, Connection.
      .. versionadded:: 0.14
 
 
+.. py:data:: ELLIPTIC_CURVE_DESCRIPTIONS
+
+    A dictionary mapping short names of elliptic curves to textual
+    descriptions.  This dictionary contains exactly the set of curves
+    supported by the OpenSSL build in use.
+
+    The keys are the curve names that can be passed into
+    Constants used with :py:meth:`Context.set_tmp_ecdh_curve` to
+    specify which elliptical curve should be used for ECDHE key exchange.
+
+
 .. py:data:: OPENSSL_VERSION_NUMBER
 
     An integer giving the version number of the OpenSSL library used to build this
@@ -316,6 +327,21 @@ Context objects have the following methods:
 
     Load parameters for Ephemeral Diffie-Hellman from *dhfile*.
 
+.. py:method:: Context.set_tmp_ecdh_curve(curve_name)
+
+   Select a curve to use for ECDHE key exchange.
+
+   The valid values of *curve_name* are the keys in
+   :py:data:`ELLIPTIC_CURVE_DESCRIPTIONS`.
+
+   Raises a subclass of ``ValueError`` if the linked OpenSSL was not
+   compiled with elliptical curve support or the specified curve is
+   not available.  You can check the specific subclass, but, in
+   general, you should just handle ``ValueError``.
+
+   :param curve_name: The 'short name' of a curve, e.g. 'prime256v1'
+   :type curve_name: str
+   :return: None
 
 .. py:method:: Context.set_app_data(data)
 
