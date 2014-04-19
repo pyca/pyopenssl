@@ -124,31 +124,6 @@ SSL_CB_CONNECT_EXIT = _lib.SSL_CB_CONNECT_EXIT
 SSL_CB_HANDSHAKE_START = _lib.SSL_CB_HANDSHAKE_START
 SSL_CB_HANDSHAKE_DONE = _lib.SSL_CB_HANDSHAKE_DONE
 
-def _get_elliptic_curves(lib):
-    """
-    Load the names of the supported elliptic curves from OpenSSL.
-
-    :param lib: The OpenSSL library binding object.
-    :return: A set of :py:obj:`unicode` giving the names of the elliptic curves
-        the underlying library supports.
-    """
-    if lib.Cryptography_HAS_EC:
-        num_curves = lib.EC_get_builtin_curves(_ffi.NULL, 0)
-        builtin_curves = _ffi.new('EC_builtin_curve[]', num_curves)
-        # The return value on this call should be num_curves again.  We could
-        # check it to make sure but if it *isn't* then.. what could we do?
-        # Abort the whole process, I suppose...?  -exarkun
-        lib.EC_get_builtin_curves(builtin_curves, num_curves)
-        return set(
-            _ffi.string(lib.OBJ_nid2sn(c.nid)).decode("ascii")
-            for c in builtin_curves)
-    else:
-        return set()
-
-ELLIPTIC_CURVES = _get_elliptic_curves()
-
-
-
 class Error(Exception):
     """
     An error occurred in an `OpenSSL.SSL` API.
@@ -653,48 +628,17 @@ class Context(object):
         _lib.SSL_CTX_set_tmp_dh(self._context, dh)
 
 
-    def _set_tmp_ecdh_curve_by_nid(self, name, nid):
-        """
-        Select a curve to use by the OpenSSL NID associated with that curve.
-
-        :param name: The name of the curve identified by the NID.
-        :type name: str
-
-        :param nid: The OpenSSL NID to use.
-        :type nid: int
-
-        :raise UnsupportedEllipticCurve: If the given NID does not identify a
-            supported curve.
-        """
-        ecdh = _lib.EC_KEY_new_by_curve_name(nid)
-        if ecdh == _ffi.NULL:
-            raise UnsupportedEllipticCurve(name)
-        _lib.SSL_CTX_set_tmp_ecdh(self._context, ecdh)
-        _lib.EC_KEY_free(ecdh)
-
-
-    def set_tmp_ecdh_curve(self, curve_name):
+    def set_tmp_ecdh_curve(self, curve):
         """
         Select a curve to use for ECDHE key exchange.
 
-        The valid values of *curve_name* are the keys in
-        :py:data:OpenSSL.SSL.ELLIPTIC_CURVE_DESCRIPTIONS.
+        :param curve: A curve object to use as returned by either
+            :py:meth:`OpenSSL.crypto.get_elliptic_curve` or
+            :py:meth:`OpenSSL.crypto.get_elliptic_curves`.
 
-        Raises a subclass of ``ValueError`` if the linked OpenSSL was
-        not compiled with elliptical curve support or the specified
-        curve is not available.  You can check the specific subclass,
-        but, in general, you should just handle ``ValueError``.
-
-        :param curve_name: The 'short name' of a curve, e.g. 'prime256v1'
-        :type curve_name: str
         :return: None
         """
-        if _lib.Cryptography_HAS_EC:
-            nid = _lib.OBJ_sn2nid(curve_name.encode('ascii'))
-            if nid == _lib.NID_undef:
-                raise UnknownObject(curve_name)
-            return self._set_tmp_ecdh_curve_by_nid(curve_name, nid)
-        raise ECNotAvailable()
+        _lib.SSL_CTX_set_tmp_ecdh(self._context, curve._to_EC_KEY())
 
 
     def set_cipher_list(self, cipher_list):

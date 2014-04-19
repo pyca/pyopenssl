@@ -5,7 +5,7 @@ import sys
 
 from OpenSSL.crypto import (
     FILETYPE_PEM, TYPE_DSA, Error, PKey, X509, load_privatekey, CRL, Revoked,
-    _X509_REVOKED_dup)
+    get_elliptic_curves, _X509_REVOKED_dup)
 
 from OpenSSL._util import lib as _lib
 
@@ -143,6 +143,22 @@ class Checker_X509_REVOKED_dup(BaseChecker):
             revoked_copy = _X509_REVOKED_dup(Revoked()._revoked)
             _lib.X509_REVOKED_free(revoked_copy)
 
+
+
+class Checker_EllipticCurve(BaseChecker):
+    """
+    Leak checks for :py:obj:`_EllipticCurve`.
+    """
+    def check_to_EC_KEY(self):
+        """
+        Repeatedly create an EC_KEY* from an :py:obj:`_EllipticCurve`.  The
+        structure should be automatically garbage collected.
+        """
+        curves = get_elliptic_curves()
+        if curves:
+            curve = next(iter(curves))
+            for i in xrange(self.iterations * 1000):
+                curve._to_EC_KEY()
 
 
 def vmsize():

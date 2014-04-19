@@ -263,6 +263,75 @@ PKeyType = PKey
 
 
 
+class _EllipticCurve(object):
+    """
+    :ivar _lib: The :py:mod:`cryptography` binding instance used to interface
+        with OpenSSL.
+
+    :ivar _nid: The OpenSSL NID identifying the curve this object represents.
+    :type _nid: :py:class:`int`
+
+    :ivar name: The OpenSSL short name identifying the curve this object
+        represents.
+    :type name: :py:class:`unicode`
+    """
+    @classmethod
+    def _get_elliptic_curves(cls, lib):
+        """
+        Load the names of the supported elliptic curves from OpenSSL.
+
+        :param lib: The OpenSSL library binding object.
+        :return: A set of :py:obj:`unicode` giving the names of the elliptic curves
+            the underlying library supports.
+        """
+        if lib.Cryptography_HAS_EC:
+            num_curves = lib.EC_get_builtin_curves(_ffi.NULL, 0)
+            builtin_curves = _ffi.new('EC_builtin_curve[]', num_curves)
+            # The return value on this call should be num_curves again.  We could
+            # check it to make sure but if it *isn't* then.. what could we do?
+            # Abort the whole process, I suppose...?  -exarkun
+            lib.EC_get_builtin_curves(builtin_curves, num_curves)
+            return set(
+                cls.from_nid(lib, c.nid)
+                for c in builtin_curves)
+        else:
+            return set()
+
+
+    @classmethod
+    def from_nid(cls, lib, nid):
+        return cls(lib, nid, _ffi.string(lib.OBJ_nid2sn(nid)).decode("ascii"))
+
+
+    def __init__(self, lib, nid, name):
+        self._lib = lib
+        self._nid = nid
+        self.name = name
+
+
+    def __repr__(self):
+        return "<Curve %r>" % (self.name,)
+
+
+    def _to_EC_KEY(self):
+        key = self._lib.EC_KEY_new_by_curve_name(self._nid)
+        return _ffi.gc(key, _lib.EC_KEY_free)
+
+
+
+def get_elliptic_curves():
+    return _EllipticCurve._get_elliptic_curves(_lib)
+
+
+
+def get_elliptic_curve(name):
+    for curve in get_elliptic_curves():
+        if curve.name == name:
+            return curve
+    raise ValueError("unknown curve name", name)
+
+
+
 class X509Name(object):
     def __init__(self, name):
         """

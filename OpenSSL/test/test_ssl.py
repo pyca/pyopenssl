@@ -20,6 +20,7 @@ from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
 from OpenSSL.crypto import PKey, X509, X509Extension, X509Store
 from OpenSSL.crypto import dump_privatekey, load_privatekey
 from OpenSSL.crypto import dump_certificate, load_certificate
+from OpenSSL.crypto import get_elliptic_curves
 
 from OpenSSL.SSL import _lib
 from OpenSSL.SSL import OPENSSL_VERSION_NUMBER, SSLEAY_VERSION, SSLEAY_CFLAGS
@@ -36,9 +37,6 @@ from OpenSSL.SSL import (
     SESS_CACHE_OFF, SESS_CACHE_CLIENT, SESS_CACHE_SERVER, SESS_CACHE_BOTH,
     SESS_CACHE_NO_AUTO_CLEAR, SESS_CACHE_NO_INTERNAL_LOOKUP,
     SESS_CACHE_NO_INTERNAL_STORE, SESS_CACHE_NO_INTERNAL)
-from OpenSSL.SSL import (
-    _Cryptography_HAS_EC, ELLIPTIC_CURVE_DESCRIPTIONS,
-    ECNotAvailable, UnknownObject, UnsupportedEllipticCurve)
 
 from OpenSSL.SSL import (
     Error, SysCallError, WantReadError, WantWriteError, ZeroReturnError)
@@ -1179,101 +1177,13 @@ class ContextTests(TestCase, _LoopbackMixin):
     def test_set_tmp_ecdh_curve(self):
         """
         :py:obj:`Context.set_tmp_ecdh_curve` sets the elliptic curve for
-        Diffie-Hellman to the specified named curve.
+        Diffie-Hellman to the specified curve.
         """
         context = Context(TLSv1_METHOD)
-        for curve in ELLIPTIC_CURVE_DESCRIPTIONS.keys():
-            context.set_tmp_ecdh_curve(curve)  # Must not throw.
-
-
-    def test_set_tmp_ecdh_curve_not_available(self):
-        """
-        :py:obj:`Context.set_tmp_ecdh_curve` raises :py:obj:`ECNotAvailable` if
-        elliptic curve support is not available from the underlying OpenSSL
-        version at all.
-        """
-        has_ec = _lib.Cryptography_HAS_EC
-        try:
-            _lib.Cryptography_HAS_EC = False
-
-            context = Context(TLSv1_METHOD)
-            self.assertRaises(
-                ECNotAvailable,
-                context.set_tmp_ecdh_curve, next(iter(ELLIPTIC_CURVE_DESCRIPTIONS)))
-        finally:
-            _lib.Cryptography_HAS_EC = has_ec
-
-
-    def test_set_tmp_ecdh_curve_bad_curve_name(self):
-        """
-        :py:obj:`Context.set_tmp_ecdh_curve` raises :py:obj:`UnknownObject` if
-        passed a curve_name that OpenSSL does not recognize and EC is
-        available.
-        """
-        context = Context(TLSv1_METHOD)
-        try:
-            context.set_tmp_ecdh_curve('not_an_elliptic_curve')
-        except ECNotAvailable:
-            self.assertFalse(_Cryptography_HAS_EC)
-        except UnknownObject:
-            self.assertTrue(_Cryptography_HAS_EC)
-        else:
-            self.fail(
-                "set_tmp_ecdh_curve did not fail when called with "
-                "non-existent curve name")
-
-
-    def test_set_tmp_ecdh_curve_bad_nid(self):
-        """
-        :py:obj:`Context._set_tmp_ecdh_curve_by_nid`, an implementation detail
-        of :py:obj:`Context.set_tmp_ecdh_curve`, raises
-        :py:obj:`UnsupportedEllipticCurve` raises if passed a NID that does not
-        identify a supported curve.
-        """
-        context = Context(TLSv1_METHOD)
-        try:
-            context._set_tmp_ecdh_curve_by_nid(
-                u("curve"), _lib.OBJ_sn2nid(b"sha256"))
-        except UnsupportedEllipticCurve:
-            pass
-        else:
-            self.fail(
-                "_set_tmp_ecdh_curve_by_nid did not raise "
-                "UnsupportedEllipticCurve for a NID that does not "
-                "identify a supported curve.")
-
-
-    def test_set_tmp_ecdh_curve_not_a_curve(self):
-        """
-        :py:obj:`Context.set_tmp_ecdh_curve` raises
-        :py:obj:`UnsupportedEllipticCurve` if passed a curve_name that OpenSSL
-        cannot instantiate as an elliptic curve.  It raises
-        :py:obj:`ECNotAvailable` if EC is not available at all.
-        """
-        context = Context(TLSv1_METHOD)
-        try:
-            context.set_tmp_ecdh_curve('sha256')
-        except ECNotAvailable:
-            self.assertFalse(_Cryptography_HAS_EC)
-        except UnknownObject:
-            self.assertTrue(_Cryptography_HAS_EC)
-        else:
-            self.fail(
-                "set_tmp_ecdh_curve did not fail when called with "
-                "a name that is not an elliptic curve")
-
-
-    def test_has_curve_descriptions(self):
-        """
-        If the underlying cryptography bindings claim to have elliptic
-        curve support, there should be at least one curve.
-
-        (In theory there could be an OpenSSL that violates this
-        assumption. If so, this test will fail and we'll find out.)
-
-        """
-        if _Cryptography_HAS_EC:
-            self.assertNotEqual(len(ELLIPTIC_CURVE_DESCRIPTIONS), 0)
+        for curve in get_elliptic_curves():
+            # The only easily "assertable" thing is that it does not raise an
+            # exception.
+            context.set_tmp_ecdh_curve(curve)
 
 
     def test_set_cipher_list_bytes(self):

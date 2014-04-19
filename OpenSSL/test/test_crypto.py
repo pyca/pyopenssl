@@ -25,9 +25,10 @@ from OpenSSL.crypto import PKCS7Type, load_pkcs7_data
 from OpenSSL.crypto import PKCS12, PKCS12Type, load_pkcs12
 from OpenSSL.crypto import CRL, Revoked, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
-from OpenSSL.crypto import sign, verify
+from OpenSSL.crypto import (
+    sign, verify, get_elliptic_curve, get_elliptic_curves)
 from OpenSSL.test.util import TestCase, b
-from OpenSSL._util import native
+from OpenSSL._util import native, lib
 
 def normalize_certificate_pem(pem):
     return dump_certificate(FILETYPE_PEM, load_certificate(FILETYPE_PEM, pem))
@@ -3056,6 +3057,82 @@ class SignVerifyTests(TestCase):
         good_cert = load_certificate(FILETYPE_PEM, root_cert_pem)
         sig = sign(priv_key, content, "sha1")
         verify(good_cert, sig, content, "sha1")
+
+
+
+class EllipticCurveTests(TestCase):
+    """
+    Tests for :py:class:`_EllipticCurve`, :py:obj:`get_elliptic_curve`, and
+    :py:obj:`get_elliptic_curves`.
+    """
+    def test_set(self):
+        """
+        :py:obj:`get_elliptic_curves` returns a :py:obj:`set`.
+        """
+        self.assertIsInstance(get_elliptic_curves(), set)
+
+
+    def test_some_curves(self):
+        """
+        If :py:mod:`cryptography` has elliptic curve support then the set
+        returned by :py:obj:`get_elliptic_curves` has some elliptic curves in
+        it.
+
+        There could be an OpenSSL that violates this assumption.  If so, this
+        test will fail and we'll find out.
+        """
+        curves = get_elliptic_curves()
+        if lib.Cryptography_HAS_EC:
+            self.assertTrue(curves)
+        else:
+            self.assertFalse(curves)
+
+
+    def test_a_curve(self):
+        """
+        :py:obj:`get_elliptic_curve` can be used to retrieve a particular
+        supported curve.
+        """
+        curves = get_elliptic_curves()
+        if curves:
+            curve = next(iter(curves))
+            self.assertEqual(curve.name, get_elliptic_curve(curve.name).name)
+        else:
+            self.assertRaises(ValueError, get_elliptic_curve, u"prime256v1")
+
+
+    def test_not_a_curve(self):
+        """
+        :py:obj:`get_elliptic_curve` raises :py:class:`ValueError` if called
+        with a name which does not identify a supported curve.
+        """
+        self.assertRaises(
+            ValueError, get_elliptic_curve, u"this curve was just invented")
+
+
+    def test_repr(self):
+        """
+        The string representation of a curve object includes simply states the
+        object is a curve and what its name is.
+        """
+        curves = get_elliptic_curves()
+        if curves:
+            curve = next(iter(curves))
+            self.assertEqual("<Curve %r>" % (curve.name,), repr(curve))
+
+
+    def test_to_EC_KEY(self):
+        """
+        The curve object can export a version of itself as an EC_KEY* via the
+        private :py:meth:`_EllipticCurve._to_EC_KEY`.
+        """
+        curves = get_elliptic_curves()
+        if curves:
+            curve = next(iter(curves))
+            # It's not easy to assert anything about this object.  However, see
+            # leakcheck/crypto.py for a test that demonstrates it at least does
+            # not leak memory.
+            curve._to_EC_KEY()
 
 
 if __name__ == '__main__':

@@ -119,6 +119,28 @@
     Generic exception used in the :py:mod:`.crypto` module.
 
 
+.. py:function:: get_elliptic_curves
+
+    Return a set of objects representing the elliptic curves supported in the
+    OpenSSL build in use.
+
+    The curve objects have a :py:class:`unicode` ``name`` attribute by which
+    they identifying themselves.
+
+    The curve objects are useful as values for the argument accepted by
+    :py:meth:`Context.set_tmp_ecdh_curve` to specify which elliptical curve
+    should be used for ECDHE key exchange.
+
+
+.. py:function:: get_elliptic_curve
+
+    Return a single curve object selected by name.
+
+    See :py:func:`get_elliptic_curves` for information about curve objects.
+
+    If the named curve is not supported then :py:class:`ValueError` is raised.
+
+
 .. py:function:: dump_certificate(type, cert)
 
     Dump the certificate *cert* into a buffer string encoded with the type
