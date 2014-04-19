@@ -128,8 +128,8 @@
     they identify themselves.
 
     The curve objects are useful as values for the argument accepted by
-    :py:meth:`Context.set_tmp_ecdh_curve` to specify which elliptical curve
-    should be used for ECDHE key exchange.
+    :py:meth:`Context.set_tmp_ecdh` to specify which elliptical curve should be
+    used for ECDHE key exchange.
 
 
 .. py:function:: get_elliptic_curve

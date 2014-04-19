@@ -351,8 +351,8 @@ def get_elliptic_curves():
     they identify themselves.
 
     The curve objects are useful as values for the argument accepted by
-    :py:meth:`Context.set_tmp_ecdh_curve` to specify which elliptical curve
-    should be used for ECDHE key exchange.
+    :py:meth:`Context.set_tmp_ecdh` to specify which elliptical curve should be
+    used for ECDHE key exchange.
     """
     return _EllipticCurve._get_elliptic_curves(_lib)
 
