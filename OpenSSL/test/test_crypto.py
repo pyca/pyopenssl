@@ -3107,7 +3107,7 @@ class EllipticCurveTests(TestCase):
         with a name which does not identify a supported curve.
         """
         self.assertRaises(
-            ValueError, get_elliptic_curve, u"this curve was just invented")
+            ValueError, get_elliptic_curve, u("this curve was just invented"))
 
 
     def test_repr(self):
