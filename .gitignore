@@ -1,3 +1,7 @@
 build
 dist
 *.egg-info
+*.pyc
+*.pyo
+__pycache__
+.tox
