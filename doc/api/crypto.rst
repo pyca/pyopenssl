@@ -125,7 +125,7 @@
     OpenSSL build in use.
 
     The curve objects have a :py:class:`unicode` ``name`` attribute by which
-    they identifying themselves.
+    they identify themselves.
 
     The curve objects are useful as values for the argument accepted by
     :py:meth:`Context.set_tmp_ecdh_curve` to specify which elliptical curve

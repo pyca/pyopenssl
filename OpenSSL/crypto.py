@@ -265,15 +265,7 @@ PKeyType = PKey
 
 class _EllipticCurve(object):
     """
-    :ivar _lib: The :py:mod:`cryptography` binding instance used to interface
-        with OpenSSL.
-
-    :ivar _nid: The OpenSSL NID identifying the curve this object represents.
-    :type _nid: :py:class:`int`
-
-    :ivar name: The OpenSSL short name identifying the curve this object
-        represents.
-    :type name: :py:class:`unicode`
+    A representation of a supported elliptic curve.
     """
     @classmethod
     def _get_elliptic_curves(cls, lib):
@@ -300,10 +292,35 @@ class _EllipticCurve(object):
 
     @classmethod
     def from_nid(cls, lib, nid):
+        """
+        Instantiate a new :py:class:`_EllipticCurve` associated with the given
+        OpenSSL NID.
+
+        :param lib: The OpenSSL library binding object.
+
+        :param nid: The OpenSSL NID the resulting curve object will represent.
+            This must be a curve NID (and not, for example, a hash NID) or
+            subsequent operations will fail in unpredictable ways.
+        :type nid: :py:class:`int`
+
+        :return: The curve object.
+        """
         return cls(lib, nid, _ffi.string(lib.OBJ_nid2sn(nid)).decode("ascii"))
 
 
     def __init__(self, lib, nid, name):
+        """
+        :param _lib: The :py:mod:`cryptography` binding instance used to
+            interface with OpenSSL.
+
+        :param _nid: The OpenSSL NID identifying the curve this object
+            represents.
+        :type _nid: :py:class:`int`
+
+        :param name: The OpenSSL short name identifying the curve this object
+            represents.
+        :type name: :py:class:`unicode`
+        """
         self._lib = lib
         self._nid = nid
         self.name = name
@@ -314,17 +331,41 @@ class _EllipticCurve(object):
 
 
     def _to_EC_KEY(self):
+        """
+        Create a new OpenSSL EC_KEY structure initialized to use this curve.
+
+        The structure is automatically garbage collected when the Python object
+        is garbage collected.
+        """
         key = self._lib.EC_KEY_new_by_curve_name(self._nid)
         return _ffi.gc(key, _lib.EC_KEY_free)
 
 
 
 def get_elliptic_curves():
+    """
+    Return a set of objects representing the elliptic curves supported in the
+    OpenSSL build in use.
+
+    The curve objects have a :py:class:`unicode` ``name`` attribute by which
+    they identify themselves.
+
+    The curve objects are useful as values for the argument accepted by
+    :py:meth:`Context.set_tmp_ecdh_curve` to specify which elliptical curve
+    should be used for ECDHE key exchange.
+    """
     return _EllipticCurve._get_elliptic_curves(_lib)
 
 
 
 def get_elliptic_curve(name):
+    """
+    Return a single curve object selected by name.
+
+    See :py:func:`get_elliptic_curves` for information about curve objects.
+
+    If the named curve is not supported then :py:class:`ValueError` is raised.
+    """
     for curve in get_elliptic_curves():
         if curve.name == name:
             return curve
