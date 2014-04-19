@@ -2150,6 +2150,23 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
             self.assertEquals(client.recv(2), b('xy'))
 
 
+    try:
+        buffer
+    except NameError:
+        "cannot test sending buffer without buffer"
+    else:
+        def test_short_buffer(self):
+            """
+            When passed a buffer containing a small number of bytes,
+            :py:obj:`Connection.send` transmits all of them and returns the number of
+            bytes sent.
+            """
+            server, client = self._loopback()
+            count = server.send(buffer(b('xy')))
+            self.assertEquals(count, 2)
+            self.assertEquals(client.recv(2), b('xy'))
+
+
 
 class ConnectionSendallTests(TestCase, _LoopbackMixin):
     """
@@ -2190,6 +2207,21 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
             """
             server, client = self._loopback()
             server.sendall(memoryview(b('x')))
+            self.assertEquals(client.recv(1), b('x'))
+
+
+    try:
+        buffer
+    except NameError:
+        "cannot test sending buffers without buffers"
+    else:
+        def test_short_buffers(self):
+            """
+            When passed a buffer containing a small number of bytes,
+            :py:obj:`Connection.sendall` transmits all of them.
+            """
+            server, client = self._loopback()
+            server.sendall(buffer(b('x')))
             self.assertEquals(client.recv(1), b('x'))
 
 

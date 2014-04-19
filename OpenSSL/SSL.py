@@ -24,6 +24,12 @@ except NameError:
     class _memoryview(object):
         pass
 
+try:
+    _buffer = buffer
+except NameError:
+    class _buffer(object):
+        pass
+
 OPENSSL_VERSION_NUMBER = _lib.OPENSSL_VERSION_NUMBER
 SSLEAY_VERSION = _lib.SSLEAY_VERSION
 SSLEAY_CFLAGS = _lib.SSLEAY_CFLAGS
@@ -952,15 +958,17 @@ class Connection(object):
         WantWrite or WantX509Lookup exceptions on this, you have to call the
         method again with the SAME buffer.
 
-        :param buf: The string to send
+        :param buf: The string, buffer or memoryview to send
         :param flags: (optional) Included for compatibility with the socket
                       API, the value is ignored
         :return: The number of bytes written
         """
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
+        if isinstance(buf, _buffer):
+            buf = str(buf)
         if not isinstance(buf, bytes):
-            raise TypeError("data must be a byte string")
+            raise TypeError("data must be a memoryview, buffer or byte string")
 
         result = _lib.SSL_write(self._ssl, buf, len(buf))
         self._raise_ssl_error(self._ssl, result)
@@ -974,15 +982,17 @@ class Connection(object):
         all data is sent. If an error occurs, it's impossible to tell how much
         data has been sent.
 
-        :param buf: The string to send
+        :param buf: The string, buffer or memoryview to send
         :param flags: (optional) Included for compatibility with the socket
                       API, the value is ignored
         :return: The number of bytes written
         """
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
+        if isinstance(buf, _buffer):
+            buf = str(buf)
         if not isinstance(buf, bytes):
-            raise TypeError("buf must be a byte string")
+            raise TypeError("buf must be a memoryview, buffer or byte string")
 
         left_to_send = len(buf)
         total_sent = 0
