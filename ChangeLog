@@ -1,3 +1,12 @@
+2014-04-19  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/crypto.py: Based on work from Alex Gaynor, Andrew
+	  Lutomirski, Tobias Oberstein, Laurens Van Houtven, and Hynek
+	  Schlawack, add ``get_elliptic_curve`` and ``get_elliptic_curves``
+	  to support TLS ECDHE modes.
+	* OpenSSL/SSL.py: Add ``Context.set_tmp_ecdh`` to configure a TLS
+	  context with a particular elliptic curve for ECDHE modes.
+
 2014-04-19  Markus Unterwaditzer <markus@unterwaditzer.net>
 
 	* OpenSSL/SSL.py: ``Connection.send`` and ``Connection.sendall``
