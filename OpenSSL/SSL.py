@@ -216,37 +216,6 @@ def _asFileDescriptor(obj):
 
 
 
-class ECNotAvailable(ValueError):
-    """
-    Raised if a request for an elliptic curve fails because OpenSSL
-    is compiled without elliptic curve support.
-    """
-    def __init__(self):
-        ValueError.__init__(self, "OpenSSL is compiled without EC support")
-
-
-
-class UnknownObject(ValueError):
-    """
-    Raised if OpenSSL does not recognize the requested object.
-    """
-    def __init__(self, sn):
-        ValueError.__init__(self, "OpenSSL does not recognize %r" % sn)
-        self.sn = sn
-
-
-
-class UnsupportedEllipticCurve(ValueError):
-    """
-    Raised if OpenSSL does not support the requested elliptic curve.
-    """
-    def __init__(self, sn):
-        ValueError.__init__(
-            self, "OpenSSL does not support the elliptic curve %r" % sn)
-        self.sn = sn
-
-
-
 def SSLeay_version(type):
     """
     Return a string describing the version of OpenSSL in use.
