@@ -24,6 +24,12 @@ except NameError:
     class _memoryview(object):
         pass
 
+try:
+    _buffer = buffer
+except NameError:
+    class _buffer(object):
+        pass
+
 OPENSSL_VERSION_NUMBER = _lib.OPENSSL_VERSION_NUMBER
 SSLEAY_VERSION = _lib.SSLEAY_VERSION
 SSLEAY_CFLAGS = _lib.SSLEAY_CFLAGS
@@ -940,15 +946,17 @@ class Connection(object):
         WantWrite or WantX509Lookup exceptions on this, you have to call the
         method again with the SAME buffer.
 
-        :param buf: The string to send
+        :param buf: The string, buffer or memoryview to send
         :param flags: (optional) Included for compatibility with the socket
                       API, the value is ignored
         :return: The number of bytes written
         """
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
+        if isinstance(buf, _buffer):
+            buf = str(buf)
         if not isinstance(buf, bytes):
-            raise TypeError("data must be a byte string")
+            raise TypeError("data must be a memoryview, buffer or byte string")
 
         result = _lib.SSL_write(self._ssl, buf, len(buf))
         self._raise_ssl_error(self._ssl, result)
@@ -962,15 +970,17 @@ class Connection(object):
         all data is sent. If an error occurs, it's impossible to tell how much
         data has been sent.
 
-        :param buf: The string to send
+        :param buf: The string, buffer or memoryview to send
         :param flags: (optional) Included for compatibility with the socket
                       API, the value is ignored
         :return: The number of bytes written
         """
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
+        if isinstance(buf, _buffer):
+            buf = str(buf)
         if not isinstance(buf, bytes):
-            raise TypeError("buf must be a byte string")
+            raise TypeError("buf must be a memoryview, buffer or byte string")
 
         left_to_send = len(buf)
         total_sent = 0
@@ -1419,6 +1429,112 @@ class Connection(object):
         result = _lib.SSL_set_session(self._ssl, session._session)
         if not result:
             _raise_current_error()
+
+
+    def _get_finished_message(self, function):
+        """
+        Helper to implement :py:meth:`get_finished` and
+        :py:meth:`get_peer_finished`.
+
+        :param function: Either :py:data:`SSL_get_finished`: or
+            :py:data:`SSL_get_peer_finished`.
+
+        :return: :py:data:`None` if the desired message has not yet been
+            received, otherwise the contents of the message.
+        :rtype: :py:class:`bytes` or :py:class:`NoneType`
+        """
+        # The OpenSSL documentation says nothing about what might happen if the
+        # count argument given is zero.  Specifically, it doesn't say whether
+        # the output buffer may be NULL in that case or not.  Inspection of the
+        # implementation reveals that it calls memcpy() unconditionally.
+        # Section 7.1.4, paragraph 1 of the C standard suggests that
+        # memcpy(NULL, source, 0) is not guaranteed to produce defined (let
+        # alone desirable) behavior (though it probably does on just about
+        # every implementation...)
+        #
+        # Allocate a tiny buffer to pass in (instead of just passing NULL as
+        # one might expect) for the initial call so as to be safe against this
+        # potentially undefined behavior.
+        empty = _ffi.new("char[]", 0)
+        size = function(self._ssl, empty, 0)
+        if size == 0:
+            # No Finished message so far.
+            return None
+
+        buf = _ffi.new("char[]", size)
+        function(self._ssl, buf, size)
+        return _ffi.buffer(buf, size)[:]
+
+
+    def get_finished(self):
+        """
+        Obtain the latest `handshake finished` message sent to the peer.
+
+        :return: The contents of the message or :py:obj:`None` if the TLS
+            handshake has not yet completed.
+        :rtype: :py:class:`bytes` or :py:class:`NoneType`
+        """
+        return self._get_finished_message(_lib.SSL_get_finished)
+
+
+    def get_peer_finished(self):
+        """
+        Obtain the latest `handshake finished` message received from the peer.
+
+        :return: The contents of the message or :py:obj:`None` if the TLS
+            handshake has not yet completed.
+        :rtype: :py:class:`bytes` or :py:class:`NoneType`
+        """
+        return self._get_finished_message(_lib.SSL_get_peer_finished)
+
+
+    def get_cipher_name(self):
+        """
+        Obtain the name of the currently used cipher.
+
+        :returns: The name of the currently used cipher or :py:obj:`None`
+            if no connection has been established.
+        :rtype: :py:class:`unicode` or :py:class:`NoneType`
+        """
+        cipher = _lib.SSL_get_current_cipher(self._ssl)
+        if cipher == _ffi.NULL:
+            return None
+        else:
+            name = _ffi.string(_lib.SSL_CIPHER_get_name(cipher))
+            return name.decode("utf-8")
+
+
+    def get_cipher_bits(self):
+        """
+        Obtain the number of secret bits of the currently used cipher.
+
+        :returns: The number of secret bits of the currently used cipher
+            or :py:obj:`None` if no connection has been established.
+        :rtype: :py:class:`int` or :py:class:`NoneType`
+        """
+        cipher = _lib.SSL_get_current_cipher(self._ssl)
+        if cipher == _ffi.NULL:
+            return None
+        else:
+            return _lib.SSL_CIPHER_get_bits(cipher, _ffi.NULL)
+
+
+    def get_cipher_version(self):
+        """
+        Obtain the protocol version of the currently used cipher.
+
+        :returns: The protocol name of the currently used cipher
+            or :py:obj:`None` if no connection has been established.
+        :rtype: :py:class:`unicode` or :py:class:`NoneType`
+        """
+        cipher = _lib.SSL_get_current_cipher(self._ssl)
+        if cipher == _ffi.NULL:
+            return None
+        else:
+            version =_ffi.string(_lib.SSL_CIPHER_get_version(cipher))
+            return version.decode("utf-8")
+
+
 
 ConnectionType = Connection
 

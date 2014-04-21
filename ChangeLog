@@ -1,3 +1,34 @@
+2014-04-19  Markus Unterwaditzer <markus@unterwaditzer.net>
+
+	* OpenSSL/SSL.py: ``Connection.send`` and ``Connection.sendall``
+	  now also accept the ``buffer`` type as data.
+
+2014-03-30  Fedor Brunner  <fedor.brunner@azet.sk>
+
+	* OpenSSL/SSL.py: Add ``get_finished``, ``get_peer_finished``
+	  methods to ``Connection``. If you use these methods to
+	  implement TLS channel binding (RFC 5929) disable session
+	  resumption because triple handshake attacks against TLS.
+	  <https://www.ietf.org/mail-archive/web/tls/current/msg11337.html>
+	  <https://secure-resumption.com/tlsauth.pdf>
+
+2014-03-29  Fedor Brunner  <fedor.brunner@azet.sk>
+
+	* OpenSSL/SSL.py: Add ``get_cipher_name``, ``get_cipher_bits``,
+	  and ``get_cipher_version`` to ``Connection``.
+
+2014-03-28  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/tsafe.py: Replace the use of ``apply`` (which has been
+	  removed in Python 3) with the equivalent syntax.
+
+2014-03-28  Jonathan Giannuzzi  <jonathan@giannuzzi.be>
+
+	* OpenSSL/crypto.py: Fix memory leak in _X509_REVOKED_dup.
+	* leakcheck/crypto.py: Add checks for _X509_REVOKED_dup, CRL.add_revoked
+	  and CRL.get_revoked.
+	* setup.py: Require cryptography 0.3 to have the ASN1_TIME_free binding.
+
 2014-03-02  Stephen Holsapple  <sholsapp@gmail.com>
 
 	* OpenSSL/crypto.py: Add ``get_extensions`` method to ``X509Req``.

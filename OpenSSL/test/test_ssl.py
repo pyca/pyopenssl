@@ -14,7 +14,7 @@ from os.path import join
 from unittest import main
 from weakref import ref
 
-from six import PY3, u
+from six import PY3, text_type, u
 
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
 from OpenSSL.crypto import PKey, X509, X509Extension, X509Store
@@ -1936,6 +1936,139 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     # XXX want_read
 
+    def test_get_finished_before_connect(self):
+        """
+        :py:obj:`Connection.get_finished` returns :py:obj:`None` before TLS
+        handshake is completed.
+        """
+        ctx = Context(TLSv1_METHOD)
+        connection = Connection(ctx, None)
+        self.assertEqual(connection.get_finished(), None)
+
+
+    def test_get_peer_finished_before_connect(self):
+        """
+        :py:obj:`Connection.get_peer_finished` returns :py:obj:`None` before
+        TLS handshake is completed.
+        """
+        ctx = Context(TLSv1_METHOD)
+        connection = Connection(ctx, None)
+        self.assertEqual(connection.get_peer_finished(), None)
+
+
+    def test_get_finished(self):
+        """
+        :py:obj:`Connection.get_finished` method returns the TLS Finished
+        message send from client, or server. Finished messages are send during
+        TLS handshake.
+        """
+
+        server, client = self._loopback()
+
+        self.assertNotEqual(server.get_finished(), None)
+        self.assertTrue(len(server.get_finished()) > 0)
+
+
+    def test_get_peer_finished(self):
+        """
+        :py:obj:`Connection.get_peer_finished` method returns the TLS Finished
+        message received from client, or server. Finished messages are send
+        during TLS handshake.
+        """
+        server, client = self._loopback()
+
+        self.assertNotEqual(server.get_peer_finished(), None)
+        self.assertTrue(len(server.get_peer_finished()) > 0)
+
+
+    def test_tls_finished_message_symmetry(self):
+        """
+        The TLS Finished message send by server must be the TLS Finished message
+        received by client.
+
+        The TLS Finished message send by client must be the TLS Finished message
+        received by server.
+        """
+        server, client = self._loopback()
+
+        self.assertEqual(server.get_finished(), client.get_peer_finished())
+        self.assertEqual(client.get_finished(), server.get_peer_finished())
+
+
+    def test_get_cipher_name_before_connect(self):
+        """
+        :py:obj:`Connection.get_cipher_name` returns :py:obj:`None` if no
+        connection has been established.
+        """
+        ctx = Context(TLSv1_METHOD)
+        conn = Connection(ctx, None)
+        self.assertIdentical(conn.get_cipher_name(), None)
+
+
+    def test_get_cipher_name(self):
+        """
+        :py:obj:`Connection.get_cipher_name` returns a :py:class:`unicode`
+        string giving the name of the currently used cipher.
+        """
+        server, client = self._loopback()
+        server_cipher_name, client_cipher_name = \
+            server.get_cipher_name(), client.get_cipher_name()
+
+        self.assertIsInstance(server_cipher_name, text_type)
+        self.assertIsInstance(client_cipher_name, text_type)
+
+        self.assertEqual(server_cipher_name, client_cipher_name)
+
+
+    def test_get_cipher_version_before_connect(self):
+        """
+        :py:obj:`Connection.get_cipher_version` returns :py:obj:`None` if no
+        connection has been established.
+        """
+        ctx = Context(TLSv1_METHOD)
+        conn = Connection(ctx, None)
+        self.assertIdentical(conn.get_cipher_version(), None)
+
+
+    def test_get_cipher_version(self):
+        """
+        :py:obj:`Connection.get_cipher_version` returns a :py:class:`unicode`
+        string giving the protocol name of the currently used cipher.
+        """
+        server, client = self._loopback()
+        server_cipher_version, client_cipher_version = \
+            server.get_cipher_version(), client.get_cipher_version()
+
+        self.assertIsInstance(server_cipher_version, text_type)
+        self.assertIsInstance(client_cipher_version, text_type)
+
+        self.assertEqual(server_cipher_version, client_cipher_version)
+
+
+    def test_get_cipher_bits_before_connect(self):
+        """
+        :py:obj:`Connection.get_cipher_bits` returns :py:obj:`None` if no
+        connection has been established.
+        """
+        ctx = Context(TLSv1_METHOD)
+        conn = Connection(ctx, None)
+        self.assertIdentical(conn.get_cipher_bits(), None)
+
+
+    def test_get_cipher_bits(self):
+        """
+        :py:obj:`Connection.get_cipher_bits` returns the number of secret bits
+        of the currently used cipher.
+        """
+        server, client = self._loopback()
+        server_cipher_bits, client_cipher_bits = \
+            server.get_cipher_bits(), client.get_cipher_bits()
+
+        self.assertIsInstance(server_cipher_bits, int)
+        self.assertIsInstance(client_cipher_bits, int)
+
+        self.assertEqual(server_cipher_bits, client_cipher_bits)
+
 
 
 class ConnectionGetCipherListTests(TestCase):
@@ -2007,6 +2140,23 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
             self.assertEquals(client.recv(2), b('xy'))
 
 
+    try:
+        buffer
+    except NameError:
+        "cannot test sending buffer without buffer"
+    else:
+        def test_short_buffer(self):
+            """
+            When passed a buffer containing a small number of bytes,
+            :py:obj:`Connection.send` transmits all of them and returns the number of
+            bytes sent.
+            """
+            server, client = self._loopback()
+            count = server.send(buffer(b('xy')))
+            self.assertEquals(count, 2)
+            self.assertEquals(client.recv(2), b('xy'))
+
+
 
 class ConnectionSendallTests(TestCase, _LoopbackMixin):
     """
@@ -2047,6 +2197,21 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
             """
             server, client = self._loopback()
             server.sendall(memoryview(b('x')))
+            self.assertEquals(client.recv(1), b('x'))
+
+
+    try:
+        buffer
+    except NameError:
+        "cannot test sending buffers without buffers"
+    else:
+        def test_short_buffers(self):
+            """
+            When passed a buffer containing a small number of bytes,
+            :py:obj:`Connection.sendall` transmits all of them.
+            """
+            server, client = self._loopback()
+            server.sendall(buffer(b('x')))
             self.assertEquals(client.recv(1), b('x'))
 
 
