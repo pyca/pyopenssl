@@ -266,15 +266,23 @@ PKeyType = PKey
 class _EllipticCurve(object):
     """
     A representation of a supported elliptic curve.
+
+    @cvar _curves: :py:obj:`None` until an attempt is made to load the curves.
+        Thereafter, a :py:type:`set` containing :py:type:`_EllipticCurve`
+        instances each of which represents one curve supported by the system.
+    @type _curves: :py:type:`NoneType` or :py:type:`set`
     """
+    _curves = None
+
     @classmethod
-    def _get_elliptic_curves(cls, lib):
+    def _load_elliptic_curves(cls, lib):
         """
-        Load the names of the supported elliptic curves from OpenSSL.
+        Get the curves supported by OpenSSL.
 
         :param lib: The OpenSSL library binding object.
-        :return: A set of :py:obj:`unicode` giving the names of the elliptic curves
-            the underlying library supports.
+
+        :return: A :py:type:`set` of ``cls`` instances giving the names of the
+            elliptic curves the underlying library supports.
         """
         if lib.Cryptography_HAS_EC:
             num_curves = lib.EC_get_builtin_curves(_ffi.NULL, 0)
@@ -286,8 +294,22 @@ class _EllipticCurve(object):
             return set(
                 cls.from_nid(lib, c.nid)
                 for c in builtin_curves)
-        else:
-            return set()
+        return set()
+
+
+    @classmethod
+    def _get_elliptic_curves(cls, lib):
+        """
+        Get, cache, and return the curves supported by OpenSSL.
+
+        :param lib: The OpenSSL library binding object.
+
+        :return: A :py:type:`set` of ``cls`` instances giving the names of the
+            elliptic curves the underlying library supports.
+        """
+        if cls._curves is None:
+            cls._curves = cls._load_elliptic_curves(lib)
+        return cls._curves
 
 
     @classmethod
