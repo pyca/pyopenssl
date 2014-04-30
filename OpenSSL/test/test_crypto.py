@@ -27,7 +27,7 @@ from OpenSSL.crypto import CRL, Revoked, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.crypto import (
     sign, verify, get_elliptic_curve, get_elliptic_curves)
-from OpenSSL.test.util import TestCase
+from OpenSSL.test.util import EqualityTestsMixin, TestCase
 from OpenSSL._util import native, lib
 
 def normalize_certificate_pem(pem):
@@ -3133,6 +3133,47 @@ class EllipticCurveTests(TestCase):
             # leakcheck/crypto.py for a test that demonstrates it at least does
             # not leak memory.
             curve._to_EC_KEY()
+
+
+
+class EllipticCurveFactory(object):
+    """
+    A helper to get the names of two curves.
+    """
+    def __init__(self):
+        curves = iter(get_elliptic_curves())
+        try:
+            self.curve_name = next(curves).name
+            self.another_curve_name = next(curves).name
+        except StopIteration:
+            self.curve_name = self.another_curve_name = None
+
+
+
+class EllipticCurveEqualityTests(TestCase, EqualityTestsMixin):
+    """
+    Tests :py:type:`_EllipticCurve`\ 's implementation of ``==`` and ``!=``.
+    """
+    curve_factory = EllipticCurveFactory()
+
+    if curve_factory.curve_name is None:
+        skip = "There are no curves available there can be no curve objects."
+
+
+    def anInstance(self):
+        """
+        Get the curve object for an arbitrary curve supported by the system.
+        """
+        return get_elliptic_curve(self.curve_factory.curve_name)
+
+
+    def anotherInstance(self):
+        """
+        Get the curve object for an arbitrary curve supported by the system -
+        but not the one returned by C{anInstance}.
+        """
+        return get_elliptic_curve(self.curve_factory.another_curve_name)
+
 
 
 if __name__ == '__main__':
