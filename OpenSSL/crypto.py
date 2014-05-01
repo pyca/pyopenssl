@@ -274,6 +274,12 @@ class _EllipticCurve(object):
     """
     _curves = None
 
+    def __ne__(self, other):
+        if isinstance(other, _EllipticCurve):
+            return super(_EllipticCurve, self).__ne__(other)
+        return NotImplemented
+
+
     @classmethod
     def _load_elliptic_curves(cls, lib):
         """
