@@ -20,7 +20,9 @@ from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
 from OpenSSL.crypto import PKey, X509, X509Extension, X509Store
 from OpenSSL.crypto import dump_privatekey, load_privatekey
 from OpenSSL.crypto import dump_certificate, load_certificate
+from OpenSSL.crypto import get_elliptic_curves
 
+from OpenSSL.SSL import _lib
 from OpenSSL.SSL import OPENSSL_VERSION_NUMBER, SSLEAY_VERSION, SSLEAY_CFLAGS
 from OpenSSL.SSL import SSLEAY_PLATFORM, SSLEAY_DIR, SSLEAY_BUILT_ON
 from OpenSSL.SSL import SENT_SHUTDOWN, RECEIVED_SHUTDOWN
@@ -1170,6 +1172,18 @@ class ContextTests(TestCase, _LoopbackMixin):
         dhfile.close()
         context.load_tmp_dh(dhfilename)
         # XXX What should I assert here? -exarkun
+
+
+    def test_set_tmp_ecdh(self):
+        """
+        :py:obj:`Context.set_tmp_ecdh` sets the elliptic curve for
+        Diffie-Hellman to the specified curve.
+        """
+        context = Context(TLSv1_METHOD)
+        for curve in get_elliptic_curves():
+            # The only easily "assertable" thing is that it does not raise an
+            # exception.
+            context.set_tmp_ecdh(curve)
 
 
     def test_set_cipher_list_bytes(self):

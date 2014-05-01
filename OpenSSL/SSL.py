@@ -130,7 +130,6 @@ SSL_CB_CONNECT_EXIT = _lib.SSL_CB_CONNECT_EXIT
 SSL_CB_HANDSHAKE_START = _lib.SSL_CB_HANDSHAKE_START
 SSL_CB_HANDSHAKE_DONE = _lib.SSL_CB_HANDSHAKE_DONE
 
-
 class Error(Exception):
     """
     An error occurred in an `OpenSSL.SSL` API.
@@ -602,6 +601,19 @@ class Context(object):
         dh = _lib.PEM_read_bio_DHparams(bio, _ffi.NULL, _ffi.NULL, _ffi.NULL)
         dh = _ffi.gc(dh, _lib.DH_free)
         _lib.SSL_CTX_set_tmp_dh(self._context, dh)
+
+
+    def set_tmp_ecdh(self, curve):
+        """
+        Select a curve to use for ECDHE key exchange.
+
+        :param curve: A curve object to use as returned by either
+            :py:meth:`OpenSSL.crypto.get_elliptic_curve` or
+            :py:meth:`OpenSSL.crypto.get_elliptic_curves`.
+
+        :return: None
+        """
+        _lib.SSL_CTX_set_tmp_ecdh(self._context, curve._to_EC_KEY())
 
 
     def set_cipher_list(self, cipher_list):
@@ -1224,7 +1236,7 @@ class Connection(object):
         The makefile() method is not implemented, since there is no dup semantics
         for SSL connections
 
-        :raise NotImplementedError
+        :raise: NotImplementedError
         """
         raise NotImplementedError("Cannot make file object of OpenSSL.SSL.Connection")
 
