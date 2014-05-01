@@ -210,6 +210,23 @@ class TestCase(TestCase):
         return containee
     assertIn = failUnlessIn
 
+    def assertNotIn(self, containee, container, msg=None):
+        """
+        Fail the test if C{containee} is found in C{container}.
+
+        @param containee: the value that should not be in C{container}
+        @param container: a sequence type, or in the case of a mapping type,
+                          will follow semantics of 'if key in dict.keys()'
+        @param msg: if msg is None, then the failure message will be
+                    '%r in %r' % (first, second)
+        """
+        if containee in container:
+            raise self.failureException(msg or "%r in %r"
+                                        % (containee, container))
+        return containee
+    failIfIn = assertNotIn
+
+
     def failUnlessIdentical(self, first, second, msg=None):
         """
         Fail the test if :py:data:`first` is not :py:data:`second`.  This is an
