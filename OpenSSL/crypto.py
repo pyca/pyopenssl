@@ -276,7 +276,14 @@ class _EllipticCurve(object):
     _curves = None
 
     if _PY3:
+        # This only necessary on Python 3.  Morever, it is broken on Python 2.
         def __ne__(self, other):
+            """
+            Implement cooperation with the right-hand side argument of ``!=``.
+
+            Python 3 seems to have dropped this cooperation in this very narrow
+            circumstance.
+            """
             if isinstance(other, _EllipticCurve):
                 return super(_EllipticCurve, self).__ne__(other)
             return NotImplemented
