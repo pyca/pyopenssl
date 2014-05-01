@@ -5,7 +5,8 @@ from operator import __eq__, __ne__, __lt__, __le__, __gt__, __ge__
 
 from six import (
     integer_types as _integer_types,
-    text_type as _text_type)
+    text_type as _text_type,
+    PY3 as _PY3)
 
 from OpenSSL._util import (
     ffi as _ffi,
@@ -274,10 +275,11 @@ class _EllipticCurve(object):
     """
     _curves = None
 
-    def __ne__(self, other):
-        if isinstance(other, _EllipticCurve):
-            return super(_EllipticCurve, self).__ne__(other)
-        return NotImplemented
+    if _PY3:
+        def __ne__(self, other):
+            if isinstance(other, _EllipticCurve):
+                return super(_EllipticCurve, self).__ne__(other)
+            return NotImplemented
 
 
     @classmethod
