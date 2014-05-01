@@ -3176,5 +3176,37 @@ class EllipticCurveEqualityTests(TestCase, EqualityTestsMixin):
 
 
 
+class EllipticCurveHashTests(TestCase):
+    """
+    Tests for :py:type:`_EllipticCurve`\ 's implementation of hashing (thus use
+    as an item in a :py:type:`dict` or :py:type:`set`).
+    """
+    curve_factory = EllipticCurveFactory()
+
+    if curve_factory.curve_name is None:
+        skip = "There are no curves available there can be no curve objects."
+
+
+    def test_contains(self):
+        """
+        The ``in`` operator reports that a :py:type:`set` containing a curve
+        does contain that curve.
+        """
+        curve = get_elliptic_curve(self.curve_factory.curve_name)
+        curves = set([curve])
+        self.assertIn(curve, curves)
+
+
+    def test_does_not_contain(self):
+        """
+        The ``in`` operator reports that a :py:type:`set` not containing a
+        curve does not contain that curve.
+        """
+        curve = get_elliptic_curve(self.curve_factory.curve_name)
+        curves = set([get_elliptic_curve(self.curve_factory.another_curve_name)])
+        self.assertNotIn(curve, curves)
+
+
+
 if __name__ == '__main__':
     main()
