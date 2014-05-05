@@ -24,6 +24,12 @@ except NameError:
     class _memoryview(object):
         pass
 
+try:
+    _buffer = buffer
+except NameError:
+    class _buffer(object):
+        pass
+
 OPENSSL_VERSION_NUMBER = _lib.OPENSSL_VERSION_NUMBER
 SSLEAY_VERSION = _lib.SSLEAY_VERSION
 SSLEAY_CFLAGS = _lib.SSLEAY_CFLAGS
@@ -123,7 +129,6 @@ SSL_CB_CONNECT_LOOP = _lib.SSL_CB_CONNECT_LOOP
 SSL_CB_CONNECT_EXIT = _lib.SSL_CB_CONNECT_EXIT
 SSL_CB_HANDSHAKE_START = _lib.SSL_CB_HANDSHAKE_START
 SSL_CB_HANDSHAKE_DONE = _lib.SSL_CB_HANDSHAKE_DONE
-
 
 class Error(Exception):
     """
@@ -602,6 +607,19 @@ class Context(object):
         _lib.SSL_CTX_set_tmp_dh(self._context, dh)
 
 
+    def set_tmp_ecdh(self, curve):
+        """
+        Select a curve to use for ECDHE key exchange.
+
+        :param curve: A curve object to use as returned by either
+            :py:meth:`OpenSSL.crypto.get_elliptic_curve` or
+            :py:meth:`OpenSSL.crypto.get_elliptic_curves`.
+
+        :return: None
+        """
+        _lib.SSL_CTX_set_tmp_ecdh(self._context, curve._to_EC_KEY())
+
+
     def set_cipher_list(self, cipher_list):
         """
         Change the cipher list
@@ -944,15 +962,17 @@ class Connection(object):
         WantWrite or WantX509Lookup exceptions on this, you have to call the
         method again with the SAME buffer.
 
-        :param buf: The string to send
+        :param buf: The string, buffer or memoryview to send
         :param flags: (optional) Included for compatibility with the socket
                       API, the value is ignored
         :return: The number of bytes written
         """
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
+        if isinstance(buf, _buffer):
+            buf = str(buf)
         if not isinstance(buf, bytes):
-            raise TypeError("data must be a byte string")
+            raise TypeError("data must be a memoryview, buffer or byte string")
 
         result = _lib.SSL_write(self._ssl, buf, len(buf))
         self._raise_ssl_error(self._ssl, result)
@@ -966,15 +986,17 @@ class Connection(object):
         all data is sent. If an error occurs, it's impossible to tell how much
         data has been sent.
 
-        :param buf: The string to send
+        :param buf: The string, buffer or memoryview to send
         :param flags: (optional) Included for compatibility with the socket
                       API, the value is ignored
         :return: The number of bytes written
         """
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
+        if isinstance(buf, _buffer):
+            buf = str(buf)
         if not isinstance(buf, bytes):
-            raise TypeError("buf must be a byte string")
+            raise TypeError("buf must be a memoryview, buffer or byte string")
 
         left_to_send = len(buf)
         total_sent = 0
@@ -1218,7 +1240,7 @@ class Connection(object):
         The makefile() method is not implemented, since there is no dup semantics
         for SSL connections
 
-        :raise NotImplementedError
+        :raise: NotImplementedError
         """
         raise NotImplementedError("Cannot make file object of OpenSSL.SSL.Connection")
 

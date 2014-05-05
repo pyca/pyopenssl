@@ -317,6 +317,15 @@ Context objects have the following methods:
     Load parameters for Ephemeral Diffie-Hellman from *dhfile*.
 
 
+.. py:method:: Context.set_tmp_ecdh(curve)
+
+   Select a curve to use for ECDHE key exchange.
+
+   The valid values of *curve* are the objects returned by
+   :py:func:`OpenSSL.crypto.get_elliptic_curves` or
+   :py:func:`OpenSSL.crypto.get_elliptic_curve`.
+
+
 .. py:method:: Context.set_app_data(data)
 
     Associate *data* with this Context object. *data* can be retrieved

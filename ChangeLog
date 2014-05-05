@@ -1,10 +1,29 @@
-2014-04-02  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+2014-05-05  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL/SSL.py: Fix a regression in which the first argument of
 	  the "verify" callback was incorrectly a ``Context`` instance
 	  instead of the ``Connection`` instance.
 	* OpenSSL/test/test_ssl.py: Add a test for the value passed as the
 	  first argument of the "verify" callback.
+
+2014-04-19  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/crypto.py: Based on work from Alex Gaynor, Andrew
+	  Lutomirski, Tobias Oberstein, Laurens Van Houtven, and Hynek
+	  Schlawack, add ``get_elliptic_curve`` and ``get_elliptic_curves``
+	  to support TLS ECDHE modes.
+	* OpenSSL/SSL.py: Add ``Context.set_tmp_ecdh`` to configure a TLS
+	  context with a particular elliptic curve for ECDHE modes.
+
+2014-04-19  Markus Unterwaditzer <markus@unterwaditzer.net>
+
+	* OpenSSL/SSL.py: ``Connection.send`` and ``Connection.sendall``
+	  now also accept the ``buffer`` type as data.
+
+2014-04-05  Stephen Holsapple <sholsapp@gmail.com>
+
+	* OpenSSL/crypto.py: Make ``load_pkcs12`` backwards compatible with
+	  pyOpenSSL 0.13 by making passphrase optional.
 
 2014-03-30  Fedor Brunner  <fedor.brunner@azet.sk>
 
@@ -24,6 +43,13 @@
 
 	* OpenSSL/tsafe.py: Replace the use of ``apply`` (which has been
 	  removed in Python 3) with the equivalent syntax.
+
+2014-03-28  Jonathan Giannuzzi  <jonathan@giannuzzi.be>
+
+	* OpenSSL/crypto.py: Fix memory leak in _X509_REVOKED_dup.
+	* leakcheck/crypto.py: Add checks for _X509_REVOKED_dup, CRL.add_revoked
+	  and CRL.get_revoked.
+	* setup.py: Require cryptography 0.3 to have the ASN1_TIME_free binding.
 
 2014-03-02  Stephen Holsapple  <sholsapp@gmail.com>
 

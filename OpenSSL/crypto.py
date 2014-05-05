@@ -5,7 +5,8 @@ from operator import __eq__, __ne__, __lt__, __le__, __gt__, __ge__
 
 from six import (
     integer_types as _integer_types,
-    text_type as _text_type)
+    text_type as _text_type,
+    PY3 as _PY3)
 
 from OpenSSL._util import (
     ffi as _ffi,
@@ -260,6 +261,156 @@ class PKey(object):
         """
         return _lib.EVP_PKEY_bits(self._pkey)
 PKeyType = PKey
+
+
+
+class _EllipticCurve(object):
+    """
+    A representation of a supported elliptic curve.
+
+    @cvar _curves: :py:obj:`None` until an attempt is made to load the curves.
+        Thereafter, a :py:type:`set` containing :py:type:`_EllipticCurve`
+        instances each of which represents one curve supported by the system.
+    @type _curves: :py:type:`NoneType` or :py:type:`set`
+    """
+    _curves = None
+
+    if _PY3:
+        # This only necessary on Python 3.  Morever, it is broken on Python 2.
+        def __ne__(self, other):
+            """
+            Implement cooperation with the right-hand side argument of ``!=``.
+
+            Python 3 seems to have dropped this cooperation in this very narrow
+            circumstance.
+            """
+            if isinstance(other, _EllipticCurve):
+                return super(_EllipticCurve, self).__ne__(other)
+            return NotImplemented
+
+
+    @classmethod
+    def _load_elliptic_curves(cls, lib):
+        """
+        Get the curves supported by OpenSSL.
+
+        :param lib: The OpenSSL library binding object.
+
+        :return: A :py:type:`set` of ``cls`` instances giving the names of the
+            elliptic curves the underlying library supports.
+        """
+        if lib.Cryptography_HAS_EC:
+            num_curves = lib.EC_get_builtin_curves(_ffi.NULL, 0)
+            builtin_curves = _ffi.new('EC_builtin_curve[]', num_curves)
+            # The return value on this call should be num_curves again.  We could
+            # check it to make sure but if it *isn't* then.. what could we do?
+            # Abort the whole process, I suppose...?  -exarkun
+            lib.EC_get_builtin_curves(builtin_curves, num_curves)
+            return set(
+                cls.from_nid(lib, c.nid)
+                for c in builtin_curves)
+        return set()
+
+
+    @classmethod
+    def _get_elliptic_curves(cls, lib):
+        """
+        Get, cache, and return the curves supported by OpenSSL.
+
+        :param lib: The OpenSSL library binding object.
+
+        :return: A :py:type:`set` of ``cls`` instances giving the names of the
+            elliptic curves the underlying library supports.
+        """
+        if cls._curves is None:
+            cls._curves = cls._load_elliptic_curves(lib)
+        return cls._curves
+
+
+    @classmethod
+    def from_nid(cls, lib, nid):
+        """
+        Instantiate a new :py:class:`_EllipticCurve` associated with the given
+        OpenSSL NID.
+
+        :param lib: The OpenSSL library binding object.
+
+        :param nid: The OpenSSL NID the resulting curve object will represent.
+            This must be a curve NID (and not, for example, a hash NID) or
+            subsequent operations will fail in unpredictable ways.
+        :type nid: :py:class:`int`
+
+        :return: The curve object.
+        """
+        return cls(lib, nid, _ffi.string(lib.OBJ_nid2sn(nid)).decode("ascii"))
+
+
+    def __init__(self, lib, nid, name):
+        """
+        :param _lib: The :py:mod:`cryptography` binding instance used to
+            interface with OpenSSL.
+
+        :param _nid: The OpenSSL NID identifying the curve this object
+            represents.
+        :type _nid: :py:class:`int`
+
+        :param name: The OpenSSL short name identifying the curve this object
+            represents.
+        :type name: :py:class:`unicode`
+        """
+        self._lib = lib
+        self._nid = nid
+        self.name = name
+
+
+    def __repr__(self):
+        return "<Curve %r>" % (self.name,)
+
+
+    def _to_EC_KEY(self):
+        """
+        Create a new OpenSSL EC_KEY structure initialized to use this curve.
+
+        The structure is automatically garbage collected when the Python object
+        is garbage collected.
+        """
+        key = self._lib.EC_KEY_new_by_curve_name(self._nid)
+        return _ffi.gc(key, _lib.EC_KEY_free)
+
+
+
+def get_elliptic_curves():
+    """
+    Return a set of objects representing the elliptic curves supported in the
+    OpenSSL build in use.
+
+    The curve objects have a :py:class:`unicode` ``name`` attribute by which
+    they identify themselves.
+
+    The curve objects are useful as values for the argument accepted by
+    :py:meth:`Context.set_tmp_ecdh` to specify which elliptical curve should be
+    used for ECDHE key exchange.
+    """
+    return _EllipticCurve._get_elliptic_curves(_lib)
+
+
+
+def get_elliptic_curve(name):
+    """
+    Return a single curve object selected by name.
+
+    See :py:func:`get_elliptic_curves` for information about curve objects.
+
+    :param name: The OpenSSL short name identifying the curve object to
+        retrieve.
+    :type name: :py:class:`unicode`
+
+    If the named curve is not supported then :py:class:`ValueError` is raised.
+    """
+    for curve in get_elliptic_curves():
+        if curve.name == name:
+            return curve
+    raise ValueError("unknown curve name", name)
 
 
 
@@ -1323,9 +1474,11 @@ def _X509_REVOKED_dup(original):
         _raise_current_error()
 
     if original.serialNumber != _ffi.NULL:
+        _lib.ASN1_INTEGER_free(copy.serialNumber)
         copy.serialNumber = _lib.ASN1_INTEGER_dup(original.serialNumber)
 
     if original.revocationDate != _ffi.NULL:
+        _lib.ASN1_TIME_free(copy.revocationDate)
         copy.revocationDate = _lib.M_ASN1_TIME_dup(original.revocationDate)
 
     if original.extensions != _ffi.NULL:
@@ -2213,7 +2366,7 @@ def load_pkcs7_data(type, buffer):
 
 
 
-def load_pkcs12(buffer, passphrase):
+def load_pkcs12(buffer, passphrase=None):
     """
     Load a PKCS12 object from a buffer
 
@@ -2225,6 +2378,13 @@ def load_pkcs12(buffer, passphrase):
         buffer = buffer.encode("ascii")
 
     bio = _new_mem_buf(buffer)
+
+    # Use null passphrase if passphrase is None or empty string. With PKCS#12
+    # password based encryption no password and a zero length password are two
+    # different things, but OpenSSL implementation will try both to figure out
+    # which one works.
+    if not passphrase:
+        passphrase = _ffi.NULL
 
     p12 = _lib.d2i_PKCS12_bio(bio, _ffi.NULL)
     if p12 == _ffi.NULL:

@@ -2,7 +2,6 @@ language: python
 
 os:
   - linux
-  - osx
 
 python:
   - "pypy"
@@ -10,21 +9,42 @@ python:
   - "2.7"
   - "3.2"
   - "3.3"
+  - "3.4"
 
 matrix:
   include:
+  # Also run the tests against cryptography master.
   - python: "2.6"
-    env: CRYPTOGRAPHY_GIT_MASTER=true
+    env:
+      CRYPTOGRAPHY_GIT_MASTER=true
   - python: "2.7"
-    env: CRYPTOGRAPHY_GIT_MASTER=true
+    env:
+      CRYPTOGRAPHY_GIT_MASTER=true
   - python: "3.2"
-    env: CRYPTOGRAPHY_GIT_MASTER=true
+    env:
+      CRYPTOGRAPHY_GIT_MASTER=true
   - python: "3.3"
-    env: CRYPTOGRAPHY_GIT_MASTER=true
+    env:
+      CRYPTOGRAPHY_GIT_MASTER=true
+  - python: "3.4"
+    env:
+      CRYPTOGRAPHY_GIT_MASTER=true
   - python: "pypy"
-    env: CRYPTOGRAPHY_GIT_MASTER=true
+    env:
+      CRYPTOGRAPHY_GIT_MASTER=true
+
+  # Also run at least a little bit against an older version of OpenSSL.
+  - python: "2.7"
+    env:
+      OPENSSL=0.9.8
+
+  # Let the cryptography master builds fail because they might be triggered by
+  # cryptography changes beyond our control.
   allow_failures:
-  - env: CRYPTOGRAPHY_GIT_MASTER=true
+  - env:
+      CRYPTOGRAPHY_GIT_MASTER=true
+  - env:
+      OPENSSL=0.9.8
 
 before_install:
   - if [ -n "$CRYPTOGRAPHY_GIT_MASTER" ]; then pip install git+https://github.com/pyca/cryptography.git;fi
@@ -36,5 +56,28 @@ install:
   # travis.
   - pip install wheel
 
+  # Also install some tools for measuring code coverage and sending the results
+  # to coveralls.
+  - pip install coveralls coverage
+
 script:
-  - python setup.py bdist_wheel test
+  - |
+    if [[ "${OPENSSL}" == "0.9.8" ]]; then
+      sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ lucid main"
+      sudo apt-get -y update
+      sudo apt-get install -y --force-yes libssl-dev/lucid
+    fi
+  - |
+    pip install -e .
+  - |
+    coverage run --branch --source=OpenSSL setup.py bdist_wheel test
+  - |
+    coverage report -m
+  - |
+    python -c "import OpenSSL.SSL; print(OpenSSL.SSL.SSLeay_version(OpenSSL.SSL.SSLEAY_VERSION))"
+
+after_success:
+    - coveralls
+
+notifications:
+  email: false
