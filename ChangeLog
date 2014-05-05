@@ -12,6 +12,11 @@
 	* OpenSSL/SSL.py: ``Connection.send`` and ``Connection.sendall``
 	  now also accept the ``buffer`` type as data.
 
+2014-04-05  Stephen Holsapple <sholsapp@gmail.com>
+
+	* OpenSSL/crypto.py: Make ``load_pkcs12`` backwards compatible with
+	  pyOpenSSL 0.13 by making passphrase optional.
+
 2014-03-30  Fedor Brunner  <fedor.brunner@azet.sk>
 
 	* OpenSSL/SSL.py: Add ``get_finished``, ``get_peer_finished``
