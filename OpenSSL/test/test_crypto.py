@@ -1944,11 +1944,15 @@ class PKCS12Tests(TestCase):
         """
         Verify that the PKCS#12 container contains the correct client
         certificate and private key.
+
+        :param p12: The PKCS12 instance to verify.
+        :type p12: :py:class:`PKCS12`
         """
         cert_pem = dump_certificate(FILETYPE_PEM, p12.get_certificate())
         key_pem = dump_privatekey(FILETYPE_PEM, p12.get_privatekey())
-        self.assertEqual((client_cert_pem, client_key_pem, None),
-          (cert_pem, key_pem, p12.get_ca_certificates()))
+        self.assertEqual(
+            (client_cert_pem, client_key_pem, None),
+            (cert_pem, key_pem, p12.get_ca_certificates()))
 
 
     def test_load_pkcs12(self):
@@ -1966,9 +1970,9 @@ class PKCS12Tests(TestCase):
 
     def test_load_pkcs12_no_passphrase(self):
         """
-        A PKCS12 string generated using openssl command line can be loaded
-        with :py:obj:`load_pkcs12` without a passphrase and its components
-        extracted and examined.
+        A PKCS12 string generated using openssl command line can be loaded with
+        :py:obj:`load_pkcs12` without a passphrase and its components extracted
+        and examined.
         """
         pem = client_key_pem + client_cert_pem
         p12_str = _runopenssl(
@@ -1989,37 +1993,41 @@ class PKCS12Tests(TestCase):
     def test_load_pkcs12_null_passphrase_load_empty(self):
         """
         A PKCS12 string can be dumped with a null passphrase, loaded with an
-        empty passphrase with :py:obj:`load_pkcs12`, and it's components
+        empty passphrase with :py:obj:`load_pkcs12`, and its components
         extracted and examined.
         """
-        self.verify_pkcs12_container(self._dump_and_load(dump_passphrase=None, load_passphrase=b''))
+        self.verify_pkcs12_container(
+            self._dump_and_load(dump_passphrase=None, load_passphrase=b''))
 
 
     def test_load_pkcs12_null_passphrase_load_null(self):
         """
         A PKCS12 string can be dumped with a null passphrase, loaded with a
-        null passphrase with :py:obj:`load_pkcs12`, and it's components
+        null passphrase with :py:obj:`load_pkcs12`, and its components
         extracted and examined.
         """
-        self.verify_pkcs12_container(self._dump_and_load(dump_passphrase=None, load_passphrase=None))
+        self.verify_pkcs12_container(
+            self._dump_and_load(dump_passphrase=None, load_passphrase=None))
 
 
     def test_load_pkcs12_empty_passphrase_load_empty(self):
         """
         A PKCS12 string can be dumped with an empty passphrase, loaded with an
-        empty passphrase with :py:obj:`load_pkcs12`, and it's components
+        empty passphrase with :py:obj:`load_pkcs12`, and its components
         extracted and examined.
         """
-        self.verify_pkcs12_container(self._dump_and_load(dump_passphrase=b'', load_passphrase=b''))
+        self.verify_pkcs12_container(
+            self._dump_and_load(dump_passphrase=b'', load_passphrase=b''))
 
 
     def test_load_pkcs12_empty_passphrase_load_null(self):
         """
         A PKCS12 string can be dumped with an empty passphrase, loaded with a
-        null passphrase with :py:obj:`load_pkcs12`, and it's components
+        null passphrase with :py:obj:`load_pkcs12`, and its components
         extracted and examined.
         """
-        self.verify_pkcs12_container(self._dump_and_load(dump_passphrase=b'', load_passphrase=None))
+        self.verify_pkcs12_container(
+            self._dump_and_load(dump_passphrase=b'', load_passphrase=None))
 
 
     def test_load_pkcs12_garbage(self):
