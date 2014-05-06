@@ -1,7 +1,7 @@
 2014-05-05  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL/SSL.py: Fix a regression in which the first argument of
-	  the "verify" callback was incorrectly a ``Context`` instance
+	  the "verify" callback was incorrectly passed a ``Context`` instance
 	  instead of the ``Connection`` instance.
 	* OpenSSL/test/test_ssl.py: Add a test for the value passed as the
 	  first argument of the "verify" callback.
