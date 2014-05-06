@@ -280,6 +280,10 @@ class _LoopbackMixin:
 
 
     def _handshakeInMemory(self, client_conn, server_conn):
+        """
+        Perform the TLS handshake between two :py:class:`Connection` instances
+        connected to each other via memory BIOs.
+        """
         client_conn.set_connect_state()
         server_conn.set_accept_state()
 
