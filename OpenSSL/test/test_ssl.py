@@ -279,6 +279,23 @@ class _LoopbackMixin:
                         write.bio_write(dirty)
 
 
+    def _handshakeInMemory(self, client_conn, server_conn):
+        """
+        Perform the TLS handshake between two :py:class:`Connection` instances
+        connected to each other via memory BIOs.
+        """
+        client_conn.set_connect_state()
+        server_conn.set_accept_state()
+
+        for conn in [client_conn, server_conn]:
+            try:
+                conn.do_handshake()
+            except WantReadError:
+                pass
+
+        self._interactInMemory(client_conn, server_conn)
+
+
 
 class VersionTests(TestCase):
     """
@@ -981,6 +998,34 @@ class ContextTests(TestCase, _LoopbackMixin):
                     s.do_handshake()
                 except WantReadError:
                     pass
+
+
+    def test_set_verify_callback_connection_argument(self):
+        """
+        The first argument passed to the verify callback is the
+        :py:class:`Connection` instance for which verification is taking place.
+        """
+        serverContext = Context(TLSv1_METHOD)
+        serverContext.use_privatekey(
+            load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM))
+        serverContext.use_certificate(
+            load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
+        serverConnection = Connection(serverContext, None)
+
+        class VerifyCallback(object):
+            def callback(self, connection, *args):
+                self.connection = connection
+                return 1
+
+        verify = VerifyCallback()
+        clientContext = Context(TLSv1_METHOD)
+        clientContext.set_verify(VERIFY_PEER, verify.callback)
+        clientConnection = Connection(clientContext, None)
+        clientConnection.set_connect_state()
+
+        self._handshakeInMemory(clientConnection, serverConnection)
+
+        self.assertIdentical(verify.connection, clientConnection)
 
 
     def test_set_verify_callback_exception(self):
