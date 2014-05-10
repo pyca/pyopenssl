@@ -1439,14 +1439,19 @@ class NextProtoNegotiationTests(TestCase, _LoopbackMixin):
     Test for Next Protocol Negotiation in PyOpenSSL.
     """
     def test_npn_success(self):
-        advertise_args =[]
+        """
+        Tests that clients and servers that agree on the negotiated next
+        protocol can correct establish a connection, and that the agreed
+        protocol is reported by the connections.
+        """
+        advertise_args = []
         select_args = []
         def advertise(conn):
             advertise_args.append((conn,))
-            return b('\x08http/1.1\x06spdy/2')
+            return [b'http/1.1', b'spdy/2']
         def select(conn, options):
             select_args.append((conn, options))
-            return b('spdy/2')
+            return b'spdy/2'
 
         server_context = Context(TLSv1_METHOD)
         server_context.set_npn_advertise_callback(advertise)
@@ -1470,21 +1475,25 @@ class NextProtoNegotiationTests(TestCase, _LoopbackMixin):
         self._interactInMemory(server, client)
 
         self.assertEqual([(server,)], advertise_args)
-        self.assertEqual([(client, b('\x08http/1.1\x06spdy/2'))], select_args)
+        self.assertEqual([(client, [b'http/1.1', b'spdy/2'])], select_args)
 
-        self.assertEqual(server.get_next_proto_negotiated(), b('spdy/2'))
-        self.assertEqual(client.get_next_proto_negotiated(), b('spdy/2'))
+        self.assertEqual(server.get_next_proto_negotiated(), b'spdy/2')
+        self.assertEqual(client.get_next_proto_negotiated(), b'spdy/2')
 
 
     def test_npn_client_fail(self):
-        advertise_args =[]
+        """
+        Tests that when clients and servers cannot agree on what protocol to
+        use next that the TLS connection does not get established.
+        """
+        advertise_args = []
         select_args = []
         def advertise(conn):
             advertise_args.append((conn,))
-            return b('\x08http/1.1\x06spdy/2')
+            return [b'http/1.1', b'spdy/2']
         def select(conn, options):
             select_args.append((conn, options))
-            return b('')
+            return b''
 
         server_context = Context(TLSv1_METHOD)
         server_context.set_npn_advertise_callback(advertise)
@@ -1509,7 +1518,7 @@ class NextProtoNegotiationTests(TestCase, _LoopbackMixin):
         self.assertRaises(Error, self._interactInMemory, server, client)
 
         self.assertEqual([(server,)], advertise_args)
-        self.assertEqual([(client, b('\x08http/1.1\x06spdy/2'))], select_args)
+        self.assertEqual([(client, [b'http/1.1', b'spdy/2'])], select_args)
 
 
 
