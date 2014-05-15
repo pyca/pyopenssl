@@ -835,7 +835,9 @@ Connection objects have the following methods:
 
 .. py:method:: Connection.get_next_proto_negotiated():
 
-    Get the protocol that was negotiated by Next Protocol Negotiation.
+    Get the protocol that was negotiated by Next Protocol Negotiation. Returns
+    a bytestring of the protocol name. If no protocol has been negotiated yet,
+    returns an empty string.
 
     .. versionadded:: 0.15
 

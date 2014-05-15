@@ -6,7 +6,7 @@ from errno import errorcode
 
 from six import text_type as _text_type
 from six import integer_types as integer_types
-from six import int2byte, byte2int
+from six import int2byte, indexbytes
 
 from OpenSSL._util import (
     ffi as _ffi,
@@ -872,10 +872,7 @@ class Context(object):
             instr = _ffi.buffer(in_, inlen)
             protolist = []
             while instr:
-                # This slightly insane syntax is to make sure we get a
-                # bytestring: on Python 3, instr[0] would return an int and
-                # this call would fail.
-                l = byte2int(instr[0:1])
+                l = indexbytes(instr, 0)
                 proto = instr[1:l+1]
                 protolist.append(proto)
                 instr = instr[l+1:]
@@ -1658,10 +1655,7 @@ class Connection(object):
 
         _lib.SSL_get0_next_proto_negotiated(self._ssl, data, data_len)
 
-        if not data_len[0]:
-            return b""
-        else:
-            return _ffi.string(data[0])
+        return _ffi.buffer(data[0], data_len[0])[:]
 
 
 ConnectionType = Connection
