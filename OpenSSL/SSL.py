@@ -869,7 +869,7 @@ class Context(object):
 
             # The string passed to us is actually made up of multiple
             # length-prefixed bytestrings. We need to split that into a list.
-            instr = _ffi.buffer(in_, inlen)
+            instr = _ffi.buffer(in_, inlen)[:]
             protolist = []
             while instr:
                 l = indexbytes(instr, 0)
