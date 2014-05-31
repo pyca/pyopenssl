@@ -456,9 +456,6 @@ class X509Name(object):
         if isinstance(value, _text_type):
             value = value.encode('utf-8')
 
-        # Make it so OpenSSL generates utf-8 strings.
-        _lib.ASN1_STRING_set_default_mask_asc(b'utf8only')
-
         add_result = _lib.X509_NAME_add_entry_by_NID(
             self._name, nid, _lib.MBSTRING_UTF8, value, -1, -1, 0)
         if not add_result:
@@ -2490,3 +2487,9 @@ _lib.OpenSSL_add_all_algorithms()
 # This is similar but exercised mainly by exception_from_error_queue.  It calls
 # both ERR_load_crypto_strings() and ERR_load_SSL_strings().
 _lib.SSL_load_error_strings()
+
+
+
+# Set the default string mask to match OpenSSL upstream (since 2005) and
+# RFC5280 recommendations.
+_lib.ASN1_STRING_set_default_mask_asc(b'utf8only')
