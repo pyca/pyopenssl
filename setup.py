@@ -11,7 +11,7 @@ Installation script for the OpenSSL module
 from setuptools import setup
 
 # XXX Deduplicate this
-__version__ = '0.14'
+__version__ = '0.15dev'
 
 setup(name='pyOpenSSL', version=__version__,
       packages = ['OpenSSL'],
