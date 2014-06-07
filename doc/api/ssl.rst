@@ -498,6 +498,26 @@ Context objects have the following methods:
 
     .. versionadded:: 0.15
 
+.. py:method:: Context.set_alpn_protos(protos)
+
+    Specify the protocols that the client is prepared to speak after the TLS
+    connection has been negotiated, using Application Layer Protocol
+    Negotiation.
+
+    *protos* should be a list of protocols that the client is offering, each
+    as a bytestring. For example, ``[b'http/1.1', b'spdy/2']``.
+
+
+.. py:method:: Context.set_alpn_select_callback(callback)
+
+    Specify a callback function that will be called on the server when a client
+    offers protocols using Application Layer Protocol Negotiation.
+
+    *callback* should be the callback function. It will be invoked with two
+    arguments: the :py:class:`Connection`, and a list of offered protocols as
+    bytestrings, e.g. ``[b'http/1.1', b'spdy/2']``. It should return one of
+    these bytestrings, the chosen protocol.
+
 
 .. _openssl-session:
 
@@ -848,6 +868,22 @@ Connection objects have the following methods:
     returns an empty string.
 
     .. versionadded:: 0.15
+
+.. py:method:: Connection.set_alpn_protos(protos)
+
+    Specify the protocols that the client is prepared to speak after the TLS
+    connection has been negotiated, using Application Layer Protocol
+    Negotiation.
+
+    *protos* should be a list of protocols that the client is offering, each
+    as a bytestring. For example, ``[b'http/1.1', b'spdy/2']``.
+
+
+.. py:method:: Connection.get_alpn_proto_negotiated()
+
+    Get the protocol that was negotiated by Application Layer Protocol
+    Negotiation. Returns a bytestring of the protocol name. If no protocol has
+    been negotiated yet, returns an empty string.
 
 
 .. Rubric:: Footnotes

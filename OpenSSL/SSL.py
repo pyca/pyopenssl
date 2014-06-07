@@ -409,6 +409,7 @@ class Context(object):
         self._npn_advertise_callback = None
         self._npn_select_helper = None
         self._npn_select_callback = None
+        self._alpn_select_callback = None
 
         # SSL_CTX_set_app_data(self->ctx, self);
         # SSL_CTX_set_mode(self->ctx, SSL_MODE_ENABLE_PARTIAL_WRITE |
@@ -923,7 +924,6 @@ class Context(object):
         _lib.SSL_CTX_set_tlsext_servername_callback(
             self._context, self._tlsext_servername_callback)
 
-
     def set_npn_advertise_callback(self, callback):
         """
         Specify a callback function that will be called when offering `Next
@@ -956,6 +956,73 @@ class Context(object):
         _lib.SSL_CTX_set_next_proto_select_cb(
             self._context, self._npn_select_callback, _ffi.NULL)
 
+    def set_alpn_protos(self, protos):
+        """
+        Specify the list of protocols that will get offered to the server for
+        ALPN negotiation.
+
+        :param protos: A list of the protocols to be offered to the server.
+            This list should be a Python list of bytestrings representing the
+            protocols to offer, e.g. ``[b'http/1.1', b'spdy/2']``.
+        """
+        # Take the list of protocols and join them together, prefixing them
+        # with their lengths.
+        protostr = b''.join(
+            chain.from_iterable((int2byte(len(p)), p) for p in protos)
+        )
+
+        # Build a C string from the list. We don't need to save this off
+        # because OpenSSL immediately copies the data out.
+        input_str = _ffi.new("unsigned char[]", protostr)
+        input_str_len = _ffi.new("unsigned", len(protostr))
+        _lib.SSL_CTX_set_alpn_protos(self._context, input_str)
+        return
+
+    def set_alpn_select_callback(self, callback):
+        """
+        Specify a callback that will be called when the client offers ALPN
+        protocols.
+
+        :param callback: The callback function.  It will be invoked with two
+            arguments: the Connection, and a list of offered protocols as
+            bytestrings, e.g ``[b'http/1.1', b'spdy/2']``.  It should return
+            one of those bytestrings, then chosen protocol.
+        """
+        @wraps(callback)
+        def wrapper(ssl, out, outlen, in_, inlen, arg):
+            conn = Connection._reverse_mapping[ssl]
+
+            # The string passed to us is made up of multiple length-prefixed
+            # bytestrings. We need to split that into a list.
+            instr = _ffi.buffer(in_, inlen)[:]
+            protolist = []
+            while instr:
+                l = indexbytes(instr, 0)
+                proto = instr[1:l+1]
+                protolist.append(proto)
+                instr = instr[l+1:]
+
+            # Call the callback
+            outstr = callback(conn, protolist)
+
+            # Save our callback arguments on the connection object to make sure
+            # that they don't get freed before OpenSSL can use them. Then,
+            # return them in the appropriate output parameters.
+            conn._alpn_select_callback_args = [
+                _ffi.new("unsigned char *", len(outstr)),
+                _ffi.new("unsigned char[]", outstr),
+            ]
+            outlen[0] = conn._alpn_select_callback_args[0][0]
+            out[0] = conn._alpn_select_callback_args[1]
+            return 0
+
+        self._alpn_select_callback = _ffi.callback(
+            "int (*)(SSL *, unsigned char **, unsigned char *, "
+                    "const unsigned char *, unsigned int, void *",
+            wrapper)
+        _lib.SSL_CTX_set_alpn_select_cb(
+            self._context, self._alpn_select_callback, _ffi.NULL)
+
 ContextType = Context
 
 
@@ -986,6 +1053,12 @@ class Connection(object):
         # get freed before OpenSSL uses them.
         self._npn_advertise_callback_args = None
         self._npn_select_callback_args = None
+
+        # References to strings used for Application Layer Protocol
+        # Negotiation. These strings get copied at some point but it's well
+        # after the callback returns, so we have to hang them somewhere to
+        # avoid them getting freed.
+        self._alpn_select_callback_args = None
 
         self._reverse_mapping[self._ssl] = self
 
@@ -1756,6 +1829,41 @@ class Connection(object):
         _lib.SSL_get0_next_proto_negotiated(self._ssl, data, data_len)
 
         return _ffi.buffer(data[0], data_len[0])[:]
+
+    def set_alpn_protos(self, protos):
+        """
+        Specify the list of protocols that will get offered to the server for
+        ALPN negotiation.
+
+        :param protos: A list of the protocols to be offered to the server.
+            This list should be a Python list of bytestrings representing the
+            protocols to offer, e.g. ``[b'http/1.1', b'spdy/2']``.
+        """
+        # Take the list of protocols and join them together, prefixing them
+        # with their lengths.
+        protostr = b''.join(
+            chain.from_iterable((int2byte(len(p)), p) for p in protos)
+        )
+
+        # Build a C string from the list. We don't need to save this off
+        # because OpenSSL immediately copies the data out.
+        input_str = _ffi.new("unsigned char[]", protostr)
+        input_str_len = _ffi.new("unsigned", len(protostr))
+        _lib.SSL_set_alpn_protos(self._ssl, input_str)
+        return
+
+
+    def get_alpn_proto_negotiated(self):
+        """
+        Get the protocol that was negotiated by ALPN.
+        """
+        data = _ffi.new("unsigned char **")
+        data_len = _ffi.new("unsigned int *")
+
+        _lib.SSL_get0_alpn_selected(self._ssl, data, data_len)
+
+        return _ffi.buffer(data[0], data_len[0])[:]
+
 
 
 ConnectionType = Connection

@@ -1782,6 +1782,123 @@ class NextProtoNegotiationTests(TestCase, _LoopbackMixin):
 
 
 
+class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
+    """
+    Tests for ALPN in PyOpenSSL.
+    """
+    def test_alpn_success(self):
+        """
+        Tests that clients and servers that agree on the negotiated ALPN
+        protocol can correct establish a connection, and that the agreed
+        protocol is reported by the connections.
+        """
+        select_args = []
+        def select(conn, options):
+            select_args.append((conn, options))
+            return b'spdy/2'
+
+        client_context = Context(TLSv1_METHOD)
+        client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
+
+        server_context = Context(TLSv1_METHOD)
+        server_context.set_alpn_select_callback(select)
+
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
+
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
+
+        client = Connection(client_context, None)
+        client.set_connect_state()
+
+        self._interactInMemory(server, client)
+
+        self.assertEqual([(client, [b'http/1.1', b'spdy/2'])], select_args)
+
+        self.assertEqual(server.get_alpn_proto_negotiated(), b'spdy/2')
+        self.assertEqual(client.get_alpn_proto_negotiated(), b'spdy/2')
+
+
+    def test_alpn_set_on_connection(self):
+        """
+        The same as test_alpn_success, but setting the ALPN protocols on the
+        connection rather than the context.
+        """
+        select_args = []
+        def select(conn, options):
+            select_args.append((conn, options))
+            return b'spdy/2'
+
+        # Setup the client context but don't set any ALPN protocols.
+        client_context = Context(TLSv1_METHOD)
+
+        server_context = Context(TLSv1_METHOD)
+        server_context.set_alpn_select_callback(select)
+
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
+
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
+
+        # Set the ALPN protocols on the client connection.
+        client = Connection(client_context, None)
+        client.set_alpn_protos([b'http/1.1', b'spdy/2'])
+        client.set_connect_state()
+
+        self._interactInMemory(server, client)
+
+        self.assertEqual([(client, [b'http/1.1', b'spdy/2'])], select_args)
+
+        self.assertEqual(server.get_alpn_proto_negotiated(), b'spdy/2')
+        self.assertEqual(client.get_alpn_proto_negotiated(), b'spdy/2')
+
+
+    def test_alpn_server_fail(self):
+        """
+        Tests that when clients and servers cannot agree on what protocol to
+        use next that the TLS connection does not get established.
+        """
+        select_args = []
+        def select(conn, options):
+            select_args.append((conn, options))
+            return b''
+
+        client_context = Context(TLSv1_METHOD)
+        client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
+
+        server_context = Context(TLSv1_METHOD)
+        server_context.set_alpn_select_callback(select)
+
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
+
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
+
+        client = Connection(client_context, None)
+        client.set_connect_state()
+
+        # If the client doesn't return anything, the connection will fail.
+        self.assertRaises(Error, self._interactInMemory, server, client)
+
+        self.assertEqual([(client, [b'http/1.1', b'spdy/2'])], select_args)
+
+
+
 class SessionTests(TestCase):
     """
     Unit tests for :py:obj:`OpenSSL.SSL.Session`.
