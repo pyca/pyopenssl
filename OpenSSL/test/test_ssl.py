@@ -2217,6 +2217,98 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
 
 
 
+class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
+    """
+    Tests for :py:obj:`Connection.recv_into`
+    """
+    def test_recv_into_no_length(self):
+        """
+        Test that :py:obj:`Connection.recv_into` can be safely passed an object
+        using the buffer protocol.
+        """
+        server, client = self._loopback()
+        server.send(b('xy'))
+        buffer = bytearray(5)
+
+        self.assertEquals(client.recv_into(buffer), 2)
+        self.assertEquals(buffer, bytearray(b('xy\x00\x00\x00')))
+
+
+    def test_recv_into_respects_length(self):
+        """
+        Test that :py:obj:`Connection.recv_into` respects the nbytes
+        parameter and doesn't copy more than that number of bytes in.
+        """
+        server, client = self._loopback()
+        server.send(b('abcdefghij'))
+        buffer = bytearray(10)
+
+        self.assertEquals(client.recv_into(buffer, 5), 5)
+        self.assertEquals(buffer, bytearray(b('abcde\x00\x00\x00\x00\x00')))
+
+
+    def test_recv_into_doesnt_overfill(self):
+        """
+        Test that :py:obj:`Connection.recv_into` doesn't overfill an object
+        implementing the buffer protocol.
+        """
+        server, client = self._loopback()
+        server.send(b('abcdefghij'))
+        buffer = bytearray(5)
+
+        self.assertEquals(client.recv_into(buffer), 5)
+        self.assertEquals(buffer, bytearray(b('abcde')))
+
+
+    try:
+        memoryview
+    except NameError:
+        "cannot test recv_into memoryview without memoryview"
+    else:
+        def test_recv_into_memoryview_no_length(self):
+            """
+            Test that :py:obj:`Connection.recv_into` can be safely passed a
+            memoryview.
+            """
+            server, client = self._loopback()
+            server.send(b('xy'))
+            buffer = bytearray(5)
+            mv = memoryview(buffer)
+
+            self.assertEquals(client.recv_into(mv), 2)
+            self.assertEquals(buffer, bytearray(b('xy\x00\x00\x00')))
+
+
+        def test_recv_into_memoryview_respects_length(self):
+            """
+            Test that :py:obj:`Connection.recv_into` respects the nbytes
+            parameter and doesn't copy more than that number of bytes in.
+            """
+            server, client = self._loopback()
+            server.send(b('abcdefghij'))
+            buffer = bytearray(10)
+            mv = memoryview(buffer)
+
+            self.assertEquals(client.recv_into(mv, 5), 5)
+            self.assertEquals(buffer,
+                              bytearray(b('abcde\x00\x00\x00\x00\x00')))
+
+
+        def test_recv_into_memoryview_doesnt_overfill(self):
+            """
+            Test that :py:obj:`Connection.recv_into` doesn't overfill a
+            memoryview.
+            """
+            server, client = self._loopback()
+            server.send(b('abcdefghij'))
+            buffer = bytearray(5)
+            mv = memoryview(buffer)
+
+            self.assertEquals(client.recv_into(mv), 5)
+            self.assertEquals(buffer, bytearray(b('abcde')))
+
+
+
 class ConnectionSendallTests(TestCase, _LoopbackMixin):
     """
     Tests for :py:obj:`Connection.sendall`.

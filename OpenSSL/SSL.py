@@ -1027,6 +1027,45 @@ class Connection(object):
     read = recv
 
 
+    def recv_into(self, buffer, nbytes=None, flags=None):
+        """
+        Receive data on the connection and store the data into a buffer rather
+        than creating a new string.
+
+        :param buffer: The buffer to copy into.
+        :param nbytes: (optional) The maximum number of bytes to read into the
+            buffer. If not present, defaults to the size of the buffer. If
+            larger than the size of the buffer, is reduced to the size of the
+            buffer.
+        :param flags: (optional) Included for compatibility with the socket
+            API, the value is ignored.
+        :return: The number of bytes read into the buffer.
+        """
+        if nbytes is None:
+            nbytes = len(buffer)
+        else:
+            nbytes = min(nbytes, len(buffer))
+
+        # We need to create a temporary buffer. This is annoying, it would be
+        # better if we could pass memoryviews straight into the SSL_read call,
+        # but right now we can't. Revisit this if CFFI gets that ability.
+        buf = _ffi.new("char[]", nbytes)
+        result = _lib.SSL_read(self._ssl, buf, nbytes)
+        self._raise_ssl_error(self._ssl, result)
+
+        # This strange line is all to avoid a memory copy. The buffer protocol
+        # should allow us to assign a CFFI buffer to the LHS of this line, but
+        # on CPython 3.3+ that segfaults. As a workaround, we can temporarily
+        # wrap it in a memoryview, except on Python 2.6 which doesn't have a
+        # memoryview type.
+        try:
+            buffer[:result] = memoryview(_ffi.buffer(buf, result))
+        except NameError:
+            buffer[:result] = _ffi.buffer(buf, result)
+
+        return result
+
+
     def _handle_bio_errors(self, bio, result):
         if _lib.BIO_should_retry(bio):
             if _lib.BIO_should_read(bio):
