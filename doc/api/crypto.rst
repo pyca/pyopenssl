@@ -7,19 +7,9 @@
    :synopsis: Generic cryptographic module
 
 
-.. py:data:: X509Type
-
-    See :py:class:`X509`.
-
-
 .. py:class:: X509()
 
     A class representing X.509 certificates.
-
-
-.. py:data:: X509NameType
-
-    See :py:class:`X509Name`.
 
 
 .. py:class:: X509Name(x509name)
@@ -30,40 +20,9 @@
     instance of :py:class:`X509Name`.
 
 
-.. py:data:: X509ReqType
-
-    See :py:class:`X509Req`.
-
-
 .. py:class:: X509Req()
 
     A class representing X.509 certificate requests.
-
-
-.. py:data:: PKeyType
-
-    See :py:class:`PKey`.
-
-
-.. py:class:: PKey()
-
-    A class representing DSA or RSA keys.
-
-
-.. py:data:: PKCS7Type
-
-    A Python type object representing the PKCS7 object type.
-
-
-.. py:data:: PKCS12Type
-
-    A Python type object representing the PKCS12 object type.
-
-
-.. py:data:: X509ExtensionType
-
-    See :py:class:`X509Extension`.
-
 
 .. py:class:: X509Extension(typename, critical, value[, subject][, issuer])
 
@@ -71,11 +30,6 @@
     http://openssl.org/docs/apps/x509v3_config.html#STANDARD_EXTENSIONS for
     *typename* strings and their options.  Optional parameters *subject* and
     *issuer* must be X509 objects.
-
-
-.. py:data:: NetscapeSPKIType
-
-    See :py:class:`NetscapeSPKI`.
 
 
 .. py:class:: NetscapeSPKI([enc])
@@ -771,3 +725,37 @@ Revoked objects have the following methods:
 .. py:method:: Revoked.set_serial(serial)
 
     *serial* is a string containing a hex number of the serial of the revoked certificate.
+
+Backwards compatible type names
+-------------------------------
+
+When PyOpenSSL was originally written, the most current version of
+Python was 2.1. It made a distinction between classes and types. None
+of the versions of Python currently supported by PyOpenSSL still
+enforce that distinction: the type of an instance of an
+:py:class:`X509` object is now simply :py:class:`X509`. Originally,
+the type would have been :py:class:`X509Type`. These days,
+:py:class:`X509Type` and :py:class:`X509` are literally the same
+object. PyOpenSSL maintains these old names for backwards
+compatibility.
+
+Here's a table of these backwards-compatible names:
+
+=========================  =============================
+Type name                  Backwards-compatible name
+=========================  =============================
+:py:class:`X509`           :py:class:`X509Type`
+:py:class:`X509Name`       :py:class:`X509NameType`
+:py:class:`X509Req`        :py:class:`X509ReqType`
+:py:class:`X509Store`      :py:class:`X509StoreType`
+:py:class:`X509Extension`  :py:class:`X509ExtensionType`
+:py:class:`PKey`           :py:class:`PKeyType`
+:py:class:`PKCS7`          :py:class:`PKCS7Type`
+:py:class:`PKCS12`         :py:class:`PKCS12Type`
+:py:class:`NetscapeSPKI`   :py:class:`NetscapeSPKIType`
+:py:class:`CRL`            :py:class:`CRLType`
+=========================  =============================
+
+Soem objects, such as py:class`Revoked`, don't have ``Type``
+equivalents, because they were added after the restriction had been
+lifted.

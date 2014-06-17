@@ -1343,12 +1343,6 @@ X509Type = X509
 class X509Store(object):
     """
     An X509 certificate store.
-
-    .. note:: The type of :py:class:`X509Store` objects was formerly
-              :py:class:`X509StoreType`. This name is maintained for
-              backwards compatibility, although you can just use
-              :py:class:`X509Store` now.
-
     """
     def __init__(self):
         store = _lib.X509_STORE_new()
