@@ -476,30 +476,8 @@ X509Store objects
 PKey objects
 ------------
 
-The PKey object has the following methods:
-
-.. py:method:: PKey.bits()
-
-    Return the number of bits of the key.
-
-
-.. py:method:: PKey.generate_key(type, bits)
-
-    Generate a public/private key pair of the type *type* (one of
-    :py:const:`TYPE_RSA` and :py:const:`TYPE_DSA`) with the size *bits*.
-
-
-.. py:method:: PKey.type()
-
-    Return the type of the key.
-
-
-.. py:method:: PKey.check()
-
-    Check the consistency of this key, returning True if it is consistent and
-    raising an exception otherwise.  This is only valid for RSA keys.  See the
-    OpenSSL RSA_check_key man page for further limitations.
-
+.. autoclass:: PKey
+               :members:
 
 .. _openssl-pkcs7:
 

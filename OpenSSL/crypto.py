@@ -152,6 +152,9 @@ def _get_asn1_time(timestamp):
 
 
 class PKey(object):
+    """
+    A class representing an DSA or RSA public key or key pair.
+    """
     _only_public = False
     _initialized = True
 
@@ -163,12 +166,19 @@ class PKey(object):
 
     def generate_key(self, type, bits):
         """
-        Generate a key of a given type, with a given number of a bits
+        Generate a key pair of the given type, with the given number of a bits.
 
-        :param type: The key type (TYPE_RSA or TYPE_DSA)
-        :param bits: The number of bits
+        This generates a key "into" the this object.
 
-        :return: None
+        :param type: The key type.
+        :type type: :py:data:`TYPE_RSA` or :py:data:`TYPE_DSA`
+        :param bits: The number of bits.
+        :type bits: :py:data:`int` ``>= 0``
+        :raises TypeError: If :py:data:`type` or :py:data:`bits` isn't
+            of the appropriate type.
+        :raises ValueError: If the number of bits isn't an integer of
+            the appropriate size.
+        :return: :py:data:`None`
         """
         if not isinstance(type, int):
             raise TypeError("type must be an integer")
@@ -224,6 +234,8 @@ class PKey(object):
     def check(self):
         """
         Check the consistency of an RSA private key.
+
+        This is the Python equivalent of OpenSSL's ``RSA_check_key``.
 
         :return: True if key is consistent.
         :raise Error: if the key is inconsistent.
@@ -1353,7 +1365,7 @@ class X509Store(object):
         """
         Adds the certificate :py:data:`cert` to this store.
 
-        This is the Python equivalent of OpenSSL's X509_STORE_add_cert.
+        This is the Python equivalent of OpenSSL's ``X509_STORE_add_cert``.
 
         :param X509 cert: The certificate to add to this store.
         :raises TypeError: If the certificate is not an :py:class:`X509`.
