@@ -11,15 +11,6 @@
 
     A class representing X.509 certificates.
 
-
-.. py:class:: X509Name(x509name)
-
-    A class representing X.509 Distinguished Names.
-
-    This constructor creates a copy of *x509name* which should be an
-    instance of :py:class:`X509Name`.
-
-
 .. py:class:: X509Req()
 
     A class representing X.509 certificate requests.
@@ -322,7 +313,6 @@ X509 objects have the following methods:
     by OpenSSL (by EVP_get_digestbyname, specifically).  For example,
     :py:const:`"md5"` or :py:const:`"sha1"`.
 
-
 .. py:method:: X509.add_extensions(extensions)
 
     Add the extensions in the sequence *extensions* to the certificate.
@@ -351,66 +341,10 @@ X509 objects have the following methods:
 X509Name objects
 ----------------
 
-X509Name objects have the following methods:
-
-.. py:method:: X509Name.hash()
-
-    Return an integer giving the first four bytes of the MD5 digest of the DER
-    representation of the name.
-
-
-.. py:method:: X509Name.der()
-
-    Return a string giving the DER representation of the name.
-
-
-.. py:method:: X509Name.get_components()
-
-    Return a list of two-tuples of strings giving the components of the name.
-
-
-X509Name objects have the following members:
-
-.. py:attribute:: X509Name.countryName
-
-    The country of the entity. :py:attr:`C` may be used as an alias for
-    :py:attr:`countryName`.
-
-
-.. py:attribute:: X509Name.stateOrProvinceName
-
-    The state or province of the entity. :py:attr:`ST` may be used as an alias for
-    :py:attr:`stateOrProvinceName`.
-
-
-.. py:attribute:: X509Name.localityName
-
-    The locality of the entity. :py:attr:`L` may be used as an alias for
-    :py:attr:`localityName`.
-
-
-.. py:attribute:: X509Name.organizationName
-
-    The organization name of the entity. :py:attr:`O` may be used as an alias for
-    :py:attr:`organizationName`.
-
-
-.. py:attribute:: X509Name.organizationalUnitName
-
-    The organizational unit of the entity. :py:attr:`OU` may be used as an alias for
-    :py:attr:`organizationalUnitName`.
-
-
-.. py:attribute:: X509Name.commonName
-
-    The common name of the entity. :py:attr:`CN` may be used as an alias for
-    :py:attr:`commonName`.
-
-
-.. py:attribute:: X509Name.emailAddress
-
-    The e-mail address of the entity.
-
+.. autoclass:: X509Name
+               :members:
+               :special-members:
+               :exclude-members: __repr__, __getattr__, __weakref__
 
 .. _openssl-x509req:
 

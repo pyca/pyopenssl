@@ -427,11 +427,35 @@ def get_elliptic_curve(name):
 
 
 class X509Name(object):
+    """
+    An X.509 Distinguished Name.
+
+    :ivar countryName: The country of the entity.
+    :ivar C: Alias for  :py:attr:`countryName`.
+
+    :ivar stateOrProvinceName: The state or province of the entity.
+    :ivar ST: Alias for :py:attr:`stateOrProvinceName`.
+
+    :ivar localityName: The locality of the entity.
+    :ivar L: Alias for :py:attr:`localityName`.
+
+    :ivar organizationName: The organization name of the entity.
+    :ivar O: Alias for :py:attr:`organizationName`.
+
+    :ivar organizationalUnitName: The organizational unit of the entity.
+    :ivar OU: Alias for :py:attr:`organizationalUnitName`
+
+    :ivar commonName: The common name of the entity.
+    :ivar CN: Alias for :py:attr:`commonName`.
+
+    :ivar emailAddress: The e-mail address of the entity.
+    """
     def __init__(self, name):
         """
         Create a new X509Name, copying the given X509Name instance.
 
-        :param name: An X509Name object to copy
+        :param name: The name to copy.
+        :type name: :py:class:`X509Name`
         """
         name = _lib.X509_NAME_dup(name._name)
         self._name = _ffi.gc(name, _lib.X509_NAME_free)
@@ -550,19 +574,23 @@ class X509Name(object):
 
     def hash(self):
         """
-        Return the hash value of this name
+        Return an integer representation of the first four bytes of the
+        MD5 digest of the DER representation of the name.
 
-        :return: None
+        This is the Python equivalent of OpenSSL's ``X509_NAME_hash``.
+
+        :return: The (integer) hash of this name.
+        :rtype: :py:class:`int`
         """
         return _lib.X509_NAME_hash(self._name)
 
 
     def der(self):
         """
-        Return the DER encoding of this name
+        Return the DER encoding of this name.
 
-        :return: A :py:class:`bytes` instance giving the DER encoded form of
-            this name.
+        :return: The DER encoded form of this name.
+        :rtype: :py:class:`bytes`
         """
         result_buffer = _ffi.new('unsigned char**')
         encode_result = _lib.i2d_X509_NAME(self._name, result_buffer)
@@ -577,9 +605,10 @@ class X509Name(object):
 
     def get_components(self):
         """
-        Returns the split-up components of this name.
+        Returns the components of this name, as a sequence of 2-tuples.
 
-        :return: List of tuples (name, value).
+        :return: The components of this name.
+        :rtype: :py:class:`list` of ``name, value`` tuples.
         """
         result = []
         for i in range(_lib.X509_NAME_entry_count(self._name)):
