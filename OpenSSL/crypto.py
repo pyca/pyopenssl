@@ -1334,17 +1334,38 @@ class X509(object):
         ext._extension = _ffi.gc(extension, _lib.X509_EXTENSION_free)
         return ext
 
+
+
 X509Type = X509
 
 
 
 class X509Store(object):
+    """
+    An X509 certificate store.
+
+    .. note:: The type of :py:class:`X509Store` objects was formerly
+              :py:class:`X509StoreType`. This name is maintained for
+              backwards compatibility, although you can just use
+              :py:class:`X509Store` now.
+
+    """
     def __init__(self):
         store = _lib.X509_STORE_new()
         self._store = _ffi.gc(store, _lib.X509_STORE_free)
 
 
     def add_cert(self, cert):
+        """
+        Adds the certificate :py:data:`cert` to this store.
+
+        This is the Python equivalent of OpenSSL's X509_STORE_add_cert.
+
+        :param X509 cert: The certificate to add to this store.
+        :raises TypeError: If the certificate is not an :py:class:`X509`.
+        :raises Error: If OpenSSL was unhappy with your certificate.
+        :return: py:data:`None` if the certificate was added successfully.
+        """
         if not isinstance(cert, X509):
             raise TypeError()
 
