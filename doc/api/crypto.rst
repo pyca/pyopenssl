@@ -40,11 +40,6 @@
     A class representing X.509 certificate requests.
 
 
-.. py:data:: X509StoreType
-
-    A Python type object representing the X509Store object type.
-
-
 .. py:data:: PKeyType
 
     See :py:class:`PKey`.
@@ -519,12 +514,8 @@ X509Req objects have the following methods:
 X509Store objects
 -----------------
 
-The X509Store object has currently just one method:
-
-.. py:method:: X509Store.add_cert(cert)
-
-    Add the certificate *cert* to the certificate store.
-
+.. autoclass:: X509Store
+               :members:
 
 .. _openssl-pkey:
 
