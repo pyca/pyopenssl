@@ -15,14 +15,6 @@
 
     A class representing X.509 certificate requests.
 
-.. py:class:: X509Extension(typename, critical, value[, subject][, issuer])
-
-    A class representing an X.509 v3 certificate extensions.  See
-    http://openssl.org/docs/apps/x509v3_config.html#STANDARD_EXTENSIONS for
-    *typename* strings and their options.  Optional parameters *subject* and
-    *issuer* must be X509 objects.
-
-
 .. py:class:: NetscapeSPKI([enc])
 
     A class representing Netscape SPKI objects.
@@ -509,30 +501,10 @@ PKCS12 objects have the following methods:
 X509Extension objects
 ---------------------
 
-X509Extension objects have several methods:
-
-.. py:method:: X509Extension.get_critical()
-
-    Return the critical field of the extension object.
-
-
-.. py:method:: X509Extension.get_short_name()
-
-    Retrieve the short descriptive name for this extension.
-
-    The result is a byte string like :py:const:`basicConstraints`.
-
-    .. versionadded:: 0.12
-
-
-.. py:method:: X509Extension.get_data()
-
-    Retrieve the data for this extension.
-
-    The result is the ASN.1 encoded form of the extension data as a byte string.
-
-    .. versionadded:: 0.12
-
+.. autoclass:: X509Extension
+               :members:
+               :special-members:
+               :exclude-members: __weakref__
 
 .. _openssl-netscape-spki:
 

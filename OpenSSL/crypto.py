@@ -627,27 +627,35 @@ class X509Name(object):
                         _lib.ASN1_STRING_length(fval))))
 
         return result
+
+
+
 X509NameType = X509Name
 
 
+
 class X509Extension(object):
+    """
+    An X.509 v3 certificate extension.
+    """
     def __init__(self, type_name, critical, value, subject=None, issuer=None):
         """
-        :param typename: The name of the extension to create.
+        Initializes an X509 extension.
+
+        :param typename: The name of the type of extension to create. See
+            http://openssl.org/docs/apps/x509v3_config.html#STANDARD_EXTENSIONS
         :type typename: :py:data:`str`
 
-        :param critical: A flag indicating whether this is a critical extension.
+        :param bool critical: A flag indicating whether this is a critical extension.
 
         :param value: The value of the extension.
         :type value: :py:data:`str`
 
-        :param subject: Optional X509 cert to use as subject.
+        :param subject: Optional X509 certificate to use as subject.
         :type subject: :py:class:`X509`
 
-        :param issuer: Optional X509 cert to use as issuer.
+        :param issuer: Optional X509 certificate to use as issuer.
         :type issuer: :py:class:`X509`
-
-        :return: The X509Extension object
         """
         ctx = _ffi.new("X509V3_CTX*")
 
@@ -752,7 +760,7 @@ class X509Extension(object):
 
     def get_critical(self):
         """
-        Returns the critical field of the X509Extension
+        Returns the critical field of this X.509 extension.
 
         :return: The critical field.
         """
@@ -761,9 +769,14 @@ class X509Extension(object):
 
     def get_short_name(self):
         """
-        Returns the short version of the type name of the X509Extension
+        Returns the short type name of this X.509 extension.
+
+        The result is a byte string such as :py:const:`b"basicConstraints"`.
 
         :return: The short type name.
+        :rtype: :py:data:`bytes`
+
+        .. versionadded:: 0.12
         """
         obj = _lib.X509_EXTENSION_get_object(self._extension)
         nid = _lib.OBJ_obj2nid(obj)
@@ -772,9 +785,12 @@ class X509Extension(object):
 
     def get_data(self):
         """
-        Returns the data of the X509Extension
+        Returns the data of the X509 extension, encoded as ASN.1.
 
-        :return: A :py:data:`str` giving the X509Extension's ASN.1 encoded data.
+        :return: The ASN.1 encoded data of this X509 extension.
+        :rtype: :py:data:`bytes`
+
+        .. versionadded:: 0.12
         """
         octet_result = _lib.X509_EXTENSION_get_data(self._extension)
         string_result = _ffi.cast('ASN1_STRING*', octet_result)
@@ -782,7 +798,10 @@ class X509Extension(object):
         result_length = _lib.ASN1_STRING_length(string_result)
         return _ffi.buffer(char_result, result_length)[:]
 
+
+
 X509ExtensionType = X509Extension
+
 
 
 class X509Req(object):
