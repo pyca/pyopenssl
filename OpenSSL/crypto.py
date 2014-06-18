@@ -992,6 +992,9 @@ X509ReqType = X509Req
 
 
 class X509(object):
+    """
+    An X.509 certificate.
+    """
     def __init__(self):
         # TODO Allocation failure?  And why not __new__ instead of __init__?
         x509 = _lib.X509_new()
@@ -1000,12 +1003,12 @@ class X509(object):
 
     def set_version(self, version):
         """
-        Set version number of the certificate
+        Set the version number of the certificate.
 
-        :param version: The version number
+        :param version: The version number of the certificate.
         :type version: :py:class:`int`
 
-        :return: None
+        :return: :py:data:`None`
         """
         if not isinstance(version, int):
             raise TypeError("version must be an integer")
@@ -1015,18 +1018,20 @@ class X509(object):
 
     def get_version(self):
         """
-        Return version number of the certificate
+        Return the version number of the certificate.
 
-        :return: Version number as a Python integer
+        :return: The version number of the certificate.
+        :rtype: :py:class:`int`
         """
         return _lib.X509_get_version(self._x509)
 
 
     def get_pubkey(self):
         """
-        Get the public key of the certificate
+        Get the public key of the certificate.
 
-        :return: The public key
+        :return: The public key.
+        :rtype: :py:class:`PKey`
         """
         pkey = PKey.__new__(PKey)
         pkey._pkey = _lib.X509_get_pubkey(self._x509)
@@ -1039,11 +1044,12 @@ class X509(object):
 
     def set_pubkey(self, pkey):
         """
-        Set the public key of the certificate
+        Set the public key of the certificate.
 
-        :param pkey: The public key
+        :param pkey: The public key.
+        :type pkey: :py:class:`PKey`
 
-        :return: None
+        :return: :py:data`None`
         """
         if not isinstance(pkey, PKey):
             raise TypeError("pkey must be a PKey instance")
@@ -1055,11 +1061,15 @@ class X509(object):
 
     def sign(self, pkey, digest):
         """
-        Sign the certificate using the supplied key and digest
+        Sign the certificate using the supplied key and digest type.
 
-        :param pkey: The key to sign with
-        :param digest: The message digest to use
-        :return: None
+        :param pkey: The key to sign with.
+        :type pkey: :py:class:`PKey`
+
+        :param digest: The name of the message digest to use.
+        :type digest: :py:class:`bytes`
+
+        :return: :py:data`None`
         """
         if not isinstance(pkey, PKey):
             raise TypeError("pkey must be a PKey instance")
@@ -1081,11 +1091,14 @@ class X509(object):
 
     def get_signature_algorithm(self):
         """
-        Retrieve the signature algorithm used in the certificate
+        Return the signature algorithm used in the certificate.
 
-        :return: A byte string giving the name of the signature algorithm used in
-                 the certificate.
-        :raise ValueError: If the signature algorithm is undefined.
+        :return: The name of the algorithm.
+        :rtype: :py:class:`bytes`
+
+        :raises ValueError: If the signature algorithm is undefined.
+
+        ..versionadded:: 0.13
         """
         alg = self._x509.cert_info.signature.algorithm
         nid = _lib.OBJ_obj2nid(alg)
@@ -1101,7 +1114,9 @@ class X509(object):
         :param digest_name: The name of the digest algorithm to use.
         :type digest_name: :py:class:`bytes`
 
-        :return: The digest of the object
+        :return: The digest of the object, formatted as
+            :py:const:`b":"`-delimited hex pairs.
+        :rtype: :py:class:`bytes`
         """
         digest = _lib.EVP_get_digestbyname(_byte_string(digest_name))
         if digest == _ffi.NULL:
@@ -1128,18 +1143,19 @@ class X509(object):
         Return the hash of the X509 subject.
 
         :return: The hash of the subject.
+        :rtype: :py:class:`bytes`
         """
         return _lib.X509_subject_name_hash(self._x509)
 
 
     def set_serial_number(self, serial):
         """
-        Set serial number of the certificate
+        Set the serial number of the certificate.
 
-        :param serial: The serial number
+        :param serial: The new serial number.
         :type serial: :py:class:`int`
 
-        :return: None
+        :return: :py:data`None`
         """
         if not isinstance(serial, _integer_types):
             raise TypeError("serial must be an integer")
@@ -1176,9 +1192,10 @@ class X509(object):
 
     def get_serial_number(self):
         """
-        Return serial number of the certificate
+        Return the serial number of this certificate.
 
-        :return: Serial number as a Python integer
+        :return: The serial number.
+        :rtype: :py:class:`int`
         """
         asn1_serial = _lib.X509_get_serialNumber(self._x509)
         bignum_serial = _lib.ASN1_INTEGER_to_BN(asn1_serial, _ffi.NULL)
@@ -1196,13 +1213,12 @@ class X509(object):
 
     def gmtime_adj_notAfter(self, amount):
         """
-        Adjust the time stamp for when the certificate stops being valid
+        Adjust the time stamp on which the certificate stops being valid.
 
-        :param amount: The number of seconds by which to adjust the ending
-                       validity time.
+        :param amount: The number of seconds by which to adjust the timestamp.
         :type amount: :py:class:`int`
 
-        :return: None
+        :return: :py:data:`None`
         """
         if not isinstance(amount, int):
             raise TypeError("amount must be an integer")
@@ -1213,12 +1229,10 @@ class X509(object):
 
     def gmtime_adj_notBefore(self, amount):
         """
-        Change the timestamp for when the certificate starts being valid to the current
-        time plus an offset.
+        Adjust the timestamp on which the certificate starts being valid.
 
-        :param amount: The number of seconds by which to adjust the starting validity
-                       time.
-        :return: None
+        :param amount: The number of seconds by which to adjust the timestamp.
+        :return: :py:data:`None`
         """
         if not isinstance(amount, int):
             raise TypeError("amount must be an integer")
@@ -1231,7 +1245,9 @@ class X509(object):
         """
         Check whether the certificate has expired.
 
-        :return: True if the certificate has expired, false otherwise
+        :return: :py:const:`True` if the certificate has expired,
+            :py:const:`False` otherwise.
+        :rtype: :py:class:`bool`
         """
         now = int(time())
         notAfter = _lib.X509_get_notAfter(self._x509)
@@ -1245,15 +1261,16 @@ class X509(object):
 
     def get_notBefore(self):
         """
-        Retrieve the time stamp for when the certificate starts being valid
+        Get the timestamp at which the certificate starts being valid.
 
-        :return: A string giving the timestamp, in the format::
+        The timestamp is formatted as an ASN.1 GENERALIZEDTIME::
 
-                         YYYYMMDDhhmmssZ
-                         YYYYMMDDhhmmss+hhmm
-                         YYYYMMDDhhmmss-hhmm
+            YYYYMMDDhhmmssZ
+            YYYYMMDDhhmmss+hhmm
+            YYYYMMDDhhmmss-hhmm
 
-                 or None if there is no value set.
+        :return: A timestamp string, or :py:const:`None` if there is none.
+        :rtype: :py:class:`bytes` or :py:const:`None`
         """
         return self._get_boundary_time(_lib.X509_get_notBefore)
 
@@ -1264,47 +1281,52 @@ class X509(object):
 
     def set_notBefore(self, when):
         """
-        Set the time stamp for when the certificate starts being valid
+        Set the timestamp at which the certificate starts being valid.
 
-        :param when: A string giving the timestamp, in the format:
+        The timestamp is formatted as an ASN.1 GENERALIZEDTIME::
 
-                         YYYYMMDDhhmmssZ
-                         YYYYMMDDhhmmss+hhmm
-                         YYYYMMDDhhmmss-hhmm
+            YYYYMMDDhhmmssZ
+            YYYYMMDDhhmmss+hhmm
+            YYYYMMDDhhmmss-hhmm
+
+        :param when: A timestamp string.
         :type when: :py:class:`bytes`
 
-        :return: None
+        :return: :py:data:`None`
         """
         return self._set_boundary_time(_lib.X509_get_notBefore, when)
 
 
     def get_notAfter(self):
         """
-        Retrieve the time stamp for when the certificate stops being valid
+        Get the timestamp at which the certificate stops being valid.
 
-        :return: A string giving the timestamp, in the format::
+        The timestamp is formatted as an ASN.1 GENERALIZEDTIME::
 
-                         YYYYMMDDhhmmssZ
-                         YYYYMMDDhhmmss+hhmm
-                         YYYYMMDDhhmmss-hhmm
+            YYYYMMDDhhmmssZ
+            YYYYMMDDhhmmss+hhmm
+            YYYYMMDDhhmmss-hhmm
 
-                 or None if there is no value set.
+        :return: A timestamp string, or :py:const:`None` if there is none.
+        :rtype: :py:class:`bytes` or :py:const:`None`
         """
         return self._get_boundary_time(_lib.X509_get_notAfter)
 
 
     def set_notAfter(self, when):
         """
-        Set the time stamp for when the certificate stops being valid
+        Set the timestamp at which the certificate stops being valid.
 
-        :param when: A string giving the timestamp, in the format:
+        The timestamp is formatted as an ASN.1 GENERALIZEDTIME::
 
-                         YYYYMMDDhhmmssZ
-                         YYYYMMDDhhmmss+hhmm
-                         YYYYMMDDhhmmss-hhmm
+            YYYYMMDDhhmmssZ
+            YYYYMMDDhhmmss+hhmm
+            YYYYMMDDhhmmss-hhmm
+
+        :param when: A timestamp string.
         :type when: :py:class:`bytes`
 
-        :return: None
+        :return: :py:data:`None`
         """
         return self._set_boundary_time(_lib.X509_get_notAfter, when)
 
@@ -1334,50 +1356,62 @@ class X509(object):
 
     def get_issuer(self):
         """
-        Create an X509Name object for the issuer of the certificate
+        Return the issuer of this certificate.
 
-        :return: An X509Name object
+        This creates a new :py:class:`X509Name`: modifying it does not affect
+        this certificate.
+
+        :return: The issuer of this certificate.
+        :rtype: :py:class:`X509Name`
         """
         return self._get_name(_lib.X509_get_issuer_name)
 
 
     def set_issuer(self, issuer):
         """
-        Set the issuer of the certificate
+        Set the issuer of this certificate.
 
-        :param issuer: The issuer name
+        :param issuer: The issuer.
         :type issuer: :py:class:`X509Name`
 
-        :return: None
+        :return: :py:data:`None`
         """
         return self._set_name(_lib.X509_set_issuer_name, issuer)
 
 
     def get_subject(self):
         """
-        Create an X509Name object for the subject of the certificate
+        Return the subject of this certificate.
 
-        :return: An X509Name object
+        This creates a new :py:class:`X509Name`: modifying it does not affect
+        this certificate.
+
+        :return: The subject of this certificate.
+        :rtype: :py:class:`X509Name`
         """
         return self._get_name(_lib.X509_get_subject_name)
 
 
     def set_subject(self, subject):
         """
-        Set the subject of the certificate
+        Set the subject of this certificate.
 
-        :param subject: The subject name
+        :param subject: The subject.
         :type subject: :py:class:`X509Name`
-        :return: None
+
+        :return: :py:data:`None`
         """
         return self._set_name(_lib.X509_set_subject_name, subject)
 
 
     def get_extension_count(self):
         """
-        Get the number of extensions on the certificate.
+        Get the number of extensions on this certificate.
 
-        :return: The number of extensions as an integer.
+        :return: The number of extensions.
+        :rtype: :py:class:`int`
+
+        .. versionadded:: 0.12
         """
         return _lib.X509_get_ext_count(self._x509)
 
@@ -1386,8 +1420,9 @@ class X509(object):
         """
         Add extensions to the certificate.
 
-        :param extensions: a sequence of X509Extension objects
-        :return: None
+        :param extensions: The extensions to add.
+        :type extensions: An iterable of :py:class:`X509Extension` objects.
+        :return: :py:data:`None`
         """
         for ext in extensions:
             if not isinstance(ext, X509Extension):
@@ -1402,8 +1437,15 @@ class X509(object):
         """
         Get a specific extension of the certificate by index.
 
-        :param index: The index of the extension to retrieve.
-        :return: The X509Extension object at the specified index.
+        Extensions on a certificate are kept in order. The index
+        parameter selects which extension will be returned.
+
+        :param int index: The index of the extension to retrieve.
+        :return: The extension at the specified index.
+        :rtype: :py:class:`X509Extension`
+        :raises IndexError: If the extension index was out of bounds.
+
+        .. versionadded:: 0.12
         """
         ext = X509Extension.__new__(X509Extension)
         ext._extension = _lib.X509_get_ext(self._x509, index)
@@ -1616,7 +1658,7 @@ class Revoked(object):
 
         :param hex_str: The new serial number.
         :type hex_str: :py:data:`str`
-        :return: None
+        :return: :py:data:`None`
         """
         bignum_serial = _ffi.gc(_lib.BN_new(), _lib.BN_free)
         bignum_ptr = _ffi.new("BIGNUM**")
@@ -1665,7 +1707,7 @@ class Revoked(object):
 
         :param reason: The reason string.
         :type reason: :py:class:`str` or :py:class:`NoneType`
-        :return: None
+        :return: :py:data:`None`
         """
         if reason is None:
             self._delete_reason()
@@ -1736,7 +1778,7 @@ class Revoked(object):
                          YYYYMMDDhhmmss+hhmm
                          YYYYMMDDhhmmss-hhmm
 
-        :return: None
+        :return: :py:data:`None`
         """
         return _set_asn1_time(self._revoked.revocationDate, when)
 
@@ -1789,7 +1831,7 @@ class CRL(object):
         :param revoked: The new revoked.
         :type revoked: :class:`X509`
 
-        :return: None
+        :return: :py:data:`None`
         """
         copy = _X509_REVOKED_dup(revoked._revoked)
         if copy == _ffi.NULL:
@@ -1950,7 +1992,7 @@ class PKCS12(object):
 
         :param cert: The new certificate.
         :type cert: :py:class:`X509` or :py:data:`None`
-        :return: None
+        :return: :py:data:`None`
         """
         if not isinstance(cert, X509):
             raise TypeError("cert must be an X509 instance")
@@ -1972,7 +2014,7 @@ class PKCS12(object):
 
         :param pkey: The new private key.
         :type pkey: :py:class:`PKey`
-        :return: None
+        :return: :py:data:`None`
         """
         if not isinstance(pkey, PKey):
             raise TypeError("pkey must be a PKey instance")
@@ -1996,7 +2038,7 @@ class PKCS12(object):
 
         :param cacerts: The new CA certificates.
         :type cacerts: :py:data:`None` or an iterable of :py:class:`X509`
-        :return: None
+        :return: :py:data:`None`
         """
         if cacerts is None:
             self._cacerts = None
@@ -2014,7 +2056,7 @@ class PKCS12(object):
 
         :param name: The new friendly name.
         :type name: :py:class:`bytes`
-        :return: None
+        :return: :py:data:`None`
         """
         if name is None:
             self._friendlyname = None
@@ -2101,7 +2143,7 @@ class NetscapeSPKI(object):
 
         :param pkey: The key to sign with
         :param digest: The message digest to use
-        :return: None
+        :return: :py:data:`None`
         """
         if pkey._only_public:
             raise ValueError("Key has only public part")
@@ -2125,8 +2167,8 @@ class NetscapeSPKI(object):
 
         :param key: a public key
         :return: True if the signature is correct.
-        :raise OpenSSL.crypto.Error: If the signature is invalid or there is a
-            problem verifying the signature.
+        :raises Error: If the signature is invalid, or there was a problem
+            verifying the signature.
         """
         answer = _lib.NETSCAPE_SPKI_verify(self._spki, key._pkey)
         if answer <= 0:
@@ -2167,7 +2209,7 @@ class NetscapeSPKI(object):
         Set the public key of the certificate
 
         :param pkey: The public key
-        :return: None
+        :return: :py:data:`None`
         """
         set_result = _lib.NETSCAPE_SPKI_set_pubkey(self._spki, pkey._pkey)
         if not set_result:
@@ -2370,13 +2412,13 @@ def sign(pkey, data, digest):
 
 def verify(cert, signature, data, digest):
     """
-    Verify a signature
+    Verify a signature.
 
     :param cert: signing certificate (X509 object)
     :param signature: signature returned by sign function
     :param data: data to be verified
     :param digest: message digest to use
-    :return: None if the signature is correct, raise exception otherwise
+    :return: :py:data:`None` if the signature is correct, raise exception otherwise
     """
     digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
     if digest_obj == _ffi.NULL:

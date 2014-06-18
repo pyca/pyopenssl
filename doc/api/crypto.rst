@@ -6,10 +6,6 @@
 .. py:module:: OpenSSL.crypto
    :synopsis: Generic cryptographic module
 
-.. py:class:: X509()
-
-    A class representing X.509 certificates.
-
 .. py:class:: NetscapeSPKI([enc])
 
     A class representing Netscape SPKI objects.
@@ -162,166 +158,8 @@
 X509 objects
 ------------
 
-X509 objects have the following methods:
-
-.. py:method:: X509.get_issuer()
-
-    Return an X509Name object representing the issuer of the certificate.
-
-
-.. py:method:: X509.get_pubkey()
-
-    Return a :py:class:`PKey` object representing the public key of the certificate.
-
-
-.. py:method:: X509.get_serial_number()
-
-    Return the certificate serial number.
-
-
-.. py:method:: X509.get_signature_algorithm()
-
-    Return the signature algorithm used in the certificate.  If the algorithm is
-    undefined, raise :py:data:`ValueError`.
-
-    ..versionadded:: 0.13
-
-
-.. py:method:: X509.get_subject()
-
-    Return an :py:class:`X509Name` object representing the subject of the certificate.
-
-
-.. py:method:: X509.get_version()
-
-    Return the certificate version.
-
-
-.. py:method:: X509.get_notBefore()
-
-    Return a string giving the time before which the certificate is not valid.  The
-    string is formatted as an ASN1 GENERALIZEDTIME::
-
-        YYYYMMDDhhmmssZ
-        YYYYMMDDhhmmss+hhmm
-        YYYYMMDDhhmmss-hhmm
-
-    If no value exists for this field, :py:data:`None` is returned.
-
-
-.. py:method:: X509.get_notAfter()
-
-    Return a string giving the time after which the certificate is not valid.  The
-    string is formatted as an ASN1 GENERALIZEDTIME::
-
-        YYYYMMDDhhmmssZ
-        YYYYMMDDhhmmss+hhmm
-        YYYYMMDDhhmmss-hhmm
-
-    If no value exists for this field, :py:data:`None` is returned.
-
-
-.. py:method:: X509.set_notBefore(when)
-
-    Change the time before which the certificate is not valid.  *when* is a
-    string formatted as an ASN1 GENERALIZEDTIME::
-
-        YYYYMMDDhhmmssZ
-        YYYYMMDDhhmmss+hhmm
-        YYYYMMDDhhmmss-hhmm
-
-
-.. py:method:: X509.set_notAfter(when)
-
-    Change the time after which the certificate is not valid.  *when* is a
-    string formatted as an ASN1 GENERALIZEDTIME::
-
-        YYYYMMDDhhmmssZ
-        YYYYMMDDhhmmss+hhmm
-        YYYYMMDDhhmmss-hhmm
-
-
-
-.. py:method:: X509.gmtime_adj_notBefore(time)
-
-    Adjust the timestamp (in GMT) when the certificate starts being valid.
-
-
-.. py:method:: X509.gmtime_adj_notAfter(time)
-
-    Adjust the timestamp (in GMT) when the certificate stops being valid.
-
-
-.. py:method:: X509.has_expired()
-
-    Checks the certificate's time stamp against current time. Returns true if the
-    certificate has expired and false otherwise.
-
-
-.. py:method:: X509.set_issuer(issuer)
-
-    Set the issuer of the certificate to *issuer*.
-
-
-.. py:method:: X509.set_pubkey(pkey)
-
-    Set the public key of the certificate to *pkey*.
-
-
-.. py:method:: X509.set_serial_number(serialno)
-
-    Set the serial number of the certificate to *serialno*.
-
-
-.. py:method:: X509.set_subject(subject)
-
-    Set the subject of the certificate to *subject*.
-
-
-.. py:method:: X509.set_version(version)
-
-    Set the certificate version to *version*.
-
-
-.. py:method:: X509.sign(pkey, digest)
-
-    Sign the certificate, using the key *pkey* and the message digest algorithm
-    identified by the string *digest*.
-
-
-.. py:method:: X509.subject_name_hash()
-
-    Return the hash of the certificate subject.
-
-.. py:method:: X509.digest(digest_name)
-
-    Return a digest of the certificate, using the *digest_name* method.
-    *digest_name* must be a string describing a digest algorithm supported
-    by OpenSSL (by EVP_get_digestbyname, specifically).  For example,
-    :py:const:`"md5"` or :py:const:`"sha1"`.
-
-.. py:method:: X509.add_extensions(extensions)
-
-    Add the extensions in the sequence *extensions* to the certificate.
-
-
-.. py:method:: X509.get_extension_count()
-
-    Return the number of extensions on this certificate.
-
-    .. versionadded:: 0.12
-
-
-.. py:method:: X509.get_extension(index)
-
-    Retrieve the extension on this certificate at the given index.
-
-    Extensions on a certificate are kept in order.  The index parameter selects
-    which extension will be returned.  The returned object will be an
-    :py:class:`X509Extension` instance.
-
-    .. versionadded:: 0.12
-
+.. autoclass:: X509
+               :members:
 
 .. _openssl-x509name:
 
@@ -563,6 +401,19 @@ Revoked objects have the following methods:
 .. py:method:: Revoked.set_serial(serial)
 
     *serial* is a string containing a hex number of the serial of the revoked certificate.
+
+Digest names
+------------
+
+Several of the functions and methods in this module take a digest
+name. These must be strings describing a digest algorithm supported by
+OpenSSL (by ``EVP_get_digestbyname``, specifically). For example,
+:py:const:`b"md5"` or :py:const:`b"sha1"`.
+
+More information and a list of these digest names can be found in the
+``EVP_DigestInit(3)`` man page of your OpenSSL installation. This page
+can be found online for the latest version of OpenSSL:
+https://www.openssl.org/docs/crypto/EVP_DigestInit.html
 
 Backwards compatible type names
 -------------------------------
