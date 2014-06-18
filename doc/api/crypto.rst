@@ -6,14 +6,9 @@
 .. py:module:: OpenSSL.crypto
    :synopsis: Generic cryptographic module
 
-
 .. py:class:: X509()
 
     A class representing X.509 certificates.
-
-.. py:class:: X509Req()
-
-    A class representing X.509 certificate requests.
 
 .. py:class:: NetscapeSPKI([enc])
 
@@ -343,51 +338,10 @@ X509Name objects
 X509Req objects
 ---------------
 
-X509Req objects have the following methods:
-
-.. py:method:: X509Req.get_pubkey()
-
-    Return a :py:class:`PKey` object representing the public key of the certificate request.
-
-
-.. py:method:: X509Req.get_subject()
-
-    Return an :py:class:`X509Name` object representing the subject of the certificate.
-
-
-.. py:method:: X509Req.set_pubkey(pkey)
-
-    Set the public key of the certificate request to *pkey*.
-
-
-.. py:method:: X509Req.sign(pkey, digest)
-
-    Sign the certificate request, using the key *pkey* and the message digest
-    algorithm identified by the string *digest*.
-
-
-.. py:method:: X509Req.verify(pkey)
-
-    Verify a certificate request using the public key *pkey*.
-
-
-.. py:method:: X509Req.set_version(version)
-
-    Set the version (RFC 2459, 4.1.2.1) of the certificate request to
-    *version*.
-
-
-.. py:method:: X509Req.get_version()
-
-    Get the version (RFC 2459, 4.1.2.1) of the certificate request.
-
-
-.. py:method:: X509Req.get_extensions()
-
-    Get extensions to the request.
-
-    .. versionadded:: 0.15
-
+.. autoclass:: X509Req
+               :members:
+               :special-members:
+               :exclude-members: __weakref__
 
 .. _openssl-x509store:
 

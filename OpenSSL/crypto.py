@@ -805,6 +805,9 @@ X509ExtensionType = X509Extension
 
 
 class X509Req(object):
+    """
+    An X.509 certificate signing requests.
+    """
     def __init__(self):
         req = _lib.X509_REQ_new()
         self._req = _ffi.gc(req, _lib.X509_REQ_free)
@@ -812,10 +815,12 @@ class X509Req(object):
 
     def set_pubkey(self, pkey):
         """
-        Set the public key of the certificate request
+        Set the public key of the certificate signing request.
 
-        :param pkey: The public key to use
-        :return: None
+        :param pkey: The public key to use.
+        :type pkey: :py:class:`PKey`
+
+        :return: :py:data:`None`
         """
         set_result = _lib.X509_REQ_set_pubkey(self._req, pkey._pkey)
         if not set_result:
@@ -825,9 +830,10 @@ class X509Req(object):
 
     def get_pubkey(self):
         """
-        Get the public key from the certificate request
+        Get the public key of the certificate signing request.
 
-        :return: The public key
+        :return: The public key.
+        :rtype: :py:class:`PKey`
         """
         pkey = PKey.__new__(PKey)
         pkey._pkey = _lib.X509_REQ_get_pubkey(self._req)
@@ -844,8 +850,8 @@ class X509Req(object):
         Set the version subfield (RFC 2459, section 4.1.2.1) of the certificate
         request.
 
-        :param version: The version number
-        :return: None
+        :param int version: The version number.
+        :return: :py:data:`None`
         """
         set_result = _lib.X509_REQ_set_version(self._req, version)
         if not set_result:
@@ -857,16 +863,21 @@ class X509Req(object):
         Get the version subfield (RFC 2459, section 4.1.2.1) of the certificate
         request.
 
-        :return: an integer giving the value of the version subfield
+        :return: The value of the version subfield.
+        :rtype: :py:class:`int`
         """
         return _lib.X509_REQ_get_version(self._req)
 
 
     def get_subject(self):
         """
-        Create an X509Name object for the subject of the certificate request
+        Return the subject of this certificate signing request.
 
-        :return: An X509Name object
+        This creates a new :py:class:`X509Name`: modifying it does not affect
+        this request.
+
+        :return: The subject of this certificate signing request.
+        :rtype: :py:class:`X509Name`
         """
         name = X509Name.__new__(X509Name)
         name._name = _lib.X509_REQ_get_subject_name(self._req)
@@ -883,10 +894,11 @@ class X509Req(object):
 
     def add_extensions(self, extensions):
         """
-        Add extensions to the request.
+        Add extensions to the certificate signing request.
 
-        :param extensions: a sequence of X509Extension objects
-        :return: None
+        :param extensions: The X.509 extensions to add.
+        :type extensions: iterable of :py:class:`X509Extension`
+        :return: :py:data:`None`
         """
         stack = _lib.sk_X509_EXTENSION_new_null()
         if stack == _ffi.NULL:
@@ -910,9 +922,12 @@ class X509Req(object):
 
     def get_extensions(self):
         """
-        Get extensions to the request.
+        Get X.509 extensions in the certificate signing request.
 
-        :return: A :py:class:`list` of :py:class:`X509Extension` objects.
+        :return: The X.509 extensions in this request.
+        :rtype: :py:class:`list` of :py:class:`X509Extension` objects.
+
+        .. versionadded:: 0.15
         """
         exts = []
         native_exts_obj = _lib.X509_REQ_get_extensions(self._req)
@@ -925,11 +940,14 @@ class X509Req(object):
 
     def sign(self, pkey, digest):
         """
-        Sign the certificate request using the supplied key and digest
+        Sign the certificate signing request using the supplied key and digest.
 
-        :param pkey: The key to sign with
-        :param digest: The message digest to use
-        :return: None
+        :param pkey: The key pair to sign with.
+        :type pkey: :py:class:`PKey`
+        :param digest: The name of the message digest to use for the signature,
+            e.g. :py:data:`b"sha1"`.
+        :type digest: :py:class:`bytes`
+        :return: :py:data:`None`
         """
         if pkey._only_public:
             raise ValueError("Key has only public part")
@@ -949,12 +967,13 @@ class X509Req(object):
 
     def verify(self, pkey):
         """
-        Verifies a certificate request using the supplied public key
+        Verifies the signature on this certificate signing request.
 
-        :param key: a public key
-        :return: True if the signature is correct.
-
-        :raise OpenSSL.crypto.Error: If the signature is invalid or there is a
+        :param key: A public key.
+        :type key: :py:class:`PKey`
+        :return: :py:data:`True` if the signature is correct.
+        :rtype: :py:class:`bool`
+        :raises Error: If the signature is invalid or there is a
             problem verifying the signature.
         """
         if not isinstance(pkey, PKey):
@@ -965,6 +984,7 @@ class X509Req(object):
             _raise_current_error()
 
         return result
+
 
 
 X509ReqType = X509Req
