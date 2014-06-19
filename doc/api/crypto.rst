@@ -6,10 +6,6 @@
 .. py:module:: OpenSSL.crypto
    :synopsis: Generic cryptographic module
 
-.. py:class:: CRL()
-
-    A class representing Certifcate Revocation List objects.
-
 .. py:data:: TYPE_RSA
              TYPE_DSA
 
@@ -254,22 +250,10 @@ NetscapeSPKI objects
 CRL objects
 -----------
 
-CRL objects have the following methods:
-
-.. py:method:: CRL.add_revoked(revoked)
-
-    Add a Revoked object to the CRL, by value not reference.
-
-
-.. py:method:: CRL.export(cert, key[, type=FILETYPE_PEM][, days=100])
-
-    Use *cert* and *key* to sign the CRL and return the CRL as a string.
-    *days* is the number of days before the next CRL is due.
-
-
-.. py:method:: CRL.get_revoked()
-
-    Return a tuple of Revoked objects, by value not reference.
+.. autoclass:: CRL
+               :members:
+               :special-members:
+               :exclude-members: __weakref__
 
 .. _revoked:
 

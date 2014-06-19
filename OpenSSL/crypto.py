@@ -1818,9 +1818,12 @@ class Revoked(object):
 
 
 class CRL(object):
+    """
+    A certificate revocation list.
+    """
     def __init__(self):
         """
-        Create a new empty CRL object.
+        Create a new empty certificate revocation list.
         """
         crl = _lib.X509_CRL_new()
         self._crl = _ffi.gc(crl, _lib.X509_CRL_free)
@@ -1828,9 +1831,13 @@ class CRL(object):
 
     def get_revoked(self):
         """
-        Return revoked portion of the CRL structure (by value not reference).
+        Return the revocations in this certificate revocation list.
 
-        :return: A tuple of Revoked objects.
+        These revocations will be provided by value, not by reference.
+        That means it's okay to mutate them: it won't affect this CRL.
+
+        :return: The revocations in this CRL.
+        :rtype: :py:class:`tuple` of :py:class:`Revocation`
         """
         results = []
         revoked_stack = self._crl.crl.revoked
@@ -1848,8 +1855,12 @@ class CRL(object):
         """
         Add a revoked (by value not reference) to the CRL structure
 
-        :param revoked: The new revoked.
-        :type revoked: :class:`X509`
+        This revocation will be added by value, not by reference. That
+        means it's okay to mutate it after adding: it won't affect
+        this CRL.
+
+        :param revoked: The new revocation.
+        :type revoked: :class:`Revoked`
 
         :return: :py:const:`None`
         """
@@ -1866,15 +1877,16 @@ class CRL(object):
 
     def export(self, cert, key, type=FILETYPE_PEM, days=100):
         """
-        export a CRL as a string
+        Export a CRL as a string.
 
-        :param cert: Used to sign CRL.
-        :type cert: :class:`X509`
+        :param cert: The certificate used to sign the CRL.
+        :type cert: :py:class:`X509`
 
-        :param key: Used to sign CRL.
-        :type key: :class:`PKey`
+        :param key: The key used to sign the CRL.
+        :type key: :py:class:`PKey`
 
-        :param type: The export format, either :py:data:`FILETYPE_PEM`, :py:data:`FILETYPE_ASN1`, or :py:data:`FILETYPE_TEXT`.
+        :param type: The export format, either :py:data:`FILETYPE_PEM`,
+            :py:data:`FILETYPE_ASN1`, or :py:data:`FILETYPE_TEXT`.
 
         :param days: The number of days until the next update of this CRL.
         :type days: :py:data:`int`
