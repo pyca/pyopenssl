@@ -10,11 +10,6 @@
 
     A class representing Certifcate Revocation List objects.
 
-
-.. py:class:: Revoked()
-
-    A class representing Revocation objects of CRL.
-
 .. py:data:: TYPE_RSA
              TYPE_DSA
 
@@ -276,51 +271,13 @@ CRL objects have the following methods:
 
     Return a tuple of Revoked objects, by value not reference.
 
-
 .. _revoked:
 
 Revoked objects
 ---------------
 
-Revoked objects have the following methods:
-
-.. py:method:: Revoked.all_reasons()
-
-    Return a list of all supported reasons.
-
-.. py:method:: Revoked.get_reason()
-
-    Return the revocation reason as a str.  Can be
-    None, which differs from "Unspecified".
-
-
-.. py:method:: Revoked.get_rev_date()
-
-    Return the revocation date as a str.
-    The string is formatted as an ASN1 GENERALIZEDTIME.
-
-
-.. py:method:: Revoked.get_serial()
-
-    Return a str containing a hex number of the serial of the revoked certificate.
-
-
-.. py:method:: Revoked.set_reason(reason)
-
-    Set the revocation reason.  *reason* must be None or a string, but the
-    values are limited.  Spaces and case are ignored.  See
-    :py:meth:`all_reasons`.
-
-
-.. py:method:: Revoked.set_rev_date(date)
-
-    Set the revocation date.
-    The string is formatted as an ASN1 GENERALIZEDTIME.
-
-
-.. py:method:: Revoked.set_serial(serial)
-
-    *serial* is a string containing a hex number of the serial of the revoked certificate.
+.. autoclass:: Revoked
+               :members:
 
 Digest names
 ------------

@@ -1632,6 +1632,9 @@ def _X509_REVOKED_dup(original):
 
 
 class Revoked(object):
+    """
+    A certificate revocation.
+    """
     # http://www.openssl.org/docs/apps/x509v3_config.html#CRL_distribution_points_
     # which differs from crl_reasons of crypto/x509v3/v3_enum.c that matches
     # OCSP_crl_reason_str.  We use the latter, just like the command line
@@ -1654,10 +1657,14 @@ class Revoked(object):
 
     def set_serial(self, hex_str):
         """
-        Set the serial number of a revoked Revoked structure
+        Set the serial number.
+
+        The serial number is formatted as a hexadecimal number encoded in
+        ASCII.
 
         :param hex_str: The new serial number.
-        :type hex_str: :py:data:`str`
+        :type hex_str: :py:class:`bytes`
+
         :return: :py:const:`None`
         """
         bignum_serial = _ffi.gc(_lib.BN_new(), _lib.BN_free)
@@ -1675,9 +1682,13 @@ class Revoked(object):
 
     def get_serial(self):
         """
-        Return the serial number of a Revoked structure
+        Get the serial number.
 
-        :return: The serial number as a string
+        The serial number is formatted as a hexadecimal number encoded in
+        ASCII.
+
+        :return: The serial number.
+        :rtype: :py:class:`bytes`
         """
         bio = _new_mem_buf()
 
@@ -1701,13 +1712,19 @@ class Revoked(object):
 
     def set_reason(self, reason):
         """
-        Set the reason of a Revoked object.
+        Set the reason of this revocation.
 
         If :py:data:`reason` is :py:const:`None`, delete the reason instead.
 
         :param reason: The reason string.
-        :type reason: :py:class:`str` or :py:class:`NoneType`
+        :type reason: :py:class:`bytes` or :py:class:`NoneType`
+
         :return: :py:const:`None`
+
+        .. seealso::
+
+            :py:meth:`all_reasons`, which gives you a list of all supported
+            reasons which you might pass to this method.
         """
         if reason is None:
             self._delete_reason()
@@ -1739,9 +1756,15 @@ class Revoked(object):
 
     def get_reason(self):
         """
-        Return the reason of a Revoked object.
+        Set the reason of this revocation.
 
-        :return: The reason as a string
+        :return: The reason, or :py:const:`None` if there is none.
+        :rtype: :py:class:`bytes` or :py:class:`NoneType`
+
+        .. seealso::
+
+            :py:meth:`all_reasons`, which gives you a list of all supported
+            reasons this method might return.
         """
         extensions = self._revoked.extensions
         for i in range(_lib.sk_X509_EXTENSION_num(extensions)):
@@ -1763,21 +1786,21 @@ class Revoked(object):
         """
         Return a list of all the supported reason strings.
 
+        This list is a copy; modifying it does not change the supported reason
+        strings.
+
         :return: A list of reason strings.
+        :rtype: :py:class:`list` of :py:class:`bytes`
         """
         return self._crl_reasons[:]
 
 
     def set_rev_date(self, when):
         """
-        Set the revocation timestamp
+        Set the revocation timestamp.
 
-        :param when: A string giving the timestamp, in the format:
-
-                         YYYYMMDDhhmmssZ
-                         YYYYMMDDhhmmss+hhmm
-                         YYYYMMDDhhmmss-hhmm
-
+        :param when: The timestamp of the revocation, as ASN.1 GENERALIZEDTIME.
+        :type when: :py:class:`bytes`
         :return: :py:const:`None`
         """
         return _set_asn1_time(self._revoked.revocationDate, when)
@@ -1785,13 +1808,10 @@ class Revoked(object):
 
     def get_rev_date(self):
         """
-        Retrieve the revocation date
+        Get the revocation timestamp.
 
-        :return: A string giving the timestamp, in the format:
-
-                         YYYYMMDDhhmmssZ
-                         YYYYMMDDhhmmss+hhmm
-                         YYYYMMDDhhmmss-hhmm
+        :return: The timestamp of the revocation, as ASN.1 GENERALIZEDTIME.
+        :rtype: :py:class:`bytes`
         """
         return _get_asn1_time(self._revoked.revocationDate)
 
