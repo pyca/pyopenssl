@@ -24,23 +24,17 @@
 
     A class representing Revocation objects of CRL.
 
-
-.. py:data:: FILETYPE_PEM
-             FILETYPE_ASN1
-
-    File type constants.
-
-
 .. py:data:: TYPE_RSA
              TYPE_DSA
 
     Key type constants.
 
-
 .. py:exception:: Error
 
     Generic exception used in the :py:mod:`.crypto` module.
 
+Elliptic curves
+---------------
 
 .. py:function:: get_elliptic_curves
 
@@ -64,17 +58,43 @@
     If the named curve is not supported then :py:class:`ValueError` is raised.
 
 
+Serialization and deserialization
+---------------------------------
+
+The following serialization functions take one of these constants to
+determine the format:
+
+.. py:data:: FILETYPE_PEM
+             FILETYPE_ASN1
+
+Certificates
+~~~~~~~~~~~~
+
 .. py:function:: dump_certificate(type, cert)
 
     Dump the certificate *cert* into a buffer string encoded with the type
     *type*.
 
+.. py:function:: load_certificate(type, buffer)
+
+    Load a certificate (X509) from the string *buffer* encoded with the
+    type *type*.
+
+Certificate signing requests
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. py:function:: dump_certificate_request(type, req)
 
     Dump the certificate request *req* into a buffer string encoded with the
     type *type*.
 
+.. py:function:: load_certificate_request(type, buffer)
+
+    Load a certificate request (X509Req) from the string *buffer* encoded with
+    the type *type*.
+
+Private keys
+~~~~~~~~~~~~
 
 .. py:function:: dump_privatekey(type, pkey[, cipher, passphrase])
 
@@ -85,19 +105,6 @@
     *passphrase* must be either a string or a callback for providing the
     pass phrase.
 
-
-.. py:function:: load_certificate(type, buffer)
-
-    Load a certificate (X509) from the string *buffer* encoded with the
-    type *type*.
-
-
-.. py:function:: load_certificate_request(type, buffer)
-
-    Load a certificate request (X509Req) from the string *buffer* encoded with
-    the type *type*.
-
-
 .. py:function:: load_privatekey(type, buffer[, passphrase])
 
     Load a private key (PKey) from the string *buffer* encoded with the type
@@ -107,6 +114,8 @@
     *passphrase* must be either a string or a callback for providing the pass
     phrase.
 
+Certificate revocation lists
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. py:function:: load_crl(type, buffer)
 
@@ -128,6 +137,8 @@
 
     See also the man page for the C function :py:func:`PKCS12_parse`.
 
+Signing and verifying signatures
+--------------------------------
 
 .. py:function:: sign(key, data, digest)
 
@@ -208,26 +219,21 @@ PKCS7 objects have the following methods:
 
     FIXME
 
-
 .. py:method:: PKCS7.type_is_enveloped()
 
     FIXME
-
 
 .. py:method:: PKCS7.type_is_signedAndEnveloped()
 
     FIXME
 
-
 .. py:method:: PKCS7.type_is_data()
 
     FIXME
 
-
 .. py:method:: PKCS7.get_type_name()
 
     Get the type name of the PKCS7.
-
 
 .. _openssl-pkcs12:
 
@@ -309,16 +315,13 @@ NetscapeSPKI objects have the following methods:
 
     Return a base64-encoded string representation of the object.
 
-
 .. py:method:: NetscapeSPKI.get_pubkey()
 
     Return the public key of object.
 
-
 .. py:method:: NetscapeSPKI.set_pubkey(key)
 
     Set the public key of the object to *key*.
-
 
 .. py:method:: NetscapeSPKI.sign(key, digest_name)
 
@@ -327,11 +330,9 @@ NetscapeSPKI objects have the following methods:
     OpenSSL (by EVP_get_digestbyname, specifically).  For example,
     :py:const:`"md5"` or :py:const:`"sha1"`.
 
-
 .. py:method:: NetscapeSPKI.verify(key)
 
     Verify the NetscapeSPKI object using the given *key*.
-
 
 .. _crl:
 
@@ -366,7 +367,6 @@ Revoked objects have the following methods:
 .. py:method:: Revoked.all_reasons()
 
     Return a list of all supported reasons.
-
 
 .. py:method:: Revoked.get_reason()
 
