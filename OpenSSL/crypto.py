@@ -2151,6 +2151,9 @@ PKCS12Type = PKCS12
 
 
 class NetscapeSPKI(object):
+    """
+    A Netscape SPKI object.
+    """
     def __init__(self):
         spki = _lib.NETSCAPE_SPKI_new()
         self._spki = _ffi.gc(spki, _lib.NETSCAPE_SPKI_free)
@@ -2158,10 +2161,14 @@ class NetscapeSPKI(object):
 
     def sign(self, pkey, digest):
         """
-        Sign the certificate request using the supplied key and digest
+        Sign the certificate request with this key and digest type.
 
-        :param pkey: The key to sign with
-        :param digest: The message digest to use
+        :param pkey: The private key to sign with.
+        :type pkey: :py:class:`PKey`
+
+        :param digest: The message digest to use.
+        :type digest: :py:class:`bytes`
+
         :return: :py:const:`None`
         """
         if pkey._only_public:
@@ -2182,10 +2189,14 @@ class NetscapeSPKI(object):
 
     def verify(self, key):
         """
-        Verifies a certificate request using the supplied public key
+        Verifies a signature on a certificate request.
 
-        :param key: a public key
-        :return: True if the signature is correct.
+        :param key: The public key that signature is supposedly from.
+        :type pkey: :py:class:`PKey`
+
+        :return: :py:const:`True` if the signature is correct.
+        :rtype: :py:class:`bool`
+
         :raises Error: If the signature is invalid, or there was a problem
             verifying the signature.
         """
@@ -2197,9 +2208,10 @@ class NetscapeSPKI(object):
 
     def b64_encode(self):
         """
-        Generate a base64 encoded string from an SPKI
+        Generate a base64 encoded representation of this SPKI object.
 
-        :return: The base64 encoded string
+        :return: The base64 encoded string.
+        :rtype: :py:class:`bytes`
         """
         encoded = _lib.NETSCAPE_SPKI_b64_encode(self._spki)
         result = _ffi.string(encoded)
@@ -2209,9 +2221,10 @@ class NetscapeSPKI(object):
 
     def get_pubkey(self):
         """
-        Get the public key of the certificate
+        Get the public key of this certificate.
 
-        :return: The public key
+        :return: The public key.
+        :rtype: :py:class:`PKey`
         """
         pkey = PKey.__new__(PKey)
         pkey._pkey = _lib.NETSCAPE_SPKI_get_pubkey(self._spki)
@@ -2234,7 +2247,11 @@ class NetscapeSPKI(object):
         if not set_result:
             # TODO: This is untested.
             _raise_current_error()
+
+
+
 NetscapeSPKIType = NetscapeSPKI
+
 
 
 class _PassphraseHelper(object):

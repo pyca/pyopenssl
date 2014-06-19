@@ -6,15 +6,6 @@
 .. py:module:: OpenSSL.crypto
    :synopsis: Generic cryptographic module
 
-.. py:class:: NetscapeSPKI([enc])
-
-    A class representing Netscape SPKI objects.
-
-    If the *enc* argument is present, it should be a base64-encoded string
-    representing a NetscapeSPKI object, as returned by the :py:meth:`b64_encode`
-    method.
-
-
 .. py:class:: CRL()
 
     A class representing Certifcate Revocation List objects.
@@ -258,30 +249,10 @@ X509Extension objects
 NetscapeSPKI objects
 --------------------
 
-NetscapeSPKI objects have the following methods:
-
-.. py:method:: NetscapeSPKI.b64_encode()
-
-    Return a base64-encoded string representation of the object.
-
-.. py:method:: NetscapeSPKI.get_pubkey()
-
-    Return the public key of object.
-
-.. py:method:: NetscapeSPKI.set_pubkey(key)
-
-    Set the public key of the object to *key*.
-
-.. py:method:: NetscapeSPKI.sign(key, digest_name)
-
-    Sign the NetscapeSPKI object using the given *key* and *digest_name*.
-    *digest_name* must be a string describing a digest algorithm supported by
-    OpenSSL (by EVP_get_digestbyname, specifically).  For example,
-    :py:const:`"md5"` or :py:const:`"sha1"`.
-
-.. py:method:: NetscapeSPKI.verify(key)
-
-    Verify the NetscapeSPKI object using the given *key*.
+.. autoclass:: NetscapeSPKI
+               :members:
+               :special-members:
+               :exclude-members: __weakref__
 
 .. _crl:
 
