@@ -1970,6 +1970,9 @@ PKCS7Type = PKCS7
 
 
 class PKCS12(object):
+    """
+    A PKCS #12 archive.
+    """
     def __init__(self):
         self._pkey = None
         self._cert = None
@@ -1979,19 +1982,21 @@ class PKCS12(object):
 
     def get_certificate(self):
         """
-        Return certificate portion of the PKCS12 structure
+        Get the certificate in the PKCS #12 structure.
 
-        :return: X509 object containing the certificate
+        :return: The certificate, or :py:const:`None` if there is none.
+        :rtype: :py:class:`X509` or :py:const:`None`
         """
         return self._cert
 
 
     def set_certificate(self, cert):
         """
-        Replace the certificate portion of the PKCS12 structure
+        Set the certificate in the PKCS #12 structure.
 
-        :param cert: The new certificate.
+        :param cert: The new certificate, or :py:const:`None` to unset it.
         :type cert: :py:class:`X509` or :py:data:`None`
+
         :return: :py:data:`None`
         """
         if not isinstance(cert, X509):
@@ -2001,19 +2006,21 @@ class PKCS12(object):
 
     def get_privatekey(self):
         """
-        Return private key portion of the PKCS12 structure
+        Get the private key in the PKCS #12 structure.
 
-        :returns: PKey object containing the private key
+        :return: The private key, or :py:const:`None` if there is none.
+        :rtype: :py:class:`PKey`
         """
         return self._pkey
 
 
     def set_privatekey(self, pkey):
         """
-        Replace or set the certificate portion of the PKCS12 structure
+        Set the certificate portion of the PKCS #12 structure.
 
-        :param pkey: The new private key.
-        :type pkey: :py:class:`PKey`
+        :param pkey: The new private key, or :py:const:`None` to unset it.
+        :type pkey: :py:class:`PKey` or :py:const:`None`
+
         :return: :py:data:`None`
         """
         if not isinstance(pkey, PKey):
@@ -2023,10 +2030,11 @@ class PKCS12(object):
 
     def get_ca_certificates(self):
         """
-        Return CA certificates within of the PKCS12 object
+        Get the CA certificates in the PKCS #12 structure.
 
-        :return: A newly created tuple containing the CA certificates in the chain,
-                 if any are present, or None if no CA certificates are present.
+        :return: A tuple with the CA certificates in the chain, or
+            :py:const:`None` if there are none.
+        :rtype: :py:class:`tuple` of :py:class:`X509` or :py:const:`None`
         """
         if self._cacerts is not None:
             return tuple(self._cacerts)
@@ -2034,10 +2042,12 @@ class PKCS12(object):
 
     def set_ca_certificates(self, cacerts):
         """
-        Replace or set the CA certificates withing the PKCS12 object.
+        Set the CA certificates in the PKCS #12 structure.
 
-        :param cacerts: The new CA certificates.
-        :type cacerts: :py:data:`None` or an iterable of :py:class:`X509`
+        :param cacerts: The new CA certificates, or :py:const:`None` to unset
+            them.
+        :type cacerts: An iterable of :py:class:`X509` or :py:data:`None`
+
         :return: :py:data:`None`
         """
         if cacerts is None:
@@ -2052,10 +2062,11 @@ class PKCS12(object):
 
     def set_friendlyname(self, name):
         """
-        Replace or set the certificate portion of the PKCS12 structure
+        Set the friendly name in the PKCS #12 structure.
 
-        :param name: The new friendly name.
-        :type name: :py:class:`bytes`
+        :param name: The new friendly name, or :py:const:`None` to unset.
+        :type name: :py:class:`bytes` or :py:data:`None`
+
         :return: :py:data:`None`
         """
         if name is None:
@@ -2067,27 +2078,33 @@ class PKCS12(object):
 
     def get_friendlyname(self):
         """
-        Return friendly name portion of the PKCS12 structure
+        Get the friendly name in the PKCS# 12 structure.
 
-        :returns: String containing the friendlyname
+        :returns: The friendly name,  or :py:data:`None` if there is none.
+        :rtype: :py:class:`bytes` or :py:data:`None`
         """
         return self._friendlyname
 
 
     def export(self, passphrase=None, iter=2048, maciter=1):
         """
-        Dump a PKCS12 object as a string.  See also "man PKCS12_create".
+        Dump a PKCS12 object as a string.
 
-        :param passphrase: used to encrypt the PKCS12
+        For more information, see the :c:func:`PKCS12_create` man page.
+
+        :param passphrase: The passphrase used to encrypt the structure. Unlike
+            some other passphrase arguments, this *must* be a string, not a
+            callback.
         :type passphrase: :py:data:`bytes`
 
-        :param iter: How many times to repeat the encryption
+        :param iter: Number of times to repeat the encryption step.
         :type iter: :py:data:`int`
 
-        :param maciter: How many times to repeat the MAC
+        :param maciter: Number of times to repeat the MAC step.
         :type maciter: :py:data:`int`
 
-        :return: The string containing the PKCS12
+        :return: The string representation of the PKCS #12 structure.
+        :rtype:
         """
         if self._cacerts is None:
             cacerts = _ffi.NULL
@@ -2126,6 +2143,8 @@ class PKCS12(object):
         bio = _new_mem_buf()
         _lib.i2d_PKCS12_bio(bio, pkcs12)
         return _bio_to_string(bio)
+
+
 
 PKCS12Type = PKCS12
 

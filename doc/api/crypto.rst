@@ -240,59 +240,8 @@ PKCS7 objects have the following methods:
 PKCS12 objects
 --------------
 
-PKCS12 objects have the following methods:
-
-.. py:method:: PKCS12.export([passphrase=None][, iter=2048][, maciter=1])
-
-    Returns a PKCS12 object as a string.
-
-    The optional *passphrase* must be a string not a callback.
-
-    See also the man page for the C function :py:func:`PKCS12_create`.
-
-
-.. py:method:: PKCS12.get_ca_certificates()
-
-    Return CA certificates within the PKCS12 object as a tuple. Returns
-    :py:const:`None` if no CA certificates are present.
-
-
-.. py:method:: PKCS12.get_certificate()
-
-    Return certificate portion of the PKCS12 structure.
-
-
-.. py:method:: PKCS12.get_friendlyname()
-
-    Return friendlyName portion of the PKCS12 structure.
-
-
-.. py:method:: PKCS12.get_privatekey()
-
-    Return private key portion of the PKCS12 structure
-
-
-.. py:method:: PKCS12.set_ca_certificates(cacerts)
-
-    Replace or set the CA certificates within the PKCS12 object with the sequence *cacerts*.
-
-    Set *cacerts* to :py:const:`None` to remove all CA certificates.
-
-
-.. py:method:: PKCS12.set_certificate(cert)
-
-    Replace or set the certificate portion of the PKCS12 structure.
-
-
-.. py:method:: PKCS12.set_friendlyname(name)
-
-    Replace or set the friendlyName portion of the PKCS12 structure.
-
-
-.. py:method:: PKCS12.set_privatekey(pkey)
-
-    Replace or set private key portion of the PKCS12 structure
-
+.. autoclass:: PKCS12
+               :members:
 
 .. _openssl-509ext:
 
