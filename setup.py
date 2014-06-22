@@ -11,7 +11,7 @@ Installation script for the OpenSSL module
 from setuptools import setup
 
 # XXX Deduplicate this
-__version__ = '0.14'
+__version__ = '0.15dev'
 
 setup(name='pyOpenSSL', version=__version__,
       packages = ['OpenSSL'],
@@ -34,7 +34,7 @@ setup(name='pyOpenSSL', version=__version__,
       maintainer_email = 'exarkun@twistedmatrix.com',
       url = 'https://github.com/pyca/pyopenssl',
       license = 'APL2',
-      install_requires=["cryptography>=0.4", "six>=1.5.2"],
+      install_requires=["cryptography>=0.5.dev1", "six>=1.5.2"],
       long_description = """\
 High-level wrapper around a subset of the OpenSSL library, includes
  * SSL.Connection objects, wrapping the methods of Python's portable

@@ -906,7 +906,7 @@ class X509NameTests(TestCase):
         self.assertEqual(
             a.der(),
             b('0\x1b1\x0b0\t\x06\x03U\x04\x06\x13\x02US'
-              '1\x0c0\n\x06\x03U\x04\x03\x13\x03foo'))
+              '1\x0c0\n\x06\x03U\x04\x03\x0c\x03foo'))
 
 
     def test_get_components(self):
