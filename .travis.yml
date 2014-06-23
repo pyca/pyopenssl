@@ -34,13 +34,21 @@ matrix:
   - env:
       OPENSSL=0.9.8
 
-before_install:
+install:
+  # In some builds, install the Git master of the cryptography library.
   - |
     if [ -n "$CRYPTOGRAPHY_GIT_MASTER" ]; then
         pip install git+https://github.com/pyca/cryptography.git
     fi
 
-install:
+  # In some builds, install an old version of OpenSSL.
+  - |
+    if [[ "${OPENSSL}" == "0.9.8" ]]; then
+      sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ lucid main"
+      sudo apt-get -y update
+      sudo apt-get install -y --force-yes libssl-dev/lucid
+    fi
+
   # Install the wheel library explicitly here.  It is not really a setup
   # dependency.  It is not an install dependency.  It is only a dependency for
   # the script directive below - because we want to exercise wheel building on
@@ -52,12 +60,6 @@ install:
   - pip install coveralls coverage
 
 script:
-  - |
-    if [[ "${OPENSSL}" == "0.9.8" ]]; then
-      sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ lucid main"
-      sudo apt-get -y update
-      sudo apt-get install -y --force-yes libssl-dev/lucid
-    fi
   - |
     pip install -e .
   - |
