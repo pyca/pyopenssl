@@ -47,7 +47,10 @@ matrix:
       OPENSSL=0.9.8
 
 before_install:
-  - if [ -n "$CRYPTOGRAPHY_GIT_MASTER" ]; then pip install git+https://github.com/pyca/cryptography.git;fi
+  - |
+    if [ -n "$CRYPTOGRAPHY_GIT_MASTER" ]; then
+        pip install git+https://github.com/pyca/cryptography.git
+    fi
 
 install:
   # Install the wheel library explicitly here.  It is not really a setup
