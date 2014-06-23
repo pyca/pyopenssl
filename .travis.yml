@@ -4,42 +4,30 @@ os:
   - linux
 
 env:
-  - TOX_ENV=py26
-  - TOX_ENV=py27
-  - TOX_ENV=py33
-  - TOX_ENV=py34
-  - TOX_ENV=pypy
-  - TOX_ENV=docs
+  matrix:
+    # Supported environments:
+    - TOX_ENV=py26
+    - TOX_ENV=py27
+    - TOX_ENV=py33
+    - TOX_ENV=py34
+    - TOX_ENV=pypy
+
+    # Also run the tests against cryptography master.
+    - TOX_ENV=py26 CRYPTOGRAPHY_GIT_MASTER=true
+    - TOX_ENV=py27 CRYPTOGRAPHY_GIT_MASTER=true
+    - TOX_ENV=py33 CRYPTOGRAPHY_GIT_MASTER=true
+    - TOX_ENV=py34 CRYPTOGRAPHY_GIT_MASTER=true
+    - TOX_ENV=pypy CRYPTOGRAPHY_GIT_MASTER=true
+
+    # Also run at least a little bit against an older version of OpenSSL.
+    - TOX_ENV=py27 OPENSSL=0.9.8
+
+    # Also test packaging metadata.
+    - TOX_ENV=meta
 
 matrix:
-  include:
-  # Also run the tests against cryptography master.
-  - python: "2.6"
-    env:
-      CRYPTOGRAPHY_GIT_MASTER=true
-  - python: "2.7"
-    env:
-      CRYPTOGRAPHY_GIT_MASTER=true
-  - python: "3.2"
-    env:
-      CRYPTOGRAPHY_GIT_MASTER=true
-  - python: "3.3"
-    env:
-      CRYPTOGRAPHY_GIT_MASTER=true
-  - python: "3.4"
-    env:
-      CRYPTOGRAPHY_GIT_MASTER=true
-  - python: "pypy"
-    env:
-      CRYPTOGRAPHY_GIT_MASTER=true
-
-  # Also run at least a little bit against an older version of OpenSSL.
-  - python: "2.7"
-    env:
-      OPENSSL=0.9.8
-
-  # Let the cryptography master builds fail because they might be triggered by
-  # cryptography changes beyond our control.
+  # Let the cryptography master builds fail, because they might be
+  # triggered by cryptography changes beyond our control.
   allow_failures:
   - env:
       CRYPTOGRAPHY_GIT_MASTER=true
