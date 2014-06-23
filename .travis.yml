@@ -22,9 +22,6 @@ env:
     # Also run at least a little bit against an older version of OpenSSL.
     - TOX_ENV=py27 OPENSSL=0.9.8
 
-    # Also test packaging metadata.
-    - TOX_ENV=meta
-
 matrix:
   # Let the cryptography master builds fail, because they might be
   # triggered by cryptography changes beyond our control.
