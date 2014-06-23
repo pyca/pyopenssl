@@ -6,38 +6,35 @@ os:
 env:
   matrix:
     # Supported environments:
+    - TOX_ENV=pypy
     - TOX_ENV=py26
     - TOX_ENV=py27
+    - TOX_ENV=py32
     - TOX_ENV=py33
-    - TOX_ENV=py34
-    - TOX_ENV=pypy
 
     # Also run the tests against cryptography master.
-    - TOX_ENV=py26 CRYPTOGRAPHY_GIT_MASTER=true
-    - TOX_ENV=py27 CRYPTOGRAPHY_GIT_MASTER=true
-    - TOX_ENV=py33 CRYPTOGRAPHY_GIT_MASTER=true
-    - TOX_ENV=py34 CRYPTOGRAPHY_GIT_MASTER=true
-    - TOX_ENV=pypy CRYPTOGRAPHY_GIT_MASTER=true
+    - TOX_ENV=pypy-cryptographymaster
+    - TOX_ENV=py26-cryptographymaster
+    - TOX_ENV=py27-cryptographymaster
+    - TOX_ENV=py32-cryptographymaster
+    - TOX_ENV=py33-cryptographymaster
 
     # Also run at least a little bit against an older version of OpenSSL.
     - TOX_ENV=py27 OPENSSL=0.9.8
 
 matrix:
-  # Let the cryptography master builds fail, because they might be
-  # triggered by cryptography changes beyond our control.
   allow_failures:
-  - env:
-      CRYPTOGRAPHY_GIT_MASTER=true
-  - env:
-      OPENSSL=0.9.8
+    # Let the cryptography master builds fail, because they might be
+    # triggered by cryptography changes beyond our control.
+    - env: TOX_ENV=pypy-cryptographymaster
+    - env: TOX_ENV=py26-cryptographymaster
+    - env: TOX_ENV=py27-cryptographymaster
+    - env: TOX_ENV=py32-cryptographymaster
+    - env: TOX_ENV=py33-cryptographymaster
+
+    - env: OPENSSL=0.9.8
 
 install:
-  # In some builds, install the Git master of the cryptography library.
-  - |
-    if [ -n "$CRYPTOGRAPHY_GIT_MASTER" ]; then
-        pip install git+https://github.com/pyca/cryptography.git
-    fi
-
   # In some builds, install an old version of OpenSSL.
   - |
     if [[ "${OPENSSL}" == "0.9.8" ]]; then
