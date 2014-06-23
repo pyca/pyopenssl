@@ -54,14 +54,7 @@ install:
   - pip install coveralls coverage
 
 script:
-  - |
-    pip install -e .
-  - |
-    coverage run --branch --source=OpenSSL setup.py bdist_wheel test
-  - |
-    coverage report -m
-  - |
-    python -c "import OpenSSL.SSL; print(OpenSSL.SSL.SSLeay_version(OpenSSL.SSL.SSLEAY_VERSION))"
+  - tox -e $TOX_ENV
 
 after_success:
   - coveralls
