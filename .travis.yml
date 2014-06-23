@@ -43,15 +43,7 @@ install:
       sudo apt-get install -y --force-yes libssl-dev/lucid
     fi
 
-  # Install the wheel library explicitly here.  It is not really a setup
-  # dependency.  It is not an install dependency.  It is only a dependency for
-  # the script directive below - because we want to exercise wheel building on
-  # travis.
-  - pip install wheel
-
-  # Also install some tools for measuring code coverage and sending the results
-  # to coveralls.
-  - pip install coveralls coverage
+  - pip install coveralls
 
 script:
   - tox -e $TOX_ENV
