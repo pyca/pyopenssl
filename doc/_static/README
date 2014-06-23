@@ -1,0 +1,9 @@
+This README file is just to populate the _static directory it lives
+in.
+
+This is necessary because:
+
+- Sphinx wants to see the _static directory.
+- Git doesn't want to put empty directories under source control.
+
+Otherwise, this file serves no purpose.
