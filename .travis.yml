@@ -64,7 +64,7 @@ script:
     python -c "import OpenSSL.SSL; print(OpenSSL.SSL.SSLeay_version(OpenSSL.SSL.SSLEAY_VERSION))"
 
 after_success:
-    - coveralls
+  - coveralls
 
 notifications:
   email: false
