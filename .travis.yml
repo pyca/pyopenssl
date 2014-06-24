@@ -43,6 +43,9 @@ install:
       sudo apt-get install -y --force-yes libssl-dev/lucid
     fi
 
+  # Tox actually builds our individual testing virtualenvs.
+  - pip install tox
+
   - pip install coveralls
 
 script:
