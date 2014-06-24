@@ -32,7 +32,7 @@ matrix:
     - env: TOX_ENV=py32-cryptographymaster
     - env: TOX_ENV=py33-cryptographymaster
 
-    - env: OPENSSL=0.9.8
+    - env: TOX_ENV=py27 OPENSSL=0.9.8
 
 install:
   # In some builds, install an old version of OpenSSL.
