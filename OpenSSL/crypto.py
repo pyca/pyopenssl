@@ -690,7 +690,10 @@ class X509Extension(object):
                 value = _native(
                     _ffi.buffer(name.d.ia5.data, name.d.ia5.length)[:])
                 parts.append(label + ":" + value)
-        _lib.GENERAL_NAMES_free(names)
+        if hasattr(_lib.GENERAL_NAMES_free):
+            #hopefully cryptography provides this so we can avoid memory
+            #leaks.
+            _lib.GENERAL_NAMES_free(names)
         return ", ".join(parts)
 
 
