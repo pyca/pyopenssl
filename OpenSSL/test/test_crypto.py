@@ -44,6 +44,46 @@ BAD_CIPHER = "zippers"
 GOOD_DIGEST = "MD5"
 BAD_DIGEST = "monkeys"
 
+BIG_ALT_CERT_PEM = b("""-----BEGIN CERTIFICATE-----
+MIIGuDCCBaCgAwIBAgIGAUdHb05VMA0GCSqGSIb3DQEBDQUAMIGMMQswCQYDVQQG
+EwJVUzEOMAwGA1UECAwFVGV4YXMxEzARBgNVBAcMClNhbkFudG9uaW8xGjAYBgNV
+BAoMEVJhY2tzcGFjZSBIb3N0aW5nMRwwGgYDVQQLDBNDbG91ZCBMb2FkQmFsYW5j
+aW5nMR4wHAYDVQQDDBV3d3cuQ05Gcm9tU3ViamVjdC5vcmcwHhcNMTQwNzE3MDMw
+NjIxWhcNMTQwNzE5MDMwNjIxWjCBjDELMAkGA1UEBhMCVVMxDjAMBgNVBAgMBVRl
+eGFzMRMwEQYDVQQHDApTYW5BbnRvbmlvMRowGAYDVQQKDBFSYWNrc3BhY2UgSG9z
+dGluZzEcMBoGA1UECwwTQ2xvdWQgTG9hZEJhbGFuY2luZzEeMBwGA1UEAwwVd3d3
+LkNORnJvbVN1YmplY3Qub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC
+AQEAz5KXcYzaF1uNIpLM/I3MiBGV4ncF0wGZfShl5FU6V4DGWUomIzg47DUksxF/
+i0nMMoY1oK5zM2CwnowyNeCMTTYFjtiKUTHdOq5Xb0iV5I4gCqRJddjrq5ndRjUv
+OyPZDmnmnFJXbiwdOi1PX/SOh+w3bxNqJW0qJabT/cqW1KwvzyJFlUoNsGAsokk3
+JShl5sHjERAPhCpuEh5KZA/6Ef8+wyeBz33eXYzHdbo9O1zMoB3kGiRmooOE8P4J
+IUCpFqAhIIyUeC9h9scOJLHF9WVHgA1i5xk0da7ReLdb0Il5bSXMbaxsarbRRk4s
+Jvx22lqW+fcIpyfww0RM/N7mEQIDAQABo4IDHDCCAxgwDAYDVR0TAQH/BAIwADAO
+BgNVHQ8BAf8EBAMCA7gwggL2BgNVHREEggLtMIIC6YIZd3d3Lmhvc3RGcm9tX2RO
+U05hbWUxLmNvbYIZd3d3Lmhvc3RGcm9tX2ROU05hbWUyLmNvbYIZd3d3Lmhvc3RG
+cm9tX2ROU05hbWUzLmNvbYEaY2FybG9zLmdhcnphQHJhY2tzcGFjZS5jb22kgZAw
+gY0xCzAJBgNVBAYTAlVTMQ4wDAYDVQQIDAVUZXhhczETMBEGA1UEBwwKU2FuQW50
+b25pbzEaMBgGA1UECgwRUmFja3NwYWNlIEhvc3RpbmcxHDAaBgNVBAsME0Nsb3Vk
+IExvYWRCYWxhbmNpbmcxHzAdBgNVBAMMFnd3dy5jbkZyb21BbHROYW1lMS5vcmek
+gZAwgY0xCzAJBgNVBAYTAlVTMQ4wDAYDVQQIDAVUZXhhczETMBEGA1UEBwwKU2Fu
+QW50b25pbzEaMBgGA1UECgwRUmFja3NwYWNlIEhvc3RpbmcxHDAaBgNVBAsME0Ns
+b3VkIExvYWRCYWxhbmNpbmcxHzAdBgNVBAMMFnd3dy5jbkZyb21BbHROYW1lMi5v
+cmekgZAwgY0xCzAJBgNVBAYTAlVTMQ4wDAYDVQQIDAVUZXhhczETMBEGA1UEBwwK
+U2FuQW50b25pbzEaMBgGA1UECgwRUmFja3NwYWNlIEhvc3RpbmcxHDAaBgNVBAsM
+E0Nsb3VkIExvYWRCYWxhbmNpbmcxHzAdBgNVBAMMFnd3dy5jbkZyb21BbHROYW1l
+My5vcmekgZAwgY0xCzAJBgNVBAYTAlVTMQ4wDAYDVQQIDAVUZXhhczETMBEGA1UE
+BwwKU2FuQW50b25pbzEaMBgGA1UECgwRUmFja3NwYWNlIEhvc3RpbmcxHDAaBgNV
+BAsME0Nsb3VkIExvYWRCYWxhbmNpbmcxHzAdBgNVBAMMFnd3dy5jbkZyb21BbHRO
+YW1lNC5vcmeHBAoBAgOHEAEjRWeJq83v97PVkeaixICGFmh0dHA6Ly93d3cucmFj
+a2V4cC5vcmcwDQYJKoZIhvcNAQENBQADggEBAJ1G0A2ukY9o8nJspZ9goCSSSn30
+RL1Pe1R8IlyNYVvxhlmHcm+FoanmrdpABf7mr9P55dyaQdHOoBLYxU8NtCQ8wld4
+8O1MzwjOGX8c7BXuNy5HMi4ofjlKJN+4+2iQNY+WNxBIBEYWcU/+52ztkE5mIgdR
+JA36JQAO+7VTthKBuIhBarIMJQhtagYlukyHJ0/7EytjPMe2hKEAYTttJdfuX1qg
+nlPA7ojSCCVjOC7X2gBMU4meaJlzic++XDyIoNTW340SWN/yMGEwKUiVQPBslSc/
+glSQGSkOofA+DJaniRg4FVDUNC55dtZFjDZPgLVHgoDBJXYuLJqYWZtkgDM=
+-----END CERTIFICATE-----
+""")
+
 root_cert_pem = b("""-----BEGIN CERTIFICATE-----
 MIIC7TCCAlagAwIBAgIIPQzE4MbeufQwDQYJKoZIhvcNAQEFBQAwWDELMAkGA1UE
 BhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQHEwdDaGljYWdvMRAwDgYDVQQKEwdU
@@ -1567,6 +1607,46 @@ WpOdIpB8KksUTCzV591Nr1wd
               "URI:http://null.python.org\x00http://example.org, "
               "IP Address:192.0.2.1, IP Address:2001:DB8:0:0:0:0:0:1\n"),
             b(str(ext)))
+
+    def test_X509SubjectAltName(self):
+        """
+        test that the get_subject_alt_name() method can split up the
+        list of general names
+        """
+        cert = load_certificate(FILETYPE_PEM, BIG_ALT_CERT_PEM)
+        san = cert.get_subject_alt_name()
+        general_names = san.get_general_names()
+        self.assertEquals(len(general_names), 11)
+        expected_types = ['dNSName', 'dNSName', 'dNSName', 'rfc822Name',
+                          'directoryName', 'directoryName', 'directoryName',
+                          'directoryName', 'iPAddress_IPv4', 'iPAddress_IPv6',
+                          'uniformResourceIdentifier']
+
+        for i in range(0,len(expected_types)):
+            self.assertEquals(general_names[i].type, expected_types[i])
+
+        expected_dNSNames = ['www.hostFrom_dNSName1.com',
+                             'www.hostFrom_dNSName2.com',
+                             'www.hostFrom_dNSName3.com']
+
+        for i in range(0,3):
+            self.assertEquals(general_names[i].value,
+                              expected_dNSNames.pop(0))
+
+        self.assertEquals(general_names[3].type, 'rfc822Name')
+        self.assertEquals(
+            general_names[3].value, 'carlos.garza@rackspace.com')
+
+        expected_cns = [u'www.cnFromAltName1.org', u'www.cnFromAltName2.org',
+                        u'www.cnFromAltName3.org', u'www.cnFromAltName4.org']
+
+        for i in xrange(4,8):
+            self.assertEquals(general_names[i].value.CN, expected_cns.pop(0))
+
+        self.assertEquals(general_names[8].value, "10.1.2.3")
+        self.assertEquals(
+            general_names[9].value, "123:4567:89AB:CDEF:F7B3:D591:E6A2:C480")
+        self.assertEquals(general_names[10].value, "http://www.rackexp.org")
 
 
     def test_invalid_digest_algorithm(self):
