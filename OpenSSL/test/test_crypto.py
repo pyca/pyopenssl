@@ -1613,6 +1613,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         test that the get_subject_alt_name() method can split up the
         list of general names
         """
+
         cert = load_certificate(FILETYPE_PEM, BIG_ALT_CERT_PEM)
         san = cert.get_subject_alt_name()
         general_names = san.get_general_names()
@@ -1629,7 +1630,7 @@ WpOdIpB8KksUTCzV591Nr1wd
                              'www.hostFrom_dNSName2.com',
                              'www.hostFrom_dNSName3.com']
 
-        for i in range(0,3):
+        for i in range(0, 3):
             self.assertEquals(general_names[i].value,
                               expected_dNSNames.pop(0))
 
@@ -1637,10 +1638,10 @@ WpOdIpB8KksUTCzV591Nr1wd
         self.assertEquals(
             general_names[3].value, 'carlos.garza@rackspace.com')
 
-        expected_cns = [u'www.cnFromAltName1.org', u'www.cnFromAltName2.org',
-                        u'www.cnFromAltName3.org', u'www.cnFromAltName4.org']
+        expected_cns = ['www.cnFromAltName1.org', 'www.cnFromAltName2.org',
+                        'www.cnFromAltName3.org', 'www.cnFromAltName4.org']
 
-        for i in xrange(4,8):
+        for i in range(4, 8):
             self.assertEquals(general_names[i].value.CN, expected_cns.pop(0))
 
         self.assertEquals(general_names[8].value, "10.1.2.3")

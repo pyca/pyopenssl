@@ -29,7 +29,7 @@ TYPE_DSA = _lib.EVP_PKEY_DSA
 
 def _ia5_to_pystring(ia5):
     return _ffi.string(_lib.ASN1_STRING_data(
-        _ffi.cast("ASN1_STRING *", ia5)))
+        _ffi.cast("ASN1_STRING *", ia5))).decode("utf-8")
 
 
 class Error(Exception):
