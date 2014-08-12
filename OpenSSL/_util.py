@@ -7,6 +7,8 @@ lib = binding.lib
 
 def exception_from_error_queue(exceptionType):
     def text(charp):
+        if not charp:
+            return ""
         return native(ffi.string(charp))
 
     errors = []
