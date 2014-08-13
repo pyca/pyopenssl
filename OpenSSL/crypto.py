@@ -2351,7 +2351,7 @@ def load_pkcs7_data(type, buffer):
     if type == FILETYPE_PEM:
         pkcs7 = _lib.PEM_read_bio_PKCS7(bio, _ffi.NULL, _ffi.NULL, _ffi.NULL)
     elif type == FILETYPE_ASN1:
-        pass
+        pkcs7 = _lib.d2i_PKCS7_bio(bio, _ffi.NULL)
     else:
         # TODO: This is untested.
         _raise_current_error()
