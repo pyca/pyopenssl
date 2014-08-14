@@ -2593,6 +2593,10 @@ class FunctionTests(TestCase):
 
 
     def test_load_pkcs7_data_asn1(self):
+        """
+        :py:obj:`load_pkcs7_data` accepts a bytes containing ASN1 data
+        representing PKCS#7 and returns an instance of :py:obj`PKCS7Type`.
+        """
         pkcs7 = load_pkcs7_data(FILETYPE_ASN1, pkcs7DataASN1)
         self.assertTrue(isinstance(pkcs7, PKCS7Type))
 
