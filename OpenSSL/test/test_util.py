@@ -4,7 +4,7 @@ from OpenSSL.test.util import TestCase
 
 
 class TestErrors(TestCase):
-    def test_exception_from_error_queue_nonexistant_reason(self):
+    def test_exception_from_error_queue_nonexistent_reason(self):
         """
         :py:func:`exception_from_error_queue` does not raise a ``TypeError``
         when it encounters an OpenSSL error code which does not have a reason
