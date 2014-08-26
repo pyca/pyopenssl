@@ -1,3 +1,8 @@
+2014-08-21  Alex Gaynor  <alex.gaynor@gmail.com>
+
+	* OpenSSL/crypto.py: Fixed a regression where calling ``load_pkcs7_data``
+	  with ``FILETYPE_ASN1`` would fail with a ``NameError.
+
 2014-05-05  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL/SSL.py: Fix a regression in which the first argument of
