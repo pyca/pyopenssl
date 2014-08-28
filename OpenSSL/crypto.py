@@ -25,13 +25,43 @@ TYPE_RSA = _lib.EVP_PKEY_RSA
 TYPE_DSA = _lib.EVP_PKEY_DSA
 
 
+
 class Error(Exception):
     """
     An error occurred in an `OpenSSL.crypto` API.
     """
 
 
+
+def _exception_from_context_error(exception_type, store_ctx):
+    """
+    Convert a :py:func:`OpenSSL.crypto.verify_cert` failure into a Python
+    exception.
+
+    When a call to native OpenSSL X509_verify_cert fails, additonal information
+    about the failure can be contained from the store context.
+    """
+
+    errors = [
+        _lib.X509_STORE_CTX_get_error(store_ctx._store_ctx),
+        _lib.X509_STORE_CTX_get_error_depth(store_ctx._store_ctx),
+        _native(_ffi.string(_lib.X509_verify_cert_error_string(_lib.X509_STORE_CTX_get_error(store_ctx._store_ctx)))),
+    ]
+    _x509 = _lib.X509_STORE_CTX_get_current_cert(store_ctx._store_ctx)
+    if _x509 != _ffi.NULL:
+      _cert = _lib.X509_dup(_x509)
+      pycert = X509.__new__(X509)
+      pycert._x509 = _ffi.gc(_cert, _lib.X509_free)
+    e = exception_type(errors)
+    e.certificate = pycert
+    raise e
+
+
+
 _raise_current_error = partial(_exception_from_error_queue, Error)
+_raise_context_error = partial(_exception_from_context_error, Error)
+
+
 
 def _untested_error(where):
     """
@@ -1357,6 +1387,44 @@ X509StoreType = X509Store
 
 
 
+class X509StoreContext(object):
+    """
+    An X.509 store context.
+
+    A :py:class:`X509StoreContext` is used to verify a certificate in some
+    context in conjunction with :py:func:`verify_cert`. The information
+    encapsulated in this object includes, but is not limited to, a set of
+    trusted certificates, verification parameters and revoked certificates.
+
+    :param store: A :py:class:`X509Store` of trusted certificates.
+    :param cert: An :py:class:`X509` certificate to be validated during a
+      subsequent call to :py:func:`verify_cert`.
+    """
+
+    def __init__(self, store, cert):
+        store_ctx = _lib.X509_STORE_CTX_new()
+        self._store_ctx = _ffi.gc(store_ctx, _lib.X509_STORE_CTX_free)
+        self._store = store
+        self._cert = cert
+
+    def _init(self):
+        """
+        Set up the store context for a subsequent verification operation.
+        """
+        ret = _lib.X509_STORE_CTX_init(self._store_ctx, self._store._store, self._cert._x509, _ffi.NULL)
+        if ret <= 0:
+            _raise_current_error()
+
+    def _cleanup(self):
+        """
+        Internally cleans up the store context.
+
+        The store context can then be reused with a new call to
+        :py:meth:`init`.
+        """
+        _lib.X509_STORE_CTX_cleanup(self._store_ctx)
+
+
 def load_certificate(type, buffer):
     """
     Load a certificate from a buffer
@@ -2303,6 +2371,19 @@ def verify(cert, signature, data, digest):
     if verify_result != 1:
         _raise_current_error()
 
+
+def verify_cert(store_ctx):
+    """
+    Verify a certificate in a context.
+
+    :param store_ctx: The :py:class:`X509StoreContext` to verify.
+    :raises: Error
+    """
+    store_ctx._init()
+    ret = _lib.X509_verify_cert(store_ctx._store_ctx)
+    store_ctx._cleanup()
+    if ret <= 0:
+        _raise_context_error(store_ctx)
 
 
 def load_crl(type, buffer):
