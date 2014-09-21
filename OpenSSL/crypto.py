@@ -1707,7 +1707,7 @@ class CRL(object):
             _raise_current_error()
 
 
-    def export(self, cert, key, type=FILETYPE_PEM, days=100):
+    def export(self, cert, key, type=FILETYPE_PEM, days=100, digest="md5"):
         """
         export a CRL as a string
 
@@ -1721,6 +1721,7 @@ class CRL(object):
 
         :param days: The number of days until the next update of this CRL.
         :type days: :py:data:`int`
+        :param digest: The message digest to use
 
         :return: :py:data:`str`
         """
@@ -1730,6 +1731,10 @@ class CRL(object):
             raise TypeError("key must be a PKey instance")
         if not isinstance(type, int):
             raise TypeError("type must be an integer")
+
+        digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
+        if digest_obj == _ffi.NULL:
+            raise ValueError("No such digest method")
 
         bio = _lib.BIO_new(_lib.BIO_s_mem())
         if bio == _ffi.NULL:
@@ -1750,7 +1755,7 @@ class CRL(object):
 
         _lib.X509_CRL_set_issuer_name(self._crl, _lib.X509_get_subject_name(cert._x509))
 
-        sign_result = _lib.X509_CRL_sign(self._crl, key._pkey, _lib.EVP_md5())
+        sign_result = _lib.X509_CRL_sign(self._crl, key._pkey, digest_obj)
         if not sign_result:
             _raise_current_error()
 
