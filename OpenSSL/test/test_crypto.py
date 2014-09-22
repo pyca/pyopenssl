@@ -2967,10 +2967,6 @@ class CRLTests(TestCase):
         text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
         text.index(b('Signature Algorithm: md5'))
 
-        # test that unknown digest types fail
-        self.assertRaises(
-            ValueError, crl.export, self.cert, self.pkey, digest="strange-digest")
-
 
     def test_export_invalid(self):
         """
@@ -3002,7 +2998,7 @@ class CRLTests(TestCase):
         crl = CRL()
         self.assertRaises(TypeError, crl.export)
         self.assertRaises(TypeError, crl.export, self.cert)
-        self.assertRaises(TypeError, crl.export, self.cert, self.pkey, FILETYPE_PEM, 10, "foo")
+        self.assertRaises(TypeError, crl.export, self.cert, self.pkey, FILETYPE_PEM, 10, "md5", "foo")
 
         self.assertRaises(TypeError, crl.export, None, self.pkey, FILETYPE_PEM, 10)
         self.assertRaises(TypeError, crl.export, self.cert, None, FILETYPE_PEM, 10)
@@ -3018,6 +3014,11 @@ class CRLTests(TestCase):
         """
         crl = CRL()
         self.assertRaises(ValueError, crl.export, self.cert, self.pkey, 100, 10)
+
+
+    def test_export_unknown_digest(self):
+        crl = CRL()
+        self.assertRaises(ValueError, crl.export, self.cert, self.pkey, FILETYPE_PEM, 10, "strange-digest")
 
 
     def test_get_revoked(self):
