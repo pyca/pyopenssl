@@ -2967,6 +2967,10 @@ class CRLTests(TestCase):
         text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
         text.index(b('Signature Algorithm: md5'))
 
+        # test that unknown digest types fail
+        self.assertRaises(
+            ValueError, crl.export, self.cert, self.pkey, digest="strange-digest")
+
 
     def test_export_invalid(self):
         """
