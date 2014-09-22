@@ -2957,6 +2957,16 @@ class CRLTests(TestCase):
         dumped_text = crl.export(self.cert, self.pkey, type=FILETYPE_TEXT)
         self.assertEqual(text, dumped_text)
 
+        # sha1 digest
+        dumped_crl = crl.export(self.cert, self.pkey, digest='sha1')
+        text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
+        text.index(b('Signature Algorithm: sha1'))
+
+        # md5 digest(by default)
+        dumped_crl = crl.export(self.cert, self.pkey)
+        text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
+        text.index(b('Signature Algorithm: md5'))
+
 
     def test_export_invalid(self):
         """
