@@ -1721,7 +1721,9 @@ class CRL(object):
 
         :param days: The number of days until the next update of this CRL.
         :type days: :py:data:`int`
+
         :param digest: The message digest to use
+        :type digest: :py:data:`str`
 
         :return: :py:data:`str`
         """

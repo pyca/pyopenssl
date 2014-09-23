@@ -3017,6 +3017,10 @@ class CRLTests(TestCase):
 
 
     def test_export_unknown_digest(self):
+        """
+        Calling :py:obj:`OpenSSL.CRL.export` with a unsupported digest results
+        in a :py:obj:`ValueError` being raised.
+        """
         crl = CRL()
         self.assertRaises(ValueError, crl.export, self.cert, self.pkey, FILETYPE_PEM, 10, "strange-digest")
 
