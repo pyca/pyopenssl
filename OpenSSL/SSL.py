@@ -993,6 +993,11 @@ class Connection(object):
         """
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
+        if isinstance(buf, unicode):
+	    try:
+	        buf = str(buf)
+	    except:
+                raise TypeError("couldn't convert unicode to byte string")
         if isinstance(buf, _buffer):
             buf = str(buf)
         if not isinstance(buf, bytes):
