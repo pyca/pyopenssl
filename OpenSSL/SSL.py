@@ -997,7 +997,7 @@ class Connection(object):
 	    try:
 	        buf = str(buf)
 	    except:
-                raise TypeError("couldn't convert unicode to byte string")
+                raise TypeError("couldn't convert unicode buf to byte string")
         if isinstance(buf, _buffer):
             buf = str(buf)
         if not isinstance(buf, bytes):
