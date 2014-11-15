@@ -536,7 +536,7 @@ class X509ExtTests(TestCase):
 
     def test_issuer(self):
         """
-        If an extension requires a issuer, the :py:data:`issuer` parameter to
+        If an extension requires an issuer, the :py:data:`issuer` parameter to
         :py:class:`X509Extension` provides its value.
         """
         ext2 = X509Extension(
@@ -1212,7 +1212,7 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
     def test_verify_success(self):
         """
         :py:obj:`X509Req.verify` returns :py:obj:`True` if called with a
-        :py:obj:`OpenSSL.crypto.PKey` which represents the public part ofthe key
+        :py:obj:`OpenSSL.crypto.PKey` which represents the public part of the key
         which signed the request.
         """
         request = X509Req()

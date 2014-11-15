@@ -30,7 +30,7 @@ This is a list of things we need from an OpenSSL module:
        This could of course be done a lot better than the way it works now,
        so more transport layers than sockets are possible!
  + A well-organized error system that mimics OpenSSL's error system is
-   desireable.  Specifically there has to be a way to find out wether the
+   desirable.  Specifically there has to be a way to find out wether the
    operation was successful, or if it failed, why it failed, so some sort
    of interface to OpenSSL's error queue mechanism is needed.
  + Certificate objects (X509) and certificate name objects (X509_NAME) are
