@@ -1,1 +1,1 @@
-make -C doc text ps html
+make -C doc text html
