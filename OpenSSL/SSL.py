@@ -492,6 +492,9 @@ class Context(object):
 
         :return: None (raises an exception if something's wrong)
         """
+        if not _lib.SSL_CTX_check_private_key(self._context):
+            _raise_current_error()
+
 
     def load_client_ca(self, cafile):
         """
