@@ -1,12 +1,17 @@
-2014-12-11  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+2015-01-30  Stephen Holsapple <sholsapp@gmail.com>
 
-	* OpenSSL/SSL.py: Fixed a regression ``Context.check_privatekey``
-	  causing it to always succeed - even if it should fail.
+	* OpenSSL/crypto.py: Expose ``X509StoreContext`` for verifying certificates.
+	* OpenSSL/test/test_crypto.py: Add intermediate certificates for
 
 2015-01-08  Paul Aurich <paul@darkrain42.org>
 
 	* OpenSSL/SSL.py: ``Connection.shutdown`` now propagates errors from the
 	  underlying socket.
+
+2014-12-11  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/SSL.py: Fixed a regression ``Context.check_privatekey``
+	  causing it to always succeed - even if it should fail.
 
 2014-08-21  Alex Gaynor  <alex.gaynor@gmail.com>
 
