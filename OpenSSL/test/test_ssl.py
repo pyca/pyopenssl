@@ -507,6 +507,43 @@ class ContextTests(TestCase, _LoopbackMixin):
             ctx.use_certificate_file(pem_filename, long(FILETYPE_PEM))
 
 
+    def test_check_privatekey_valid(self):
+        """
+        :py:obj:`Context.check_privatekey` returns :py:obj:`None` if the
+        :py:obj:`Context` instance has been configured to use a matched key and
+        certificate pair.
+        """
+        key = load_privatekey(FILETYPE_PEM, client_key_pem)
+        cert = load_certificate(FILETYPE_PEM, client_cert_pem)
+        context = Context(TLSv1_METHOD)
+        context.use_privatekey(key)
+        context.use_certificate(cert)
+        self.assertIs(None, context.check_privatekey())
+
+
+    def test_check_privatekey_invalid(self):
+        """
+        :py:obj:`Context.check_privatekey` raises :py:obj:`Error` if the
+        :py:obj:`Context` instance has been configured to use a key and
+        certificate pair which don't relate to each other.
+        """
+        key = load_privatekey(FILETYPE_PEM, client_key_pem)
+        cert = load_certificate(FILETYPE_PEM, server_cert_pem)
+        context = Context(TLSv1_METHOD)
+        context.use_privatekey(key)
+        context.use_certificate(cert)
+        self.assertRaises(Error, context.check_privatekey)
+
+
+    def test_check_privatekey_wrong_args(self):
+        """
+        :py:obj:`Context.check_privatekey` raises :py:obj:`TypeError` if called
+        with other than no arguments.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.check_privatekey, object())
+
+
     def test_set_app_data_wrong_args(self):
         """
         :py:obj:`Context.set_app_data` raises :py:obj:`TypeError` if called with other than
