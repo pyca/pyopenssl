@@ -176,7 +176,6 @@ class RandTests(TestCase):
         self.assertRaises(TypeError, rand.write_file, None)
         self.assertRaises(TypeError, rand.write_file, "foo", None)
 
-
     def test_files(self):
         """
         Test reading and writing of files via rand functions.
