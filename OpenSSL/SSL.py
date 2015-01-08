@@ -1183,8 +1183,7 @@ class Connection(object):
         """
         result = _lib.SSL_shutdown(self._ssl)
         if result < 0:
-            # TODO: This is untested.
-            _raise_current_error()
+            self._raise_ssl_error(self._ssl, result)
         elif result > 0:
             return True
         else:
