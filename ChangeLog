@@ -1,3 +1,8 @@
+2015-01-08  Paul Aurich <paul@darkrain42.org>
+
+	* OpenSSL/SSL.py: ``Connection.shutdown`` now propagates errors from the
+	  underlying socket.
+
 2014-08-21  Alex Gaynor  <alex.gaynor@gmail.com>
 
 	* OpenSSL/crypto.py: Fixed a regression where calling ``load_pkcs7_data``

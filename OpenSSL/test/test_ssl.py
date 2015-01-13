@@ -1709,6 +1709,20 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertEquals(server.get_shutdown(), SENT_SHUTDOWN|RECEIVED_SHUTDOWN)
 
 
+    def test_shutdown_closed(self):
+        """
+        If the underlying socket is closed, :py:obj:`Connection.shutdown` propagates the
+        write error from the low level write call.
+        """
+        server, client = self._loopback()
+        server.sock_shutdown(2)
+        exc = self.assertRaises(SysCallError, server.shutdown)
+        if platform == "win32":
+            self.assertEqual(exc.args[0], ESHUTDOWN)
+        else:
+            self.assertEqual(exc.args[0], EPIPE)
+
+
     def test_set_shutdown(self):
         """
         :py:obj:`Connection.set_shutdown` sets the state of the SSL connection shutdown
