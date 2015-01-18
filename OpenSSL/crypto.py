@@ -1399,7 +1399,7 @@ class X509StoreContext(object):
 
     :param store: An :py:class:`X509Store` of trusted certificates.
     :param cert: An :py:class:`X509` certificate to be validated during a
-      subsequent call to :py:func:`verify_cert`.
+        subsequent call to :py:func:`verify_cert`.
     """
 
     def __init__(self, store, cert):
