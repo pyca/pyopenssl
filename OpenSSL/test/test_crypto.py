@@ -3186,8 +3186,8 @@ class VerifyCertTests(TestCase):
 
     def test_valid(self):
         """
-        :py:obj:`verify_cert` does nothing when called with a certificate and
-        valid chain.
+        :py:obj:`verify_cert` returns ``None`` when called with a certificate
+        and valid chain.
         """
         store = X509Store()
         store.add_cert(self.root_cert)
@@ -3198,7 +3198,8 @@ class VerifyCertTests(TestCase):
 
     def test_reuse(self):
         """
-        :py:obj:`verify_cert` can be called multiple times.
+        :py:obj:`verify_cert` can be called multiple times with the same
+        ``X509StoreContext`` instance to produce the same result.
         """
         store = X509Store()
         store.add_cert(self.root_cert)
@@ -3210,7 +3211,7 @@ class VerifyCertTests(TestCase):
 
     def test_trusted_self_signed(self):
         """
-        :py:obj:`verify_cert` does nothign when called with a self-signed
+        :py:obj:`verify_cert` returns ``None`` when called with a self-signed
         certificate and itself in the chain.
         """
         store = X509Store()
@@ -3226,12 +3227,9 @@ class VerifyCertTests(TestCase):
         """
         store = X509Store()
         store_ctx = X509StoreContext(store, self.root_cert)
-        try:
-            verify_cert(store_ctx)
-            self.assertTrue(False)
-        except Error as e:
-            self.assertTrue('self signed certificate' in str(e))
-            self.assertEqual(e.certificate.get_subject().CN, 'Testing Root CA')
+        e = self.assertRaises(Error, verify_cert, store_ctx)
+        self.assertIn('self signed certificate', str(e))
+        self.assertEqual(e.certificate.get_subject().CN, 'Testing Root CA')
 
 
     def test_invalid_chain_no_root(self):
@@ -3242,11 +3240,9 @@ class VerifyCertTests(TestCase):
         store = X509Store()
         store.add_cert(self.intermediate_cert)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        try:
-            verify_cert(store_ctx)
-        except Error as e:
-            self.assertTrue('unable to get issuer certificate' in str(e))
-            self.assertEqual(e.certificate.get_subject().CN, 'intermediate')
+        e = self.assertRaises(Error, verify_cert, store_ctx)
+        self.assertIn('unable to get issuer certificate', str(e))
+        self.assertEqual(e.certificate.get_subject().CN, 'intermediate')
 
 
     def test_invalid_chain_no_intermediate(self):
@@ -3257,11 +3253,9 @@ class VerifyCertTests(TestCase):
         store = X509Store()
         store.add_cert(self.root_cert)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        try:
-            verify_cert(store_ctx)
-        except Error as e:
-            self.assertTrue('unable to get local issuer certificate' in str(e))
-            self.assertEqual(e.certificate.get_subject().CN, 'intermediate-service')
+        e = self.assertRaises(Error, verify_cert, store_ctx)
+        self.assertIn('unable to get local issuer certificate', str(e))
+        self.assertEqual(e.certificate.get_subject().CN, 'intermediate-service')
 
 
 
