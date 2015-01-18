@@ -1392,10 +1392,12 @@ class X509StoreContext(object):
     """
     An X.509 store context.
 
-    An :py:class:`X509StoreContext` is used to verify a certificate in some
-    context in conjunction with :py:func:`verify_cert`. The information
-    encapsulated in this object includes, but is not limited to, a set of
-    trusted certificates, verification parameters and revoked certificates.
+    An :py:class:`X509StoreContext` is used to define some of the criteria for
+    certificate verification.  The information encapsulated in this object
+    includes, but is not limited to, a set of trusted certificates,
+    verification parameters, and revoked certificates.
+
+    Of these, only the set of trusted certificates is currently exposed.
 
     :ivar _store_ctx: The underlying X509_STORE_CTX structure used by this
         instance.  It is dynamically allocated and automatically garbage
