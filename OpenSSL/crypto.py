@@ -45,7 +45,8 @@ def _exception_from_context_error(exception_type, store_ctx):
     errors = [
         _lib.X509_STORE_CTX_get_error(store_ctx._store_ctx),
         _lib.X509_STORE_CTX_get_error_depth(store_ctx._store_ctx),
-        _native(_ffi.string(_lib.X509_verify_cert_error_string(_lib.X509_STORE_CTX_get_error(store_ctx._store_ctx)))),
+        _native(_ffi.string(_lib.X509_verify_cert_error_string(
+                    _lib.X509_STORE_CTX_get_error(store_ctx._store_ctx)))),
     ]
     _x509 = _lib.X509_STORE_CTX_get_current_cert(store_ctx._store_ctx)
     if _x509 != _ffi.NULL:
