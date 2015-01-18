@@ -1897,7 +1897,7 @@ class PKCS12(object):
 
     def set_ca_certificates(self, cacerts):
         """
-        Replace or set the CA certificates withing the PKCS12 object.
+        Replace or set the CA certificates within the PKCS12 object.
 
         :param cacerts: The new CA certificates.
         :type cacerts: :py:data:`None` or an iterable of :py:class:`X509`
