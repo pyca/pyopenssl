@@ -3227,7 +3227,7 @@ class VerifyCertTests(TestCase):
         store = X509Store()
         store_ctx = X509StoreContext(store, self.root_cert)
         e = self.assertRaises(Error, verify_cert, store_ctx)
-        self.assertIn('self signed certificate', str(e))
+        self.assertEqual(e.args[0][2], 'self signed certificate')
         self.assertEqual(e.certificate.get_subject().CN, 'Testing Root CA')
 
 
@@ -3240,7 +3240,7 @@ class VerifyCertTests(TestCase):
         store.add_cert(self.intermediate_cert)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
         e = self.assertRaises(Error, verify_cert, store_ctx)
-        self.assertIn('unable to get issuer certificate', str(e))
+        self.assertEqual(e.args[0][2], 'unable to get issuer certificate')
         self.assertEqual(e.certificate.get_subject().CN, 'intermediate')
 
 
@@ -3253,7 +3253,7 @@ class VerifyCertTests(TestCase):
         store.add_cert(self.root_cert)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
         e = self.assertRaises(Error, verify_cert, store_ctx)
-        self.assertIn('unable to get local issuer certificate', str(e))
+        self.assertEqual(e.args[0][2], 'unable to get local issuer certificate')
         self.assertEqual(e.certificate.get_subject().CN, 'intermediate-service')
 
 
