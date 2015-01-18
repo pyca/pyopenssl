@@ -1397,16 +1397,27 @@ class X509StoreContext(object):
     encapsulated in this object includes, but is not limited to, a set of
     trusted certificates, verification parameters and revoked certificates.
 
-    :param store: An :py:class:`X509Store` of trusted certificates.
-    :param cert: An :py:class:`X509` certificate to be validated during a
-        subsequent call to :py:func:`verify_cert`.
+    :ivar _store_ctx: The underlying X509_STORE_CTX structure used by this
+        instance.  It is dynamically allocated and automatically garbage
+        collected.
+
+    :ivar _store: See the ``store`` `__init__`` parameter.
+
+    :ivar _cert: See the ``certificate`` `__init__`` parameter.
     """
 
-    def __init__(self, store, cert):
+    def __init__(self, store, certificate):
+        """
+        :param X509Store store: The certificates which will be trusted for the
+            purposes of any verifications.
+
+        :param X509 certificate: The certificate to be verified.
+        """
         store_ctx = _lib.X509_STORE_CTX_new()
         self._store_ctx = _ffi.gc(store_ctx, _lib.X509_STORE_CTX_free)
         self._store = store
-        self._cert = cert
+        self._cert = certificate
+
 
     def _init(self):
         """
@@ -1416,6 +1427,7 @@ class X509StoreContext(object):
         if ret <= 0:
             _raise_current_error()
 
+
     def _cleanup(self):
         """
         Internally cleans up the store context.
@@ -1424,6 +1436,7 @@ class X509StoreContext(object):
         :py:meth:`init`.
         """
         _lib.X509_STORE_CTX_cleanup(self._store_ctx)
+
 
 
 def load_certificate(type, buffer):
