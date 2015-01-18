@@ -10,7 +10,6 @@ from unittest import main
 import base64
 import os
 import re
-import sys
 from subprocess import PIPE, Popen
 from datetime import datetime, timedelta
 
