@@ -39,7 +39,7 @@ def _exception_from_context_error(exception_type, store_ctx):
     exception.
 
     When a call to native OpenSSL X509_verify_cert fails, additonal information
-    about the failure can be contained from the store context.
+    about the failure can be obtained from the store context.
     """
 
     errors = [
