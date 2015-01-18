@@ -1392,12 +1392,12 @@ class X509StoreContext(object):
     """
     An X.509 store context.
 
-    A :py:class:`X509StoreContext` is used to verify a certificate in some
+    An :py:class:`X509StoreContext` is used to verify a certificate in some
     context in conjunction with :py:func:`verify_cert`. The information
     encapsulated in this object includes, but is not limited to, a set of
     trusted certificates, verification parameters and revoked certificates.
 
-    :param store: A :py:class:`X509Store` of trusted certificates.
+    :param store: An :py:class:`X509Store` of trusted certificates.
     :param cert: An :py:class:`X509` certificate to be validated during a
       subsequent call to :py:func:`verify_cert`.
     """
