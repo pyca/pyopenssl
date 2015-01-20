@@ -31,13 +31,6 @@ declares the following:
     This is a wrapper for the C function :py:func:`RAND_cleanup`.
 
 
-.. py:function:: egd(path[, bytes])
-
-    Query the `Entropy Gathering Daemon <http://www.lothar.com/tech/crypto/>`_ on
-    socket *path* for *bytes* bytes of random data and uses :py:func:`add` to
-    seed the PRNG. The default value of *bytes* is 255.
-
-
 .. py:function:: load_file(path[, bytes])
 
     Read *bytes* bytes (or all of it, if *bytes* is negative) of data from the
