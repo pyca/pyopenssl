@@ -93,29 +93,6 @@ def status():
 
 
 
-def egd(path, bytes=_unspecified):
-    """
-    Query an entropy gathering daemon (EGD) for random data and add it to the
-    PRNG. I haven't found any problems when the socket is missing, the function
-    just returns 0.
-
-    :param path: The path to the EGD socket
-    :param bytes: (optional) The number of bytes to read, default is 255
-    :returns: The number of bytes read (NB: a value of 0 isn't necessarily an
-              error, check rand.status())
-    """
-    if not isinstance(path, _builtin_bytes):
-        raise TypeError("path must be a byte string")
-
-    if bytes is _unspecified:
-        bytes = 255
-    elif not isinstance(bytes, int):
-        raise TypeError("bytes must be an integer")
-
-    return _lib.RAND_egd_bytes(path, bytes)
-
-
-
 def cleanup():
     """
     Erase the memory used by the PRNG.

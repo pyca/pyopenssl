@@ -103,43 +103,6 @@ class RandTests(TestCase):
         self.assertTrue(rand.status() in (1, 2))
 
 
-    def test_egd_wrong_args(self):
-        """
-        :py:obj:`OpenSSL.rand.egd` raises :py:obj:`TypeError` when called with the wrong
-        number of arguments or with arguments not of type :py:obj:`str` and :py:obj:`int`.
-        """
-        self.assertRaises(TypeError, rand.egd)
-        self.assertRaises(TypeError, rand.egd, None)
-        self.assertRaises(TypeError, rand.egd, "foo", None)
-        self.assertRaises(TypeError, rand.egd, None, 3)
-        self.assertRaises(TypeError, rand.egd, "foo", 3, None)
-
-
-    def test_egd_missing(self):
-        """
-        :py:obj:`OpenSSL.rand.egd` returns :py:obj:`0` or :py:obj:`-1` if the
-        EGD socket passed to it does not exist.
-        """
-        result = rand.egd(self.mktemp())
-        expected = (-1, 0)
-        self.assertTrue(
-            result in expected,
-            "%r not in %r" % (result, expected))
-
-
-    def test_egd_missing_and_bytes(self):
-        """
-        :py:obj:`OpenSSL.rand.egd` returns :py:obj:`0` or :py:obj:`-1` if the
-        EGD socket passed to it does not exist even if a size argument is
-        explicitly passed.
-        """
-        result = rand.egd(self.mktemp(), 1024)
-        expected = (-1, 0)
-        self.assertTrue(
-            result in expected,
-            "%r not in %r" % (result, expected))
-
-
     def test_cleanup_wrong_args(self):
         """
         :py:obj:`OpenSSL.rand.cleanup` raises :py:obj:`TypeError` when called with any
