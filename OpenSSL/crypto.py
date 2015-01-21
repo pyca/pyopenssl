@@ -18,11 +18,18 @@ from OpenSSL._util import (
 FILETYPE_PEM = _lib.SSL_FILETYPE_PEM
 FILETYPE_ASN1 = _lib.SSL_FILETYPE_ASN1
 
+NID_subject_alt_name = _lib.NID_subject_alt_name
+
 # TODO This was an API mistake.  OpenSSL has no such constant.
 FILETYPE_TEXT = 2 ** 16 - 1
 
 TYPE_RSA = _lib.EVP_PKEY_RSA
 TYPE_DSA = _lib.EVP_PKEY_DSA
+
+
+def _ia5_to_pystring(ia5):
+    return _ffi.string(_lib.ASN1_STRING_data(
+        _ffi.cast("ASN1_STRING *", ia5))).decode("utf-8")
 
 
 class Error(Exception):
@@ -740,8 +747,142 @@ class X509Extension(object):
         char_result = _lib.ASN1_STRING_data(string_result)
         result_length = _lib.ASN1_STRING_length(string_result)
         return _ffi.buffer(char_result, result_length)[:]
-
 X509ExtensionType = X509Extension
+
+
+class X509GeneralName(object):
+    def __init__(self, gn_type, gn_value):
+        self.type = gn_type
+        self.value = gn_value
+
+    def get_type(self):
+        return self.type
+
+    def get_value(self):
+        return self.value
+
+    def __str__(self):
+        return "(%s, %s)" % (self.type.__str__(), self.value.__str__())
+
+    def __repr__(self):
+        return "<GeneralName (%s,%s)>" % (
+            self.type.__repr__(), self.value.__repr__())
+
+
+class X509AltName(object):
+    def __init__(self, x509, nid):
+        """
+        Retrieve the AltName extension if it exists.
+
+        :param x509:X509 instance to fetch the AltName extension from
+        :param nid: May be either NID_subject_alt_nam for getting the
+        subject alt name extension. In the future we can use
+        NID_issuer_alt_name when the hazmat project exposes it.
+        """
+        self._x509 = x509
+        self._ext = None
+        n_exts = x509.get_extension_count()
+        for i in range(0, n_exts):
+            ext = x509.get_extension(i)
+            if ext._nid == nid:
+                self._ext = ext
+                break
+
+    def get_general_names(self):
+        """
+        Returns a list of the general names contained in this extenion
+        """
+        if self._ext:
+            #Ancher the _names_ptr to the destructor GENERAL_NAMES_free
+            names_ptr = _ffi.gc(
+                _lib.X509V3_EXT_d2i(self._ext._extension),
+                _lib.GENERAL_NAMES_free)
+
+            general_names = _ffi.cast("GENERAL_NAMES *",
+                                      names_ptr)
+            n_names = _lib.sk_GENERAL_NAME_num(general_names)
+            names = []
+            for i in range(0, n_names):
+                general_name = _lib.sk_GENERAL_NAME_value(general_names, i)
+
+                if general_name.type == _lib.GEN_OTHERNAME:
+                    gn_type = 'otherName'
+                    gn_value = 'UNSUPPORTED_VALUE'
+                    names.append(X509GeneralName(gn_type, gn_value))
+
+                elif general_name.type == _lib.GEN_EMAIL:
+                    gn_type = 'rfc822Name'
+                    gn_value = _ia5_to_pystring(general_name.d.ia5)
+                    names.append(X509GeneralName(gn_type, gn_value))
+
+                elif general_name.type == _lib.GEN_X400:
+                    gn_type = 'x400Address'
+                    gn_value = 'UNSUPPORTED_VALUE'
+                    names.append(X509GeneralName(gn_type, gn_value))
+
+                elif general_name.type ==_lib.GEN_DNS:
+                    gn_type = 'dNSName'
+                    gn_value = _ia5_to_pystring(general_name.d.ia5)
+                    names.append(X509GeneralName(gn_type, gn_value))
+
+                elif general_name.type == _lib.GEN_URI:
+                    gn_type = 'uniformResourceIdentifier'
+                    gn_value = _ia5_to_pystring(general_name.d.ia5)
+                    names.append(X509GeneralName(gn_type, gn_value))
+
+                elif general_name.type == _lib.GEN_DIRNAME:
+                    name = X509Name.__new__(X509Name)
+                    name._name = _ffi.gc(_lib.X509_NAME_dup(
+                        general_name.d.directoryName), _lib.X509_NAME_free)
+                    gn_type = 'directoryName'
+                    gn_value = name
+                    names.append(X509GeneralName(gn_type, gn_value))
+
+                elif general_name.type == _lib.GEN_EDIPARTY:
+                    gn_type = 'ediPartyName'
+                    gn_value = 'UNSUPPORTED_TYPE'
+                    names.append(X509GeneralName(gn_type, gn_value))
+
+                elif general_name.type == _lib.GEN_IPADD:
+                    gn_type = None
+                    gn_value = None
+                    if general_name.d.ip.length == 4:
+                        gn_type = "iPAddress_IPv4"
+                        d = general_name.d.iPAddress.data
+                        gn_value = "%s.%s.%s.%s" % (d[0], d[1], d[2], d[3])
+                    elif general_name.d.ip.length == 16:
+                        gn_type = "iPAddress_IPv6"
+                        d = general_name.d.iPAddress.data
+                        ipv6 = []
+                        for j in range(0, 16, 2):
+                            ipv6.append("%x" % ((d[j] << 8) | d[j+1]))
+                        gn_value = ":".join(ipv6).upper()
+
+                    if gn_type is not None and gn_value is not None:
+                        names.append(X509GeneralName(gn_type, gn_value))
+                    else:
+                        names.append(X509GeneralName("iPAddress_?", "UNKNOWN"))
+
+                elif general_name.type == _lib.GEN_RID:
+                    gn_type = 'registeredID'
+                    gn_value = 'UNSUPPORTED_VALUE'
+                    names.append(X509GeneralName(gn_type, gn_value))
+
+                else:
+                    gn_type = "UNSUPPORTED_TYPE"
+                    gn_value = "UNSUPPORTED_VALUE"
+                    names.append(X509GeneralName(gn_type,gn_value))
+            return names
+
+
+class X509SubjectAltName(X509AltName):
+    def __init__(self, x509):
+        """
+        :param x509: The X509 instance that will be searched for the
+        subject alt name extension
+        """
+        super(X509SubjectAltName, self).__init__(
+            x509, NID_subject_alt_name)
 
 
 class X509Req(object):
@@ -1333,6 +1474,9 @@ class X509(object):
         extension = _lib.X509_EXTENSION_dup(ext._extension)
         ext._extension = _ffi.gc(extension, _lib.X509_EXTENSION_free)
         return ext
+
+    def get_subject_alt_name(self):
+        return X509SubjectAltName(self)
 
 X509Type = X509
 
