@@ -17,7 +17,7 @@ from six import u, b, binary_type
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
-from OpenSSL.crypto import X509Store, X509StoreType, X509StoreContext
+from OpenSSL.crypto import X509Store, X509StoreType, X509StoreContext, X509StoreContextError
 from OpenSSL.crypto import X509Req, X509ReqType
 from OpenSSL.crypto import X509Extension, X509ExtensionType
 from OpenSSL.crypto import load_certificate, load_privatekey
@@ -29,7 +29,7 @@ from OpenSSL.crypto import PKCS12, PKCS12Type, load_pkcs12
 from OpenSSL.crypto import CRL, Revoked, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.crypto import (
-    sign, verify, verify_cert, get_elliptic_curve, get_elliptic_curves)
+    sign, verify, get_elliptic_curve, get_elliptic_curves)
 from OpenSSL.test.util import EqualityTestsMixin, TestCase
 from OpenSSL._util import native, lib
 
@@ -3175,9 +3175,9 @@ class CRLTests(TestCase):
 
 
 
-class VerifyCertTests(TestCase):
+class X509StoreContextTests(TestCase):
     """
-    Tests for :py:obj:`OpenSSL.crypto.verify_cert`.
+    Tests for :py:obj:`OpenSSL.crypto.X509StoreContext`.
     """
     root_cert = load_certificate(FILETYPE_PEM, root_cert_pem)
     intermediate_cert = load_certificate(FILETYPE_PEM, intermediate_cert_pem)
@@ -3185,74 +3185,74 @@ class VerifyCertTests(TestCase):
 
     def test_valid(self):
         """
-        :py:obj:`verify_cert` returns ``None`` when called with a certificate
+        :py:obj:`verify_certificate` returns ``None`` when called with a certificate
         and valid chain.
         """
         store = X509Store()
         store.add_cert(self.root_cert)
         store.add_cert(self.intermediate_cert)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        self.assertEqual(verify_cert(store_ctx), None)
+        self.assertEqual(store_ctx.verify_certificate(), None)
 
 
     def test_reuse(self):
         """
-        :py:obj:`verify_cert` can be called multiple times with the same
+        :py:obj:`verify_certificate` can be called multiple times with the same
         ``X509StoreContext`` instance to produce the same result.
         """
         store = X509Store()
         store.add_cert(self.root_cert)
         store.add_cert(self.intermediate_cert)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        self.assertEqual(verify_cert(store_ctx), None)
-        self.assertEqual(verify_cert(store_ctx), None)
+        self.assertEqual(store_ctx.verify_certificate(), None)
+        self.assertEqual(store_ctx.verify_certificate(), None)
 
 
     def test_trusted_self_signed(self):
         """
-        :py:obj:`verify_cert` returns ``None`` when called with a self-signed
+        :py:obj:`verify_certificate` returns ``None`` when called with a self-signed
         certificate and itself in the chain.
         """
         store = X509Store()
         store.add_cert(self.root_cert)
         store_ctx = X509StoreContext(store, self.root_cert)
-        self.assertEqual(verify_cert(store_ctx), None)
+        self.assertEqual(store_ctx.verify_certificate(), None)
 
 
     def test_untrusted_self_signed(self):
         """
-        :py:obj:`verify_cert` raises error when a self-signed certificate is
+        :py:obj:`verify_certificate` raises error when a self-signed certificate is
         verified without itself in the chain.
         """
         store = X509Store()
         store_ctx = X509StoreContext(store, self.root_cert)
-        e = self.assertRaises(Error, verify_cert, store_ctx)
+        e = self.assertRaises(X509StoreContextError, store_ctx.verify_certificate)
         self.assertEqual(e.args[0][2], 'self signed certificate')
         self.assertEqual(e.certificate.get_subject().CN, 'Testing Root CA')
 
 
     def test_invalid_chain_no_root(self):
         """
-        :py:obj:`verify_cert` raises error when a root certificate is missing
+        :py:obj:`verify_certificate` raises error when a root certificate is missing
         from the chain.
         """
         store = X509Store()
         store.add_cert(self.intermediate_cert)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        e = self.assertRaises(Error, verify_cert, store_ctx)
+        e = self.assertRaises(X509StoreContextError, store_ctx.verify_certificate)
         self.assertEqual(e.args[0][2], 'unable to get issuer certificate')
         self.assertEqual(e.certificate.get_subject().CN, 'intermediate')
 
 
     def test_invalid_chain_no_intermediate(self):
         """
-        :py:obj:`verify_cert` raises error when an intermediate certificate is
+        :py:obj:`verify_certificate` raises error when an intermediate certificate is
         missing from the chain.
         """
         store = X509Store()
         store.add_cert(self.root_cert)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        e = self.assertRaises(Error, verify_cert, store_ctx)
+        e = self.assertRaises(X509StoreContextError, store_ctx.verify_certificate)
         self.assertEqual(e.args[0][2], 'unable to get local issuer certificate')
         self.assertEqual(e.certificate.get_subject().CN, 'intermediate-service')
 

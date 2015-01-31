@@ -32,35 +32,7 @@ class Error(Exception):
     """
 
 
-
-def _exception_from_context_error(exception_type, store_ctx):
-    """
-    Convert a :py:func:`OpenSSL.crypto.verify_cert` failure into a Python
-    exception.
-
-    When a call to native OpenSSL X509_verify_cert fails, additonal information
-    about the failure can be obtained from the store context.
-    """
-
-    errors = [
-        _lib.X509_STORE_CTX_get_error(store_ctx._store_ctx),
-        _lib.X509_STORE_CTX_get_error_depth(store_ctx._store_ctx),
-        _native(_ffi.string(_lib.X509_verify_cert_error_string(
-                    _lib.X509_STORE_CTX_get_error(store_ctx._store_ctx)))),
-    ]
-    _x509 = _lib.X509_STORE_CTX_get_current_cert(store_ctx._store_ctx)
-    if _x509 != _ffi.NULL:
-      _cert = _lib.X509_dup(_x509)
-      pycert = X509.__new__(X509)
-      pycert._x509 = _ffi.gc(_cert, _lib.X509_free)
-    e = exception_type(errors)
-    e.certificate = pycert
-    raise e
-
-
-
 _raise_current_error = partial(_exception_from_error_queue, Error)
-_raise_context_error = partial(_exception_from_context_error, Error)
 
 
 
@@ -1387,6 +1359,19 @@ class X509Store(object):
 X509StoreType = X509Store
 
 
+class X509StoreContextError(Exception):
+    """
+    An error occurred while verifying a certificate using
+        `OpenSSL.X509StoreContext.verify_certificate`.
+
+    :param certificate: The certificate which caused verificate failure.
+    :type cert: :class:`X509`
+
+    """
+    def __init__(self, message, certificate):
+        super(X509StoreContextError, self).__init__(message)
+        self.certificate = certificate
+
 
 class X509StoreContext(object):
     """
@@ -1438,6 +1423,42 @@ class X509StoreContext(object):
         :py:meth:`init`.
         """
         _lib.X509_STORE_CTX_cleanup(self._store_ctx)
+
+
+    def _exception_from_context(self):
+        """
+        Convert an OpenSSL native context error failure into a Python
+        exception.
+
+        When a call to native OpenSSL X509_verify_cert fails, additonal information
+        about the failure can be obtained from the store context.
+        """
+        errors = [
+            _lib.X509_STORE_CTX_get_error(self._store_ctx),
+            _lib.X509_STORE_CTX_get_error_depth(self._store_ctx),
+            _native(_ffi.string(_lib.X509_verify_cert_error_string(
+                        _lib.X509_STORE_CTX_get_error(self._store_ctx)))),
+        ]
+        _x509 = _lib.X509_STORE_CTX_get_current_cert(self._store_ctx)
+        if _x509 != _ffi.NULL:
+          _cert = _lib.X509_dup(_x509)
+          pycert = X509.__new__(X509)
+          pycert._x509 = _ffi.gc(_cert, _lib.X509_free)
+        return X509StoreContextError(errors, pycert)
+
+
+    def verify_certificate(self):
+        """
+        Verify a certificate in a context.
+
+        :param store_ctx: The :py:class:`X509StoreContext` to verify.
+        :raises: Error
+        """
+        self._init()
+        ret = _lib.X509_verify_cert(self._store_ctx)
+        self._cleanup()
+        if ret <= 0:
+            raise self._exception_from_context()
 
 
 
@@ -2386,20 +2407,6 @@ def verify(cert, signature, data, digest):
 
     if verify_result != 1:
         _raise_current_error()
-
-
-def verify_cert(store_ctx):
-    """
-    Verify a certificate in a context.
-
-    :param store_ctx: The :py:class:`X509StoreContext` to verify.
-    :raises: Error
-    """
-    store_ctx._init()
-    ret = _lib.X509_verify_cert(store_ctx._store_ctx)
-    store_ctx._cleanup()
-    if ret <= 0:
-        _raise_context_error(store_ctx)
 
 
 def load_crl(type, buffer):

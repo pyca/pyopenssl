@@ -240,18 +240,6 @@
     .. versionadded:: 0.11
 
 
-.. py:function:: verify_cert(store_ctx)
-
-    Verify a certificate in a context.
-
-    A :py:class:`X509StoreContext` is used to verify a certificate in some
-    context in conjunction with :py:func:`verify_cert`. The information
-    encapsulated in this object includes, but is not limited to, a set of
-    trusted certificates, verification parameters and revoked certificates.
-
-    .. versionadded:: 0.15
-
-
 .. _openssl-x509:
 
 X509 objects
@@ -546,6 +534,22 @@ The X509Store object has currently just one method:
 .. py:method:: X509Store.add_cert(cert)
 
     Add the certificate *cert* to the certificate store.
+
+
+X509StoreContext objects
+------------------------
+
+The X509StoreContext object is used for verifying a certificate against a set
+of trusted certificates.
+
+
+.. py:method:: X509StoreContext.verify_certificate()
+
+    Verify a certificate in the context of this initialized `X509StoreContext`.
+    On error, raises `X509StoreContextError`, otherwise does nothing.
+
+    .. versionadded:: 0.15
+
 
 
 .. _openssl-pkey:
