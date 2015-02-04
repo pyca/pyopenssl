@@ -1952,6 +1952,12 @@ class PKCS12(object):
 
         :return: The string containing the PKCS12
         """
+
+        # Backward compatibility
+        if isinstance(passphrase, _text_type):
+            DeprecationWarning("str object in passphrase is no longer accepted, use bytes")
+            passphrase = passphrase.encode('utf-8')
+
         if self._cacerts is None:
             cacerts = _ffi.NULL
         else:
@@ -2249,6 +2255,12 @@ def sign(pkey, data, digest):
     :param digest: message digest to use
     :return: signature
     """
+
+    # Backward compatibility
+    if isinstance(data, _text_type):
+        DeprecationWarning("str object in passphrase is no longer accepted, use bytes")
+        data = data.encode('utf-8')
+
     digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
     if digest_obj == _ffi.NULL:
         raise ValueError("No such digest method")
@@ -2283,6 +2295,12 @@ def verify(cert, signature, data, digest):
     :param digest: message digest to use
     :return: None if the signature is correct, raise exception otherwise
     """
+
+    # Backward compatibility
+    if isinstance(data, _text_type):
+        DeprecationWarning("str object in passphrase is no longer accepted, use bytes")
+        data = data.encode('utf-8')
+
     digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
     if digest_obj == _ffi.NULL:
         raise ValueError("No such digest method")
@@ -2374,6 +2392,12 @@ def load_pkcs12(buffer, passphrase=None):
     :param passphrase: (Optional) The password to decrypt the PKCS12 lump
     :returns: The PKCS12 object
     """
+
+    # Backward compatibility
+    if isinstance(passphrase, _text_type):
+        DeprecationWarning("str object in passphrase is no longer accepted, use bytes")
+        passphrase = passphrase.encode('utf-8')
+
     if isinstance(buffer, _text_type):
         buffer = buffer.encode("ascii")
 

@@ -310,6 +310,12 @@ class Context(object):
         :param capath: In which directory we can find the certificates
         :return: None
         """
+
+        # Backward compatibility
+        if isinstance(cafile, _text_type):
+            DeprecationWarning("str object in cafile is no longer accepted, use bytes")
+            cafile = cafile.encode('utf-8')
+
         if cafile is None:
             cafile = _ffi.NULL
         elif not isinstance(cafile, bytes):
@@ -970,6 +976,12 @@ class Connection(object):
                       API, the value is ignored
         :return: The number of bytes written
         """
+
+        # Backward compatibility
+        if isinstance(buf, _text_type):
+            DeprecationWarning("str object in buf is no longer accepted, use bytes")
+            buf = buf.encode('utf-8')
+
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
         if isinstance(buf, _buffer):
@@ -994,6 +1006,12 @@ class Connection(object):
                       API, the value is ignored
         :return: The number of bytes written
         """
+
+        # Backward compatibility
+        if isinstance(buf, _text_type):
+            DeprecationWarning("str object in buf is no longer accepted, use bytes")
+            buf = buf.encode('utf-8')
+
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
         if isinstance(buf, _buffer):
@@ -1079,6 +1097,12 @@ class Connection(object):
         :param buf: The string to put into the memory BIO.
         :return: The number of bytes written
         """
+
+        # Backward compatibility
+        if isinstance(buf, _text_type):
+            DeprecationWarning("str object in buf is no longer accepted, use bytes")
+            buf = buf.encode("ascii")
+
         if self._into_ssl is None:
             raise TypeError("Connection sock was not None")
 
