@@ -1439,11 +1439,12 @@ class X509StoreContext(object):
             _native(_ffi.string(_lib.X509_verify_cert_error_string(
                         _lib.X509_STORE_CTX_get_error(self._store_ctx)))),
         ]
+        # A context error should always be associated with a certificate, so we
+        # expect this call to never return :class:`None`.
         _x509 = _lib.X509_STORE_CTX_get_current_cert(self._store_ctx)
-        if _x509 != _ffi.NULL:
-          _cert = _lib.X509_dup(_x509)
-          pycert = X509.__new__(X509)
-          pycert._x509 = _ffi.gc(_cert, _lib.X509_free)
+        _cert = _lib.X509_dup(_x509)
+        pycert = X509.__new__(X509)
+        pycert._x509 = _ffi.gc(_cert, _lib.X509_free)
         return X509StoreContextError(errors, pycert)
 
 
