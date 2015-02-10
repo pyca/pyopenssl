@@ -536,6 +536,18 @@ The X509Store object has currently just one method:
     Add the certificate *cert* to the certificate store.
 
 
+X509StoreContextError objects
+-----------------------------
+
+The X509StoreContextError is an exception raised from
+`X509StoreContext.verify_certificate` in circumstances where a certificate
+cannot be verified in a provided context.
+
+The exception objects have a :py:class:`basestring` ``message`` attribute which
+contains error messages and :py:class:`X509` ``certificate`` attribute by which
+they indicate where the verification error was detected.
+
+
 X509StoreContext objects
 ------------------------
 
