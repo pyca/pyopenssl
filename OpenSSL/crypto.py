@@ -1404,6 +1404,10 @@ class X509StoreContext(object):
         self._store_ctx = _ffi.gc(store_ctx, _lib.X509_STORE_CTX_free)
         self._store = store
         self._cert = certificate
+        # Make the store context available for use after instantiating this
+        # class by initializing it now. Per testing, subsequent calls to
+        # :py:meth:`_init` have no adverse affect.
+        self._init()
 
 
     def _init(self):
@@ -1420,7 +1424,7 @@ class X509StoreContext(object):
         Internally cleans up the store context.
 
         The store context can then be reused with a new call to
-        :py:meth:`init`.
+        :py:meth:`_init`.
         """
         _lib.X509_STORE_CTX_cleanup(self._store_ctx)
 
@@ -1448,6 +1452,16 @@ class X509StoreContext(object):
         return X509StoreContextError(errors, pycert)
 
 
+    def set_store(self, store):
+        """
+        Set the context's trust store.
+
+        :param X509Store store: The certificates which will be trusted for the
+            purposes of any *future* verifications.
+        """
+        self._store = store
+
+
     def verify_certificate(self):
         """
         Verify a certificate in a context.
@@ -1455,6 +1469,8 @@ class X509StoreContext(object):
         :param store_ctx: The :py:class:`X509StoreContext` to verify.
         :raises: Error
         """
+        # Always re-initialize the store context in case
+        # :py:meth:`verify_certificate` is called multiple times.
         self._init()
         ret = _lib.X509_verify_cert(self._store_ctx)
         self._cleanup()

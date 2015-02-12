@@ -3257,6 +3257,24 @@ class X509StoreContextTests(TestCase):
         self.assertEqual(e.certificate.get_subject().CN, 'intermediate-service')
 
 
+    def test_modification_pre_verify(self):
+        """
+        :py:obj:`verify_certificate` can use a store context modified after
+        instantiation.
+        """
+        store_bad = X509Store()
+        store_bad.add_cert(self.intermediate_cert)
+        store_good = X509Store()
+        store_good.add_cert(self.root_cert)
+        store_good.add_cert(self.intermediate_cert)
+        store_ctx = X509StoreContext(store_bad, self.intermediate_server_cert)
+        e = self.assertRaises(X509StoreContextError, store_ctx.verify_certificate)
+        self.assertEqual(e.args[0][2], 'unable to get issuer certificate')
+        self.assertEqual(e.certificate.get_subject().CN, 'intermediate')
+        store_ctx.set_store(store_good)
+        self.assertEqual(store_ctx.verify_certificate(), None)
+
+
 
 class SignVerifyTests(TestCase):
     """
