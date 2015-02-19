@@ -18,7 +18,7 @@ from six import u, b, binary_type, PY3
 from warnings import simplefilter
 from warnings import catch_warnings
 
-from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
+from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, TYPE_EC, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
 from OpenSSL.crypto import X509Store, X509StoreType, X509StoreContext, X509StoreContextError
 from OpenSSL.crypto import X509Req, X509ReqType
@@ -702,6 +702,12 @@ class PKeyTests(TestCase):
         self.assertRaises(ValueError, key.generate_key, TYPE_RSA, -1)
         self.assertRaises(ValueError, key.generate_key, TYPE_RSA, 0)
 
+        # Skip tests when EC is not available in OpenSSL
+        if lib.Cryptography_HAS_EC:
+            self.assertRaises(TypeError, key.generate_key, TYPE_EC, 1)
+            self.assertRaises(TypeError, key.generate_key, TYPE_EC, 'secp384r1')
+            self.assertRaises(TypeError, key.generate_key, TYPE_EC, 'invalid curve')
+
         # XXX RSA generation for small values of bits is fairly buggy in a wide
         # range of OpenSSL versions.  I need to figure out what the safe lower
         # bound for a reasonable number of OpenSSL versions is and explicitly
@@ -748,6 +754,20 @@ class PKeyTests(TestCase):
         # self.assertEqual(key.bits(), bits)
         # self.assertRaises(TypeError, key.check)
 
+    def test_ecGeneration(self):
+        """
+        :py:meth:`PKey.generate_key` generates a EC key when passed
+        :py:type:`_EllipticCurve` as a curve.
+        """
+        key = PKey()
+
+        if lib.Cryptography_HAS_EC:
+            curve = get_elliptic_curve('secp384r1')
+            key.generate_key(TYPE_EC, curve)
+            self.assertEqual(key.type(), TYPE_EC)
+            self.assertEqual(key.bits(), 384)
+            self.assertRaises(TypeError, key.check)
+
 
     def test_regeneration(self):
         """
@@ -759,6 +779,14 @@ class PKeyTests(TestCase):
              key.generate_key(type, bits)
              self.assertEqual(key.type(), type)
              self.assertEqual(key.bits(), bits)
+
+        curves = [get_elliptic_curve(x) for x in ('secp112r1', 'secp384r1',
+                                                  'secp521r1')]
+        for curve in curves:
+            key.generate_key(TYPE_EC, curve)
+            self.assertEqual(key.type(), TYPE_EC)
+            bits = int(curve.name[-5:-2])
+            self.assertEqual(key.bits(), bits)
 
 
     def test_inconsistentKey(self):

@@ -1,3 +1,9 @@
+2015-02-19  Jeff Tang  <mrjeffang@gmail.com>
+
+	* OpenSSL/crypto.py: Add support for TYPE_EC to ``PKey``
+	* OpenSSL/test/test_crypto.py: Add tests for the new TYPE_EC PKey
+	  support.
+
 2015-04-15  Paul Kehrer <paul.l.kehrer@gmail.com>
 
 	* OpenSSL/crypto.py, OpenSSL/test/test_crypto.py: Switch to utf8string
