@@ -2234,7 +2234,7 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         self.assertEqual(output_buffer, bytearray(b('xy\x00\x00\x00')))
 
 
-    def test_buffer_no_length(self):
+    def test_bytearray_no_length(self):
         """
         :py:obj:`Connection.recv_into` can be passed a ``bytearray`` instance
         and data in the receive buffer is written to it.
@@ -2257,7 +2257,7 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         )
 
 
-    def test_buffer_respects_length(self):
+    def test_bytearray_respects_length(self):
         """
         When called with a ``bytearray`` instance,
         :py:obj:`Connection.recv_into` respects the ``nbytes`` parameter and
@@ -2282,7 +2282,7 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         self.assertEqual(b('fghij'), rest)
 
 
-    def test_buffer_doesnt_overfill(self):
+    def test_bytearray_doesnt_overfill(self):
         """
         When called with a ``bytearray`` instance,
         :py:obj:`Connection.recv_into` respects the size of the array and
@@ -2306,7 +2306,7 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         self.assertEqual(b('fghij'), rest)
 
 
-    def test_buffer_really_doesnt_overfill(self):
+    def test_bytearray_really_doesnt_overfill(self):
         """
         When called with a ``bytearray`` instance and an ``nbytes`` value that
         is too large, :py:obj:`Connection.recv_into` respects the size of the
