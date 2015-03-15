@@ -2315,8 +2315,9 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
 
         def test_memoryview_doesnt_overfill(self):
             """
-            Test that :py:obj:`Connection.recv_into` doesn't overfill a
-            memoryview.
+            When called with a ``memoryview`` instance,
+            :py:obj:`Connection.recv_into` respects the size of the array and
+            doesn't write more bytes into it than will fit.
             """
             self._doesnt_overfill_test(memoryview(bytearray(5)))
 
