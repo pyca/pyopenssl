@@ -1362,9 +1362,9 @@ X509StoreType = X509Store
 class X509StoreContextError(Exception):
     """
     An error occurred while verifying a certificate using
-        `OpenSSL.X509StoreContext.verify_certificate`.
+    `OpenSSL.X509StoreContext.verify_certificate`.
 
-    :param certificate: The certificate which caused verificate failure.
+    :ivar certificate: The certificate which caused verificate failure.
     :type cert: :class:`X509`
 
     """
