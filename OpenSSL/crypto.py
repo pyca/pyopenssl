@@ -1588,6 +1588,40 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
     return _bio_to_string(bio)
 
 
+def dump_publickey(type, pkey):
+    """
+    Dump a public key to a buffer
+
+    :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1, or
+        FILETYPE_TEXT)
+    :param pkey: The PKey to dump
+    :return: The buffer with the dumped key in
+    :rtype: :py:data:`str`
+    """
+    bio = _new_mem_buf()
+    rsa = _lib.EVP_PKEY_get1_RSA(pkey._pkey)
+
+    if type == FILETYPE_PEM:
+        result_code = _lib.PEM_write_bio_RSAPublicKey(bio, rsa)
+    elif type == FILETYPE_ASN1:
+        buf = _ffi.new("unsigned char **")
+        result_code = _lib.i2d_RSA_PUBKEY(rsa, buf)
+        pk = _ffi.buffer(buf[0], result_code)[:]
+        _ffi.gc(buf[0], _lib.OPENSSL_free)
+        return pk
+    elif type == FILETYPE_TEXT:
+        result_code = _lib.RSA_print(bio, rsa, 0)
+        # TODO RSA_free(rsa)?
+    else:
+        raise ValueError(
+            "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or "
+            "FILETYPE_TEXT")
+
+    if result_code == 0:
+        _raise_current_error()
+
+    return _bio_to_string(bio)
+
 
 def _X509_REVOKED_dup(original):
     copy = _lib.X509_REVOKED_new()
