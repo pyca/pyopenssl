@@ -1388,9 +1388,9 @@ class X509StoreContext(object):
         instance.  It is dynamically allocated and automatically garbage
         collected.
 
-    :ivar _store: See the ``store`` `__init__`` parameter.
+    :ivar _store: See the ``store`` ``__init__`` parameter.
 
-    :ivar _cert: See the ``certificate`` `__init__`` parameter.
+    :ivar _cert: See the ``certificate`` ``__init__`` parameter.
     """
 
     def __init__(self, store, certificate):
