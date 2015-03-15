@@ -543,9 +543,11 @@ The X509StoreContextError is an exception raised from
 `X509StoreContext.verify_certificate` in circumstances where a certificate
 cannot be verified in a provided context.
 
-The exception objects have a :py:class:`basestring` ``message`` attribute which
-contains error messages and :py:class:`X509` ``certificate`` attribute by which
-they indicate where the verification error was detected.
+The certificate for which the verification error was detected is given by the
+``certificate`` attribute of the exception instance as a :class:`X509`
+instance.
+
+Details about the verification error are given in the exception's ``args`` attribute.
 
 
 X509StoreContext objects
