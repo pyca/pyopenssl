@@ -507,6 +507,43 @@ class ContextTests(TestCase, _LoopbackMixin):
             ctx.use_certificate_file(pem_filename, long(FILETYPE_PEM))
 
 
+    def test_check_privatekey_valid(self):
+        """
+        :py:obj:`Context.check_privatekey` returns :py:obj:`None` if the
+        :py:obj:`Context` instance has been configured to use a matched key and
+        certificate pair.
+        """
+        key = load_privatekey(FILETYPE_PEM, client_key_pem)
+        cert = load_certificate(FILETYPE_PEM, client_cert_pem)
+        context = Context(TLSv1_METHOD)
+        context.use_privatekey(key)
+        context.use_certificate(cert)
+        self.assertIs(None, context.check_privatekey())
+
+
+    def test_check_privatekey_invalid(self):
+        """
+        :py:obj:`Context.check_privatekey` raises :py:obj:`Error` if the
+        :py:obj:`Context` instance has been configured to use a key and
+        certificate pair which don't relate to each other.
+        """
+        key = load_privatekey(FILETYPE_PEM, client_key_pem)
+        cert = load_certificate(FILETYPE_PEM, server_cert_pem)
+        context = Context(TLSv1_METHOD)
+        context.use_privatekey(key)
+        context.use_certificate(cert)
+        self.assertRaises(Error, context.check_privatekey)
+
+
+    def test_check_privatekey_wrong_args(self):
+        """
+        :py:obj:`Context.check_privatekey` raises :py:obj:`TypeError` if called
+        with other than no arguments.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.check_privatekey, object())
+
+
     def test_set_app_data_wrong_args(self):
         """
         :py:obj:`Context.set_app_data` raises :py:obj:`TypeError` if called with other than
@@ -938,8 +975,8 @@ class ContextTests(TestCase, _LoopbackMixin):
             # in a unit test is bad, but it's the only way I can think of to
             # really test this. -exarkun
 
-            # Arg, verisign.com doesn't speak TLSv1
-            context = Context(SSLv3_METHOD)
+            # Arg, verisign.com doesn't speak anything newer than TLS 1.0
+            context = Context(TLSv1_METHOD)
             context.set_default_verify_paths()
             context.set_verify(
                 VERIFY_PEER,
@@ -1707,6 +1744,20 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertEquals(client.get_shutdown(), SENT_SHUTDOWN|RECEIVED_SHUTDOWN)
         self.assertRaises(ZeroReturnError, server.recv, 1024)
         self.assertEquals(server.get_shutdown(), SENT_SHUTDOWN|RECEIVED_SHUTDOWN)
+
+
+    def test_shutdown_closed(self):
+        """
+        If the underlying socket is closed, :py:obj:`Connection.shutdown` propagates the
+        write error from the low level write call.
+        """
+        server, client = self._loopback()
+        server.sock_shutdown(2)
+        exc = self.assertRaises(SysCallError, server.shutdown)
+        if platform == "win32":
+            self.assertEqual(exc.args[0], ESHUTDOWN)
+        else:
+            self.assertEqual(exc.args[0], EPIPE)
 
 
     def test_set_shutdown(self):

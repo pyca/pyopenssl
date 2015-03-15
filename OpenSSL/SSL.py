@@ -492,6 +492,9 @@ class Context(object):
 
         :return: None (raises an exception if something's wrong)
         """
+        if not _lib.SSL_CTX_check_private_key(self._context):
+            _raise_current_error()
+
 
     def load_client_ca(self, cafile):
         """
@@ -1183,8 +1186,7 @@ class Connection(object):
         """
         result = _lib.SSL_shutdown(self._ssl)
         if result < 0:
-            # TODO: This is untested.
-            _raise_current_error()
+            self._raise_ssl_error(self._ssl, result)
         elif result > 0:
             return True
         else:
