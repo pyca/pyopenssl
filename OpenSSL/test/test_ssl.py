@@ -13,6 +13,7 @@ from os import makedirs
 from os.path import join
 from unittest import main
 from weakref import ref
+from time import sleep
 
 from six import PY3, text_type, u
 
@@ -1032,6 +1033,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         for i in range(3):
             for s in [client, server]:
                 try:
+                    sleep(0.05)
                     s.do_handshake()
                 except WantReadError:
                     pass
