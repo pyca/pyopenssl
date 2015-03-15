@@ -2222,6 +2222,11 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
     Tests for :py:obj:`Connection.recv_into`
     """
     def _no_length_test(self, output_buffer):
+        """
+        Assert that when the given buffer is passed to
+        ``Connection.recv_into``, whatever bytes are available to be received
+        that fit into that buffer are written into that buffer.
+        """
         server, client = self._loopback()
         server.send(b('xy'))
 
@@ -2231,8 +2236,8 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
 
     def test_buffer_no_length(self):
         """
-        Test that :py:obj:`Connection.recv_into` can be safely passed an object
-        using the buffer protocol.
+        :py:obj:`Connection.recv_into` can be passed a ``bytearray`` instance
+        and data in the receive buffer is written to it.
         """
         self._no_length_test(bytearray(5))
 
@@ -2270,8 +2275,8 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
     else:
         def test_memoryview_no_length(self):
             """
-            Test that :py:obj:`Connection.recv_into` can be safely passed a
-            memoryview.
+            :py:obj:`Connection.recv_into` can be passed a ``memoryview``
+            instance and data in the receive buffer is written to it.
             """
             self._no_length_test(memoryview(bytearray(5)))
 
