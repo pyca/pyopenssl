@@ -2230,8 +2230,8 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         server, client = self._loopback()
         server.send(b('xy'))
 
-        self.assertEquals(client.recv_into(output_buffer), 2)
-        self.assertEquals(output_buffer, bytearray(b('xy\x00\x00\x00')))
+        self.assertEqual(client.recv_into(output_buffer), 2)
+        self.assertEqual(output_buffer, bytearray(b('xy\x00\x00\x00')))
 
 
     def test_buffer_no_length(self):
@@ -2251,8 +2251,8 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         server, client = self._loopback()
         server.send(b('abcdefghij'))
 
-        self.assertEquals(client.recv_into(output_buffer, 5), 5)
-        self.assertEquals(
+        self.assertEqual(client.recv_into(output_buffer, 5), 5)
+        self.assertEqual(
             output_buffer, bytearray(b('abcde\x00\x00\x00\x00\x00'))
         )
 
@@ -2276,8 +2276,8 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         server, client = self._loopback()
         server.send(b('abcdefghij'))
 
-        self.assertEquals(client.recv_into(output_buffer), 5)
-        self.assertEquals(output_buffer, bytearray(b('abcde')))
+        self.assertEqual(client.recv_into(output_buffer), 5)
+        self.assertEqual(output_buffer, bytearray(b('abcde')))
         rest = client.recv(5)
         self.assertEqual(b('fghij'), rest)
 
