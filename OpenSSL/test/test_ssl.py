@@ -2242,17 +2242,28 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         self._no_length_test(bytearray(5))
 
 
-    def test_recv_into_respects_length(self):
+    def _respects_length_test(self, output_buffer):
         """
-        Test that :py:obj:`Connection.recv_into` respects the nbytes
-        parameter and doesn't copy more than that number of bytes in.
+        Assert that when the given buffer is passed to ``Connection.recv_into``
+        along with a value for ``nbytes`` that is less than the size of that
+        buffer, only ``nbytes`` bytes are written into the buffer.
         """
         server, client = self._loopback()
         server.send(b('abcdefghij'))
-        buffer = bytearray(10)
 
-        self.assertEquals(client.recv_into(buffer, 5), 5)
-        self.assertEquals(buffer, bytearray(b('abcde\x00\x00\x00\x00\x00')))
+        self.assertEquals(client.recv_into(output_buffer, 5), 5)
+        self.assertEquals(
+            output_buffer, bytearray(b('abcde\x00\x00\x00\x00\x00'))
+        )
+
+
+    def test_buffer_respects_length(self):
+        """
+        When called with a ``bytearray`` instance,
+        :py:obj:`Connection.recv_into` respects the ``nbytes`` parameter and
+        doesn't copy in more than that number of bytes.
+        """
+        self._respects_length_test(bytearray(10))
 
 
     def test_recv_into_doesnt_overfill(self):
@@ -2281,19 +2292,13 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
             self._no_length_test(memoryview(bytearray(5)))
 
 
-        def test_recv_into_memoryview_respects_length(self):
+        def test_memoryview_respects_length(self):
             """
-            Test that :py:obj:`Connection.recv_into` respects the nbytes
-            parameter and doesn't copy more than that number of bytes in.
+            When called with a ``memoryview`` instance,
+            :py:obj:`Connection.recv_into` respects the ``nbytes`` parameter
+            and doesn't copy more than that number of bytes in.
             """
-            server, client = self._loopback()
-            server.send(b('abcdefghij'))
-            buffer = bytearray(10)
-            mv = memoryview(buffer)
-
-            self.assertEquals(client.recv_into(mv, 5), 5)
-            self.assertEquals(buffer,
-                              bytearray(b('abcde\x00\x00\x00\x00\x00')))
+            self._respects_length_test(memoryview(bytearray(10)))
 
 
         def test_recv_into_memoryview_doesnt_overfill(self):
