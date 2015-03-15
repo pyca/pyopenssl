@@ -2291,6 +2291,31 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         self._doesnt_overfill_test(bytearray(5))
 
 
+    def _really_doesnt_overfill_test(self, output_buffer):
+        """
+        Assert that if the value given by ``nbytes`` is greater than the actual
+        size of the output buffer passed to :py:obj:`Connection.recv_into`, the
+        behavior is as if no value was given for ``nbytes`` at all.
+        """
+        server, client = self._loopback()
+        server.send(b('abcdefghij'))
+
+        self.assertEqual(client.recv_into(output_buffer, 50), 5)
+        self.assertEqual(output_buffer, bytearray(b('abcde')))
+        rest = client.recv(5)
+        self.assertEqual(b('fghij'), rest)
+
+
+    def test_buffer_really_doesnt_overfill(self):
+        """
+        When called with a ``bytearray`` instance and an ``nbytes`` value that
+        is too large, :py:obj:`Connection.recv_into` respects the size of the
+        array and not the ``nbytes`` value and doesn't write more bytes into
+        the buffer than will fit.
+        """
+        self._doesnt_overfill_test(bytearray(5))
+
+
     try:
         memoryview
     except NameError:
@@ -2318,6 +2343,16 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
             When called with a ``memoryview`` instance,
             :py:obj:`Connection.recv_into` respects the size of the array and
             doesn't write more bytes into it than will fit.
+            """
+            self._doesnt_overfill_test(memoryview(bytearray(5)))
+
+
+        def test_memoryview_really_doesnt_overfill(self):
+            """
+            When called with a ``memoryview`` instance and an ``nbytes`` value
+            that is too large, :py:obj:`Connection.recv_into` respects the size
+            of the array and not the ``nbytes`` value and doesn't write more
+            bytes into the buffer than will fit.
             """
             self._doesnt_overfill_test(memoryview(bytearray(5)))
 
