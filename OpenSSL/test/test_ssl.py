@@ -2221,17 +2221,20 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
     """
     Tests for :py:obj:`Connection.recv_into`
     """
-    def test_recv_into_no_length(self):
+    def _no_length_test(self, output_buffer):
+        server, client = self._loopback()
+        server.send(b('xy'))
+
+        self.assertEquals(client.recv_into(output_buffer), 2)
+        self.assertEquals(output_buffer, bytearray(b('xy\x00\x00\x00')))
+
+
+    def test_buffer_no_length(self):
         """
         Test that :py:obj:`Connection.recv_into` can be safely passed an object
         using the buffer protocol.
         """
-        server, client = self._loopback()
-        server.send(b('xy'))
-        buffer = bytearray(5)
-
-        self.assertEquals(client.recv_into(buffer), 2)
-        self.assertEquals(buffer, bytearray(b('xy\x00\x00\x00')))
+        self._no_length_test(bytearray(5))
 
 
     def test_recv_into_respects_length(self):
@@ -2265,18 +2268,12 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
     except NameError:
         "cannot test recv_into memoryview without memoryview"
     else:
-        def test_recv_into_memoryview_no_length(self):
+        def test_memoryview_no_length(self):
             """
             Test that :py:obj:`Connection.recv_into` can be safely passed a
             memoryview.
             """
-            server, client = self._loopback()
-            server.send(b('xy'))
-            buffer = bytearray(5)
-            mv = memoryview(buffer)
-
-            self.assertEquals(client.recv_into(mv), 2)
-            self.assertEquals(buffer, bytearray(b('xy\x00\x00\x00')))
+            self._no_length_test(memoryview(bytearray(5)))
 
 
         def test_recv_into_memoryview_respects_length(self):
