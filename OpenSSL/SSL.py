@@ -130,6 +130,19 @@ SSL_CB_CONNECT_EXIT = _lib.SSL_CB_CONNECT_EXIT
 SSL_CB_HANDSHAKE_START = _lib.SSL_CB_HANDSHAKE_START
 SSL_CB_HANDSHAKE_DONE = _lib.SSL_CB_HANDSHAKE_DONE
 
+SSL_MODE_ENABLE_PARTIAL_WRITE = _lib.SSL_MODE_ENABLE_PARTIAL_WRITE
+SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER = _lib.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
+SSL_MODE_AUTO_RETRY = _lib.SSL_MODE_AUTO_RETRY
+try:
+    SSL_MODE_RELEASE_BUFFERS = _lib.SSL_MODE_RELEASE_BUFFERS
+except AttributeError:
+    pass
+try:
+    SSL_MODE_SEND_FALLBACK_SCSV = _lib.SSL_MODE_SEND_FALLBACK_SCSV
+except AttributeError:
+    pass
+
+
 class Error(Exception):
     """
     An error occurred in an `OpenSSL.SSL` API.
@@ -298,7 +311,7 @@ class Context(object):
         # SSL_CTX_set_mode(self->ctx, SSL_MODE_ENABLE_PARTIAL_WRITE |
         #                             SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER |
         #                             SSL_MODE_AUTO_RETRY);
-        self.set_mode(_lib.SSL_MODE_ENABLE_PARTIAL_WRITE)
+        self.set_mode(SSL_MODE_ENABLE_PARTIAL_WRITE)
 
 
     def load_verify_locations(self, cafile, capath=None):
