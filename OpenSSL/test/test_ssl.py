@@ -2266,17 +2266,29 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         self._respects_length_test(bytearray(10))
 
 
-    def test_recv_into_doesnt_overfill(self):
+    def _doesnt_overfill_test(self, output_buffer):
         """
-        Test that :py:obj:`Connection.recv_into` doesn't overfill an object
-        implementing the buffer protocol.
+        Assert that if there are more bytes available to be read from the
+        receive buffer than would fit into the buffer passed to
+        :py:obj:`Connection.recv_into`, only as many as fit are written into
+        it.
         """
         server, client = self._loopback()
         server.send(b('abcdefghij'))
-        buffer = bytearray(5)
 
-        self.assertEquals(client.recv_into(buffer), 5)
-        self.assertEquals(buffer, bytearray(b('abcde')))
+        self.assertEquals(client.recv_into(output_buffer), 5)
+        self.assertEquals(output_buffer, bytearray(b('abcde')))
+        rest = client.recv(5)
+        self.assertEqual(b('fghij'), rest)
+
+
+    def test_buffer_doesnt_overfill(self):
+        """
+        When called with a ``bytearray`` instance,
+        :py:obj:`Connection.recv_into` respects the size of the array and
+        doesn't write more bytes into it than will fit.
+        """
+        self._doesnt_overfill_test(bytearray(5))
 
 
     try:
@@ -2301,18 +2313,12 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
             self._respects_length_test(memoryview(bytearray(10)))
 
 
-        def test_recv_into_memoryview_doesnt_overfill(self):
+        def test_memoryview_doesnt_overfill(self):
             """
             Test that :py:obj:`Connection.recv_into` doesn't overfill a
             memoryview.
             """
-            server, client = self._loopback()
-            server.send(b('abcdefghij'))
-            buffer = bytearray(5)
-            mv = memoryview(buffer)
-
-            self.assertEquals(client.recv_into(mv), 5)
-            self.assertEquals(buffer, bytearray(b('abcde')))
+            self._doesnt_overfill_test(memoryview(bytearray(5)))
 
 
 
