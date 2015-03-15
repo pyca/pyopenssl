@@ -1,3 +1,9 @@
+2015-03-15  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/SSL.py: Add ``Connection.recv_into``, mirroring the
+	  builtin ``socket.recv_into``.  Based on work from Cory Benfield.
+	* OpenSSL/test/test_ssl.py: Add tests for ``recv_into``.
+
 2015-01-30  Stephen Holsapple <sholsapp@gmail.com>
 
 	* OpenSSL/crypto.py: Expose ``X509StoreContext`` for verifying certificates.
