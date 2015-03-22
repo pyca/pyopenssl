@@ -176,7 +176,7 @@ class _CallbackExceptionHelper(object):
         return value.  The exceptions are saved to be raised later when it is
         possible to do so.
     """
-    def __init__(self, callback):
+    def __init__(self):
         self._problems = []
 
 
