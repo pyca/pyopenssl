@@ -171,7 +171,8 @@ class _CallbackExceptionHelper(object):
     handling in OpenSSL callbacks.
     """
     def __init__(self, callback):
-        pass
+        self._problems = []
+
 
     def raise_if_problem(self):
         if self._problems:
@@ -184,7 +185,7 @@ class _CallbackExceptionHelper(object):
 
 class _VerifyHelper(_CallbackExceptionHelper):
     def __init__(self, callback):
-        self._problems = []
+        _CallbackExceptionHelper.__init__(self)
 
         @wraps(callback)
         def wrapper(ok, store_ctx):
@@ -215,7 +216,7 @@ class _VerifyHelper(_CallbackExceptionHelper):
 
 class _NpnAdvertiseHelper(_CallbackExceptionHelper):
     def __init__(self, callback):
-        self._problems = []
+        _CallbackExceptionHelper.__init__(self)
 
         @wraps(callback)
         def wrapper(ssl, out, outlen, arg):
@@ -252,7 +253,7 @@ class _NpnAdvertiseHelper(_CallbackExceptionHelper):
 
 class _NpnSelectHelper(_CallbackExceptionHelper):
     def __init__(self, callback):
-        self._problems = []
+        _CallbackExceptionHelper.__init__(self)
 
         @wraps(callback)
         def wrapper(ssl, out, outlen, in_, inlen, arg):
