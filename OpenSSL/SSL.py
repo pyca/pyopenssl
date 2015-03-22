@@ -169,12 +169,22 @@ class _CallbackExceptionHelper(object):
     """
     A base class for wrapper classes that allow for intelligent exception
     handling in OpenSSL callbacks.
+
+    :ivar list _problems: Any exceptions that occurred while executing in a
+        context where they could not be raised in the normal way.  Typically
+        this is because OpenSSL has called into some Python code and requires a
+        return value.  The exceptions are saved to be raised later when it is
+        possible to do so.
     """
     def __init__(self, callback):
         self._problems = []
 
 
     def raise_if_problem(self):
+        """
+        Raise an exception from the OpenSSL error queue or that was previously
+        captured whe running a callback.
+        """
         if self._problems:
             try:
                 _raise_current_error()
@@ -184,6 +194,10 @@ class _CallbackExceptionHelper(object):
 
 
 class _VerifyHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as a certificate verification
+    callback.
+    """
     def __init__(self, callback):
         _CallbackExceptionHelper.__init__(self)
 
@@ -215,6 +229,9 @@ class _VerifyHelper(_CallbackExceptionHelper):
 
 
 class _NpnAdvertiseHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as an NPN advertisement callback.
+    """
     def __init__(self, callback):
         _CallbackExceptionHelper.__init__(self)
 
@@ -252,6 +269,9 @@ class _NpnAdvertiseHelper(_CallbackExceptionHelper):
 
 
 class _NpnSelectHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as an NPN selection callback.
+    """
     def __init__(self, callback):
         _CallbackExceptionHelper.__init__(self)
 
