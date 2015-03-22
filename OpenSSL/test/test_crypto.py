@@ -7,7 +7,9 @@ Unit tests for :py:mod:`OpenSSL.crypto`.
 
 from unittest import main
 
-import os, re
+import base64
+import os
+import re
 from subprocess import PIPE, Popen
 from datetime import datetime, timedelta
 
@@ -15,7 +17,8 @@ from six import u, b, binary_type
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
-from OpenSSL.crypto import X509Store, X509StoreType, X509Req, X509ReqType
+from OpenSSL.crypto import X509Store, X509StoreType, X509StoreContext, X509StoreContextError
+from OpenSSL.crypto import X509Req, X509ReqType
 from OpenSSL.crypto import X509Extension, X509ExtensionType
 from OpenSSL.crypto import load_certificate, load_privatekey
 from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT
@@ -81,6 +84,40 @@ cbvAhow217X9V0dVerEOKxnNYspXRrh36h7k4mQA+sDq
 -----END RSA PRIVATE KEY-----
 """)
 
+intermediate_cert_pem = b("""-----BEGIN CERTIFICATE-----
+MIICVzCCAcCgAwIBAgIRAMPzhm6//0Y/g2pmnHR2C4cwDQYJKoZIhvcNAQENBQAw
+WDELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQHEwdDaGljYWdvMRAw
+DgYDVQQKEwdUZXN0aW5nMRgwFgYDVQQDEw9UZXN0aW5nIFJvb3QgQ0EwHhcNMTQw
+ODI4MDIwNDA4WhcNMjQwODI1MDIwNDA4WjBmMRUwEwYDVQQDEwxpbnRlcm1lZGlh
+dGUxDDAKBgNVBAoTA29yZzERMA8GA1UECxMIb3JnLXVuaXQxCzAJBgNVBAYTAlVT
+MQswCQYDVQQIEwJDQTESMBAGA1UEBxMJU2FuIERpZWdvMIGfMA0GCSqGSIb3DQEB
+AQUAA4GNADCBiQKBgQDYcEQw5lfbEQRjr5Yy4yxAHGV0b9Al+Lmu7wLHMkZ/ZMmK
+FGIbljbviiD1Nz97Oh2cpB91YwOXOTN2vXHq26S+A5xe8z/QJbBsyghMur88CjdT
+21H2qwMa+r5dCQwEhuGIiZ3KbzB/n4DTMYI5zy4IYPv0pjxShZn4aZTCCK2IUwID
+AQABoxMwETAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBDQUAA4GBAPIWSkLX
+QRMApOjjyC+tMxumT5e2pMqChHmxobQK4NMdrf2VCx+cRT6EmY8sK3/Xl/X8UBQ+
+9n5zXb1ZwhW/sTWgUvmOceJ4/XVs9FkdWOOn1J0XBch9ZIiFe/s5ASIgG7fUdcUF
+9mAWS6FK2ca3xIh5kIupCXOFa0dPvlw/YUFT
+-----END CERTIFICATE-----
+""")
+
+intermediate_key_pem = b("""-----BEGIN RSA PRIVATE KEY-----
+MIICWwIBAAKBgQDYcEQw5lfbEQRjr5Yy4yxAHGV0b9Al+Lmu7wLHMkZ/ZMmKFGIb
+ljbviiD1Nz97Oh2cpB91YwOXOTN2vXHq26S+A5xe8z/QJbBsyghMur88CjdT21H2
+qwMa+r5dCQwEhuGIiZ3KbzB/n4DTMYI5zy4IYPv0pjxShZn4aZTCCK2IUwIDAQAB
+AoGAfSZVV80pSeOKHTYfbGdNY/jHdU9eFUa/33YWriXU+77EhpIItJjkRRgivIfo
+rhFJpBSGmDLblaqepm8emsXMeH4+2QzOYIf0QGGP6E6scjTt1PLqdqKfVJ1a2REN
+147cujNcmFJb/5VQHHMpaPTgttEjlzuww4+BCDPsVRABWrkCQQD3loH36nLoQTtf
++kQq0T6Bs9/UWkTAGo0ND81ALj0F8Ie1oeZg6RNT96RxZ3aVuFTESTv6/TbjWywO
+wdzlmV1vAkEA38rTJ6PTwaJlw5OttdDzAXGPB9tDmzh9oSi7cHwQQXizYd8MBYx4
+sjHUKD3dCQnb1dxJFhd3BT5HsnkRMbVZXQJAbXduH17ZTzcIOXc9jHDXYiFVZV5D
+52vV0WCbLzVCZc3jMrtSUKa8lPN5EWrdU3UchWybyG0MR5mX8S5lrF4SoQJAIyUD
+DBKaSqpqONCUUx1BTFS9FYrFjzbL4+c1qHCTTPTblt8kUCrDOZjBrKAqeiTmNSum
+/qUot9YUBF8m6BuGsQJATHHmdFy/fG1VLkyBp49CAa8tN3Z5r/CgTznI4DfMTf4C
+NbRHn2UmYlwQBa+L5lg9phewNe8aEwpPyPLoV85U8Q==
+-----END RSA PRIVATE KEY-----
+""")
+
 server_cert_pem = b("""-----BEGIN CERTIFICATE-----
 MIICKDCCAZGgAwIBAgIJAJn/HpR21r/8MA0GCSqGSIb3DQEBBQUAMFgxCzAJBgNV
 BAYTAlVTMQswCQYDVQQIEwJJTDEQMA4GA1UEBxMHQ2hpY2FnbzEQMA4GA1UEChMH
@@ -113,6 +150,40 @@ NaeNCFfH3aeTrX0LyQJAMBWjWmeKM2G2sCExheeQK0ROnaBC8itCECD4Jsve4nqf
 r50+LF74iLXFwqysVCebPKMOpDWp/qQ1BbJQIPs7/A==
 -----END RSA PRIVATE KEY-----
 """))
+
+intermediate_server_cert_pem = b("""-----BEGIN CERTIFICATE-----
+MIICWDCCAcGgAwIBAgIRAPQFY9jfskSihdiNSNdt6GswDQYJKoZIhvcNAQENBQAw
+ZjEVMBMGA1UEAxMMaW50ZXJtZWRpYXRlMQwwCgYDVQQKEwNvcmcxETAPBgNVBAsT
+CG9yZy11bml0MQswCQYDVQQGEwJVUzELMAkGA1UECBMCQ0ExEjAQBgNVBAcTCVNh
+biBEaWVnbzAeFw0xNDA4MjgwMjEwNDhaFw0yNDA4MjUwMjEwNDhaMG4xHTAbBgNV
+BAMTFGludGVybWVkaWF0ZS1zZXJ2aWNlMQwwCgYDVQQKEwNvcmcxETAPBgNVBAsT
+CG9yZy11bml0MQswCQYDVQQGEwJVUzELMAkGA1UECBMCQ0ExEjAQBgNVBAcTCVNh
+biBEaWVnbzCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAqpJZygd+w1faLOr1
+iOAmbBhx5SZWcTCZ/ZjHQTJM7GuPT624QkqsixFghRKdDROwpwnAP7gMRukLqiy4
++kRuGT5OfyGggL95i2xqA+zehjj08lSTlvGHpePJgCyTavIy5+Ljsj4DKnKyuhxm
+biXTRrH83NDgixVkObTEmh/OVK0CAwEAATANBgkqhkiG9w0BAQ0FAAOBgQBa0Npw
+UkzjaYEo1OUE1sTI6Mm4riTIHMak4/nswKh9hYup//WVOlr/RBSBtZ7Q/BwbjobN
+3bfAtV7eSAqBsfxYXyof7G1ALANQERkq3+oyLP1iVt08W1WOUlIMPhdCF/QuCwy6
+x9MJLhUCGLJPM+O2rAPWVD9wCmvq10ALsiH3yA==
+-----END CERTIFICATE-----
+""")
+
+intermediate_server_key_pem = b("""-----BEGIN RSA PRIVATE KEY-----
+MIICXAIBAAKBgQCqklnKB37DV9os6vWI4CZsGHHlJlZxMJn9mMdBMkzsa49PrbhC
+SqyLEWCFEp0NE7CnCcA/uAxG6QuqLLj6RG4ZPk5/IaCAv3mLbGoD7N6GOPTyVJOW
+8Yel48mALJNq8jLn4uOyPgMqcrK6HGZuJdNGsfzc0OCLFWQ5tMSaH85UrQIDAQAB
+AoGAIQ594j5zna3/9WaPsTgnmhlesVctt4AAx/n827DA4ayyuHFlXUuVhtoWR5Pk
+5ezj9mtYW8DyeCegABnsu2vZni/CdvU6uiS1Hv6qM1GyYDm9KWgovIP9rQCDSGaz
+d57IWVGxx7ODFkm3gN5nxnSBOFVHytuW1J7FBRnEsehRroECQQDXHFOv82JuXDcz
+z3+4c74IEURdOHcbycxlppmK9kFqm5lsUdydnnGW+mvwDk0APOB7Wg7vyFyr393e
+dpmBDCzNAkEAyv6tVbTKUYhSjW+QhabJo896/EqQEYUmtMXxk4cQnKeR/Ao84Rkf
+EqD5IykMUfUI0jJU4DGX+gWZ10a7kNbHYQJAVFCuHNFxS4Cpwo0aqtnzKoZaHY/8
+X9ABZfafSHCtw3Op92M+7ikkrOELXdS9KdKyyqbKJAKNEHF3LbOfB44WIQJAA2N4
+9UNNVUsXRbElEnYUS529CdUczo4QdVgQjkvk5RiPAUwSdBd9Q0xYnFOlFwEmIowg
+ipWJWe0aAlP18ZcEQQJBAL+5lekZ/GUdQoZ4HAsN5a9syrzavJ9VvU1KOOPorPZK
+nMRZbbQgP+aSB7yl6K0gaLaZ8XaK0pjxNBh6ASqg9f4=
+-----END RSA PRIVATE KEY-----
+""")
 
 client_cert_pem = b("""-----BEGIN CERTIFICATE-----
 MIICJjCCAY+gAwIBAgIJAKxpFI5lODkjMA0GCSqGSIb3DQEBBQUAMFgxCzAJBgNV
@@ -246,6 +317,27 @@ VwnW8YxGO8Sn6UJ4FeffZNcYZddSDKosw8LtPOeWoK3JINjAk5jiPQ2cww++7QGG
 /g5NDjxFZNDJP1dGiLAxPW6JXwov4v0FmdzfLOZ01jDcgQQZqEpYlgpuI5JEWUQ9
 Ho4EzbYCOaEAMQA=
 -----END PKCS7-----
+""")
+
+pkcs7DataASN1 = base64.b64decode(b"""
+MIIDNwYJKoZIhvcNAQcCoIIDKDCCAyQCAQExADALBgkqhkiG9w0BBwGgggMKMIID
+BjCCAm+gAwIBAgIBATANBgkqhkiG9w0BAQQFADB7MQswCQYDVQQGEwJTRzERMA8G
+A1UEChMITTJDcnlwdG8xFDASBgNVBAsTC00yQ3J5cHRvIENBMSQwIgYDVQQDExtN
+MkNyeXB0byBDZXJ0aWZpY2F0ZSBNYXN0ZXIxHTAbBgkqhkiG9w0BCQEWDm5ncHNA
+cG9zdDEuY29tMB4XDTAwMDkxMDA5NTEzMFoXDTAyMDkxMDA5NTEzMFowUzELMAkG
+A1UEBhMCU0cxETAPBgNVBAoTCE0yQ3J5cHRvMRIwEAYDVQQDEwlsb2NhbGhvc3Qx
+HTAbBgkqhkiG9w0BCQEWDm5ncHNAcG9zdDEuY29tMFwwDQYJKoZIhvcNAQEBBQAD
+SwAwSAJBAKy+e3dulvXzV7zoTZWc5TzgApr8DmeQHTYC8ydfzH7EECe4R1Xh5kwI
+zOuuFfn178FBiS84gngaNcrFi0Z5fAkCAwEAAaOCAQQwggEAMAkGA1UdEwQCMAAw
+LAYJYIZIAYb4QgENBB8WHU9wZW5TU0wgR2VuZXJhdGVkIENlcnRpZmljYXRlMB0G
+A1UdDgQWBBTPhIKSvnsmYsBVNWjj0m3M2z0qVTCBpQYDVR0jBIGdMIGagBT7hyNp
+65w6kxXlxb8pUU/+7Sg4AaF/pH0wezELMAkGA1UEBhMCU0cxETAPBgNVBAoTCE0y
+Q3J5cHRvMRQwEgYDVQQLEwtNMkNyeXB0byBDQTEkMCIGA1UEAxMbTTJDcnlwdG8g
+Q2VydGlmaWNhdGUgTWFzdGVyMR0wGwYJKoZIhvcNAQkBFg5uZ3BzQHBvc3QxLmNv
+bYIBADANBgkqhkiG9w0BAQQFAAOBgQA7/CqT6PoHycTdhEStWNZde7M/2Yc6BoJu
+VwnW8YxGO8Sn6UJ4FeffZNcYZddSDKosw8LtPOeWoK3JINjAk5jiPQ2cww++7QGG
+/g5NDjxFZNDJP1dGiLAxPW6JXwov4v0FmdzfLOZ01jDcgQQZqEpYlgpuI5JEWUQ9
+Ho4EzbYCOaEAMQA=
 """)
 
 crlData = b("""\
@@ -513,7 +605,7 @@ class X509ExtTests(TestCase):
 
     def test_issuer(self):
         """
-        If an extension requires a issuer, the :py:data:`issuer` parameter to
+        If an extension requires an issuer, the :py:data:`issuer` parameter to
         :py:class:`X509Extension` provides its value.
         """
         ext2 = X509Extension(
@@ -1189,7 +1281,7 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
     def test_verify_success(self):
         """
         :py:obj:`X509Req.verify` returns :py:obj:`True` if called with a
-        :py:obj:`OpenSSL.crypto.PKey` which represents the public part ofthe key
+        :py:obj:`OpenSSL.crypto.PKey` which represents the public part of the key
         which signed the request.
         """
         request = X509Req()
@@ -2560,12 +2652,21 @@ class FunctionTests(TestCase):
             dump_privatekey, FILETYPE_PEM, key, GOOD_CIPHER, cb)
 
 
-    def test_load_pkcs7_data(self):
+    def test_load_pkcs7_data_pem(self):
         """
         :py:obj:`load_pkcs7_data` accepts a PKCS#7 string and returns an instance of
         :py:obj:`PKCS7Type`.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertTrue(isinstance(pkcs7, PKCS7Type))
+
+
+    def test_load_pkcs7_data_asn1(self):
+        """
+        :py:obj:`load_pkcs7_data` accepts a bytes containing ASN1 data
+        representing PKCS#7 and returns an instance of :py:obj`PKCS7Type`.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_ASN1, pkcs7DataASN1)
         self.assertTrue(isinstance(pkcs7, PKCS7Type))
 
 
@@ -3071,6 +3172,107 @@ class CRLTests(TestCase):
         be loaded raises a :py:obj:`OpenSSL.crypto.Error`.
         """
         self.assertRaises(Error, load_crl, FILETYPE_PEM, b"hello, world")
+
+
+
+class X509StoreContextTests(TestCase):
+    """
+    Tests for :py:obj:`OpenSSL.crypto.X509StoreContext`.
+    """
+    root_cert = load_certificate(FILETYPE_PEM, root_cert_pem)
+    intermediate_cert = load_certificate(FILETYPE_PEM, intermediate_cert_pem)
+    intermediate_server_cert = load_certificate(FILETYPE_PEM, intermediate_server_cert_pem)
+
+    def test_valid(self):
+        """
+        :py:obj:`verify_certificate` returns ``None`` when called with a certificate
+        and valid chain.
+        """
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        store.add_cert(self.intermediate_cert)
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        self.assertEqual(store_ctx.verify_certificate(), None)
+
+
+    def test_reuse(self):
+        """
+        :py:obj:`verify_certificate` can be called multiple times with the same
+        ``X509StoreContext`` instance to produce the same result.
+        """
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        store.add_cert(self.intermediate_cert)
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        self.assertEqual(store_ctx.verify_certificate(), None)
+        self.assertEqual(store_ctx.verify_certificate(), None)
+
+
+    def test_trusted_self_signed(self):
+        """
+        :py:obj:`verify_certificate` returns ``None`` when called with a self-signed
+        certificate and itself in the chain.
+        """
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        store_ctx = X509StoreContext(store, self.root_cert)
+        self.assertEqual(store_ctx.verify_certificate(), None)
+
+
+    def test_untrusted_self_signed(self):
+        """
+        :py:obj:`verify_certificate` raises error when a self-signed certificate is
+        verified without itself in the chain.
+        """
+        store = X509Store()
+        store_ctx = X509StoreContext(store, self.root_cert)
+        e = self.assertRaises(X509StoreContextError, store_ctx.verify_certificate)
+        self.assertEqual(e.args[0][2], 'self signed certificate')
+        self.assertEqual(e.certificate.get_subject().CN, 'Testing Root CA')
+
+
+    def test_invalid_chain_no_root(self):
+        """
+        :py:obj:`verify_certificate` raises error when a root certificate is missing
+        from the chain.
+        """
+        store = X509Store()
+        store.add_cert(self.intermediate_cert)
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        e = self.assertRaises(X509StoreContextError, store_ctx.verify_certificate)
+        self.assertEqual(e.args[0][2], 'unable to get issuer certificate')
+        self.assertEqual(e.certificate.get_subject().CN, 'intermediate')
+
+
+    def test_invalid_chain_no_intermediate(self):
+        """
+        :py:obj:`verify_certificate` raises error when an intermediate certificate is
+        missing from the chain.
+        """
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        e = self.assertRaises(X509StoreContextError, store_ctx.verify_certificate)
+        self.assertEqual(e.args[0][2], 'unable to get local issuer certificate')
+        self.assertEqual(e.certificate.get_subject().CN, 'intermediate-service')
+
+
+    def test_modification_pre_verify(self):
+        """
+        :py:obj:`verify_certificate` can use a store context modified after
+        instantiation.
+        """
+        store_bad = X509Store()
+        store_bad.add_cert(self.intermediate_cert)
+        store_good = X509Store()
+        store_good.add_cert(self.root_cert)
+        store_good.add_cert(self.intermediate_cert)
+        store_ctx = X509StoreContext(store_bad, self.intermediate_server_cert)
+        e = self.assertRaises(X509StoreContextError, store_ctx.verify_certificate)
+        self.assertEqual(e.args[0][2], 'unable to get issuer certificate')
+        self.assertEqual(e.certificate.get_subject().CN, 'intermediate')
+        store_ctx.set_store(store_good)
+        self.assertEqual(store_ctx.verify_certificate(), None)
 
 
 

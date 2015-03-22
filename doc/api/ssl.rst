@@ -641,6 +641,14 @@ Connection objects have the following methods:
     by *bufsize*.
 
 
+.. py:method:: Connection.recv_into(buffer[, nbytes[, flags]])
+
+    Receive data from the Connection and copy it directly into the provided
+    buffer. The return value is the number of bytes read from the connection.
+    The maximum amount of data to be received at once is specified by *nbytes*.
+    *flags* is accepted for compatibility with ``socket.recv_into`` but its
+    value is ignored.
+
 .. py:method:: Connection.bio_write(bytes)
 
     If the Connection was created with a memory BIO, this method can be used to add
