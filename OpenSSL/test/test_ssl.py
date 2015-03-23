@@ -1471,6 +1471,165 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
         self.assertEqual([(server, b("foo1.example.com"))], args)
 
 
+class NextProtoNegotiationTests(TestCase, _LoopbackMixin):
+    """
+    Test for Next Protocol Negotiation in PyOpenSSL.
+    """
+    def test_npn_success(self):
+        """
+        Tests that clients and servers that agree on the negotiated next
+        protocol can correct establish a connection, and that the agreed
+        protocol is reported by the connections.
+        """
+        advertise_args = []
+        select_args = []
+        def advertise(conn):
+            advertise_args.append((conn,))
+            return [b'http/1.1', b'spdy/2']
+        def select(conn, options):
+            select_args.append((conn, options))
+            return b'spdy/2'
+
+        server_context = Context(TLSv1_METHOD)
+        server_context.set_npn_advertise_callback(advertise)
+
+        client_context = Context(TLSv1_METHOD)
+        client_context.set_npn_select_callback(select)
+
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
+
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
+
+        client = Connection(client_context, None)
+        client.set_connect_state()
+
+        self._interactInMemory(server, client)
+
+        self.assertEqual([(server,)], advertise_args)
+        self.assertEqual([(client, [b'http/1.1', b'spdy/2'])], select_args)
+
+        self.assertEqual(server.get_next_proto_negotiated(), b'spdy/2')
+        self.assertEqual(client.get_next_proto_negotiated(), b'spdy/2')
+
+
+    def test_npn_client_fail(self):
+        """
+        Tests that when clients and servers cannot agree on what protocol to
+        use next that the TLS connection does not get established.
+        """
+        advertise_args = []
+        select_args = []
+        def advertise(conn):
+            advertise_args.append((conn,))
+            return [b'http/1.1', b'spdy/2']
+        def select(conn, options):
+            select_args.append((conn, options))
+            return b''
+
+        server_context = Context(TLSv1_METHOD)
+        server_context.set_npn_advertise_callback(advertise)
+
+        client_context = Context(TLSv1_METHOD)
+        client_context.set_npn_select_callback(select)
+
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
+
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
+
+        client = Connection(client_context, None)
+        client.set_connect_state()
+
+        # If the client doesn't return anything, the connection will fail.
+        self.assertRaises(Error, self._interactInMemory, server, client)
+
+        self.assertEqual([(server,)], advertise_args)
+        self.assertEqual([(client, [b'http/1.1', b'spdy/2'])], select_args)
+
+
+    def test_npn_select_error(self):
+        """
+        Test that we can handle exceptions in the select callback. If select
+        fails it should be fatal to the connection.
+        """
+        advertise_args = []
+        def advertise(conn):
+            advertise_args.append((conn,))
+            return [b'http/1.1', b'spdy/2']
+        def select(conn, options):
+            raise TypeError
+
+        server_context = Context(TLSv1_METHOD)
+        server_context.set_npn_advertise_callback(advertise)
+
+        client_context = Context(TLSv1_METHOD)
+        client_context.set_npn_select_callback(select)
+
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
+
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
+
+        client = Connection(client_context, None)
+        client.set_connect_state()
+
+        # If the callback throws an exception it should be raised here.
+        self.assertRaises(TypeError, self._interactInMemory, server, client)
+        self.assertEqual([(server,)], advertise_args)
+
+
+    def test_npn_advertise_error(self):
+        """
+        Test that we can handle exceptions in the advertise callback. If
+        advertise fails no NPN is advertised to the client.
+        """
+        select_args = []
+        def advertise(conn):
+            raise TypeError
+        def select(conn, options):
+            select_args.append((conn, options))
+            return b''
+
+        server_context = Context(TLSv1_METHOD)
+        server_context.set_npn_advertise_callback(advertise)
+
+        client_context = Context(TLSv1_METHOD)
+        client_context.set_npn_select_callback(select)
+
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
+
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
+
+        client = Connection(client_context, None)
+        client.set_connect_state()
+
+        # If the client doesn't return anything, the connection will fail.
+        self.assertRaises(TypeError, self._interactInMemory, server, client)
+        self.assertEqual([], select_args)
+
+
 
 class SessionTests(TestCase):
     """

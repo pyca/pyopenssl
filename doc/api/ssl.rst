@@ -472,6 +472,33 @@ Context objects have the following methods:
     .. versionadded:: 0.13
 
 
+.. py:method:: Context.set_npn_advertise_callback(callback)
+
+    Specify a callback function that will be called when offering `Next
+    Protocol Negotiation
+    <https://technotes.googlecode.com/git/nextprotoneg.html>`_ as a server.
+
+    *callback* should be the callback function.  It will be invoked with one
+    argument, the :py:class:`Connection` instance.  It should return a list of
+    bytestrings representing the advertised protocols, like
+    ``[b'http/1.1', b'spdy/2']``.
+
+    .. versionadded:: 0.15
+
+
+.. py:method:: Context.set_npn_select_callback(callback):
+
+    Specify a callback function that will be called when a server offers Next
+    Protocol Negotiation options.
+
+    *callback* should be the callback function.  It will be invoked with two
+    arguments: the :py:class:`Connection`, and a list of offered protocols as
+    bytestrings, e.g. ``[b'http/1.1', b'spdy/2']``.  It should return one of
+    those bytestrings, the chosen protocol.
+
+    .. versionadded:: 0.15
+
+
 .. _openssl-session:
 
 Session objects
@@ -810,6 +837,15 @@ Connection objects have the following methods:
 .. py:method:: Connection.get_cipher_version()
 
     Obtain the protocol name of the currently used cipher.
+
+    .. versionadded:: 0.15
+
+
+.. py:method:: Connection.get_next_proto_negotiated():
+
+    Get the protocol that was negotiated by Next Protocol Negotiation. Returns
+    a bytestring of the protocol name. If no protocol has been negotiated yet,
+    returns an empty string.
 
     .. versionadded:: 0.15
 

@@ -1,11 +1,12 @@
 from sys import platform
 from functools import wraps, partial
-from itertools import count
+from itertools import count, chain
 from weakref import WeakValueDictionary
 from errno import errorcode
 
 from six import text_type as _text_type
 from six import integer_types as integer_types
+from six import int2byte, indexbytes
 
 from OpenSSL._util import (
     ffi as _ffi,
@@ -164,10 +165,41 @@ class SysCallError(Error):
     pass
 
 
+class _CallbackExceptionHelper(object):
+    """
+    A base class for wrapper classes that allow for intelligent exception
+    handling in OpenSSL callbacks.
 
-class _VerifyHelper(object):
-    def __init__(self, callback):
+    :ivar list _problems: Any exceptions that occurred while executing in a
+        context where they could not be raised in the normal way.  Typically
+        this is because OpenSSL has called into some Python code and requires a
+        return value.  The exceptions are saved to be raised later when it is
+        possible to do so.
+    """
+    def __init__(self):
         self._problems = []
+
+
+    def raise_if_problem(self):
+        """
+        Raise an exception from the OpenSSL error queue or that was previously
+        captured whe running a callback.
+        """
+        if self._problems:
+            try:
+                _raise_current_error()
+            except Error:
+                pass
+            raise self._problems.pop(0)
+
+
+class _VerifyHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as a certificate verification
+    callback.
+    """
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
 
         @wraps(callback)
         def wrapper(ok, store_ctx):
@@ -196,14 +228,92 @@ class _VerifyHelper(object):
             "int (*)(int, X509_STORE_CTX *)", wrapper)
 
 
-    def raise_if_problem(self):
-        if self._problems:
-            try:
-                _raise_current_error()
-            except Error:
-                pass
-            raise self._problems.pop(0)
+class _NpnAdvertiseHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as an NPN advertisement callback.
+    """
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
 
+        @wraps(callback)
+        def wrapper(ssl, out, outlen, arg):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+                protos = callback(conn)
+
+                # Join the protocols into a Python bytestring, length-prefixing
+                # each element.
+                protostr = b''.join(
+                    chain.from_iterable((int2byte(len(p)), p) for p in protos)
+                )
+
+                # Save our callback arguments on the connection object. This is
+                # done to make sure that they don't get freed before OpenSSL
+                # uses them. Then, return them appropriately in the output
+                # parameters.
+                conn._npn_advertise_callback_args = [
+                    _ffi.new("unsigned int *", len(protostr)),
+                    _ffi.new("unsigned char[]", protostr),
+                ]
+                outlen[0] = conn._npn_advertise_callback_args[0][0]
+                out[0] = conn._npn_advertise_callback_args[1]
+                return 0
+            except Exception as e:
+                self._problems.append(e)
+                return 2  # SSL_TLSEXT_ERR_ALERT_FATAL
+
+        self.callback = _ffi.callback(
+            "int (*)(SSL *, const unsigned char **, unsigned int *, void *)",
+            wrapper
+        )
+
+
+class _NpnSelectHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as an NPN selection callback.
+    """
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ssl, out, outlen, in_, inlen, arg):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+
+                # The string passed to us is actually made up of multiple
+                # length-prefixed bytestrings. We need to split that into a
+                # list.
+                instr = _ffi.buffer(in_, inlen)[:]
+                protolist = []
+                while instr:
+                    l = indexbytes(instr, 0)
+                    proto = instr[1:l+1]
+                    protolist.append(proto)
+                    instr = instr[l+1:]
+
+                # Call the callback
+                outstr = callback(conn, protolist)
+
+                # Save our callback arguments on the connection object. This is
+                # done to make sure that they don't get freed before OpenSSL
+                # uses them. Then, return them appropriately in the output
+                # parameters.
+                conn._npn_select_callback_args = [
+                    _ffi.new("unsigned char *", len(outstr)),
+                    _ffi.new("unsigned char[]", outstr),
+                ]
+                outlen[0] = conn._npn_select_callback_args[0][0]
+                out[0] = conn._npn_select_callback_args[1]
+                return 0
+            except Exception as e:
+                self._problems.append(e)
+                return 2  # SSL_TLSEXT_ERR_ALERT_FATAL
+
+        self.callback = _ffi.callback(
+            "int (*)(SSL *, unsigned char **, unsigned char *, "
+                    "const unsigned char *, unsigned int, void *)",
+            wrapper
+        )
 
 
 def _asFileDescriptor(obj):
@@ -293,6 +403,10 @@ class Context(object):
         self._info_callback = None
         self._tlsext_servername_callback = None
         self._app_data = None
+        self._npn_advertise_helper = None
+        self._npn_advertise_callback = None
+        self._npn_select_helper = None
+        self._npn_select_callback = None
 
         # SSL_CTX_set_app_data(self->ctx, self);
         # SSL_CTX_set_mode(self->ctx, SSL_MODE_ENABLE_PARTIAL_WRITE |
@@ -812,6 +926,39 @@ class Context(object):
         _lib.SSL_CTX_set_tlsext_servername_callback(
             self._context, self._tlsext_servername_callback)
 
+
+    def set_npn_advertise_callback(self, callback):
+        """
+        Specify a callback function that will be called when offering `Next
+        Protocol Negotiation
+        <https://technotes.googlecode.com/git/nextprotoneg.html>`_ as a server.
+
+        :param callback: The callback function.  It will be invoked with one
+            argument, the Connection instance.  It should return a list of
+            bytestrings representing the advertised protocols, like
+            ``[b'http/1.1', b'spdy/2']``.
+        """
+        self._npn_advertise_helper = _NpnAdvertiseHelper(callback)
+        self._npn_advertise_callback = self._npn_advertise_helper.callback
+        _lib.SSL_CTX_set_next_protos_advertised_cb(
+            self._context, self._npn_advertise_callback, _ffi.NULL)
+
+
+    def set_npn_select_callback(self, callback):
+        """
+        Specify a callback function that will be called when a server offers
+        Next Protocol Negotiation options.
+
+        :param callback: The callback function.  It will be invoked with two
+            arguments: the Connection, and a list of offered protocols as
+            bytestrings, e.g. ``[b'http/1.1', b'spdy/2']``.  It should return
+            one of those bytestrings, the chosen protocol.
+        """
+        self._npn_select_helper = _NpnSelectHelper(callback)
+        self._npn_select_callback = self._npn_select_helper.callback
+        _lib.SSL_CTX_set_next_proto_select_cb(
+            self._context, self._npn_select_callback, _ffi.NULL)
+
 ContextType = Context
 
 
@@ -835,6 +982,13 @@ class Connection(object):
         ssl = _lib.SSL_new(context._context)
         self._ssl = _ffi.gc(ssl, _lib.SSL_free)
         self._context = context
+
+        # References to strings used for Next Protocol Negotiation. OpenSSL's
+        # header files suggest that these might get copied at some point, but
+        # doesn't specify when, so we store them here to make sure they don't
+        # get freed before OpenSSL uses them.
+        self._npn_advertise_callback_args = None
+        self._npn_select_callback_args = None
 
         self._reverse_mapping[self._ssl] = self
 
@@ -870,6 +1024,10 @@ class Connection(object):
     def _raise_ssl_error(self, ssl, result):
         if self._context._verify_helper is not None:
             self._context._verify_helper.raise_if_problem()
+        if self._context._npn_advertise_helper is not None:
+            self._context._npn_advertise_helper.raise_if_problem()
+        if self._context._npn_select_helper is not None:
+            self._context._npn_select_helper.raise_if_problem()
 
         error = _lib.SSL_get_error(ssl, result)
         if error == _lib.SSL_ERROR_WANT_READ:
@@ -1591,6 +1749,16 @@ class Connection(object):
             version =_ffi.string(_lib.SSL_CIPHER_get_version(cipher))
             return version.decode("utf-8")
 
+    def get_next_proto_negotiated(self):
+        """
+        Get the protocol that was negotiated by NPN.
+        """
+        data = _ffi.new("unsigned char **")
+        data_len = _ffi.new("unsigned int *")
+
+        _lib.SSL_get0_next_proto_negotiated(self._ssl, data, data_len)
+
+        return _ffi.buffer(data[0], data_len[0])[:]
 
 
 ConnectionType = Connection
