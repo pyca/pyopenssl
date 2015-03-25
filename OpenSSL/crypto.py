@@ -2263,9 +2263,9 @@ def sign(pkey, data, digest):
     # Backward compatibility
     if isinstance(data, _text_type):
         if _PY3:
-            warn("str in passphrase is no longer accepted, use bytes", DeprecationWarning)
+            warn("str in data is no longer accepted, use bytes", DeprecationWarning)
         else:
-            warn("unicode in passphrase is no longer accepted, use bytes", DeprecationWarning)
+            warn("unicode in data is no longer accepted, use bytes", DeprecationWarning)
         data = data.encode('utf-8')
 
     digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
@@ -2306,9 +2306,9 @@ def verify(cert, signature, data, digest):
     # Backward compatibility
     if isinstance(data, _text_type):
         if _PY3:
-            warn("str in passphrase is no longer accepted, use bytes", DeprecationWarning)
+            warn("str in data is no longer accepted, use bytes", DeprecationWarning)
         else:
-            warn("unicode in passphrase is no longer accepted, use bytes", DeprecationWarning)
+            warn("unicode in data is no longer accepted, use bytes", DeprecationWarning)
         data = data.encode('utf-8')
 
     digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))

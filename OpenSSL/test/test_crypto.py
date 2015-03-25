@@ -13,7 +13,9 @@ import re
 from subprocess import PIPE, Popen
 from datetime import datetime, timedelta
 
-from six import u, b, binary_type
+from six import u, b, binary_type, PY3
+from warnings import simplefilter
+from warnings import catch_warnings
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
@@ -1992,6 +1994,29 @@ class PKCS12Tests(TestCase):
         self.verify_pkcs12_container(p12)
 
 
+    def test_load_pkcs12_text_passphrase(self):
+        """
+        A PKCS12 string generated using the openssl command line can be loaded
+        with :py:obj:`load_pkcs12` and its components extracted and examined.
+        Using text as passphrase instead of bytes. DeprecationWarning expected.
+        """
+        pem = client_key_pem + client_cert_pem
+        passwd = b"whatever"
+        p12_str = _runopenssl(pem, b"pkcs12", b"-export", b"-clcerts",
+                              b"-passout", b"pass:" + passwd)
+        with catch_warnings(record=True) as w:
+            simplefilter("always")
+            if not PY3:
+                p12 = load_pkcs12(p12_str, passphrase=unicode("whatever"))
+                self.assertTrue("unicode in passphrase is no longer accepted, "
+                                "use bytes" in str(w[-1].message))
+            else:
+                p12 = load_pkcs12(p12_str, passphrase=b"whatever".decode())
+                self.assertTrue("str in passphrase is no longer accepted, "
+                                "use bytes" in str(w[-1].message))
+        self.verify_pkcs12_container(p12)
+
+
     def test_load_pkcs12_no_passphrase(self):
         """
         A PKCS12 string generated using openssl command line can be loaded with
@@ -2191,6 +2216,26 @@ class PKCS12Tests(TestCase):
         dumped_p12 = p12.export()  # no args
         self.check_recovery(
             dumped_p12, key=server_key_pem, cert=server_cert_pem, passwd=b"")
+
+
+    def test_export_without_bytes(self):
+        """
+        Test :py:obj:`PKCS12.export` with text not bytes as passphrase
+        """
+        p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
+
+        with catch_warnings(record=True) as w:
+            simplefilter("always")
+            if not PY3:
+                dumped_p12 = p12.export(passphrase=unicode('randomtext'))
+                self.assertTrue("unicode in passphrase is no longer accepted, "
+                                "use bytes" in str(w[-1].message))
+            else:
+                dumped_p12 = p12.export(passphrase=b'randomtext'.decode())
+                self.assertTrue("str in passphrase is no longer accepted, "
+                                "use bytes" in str(w[-1].message))
+        self.check_recovery(
+            dumped_p12, key=server_key_pem, cert=server_cert_pem, passwd=b"randomtext")
 
 
     def test_key_cert_mismatch(self):
@@ -3149,6 +3194,49 @@ class SignVerifyTests(TestCase):
             ValueError, sign, priv_key, content, "strange-digest")
         self.assertRaises(
             ValueError, verify, good_cert, sig, content, "strange-digest")
+
+
+    def test_sign_verify_with_text(self):
+        """
+        :py:obj:`sign` generates a cryptographic signature which :py:obj:`verify` can check.
+        Deprecation warnings raised because using text instead of bytes as content
+        """
+        if not PY3:
+            content = unicode(
+                "It was a bright cold day in April, and the clocks were striking "
+                "thirteen. Winston Smith, his chin nuzzled into his breast in an "
+                "effort to escape the vile wind, slipped quickly through the "
+                "glass doors of Victory Mansions, though not quickly enough to "
+                "prevent a swirl of gritty dust from entering along with him.")
+        else:
+            content = b(
+                "It was a bright cold day in April, and the clocks were striking "
+                "thirteen. Winston Smith, his chin nuzzled into his breast in an "
+                "effort to escape the vile wind, slipped quickly through the "
+                "glass doors of Victory Mansions, though not quickly enough to "
+                "prevent a swirl of gritty dust from entering along with him.").decode()
+
+        priv_key = load_privatekey(FILETYPE_PEM, root_key_pem)
+        cert = load_certificate(FILETYPE_PEM, root_cert_pem)
+        for digest in ['md5', 'sha1']:
+            with catch_warnings(record=True) as w:
+                simplefilter("always")
+                sig = sign(priv_key, content, digest)
+                if not PY3:
+                    self.assertTrue("unicode in data is no longer accepted, "
+                                    "use bytes" in str(w[-1].message))
+                else:
+                    self.assertTrue("str in data is no longer accepted, "
+                                    "use bytes" in str(w[-1].message))
+            with catch_warnings(record=True) as w:
+                simplefilter("always")
+                verify(cert, sig, content, digest)
+                if not PY3:
+                    self.assertTrue("unicode in data is no longer accepted, "
+                                    "use bytes" in str(w[-1].message))
+                else:
+                    self.assertTrue("str in data is no longer accepted, "
+                                    "use bytes" in str(w[-1].message))
 
 
     def test_sign_nulls(self):

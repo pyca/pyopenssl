@@ -7,7 +7,7 @@ Unit tests for :py:obj:`OpenSSL.SSL`.
 
 from gc import collect, get_referrers
 from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE, ESHUTDOWN
-from sys import platform, version_info
+from sys import platform
 from socket import SHUT_RDWR, error, socket
 from os import makedirs
 from os.path import join
@@ -931,10 +931,10 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         with catch_warnings(record=True) as w:
             simplefilter("always")
-            if version_info.major == 2:
+            if not PY3:
                 self._load_verify_locations_test(unicode(cafile))
                 self.assertTrue("unicode in cafile is no longer accepted, use bytes" in str(w[-1].message))
-            elif version_info.major == 3:
+            else:
                 self._load_verify_locations_test(cafile.decode())
                 self.assertTrue("str in cafile is no longer accepted, use bytes" in str(w[-1].message))
             self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
@@ -1615,7 +1615,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertRaises(
             TypeError, conn.set_tlsext_host_name, b("with\0null"))
 
-        if version_info >= (3,):
+        if PY3:
             # On Python 3.x, don't accidentally implicitly convert from text.
             self.assertRaises(
                 TypeError,
