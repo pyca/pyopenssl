@@ -13,6 +13,7 @@ from os import makedirs
 from os.path import join
 from unittest import main
 from weakref import ref
+from warnings import catch_warnings, simplefilter
 
 from six import PY3, text_type, u
 
@@ -915,6 +916,28 @@ class ContextTests(TestCase, _LoopbackMixin):
         fObj.close()
 
         self._load_verify_locations_test(cafile)
+
+
+    def test_load_verify_warning(self):
+        """
+        :py:obj:`Context.load_verify_locations` accepts a file name and uses the
+        certificates within for verification purposes. Raises a warning when
+        using a text in cafile.
+        """
+        cafile = self.mktemp()
+        fObj = open(cafile, 'w')
+        fObj.write(cleartextCertificatePEM.decode('ascii'))
+        fObj.close()
+
+        with catch_warnings(record=True) as w:
+            simplefilter("always")
+            if version_info.major == 2:
+                self._load_verify_locations_test(unicode(cafile))
+                self.assertTrue("unicode in cafile is no longer accepted, use bytes" in str(w[-1].message))
+            elif version_info.major == 3:
+                self._load_verify_locations_test(cafile.decode())
+                self.assertTrue("str in cafile is no longer accepted, use bytes" in str(w[-1].message))
+            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
 
 
     def test_load_verify_invalid_file(self):
@@ -2233,6 +2256,25 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
         self.assertEquals(count, 2)
         self.assertEquals(client.recv(2), b('xy'))
 
+
+    def test_text(self):
+        """
+        When passed a text, :py:obj:`Connection.send` transmits all of it and returns
+        the number of bytes sent. It also raises a DeprecationWarning.
+        """
+        server, client = self._loopback()
+        with catch_warnings(record=True) as w:
+            simplefilter("always")
+            if PY3:
+                count = server.send(b'xy'.decode())
+                self.assertTrue("str in buf is no longer accepted, use bytes" in str(w[-1].message))
+            else:
+                count = server.send(unicode('xy'))
+                self.assertTrue("unicode in buf is no longer accepted, use bytes" in str(w[-1].message))
+            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
+        self.assertEquals(count, 2)
+        self.assertEquals(client.recv(2), b('xy'))
+
     try:
         memoryview
     except NameError:
@@ -2292,6 +2334,24 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
         server.sendall(b('x'))
+        self.assertEquals(client.recv(1), b('x'))
+
+
+    def test_text(self):
+        """
+        :py:obj:`Connection.sendall` transmits all the content in the string passed to
+        it raising a DepreactionWarning in case of this being a text.
+        """
+        server, client = self._loopback()
+        with catch_warnings(record=True) as w:
+            simplefilter("always")
+            if PY3:
+                server.sendall(b'x'.decode())
+                self.assertTrue("str in buf is no longer accepted, use bytes" in str(w[-1].message))
+            else:
+                server.sendall(unicode('x'))
+                self.assertTrue("unicode in buf is no longer accepted, use bytes" in str(w[-1].message))
+            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
         self.assertEquals(client.recv(1), b('x'))
 
 
