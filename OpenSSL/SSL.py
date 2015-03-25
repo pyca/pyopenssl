@@ -1,5 +1,5 @@
-import warnings
-from sys import platform
+from warnings import warn
+from sys import platform, version_info
 from functools import wraps, partial
 from itertools import count
 from weakref import WeakValueDictionary
@@ -314,7 +314,12 @@ class Context(object):
 
         # Backward compatibility
         if isinstance(cafile, _text_type):
-            warnings.warn("str object in cafile is no longer accepted, use bytes", DeprecationWarning)
+            if version_info.major == 2:
+                warn("unicode in cafile is no longer accepted, use bytes", DeprecationWarning)
+            elif version_info.major == 3:
+                warn("str in cafile is no longer accepted, use bytes", DeprecationWarning)
+            else:
+                warn("text in cafile is no longer accepted, use bytes", DeprecationWarning)
             cafile = cafile.encode('utf-8')
 
         if cafile is None:
@@ -980,7 +985,12 @@ class Connection(object):
 
         # Backward compatibility
         if isinstance(buf, _text_type):
-            warnings.warn("str object in buf is no longer accepted, use bytes", DeprecationWarning)
+            if version_info.major == 2:
+                warn("unicode in buf is no longer accepted, use bytes", DeprecationWarning)
+            elif version_info.major == 3:
+                warn("str in buf is no longer accepted, use bytes", DeprecationWarning)
+            else:
+                warn("text in buf is no longer accepted, use bytes", DeprecationWarning)
             buf = buf.encode('utf-8')
 
         if isinstance(buf, _memoryview):
@@ -1010,7 +1020,12 @@ class Connection(object):
 
         # Backward compatibility
         if isinstance(buf, _text_type):
-            warnings.warn("str object in buf is no longer accepted, use bytes", DeprecationWarning)
+            if version_info.major == 2:
+                warn("unicode in buf is no longer accepted, use bytes", DeprecationWarning)
+            elif version_info.major == 3:
+                warn("str in buf is no longer accepted, use bytes", DeprecationWarning)
+            else:
+                warn("text in buf is no longer accepted, use bytes", DeprecationWarning)
             buf = buf.encode('utf-8')
 
         if isinstance(buf, _memoryview):
@@ -1101,7 +1116,12 @@ class Connection(object):
 
         # Backward compatibility
         if isinstance(buf, _text_type):
-            warnings.warn("str object in buf is no longer accepted, use bytes", DeprecationWarning)
+            if version_info.major == 2:
+                warn("unicode in buf is no longer accepted, use bytes", DeprecationWarning)
+            elif version_info.major == 3:
+                warn("str in vuf is no longer accepted, use bytes", DeprecationWarning)
+            else:
+                warn("text in buf is no longer accepted, use bytes", DeprecationWarning)
             buf = buf.encode("ascii")
 
         if self._into_ssl is None:
