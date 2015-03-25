@@ -1,3 +1,4 @@
+import warnings
 from time import time
 from base64 import b16encode
 from functools import partial
@@ -1955,7 +1956,7 @@ class PKCS12(object):
 
         # Backward compatibility
         if isinstance(passphrase, _text_type):
-            DeprecationWarning("str object in passphrase is no longer accepted, use bytes")
+            warnings.warn("str object in passphrase is no longer accepted, use bytes", DeprecationWarning)
             passphrase = passphrase.encode('utf-8')
 
         if self._cacerts is None:
@@ -2258,7 +2259,7 @@ def sign(pkey, data, digest):
 
     # Backward compatibility
     if isinstance(data, _text_type):
-        DeprecationWarning("str object in passphrase is no longer accepted, use bytes")
+        warnings.warn("str object in passphrase is no longer accepted, use bytes", DeprecationWarning)
         data = data.encode('utf-8')
 
     digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
@@ -2298,7 +2299,7 @@ def verify(cert, signature, data, digest):
 
     # Backward compatibility
     if isinstance(data, _text_type):
-        DeprecationWarning("str object in passphrase is no longer accepted, use bytes")
+        warnings.warn("str object in passphrase is no longer accepted, use bytes", DeprecationWarning)
         data = data.encode('utf-8')
 
     digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
@@ -2395,7 +2396,7 @@ def load_pkcs12(buffer, passphrase=None):
 
     # Backward compatibility
     if isinstance(passphrase, _text_type):
-        DeprecationWarning("str object in passphrase is no longer accepted, use bytes")
+        warnings.warn("str object in passphrase is no longer accepted, use bytes", DeprecationWarning)
         passphrase = passphrase.encode('utf-8')
 
     if isinstance(buffer, _text_type):

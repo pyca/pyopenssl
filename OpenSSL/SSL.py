@@ -1,3 +1,4 @@
+import warnings
 from sys import platform
 from functools import wraps, partial
 from itertools import count
@@ -313,7 +314,7 @@ class Context(object):
 
         # Backward compatibility
         if isinstance(cafile, _text_type):
-            DeprecationWarning("str object in cafile is no longer accepted, use bytes")
+            warnings.warn("str object in cafile is no longer accepted, use bytes", DeprecationWarning)
             cafile = cafile.encode('utf-8')
 
         if cafile is None:
@@ -979,7 +980,7 @@ class Connection(object):
 
         # Backward compatibility
         if isinstance(buf, _text_type):
-            DeprecationWarning("str object in buf is no longer accepted, use bytes")
+            warnings.warn("str object in buf is no longer accepted, use bytes", DeprecationWarning)
             buf = buf.encode('utf-8')
 
         if isinstance(buf, _memoryview):
@@ -1009,7 +1010,7 @@ class Connection(object):
 
         # Backward compatibility
         if isinstance(buf, _text_type):
-            DeprecationWarning("str object in buf is no longer accepted, use bytes")
+            warnings.warn("str object in buf is no longer accepted, use bytes", DeprecationWarning)
             buf = buf.encode('utf-8')
 
         if isinstance(buf, _memoryview):
@@ -1100,7 +1101,7 @@ class Connection(object):
 
         # Backward compatibility
         if isinstance(buf, _text_type):
-            DeprecationWarning("str object in buf is no longer accepted, use bytes")
+            warnings.warn("str object in buf is no longer accepted, use bytes", DeprecationWarning)
             buf = buf.encode("ascii")
 
         if self._into_ssl is None:
