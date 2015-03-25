@@ -1,4 +1,3 @@
-import six
 from warnings import warn
 from sys import platform
 from functools import wraps, partial
@@ -8,6 +7,7 @@ from errno import errorcode
 
 from six import text_type as _text_type
 from six import integer_types as integer_types
+from six import PY2 as _PY2
 
 from OpenSSL._util import (
     ffi as _ffi,
@@ -315,7 +315,7 @@ class Context(object):
 
         # Backward compatibility
         if isinstance(cafile, _text_type):
-            if six.PY2:
+            if _PY2:
                 warn("unicode in cafile is no longer accepted, use bytes", DeprecationWarning)
             else:
                 warn("str in cafile is no longer accepted, use bytes", DeprecationWarning)
@@ -984,7 +984,7 @@ class Connection(object):
 
         # Backward compatibility
         if isinstance(buf, _text_type):
-            if six.PY2:
+            if _PY2:
                 warn("unicode in buf is no longer accepted, use bytes", DeprecationWarning)
             else:
                 warn("str in buf is no longer accepted, use bytes", DeprecationWarning)
@@ -1017,7 +1017,7 @@ class Connection(object):
 
         # Backward compatibility
         if isinstance(buf, _text_type):
-            if six.PY2:
+            if _PY2:
                 warn("unicode in buf is no longer accepted, use bytes", DeprecationWarning)
             else:
                 warn("str in buf is no longer accepted, use bytes", DeprecationWarning)
@@ -1111,7 +1111,7 @@ class Connection(object):
 
         # Backward compatibility
         if isinstance(buf, _text_type):
-            if six.PY2:
+            if _PY2:
                 warn("unicode in buf is no longer accepted, use bytes", DeprecationWarning)
             else:
                 warn("str in buf is no longer accepted, use bytes", DeprecationWarning)

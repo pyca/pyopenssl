@@ -1,4 +1,3 @@
-import six
 from warnings import warn
 from time import time
 from base64 import b16encode
@@ -1957,10 +1956,10 @@ class PKCS12(object):
 
         # Backward compatibility
         if isinstance(passphrase, _text_type):
-            if six.PY2:
-                warn("unicode in passphrase is no longer accepted, use bytes", DeprecationWarning)
-            else:
+            if _PY3:
                 warn("str in passphrase is no longer accepted, use bytes", DeprecationWarning)
+            else:
+                warn("unicode in passphrase is no longer accepted, use bytes", DeprecationWarning)
             passphrase = passphrase.encode('utf-8')
 
         if self._cacerts is None:
@@ -2263,10 +2262,10 @@ def sign(pkey, data, digest):
 
     # Backward compatibility
     if isinstance(data, _text_type):
-        if six.PY2:
-            warn("unicode in passphrase is no longer accepted, use bytes", DeprecationWarning)
-        else:
+        if _PY3:
             warn("str in passphrase is no longer accepted, use bytes", DeprecationWarning)
+        else:
+            warn("unicode in passphrase is no longer accepted, use bytes", DeprecationWarning)
         data = data.encode('utf-8')
 
     digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
@@ -2306,10 +2305,10 @@ def verify(cert, signature, data, digest):
 
     # Backward compatibility
     if isinstance(data, _text_type):
-        if six.PY2:
-            warn("unicode in passphrase is no longer accepted, use bytes", DeprecationWarning)
-        else:
+        if _PY3:
             warn("str in passphrase is no longer accepted, use bytes", DeprecationWarning)
+        else:
+            warn("unicode in passphrase is no longer accepted, use bytes", DeprecationWarning)
         data = data.encode('utf-8')
 
     digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
@@ -2406,10 +2405,10 @@ def load_pkcs12(buffer, passphrase=None):
 
     # Backward compatibility
     if isinstance(passphrase, _text_type):
-        if six.PY2:
-            warn("unicode in passphrase is no longer accepted, use bytes", DeprecationWarning)
-        else:
+        if _PY3:
             warn("str in passphrase is no longer accepted, use bytes", DeprecationWarning)
+        else:
+            warn("unicode in passphrase is no longer accepted, use bytes", DeprecationWarning)
         passphrase = passphrase.encode('utf-8')
 
     if isinstance(buffer, _text_type):
