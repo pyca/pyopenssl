@@ -920,28 +920,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         self._load_verify_locations_test(cafile)
 
 
-    def test_load_verify_warning(self):
-        """
-        :py:obj:`Context.load_verify_locations` accepts a file name and uses
-        the certificates within for verification purposes. Raises a warning
-        when using a text in cafile.
-        """
-        cafile = self.mktemp().decode("utf-8")
-        with open(cafile, 'w') as fObj:
-            fObj.write(cleartextCertificatePEM.decode("ascii"))
-
-        with catch_warnings(record=True) as w:
-            simplefilter("always")
-            self._load_verify_locations_test(cafile)
-            self.assertEqual(
-                u"{} for cafile is no longer accepted, use bytes".format(
-                    WARNING_TYPE_EXPECTED
-                ),
-                str(w[-1].message)
-            )
-            self.assertIs(DeprecationWarning, w[-1].category)
-
-
     def test_load_verify_invalid_file(self):
         """
         :py:obj:`Context.load_verify_locations` raises :py:obj:`Error` when passed a

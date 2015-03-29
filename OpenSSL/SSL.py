@@ -311,8 +311,6 @@ class Context(object):
         :param capath: In which directory we can find the certificates
         :return: None
         """
-        cafile = _warn_text("cafile", cafile)
-
         if cafile is None:
             cafile = _ffi.NULL
         elif not isinstance(cafile, bytes):
