@@ -2326,7 +2326,7 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         server, client = self._loopback()
         with catch_warnings(record=True) as w:
             simplefilter("always")
-            server.sendall("x".decode("ascii"))
+            server.sendall(b"x".decode("ascii"))
             self.assertEqual(
                 "{0} for buf is no longer accepted, use bytes".format(
                     WARNING_TYPE_EXPECTED
