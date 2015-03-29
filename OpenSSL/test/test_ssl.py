@@ -2245,9 +2245,9 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
         server, client = self._loopback()
         with catch_warnings(record=True) as w:
             simplefilter("always")
-            count = server.send(u"xy")
+            count = server.send(b"xy".decode("ascii"))
             self.assertEqual(
-                u"{} for buf is no longer accepted, use bytes".format(
+                "{0} for buf is no longer accepted, use bytes".format(
                     WARNING_TYPE_EXPECTED
                 ),
                 str(w[-1].message)
@@ -2326,9 +2326,9 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         server, client = self._loopback()
         with catch_warnings(record=True) as w:
             simplefilter("always")
-            server.sendall(u"x")
+            server.sendall("x".decode("ascii"))
             self.assertEqual(
-                u"{} for buf is no longer accepted, use bytes".format(
+                "{0} for buf is no longer accepted, use bytes".format(
                     WARNING_TYPE_EXPECTED
                 ),
                 str(w[-1].message)

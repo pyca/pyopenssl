@@ -2008,10 +2008,10 @@ class PKCS12Tests(TestCase):
                               b"-passout", b"pass:" + passwd)
         with catch_warnings(record=True) as w:
             simplefilter("always")
-            p12 = load_pkcs12(p12_str, passphrase=u"whatever")
+            p12 = load_pkcs12(p12_str, passphrase=b"whatever".decode("ascii"))
 
             self.assertEqual(
-                u"{} for passphrase is no longer accepted, use bytes".format(
+                "{0} for passphrase is no longer accepted, use bytes".format(
                     WARNING_TYPE_EXPECTED
                 ),
                 str(w[-1].message)
@@ -2230,9 +2230,9 @@ class PKCS12Tests(TestCase):
 
         with catch_warnings(record=True) as w:
             simplefilter("always")
-            dumped_p12 = p12.export(passphrase=u"randomtext")
+            dumped_p12 = p12.export(passphrase=b"randomtext".decode("ascii"))
             self.assertEqual(
-                u"{} for passphrase is no longer accepted, use bytes".format(
+                "{0} for passphrase is no longer accepted, use bytes".format(
                     WARNING_TYPE_EXPECTED
                 ),
                 str(w[-1].message)
@@ -3206,12 +3206,12 @@ class SignVerifyTests(TestCase):
         Deprecation warnings raised because using text instead of bytes as content
         """
         content = (
-            u"It was a bright cold day in April, and the clocks were striking "
-            u"thirteen. Winston Smith, his chin nuzzled into his breast in an "
-            u"effort to escape the vile wind, slipped quickly through the "
-            u"glass doors of Victory Mansions, though not quickly enough to "
-            u"prevent a swirl of gritty dust from entering along with him."
-        )
+            "It was a bright cold day in April, and the clocks were striking "
+            "thirteen. Winston Smith, his chin nuzzled into his breast in an "
+            "effort to escape the vile wind, slipped quickly through the "
+            "glass doors of Victory Mansions, though not quickly enough to "
+            "prevent a swirl of gritty dust from entering along with him."
+        ).decode("ascii")
 
         priv_key = load_privatekey(FILETYPE_PEM, root_key_pem)
         cert = load_certificate(FILETYPE_PEM, root_cert_pem)
@@ -3221,7 +3221,7 @@ class SignVerifyTests(TestCase):
                 sig = sign(priv_key, content, digest)
 
                 self.assertEqual(
-                    u"{} for data is no longer accepted, use bytes".format(
+                    "{0} for data is no longer accepted, use bytes".format(
                         WARNING_TYPE_EXPECTED
                     ),
                     str(w[-1].message)
@@ -3233,7 +3233,7 @@ class SignVerifyTests(TestCase):
                 verify(cert, sig, content, digest)
 
                 self.assertEqual(
-                    u"{} for data is no longer accepted, use bytes".format(
+                    "{0} for data is no longer accepted, use bytes".format(
                         WARNING_TYPE_EXPECTED
                     ),
                     str(w[-1].message)
