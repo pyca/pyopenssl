@@ -54,8 +54,8 @@ else:
     def byte_string(s):
         return s
 
-_TEXT_WARNING = u"{} for {{}} is no longer accepted, use bytes".format(
-    text_type.__name__
+_TEXT_WARNING = (
+    text_type.__name__ + u" for {} is no longer accepted, use bytes"
 )
 
 def warn_text(label, obj):
