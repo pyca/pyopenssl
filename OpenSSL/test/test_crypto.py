@@ -31,7 +31,9 @@ from OpenSSL.crypto import CRL, Revoked, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.crypto import (
     sign, verify, get_elliptic_curve, get_elliptic_curves)
-from OpenSSL.test.util import EqualityTestsMixin, TestCase
+from OpenSSL.test.util import (
+    EqualityTestsMixin, TestCase, WARNING_TYPE_EXPECTED
+)
 from OpenSSL._util import native, lib
 
 def normalize_certificate_pem(pem):
@@ -2006,14 +2008,16 @@ class PKCS12Tests(TestCase):
                               b"-passout", b"pass:" + passwd)
         with catch_warnings(record=True) as w:
             simplefilter("always")
-            if not PY3:
-                p12 = load_pkcs12(p12_str, passphrase=unicode("whatever"))
-                self.assertTrue("unicode in passphrase is no longer accepted, "
-                                "use bytes" in str(w[-1].message))
-            else:
-                p12 = load_pkcs12(p12_str, passphrase=b"whatever".decode())
-                self.assertTrue("str in passphrase is no longer accepted, "
-                                "use bytes" in str(w[-1].message))
+            p12 = load_pkcs12(p12_str, passphrase=u"whatever")
+
+            self.assertEqual(
+                u"{} for passphrase is no longer accepted, use bytes".format(
+                    WARNING_TYPE_EXPECTED
+                ),
+                str(w[-1].message)
+            )
+            self.assertIs(w[-1].category, DeprecationWarning)
+
         self.verify_pkcs12_container(p12)
 
 
@@ -2226,14 +2230,14 @@ class PKCS12Tests(TestCase):
 
         with catch_warnings(record=True) as w:
             simplefilter("always")
-            if not PY3:
-                dumped_p12 = p12.export(passphrase=unicode('randomtext'))
-                self.assertTrue("unicode in passphrase is no longer accepted, "
-                                "use bytes" in str(w[-1].message))
-            else:
-                dumped_p12 = p12.export(passphrase=b'randomtext'.decode())
-                self.assertTrue("str in passphrase is no longer accepted, "
-                                "use bytes" in str(w[-1].message))
+            dumped_p12 = p12.export(passphrase=u"randomtext")
+            self.assertEqual(
+                u"{} for passphrase is no longer accepted, use bytes".format(
+                    WARNING_TYPE_EXPECTED
+                ),
+                str(w[-1].message)
+            )
+            self.assertIs(w[-1].category, DeprecationWarning)
         self.check_recovery(
             dumped_p12, key=server_key_pem, cert=server_cert_pem, passwd=b"randomtext")
 
@@ -3201,20 +3205,13 @@ class SignVerifyTests(TestCase):
         :py:obj:`sign` generates a cryptographic signature which :py:obj:`verify` can check.
         Deprecation warnings raised because using text instead of bytes as content
         """
-        if not PY3:
-            content = unicode(
-                "It was a bright cold day in April, and the clocks were striking "
-                "thirteen. Winston Smith, his chin nuzzled into his breast in an "
-                "effort to escape the vile wind, slipped quickly through the "
-                "glass doors of Victory Mansions, though not quickly enough to "
-                "prevent a swirl of gritty dust from entering along with him.")
-        else:
-            content = b(
-                "It was a bright cold day in April, and the clocks were striking "
-                "thirteen. Winston Smith, his chin nuzzled into his breast in an "
-                "effort to escape the vile wind, slipped quickly through the "
-                "glass doors of Victory Mansions, though not quickly enough to "
-                "prevent a swirl of gritty dust from entering along with him.").decode()
+        content = (
+            u"It was a bright cold day in April, and the clocks were striking "
+            u"thirteen. Winston Smith, his chin nuzzled into his breast in an "
+            u"effort to escape the vile wind, slipped quickly through the "
+            u"glass doors of Victory Mansions, though not quickly enough to "
+            u"prevent a swirl of gritty dust from entering along with him."
+        )
 
         priv_key = load_privatekey(FILETYPE_PEM, root_key_pem)
         cert = load_certificate(FILETYPE_PEM, root_cert_pem)
@@ -3222,21 +3219,26 @@ class SignVerifyTests(TestCase):
             with catch_warnings(record=True) as w:
                 simplefilter("always")
                 sig = sign(priv_key, content, digest)
-                if not PY3:
-                    self.assertTrue("unicode in data is no longer accepted, "
-                                    "use bytes" in str(w[-1].message))
-                else:
-                    self.assertTrue("str in data is no longer accepted, "
-                                    "use bytes" in str(w[-1].message))
+
+                self.assertEqual(
+                    u"{} for data is no longer accepted, use bytes".format(
+                        WARNING_TYPE_EXPECTED
+                    ),
+                    str(w[-1].message)
+                )
+                self.assertIs(w[-1].category, DeprecationWarning)
+
             with catch_warnings(record=True) as w:
                 simplefilter("always")
                 verify(cert, sig, content, digest)
-                if not PY3:
-                    self.assertTrue("unicode in data is no longer accepted, "
-                                    "use bytes" in str(w[-1].message))
-                else:
-                    self.assertTrue("str in data is no longer accepted, "
-                                    "use bytes" in str(w[-1].message))
+
+                self.assertEqual(
+                    u"{} for data is no longer accepted, use bytes".format(
+                        WARNING_TYPE_EXPECTED
+                    ),
+                    str(w[-1].message)
+                )
+                self.assertIs(w[-1].category, DeprecationWarning)
 
 
     def test_sign_nulls(self):

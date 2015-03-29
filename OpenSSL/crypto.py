@@ -1,4 +1,3 @@
-from warnings import warn
 from time import time
 from base64 import b16encode
 from functools import partial
@@ -14,7 +13,8 @@ from OpenSSL._util import (
     lib as _lib,
     exception_from_error_queue as _exception_from_error_queue,
     byte_string as _byte_string,
-    native as _native)
+    native as _native,
+    warn_text as _warn_text)
 
 FILETYPE_PEM = _lib.SSL_FILETYPE_PEM
 FILETYPE_ASN1 = _lib.SSL_FILETYPE_ASN1
@@ -1953,14 +1953,7 @@ class PKCS12(object):
 
         :return: The string containing the PKCS12
         """
-
-        # Backward compatibility
-        if isinstance(passphrase, _text_type):
-            if _PY3:
-                warn("str in passphrase is no longer accepted, use bytes", DeprecationWarning)
-            else:
-                warn("unicode in passphrase is no longer accepted, use bytes", DeprecationWarning)
-            passphrase = passphrase.encode('utf-8')
+        passphrase = _warn_text("passphrase", passphrase)
 
         if self._cacerts is None:
             cacerts = _ffi.NULL
@@ -2259,14 +2252,7 @@ def sign(pkey, data, digest):
     :param digest: message digest to use
     :return: signature
     """
-
-    # Backward compatibility
-    if isinstance(data, _text_type):
-        if _PY3:
-            warn("str in data is no longer accepted, use bytes", DeprecationWarning)
-        else:
-            warn("unicode in data is no longer accepted, use bytes", DeprecationWarning)
-        data = data.encode('utf-8')
+    data = _warn_text("data", data)
 
     digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
     if digest_obj == _ffi.NULL:
@@ -2302,14 +2288,7 @@ def verify(cert, signature, data, digest):
     :param digest: message digest to use
     :return: None if the signature is correct, raise exception otherwise
     """
-
-    # Backward compatibility
-    if isinstance(data, _text_type):
-        if _PY3:
-            warn("str in data is no longer accepted, use bytes", DeprecationWarning)
-        else:
-            warn("unicode in data is no longer accepted, use bytes", DeprecationWarning)
-        data = data.encode('utf-8')
+    data = _warn_text("data", data)
 
     digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
     if digest_obj == _ffi.NULL:
@@ -2402,14 +2381,7 @@ def load_pkcs12(buffer, passphrase=None):
     :param passphrase: (Optional) The password to decrypt the PKCS12 lump
     :returns: The PKCS12 object
     """
-
-    # Backward compatibility
-    if isinstance(passphrase, _text_type):
-        if _PY3:
-            warn("str in passphrase is no longer accepted, use bytes", DeprecationWarning)
-        else:
-            warn("unicode in passphrase is no longer accepted, use bytes", DeprecationWarning)
-        passphrase = passphrase.encode('utf-8')
+    passphrase = _warn_text("passphrase", passphrase)
 
     if isinstance(buffer, _text_type):
         buffer = buffer.encode("ascii")

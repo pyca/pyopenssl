@@ -1,3 +1,5 @@
+from warnings import warn
+
 from six import PY3, binary_type, text_type
 
 from cryptography.hazmat.bindings.openssl.binding import Binding
@@ -51,3 +53,17 @@ if PY3:
 else:
     def byte_string(s):
         return s
+
+_TEXT_WARNING = u"{} for {{}} is no longer accepted, use bytes".format(
+    text_type.__name__
+)
+
+def warn_text(label, obj):
+    if isinstance(obj, text_type):
+        warn(
+            _TEXT_WARNING.format(label),
+            category=DeprecationWarning,
+            stacklevel=3
+        )
+        return obj.encode('utf-8')
+    return obj

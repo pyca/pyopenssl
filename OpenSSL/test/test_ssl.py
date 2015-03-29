@@ -1,3 +1,5 @@
+
+
 # Copyright (C) Jean-Paul Calderone
 # See LICENSE for details.
 
@@ -44,7 +46,7 @@ from OpenSSL.SSL import (
 from OpenSSL.SSL import (
     Context, ContextType, Session, Connection, ConnectionType, SSLeay_version)
 
-from OpenSSL.test.util import TestCase, b
+from OpenSSL.test.util import WARNING_TYPE_EXPECTED, TestCase, b
 from OpenSSL.test.test_crypto import (
     cleartextCertificatePEM, cleartextPrivateKeyPEM)
 from OpenSSL.test.test_crypto import (
@@ -920,24 +922,24 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_load_verify_warning(self):
         """
-        :py:obj:`Context.load_verify_locations` accepts a file name and uses the
-        certificates within for verification purposes. Raises a warning when
-        using a text in cafile.
+        :py:obj:`Context.load_verify_locations` accepts a file name and uses
+        the certificates within for verification purposes. Raises a warning
+        when using a text in cafile.
         """
-        cafile = self.mktemp()
-        fObj = open(cafile, 'w')
-        fObj.write(cleartextCertificatePEM.decode('ascii'))
-        fObj.close()
+        cafile = self.mktemp().decode("utf-8")
+        with open(cafile, 'w') as fObj:
+            fObj.write(cleartextCertificatePEM.decode("ascii"))
 
         with catch_warnings(record=True) as w:
             simplefilter("always")
-            if not PY3:
-                self._load_verify_locations_test(unicode(cafile))
-                self.assertTrue("unicode in cafile is no longer accepted, use bytes" in str(w[-1].message))
-            else:
-                self._load_verify_locations_test(cafile.decode())
-                self.assertTrue("str in cafile is no longer accepted, use bytes" in str(w[-1].message))
-            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
+            self._load_verify_locations_test(cafile)
+            self.assertEqual(
+                u"{} for cafile is no longer accepted, use bytes".format(
+                    WARNING_TYPE_EXPECTED
+                ),
+                str(w[-1].message)
+            )
+            self.assertIs(DeprecationWarning, w[-1].category)
 
 
     def test_load_verify_invalid_file(self):
@@ -2259,21 +2261,22 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
 
     def test_text(self):
         """
-        When passed a text, :py:obj:`Connection.send` transmits all of it and returns
-        the number of bytes sent. It also raises a DeprecationWarning.
+        When passed a text, :py:obj:`Connection.send` transmits all of it and
+        returns the number of bytes sent. It also raises a DeprecationWarning.
         """
         server, client = self._loopback()
         with catch_warnings(record=True) as w:
             simplefilter("always")
-            if PY3:
-                count = server.send(b'xy'.decode())
-                self.assertTrue("str in buf is no longer accepted, use bytes" in str(w[-1].message))
-            else:
-                count = server.send(unicode('xy'))
-                self.assertTrue("unicode in buf is no longer accepted, use bytes" in str(w[-1].message))
-            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
+            count = server.send(u"xy")
+            self.assertEqual(
+                u"{} for buf is no longer accepted, use bytes".format(
+                    WARNING_TYPE_EXPECTED
+                ),
+                str(w[-1].message)
+            )
+            self.assertIs(w[-1].category, DeprecationWarning)
         self.assertEquals(count, 2)
-        self.assertEquals(client.recv(2), b('xy'))
+        self.assertEquals(client.recv(2), b"xy")
 
     try:
         memoryview
@@ -2345,14 +2348,15 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         server, client = self._loopback()
         with catch_warnings(record=True) as w:
             simplefilter("always")
-            if PY3:
-                server.sendall(b'x'.decode())
-                self.assertTrue("str in buf is no longer accepted, use bytes" in str(w[-1].message))
-            else:
-                server.sendall(unicode('x'))
-                self.assertTrue("unicode in buf is no longer accepted, use bytes" in str(w[-1].message))
-            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
-        self.assertEquals(client.recv(1), b('x'))
+            server.sendall(u"x")
+            self.assertEqual(
+                u"{} for buf is no longer accepted, use bytes".format(
+                    WARNING_TYPE_EXPECTED
+                ),
+                str(w[-1].message)
+            )
+            self.assertIs(w[-1].category, DeprecationWarning)
+        self.assertEquals(client.recv(1), b"x")
 
 
     try:

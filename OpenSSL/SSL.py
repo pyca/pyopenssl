@@ -1,4 +1,3 @@
-from warnings import warn
 from sys import platform
 from functools import wraps, partial
 from itertools import count
@@ -7,13 +6,13 @@ from errno import errorcode
 
 from six import text_type as _text_type
 from six import integer_types as integer_types
-from six import PY2 as _PY2
 
 from OpenSSL._util import (
     ffi as _ffi,
     lib as _lib,
     exception_from_error_queue as _exception_from_error_queue,
-    native as _native)
+    native as _native,
+    warn_text as _warn_text)
 
 from OpenSSL.crypto import (
     FILETYPE_PEM, _PassphraseHelper, PKey, X509Name, X509, X509Store)
@@ -312,14 +311,7 @@ class Context(object):
         :param capath: In which directory we can find the certificates
         :return: None
         """
-
-        # Backward compatibility
-        if isinstance(cafile, _text_type):
-            if _PY2:
-                warn("unicode in cafile is no longer accepted, use bytes", DeprecationWarning)
-            else:
-                warn("str in cafile is no longer accepted, use bytes", DeprecationWarning)
-            cafile = cafile.encode('utf-8')
+        cafile = _warn_text("cafile", cafile)
 
         if cafile is None:
             cafile = _ffi.NULL
@@ -981,14 +973,8 @@ class Connection(object):
                       API, the value is ignored
         :return: The number of bytes written
         """
-
         # Backward compatibility
-        if isinstance(buf, _text_type):
-            if _PY2:
-                warn("unicode in buf is no longer accepted, use bytes", DeprecationWarning)
-            else:
-                warn("str in buf is no longer accepted, use bytes", DeprecationWarning)
-            buf = buf.encode('utf-8')
+        buf = _warn_text("buf", buf)
 
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
@@ -1014,14 +1000,7 @@ class Connection(object):
                       API, the value is ignored
         :return: The number of bytes written
         """
-
-        # Backward compatibility
-        if isinstance(buf, _text_type):
-            if _PY2:
-                warn("unicode in buf is no longer accepted, use bytes", DeprecationWarning)
-            else:
-                warn("str in buf is no longer accepted, use bytes", DeprecationWarning)
-            buf = buf.encode('utf-8')
+        buf = _warn_text("buf", buf)
 
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
@@ -1108,14 +1087,7 @@ class Connection(object):
         :param buf: The string to put into the memory BIO.
         :return: The number of bytes written
         """
-
-        # Backward compatibility
-        if isinstance(buf, _text_type):
-            if _PY2:
-                warn("unicode in buf is no longer accepted, use bytes", DeprecationWarning)
-            else:
-                warn("str in buf is no longer accepted, use bytes", DeprecationWarning)
-            buf = buf.encode("ascii")
+        buf = _warn_text("buf", buf)
 
         if self._into_ssl is None:
             raise TypeError("Connection sock was not None")

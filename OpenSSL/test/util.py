@@ -14,6 +14,8 @@ from tempfile import mktemp
 from unittest import TestCase
 import sys
 
+from six import PY3
+
 from OpenSSL._util import exception_from_error_queue
 from OpenSSL.crypto import Error
 
@@ -447,3 +449,10 @@ class EqualityTestsMixin(object):
         a = self.anInstance()
         b = Delegate()
         self.assertEqual(a != b, [b])
+
+
+# The type name expected in warnings about using the wrong string type.
+if PY3:
+    WARNING_TYPE_EXPECTED = "str"
+else:
+    WARNING_TYPE_EXPECTED = "unicode"
