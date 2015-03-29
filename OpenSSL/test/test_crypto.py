@@ -3206,11 +3206,11 @@ class SignVerifyTests(TestCase):
         Deprecation warnings raised because using text instead of bytes as content
         """
         content = (
-            "It was a bright cold day in April, and the clocks were striking "
-            "thirteen. Winston Smith, his chin nuzzled into his breast in an "
-            "effort to escape the vile wind, slipped quickly through the "
-            "glass doors of Victory Mansions, though not quickly enough to "
-            "prevent a swirl of gritty dust from entering along with him."
+            b"It was a bright cold day in April, and the clocks were striking "
+            b"thirteen. Winston Smith, his chin nuzzled into his breast in an "
+            b"effort to escape the vile wind, slipped quickly through the "
+            b"glass doors of Victory Mansions, though not quickly enough to "
+            b"prevent a swirl of gritty dust from entering along with him."
         ).decode("ascii")
 
         priv_key = load_privatekey(FILETYPE_PEM, root_key_pem)
