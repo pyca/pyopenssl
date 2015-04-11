@@ -958,8 +958,9 @@ class Context(object):
 
     def set_alpn_protos(self, protos):
         """
-        Specify the list of protocols that will get offered to the server for
-        ALPN negotiation.
+        Specify the clients ALPN protocol list.
+
+        These protocols are offered to the server during protocol negotiation.
 
         :param protos: A list of the protocols to be offered to the server.
             This list should be a Python list of bytestrings representing the
@@ -976,17 +977,15 @@ class Context(object):
         input_str = _ffi.new("unsigned char[]", protostr)
         input_str_len = _ffi.new("unsigned", len(protostr))
         _lib.SSL_CTX_set_alpn_protos(self._context, input_str)
-        return
 
     def set_alpn_select_callback(self, callback):
         """
-        Specify a callback that will be called when the client offers ALPN
-        protocols.
+        Set the callback to handle ALPN protocol choice.
 
         :param callback: The callback function.  It will be invoked with two
             arguments: the Connection, and a list of offered protocols as
             bytestrings, e.g ``[b'http/1.1', b'spdy/2']``.  It should return
-            one of those bytestrings, then chosen protocol.
+            one of those bytestrings, the chosen protocol.
         """
         @wraps(callback)
         def wrapper(ssl, out, outlen, in_, inlen, arg):
@@ -1832,8 +1831,9 @@ class Connection(object):
 
     def set_alpn_protos(self, protos):
         """
-        Specify the list of protocols that will get offered to the server for
-        ALPN negotiation.
+        Specify the client's ALPN protocol list.
+
+        These protocols are offered to the server during protocol negotiation.
 
         :param protos: A list of the protocols to be offered to the server.
             This list should be a Python list of bytestrings representing the
@@ -1850,17 +1850,17 @@ class Connection(object):
         input_str = _ffi.new("unsigned char[]", protostr)
         input_str_len = _ffi.new("unsigned", len(protostr))
         _lib.SSL_set_alpn_protos(self._ssl, input_str)
-        return
 
 
     def get_alpn_proto_negotiated(self):
-        """
-        Get the protocol that was negotiated by ALPN.
-        """
+        """Get the protocol that was negotiated by ALPN."""
         data = _ffi.new("unsigned char **")
         data_len = _ffi.new("unsigned int *")
 
         _lib.SSL_get0_alpn_selected(self._ssl, data, data_len)
+
+        if not data_len:
+            return b''
 
         return _ffi.buffer(data[0], data_len[0])[:]
 
