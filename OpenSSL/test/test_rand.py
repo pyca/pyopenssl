@@ -176,26 +176,52 @@ class RandTests(TestCase):
         self.assertRaises(TypeError, rand.write_file, None)
         self.assertRaises(TypeError, rand.write_file, "foo", None)
 
-    def test_files(self):
+    def _read_write_test(self, path):
         """
-        Test reading and writing of files via rand functions.
+        Verify that ``rand.write_file`` and ``rand.load_file`` can be used.
         """
-        # Write random bytes to a file
-        tmpfile = self.mktemp()
-        # Make sure it exists (so cleanup definitely succeeds)
-        fObj = open(tmpfile, 'w')
-        fObj.close()
+        # Create the file so cleanup is more straightforward
+        with open(path, "w"):
+            pass
+
         try:
-            rand.write_file(tmpfile)
+            # Write random bytes to a file
+            rand.write_file(path)
+
             # Verify length of written file
-            size = os.stat(tmpfile)[stat.ST_SIZE]
+            size = os.stat(path)[stat.ST_SIZE]
             self.assertEqual(1024, size)
+
             # Read random bytes from file
-            rand.load_file(tmpfile)
-            rand.load_file(tmpfile, 4)  # specify a length
+            rand.load_file(path)
+            rand.load_file(path, 4)  # specify a length
         finally:
             # Cleanup
-            os.unlink(tmpfile)
+            os.unlink(path)
+
+
+    def test_bytes_paths(self):
+        """
+        Random data can be saved and loaded to files with paths specified as
+        bytes.
+        """
+        path = self.mktemp()
+        # This is the UTF-8 encoding of the SNOWMAN unicode code point.
+        path += b("\xe2\x98\x83").decode("utf-8").encode(
+            sys.getfilesystemencoding()
+        )
+        self._read_write_test(path)
+
+
+    def test_unicode_paths(self):
+        """
+        Random data can be saved and loaded to files with paths specified as
+        unicode.
+        """
+        path = self.mktemp().decode('utf-8')
+        # This is the UTF-8 encoding of the SNOWMAN unicode code point.
+        path += b("\xe2\x98\x83").decode('utf-8')
+        self._read_write_test(path)
 
 
 if __name__ == '__main__':
