@@ -15,6 +15,8 @@ def text(charp):
 
     :return: :class:`str`
     """
+    if not charp:
+        return ""
     return native(ffi.string(charp))
 
 
