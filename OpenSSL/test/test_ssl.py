@@ -1898,6 +1898,41 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
         self.assertEqual([(client, [b'http/1.1', b'spdy/2'])], select_args)
 
 
+    def test_alpn_no_server(self):
+        """
+        Tests that when clients and servers cannot agree on what protocol to
+        use next because the server doesn't offer ALPN.
+        """
+        select_args = []
+        def select(conn, options):
+            select_args.append((conn, options))
+            return b''
+
+        client_context = Context(TLSv1_METHOD)
+        client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
+
+        server_context = Context(TLSv1_METHOD)
+
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
+
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
+
+        client = Connection(client_context, None)
+        client.set_connect_state()
+
+        # Do the dance.
+        self._interactInMemory(server, client)
+
+        self.assertEqual([(client, [b'http/1.1', b'spdy/2'])], select_args)
+        self.assertEqual(client.get_alpn_proto_negotiated(), b'')
+
+
 
 class SessionTests(TestCase):
     """
