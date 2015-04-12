@@ -1017,7 +1017,7 @@ class Context(object):
 
         self._alpn_select_callback = _ffi.callback(
             "int (*)(SSL *, unsigned char **, unsigned char *, "
-                    "const unsigned char *, unsigned int, void *",
+                    "const unsigned char *, unsigned int, void *)",
             wrapper)
         _lib.SSL_CTX_set_alpn_select_cb(
             self._context, self._alpn_select_callback, _ffi.NULL)
@@ -1848,8 +1848,8 @@ class Connection(object):
         # Build a C string from the list. We don't need to save this off
         # because OpenSSL immediately copies the data out.
         input_str = _ffi.new("unsigned char[]", protostr)
-        input_str_len = _ffi.new("unsigned", len(protostr))
-        _lib.SSL_set_alpn_protos(self._ssl, input_str)
+        input_str_len = _ffi.cast("unsigned", len(protostr))
+        _lib.SSL_set_alpn_protos(self._ssl, input_str, input_str_len)
 
 
     def get_alpn_proto_negotiated(self):
