@@ -11,7 +11,9 @@ from OpenSSL._util import (
     ffi as _ffi,
     lib as _lib,
     exception_from_error_queue as _exception_from_error_queue,
-    native as _native)
+    native as _native,
+    path_string as _path_string,
+)
 
 from OpenSSL.crypto import (
     FILETYPE_PEM, _PassphraseHelper, PKey, X509Name, X509, X509Store)
@@ -306,19 +308,22 @@ class Context(object):
         Let SSL know where we can find trusted certificates for the certificate
         chain
 
-        :param cafile: In which file we can find the certificates
+        :param cafile: In which file we can find the certificates (``bytes`` or
+            ``unicode``).
         :param capath: In which directory we can find the certificates
+            (``bytes`` or ``unicode``).
+
         :return: None
         """
         if cafile is None:
             cafile = _ffi.NULL
-        elif not isinstance(cafile, bytes):
-            raise TypeError("cafile must be None or a byte string")
+        else:
+            cafile = _path_string(cafile)
 
         if capath is None:
             capath = _ffi.NULL
-        elif not isinstance(capath, bytes):
-            raise TypeError("capath must be None or a byte string")
+        else:
+            capath = _path_string(capath)
 
         load_result = _lib.SSL_CTX_load_verify_locations(self._context, cafile, capath)
         if not load_result:
