@@ -1201,8 +1201,8 @@ class ContextTests(TestCase, _LoopbackMixin):
             chainFile = join(certdir, b("chain.pem"))
             caFile = join(certdir, b("ca.pem"))
         else:
-            chainFile = join(certdir, u"chain.pem")
-            caFile = join(certdir, u"ca.pem")
+            chainFile = join(certdir, u("chain.pem"))
+            caFile = join(certdir, u("ca.pem"))
 
         # Write out the chain file.
         with open(chainFile, 'wb') as fObj:
