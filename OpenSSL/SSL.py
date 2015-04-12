@@ -5,6 +5,7 @@ from weakref import WeakValueDictionary
 from errno import errorcode
 
 from six import text_type as _text_type
+from six import binary_type as _binary_type
 from six import integer_types as integer_types
 from six import int2byte, indexbytes
 
@@ -1003,6 +1004,9 @@ class Context(object):
 
             # Call the callback
             outstr = callback(conn, protolist)
+
+            if not isinstance(outstr, _binary_type):
+                raise TypeError("ALPN callback must return a bytestring.")
 
             # Save our callback arguments on the connection object to make sure
             # that they don't get freed before OpenSSL can use them. Then,
