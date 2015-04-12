@@ -14,7 +14,7 @@ from os.path import join
 from unittest import main
 from weakref import ref
 
-from six import PY3, text_type, u
+from six import PY3, binary_type, text_type, u
 
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
 from OpenSSL.crypto import PKey, X509, X509Extension, X509Store
@@ -1135,41 +1135,69 @@ class ContextTests(TestCase, _LoopbackMixin):
         self._handshake_test(serverContext, clientContext)
 
 
-    def test_use_certificate_chain_file(self):
+    def _use_certificate_chain_file_test(self, certdir):
         """
-        :py:obj:`Context.use_certificate_chain_file` reads a certificate chain from
-        the specified file.
+        Verify that :py:obj:`Context.use_certificate_chain_file` reads a
+        certificate chain from a specified file.
 
-        The chain is tested by starting a server with scert and connecting
-        to it with a client which trusts cacert and requires verification to
+        The chain is tested by starting a server with scert and connecting to
+        it with a client which trusts cacert and requires verification to
         succeed.
         """
         chain = _create_certificate_chain()
         [(cakey, cacert), (ikey, icert), (skey, scert)] = chain
 
+        makedirs(certdir)
+
+        if isinstance(certdir, binary_type):
+            chainFile = join(certdir, b("chain.pem"))
+            caFile = join(certdir, b("ca.pem"))
+        else:
+            chainFile = join(certdir, u"chain.pem")
+            caFile = join(certdir, u"ca.pem")
+
         # Write out the chain file.
-        chainFile = self.mktemp()
-        fObj = open(chainFile, 'wb')
-        # Most specific to least general.
-        fObj.write(dump_certificate(FILETYPE_PEM, scert))
-        fObj.write(dump_certificate(FILETYPE_PEM, icert))
-        fObj.write(dump_certificate(FILETYPE_PEM, cacert))
-        fObj.close()
+        with open(chainFile, 'wb') as fObj:
+            # Most specific to least general.
+            fObj.write(dump_certificate(FILETYPE_PEM, scert))
+            fObj.write(dump_certificate(FILETYPE_PEM, icert))
+            fObj.write(dump_certificate(FILETYPE_PEM, cacert))
+
+        with open(caFile, 'w') as fObj:
+            fObj.write(dump_certificate(FILETYPE_PEM, cacert).decode('ascii'))
 
         serverContext = Context(TLSv1_METHOD)
         serverContext.use_certificate_chain_file(chainFile)
         serverContext.use_privatekey(skey)
 
-        fObj = open('ca.pem', 'w')
-        fObj.write(dump_certificate(FILETYPE_PEM, cacert).decode('ascii'))
-        fObj.close()
-
         clientContext = Context(TLSv1_METHOD)
         clientContext.set_verify(
             VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT, verify_cb)
-        clientContext.load_verify_locations(b"ca.pem")
+        clientContext.load_verify_locations(caFile)
 
         self._handshake_test(serverContext, clientContext)
+
+
+    def test_use_certificate_chain_file_bytes(self):
+        """
+        ``Context.use_certificate_chain_file`` accepts the name of a file (as
+        an instance of ``bytes``) to specify additional certificates to use to
+        construct and verify a trust chain.
+        """
+        self._use_certificate_chain_file_test(
+            self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
+        )
+
+
+    def test_use_certificate_chain_file_unicode(self):
+        """
+        ``Context.use_certificate_chain_file`` accepts the name of a file (as
+        an instance of ``unicode``) to specify additional certificates to use
+        to construct and verify a trust chain.
+        """
+        self._use_certificate_chain_file_test(
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
+        )
 
 
     def test_use_certificate_chain_file_wrong_args(self):
