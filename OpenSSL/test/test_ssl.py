@@ -7,7 +7,7 @@ Unit tests for :py:obj:`OpenSSL.SSL`.
 
 from gc import collect, get_referrers
 from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE, ESHUTDOWN
-from sys import platform, version_info
+from sys import platform, version_info, getfilesystemencoding
 from socket import SHUT_RDWR, error, socket
 from os import makedirs
 from os.path import join
@@ -22,7 +22,6 @@ from OpenSSL.crypto import dump_privatekey, load_privatekey
 from OpenSSL.crypto import dump_certificate, load_certificate
 from OpenSSL.crypto import get_elliptic_curves
 
-from OpenSSL.SSL import _lib
 from OpenSSL.SSL import OPENSSL_VERSION_NUMBER, SSLEAY_VERSION, SSLEAY_CFLAGS
 from OpenSSL.SSL import SSLEAY_PLATFORM, SSLEAY_DIR, SSLEAY_BUILT_ON
 from OpenSSL.SSL import SENT_SHUTDOWN, RECEIVED_SHUTDOWN
@@ -43,7 +42,7 @@ from OpenSSL.SSL import (
 from OpenSSL.SSL import (
     Context, ContextType, Session, Connection, ConnectionType, SSLeay_version)
 
-from OpenSSL.test.util import TestCase, b
+from OpenSSL.test.util import NON_ASCII, TestCase, b
 from OpenSSL.test.test_crypto import (
     cleartextCertificatePEM, cleartextPrivateKeyPEM)
 from OpenSSL.test.test_crypto import (
@@ -867,17 +866,38 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertEqual(cert.get_subject().CN, 'Testing Root CA')
 
 
-    def test_load_verify_file(self):
+    def _load_verify_cafile(self, cafile):
         """
-        :py:obj:`Context.load_verify_locations` accepts a file name and uses the
-        certificates within for verification purposes.
+        Verify that if path to a file containing a certificate is passed to
+        ``Context.load_verify_locations`` for the ``cafile`` parameter, that
+        certificate is used as a trust root for the purposes of verifying
+        connections created using that ``Context``.
         """
-        cafile = self.mktemp()
         fObj = open(cafile, 'w')
         fObj.write(cleartextCertificatePEM.decode('ascii'))
         fObj.close()
 
         self._load_verify_locations_test(cafile)
+
+
+    def test_load_verify_bytes_cafile(self):
+        """
+        :py:obj:`Context.load_verify_locations` accepts a file name as a
+        ``bytes`` instance and uses the certificates within for verification
+        purposes.
+        """
+        cafile = self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
+        self._load_verify_cafile(cafile)
+
+
+    def test_load_verify_unicode_cafile(self):
+        """
+        :py:obj:`Context.load_verify_locations` accepts a file name as a
+        ``unicode`` instance and uses the certificates within for verification
+        purposes.
+        """
+        cafile = self.mktemp() + NON_ASCII
+        self._load_verify_cafile(cafile)
 
 
     def test_load_verify_invalid_file(self):
@@ -890,12 +910,13 @@ class ContextTests(TestCase, _LoopbackMixin):
             Error, clientContext.load_verify_locations, self.mktemp())
 
 
-    def test_load_verify_directory(self):
+    def _load_verify_directory_locations_capath(self, capath):
         """
-        :py:obj:`Context.load_verify_locations` accepts a directory name and uses
-        the certificates within for verification purposes.
+        Verify that if path to a directory containing certificate files is
+        passed to ``Context.load_verify_locations`` for the ``capath``
+        parameter, those certificates are used as trust roots for the purposes
+        of verifying connections created using that ``Context``.
         """
-        capath = self.mktemp()
         makedirs(capath)
         # Hash values computed manually with c_rehash to avoid depending on
         # c_rehash in the test suite.  One is from OpenSSL 0.9.8, the other
@@ -907,6 +928,26 @@ class ContextTests(TestCase, _LoopbackMixin):
             fObj.close()
 
         self._load_verify_locations_test(None, capath)
+
+
+    def test_load_verify_directory_bytes_capath(self):
+        """
+        :py:obj:`Context.load_verify_locations` accepts a directory name as a
+        ``bytes`` instance and uses the certificates within for verification
+        purposes.
+        """
+        self._load_verify_directory_locations_capath(
+            self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
+        )
+
+
+    def test_load_verify_directory_unicode_capath(self):
+        """
+        :py:obj:`Context.load_verify_locations` accepts a directory name as a
+        ``unicode`` instance and uses the certificates within for verification
+        purposes.
+        """
+        self._load_verify_directory_locations_capath(self.mktemp() + NON_ASCII)
 
 
     def test_load_verify_locations_wrong_args(self):

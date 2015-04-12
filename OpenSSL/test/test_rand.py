@@ -10,7 +10,7 @@ import os
 import stat
 import sys
 
-from OpenSSL.test.util import TestCase, b
+from OpenSSL.test.util import NON_ASCII, TestCase, b
 from OpenSSL import rand
 
 
@@ -206,10 +206,7 @@ class RandTests(TestCase):
         bytes.
         """
         path = self.mktemp()
-        # This is the UTF-8 encoding of the SNOWMAN unicode code point.
-        path += b("\xe2\x98\x83").decode("utf-8").encode(
-            sys.getfilesystemencoding()
-        )
+        path += NON_ASCII.encode(sys.getfilesystemencoding())
         self._read_write_test(path)
 
 
@@ -218,9 +215,7 @@ class RandTests(TestCase):
         Random data can be saved and loaded to files with paths specified as
         unicode.
         """
-        path = self.mktemp().decode('utf-8')
-        # This is the UTF-8 encoding of the SNOWMAN unicode code point.
-        path += b("\xe2\x98\x83").decode('utf-8')
+        path = self.mktemp().decode('utf-8') + NON_ASCII
         self._read_write_test(path)
 
 
