@@ -94,6 +94,23 @@ MBYCEQCobsg29c9WZP/54oAPcwiDAgEC
 """
 
 
+def join_bytes_or_unicode(prefix, suffix):
+    """
+    Join two path components of either ``bytes`` or ``unicode``.
+
+    The return type is the same as the type of ``prefix``.
+    """
+    # If the types are the same, nothing special is necessary.
+    if type(prefix) == type(suffix):
+        return join(prefix, suffix)
+
+    # Otherwise, coerce suffix to the type of prefix.
+    if isinstance(prefix, text_type):
+        return join(prefix, suffix.decode(getfilesystemencoding()))
+    else:
+        return join(prefix, suffix.encode(getfilesystemencoding()))
+
+
 def verify_cb(conn, cert, errnum, depth, ok):
     return ok
 
@@ -971,10 +988,9 @@ class ContextTests(TestCase, _LoopbackMixin):
         # c_rehash in the test suite.  One is from OpenSSL 0.9.8, the other
         # from OpenSSL 1.0.0.
         for name in [b'c7adac82.0', b'c3705638.0']:
-            cafile = join(capath, name)
-            fObj = open(cafile, 'w')
-            fObj.write(cleartextCertificatePEM.decode('ascii'))
-            fObj.close()
+            cafile = join_bytes_or_unicode(capath, name)
+            with open(cafile, 'w') as fObj:
+                fObj.write(cleartextCertificatePEM.decode('ascii'))
 
         self._load_verify_locations_test(None, capath)
 
@@ -1200,12 +1216,8 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         makedirs(certdir)
 
-        if isinstance(certdir, binary_type):
-            chainFile = join(certdir, b("chain.pem"))
-            caFile = join(certdir, b("ca.pem"))
-        else:
-            chainFile = join(certdir, u("chain.pem"))
-            caFile = join(certdir, u("ca.pem"))
+        chainFile = join_bytes_or_unicode(certdir, "chain.pem")
+        caFile = join_bytes_or_unicode(certdir, "ca.pem")
 
         # Write out the chain file.
         with open(chainFile, 'wb') as fObj:
