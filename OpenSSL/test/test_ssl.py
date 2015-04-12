@@ -944,8 +944,9 @@ class ContextTests(TestCase, _LoopbackMixin):
         ``unicode`` instance and uses the certificates within for verification
         purposes.
         """
-        cafile = self.mktemp() + NON_ASCII
-        self._load_verify_cafile(cafile)
+        self._load_verify_cafile(
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
+        )
 
 
     def test_load_verify_invalid_file(self):
@@ -995,7 +996,9 @@ class ContextTests(TestCase, _LoopbackMixin):
         ``unicode`` instance and uses the certificates within for verification
         purposes.
         """
-        self._load_verify_directory_locations_capath(self.mktemp() + NON_ASCII)
+        self._load_verify_directory_locations_capath(
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
+        )
 
 
     def test_load_verify_locations_wrong_args(self):
