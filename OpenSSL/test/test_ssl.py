@@ -1818,7 +1818,7 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
 
         self._interactInMemory(server, client)
 
-        self.assertEqual([(client, [b'http/1.1', b'spdy/2'])], select_args)
+        self.assertEqual([(server, [b'http/1.1', b'spdy/2'])], select_args)
 
         self.assertEqual(server.get_alpn_proto_negotiated(), b'spdy/2')
         self.assertEqual(client.get_alpn_proto_negotiated(), b'spdy/2')
@@ -1857,7 +1857,7 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
 
         self._interactInMemory(server, client)
 
-        self.assertEqual([(client, [b'http/1.1', b'spdy/2'])], select_args)
+        self.assertEqual([(server, [b'http/1.1', b'spdy/2'])], select_args)
 
         self.assertEqual(server.get_alpn_proto_negotiated(), b'spdy/2')
         self.assertEqual(client.get_alpn_proto_negotiated(), b'spdy/2')
@@ -1895,7 +1895,7 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
         # If the client doesn't return anything, the connection will fail.
         self.assertRaises(Error, self._interactInMemory, server, client)
 
-        self.assertEqual([(client, [b'http/1.1', b'spdy/2'])], select_args)
+        self.assertEqual([(server, [b'http/1.1', b'spdy/2'])], select_args)
 
 
     def test_alpn_no_server(self):
@@ -1903,11 +1903,6 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
         Tests that when clients and servers cannot agree on what protocol to
         use next because the server doesn't offer ALPN.
         """
-        select_args = []
-        def select(conn, options):
-            select_args.append((conn, options))
-            return b''
-
         client_context = Context(TLSv1_METHOD)
         client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
 
@@ -1929,7 +1924,6 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
         # Do the dance.
         self._interactInMemory(server, client)
 
-        self.assertEqual([(client, [b'http/1.1', b'spdy/2'])], select_args)
         self.assertEqual(client.get_alpn_proto_negotiated(), b'')
 
 
