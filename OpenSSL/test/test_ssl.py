@@ -1322,18 +1322,33 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(Error, context.load_tmp_dh, b"hello")
 
 
-    def test_load_tmp_dh(self):
-        """
-        :py:obj:`Context.load_tmp_dh` loads Diffie-Hellman parameters from the
-        specified file.
-        """
+    def _load_tmp_dh_test(self, dhfilename):
         context = Context(TLSv1_METHOD)
-        dhfilename = self.mktemp()
-        dhfile = open(dhfilename, "w")
-        dhfile.write(dhparam)
-        dhfile.close()
+        with open(dhfilename, "w") as dhfile:
+            dhfile.write(dhparam)
+
         context.load_tmp_dh(dhfilename)
         # XXX What should I assert here? -exarkun
+
+
+    def test_load_tmp_dh_bytes(self):
+        """
+        :py:obj:`Context.load_tmp_dh` loads Diffie-Hellman parameters from the
+        specified file (given as ``bytes``).
+        """
+        self._load_tmp_dh_test(
+            self.mktemp() + NON_ASCII.encode(getfilesystemencoding()),
+        )
+
+
+    def test_load_tmp_dh_unicode(self):
+        """
+        :py:obj:`Context.load_tmp_dh` loads Diffie-Hellman parameters from the
+        specified file (given as ``unicode``).
+        """
+        self._load_tmp_dh_test(
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII,
+        )
 
 
     def test_set_tmp_ecdh(self):

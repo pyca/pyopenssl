@@ -585,8 +585,7 @@ class Context(object):
         :param dhfile: The file to load EDH parameters from
         :return: None
         """
-        if not isinstance(dhfile, bytes):
-            raise TypeError("dhfile must be a byte string")
+        dhfile = _path_string(dhfile)
 
         bio = _lib.BIO_new_file(dhfile, b"r")
         if bio == _ffi.NULL:
