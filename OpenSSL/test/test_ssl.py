@@ -475,21 +475,40 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(Error, ctx.use_certificate_file, self.mktemp())
 
 
-    def test_use_certificate_file(self):
+    def _use_certificate_file_test(self, certificate_file):
         """
-        :py:obj:`Context.use_certificate` sets the certificate which will be
-        used to identify connections created using the context.
+        Verify that calling ``Context.use_certificate_file`` with the given
+        filename doesn't raise an exception.
         """
         # TODO
         # Hard to assert anything.  But we could set a privatekey then ask
         # OpenSSL if the cert and key agree using check_privatekey.  Then as
         # long as check_privatekey works right we're good...
-        pem_filename = self.mktemp()
-        with open(pem_filename, "wb") as pem_file:
+        with open(certificate_file, "wb") as pem_file:
             pem_file.write(cleartextCertificatePEM)
 
         ctx = Context(TLSv1_METHOD)
-        ctx.use_certificate_file(pem_filename)
+        ctx.use_certificate_file(certificate_file)
+
+
+    def test_use_certificate_file_bytes(self):
+        """
+        :py:obj:`Context.use_certificate_file` sets the certificate (given as a
+        ``bytes`` filename) which will be used to identify connections created
+        using the context.
+        """
+        filename = self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
+        self._use_certificate_file_test(filename)
+
+
+    def test_use_certificate_file_unicode(self):
+        """
+        :py:obj:`Context.use_certificate_file` sets the certificate (given as a
+        ``bytes`` filename) which will be used to identify connections created
+        using the context.
+        """
+        filename = self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
+        self._use_certificate_file_test(filename)
 
 
     if not PY3:

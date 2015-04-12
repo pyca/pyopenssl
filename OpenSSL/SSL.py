@@ -391,11 +391,7 @@ class Context(object):
         :param filetype: (optional) The encoding of the file, default is PEM
         :return: None
         """
-        if isinstance(certfile, _text_type):
-            # Perhaps sys.getfilesystemencoding() could be better?
-            certfile = certfile.encode("utf-8")
-        if not isinstance(certfile, bytes):
-            raise TypeError("certfile must be bytes or unicode")
+        certfile = _path_string(certfile)
         if not isinstance(filetype, integer_types):
             raise TypeError("filetype must be an integer")
 
