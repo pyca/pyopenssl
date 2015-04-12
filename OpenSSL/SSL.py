@@ -319,6 +319,56 @@ class _NpnSelectHelper(_CallbackExceptionHelper):
         )
 
 
+class _AlpnSelectHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as an ALPN selection callback.
+    """
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ssl, out, outlen, in_, inlen, arg):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+
+                # The string passed to us is made up of multiple
+                # length-prefixed bytestrings. We need to split that into a
+                # list.
+                instr = _ffi.buffer(in_, inlen)[:]
+                protolist = []
+                while instr:
+                    l = indexbytes(instr, 0)
+                    proto = instr[1:l+1]
+                    protolist.append(proto)
+                    instr = instr[l+1:]
+
+                # Call the callback
+                outstr = callback(conn, protolist)
+
+                if not isinstance(outstr, _binary_type):
+                    raise TypeError("ALPN callback must return a bytestring.")
+
+                # Save our callback arguments on the connection object to make
+                # sure that they don't get freed before OpenSSL can use them.
+                # Then, return them in the appropriate output parameters.
+                conn._alpn_select_callback_args = [
+                    _ffi.new("unsigned char *", len(outstr)),
+                    _ffi.new("unsigned char[]", outstr),
+                ]
+                outlen[0] = conn._alpn_select_callback_args[0][0]
+                out[0] = conn._alpn_select_callback_args[1]
+                return 0
+            except Exception as e:
+                self._problems.append(e)
+                return 2  # SSL_TLSEXT_ERR_ALERT_FATAL
+
+        self.callback = _ffi.callback(
+            "int (*)(SSL *, unsigned char **, unsigned char *, "
+                    "const unsigned char *, unsigned int, void *)",
+            wrapper
+        )
+
+
 def _asFileDescriptor(obj):
     fd = None
     if not isinstance(obj, integer_types):
@@ -410,6 +460,7 @@ class Context(object):
         self._npn_advertise_callback = None
         self._npn_select_helper = None
         self._npn_select_callback = None
+        self._alpn_select_helper = None
         self._alpn_select_callback = None
 
         # SSL_CTX_set_app_data(self->ctx, self);
@@ -988,41 +1039,8 @@ class Context(object):
             bytestrings, e.g ``[b'http/1.1', b'spdy/2']``.  It should return
             one of those bytestrings, the chosen protocol.
         """
-        @wraps(callback)
-        def wrapper(ssl, out, outlen, in_, inlen, arg):
-            conn = Connection._reverse_mapping[ssl]
-
-            # The string passed to us is made up of multiple length-prefixed
-            # bytestrings. We need to split that into a list.
-            instr = _ffi.buffer(in_, inlen)[:]
-            protolist = []
-            while instr:
-                l = indexbytes(instr, 0)
-                proto = instr[1:l+1]
-                protolist.append(proto)
-                instr = instr[l+1:]
-
-            # Call the callback
-            outstr = callback(conn, protolist)
-
-            if not isinstance(outstr, _binary_type):
-                raise TypeError("ALPN callback must return a bytestring.")
-
-            # Save our callback arguments on the connection object to make sure
-            # that they don't get freed before OpenSSL can use them. Then,
-            # return them in the appropriate output parameters.
-            conn._alpn_select_callback_args = [
-                _ffi.new("unsigned char *", len(outstr)),
-                _ffi.new("unsigned char[]", outstr),
-            ]
-            outlen[0] = conn._alpn_select_callback_args[0][0]
-            out[0] = conn._alpn_select_callback_args[1]
-            return 0
-
-        self._alpn_select_callback = _ffi.callback(
-            "int (*)(SSL *, unsigned char **, unsigned char *, "
-                    "const unsigned char *, unsigned int, void *)",
-            wrapper)
+        self._alpn_select_helper = _AlpnSelectHelper(callback)
+        self._alpn_select_callback = self._alpn_select_helper.callback
         _lib.SSL_CTX_set_alpn_select_cb(
             self._context, self._alpn_select_callback, _ffi.NULL)
 
@@ -1101,6 +1119,8 @@ class Connection(object):
             self._context._npn_advertise_helper.raise_if_problem()
         if self._context._npn_select_helper is not None:
             self._context._npn_select_helper.raise_if_problem()
+        if self._context._alpn_select_helper is not None:
+            self._context._alpn_select_helper.raise_if_problem()
 
         error = _lib.SSL_get_error(ssl, result)
         if error == _lib.SSL_ERROR_WANT_READ:

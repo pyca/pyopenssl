@@ -1927,6 +1927,39 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
         self.assertEqual(client.get_alpn_proto_negotiated(), b'')
 
 
+    def test_alpn_callback_exception(self):
+        """
+        Test that we can handle exceptions in the ALPN select callback.
+        """
+        select_args = []
+        def select(conn, options):
+            select_args.append((conn, options))
+            raise TypeError
+
+        client_context = Context(TLSv1_METHOD)
+        client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
+
+        server_context = Context(TLSv1_METHOD)
+        server_context.set_alpn_select_callback(select)
+
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
+
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
+
+        client = Connection(client_context, None)
+        client.set_connect_state()
+
+        # If the client doesn't return anything, the connection will fail.
+        self.assertRaises(TypeError, self._interactInMemory, server, client)
+        self.assertEqual([(server, [b'http/1.1', b'spdy/2'])], select_args)
+
+
 
 class SessionTests(TestCase):
     """
