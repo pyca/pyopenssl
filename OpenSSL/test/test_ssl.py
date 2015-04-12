@@ -394,23 +394,52 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(Error, ctx.use_privatekey_file, self.mktemp())
 
 
+    def _use_privatekey_file_test(self, pemfile, filetype):
+        """
+        Verify that calling ``Context.use_privatekey_file`` with the given
+        arguments does not raise an exception.
+        """
+        key = PKey()
+        key.generate_key(TYPE_RSA, 128)
+
+        with open(pemfile, "wt") as pem:
+            pem.write(
+                dump_privatekey(FILETYPE_PEM, key).decode("ascii")
+            )
+
+        ctx = Context(TLSv1_METHOD)
+        ctx.use_privatekey_file(pemfile, filetype)
+
+
+    def test_use_privatekey_file_bytes(self):
+        """
+        A private key can be specified from a file by passing a ``bytes``
+        instance giving the file name to ``Context.use_privatekey_file``.
+        """
+        self._use_privatekey_file_test(
+            self.mktemp() + NON_ASCII.encode(getfilesystemencoding()),
+            FILETYPE_PEM,
+        )
+
+
+    def test_use_privatekey_file_unicode(self):
+        """
+        A private key can be specified from a file by passing a ``unicode``
+        instance giving the file name to ``Context.use_privatekey_file``.
+        """
+        self._use_privatekey_file_test(
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII,
+            FILETYPE_PEM,
+        )
+
+
     if not PY3:
         def test_use_privatekey_file_long(self):
             """
             On Python 2 :py:obj:`Context.use_privatekey_file` accepts a
             filetype of type :py:obj:`long` as well as :py:obj:`int`.
             """
-            pemfile = self.mktemp()
-
-            key = PKey()
-            key.generate_key(TYPE_RSA, 128)
-
-            with open(pemfile, "wt") as pem:
-                pem.write(
-                    dump_privatekey(FILETYPE_PEM, key).decode("ascii"))
-
-            ctx = Context(TLSv1_METHOD)
-            ctx.use_privatekey_file(pemfile, long(FILETYPE_PEM))
+            self._use_privatekey_file_test(self.mktemp(), long(FILETYPE_PEM))
 
 
     def test_use_certificate_wrong_args(self):
