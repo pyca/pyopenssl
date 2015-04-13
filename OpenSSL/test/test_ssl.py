@@ -1973,22 +1973,18 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
             """
             # Test the context methods first.
             context = Context(TLSv1_METHOD)
-            fail_methods = [
-                context.set_alpn_protos,
-                context.set_alpn_select_callback,
-            ]
-            for method in fail_methods:
-                self.assertRaises(
-                    NotImplementedError, method, None
-                )
+            self.assertRaises(
+                NotImplementedError, context.set_alpn_protos, None
+            )
+            self.assertRaises(
+                NotImplementedError, context.set_alpn_select_callback, None
+            )
 
             # Now test a connection.
             conn = Connection(context)
-            fail_methods = [
-                conn.set_alpn_protos,
-            ]
-            for method in fail_methods:
-                self.assertRaises(NotImplementedError, method)
+            self.assertRaises(
+                NotImplementedError, context.set_alpn_protos, None
+            )
 
 
 
