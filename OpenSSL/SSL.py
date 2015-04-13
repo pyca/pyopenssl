@@ -487,7 +487,9 @@ class Context(object):
         """
         Load a certificate chain from a file
 
-        :param certfile: The name of the certificate chain file
+        :param certfile: The name of the certificate chain file (``bytes`` or
+            ``unicode``).
+
         :return: None
         """
         certfile = _path_string(certfile)
@@ -501,8 +503,10 @@ class Context(object):
         """
         Load a certificate from a file
 
-        :param certfile: The name of the certificate file
+        :param certfile: The name of the certificate file (``bytes`` or
+            ``unicode``).
         :param filetype: (optional) The encoding of the file, default is PEM
+
         :return: None
         """
         certfile = _path_string(certfile)
@@ -559,8 +563,9 @@ class Context(object):
         """
         Load a private key from a file
 
-        :param keyfile: The name of the key file
+        :param keyfile: The name of the key file (``bytes`` or ``unicode``)
         :param filetype: (optional) The encoding of the file, default is PEM
+
         :return: None
         """
         keyfile = _path_string(keyfile)
