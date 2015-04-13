@@ -11,7 +11,8 @@ from six import integer_types as _integer_types
 from OpenSSL._util import (
     ffi as _ffi,
     lib as _lib,
-    exception_from_error_queue as _exception_from_error_queue)
+    exception_from_error_queue as _exception_from_error_queue,
+    path_string as _path_string)
 
 
 class Error(Exception):
@@ -131,13 +132,13 @@ def load_file(filename, maxbytes=_unspecified):
     """
     Seed the PRNG with data from a file
 
-    :param filename: The file to read data from
-    :param maxbytes: (optional) The number of bytes to read, default is
-                     to read the entire file
+    :param filename: The file to read data from (``bytes`` or ``unicode``).
+    :param maxbytes: (optional) The number of bytes to read, default is to read
+        the entire file
+
     :return: The number of bytes read
     """
-    if not isinstance(filename, _builtin_bytes):
-        raise TypeError("filename must be a string")
+    filename = _path_string(filename)
 
     if maxbytes is _unspecified:
         maxbytes = -1
@@ -152,12 +153,11 @@ def write_file(filename):
     """
     Save PRNG state to a file
 
-    :param filename: The file to write data to
+    :param filename: The file to write data to (``bytes`` or ``unicode``).
+
     :return: The number of bytes written
     """
-    if not isinstance(filename, _builtin_bytes):
-        raise TypeError("filename must be a string")
-
+    filename = _path_string(filename)
     return _lib.RAND_write_file(filename)
 
 
