@@ -1838,20 +1838,23 @@ class CRL(object):
         export a CRL as a string
 
         :param cert: Used to sign CRL.
+
         :type cert: :class:`X509`
 
         :param key: Used to sign CRL.
+
         :type key: :class:`PKey`
 
-        :param type: The export format, either :py:data:`FILETYPE_PEM`, :py:data:`FILETYPE_ASN1`, or :py:data:`FILETYPE_TEXT`.
-
+        :param type: The export format, either :py:data:`FILETYPE_PEM`,
+            :py:data:`FILETYPE_ASN1`, or :py:data:`FILETYPE_TEXT`.
         :param days: The number of days until the next update of this CRL.
+
         :type days: :py:data:`int`
 
-        :param digest: The message digest to use (eg ``"sha1"``).
-        :type digest: :py:data:`str`
+        :param bytes digest: The name of the message digest to use (eg
+            ``b"sha1"``).
 
-        :return: :py:data:`str`
+        :return: :py:data:`bytes`
         """
         if not isinstance(cert, X509):
             raise TypeError("cert must be an X509 instance")
@@ -1867,9 +1870,9 @@ class CRL(object):
                 category=DeprecationWarning,
                 stacklevel=2,
             )
-            digest = "md5"
+            digest = b"md5"
 
-        digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
+        digest_obj = _lib.EVP_get_digestbyname(digest)
         if digest_obj == _ffi.NULL:
             raise ValueError("No such digest method")
 

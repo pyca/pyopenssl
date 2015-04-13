@@ -3073,9 +3073,23 @@ class CRLTests(TestCase):
         signature algorithm based on that digest function.
         """
         crl = self._get_crl()
-        dumped_crl = crl.export(self.cert, self.pkey, digest='sha1')
+        dumped_crl = crl.export(self.cert, self.pkey, digest=b"sha1")
         text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
         text.index(b('Signature Algorithm: sha1'))
+
+
+    def test_export_md5_digest(self):
+        """
+        If passed md5 as the digest function, ``CRL.export`` uses md5 and does
+        not emit a deprecation warning.
+        """
+        crl = self._get_crl()
+        with catch_warnings(record=True) as catcher:
+            simplefilter("always")
+            self.assertEqual(0, len(catcher))
+        dumped_crl = crl.export(self.cert, self.pkey, digest=b"md5")
+        text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
+        text.index(b('Signature Algorithm: md5'))
 
 
     def test_export_default_digest(self):
