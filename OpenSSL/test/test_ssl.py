@@ -1939,7 +1939,7 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
             select_args = []
             def select(conn, options):
                 select_args.append((conn, options))
-                raise TypeError
+                raise TypeError()
 
             client_context = Context(TLSv1_METHOD)
             client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
@@ -1960,7 +1960,6 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
             client = Connection(client_context, None)
             client.set_connect_state()
 
-            # If the client doesn't return anything, the connection will fail.
             self.assertRaises(
                 TypeError, self._interactInMemory, server, client
             )
@@ -1969,6 +1968,9 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
     else:
         # No ALPN.
         def test_alpn_not_implemented(self):
+            """
+            If ALPN is not in OpenSSL, we should raise NotImplementedError.
+            """
             # Test the context methods first.
             context = Context(TLSv1_METHOD)
             fail_methods = [
