@@ -347,6 +347,17 @@ def SSLeay_version(type):
     return _ffi.string(_lib.SSLeay_version(type))
 
 
+def _requires_npn(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if not _lib.Cryptography_HAS_NEXTPROTONEG:
+            raise NotImplementedError("NPN not available.")
+
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
 
 class Session(object):
     pass
@@ -924,6 +935,7 @@ class Context(object):
             self._context, self._tlsext_servername_callback)
 
 
+    @_requires_npn
     def set_npn_advertise_callback(self, callback):
         """
         Specify a callback function that will be called when offering `Next
@@ -935,15 +947,13 @@ class Context(object):
             bytestrings representing the advertised protocols, like
             ``[b'http/1.1', b'spdy/2']``.
         """
-        if not _lib.Cryptography_HAS_NEXTPROTONEG:
-            raise NotImplementedError("NPN not available.")
-
         self._npn_advertise_helper = _NpnAdvertiseHelper(callback)
         self._npn_advertise_callback = self._npn_advertise_helper.callback
         _lib.SSL_CTX_set_next_protos_advertised_cb(
             self._context, self._npn_advertise_callback, _ffi.NULL)
 
 
+    @_requires_npn
     def set_npn_select_callback(self, callback):
         """
         Specify a callback function that will be called when a server offers
@@ -954,9 +964,6 @@ class Context(object):
             bytestrings, e.g. ``[b'http/1.1', b'spdy/2']``.  It should return
             one of those bytestrings, the chosen protocol.
         """
-        if not _lib.Cryptography_HAS_NEXTPROTONEG:
-            raise NotImplementedError("NPN not available.")
-
         self._npn_select_helper = _NpnSelectHelper(callback)
         self._npn_select_callback = self._npn_select_helper.callback
         _lib.SSL_CTX_set_next_proto_select_cb(
@@ -1752,13 +1759,12 @@ class Connection(object):
             version =_ffi.string(_lib.SSL_CIPHER_get_version(cipher))
             return version.decode("utf-8")
 
+
+    @_requires_npn
     def get_next_proto_negotiated(self):
         """
         Get the protocol that was negotiated by NPN.
         """
-        if not _lib.Cryptography_HAS_NEXTPROTONEG:
-            raise NotImplementedError("NPN not available.")
-
         data = _ffi.new("unsigned char **")
         data_len = _ffi.new("unsigned int *")
 
