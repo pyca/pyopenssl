@@ -1793,9 +1793,9 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
 
         def test_alpn_success(self):
             """
-            Tests that clients and servers that agree on the negotiated ALPN
-            protocol can correct establish a connection, and that the agreed
-            protocol is reported by the connections.
+            Clients and servers that agree on the negotiated ALPN protocol can
+            correct establish a connection, and the agreed protocol is reported
+            by the connections.
             """
             select_args = []
             def select(conn, options):
@@ -1870,8 +1870,8 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
 
         def test_alpn_server_fail(self):
             """
-            Tests that when clients and servers cannot agree on what protocol
-            to use next that the TLS connection does not get established.
+            When clients and servers cannot agree on what protocol to use next
+            the TLS connection does not get established.
             """
             select_args = []
             def select(conn, options):
@@ -1905,8 +1905,8 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
 
         def test_alpn_no_server(self):
             """
-            Tests that when clients and servers cannot agree on what protocol
-            to use next because the server doesn't offer ALPN.
+            When clients and servers cannot agree on what protocol to use next
+            because the server doesn't offer ALPN, no protocol is negotiated.
             """
             client_context = Context(TLSv1_METHOD)
             client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
@@ -1934,7 +1934,7 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
 
         def test_alpn_callback_exception(self):
             """
-            Test that we can handle exceptions in the ALPN select callback.
+            We can handle exceptions in the ALPN select callback.
             """
             select_args = []
             def select(conn, options):
