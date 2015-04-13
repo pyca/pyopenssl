@@ -1,4 +1,4 @@
-include     LICENSE ChangeLog INSTALL README TODO MANIFEST.in OpenSSL/RATIONALE
+include     LICENSE ChangeLog INSTALL.rst README TODO MANIFEST.in OpenSSL/RATIONALE
 recursive-include   doc         *
 recursive-include   examples    *
 recursive-include   rpm         *

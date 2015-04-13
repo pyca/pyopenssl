@@ -2,7 +2,7 @@
 pyOpenSSL - A Python wrapper around the OpenSSL library
 ------------------------------------------------------------------------------
 
-See the file INSTALL for installation instructions.
+See the file INSTALL.rst for installation instructions.
 
 See https://github.com/pyca/pyopenssl for development.
 
