@@ -2,6 +2,7 @@ from time import time
 from base64 import b16encode
 from functools import partial
 from operator import __eq__, __ne__, __lt__, __le__, __gt__, __ge__
+from warnings import warn as _warn
 
 from six import (
     integer_types as _integer_types,
@@ -23,6 +24,10 @@ FILETYPE_TEXT = 2 ** 16 - 1
 
 TYPE_RSA = _lib.EVP_PKEY_RSA
 TYPE_DSA = _lib.EVP_PKEY_DSA
+
+# A marker object to observe whether some optional arguments are passed any
+# value or not.
+_undefined = object()
 
 
 class Error(Exception):
@@ -1707,7 +1712,8 @@ class CRL(object):
             _raise_current_error()
 
 
-    def export(self, cert, key, type=FILETYPE_PEM, days=100, digest="md5"):
+    def export(self, cert, key, type=FILETYPE_PEM, days=100,
+               digest=_undefined):
         """
         export a CRL as a string
 
@@ -1722,7 +1728,7 @@ class CRL(object):
         :param days: The number of days until the next update of this CRL.
         :type days: :py:data:`int`
 
-        :param digest: The message digest to use
+        :param digest: The message digest to use (eg ``"sha1"``).
         :type digest: :py:data:`str`
 
         :return: :py:data:`str`
@@ -1733,6 +1739,15 @@ class CRL(object):
             raise TypeError("key must be a PKey instance")
         if not isinstance(type, int):
             raise TypeError("type must be an integer")
+
+        if digest is _undefined:
+            _warn(
+                "The default message digest (md5) is deprecated.  "
+                "Pass the name of a message digest explicitly.",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+            digest = "md5"
 
         digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
         if digest_obj == _ffi.NULL:
