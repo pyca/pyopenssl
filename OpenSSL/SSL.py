@@ -400,6 +400,10 @@ def SSLeay_version(type):
 
 
 def _requires_alpn(func):
+    """
+    Wraps any function that requires ALPN support in OpenSSL, ensuring that
+    NotImplementedError is raised if ALPN support is not present.
+    """
     @wraps(func)
     def wrapper(*args, **kwargs):
         if not _lib.Cryptography_HAS_ALPN:
