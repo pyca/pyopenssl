@@ -399,6 +399,18 @@ def SSLeay_version(type):
 
 
 
+def _requires_alpn(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if not _lib.Cryptography_HAS_ALPN:
+            raise NotImplementedError("ALPN not available.")
+
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+
 class Session(object):
     pass
 
@@ -1008,6 +1020,7 @@ class Context(object):
         _lib.SSL_CTX_set_next_proto_select_cb(
             self._context, self._npn_select_callback, _ffi.NULL)
 
+    @_requires_alpn
     def set_alpn_protos(self, protos):
         """
         Specify the clients ALPN protocol list.
@@ -1018,9 +1031,6 @@ class Context(object):
             This list should be a Python list of bytestrings representing the
             protocols to offer, e.g. ``[b'http/1.1', b'spdy/2']``.
         """
-        if not _lib.Cryptography_HAS_ALPN:
-            raise NotImplementedError("ALPN not available")
-
         # Take the list of protocols and join them together, prefixing them
         # with their lengths.
         protostr = b''.join(
@@ -1033,6 +1043,7 @@ class Context(object):
         input_str_len = _ffi.cast("unsigned", len(protostr))
         _lib.SSL_CTX_set_alpn_protos(self._context, input_str, input_str_len)
 
+    @_requires_alpn
     def set_alpn_select_callback(self, callback):
         """
         Set the callback to handle ALPN protocol choice.
@@ -1042,9 +1053,6 @@ class Context(object):
             bytestrings, e.g ``[b'http/1.1', b'spdy/2']``.  It should return
             one of those bytestrings, the chosen protocol.
         """
-        if not _lib.Cryptography_HAS_ALPN:
-            raise NotImplementedError("ALPN not available")
-
         self._alpn_select_helper = _AlpnSelectHelper(callback)
         self._alpn_select_callback = self._alpn_select_helper.callback
         _lib.SSL_CTX_set_alpn_select_cb(
@@ -1859,6 +1867,7 @@ class Connection(object):
 
         return _ffi.buffer(data[0], data_len[0])[:]
 
+    @_requires_alpn
     def set_alpn_protos(self, protos):
         """
         Specify the client's ALPN protocol list.
@@ -1869,9 +1878,6 @@ class Connection(object):
             This list should be a Python list of bytestrings representing the
             protocols to offer, e.g. ``[b'http/1.1', b'spdy/2']``.
         """
-        if not _lib.Cryptography_HAS_ALPN:
-            raise NotImplementedError("ALPN not available")
-
         # Take the list of protocols and join them together, prefixing them
         # with their lengths.
         protostr = b''.join(
