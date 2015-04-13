@@ -337,10 +337,10 @@ class _ALPNSelectHelper(_CallbackExceptionHelper):
                 instr = _ffi.buffer(in_, inlen)[:]
                 protolist = []
                 while instr:
-                    l = indexbytes(instr, 0)
-                    proto = instr[1:l+1]
+                    encoded_len = indexbytes(instr, 0)
+                    proto = instr[1:encoded_len + 1]
                     protolist.append(proto)
-                    instr = instr[l+1:]
+                    instr = instr[encoded_len + 1:]
 
                 # Call the callback
                 outstr = callback(conn, protolist)
