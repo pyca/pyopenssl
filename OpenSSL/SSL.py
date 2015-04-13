@@ -319,7 +319,7 @@ class _NpnSelectHelper(_CallbackExceptionHelper):
         )
 
 
-class _AlpnSelectHelper(_CallbackExceptionHelper):
+class _ALPNSelectHelper(_CallbackExceptionHelper):
     """
     Wrap a callback such that it can be used as an ALPN selection callback.
     """
@@ -1053,7 +1053,7 @@ class Context(object):
             bytestrings, e.g ``[b'http/1.1', b'spdy/2']``.  It should return
             one of those bytestrings, the chosen protocol.
         """
-        self._alpn_select_helper = _AlpnSelectHelper(callback)
+        self._alpn_select_helper = _ALPNSelectHelper(callback)
         self._alpn_select_callback = self._alpn_select_helper.callback
         _lib.SSL_CTX_set_alpn_select_cb(
             self._context, self._alpn_select_callback, _ffi.NULL)
