@@ -1896,7 +1896,9 @@ class Connection(object):
 
 
     def get_alpn_proto_negotiated(self):
-        """Get the protocol that was negotiated by ALPN."""
+        """
+        Get the protocol that was negotiated by ALPN.
+        """
         if not _lib.Cryptography_HAS_ALPN:
             raise NotImplementedError("ALPN not available")
 
