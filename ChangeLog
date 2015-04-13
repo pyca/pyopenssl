@@ -1,3 +1,9 @@
+2015-04-12  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* OpenSSL/rand.py, OpenSSL/SSL.py: APIs which previously accepted
+	  filenames only as bytes now accept them as either bytes or
+	  unicode (and respect sys.getfilesystemencoding()).
+
 2015-03-23  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL/SSL.py: Add Cory Benfield's next-protocol-negotiation
