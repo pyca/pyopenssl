@@ -93,3 +93,8 @@ if PY3:
 else:
     def byte_string(s):
         return s
+
+
+# A marker object to observe whether some optional arguments are passed any
+# value or not.
+UNSPECIFIED = object()

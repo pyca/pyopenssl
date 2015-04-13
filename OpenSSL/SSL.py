@@ -14,12 +14,11 @@ from OpenSSL._util import (
     exception_from_error_queue as _exception_from_error_queue,
     native as _native,
     path_string as _path_string,
+    UNSPECIFIED as _UNSPECIFIED,
 )
 
 from OpenSSL.crypto import (
     FILETYPE_PEM, _PassphraseHelper, PKey, X509Name, X509, X509Store)
-
-_unspecified = object()
 
 try:
     _memoryview = memoryview
@@ -559,7 +558,7 @@ class Context(object):
             raise exception
 
 
-    def use_privatekey_file(self, keyfile, filetype=_unspecified):
+    def use_privatekey_file(self, keyfile, filetype=_UNSPECIFIED):
         """
         Load a private key from a file
 
@@ -570,7 +569,7 @@ class Context(object):
         """
         keyfile = _path_string(keyfile)
 
-        if filetype is _unspecified:
+        if filetype is _UNSPECIFIED:
             filetype = FILETYPE_PEM
         elif not isinstance(filetype, integer_types):
             raise TypeError("filetype must be an integer")

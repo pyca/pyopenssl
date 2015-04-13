@@ -14,7 +14,9 @@ from OpenSSL._util import (
     lib as _lib,
     exception_from_error_queue as _exception_from_error_queue,
     byte_string as _byte_string,
-    native as _native)
+    native as _native,
+    UNSPECIFIED as _UNSPECIFIED,
+)
 
 FILETYPE_PEM = _lib.SSL_FILETYPE_PEM
 FILETYPE_ASN1 = _lib.SSL_FILETYPE_ASN1
@@ -24,10 +26,6 @@ FILETYPE_TEXT = 2 ** 16 - 1
 
 TYPE_RSA = _lib.EVP_PKEY_RSA
 TYPE_DSA = _lib.EVP_PKEY_DSA
-
-# A marker object to observe whether some optional arguments are passed any
-# value or not.
-_undefined = object()
 
 
 
@@ -1835,7 +1833,7 @@ class CRL(object):
 
 
     def export(self, cert, key, type=FILETYPE_PEM, days=100,
-               digest=_undefined):
+               digest=_UNSPECIFIED):
         """
         export a CRL as a string
 
@@ -1862,7 +1860,7 @@ class CRL(object):
         if not isinstance(type, int):
             raise TypeError("type must be an integer")
 
-        if digest is _undefined:
+        if digest is _UNSPECIFIED:
             _warn(
                 "The default message digest (md5) is deprecated.  "
                 "Pass the name of a message digest explicitly.",
