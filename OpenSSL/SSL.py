@@ -1018,6 +1018,9 @@ class Context(object):
             This list should be a Python list of bytestrings representing the
             protocols to offer, e.g. ``[b'http/1.1', b'spdy/2']``.
         """
+        if not _lib.Cryptography_HAS_ALPN:
+            raise NotImplementedError("ALPN not available")
+
         # Take the list of protocols and join them together, prefixing them
         # with their lengths.
         protostr = b''.join(
@@ -1039,6 +1042,9 @@ class Context(object):
             bytestrings, e.g ``[b'http/1.1', b'spdy/2']``.  It should return
             one of those bytestrings, the chosen protocol.
         """
+        if not _lib.Cryptography_HAS_ALPN:
+            raise NotImplementedError("ALPN not available")
+
         self._alpn_select_helper = _AlpnSelectHelper(callback)
         self._alpn_select_callback = self._alpn_select_helper.callback
         _lib.SSL_CTX_set_alpn_select_cb(
@@ -1863,6 +1869,9 @@ class Connection(object):
             This list should be a Python list of bytestrings representing the
             protocols to offer, e.g. ``[b'http/1.1', b'spdy/2']``.
         """
+        if not _lib.Cryptography_HAS_ALPN:
+            raise NotImplementedError("ALPN not available")
+
         # Take the list of protocols and join them together, prefixing them
         # with their lengths.
         protostr = b''.join(
@@ -1878,6 +1887,9 @@ class Connection(object):
 
     def get_alpn_proto_negotiated(self):
         """Get the protocol that was negotiated by ALPN."""
+        if not _lib.Cryptography_HAS_ALPN:
+            raise NotImplementedError("ALPN not available")
+
         data = _ffi.new("unsigned char **")
         data_len = _ffi.new("unsigned int *")
 
