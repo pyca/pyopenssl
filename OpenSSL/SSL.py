@@ -704,7 +704,9 @@ class Context(object):
         """
         Load parameters for Ephemeral Diffie-Hellman
 
-        :param dhfile: The file to load EDH parameters from
+        :param dhfile: The file to load EDH parameters from (``bytes`` or
+            ``unicode``).
+
         :return: None
         """
         dhfile = _path_string(dhfile)

@@ -14,7 +14,7 @@ from os.path import join
 from unittest import main
 from weakref import ref
 
-from six import PY3, binary_type, text_type, u
+from six import PY3, text_type, u
 
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
 from OpenSSL.crypto import PKey, X509, X509Extension, X509Store
@@ -1375,6 +1375,10 @@ class ContextTests(TestCase, _LoopbackMixin):
 
 
     def _load_tmp_dh_test(self, dhfilename):
+        """
+        Verify that calling ``Context.load_tmp_dh`` with the given filename
+        does not raise an exception.
+        """
         context = Context(TLSv1_METHOD)
         with open(dhfilename, "w") as dhfile:
             dhfile.write(dhparam)

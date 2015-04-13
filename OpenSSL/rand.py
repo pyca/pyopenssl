@@ -132,9 +132,10 @@ def load_file(filename, maxbytes=_unspecified):
     """
     Seed the PRNG with data from a file
 
-    :param filename: The file to read data from
-    :param maxbytes: (optional) The number of bytes to read, default is
-                     to read the entire file
+    :param filename: The file to read data from (``bytes`` or ``unicode``).
+    :param maxbytes: (optional) The number of bytes to read, default is to read
+        the entire file
+
     :return: The number of bytes read
     """
     filename = _path_string(filename)
@@ -152,7 +153,8 @@ def write_file(filename):
     """
     Save PRNG state to a file
 
-    :param filename: The file to write data to
+    :param filename: The file to write data to (``bytes`` or ``unicode``).
+
     :return: The number of bytes written
     """
     filename = _path_string(filename)
