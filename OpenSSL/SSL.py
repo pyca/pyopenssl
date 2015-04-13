@@ -935,6 +935,9 @@ class Context(object):
             bytestrings representing the advertised protocols, like
             ``[b'http/1.1', b'spdy/2']``.
         """
+        if not _lib.Cryptography_HAS_NEXTPROTONEG:
+            raise NotImplementedError("NPN not available.")
+
         self._npn_advertise_helper = _NpnAdvertiseHelper(callback)
         self._npn_advertise_callback = self._npn_advertise_helper.callback
         _lib.SSL_CTX_set_next_protos_advertised_cb(
@@ -951,6 +954,9 @@ class Context(object):
             bytestrings, e.g. ``[b'http/1.1', b'spdy/2']``.  It should return
             one of those bytestrings, the chosen protocol.
         """
+        if not _lib.Cryptography_HAS_NEXTPROTONEG:
+            raise NotImplementedError("NPN not available.")
+
         self._npn_select_helper = _NpnSelectHelper(callback)
         self._npn_select_callback = self._npn_select_helper.callback
         _lib.SSL_CTX_set_next_proto_select_cb(
@@ -1750,6 +1756,9 @@ class Connection(object):
         """
         Get the protocol that was negotiated by NPN.
         """
+        if not _lib.Cryptography_HAS_NEXTPROTONEG:
+            raise NotImplementedError("NPN not available.")
+
         data = _ffi.new("unsigned char **")
         data_len = _ffi.new("unsigned int *")
 
