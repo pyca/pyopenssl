@@ -1966,6 +1966,28 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
             )
             self.assertEqual([(server, [b'http/1.1', b'spdy/2'])], select_args)
 
+    else:
+        # No ALPN.
+        def test_alpn_not_implemented(self):
+            # Test the context methods first.
+            context = Context(TLSv1_METHOD)
+            fail_methods = [
+                context.set_alpn_protos,
+                context.set_alpn_select_callback,
+            ]
+            for method in fail_methods:
+                self.assertRaises(
+                    NotImplementedError, method, None
+                )
+
+            # Now test a connection.
+            conn = Connection(context)
+            fail_methods = [
+                conn.set_alpn_protos,
+            ]
+            for method in fail_methods:
+                self.assertRaises(NotImplementedError, method)
+
 
 
 class SessionTests(TestCase):
