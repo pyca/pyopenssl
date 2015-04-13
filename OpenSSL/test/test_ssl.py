@@ -571,6 +571,43 @@ class ContextTests(TestCase, _LoopbackMixin):
             ctx.use_certificate_file(pem_filename, long(FILETYPE_PEM))
 
 
+    def test_check_privatekey_valid(self):
+        """
+        :py:obj:`Context.check_privatekey` returns :py:obj:`None` if the
+        :py:obj:`Context` instance has been configured to use a matched key and
+        certificate pair.
+        """
+        key = load_privatekey(FILETYPE_PEM, client_key_pem)
+        cert = load_certificate(FILETYPE_PEM, client_cert_pem)
+        context = Context(TLSv1_METHOD)
+        context.use_privatekey(key)
+        context.use_certificate(cert)
+        self.assertIs(None, context.check_privatekey())
+
+
+    def test_check_privatekey_invalid(self):
+        """
+        :py:obj:`Context.check_privatekey` raises :py:obj:`Error` if the
+        :py:obj:`Context` instance has been configured to use a key and
+        certificate pair which don't relate to each other.
+        """
+        key = load_privatekey(FILETYPE_PEM, client_key_pem)
+        cert = load_certificate(FILETYPE_PEM, server_cert_pem)
+        context = Context(TLSv1_METHOD)
+        context.use_privatekey(key)
+        context.use_certificate(cert)
+        self.assertRaises(Error, context.check_privatekey)
+
+
+    def test_check_privatekey_wrong_args(self):
+        """
+        :py:obj:`Context.check_privatekey` raises :py:obj:`TypeError` if called
+        with other than no arguments.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.check_privatekey, object())
+
+
     def test_set_app_data_wrong_args(self):
         """
         :py:obj:`Context.set_app_data` raises :py:obj:`TypeError` if called with other than
@@ -1581,6 +1618,165 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
         self.assertEqual([(server, b("foo1.example.com"))], args)
 
 
+class NextProtoNegotiationTests(TestCase, _LoopbackMixin):
+    """
+    Test for Next Protocol Negotiation in PyOpenSSL.
+    """
+    def test_npn_success(self):
+        """
+        Tests that clients and servers that agree on the negotiated next
+        protocol can correct establish a connection, and that the agreed
+        protocol is reported by the connections.
+        """
+        advertise_args = []
+        select_args = []
+        def advertise(conn):
+            advertise_args.append((conn,))
+            return [b'http/1.1', b'spdy/2']
+        def select(conn, options):
+            select_args.append((conn, options))
+            return b'spdy/2'
+
+        server_context = Context(TLSv1_METHOD)
+        server_context.set_npn_advertise_callback(advertise)
+
+        client_context = Context(TLSv1_METHOD)
+        client_context.set_npn_select_callback(select)
+
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
+
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
+
+        client = Connection(client_context, None)
+        client.set_connect_state()
+
+        self._interactInMemory(server, client)
+
+        self.assertEqual([(server,)], advertise_args)
+        self.assertEqual([(client, [b'http/1.1', b'spdy/2'])], select_args)
+
+        self.assertEqual(server.get_next_proto_negotiated(), b'spdy/2')
+        self.assertEqual(client.get_next_proto_negotiated(), b'spdy/2')
+
+
+    def test_npn_client_fail(self):
+        """
+        Tests that when clients and servers cannot agree on what protocol to
+        use next that the TLS connection does not get established.
+        """
+        advertise_args = []
+        select_args = []
+        def advertise(conn):
+            advertise_args.append((conn,))
+            return [b'http/1.1', b'spdy/2']
+        def select(conn, options):
+            select_args.append((conn, options))
+            return b''
+
+        server_context = Context(TLSv1_METHOD)
+        server_context.set_npn_advertise_callback(advertise)
+
+        client_context = Context(TLSv1_METHOD)
+        client_context.set_npn_select_callback(select)
+
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
+
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
+
+        client = Connection(client_context, None)
+        client.set_connect_state()
+
+        # If the client doesn't return anything, the connection will fail.
+        self.assertRaises(Error, self._interactInMemory, server, client)
+
+        self.assertEqual([(server,)], advertise_args)
+        self.assertEqual([(client, [b'http/1.1', b'spdy/2'])], select_args)
+
+
+    def test_npn_select_error(self):
+        """
+        Test that we can handle exceptions in the select callback. If select
+        fails it should be fatal to the connection.
+        """
+        advertise_args = []
+        def advertise(conn):
+            advertise_args.append((conn,))
+            return [b'http/1.1', b'spdy/2']
+        def select(conn, options):
+            raise TypeError
+
+        server_context = Context(TLSv1_METHOD)
+        server_context.set_npn_advertise_callback(advertise)
+
+        client_context = Context(TLSv1_METHOD)
+        client_context.set_npn_select_callback(select)
+
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
+
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
+
+        client = Connection(client_context, None)
+        client.set_connect_state()
+
+        # If the callback throws an exception it should be raised here.
+        self.assertRaises(TypeError, self._interactInMemory, server, client)
+        self.assertEqual([(server,)], advertise_args)
+
+
+    def test_npn_advertise_error(self):
+        """
+        Test that we can handle exceptions in the advertise callback. If
+        advertise fails no NPN is advertised to the client.
+        """
+        select_args = []
+        def advertise(conn):
+            raise TypeError
+        def select(conn, options):
+            select_args.append((conn, options))
+            return b''
+
+        server_context = Context(TLSv1_METHOD)
+        server_context.set_npn_advertise_callback(advertise)
+
+        client_context = Context(TLSv1_METHOD)
+        client_context.set_npn_select_callback(select)
+
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
+
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
+
+        client = Connection(client_context, None)
+        client.set_connect_state()
+
+        # If the client doesn't return anything, the connection will fail.
+        self.assertRaises(TypeError, self._interactInMemory, server, client)
+        self.assertEqual([], select_args)
+
+
 
 class SessionTests(TestCase):
     """
@@ -1854,6 +2050,20 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertEquals(client.get_shutdown(), SENT_SHUTDOWN|RECEIVED_SHUTDOWN)
         self.assertRaises(ZeroReturnError, server.recv, 1024)
         self.assertEquals(server.get_shutdown(), SENT_SHUTDOWN|RECEIVED_SHUTDOWN)
+
+
+    def test_shutdown_closed(self):
+        """
+        If the underlying socket is closed, :py:obj:`Connection.shutdown` propagates the
+        write error from the low level write call.
+        """
+        server, client = self._loopback()
+        server.sock_shutdown(2)
+        exc = self.assertRaises(SysCallError, server.shutdown)
+        if platform == "win32":
+            self.assertEqual(exc.args[0], ESHUTDOWN)
+        else:
+            self.assertEqual(exc.args[0], EPIPE)
 
 
     def test_set_shutdown(self):
@@ -2361,6 +2571,164 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
             count = server.send(buffer(b('xy')))
             self.assertEquals(count, 2)
             self.assertEquals(client.recv(2), b('xy'))
+
+
+
+def _make_memoryview(size):
+    """
+    Create a new ``memoryview`` wrapped around a ``bytearray`` of the given
+    size.
+    """
+    return memoryview(bytearray(size))
+
+
+
+class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
+    """
+    Tests for :py:obj:`Connection.recv_into`
+    """
+    def _no_length_test(self, factory):
+        """
+        Assert that when the given buffer is passed to
+        ``Connection.recv_into``, whatever bytes are available to be received
+        that fit into that buffer are written into that buffer.
+        """
+        output_buffer = factory(5)
+
+        server, client = self._loopback()
+        server.send(b('xy'))
+
+        self.assertEqual(client.recv_into(output_buffer), 2)
+        self.assertEqual(output_buffer, bytearray(b('xy\x00\x00\x00')))
+
+
+    def test_bytearray_no_length(self):
+        """
+        :py:obj:`Connection.recv_into` can be passed a ``bytearray`` instance
+        and data in the receive buffer is written to it.
+        """
+        self._no_length_test(bytearray)
+
+
+    def _respects_length_test(self, factory):
+        """
+        Assert that when the given buffer is passed to ``Connection.recv_into``
+        along with a value for ``nbytes`` that is less than the size of that
+        buffer, only ``nbytes`` bytes are written into the buffer.
+        """
+        output_buffer = factory(10)
+
+        server, client = self._loopback()
+        server.send(b('abcdefghij'))
+
+        self.assertEqual(client.recv_into(output_buffer, 5), 5)
+        self.assertEqual(
+            output_buffer, bytearray(b('abcde\x00\x00\x00\x00\x00'))
+        )
+
+
+    def test_bytearray_respects_length(self):
+        """
+        When called with a ``bytearray`` instance,
+        :py:obj:`Connection.recv_into` respects the ``nbytes`` parameter and
+        doesn't copy in more than that number of bytes.
+        """
+        self._respects_length_test(bytearray)
+
+
+    def _doesnt_overfill_test(self, factory):
+        """
+        Assert that if there are more bytes available to be read from the
+        receive buffer than would fit into the buffer passed to
+        :py:obj:`Connection.recv_into`, only as many as fit are written into
+        it.
+        """
+        output_buffer = factory(5)
+
+        server, client = self._loopback()
+        server.send(b('abcdefghij'))
+
+        self.assertEqual(client.recv_into(output_buffer), 5)
+        self.assertEqual(output_buffer, bytearray(b('abcde')))
+        rest = client.recv(5)
+        self.assertEqual(b('fghij'), rest)
+
+
+    def test_bytearray_doesnt_overfill(self):
+        """
+        When called with a ``bytearray`` instance,
+        :py:obj:`Connection.recv_into` respects the size of the array and
+        doesn't write more bytes into it than will fit.
+        """
+        self._doesnt_overfill_test(bytearray)
+
+
+    def _really_doesnt_overfill_test(self, factory):
+        """
+        Assert that if the value given by ``nbytes`` is greater than the actual
+        size of the output buffer passed to :py:obj:`Connection.recv_into`, the
+        behavior is as if no value was given for ``nbytes`` at all.
+        """
+        output_buffer = factory(5)
+
+        server, client = self._loopback()
+        server.send(b('abcdefghij'))
+
+        self.assertEqual(client.recv_into(output_buffer, 50), 5)
+        self.assertEqual(output_buffer, bytearray(b('abcde')))
+        rest = client.recv(5)
+        self.assertEqual(b('fghij'), rest)
+
+
+    def test_bytearray_really_doesnt_overfill(self):
+        """
+        When called with a ``bytearray`` instance and an ``nbytes`` value that
+        is too large, :py:obj:`Connection.recv_into` respects the size of the
+        array and not the ``nbytes`` value and doesn't write more bytes into
+        the buffer than will fit.
+        """
+        self._doesnt_overfill_test(bytearray)
+
+
+    try:
+        memoryview
+    except NameError:
+        "cannot test recv_into memoryview without memoryview"
+    else:
+        def test_memoryview_no_length(self):
+            """
+            :py:obj:`Connection.recv_into` can be passed a ``memoryview``
+            instance and data in the receive buffer is written to it.
+            """
+            self._no_length_test(_make_memoryview)
+
+
+        def test_memoryview_respects_length(self):
+            """
+            When called with a ``memoryview`` instance,
+            :py:obj:`Connection.recv_into` respects the ``nbytes`` parameter
+            and doesn't copy more than that number of bytes in.
+            """
+            self._respects_length_test(_make_memoryview)
+
+
+        def test_memoryview_doesnt_overfill(self):
+            """
+            When called with a ``memoryview`` instance,
+            :py:obj:`Connection.recv_into` respects the size of the array and
+            doesn't write more bytes into it than will fit.
+            """
+            self._doesnt_overfill_test(_make_memoryview)
+
+
+        def test_memoryview_really_doesnt_overfill(self):
+            """
+            When called with a ``memoryview`` instance and an ``nbytes`` value
+            that is too large, :py:obj:`Connection.recv_into` respects the size
+            of the array and not the ``nbytes`` value and doesn't write more
+            bytes into the buffer than will fit.
+            """
+            self._doesnt_overfill_test(_make_memoryview)
 
 
 

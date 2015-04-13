@@ -232,7 +232,7 @@ class TestCase(TestCase):
     failIfIn = assertNotIn
 
 
-    def failUnlessIdentical(self, first, second, msg=None):
+    def assertIs(self, first, second, msg=None):
         """
         Fail the test if :py:data:`first` is not :py:data:`second`.  This is an
         obect-identity-equality test, not an object equality
@@ -244,10 +244,10 @@ class TestCase(TestCase):
         if first is not second:
             raise self.failureException(msg or '%r is not %r' % (first, second))
         return first
-    assertIdentical = failUnlessIdentical
+    assertIdentical = failUnlessIdentical = assertIs
 
 
-    def failIfIdentical(self, first, second, msg=None):
+    def assertIsNot(self, first, second, msg=None):
         """
         Fail the test if :py:data:`first` is :py:data:`second`.  This is an
         obect-identity-equality test, not an object equality
@@ -259,7 +259,7 @@ class TestCase(TestCase):
         if first is second:
             raise self.failureException(msg or '%r is %r' % (first, second))
         return first
-    assertNotIdentical = failIfIdentical
+    assertNotIdentical = failIfIdentical = assertIsNot
 
 
     def failUnlessRaises(self, exception, f, *args, **kwargs):
