@@ -7,7 +7,7 @@ Unit tests for :py:obj:`OpenSSL.SSL`.
 
 from gc import collect, get_referrers
 from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE, ESHUTDOWN
-from sys import platform, version_info
+from sys import platform, version_info, getfilesystemencoding
 from socket import SHUT_RDWR, error, socket
 from os import makedirs
 from os.path import join
@@ -22,7 +22,6 @@ from OpenSSL.crypto import dump_privatekey, load_privatekey
 from OpenSSL.crypto import dump_certificate, load_certificate
 from OpenSSL.crypto import get_elliptic_curves
 
-from OpenSSL.SSL import _lib
 from OpenSSL.SSL import OPENSSL_VERSION_NUMBER, SSLEAY_VERSION, SSLEAY_CFLAGS
 from OpenSSL.SSL import SSLEAY_PLATFORM, SSLEAY_DIR, SSLEAY_BUILT_ON
 from OpenSSL.SSL import SENT_SHUTDOWN, RECEIVED_SHUTDOWN
@@ -43,7 +42,7 @@ from OpenSSL.SSL import (
 from OpenSSL.SSL import (
     Context, ContextType, Session, Connection, ConnectionType, SSLeay_version)
 
-from OpenSSL.test.util import TestCase, b
+from OpenSSL.test.util import NON_ASCII, TestCase, b
 from OpenSSL.test.test_crypto import (
     cleartextCertificatePEM, cleartextPrivateKeyPEM)
 from OpenSSL.test.test_crypto import (
@@ -93,6 +92,23 @@ dhparam = """\
 MBYCEQCobsg29c9WZP/54oAPcwiDAgEC
 -----END DH PARAMETERS-----
 """
+
+
+def join_bytes_or_unicode(prefix, suffix):
+    """
+    Join two path components of either ``bytes`` or ``unicode``.
+
+    The return type is the same as the type of ``prefix``.
+    """
+    # If the types are the same, nothing special is necessary.
+    if type(prefix) == type(suffix):
+        return join(prefix, suffix)
+
+    # Otherwise, coerce suffix to the type of prefix.
+    if isinstance(prefix, text_type):
+        return join(prefix, suffix.decode(getfilesystemencoding()))
+    else:
+        return join(prefix, suffix.encode(getfilesystemencoding()))
 
 
 def verify_cb(conn, cert, errnum, depth, ok):
@@ -395,23 +411,52 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(Error, ctx.use_privatekey_file, self.mktemp())
 
 
+    def _use_privatekey_file_test(self, pemfile, filetype):
+        """
+        Verify that calling ``Context.use_privatekey_file`` with the given
+        arguments does not raise an exception.
+        """
+        key = PKey()
+        key.generate_key(TYPE_RSA, 128)
+
+        with open(pemfile, "wt") as pem:
+            pem.write(
+                dump_privatekey(FILETYPE_PEM, key).decode("ascii")
+            )
+
+        ctx = Context(TLSv1_METHOD)
+        ctx.use_privatekey_file(pemfile, filetype)
+
+
+    def test_use_privatekey_file_bytes(self):
+        """
+        A private key can be specified from a file by passing a ``bytes``
+        instance giving the file name to ``Context.use_privatekey_file``.
+        """
+        self._use_privatekey_file_test(
+            self.mktemp() + NON_ASCII.encode(getfilesystemencoding()),
+            FILETYPE_PEM,
+        )
+
+
+    def test_use_privatekey_file_unicode(self):
+        """
+        A private key can be specified from a file by passing a ``unicode``
+        instance giving the file name to ``Context.use_privatekey_file``.
+        """
+        self._use_privatekey_file_test(
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII,
+            FILETYPE_PEM,
+        )
+
+
     if not PY3:
         def test_use_privatekey_file_long(self):
             """
             On Python 2 :py:obj:`Context.use_privatekey_file` accepts a
             filetype of type :py:obj:`long` as well as :py:obj:`int`.
             """
-            pemfile = self.mktemp()
-
-            key = PKey()
-            key.generate_key(TYPE_RSA, 128)
-
-            with open(pemfile, "wt") as pem:
-                pem.write(
-                    dump_privatekey(FILETYPE_PEM, key).decode("ascii"))
-
-            ctx = Context(TLSv1_METHOD)
-            ctx.use_privatekey_file(pemfile, long(FILETYPE_PEM))
+            self._use_privatekey_file_test(self.mktemp(), long(FILETYPE_PEM))
 
 
     def test_use_certificate_wrong_args(self):
@@ -476,21 +521,40 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(Error, ctx.use_certificate_file, self.mktemp())
 
 
-    def test_use_certificate_file(self):
+    def _use_certificate_file_test(self, certificate_file):
         """
-        :py:obj:`Context.use_certificate` sets the certificate which will be
-        used to identify connections created using the context.
+        Verify that calling ``Context.use_certificate_file`` with the given
+        filename doesn't raise an exception.
         """
         # TODO
         # Hard to assert anything.  But we could set a privatekey then ask
         # OpenSSL if the cert and key agree using check_privatekey.  Then as
         # long as check_privatekey works right we're good...
-        pem_filename = self.mktemp()
-        with open(pem_filename, "wb") as pem_file:
+        with open(certificate_file, "wb") as pem_file:
             pem_file.write(cleartextCertificatePEM)
 
         ctx = Context(TLSv1_METHOD)
-        ctx.use_certificate_file(pem_filename)
+        ctx.use_certificate_file(certificate_file)
+
+
+    def test_use_certificate_file_bytes(self):
+        """
+        :py:obj:`Context.use_certificate_file` sets the certificate (given as a
+        ``bytes`` filename) which will be used to identify connections created
+        using the context.
+        """
+        filename = self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
+        self._use_certificate_file_test(filename)
+
+
+    def test_use_certificate_file_unicode(self):
+        """
+        :py:obj:`Context.use_certificate_file` sets the certificate (given as a
+        ``bytes`` filename) which will be used to identify connections created
+        using the context.
+        """
+        filename = self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
+        self._use_certificate_file_test(filename)
 
 
     if not PY3:
@@ -904,17 +968,39 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertEqual(cert.get_subject().CN, 'Testing Root CA')
 
 
-    def test_load_verify_file(self):
+    def _load_verify_cafile(self, cafile):
         """
-        :py:obj:`Context.load_verify_locations` accepts a file name and uses the
-        certificates within for verification purposes.
+        Verify that if path to a file containing a certificate is passed to
+        ``Context.load_verify_locations`` for the ``cafile`` parameter, that
+        certificate is used as a trust root for the purposes of verifying
+        connections created using that ``Context``.
         """
-        cafile = self.mktemp()
         fObj = open(cafile, 'w')
         fObj.write(cleartextCertificatePEM.decode('ascii'))
         fObj.close()
 
         self._load_verify_locations_test(cafile)
+
+
+    def test_load_verify_bytes_cafile(self):
+        """
+        :py:obj:`Context.load_verify_locations` accepts a file name as a
+        ``bytes`` instance and uses the certificates within for verification
+        purposes.
+        """
+        cafile = self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
+        self._load_verify_cafile(cafile)
+
+
+    def test_load_verify_unicode_cafile(self):
+        """
+        :py:obj:`Context.load_verify_locations` accepts a file name as a
+        ``unicode`` instance and uses the certificates within for verification
+        purposes.
+        """
+        self._load_verify_cafile(
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
+        )
 
 
     def test_load_verify_invalid_file(self):
@@ -927,23 +1013,45 @@ class ContextTests(TestCase, _LoopbackMixin):
             Error, clientContext.load_verify_locations, self.mktemp())
 
 
-    def test_load_verify_directory(self):
+    def _load_verify_directory_locations_capath(self, capath):
         """
-        :py:obj:`Context.load_verify_locations` accepts a directory name and uses
-        the certificates within for verification purposes.
+        Verify that if path to a directory containing certificate files is
+        passed to ``Context.load_verify_locations`` for the ``capath``
+        parameter, those certificates are used as trust roots for the purposes
+        of verifying connections created using that ``Context``.
         """
-        capath = self.mktemp()
         makedirs(capath)
         # Hash values computed manually with c_rehash to avoid depending on
         # c_rehash in the test suite.  One is from OpenSSL 0.9.8, the other
         # from OpenSSL 1.0.0.
         for name in [b'c7adac82.0', b'c3705638.0']:
-            cafile = join(capath, name)
-            fObj = open(cafile, 'w')
-            fObj.write(cleartextCertificatePEM.decode('ascii'))
-            fObj.close()
+            cafile = join_bytes_or_unicode(capath, name)
+            with open(cafile, 'w') as fObj:
+                fObj.write(cleartextCertificatePEM.decode('ascii'))
 
         self._load_verify_locations_test(None, capath)
+
+
+    def test_load_verify_directory_bytes_capath(self):
+        """
+        :py:obj:`Context.load_verify_locations` accepts a directory name as a
+        ``bytes`` instance and uses the certificates within for verification
+        purposes.
+        """
+        self._load_verify_directory_locations_capath(
+            self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
+        )
+
+
+    def test_load_verify_directory_unicode_capath(self):
+        """
+        :py:obj:`Context.load_verify_locations` accepts a directory name as a
+        ``unicode`` instance and uses the certificates within for verification
+        purposes.
+        """
+        self._load_verify_directory_locations_capath(
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
+        )
 
 
     def test_load_verify_locations_wrong_args(self):
@@ -1131,41 +1239,65 @@ class ContextTests(TestCase, _LoopbackMixin):
         self._handshake_test(serverContext, clientContext)
 
 
-    def test_use_certificate_chain_file(self):
+    def _use_certificate_chain_file_test(self, certdir):
         """
-        :py:obj:`Context.use_certificate_chain_file` reads a certificate chain from
-        the specified file.
+        Verify that :py:obj:`Context.use_certificate_chain_file` reads a
+        certificate chain from a specified file.
 
-        The chain is tested by starting a server with scert and connecting
-        to it with a client which trusts cacert and requires verification to
+        The chain is tested by starting a server with scert and connecting to
+        it with a client which trusts cacert and requires verification to
         succeed.
         """
         chain = _create_certificate_chain()
         [(cakey, cacert), (ikey, icert), (skey, scert)] = chain
 
+        makedirs(certdir)
+
+        chainFile = join_bytes_or_unicode(certdir, "chain.pem")
+        caFile = join_bytes_or_unicode(certdir, "ca.pem")
+
         # Write out the chain file.
-        chainFile = self.mktemp()
-        fObj = open(chainFile, 'wb')
-        # Most specific to least general.
-        fObj.write(dump_certificate(FILETYPE_PEM, scert))
-        fObj.write(dump_certificate(FILETYPE_PEM, icert))
-        fObj.write(dump_certificate(FILETYPE_PEM, cacert))
-        fObj.close()
+        with open(chainFile, 'wb') as fObj:
+            # Most specific to least general.
+            fObj.write(dump_certificate(FILETYPE_PEM, scert))
+            fObj.write(dump_certificate(FILETYPE_PEM, icert))
+            fObj.write(dump_certificate(FILETYPE_PEM, cacert))
+
+        with open(caFile, 'w') as fObj:
+            fObj.write(dump_certificate(FILETYPE_PEM, cacert).decode('ascii'))
 
         serverContext = Context(TLSv1_METHOD)
         serverContext.use_certificate_chain_file(chainFile)
         serverContext.use_privatekey(skey)
 
-        fObj = open('ca.pem', 'w')
-        fObj.write(dump_certificate(FILETYPE_PEM, cacert).decode('ascii'))
-        fObj.close()
-
         clientContext = Context(TLSv1_METHOD)
         clientContext.set_verify(
             VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT, verify_cb)
-        clientContext.load_verify_locations(b"ca.pem")
+        clientContext.load_verify_locations(caFile)
 
         self._handshake_test(serverContext, clientContext)
+
+
+    def test_use_certificate_chain_file_bytes(self):
+        """
+        ``Context.use_certificate_chain_file`` accepts the name of a file (as
+        an instance of ``bytes``) to specify additional certificates to use to
+        construct and verify a trust chain.
+        """
+        self._use_certificate_chain_file_test(
+            self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
+        )
+
+
+    def test_use_certificate_chain_file_unicode(self):
+        """
+        ``Context.use_certificate_chain_file`` accepts the name of a file (as
+        an instance of ``unicode``) to specify additional certificates to use
+        to construct and verify a trust chain.
+        """
+        self._use_certificate_chain_file_test(
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
+        )
 
 
     def test_use_certificate_chain_file_wrong_args(self):
@@ -1242,18 +1374,37 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(Error, context.load_tmp_dh, b"hello")
 
 
-    def test_load_tmp_dh(self):
+    def _load_tmp_dh_test(self, dhfilename):
         """
-        :py:obj:`Context.load_tmp_dh` loads Diffie-Hellman parameters from the
-        specified file.
+        Verify that calling ``Context.load_tmp_dh`` with the given filename
+        does not raise an exception.
         """
         context = Context(TLSv1_METHOD)
-        dhfilename = self.mktemp()
-        dhfile = open(dhfilename, "w")
-        dhfile.write(dhparam)
-        dhfile.close()
+        with open(dhfilename, "w") as dhfile:
+            dhfile.write(dhparam)
+
         context.load_tmp_dh(dhfilename)
         # XXX What should I assert here? -exarkun
+
+
+    def test_load_tmp_dh_bytes(self):
+        """
+        :py:obj:`Context.load_tmp_dh` loads Diffie-Hellman parameters from the
+        specified file (given as ``bytes``).
+        """
+        self._load_tmp_dh_test(
+            self.mktemp() + NON_ASCII.encode(getfilesystemencoding()),
+        )
+
+
+    def test_load_tmp_dh_unicode(self):
+        """
+        :py:obj:`Context.load_tmp_dh` loads Diffie-Hellman parameters from the
+        specified file (given as ``unicode``).
+        """
+        self._load_tmp_dh_test(
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII,
+        )
 
 
     def test_set_tmp_ecdh(self):

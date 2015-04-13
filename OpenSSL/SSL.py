@@ -12,7 +12,9 @@ from OpenSSL._util import (
     ffi as _ffi,
     lib as _lib,
     exception_from_error_queue as _exception_from_error_queue,
-    native as _native)
+    native as _native,
+    path_string as _path_string,
+)
 
 from OpenSSL.crypto import (
     FILETYPE_PEM, _PassphraseHelper, PKey, X509Name, X509, X509Store)
@@ -420,19 +422,22 @@ class Context(object):
         Let SSL know where we can find trusted certificates for the certificate
         chain
 
-        :param cafile: In which file we can find the certificates
+        :param cafile: In which file we can find the certificates (``bytes`` or
+            ``unicode``).
         :param capath: In which directory we can find the certificates
+            (``bytes`` or ``unicode``).
+
         :return: None
         """
         if cafile is None:
             cafile = _ffi.NULL
-        elif not isinstance(cafile, bytes):
-            raise TypeError("cafile must be None or a byte string")
+        else:
+            cafile = _path_string(cafile)
 
         if capath is None:
             capath = _ffi.NULL
-        elif not isinstance(capath, bytes):
-            raise TypeError("capath must be None or a byte string")
+        else:
+            capath = _path_string(capath)
 
         load_result = _lib.SSL_CTX_load_verify_locations(self._context, cafile, capath)
         if not load_result:
@@ -482,15 +487,12 @@ class Context(object):
         """
         Load a certificate chain from a file
 
-        :param certfile: The name of the certificate chain file
+        :param certfile: The name of the certificate chain file (``bytes`` or
+            ``unicode``).
+
         :return: None
         """
-        if isinstance(certfile, _text_type):
-            # Perhaps sys.getfilesystemencoding() could be better?
-            certfile = certfile.encode("utf-8")
-
-        if not isinstance(certfile, bytes):
-            raise TypeError("certfile must be bytes or unicode")
+        certfile = _path_string(certfile)
 
         result = _lib.SSL_CTX_use_certificate_chain_file(self._context, certfile)
         if not result:
@@ -501,15 +503,13 @@ class Context(object):
         """
         Load a certificate from a file
 
-        :param certfile: The name of the certificate file
+        :param certfile: The name of the certificate file (``bytes`` or
+            ``unicode``).
         :param filetype: (optional) The encoding of the file, default is PEM
+
         :return: None
         """
-        if isinstance(certfile, _text_type):
-            # Perhaps sys.getfilesystemencoding() could be better?
-            certfile = certfile.encode("utf-8")
-        if not isinstance(certfile, bytes):
-            raise TypeError("certfile must be bytes or unicode")
+        certfile = _path_string(certfile)
         if not isinstance(filetype, integer_types):
             raise TypeError("filetype must be an integer")
 
@@ -563,16 +563,12 @@ class Context(object):
         """
         Load a private key from a file
 
-        :param keyfile: The name of the key file
+        :param keyfile: The name of the key file (``bytes`` or ``unicode``)
         :param filetype: (optional) The encoding of the file, default is PEM
+
         :return: None
         """
-        if isinstance(keyfile, _text_type):
-            # Perhaps sys.getfilesystemencoding() could be better?
-            keyfile = keyfile.encode("utf-8")
-
-        if not isinstance(keyfile, bytes):
-            raise TypeError("keyfile must be a byte string")
+        keyfile = _path_string(keyfile)
 
         if filetype is _unspecified:
             filetype = FILETYPE_PEM
@@ -708,11 +704,12 @@ class Context(object):
         """
         Load parameters for Ephemeral Diffie-Hellman
 
-        :param dhfile: The file to load EDH parameters from
+        :param dhfile: The file to load EDH parameters from (``bytes`` or
+            ``unicode``).
+
         :return: None
         """
-        if not isinstance(dhfile, bytes):
-            raise TypeError("dhfile must be a byte string")
+        dhfile = _path_string(dhfile)
 
         bio = _lib.BIO_new_file(dhfile, b"r")
         if bio == _ffi.NULL:
