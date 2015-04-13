@@ -348,6 +348,10 @@ def SSLeay_version(type):
 
 
 def _requires_npn(func):
+    """
+    Wraps any function that requires NPN support in OpenSSL, ensuring that
+    NotImplementedError is raised if NPN is not present.
+    """
     @wraps(func)
     def wrapper(*args, **kwargs):
         if not _lib.Cryptography_HAS_NEXTPROTONEG:
