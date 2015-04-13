@@ -501,7 +501,7 @@ Context objects have the following methods:
 .. py:method:: Context.set_alpn_protos(protos)
 
     Specify the protocols that the client is prepared to speak after the TLS
-    connection has been negotiated, using Application Layer Protocol
+    connection has been negotiated using Application Layer Protocol
     Negotiation.
 
     *protos* should be a list of protocols that the client is offering, each
@@ -514,7 +514,7 @@ Context objects have the following methods:
     offers protocols using Application Layer Protocol Negotiation.
 
     *callback* should be the callback function. It will be invoked with two
-    arguments: the :py:class:`Connection`, and a list of offered protocols as
+    arguments: the :py:class:`Connection` and a list of offered protocols as
     bytestrings, e.g. ``[b'http/1.1', b'spdy/2']``. It should return one of
     these bytestrings, the chosen protocol.
 
@@ -872,7 +872,7 @@ Connection objects have the following methods:
 .. py:method:: Connection.set_alpn_protos(protos)
 
     Specify the protocols that the client is prepared to speak after the TLS
-    connection has been negotiated, using Application Layer Protocol
+    connection has been negotiated using Application Layer Protocol
     Negotiation.
 
     *protos* should be a list of protocols that the client is offering, each
