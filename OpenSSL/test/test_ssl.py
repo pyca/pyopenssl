@@ -1,5 +1,3 @@
-
-
 # Copyright (C) Jean-Paul Calderone
 # See LICENSE for details.
 
