@@ -95,6 +95,11 @@ else:
     def byte_string(s):
         return s
 
+
+# A marker object to observe whether some optional arguments are passed any
+# value or not.
+UNSPECIFIED = object()
+
 _TEXT_WARNING = (
     text_type.__name__ + " for {0} is no longer accepted, use bytes"
 )

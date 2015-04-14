@@ -2,6 +2,7 @@ from time import time
 from base64 import b16encode
 from functools import partial
 from operator import __eq__, __ne__, __lt__, __le__, __gt__, __ge__
+from warnings import warn as _warn
 
 from six import (
     integer_types as _integer_types,
@@ -14,6 +15,7 @@ from OpenSSL._util import (
     exception_from_error_queue as _exception_from_error_queue,
     byte_string as _byte_string,
     native as _native,
+    UNSPECIFIED as _UNSPECIFIED,
     text_to_bytes_and_warn as _text_to_bytes_and_warn,
 )
 
@@ -1831,7 +1833,8 @@ class CRL(object):
             _raise_current_error()
 
 
-    def export(self, cert, key, type=FILETYPE_PEM, days=100):
+    def export(self, cert, key, type=FILETYPE_PEM, days=100,
+               digest=_UNSPECIFIED):
         """
         export a CRL as a string
 
@@ -1841,12 +1844,15 @@ class CRL(object):
         :param key: Used to sign CRL.
         :type key: :class:`PKey`
 
-        :param type: The export format, either :py:data:`FILETYPE_PEM`, :py:data:`FILETYPE_ASN1`, or :py:data:`FILETYPE_TEXT`.
+        :param type: The export format, either :py:data:`FILETYPE_PEM`,
+            :py:data:`FILETYPE_ASN1`, or :py:data:`FILETYPE_TEXT`.
 
-        :param days: The number of days until the next update of this CRL.
-        :type days: :py:data:`int`
+        :param int days: The number of days until the next update of this CRL.
 
-        :return: :py:data:`str`
+        :param bytes digest: The name of the message digest to use (eg
+            ``b"sha1"``).
+
+        :return: :py:data:`bytes`
         """
         if not isinstance(cert, X509):
             raise TypeError("cert must be an X509 instance")
@@ -1854,6 +1860,19 @@ class CRL(object):
             raise TypeError("key must be a PKey instance")
         if not isinstance(type, int):
             raise TypeError("type must be an integer")
+
+        if digest is _UNSPECIFIED:
+            _warn(
+                "The default message digest (md5) is deprecated.  "
+                "Pass the name of a message digest explicitly.",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+            digest = b"md5"
+
+        digest_obj = _lib.EVP_get_digestbyname(digest)
+        if digest_obj == _ffi.NULL:
+            raise ValueError("No such digest method")
 
         bio = _lib.BIO_new(_lib.BIO_s_mem())
         if bio == _ffi.NULL:
@@ -1874,7 +1893,7 @@ class CRL(object):
 
         _lib.X509_CRL_set_issuer_name(self._crl, _lib.X509_get_subject_name(cert._x509))
 
-        sign_result = _lib.X509_CRL_sign(self._crl, key._pkey, _lib.EVP_md5())
+        sign_result = _lib.X509_CRL_sign(self._crl, key._pkey, digest_obj)
         if not sign_result:
             _raise_current_error()
 

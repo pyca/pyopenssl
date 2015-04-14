@@ -6,6 +6,7 @@ Unit tests for :py:mod:`OpenSSL.crypto`.
 """
 
 from unittest import main
+from warnings import catch_warnings, simplefilter
 
 import base64
 import os
@@ -3043,11 +3044,9 @@ class CRLTests(TestCase):
         self.assertRaises(TypeError, CRL, None)
 
 
-    def test_export(self):
+    def _get_crl(self):
         """
-        Use python to create a simple CRL with a revocation, and export
-        the CRL in formats of PEM, DER and text.  Those outputs are verified
-        with the openssl program.
+        Get a new ``CRL`` with a revocation.
         """
         crl = CRL()
         revoked = Revoked()
@@ -3056,24 +3055,108 @@ class CRLTests(TestCase):
         revoked.set_serial(b('3ab'))
         revoked.set_reason(b('sUpErSeDEd'))
         crl.add_revoked(revoked)
+        return crl
 
+
+    def test_export_pem(self):
+        """
+        If not passed a format, ``CRL.export`` returns a "PEM" format string
+        representing a serial number, a revoked reason, and certificate issuer
+        information.
+        """
+        crl = self._get_crl()
         # PEM format
         dumped_crl = crl.export(self.cert, self.pkey, days=20)
         text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
+
+        # These magic values are based on the way the CRL above was constructed
+        # and with what certificate it was exported.
         text.index(b('Serial Number: 03AB'))
         text.index(b('Superseded'))
-        text.index(b('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA'))
+        text.index(
+            b('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA')
+        )
+
+
+    def test_export_der(self):
+        """
+        If passed ``FILETYPE_ASN1`` for the format, ``CRL.export`` returns a
+        "DER" format string representing a serial number, a revoked reason, and
+        certificate issuer information.
+        """
+        crl = self._get_crl()
 
         # DER format
         dumped_crl = crl.export(self.cert, self.pkey, FILETYPE_ASN1)
-        text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text", b"-inform", b"DER")
+        text = _runopenssl(
+            dumped_crl, b"crl", b"-noout", b"-text", b"-inform", b"DER"
+        )
         text.index(b('Serial Number: 03AB'))
         text.index(b('Superseded'))
-        text.index(b('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA'))
+        text.index(
+            b('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA')
+        )
+
+
+    def test_export_text(self):
+        """
+        If passed ``FILETYPE_TEXT`` for the format, ``CRL.export`` returns a
+        text format string like the one produced by the openssl command line
+        tool.
+        """
+        crl = self._get_crl()
+
+        dumped_crl = crl.export(self.cert, self.pkey, FILETYPE_ASN1)
+        text = _runopenssl(
+            dumped_crl, b"crl", b"-noout", b"-text", b"-inform", b"DER"
+        )
 
         # text format
         dumped_text = crl.export(self.cert, self.pkey, type=FILETYPE_TEXT)
         self.assertEqual(text, dumped_text)
+
+
+    def test_export_custom_digest(self):
+        """
+        If passed the name of a digest function, ``CRL.export`` uses a
+        signature algorithm based on that digest function.
+        """
+        crl = self._get_crl()
+        dumped_crl = crl.export(self.cert, self.pkey, digest=b"sha1")
+        text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
+        text.index(b('Signature Algorithm: sha1'))
+
+
+    def test_export_md5_digest(self):
+        """
+        If passed md5 as the digest function, ``CRL.export`` uses md5 and does
+        not emit a deprecation warning.
+        """
+        crl = self._get_crl()
+        with catch_warnings(record=True) as catcher:
+            simplefilter("always")
+            self.assertEqual(0, len(catcher))
+        dumped_crl = crl.export(self.cert, self.pkey, digest=b"md5")
+        text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
+        text.index(b('Signature Algorithm: md5'))
+
+
+    def test_export_default_digest(self):
+        """
+        If not passed the name of a digest function, ``CRL.export`` uses a
+        signature algorithm based on MD5 and emits a deprecation warning.
+        """
+        crl = self._get_crl()
+        with catch_warnings(record=True) as catcher:
+            simplefilter("always")
+            dumped_crl = crl.export(self.cert, self.pkey)
+            self.assertEqual(
+                "The default message digest (md5) is deprecated.  "
+                "Pass the name of a message digest explicitly.",
+                str(catcher[0].message),
+            )
+        text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
+        text.index(b('Signature Algorithm: md5'))
 
 
     def test_export_invalid(self):
@@ -3106,7 +3189,7 @@ class CRLTests(TestCase):
         crl = CRL()
         self.assertRaises(TypeError, crl.export)
         self.assertRaises(TypeError, crl.export, self.cert)
-        self.assertRaises(TypeError, crl.export, self.cert, self.pkey, FILETYPE_PEM, 10, "foo")
+        self.assertRaises(TypeError, crl.export, self.cert, self.pkey, FILETYPE_PEM, 10, "md5", "foo")
 
         self.assertRaises(TypeError, crl.export, None, self.pkey, FILETYPE_PEM, 10)
         self.assertRaises(TypeError, crl.export, self.cert, None, FILETYPE_PEM, 10)
@@ -3122,6 +3205,19 @@ class CRLTests(TestCase):
         """
         crl = CRL()
         self.assertRaises(ValueError, crl.export, self.cert, self.pkey, 100, 10)
+
+
+    def test_export_unknown_digest(self):
+        """
+        Calling :py:obj:`OpenSSL.CRL.export` with a unsupported digest results
+        in a :py:obj:`ValueError` being raised.
+        """
+        crl = CRL()
+        self.assertRaises(
+            ValueError,
+            crl.export,
+            self.cert, self.pkey, FILETYPE_PEM, 10, b"strange-digest"
+        )
 
 
     def test_get_revoked(self):
