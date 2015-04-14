@@ -2303,6 +2303,26 @@ class ConnectionTests(TestCase, _LoopbackMixin):
             self.assertEqual(exc.args[0], EPIPE)
 
 
+    def test_shutdown_truncated(self):
+        """
+        If the underlying connection is truncated, :obj:`Connection.shutdown`
+        raises an :obj:`Error`.
+        """
+        server_ctx = Context(TLSv1_METHOD)
+        client_ctx = Context(TLSv1_METHOD)
+        server_ctx.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_ctx.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
+        server = Connection(server_ctx, None)
+        client = Connection(client_ctx, None)
+        self._handshakeInMemory(client, server)
+        self.assertEqual(server.shutdown(), False)
+        self.assertRaises(WantReadError, server.shutdown)
+        server.bio_shutdown()
+        self.assertRaises(Error, server.shutdown)
+
+
     def test_set_shutdown(self):
         """
         :py:obj:`Connection.set_shutdown` sets the state of the SSL connection shutdown

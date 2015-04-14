@@ -1,3 +1,11 @@
+2015-04-14  Glyph Lefkowitz  <glyph@twistedmatrix.com>
+
+	* OpenSSL/SSL.py, OpenSSL/test/test_ssl.py: Fix a regression
+	  present in 0.15, where when an error occurs and no errno() is set,
+	  a KeyError is raised.  This happens, for example, if
+	  Connection.shutdown() is called when the underlying transport has
+	  gone away.
+
 2015-04-12  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
 	* OpenSSL/rand.py, OpenSSL/SSL.py: APIs which previously accepted
