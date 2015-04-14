@@ -3164,7 +3164,11 @@ class CRLTests(TestCase):
         in a :py:obj:`ValueError` being raised.
         """
         crl = CRL()
-        self.assertRaises(ValueError, crl.export, self.cert, self.pkey, FILETYPE_PEM, 10, "strange-digest")
+        self.assertRaises(
+            ValueError,
+            crl.export,
+            self.cert, self.pkey, FILETYPE_PEM, 10, b"strange-digest"
+        )
 
 
     def test_get_revoked(self):
