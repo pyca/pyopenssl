@@ -7,12 +7,13 @@ Unit tests for :py:obj:`OpenSSL.SSL`.
 
 from gc import collect, get_referrers
 from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE, ESHUTDOWN
-from sys import platform, version_info, getfilesystemencoding
+from sys import platform, getfilesystemencoding
 from socket import SHUT_RDWR, error, socket
 from os import makedirs
 from os.path import join
 from unittest import main
 from weakref import ref
+from warnings import catch_warnings, simplefilter
 
 from six import PY3, text_type, u
 
@@ -43,11 +44,9 @@ from OpenSSL.SSL import (
     Context, ContextType, Session, Connection, ConnectionType, SSLeay_version)
 
 from OpenSSL._util import lib as _lib
-
-from OpenSSL.test.util import NON_ASCII, TestCase, b
+from OpenSSL.test.util import WARNING_TYPE_EXPECTED, NON_ASCII, TestCase, b
 from OpenSSL.test.test_crypto import (
-    cleartextCertificatePEM, cleartextPrivateKeyPEM)
-from OpenSSL.test.test_crypto import (
+    cleartextCertificatePEM, cleartextPrivateKeyPEM,
     client_cert_pem, client_key_pem, server_cert_pem, server_key_pem,
     root_cert_pem)
 
@@ -2108,7 +2107,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertRaises(
             TypeError, conn.set_tlsext_host_name, b("with\0null"))
 
-        if version_info >= (3,):
+        if PY3:
             # On Python 3.x, don't accidentally implicitly convert from text.
             self.assertRaises(
                 TypeError,
@@ -2749,6 +2748,26 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
         self.assertEquals(count, 2)
         self.assertEquals(client.recv(2), b('xy'))
 
+
+    def test_text(self):
+        """
+        When passed a text, :py:obj:`Connection.send` transmits all of it and
+        returns the number of bytes sent. It also raises a DeprecationWarning.
+        """
+        server, client = self._loopback()
+        with catch_warnings(record=True) as w:
+            simplefilter("always")
+            count = server.send(b"xy".decode("ascii"))
+            self.assertEqual(
+                "{0} for buf is no longer accepted, use bytes".format(
+                    WARNING_TYPE_EXPECTED
+                ),
+                str(w[-1].message)
+            )
+            self.assertIs(w[-1].category, DeprecationWarning)
+        self.assertEquals(count, 2)
+        self.assertEquals(client.recv(2), b"xy")
+
     try:
         memoryview
     except NameError:
@@ -2967,6 +2986,25 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         server, client = self._loopback()
         server.sendall(b('x'))
         self.assertEquals(client.recv(1), b('x'))
+
+
+    def test_text(self):
+        """
+        :py:obj:`Connection.sendall` transmits all the content in the string
+        passed to it raising a DeprecationWarning in case of this being a text.
+        """
+        server, client = self._loopback()
+        with catch_warnings(record=True) as w:
+            simplefilter("always")
+            server.sendall(b"x".decode("ascii"))
+            self.assertEqual(
+                "{0} for buf is no longer accepted, use bytes".format(
+                    WARNING_TYPE_EXPECTED
+                ),
+                str(w[-1].message)
+            )
+            self.assertIs(w[-1].category, DeprecationWarning)
+        self.assertEquals(client.recv(1), b"x")
 
 
     try:
