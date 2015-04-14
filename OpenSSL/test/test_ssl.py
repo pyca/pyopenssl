@@ -7,7 +7,7 @@ Unit tests for :py:obj:`OpenSSL.SSL`.
 
 from gc import collect, get_referrers
 from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE, ESHUTDOWN
-from sys import platform, version_info, getfilesystemencoding
+from sys import platform, getfilesystemencoding
 from socket import SHUT_RDWR, error, socket
 from os import makedirs
 from os.path import join
