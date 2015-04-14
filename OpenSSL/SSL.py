@@ -398,6 +398,21 @@ def SSLeay_version(type):
     return _ffi.string(_lib.SSLeay_version(type))
 
 
+def _requires_npn(func):
+    """
+    Wraps any function that requires NPN support in OpenSSL, ensuring that
+    NotImplementedError is raised if NPN is not present.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if not _lib.Cryptography_HAS_NEXTPROTONEG:
+            raise NotImplementedError("NPN not available.")
+
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
 
 def _requires_alpn(func):
     """
@@ -992,6 +1007,8 @@ class Context(object):
         _lib.SSL_CTX_set_tlsext_servername_callback(
             self._context, self._tlsext_servername_callback)
 
+
+    @_requires_npn
     def set_npn_advertise_callback(self, callback):
         """
         Specify a callback function that will be called when offering `Next
@@ -1009,6 +1026,7 @@ class Context(object):
             self._context, self._npn_advertise_callback, _ffi.NULL)
 
 
+    @_requires_npn
     def set_npn_select_callback(self, callback):
         """
         Specify a callback function that will be called when a server offers
@@ -1867,6 +1885,8 @@ class Connection(object):
             version =_ffi.string(_lib.SSL_CIPHER_get_version(cipher))
             return version.decode("utf-8")
 
+
+    @_requires_npn
     def get_next_proto_negotiated(self):
         """
         Get the protocol that was negotiated by NPN.
