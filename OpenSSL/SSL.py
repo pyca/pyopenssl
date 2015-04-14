@@ -13,7 +13,7 @@ from OpenSSL._util import (
     lib as _lib,
     exception_from_error_queue as _exception_from_error_queue,
     native as _native,
-    warn_text as _warn_text,
+    text_to_bytes_and_warn as _text_to_bytes_and_warn,
     path_string as _path_string,
 )
 
@@ -1127,7 +1127,7 @@ class Connection(object):
         :return: The number of bytes written
         """
         # Backward compatibility
-        buf = _warn_text("buf", buf)
+        buf = _text_to_bytes_and_warn("buf", buf)
 
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
@@ -1153,7 +1153,7 @@ class Connection(object):
                       API, the value is ignored
         :return: The number of bytes written
         """
-        buf = _warn_text("buf", buf)
+        buf = _text_to_bytes_and_warn("buf", buf)
 
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
@@ -1279,7 +1279,7 @@ class Connection(object):
         :param buf: The string to put into the memory BIO.
         :return: The number of bytes written
         """
-        buf = _warn_text("buf", buf)
+        buf = _text_to_bytes_and_warn("buf", buf)
 
         if self._into_ssl is None:
             raise TypeError("Connection sock was not None")

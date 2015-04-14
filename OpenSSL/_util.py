@@ -99,7 +99,7 @@ _TEXT_WARNING = (
     text_type.__name__ + " for {0} is no longer accepted, use bytes"
 )
 
-def warn_text(label, obj):
+def text_to_bytes_and_warn(label, obj):
     """
     If ``obj`` is text, emit a warning that it should be bytes instead and try
     to convert it to bytes automatically.

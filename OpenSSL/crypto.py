@@ -14,7 +14,8 @@ from OpenSSL._util import (
     exception_from_error_queue as _exception_from_error_queue,
     byte_string as _byte_string,
     native as _native,
-    warn_text as _warn_text)
+    text_to_bytes_and_warn as _text_to_bytes_and_warn,
+)
 
 FILETYPE_PEM = _lib.SSL_FILETYPE_PEM
 FILETYPE_ASN1 = _lib.SSL_FILETYPE_ASN1
@@ -2075,7 +2076,7 @@ class PKCS12(object):
 
         :return: The string containing the PKCS12
         """
-        passphrase = _warn_text("passphrase", passphrase)
+        passphrase = _text_to_bytes_and_warn("passphrase", passphrase)
 
         if self._cacerts is None:
             cacerts = _ffi.NULL
@@ -2374,7 +2375,7 @@ def sign(pkey, data, digest):
     :param digest: message digest to use
     :return: signature
     """
-    data = _warn_text("data", data)
+    data = _text_to_bytes_and_warn("data", data)
 
     digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
     if digest_obj == _ffi.NULL:
@@ -2410,7 +2411,7 @@ def verify(cert, signature, data, digest):
     :param digest: message digest to use
     :return: None if the signature is correct, raise exception otherwise
     """
-    data = _warn_text("data", data)
+    data = _text_to_bytes_and_warn("data", data)
 
     digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
     if digest_obj == _ffi.NULL:
@@ -2502,7 +2503,7 @@ def load_pkcs12(buffer, passphrase=None):
     :param passphrase: (Optional) The password to decrypt the PKCS12 lump
     :returns: The PKCS12 object
     """
-    passphrase = _warn_text("passphrase", passphrase)
+    passphrase = _text_to_bytes_and_warn("passphrase", passphrase)
 
     if isinstance(buffer, _text_type):
         buffer = buffer.encode("ascii")
