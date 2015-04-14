@@ -1,3 +1,7 @@
+2011-09-02  Hynek Schlawack  <hs@ox.cx>
+
+	* Release 0.15.1
+
 2015-04-14  Glyph Lefkowitz  <glyph@twistedmatrix.com>
 
 	* OpenSSL/SSL.py, OpenSSL/test/test_ssl.py: Fix a regression
@@ -5,6 +9,10 @@
 	  a KeyError is raised.  This happens, for example, if
 	  Connection.shutdown() is called when the underlying transport has
 	  gone away.
+
+2011-09-02  Hynek Schlawack  <hs@ox.cx>
+
+	* Release 0.15
 
 2015-04-12  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
@@ -99,6 +107,10 @@
 2014-03-02  Stephen Holsapple  <sholsapp@gmail.com>
 
 	* OpenSSL/crypto.py: Add ``get_extensions`` method to ``X509Req``.
+
+2014-02-23  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
+
+	* Release 0.14
 
 2014-01-09  Jean-Paul Calderone  <exarkun@twistedmatrix.com>
 
