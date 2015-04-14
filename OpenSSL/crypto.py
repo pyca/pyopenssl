@@ -1839,18 +1839,15 @@ class CRL(object):
         export a CRL as a string
 
         :param cert: Used to sign CRL.
-
         :type cert: :class:`X509`
 
         :param key: Used to sign CRL.
-
         :type key: :class:`PKey`
 
         :param type: The export format, either :py:data:`FILETYPE_PEM`,
             :py:data:`FILETYPE_ASN1`, or :py:data:`FILETYPE_TEXT`.
-        :param days: The number of days until the next update of this CRL.
 
-        :type days: :py:data:`int`
+        :param int days: The number of days until the next update of this CRL.
 
         :param bytes digest: The name of the message digest to use (eg
             ``b"sha1"``).
