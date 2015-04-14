@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) Jean-Paul Calderone 2008-2014, All rights reserved
+# Copyright (C) Jean-Paul Calderone 2008-2015, All rights reserved
 #
 
 """
@@ -10,8 +10,9 @@ Installation script for the OpenSSL module
 
 from setuptools import setup
 
+
 # XXX Deduplicate this
-__version__ = '0.14'
+__version__ = '0.15'
 
 setup(name='pyOpenSSL', version=__version__,
       packages = ['OpenSSL'],
