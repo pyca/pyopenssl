@@ -2303,6 +2303,17 @@ class ConnectionTests(TestCase, _LoopbackMixin):
             self.assertEqual(exc.args[0], EPIPE)
 
 
+    def test_shutdown_shutdown(self):
+        """
+        :obj:`Connection.shutdown` raises :obj:`Error` when called for a second
+        time on the same connection.
+        """
+        server, client = self._loopback()
+        client.send(b"AN BYTES")
+        server.shutdown()
+        self.assertRaises(Error, server.shutdown)
+
+
     def test_set_shutdown(self):
         """
         :py:obj:`Connection.set_shutdown` sets the state of the SSL connection shutdown
