@@ -1,4 +1,5 @@
 from warnings import warn
+import sys
 
 from six import PY3, binary_type, text_type
 
@@ -7,11 +8,34 @@ binding = Binding()
 ffi = binding.ffi
 lib = binding.lib
 
-def exception_from_error_queue(exceptionType):
-    def text(charp):
-        return native(ffi.string(charp))
+
+
+def text(charp):
+    """
+    Get a native string type representing of the given CFFI ``char*`` object.
+
+    :param charp: A C-style string represented using CFFI.
+
+    :return: :class:`str`
+    """
+    if not charp:
+        return ""
+    return native(ffi.string(charp))
+
+
+
+def exception_from_error_queue(exception_type):
+    """
+    Convert an OpenSSL library failure into a Python exception.
+
+    When a call to the native OpenSSL library fails, this is usually signalled
+    by the return value, and an error code is stored in an error queue
+    associated with the current thread. The err library provides functions to
+    obtain these error codes and textual error messages.
+    """
 
     errors = []
+
     while True:
         error = lib.ERR_get_error()
         if error == 0:
@@ -21,7 +45,7 @@ def exception_from_error_queue(exceptionType):
                 text(lib.ERR_func_error_string(error)),
                 text(lib.ERR_reason_error_string(error))))
 
-    raise exceptionType(errors)
+    raise exception_type(errors)
 
 
 
@@ -45,6 +69,23 @@ def native(s):
             return s.encode("utf-8")
     return s
 
+
+
+def path_string(s):
+    """
+    Convert a Python string to a :py:class:`bytes` string identifying the same
+    path and which can be passed into an OpenSSL API accepting a filename.
+
+    :param s: An instance of :py:class:`bytes` or :py:class:`unicode`.
+
+    :return: An instance of :py:class:`bytes`.
+    """
+    if isinstance(s, binary_type):
+        return s
+    elif isinstance(s, text_type):
+        return s.encode(sys.getfilesystemencoding())
+    else:
+        raise TypeError("Path must be represented as bytes or unicode string")
 
 
 if PY3:

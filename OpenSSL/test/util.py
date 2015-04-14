@@ -27,6 +27,11 @@ except Exception:
 
 from OpenSSL._util import ffi, lib, byte_string as b
 
+
+# This is the UTF-8 encoding of the SNOWMAN unicode code point.
+NON_ASCII = b("\xe2\x98\x83").decode("utf-8")
+
+
 class TestCase(TestCase):
     """
     :py:class:`TestCase` adds useful testing functionality beyond what is available
