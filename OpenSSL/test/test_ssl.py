@@ -2786,8 +2786,8 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
 
     def test_text(self):
         """
-        :py:obj:`Connection.sendall` transmits all the content in the string passed to
-        it raising a DepreactionWarning in case of this being a text.
+        :py:obj:`Connection.sendall` transmits all the content in the string
+        passed to it raising a DeprecationWarning in case of this being a text.
         """
         server, client = self._loopback()
         with catch_warnings(record=True) as w:
