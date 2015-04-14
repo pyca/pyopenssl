@@ -42,6 +42,8 @@ from OpenSSL.SSL import (
 from OpenSSL.SSL import (
     Context, ContextType, Session, Connection, ConnectionType, SSLeay_version)
 
+from OpenSSL._util import lib as _lib
+
 from OpenSSL.test.util import NON_ASCII, TestCase, b
 from OpenSSL.test.test_crypto import (
     cleartextCertificatePEM, cleartextPrivateKeyPEM)
@@ -1779,6 +1781,210 @@ class NextProtoNegotiationTests(TestCase, _LoopbackMixin):
         # If the client doesn't return anything, the connection will fail.
         self.assertRaises(TypeError, self._interactInMemory, server, client)
         self.assertEqual([], select_args)
+
+
+
+class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
+    """
+    Tests for ALPN in PyOpenSSL.
+    """
+    # Skip tests on versions that don't support ALPN.
+    if _lib.Cryptography_HAS_ALPN:
+
+        def test_alpn_success(self):
+            """
+            Clients and servers that agree on the negotiated ALPN protocol can
+            correct establish a connection, and the agreed protocol is reported
+            by the connections.
+            """
+            select_args = []
+            def select(conn, options):
+                select_args.append((conn, options))
+                return b'spdy/2'
+
+            client_context = Context(TLSv1_METHOD)
+            client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
+
+            server_context = Context(TLSv1_METHOD)
+            server_context.set_alpn_select_callback(select)
+
+            # Necessary to actually accept the connection
+            server_context.use_privatekey(
+                load_privatekey(FILETYPE_PEM, server_key_pem))
+            server_context.use_certificate(
+                load_certificate(FILETYPE_PEM, server_cert_pem))
+
+            # Do a little connection to trigger the logic
+            server = Connection(server_context, None)
+            server.set_accept_state()
+
+            client = Connection(client_context, None)
+            client.set_connect_state()
+
+            self._interactInMemory(server, client)
+
+            self.assertEqual([(server, [b'http/1.1', b'spdy/2'])], select_args)
+
+            self.assertEqual(server.get_alpn_proto_negotiated(), b'spdy/2')
+            self.assertEqual(client.get_alpn_proto_negotiated(), b'spdy/2')
+
+
+        def test_alpn_set_on_connection(self):
+            """
+            The same as test_alpn_success, but setting the ALPN protocols on
+            the connection rather than the context.
+            """
+            select_args = []
+            def select(conn, options):
+                select_args.append((conn, options))
+                return b'spdy/2'
+
+            # Setup the client context but don't set any ALPN protocols.
+            client_context = Context(TLSv1_METHOD)
+
+            server_context = Context(TLSv1_METHOD)
+            server_context.set_alpn_select_callback(select)
+
+            # Necessary to actually accept the connection
+            server_context.use_privatekey(
+                load_privatekey(FILETYPE_PEM, server_key_pem))
+            server_context.use_certificate(
+                load_certificate(FILETYPE_PEM, server_cert_pem))
+
+            # Do a little connection to trigger the logic
+            server = Connection(server_context, None)
+            server.set_accept_state()
+
+            # Set the ALPN protocols on the client connection.
+            client = Connection(client_context, None)
+            client.set_alpn_protos([b'http/1.1', b'spdy/2'])
+            client.set_connect_state()
+
+            self._interactInMemory(server, client)
+
+            self.assertEqual([(server, [b'http/1.1', b'spdy/2'])], select_args)
+
+            self.assertEqual(server.get_alpn_proto_negotiated(), b'spdy/2')
+            self.assertEqual(client.get_alpn_proto_negotiated(), b'spdy/2')
+
+
+        def test_alpn_server_fail(self):
+            """
+            When clients and servers cannot agree on what protocol to use next
+            the TLS connection does not get established.
+            """
+            select_args = []
+            def select(conn, options):
+                select_args.append((conn, options))
+                return b''
+
+            client_context = Context(TLSv1_METHOD)
+            client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
+
+            server_context = Context(TLSv1_METHOD)
+            server_context.set_alpn_select_callback(select)
+
+            # Necessary to actually accept the connection
+            server_context.use_privatekey(
+                load_privatekey(FILETYPE_PEM, server_key_pem))
+            server_context.use_certificate(
+                load_certificate(FILETYPE_PEM, server_cert_pem))
+
+            # Do a little connection to trigger the logic
+            server = Connection(server_context, None)
+            server.set_accept_state()
+
+            client = Connection(client_context, None)
+            client.set_connect_state()
+
+            # If the client doesn't return anything, the connection will fail.
+            self.assertRaises(Error, self._interactInMemory, server, client)
+
+            self.assertEqual([(server, [b'http/1.1', b'spdy/2'])], select_args)
+
+
+        def test_alpn_no_server(self):
+            """
+            When clients and servers cannot agree on what protocol to use next
+            because the server doesn't offer ALPN, no protocol is negotiated.
+            """
+            client_context = Context(TLSv1_METHOD)
+            client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
+
+            server_context = Context(TLSv1_METHOD)
+
+            # Necessary to actually accept the connection
+            server_context.use_privatekey(
+                load_privatekey(FILETYPE_PEM, server_key_pem))
+            server_context.use_certificate(
+                load_certificate(FILETYPE_PEM, server_cert_pem))
+
+            # Do a little connection to trigger the logic
+            server = Connection(server_context, None)
+            server.set_accept_state()
+
+            client = Connection(client_context, None)
+            client.set_connect_state()
+
+            # Do the dance.
+            self._interactInMemory(server, client)
+
+            self.assertEqual(client.get_alpn_proto_negotiated(), b'')
+
+
+        def test_alpn_callback_exception(self):
+            """
+            We can handle exceptions in the ALPN select callback.
+            """
+            select_args = []
+            def select(conn, options):
+                select_args.append((conn, options))
+                raise TypeError()
+
+            client_context = Context(TLSv1_METHOD)
+            client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
+
+            server_context = Context(TLSv1_METHOD)
+            server_context.set_alpn_select_callback(select)
+
+            # Necessary to actually accept the connection
+            server_context.use_privatekey(
+                load_privatekey(FILETYPE_PEM, server_key_pem))
+            server_context.use_certificate(
+                load_certificate(FILETYPE_PEM, server_cert_pem))
+
+            # Do a little connection to trigger the logic
+            server = Connection(server_context, None)
+            server.set_accept_state()
+
+            client = Connection(client_context, None)
+            client.set_connect_state()
+
+            self.assertRaises(
+                TypeError, self._interactInMemory, server, client
+            )
+            self.assertEqual([(server, [b'http/1.1', b'spdy/2'])], select_args)
+
+    else:
+        # No ALPN.
+        def test_alpn_not_implemented(self):
+            """
+            If ALPN is not in OpenSSL, we should raise NotImplementedError.
+            """
+            # Test the context methods first.
+            context = Context(TLSv1_METHOD)
+            self.assertRaises(
+                NotImplementedError, context.set_alpn_protos, None
+            )
+            self.assertRaises(
+                NotImplementedError, context.set_alpn_select_callback, None
+            )
+
+            # Now test a connection.
+            conn = Connection(context)
+            self.assertRaises(
+                NotImplementedError, context.set_alpn_protos, None
+            )
 
 
 
