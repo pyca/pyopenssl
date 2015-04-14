@@ -1175,7 +1175,7 @@ class Connection(object):
                         errno = _ffi.getwinerror()[0]
                     else:
                         errno = _ffi.errno
-                    raise SysCallError(errno, errorcode[errno])
+                    raise SysCallError(errno, errorcode.get(errno))
                 else:
                     raise SysCallError(-1, "Unexpected EOF")
             else:
