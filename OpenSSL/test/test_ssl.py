@@ -2303,14 +2303,23 @@ class ConnectionTests(TestCase, _LoopbackMixin):
             self.assertEqual(exc.args[0], EPIPE)
 
 
-    def test_shutdown_shutdown(self):
+    def test_shutdown_truncated(self):
         """
-        :obj:`Connection.shutdown` raises :obj:`Error` when called for a second
-        time on the same connection.
+        If the underlying connection is truncated, :obj:`Connection.shutdown`
+        raises an :obj:`Error`.
         """
-        server, client = self._loopback()
-        client.send(b"AN BYTES")
-        server.shutdown()
+        server_ctx = Context(TLSv1_METHOD)
+        client_ctx = Context(TLSv1_METHOD)
+        server_ctx.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_ctx.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
+        server = Connection(server_ctx, None)
+        client = Connection(client_ctx, None)
+        self._handshakeInMemory(client, server)
+        self.assertEqual(server.shutdown(), False)
+        self.assertRaises(WantReadError, server.shutdown)
+        server.bio_shutdown()
         self.assertRaises(Error, server.shutdown)
 
 
