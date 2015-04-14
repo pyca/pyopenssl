@@ -77,8 +77,7 @@ install:
       pip install virtualenv
     fi
     python -m virtualenv ~/.venv
-    source ~/.venv/bin/activate
-    pip install coveralls coverage wheel
+    ~/.venv/bin/pip install coveralls tox
 
 script:
   - |
@@ -88,18 +87,10 @@ script:
       export LDFLAGS="-L/usr/local/opt/openssl/lib"
       export CFLAGS="-I/usr/local/opt/openssl/include"
     fi
-    source ~/.venv/bin/activate
-    pip install -e .
-  - |
-    source ~/.venv/bin/activate
-    coverage run --branch --source=OpenSSL setup.py bdist_wheel test
-  - |
-    source ~/.venv/bin/activate
-    coverage report -m
-    python -c "import OpenSSL.SSL; print(OpenSSL.SSL.SSLeay_version(OpenSSL.SSL.SSLEAY_VERSION))"
+    ~/.venv/bin/tox
 
 after_script:
-  - source ~/.venv/bin/activate && coveralls
+  - ~/.venv/bin/coveralls
 
 notifications:
   email: false
