@@ -1,18 +1,23 @@
+sudo: false
 language: python
-
-os:
-  - linux
-
-python:
-  - "pypy"
-  - "2.6"
-  - "2.7"
-  - "3.2"
-  - "3.3"
-  - "3.4"
 
 matrix:
   include:
+  - language: generic
+    os: osx
+    env: TOXENV=py27
+  - python: "2.6" # these are just to make travis's UI a bit prettier
+    env: TOXENV=py26
+  - python: "2.7"
+    env: TOXENV=py27
+  - python: "3.2"
+    env: TOXENV=py32
+  - python: "3.3"
+    env: TOXENV=py33
+  - python: "3.4"
+    env: TOXENV=py34
+  - python: "pypy"
+    env: TOXENV=pypy
   # Also run the tests against cryptography master.
   - python: "2.6"
     env:
@@ -37,10 +42,21 @@ matrix:
   - python: "2.7"
     env:
       OPENSSL=0.9.8
+    addons:
+      apt:
+        sources:
+          - lucid
+        packages:
+          - libssl-dev/lucid
 
   # Let the cryptography master builds fail because they might be triggered by
   # cryptography changes beyond our control.
+  # Also allow OS X and 0.9.8 to fail at the moment while we fix these new
+  # build configurations.
   allow_failures:
+  - language: generic
+    os: osx
+    env: TOXENV=py27
   - env:
       CRYPTOGRAPHY_GIT_MASTER=true
   - env:
@@ -50,34 +66,40 @@ before_install:
   - if [ -n "$CRYPTOGRAPHY_GIT_MASTER" ]; then pip install git+https://github.com/pyca/cryptography.git;fi
 
 install:
-  # Install the wheel library explicitly here.  It is not really a setup
-  # dependency.  It is not an install dependency.  It is only a dependency for
-  # the script directive below - because we want to exercise wheel building on
-  # travis.
-  - pip install wheel
-
-  # Also install some tools for measuring code coverage and sending the results
-  # to coveralls.
-  - pip install coveralls coverage
+  - |
+    if [[ "$(uname -s)" == 'Darwin' ]]; then
+      brew update
+      brew upgrade openssl
+      curl -O https://bootstrap.pypa.io/get-pip.py
+      python get-pip.py --user
+      pip install --user virtualenv
+    else
+      pip install virtualenv
+    fi
+    python -m virtualenv ~/.venv
+    source ~/.venv/bin/activate
+    pip install coveralls coverage wheel
 
 script:
   - |
-    if [[ "${OPENSSL}" == "0.9.8" ]]; then
-      sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ lucid main"
-      sudo apt-get -y update
-      sudo apt-get install -y --force-yes libssl-dev/lucid
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+      # set our flags to use homebrew openssl
+      export ARCHFLAGS="-arch x86_64"
+      export LDFLAGS="-L/usr/local/opt/openssl/lib"
+      export CFLAGS="-I/usr/local/opt/openssl/include"
     fi
-  - |
+    source ~/.venv/bin/activate
     pip install -e .
   - |
+    source ~/.venv/bin/activate
     coverage run --branch --source=OpenSSL setup.py bdist_wheel test
   - |
+    source ~/.venv/bin/activate
     coverage report -m
-  - |
     python -c "import OpenSSL.SSL; print(OpenSSL.SSL.SSLeay_version(OpenSSL.SSL.SSLEAY_VERSION))"
 
-after_success:
-    - coveralls
+after_script:
+  - source ~/.venv/bin/activate && coveralls
 
 notifications:
   email: false

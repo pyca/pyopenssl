@@ -16,6 +16,7 @@ from OpenSSL._util import (
     byte_string as _byte_string,
     native as _native,
     UNSPECIFIED as _UNSPECIFIED,
+    text_to_bytes_and_warn as _text_to_bytes_and_warn,
 )
 
 FILETYPE_PEM = _lib.SSL_FILETYPE_PEM
@@ -2097,6 +2098,8 @@ class PKCS12(object):
 
         :return: The string containing the PKCS12
         """
+        passphrase = _text_to_bytes_and_warn("passphrase", passphrase)
+
         if self._cacerts is None:
             cacerts = _ffi.NULL
         else:
@@ -2394,6 +2397,8 @@ def sign(pkey, data, digest):
     :param digest: message digest to use
     :return: signature
     """
+    data = _text_to_bytes_and_warn("data", data)
+
     digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
     if digest_obj == _ffi.NULL:
         raise ValueError("No such digest method")
@@ -2428,6 +2433,8 @@ def verify(cert, signature, data, digest):
     :param digest: message digest to use
     :return: None if the signature is correct, raise exception otherwise
     """
+    data = _text_to_bytes_and_warn("data", data)
+
     digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
     if digest_obj == _ffi.NULL:
         raise ValueError("No such digest method")
@@ -2518,6 +2525,8 @@ def load_pkcs12(buffer, passphrase=None):
     :param passphrase: (Optional) The password to decrypt the PKCS12 lump
     :returns: The PKCS12 object
     """
+    passphrase = _text_to_bytes_and_warn("passphrase", passphrase)
+
     if isinstance(buffer, _text_type):
         buffer = buffer.encode("ascii")
 
