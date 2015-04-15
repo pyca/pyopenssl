@@ -1,4 +1,14 @@
-2011-09-02  Hynek Schlawack  <hs@ox.cx>
+2015-04-15  Paul Kehrer <paul.l.kehrer@gmail.com>
+
+	* OpenSSL/crypto.py, OpenSSL/test/test_crypto.py: Switch to utf8string
+	  mask by default. OpenSSL formerly defaulted to a T61String if there
+	  were UTF-8 characters present.  This was changed to default to
+	  UTF8String in the config around 2005, but the actual code didn't
+	  change it until late last year. This will default us to the setting
+	  that actually works. To revert this you can call
+	  crypto._lib.ASN1_STRING_set_default_mask_asc(b"default")
+
+2015-04-14  Hynek Schlawack  <hs@ox.cx>
 
 	* Release 0.15.1
 
