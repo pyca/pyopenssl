@@ -21,28 +21,28 @@ matrix:
   # Also run the tests against cryptography master.
   - python: "2.6"
     env:
-      CRYPTOGRAPHY_GIT_MASTER=true
-      TOXENV=py26
+      - CRYPTOGRAPHY_GIT_MASTER=true
+      - TOXENV=py26
   - python: "2.7"
     env:
-      CRYPTOGRAPHY_GIT_MASTER=true
-      TOXENV=py27
+      - CRYPTOGRAPHY_GIT_MASTER=true
+      - TOXENV=py27
   - python: "3.2"
     env:
-      CRYPTOGRAPHY_GIT_MASTER=true
-      TOXENV=py32
+      - CRYPTOGRAPHY_GIT_MASTER=true
+      - TOXENV=py32
   - python: "3.3"
     env:
-      CRYPTOGRAPHY_GIT_MASTER=true
-      TOXENV=py33
+      - CRYPTOGRAPHY_GIT_MASTER=true
+      - TOXENV=py33
   - python: "3.4"
     env:
-      CRYPTOGRAPHY_GIT_MASTER=true
-      TOXENV=py34
+      - CRYPTOGRAPHY_GIT_MASTER=true
+      - TOXENV=py34
   - python: "pypy"
     env:
-      CRYPTOGRAPHY_GIT_MASTER=true
-      TOXENV=pypy
+      - CRYPTOGRAPHY_GIT_MASTER=true
+      - TOXENV=pypy
 
   # Also run at least a little bit against an older version of OpenSSL.
   - python: "2.7"
