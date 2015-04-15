@@ -1,6 +1,5 @@
-from time import time, strptime
+from time import time 
 from base64 import b16encode
-from calendar import timegm
 from functools import partial
 from operator import __eq__, __ne__, __lt__, __le__, __gt__, __ge__
 from warnings import warn as _warn
@@ -1162,10 +1161,10 @@ class X509(object):
         :return: True if the certificate has expired, false otherwise
         """
         now = int(time())
-        notAfter = self.get_notAfter().decode('utf-8')
-        notAfterSecs = timegm(strptime(notAfter, '%Y%m%d%H%M%SZ'))
+        notAfter = _lib.X509_get_notAfter(self._x509)
+        return _lib.ASN1_UTCTIME_cmp_time_t(
+            _ffi.cast('ASN1_UTCTIME*', notAfter), now) < 0
 
-        return now > notAfterSecs
 
     def _get_boundary_time(self, which):
         return _get_asn1_time(which(self._x509))
