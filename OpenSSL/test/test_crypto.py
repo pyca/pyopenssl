@@ -1562,19 +1562,29 @@ WpOdIpB8KksUTCzV591Nr1wd
         cert.gmtime_adj_notAfter(2)
         self.assertFalse(cert.has_expired())
 
+    def test_root_has_not_expired(self):
+        """
+        :py:obj:`X509Type.has_expired` returns :py:obj:`False` if the certificate's not-after
+        time is in the future.
+        """
+        cert = load_certificate(FILETYPE_PEM, root_cert_pem)
+        self.assertFalse(cert.has_expired())
+
 
     def test_digest(self):
         """
         :py:obj:`X509.digest` returns a string giving ":"-separated hex-encoded words
         of the digest of the certificate.
         """
-        cert = X509()
+        cert = load_certificate(FILETYPE_PEM, root_cert_pem)
         self.assertEqual(
             # This is MD5 instead of GOOD_DIGEST because the digest algorithm
             # actually matters to the assertion (ie, another arbitrary, good
             # digest will not product the same digest).
+            # Digest verified with the command:
+            # openssl x509 -in root_cert.pem -noout -fingerprint -md5
             cert.digest("MD5"),
-            b("A8:EB:07:F8:53:25:0A:F2:56:05:C5:A5:C4:C4:C7:15"))
+            b("19:B3:05:26:2B:F8:F2:FF:0B:8F:21:07:A8:28:B8:75"))
 
 
     def _extcert(self, pkey, extensions):
@@ -1587,6 +1597,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         cert.set_notAfter(when)
 
         cert.add_extensions(extensions)
+        cert.sign(pkey, 'sha1')
         return load_certificate(
             FILETYPE_PEM, dump_certificate(FILETYPE_PEM, cert))
 
