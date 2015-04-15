@@ -41,7 +41,7 @@ matrix:
   # Also run at least a little bit against an older version of OpenSSL.
   - python: "2.7"
     env:
-      OPENSSL=0.9.8
+      OPENSSL=0.9.8 TOXENV=py27
     addons:
       apt:
         sources:
