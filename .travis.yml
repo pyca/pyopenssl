@@ -21,27 +21,27 @@ matrix:
   # Also run the tests against cryptography master.
   - python: "2.6"
     env:
-      CRYPTOGRAPHY_GIT_MASTER=true
+      CRYPTOGRAPHY_GIT_MASTER=true TOXENV=py26
   - python: "2.7"
     env:
-      CRYPTOGRAPHY_GIT_MASTER=true
+      CRYPTOGRAPHY_GIT_MASTER=true TOXENV=py27
   - python: "3.2"
     env:
-      CRYPTOGRAPHY_GIT_MASTER=true
+      CRYPTOGRAPHY_GIT_MASTER=true TOXENV=py32
   - python: "3.3"
     env:
-      CRYPTOGRAPHY_GIT_MASTER=true
+      CRYPTOGRAPHY_GIT_MASTER=true TOXENV=py33
   - python: "3.4"
     env:
-      CRYPTOGRAPHY_GIT_MASTER=true
+      CRYPTOGRAPHY_GIT_MASTER=true TOXENV=py34
   - python: "pypy"
     env:
-      CRYPTOGRAPHY_GIT_MASTER=true
+      CRYPTOGRAPHY_GIT_MASTER=true TOXENV=pypy
 
   # Also run at least a little bit against an older version of OpenSSL.
   - python: "2.7"
     env:
-      OPENSSL=0.9.8
+      OPENSSL=0.9.8 TOXENV=py27
     addons:
       apt:
         sources:
@@ -57,10 +57,13 @@ matrix:
   - language: generic
     os: osx
     env: TOXENV=py27
-  - env:
-      CRYPTOGRAPHY_GIT_MASTER=true
-  - env:
-      OPENSSL=0.9.8
+  - env: CRYPTOGRAPHY_GIT_MASTER=true TOXENV=py26
+  - env: CRYPTOGRAPHY_GIT_MASTER=true TOXENV=py27
+  - env: CRYPTOGRAPHY_GIT_MASTER=true TOXENV=py32
+  - env: CRYPTOGRAPHY_GIT_MASTER=true TOXENV=py33
+  - env: CRYPTOGRAPHY_GIT_MASTER=true TOXENV=py34
+  - env: CRYPTOGRAPHY_GIT_MASTER=true TOXENV=pypy
+  - env: OPENSSL=0.9.8 TOXENV=py27
 
 before_install:
   - if [ -n "$CRYPTOGRAPHY_GIT_MASTER" ]; then pip install git+https://github.com/pyca/cryptography.git;fi
@@ -77,8 +80,7 @@ install:
       pip install virtualenv
     fi
     python -m virtualenv ~/.venv
-    source ~/.venv/bin/activate
-    pip install coveralls coverage wheel
+    ~/.venv/bin/pip install coveralls tox
 
 script:
   - |
@@ -88,18 +90,10 @@ script:
       export LDFLAGS="-L/usr/local/opt/openssl/lib"
       export CFLAGS="-I/usr/local/opt/openssl/include"
     fi
-    source ~/.venv/bin/activate
-    pip install -e .
-  - |
-    source ~/.venv/bin/activate
-    coverage run --branch --source=OpenSSL setup.py bdist_wheel test
-  - |
-    source ~/.venv/bin/activate
-    coverage report -m
-    python -c "import OpenSSL.SSL; print(OpenSSL.SSL.SSLeay_version(OpenSSL.SSL.SSLEAY_VERSION))"
+    ~/.venv/bin/tox
 
 after_script:
-  - source ~/.venv/bin/activate && coveralls
+  - ~/.venv/bin/coveralls
 
 notifications:
   email: false
