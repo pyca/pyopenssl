@@ -1,4 +1,4 @@
-from time import time 
+from time import time
 from base64 import b16encode
 from functools import partial
 from operator import __eq__, __ne__, __lt__, __le__, __gt__, __ge__
