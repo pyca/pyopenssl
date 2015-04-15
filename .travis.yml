@@ -57,10 +57,13 @@ matrix:
   - language: generic
     os: osx
     env: TOXENV=py27
-  - env:
-      CRYPTOGRAPHY_GIT_MASTER=true
-  - env:
-      OPENSSL=0.9.8
+  - env: CRYPTOGRAPHY_GIT_MASTER=true TOXENV=py26
+  - env: CRYPTOGRAPHY_GIT_MASTER=true TOXENV=py27
+  - env: CRYPTOGRAPHY_GIT_MASTER=true TOXENV=py32
+  - env: CRYPTOGRAPHY_GIT_MASTER=true TOXENV=py33
+  - env: CRYPTOGRAPHY_GIT_MASTER=true TOXENV=py34
+  - env: CRYPTOGRAPHY_GIT_MASTER=true TOXENV=pypy
+  - env: OPENSSL=0.9.8 TOXENV=py27
 
 before_install:
   - if [ -n "$CRYPTOGRAPHY_GIT_MASTER" ]; then pip install git+https://github.com/pyca/cryptography.git;fi
