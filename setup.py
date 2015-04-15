@@ -8,11 +8,35 @@
 Installation script for the OpenSSL module
 """
 
+import sys
+
 from setuptools import setup
+from setuptools.command.test import test as TestCommand
 
 
 # XXX Deduplicate this
 __version__ = '0.15.1'
+
+
+class PyTest(TestCommand):
+    user_options = [("pytest-args=", "a", "Arguments to pass to py.test")]
+
+    def initialize_options(self):
+        TestCommand.initialize_options(self)
+        self.pytest_args = None
+
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
+
+    def run_tests(self):
+        # import here, cause outside the eggs aren't loaded
+        import pytest
+        errno = pytest.main(self.pytest_args or [] +
+                            ["OpenSSL"])
+        sys.exit(errno)
+
 
 setup(name='pyOpenSSL', version=__version__,
       packages = ['OpenSSL'],
@@ -75,4 +99,10 @@ High-level wrapper around a subset of the OpenSSL library, includes
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: System :: Networking',
         ],
-      test_suite="OpenSSL")
+      test_suite="OpenSSL",
+      tests_require=[
+          "pytest",
+      ],
+      cmdclass={
+          "test": PyTest,
+      })
