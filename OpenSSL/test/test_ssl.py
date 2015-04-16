@@ -436,7 +436,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         instance giving the file name to ``Context.use_privatekey_file``.
         """
         self._use_privatekey_file_test(
-            self.mktemp() + NON_ASCII.encode(getfilesystemencoding()),
+            self.mktemp(suffix=NON_ASCII),
             FILETYPE_PEM,
         )
 
@@ -447,7 +447,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         instance giving the file name to ``Context.use_privatekey_file``.
         """
         self._use_privatekey_file_test(
-            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII,
+            self.mktemp(suffix=NON_ASCII).decode(getfilesystemencoding()),
             FILETYPE_PEM,
         )
 
@@ -545,7 +545,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         ``bytes`` filename) which will be used to identify connections created
         using the context.
         """
-        filename = self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
+        filename = self.mktemp(suffix=NON_ASCII)
         self._use_certificate_file_test(filename)
 
 
@@ -555,7 +555,9 @@ class ContextTests(TestCase, _LoopbackMixin):
         ``bytes`` filename) which will be used to identify connections created
         using the context.
         """
-        filename = self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
+        filename = self.mktemp(
+            suffix=NON_ASCII
+        ).decode(getfilesystemencoding())
         self._use_certificate_file_test(filename)
 
 
@@ -990,7 +992,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         ``bytes`` instance and uses the certificates within for verification
         purposes.
         """
-        cafile = self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
+        cafile = self.mktemp(suffix=NON_ASCII)
         self._load_verify_cafile(cafile)
 
 
@@ -1001,7 +1003,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         purposes.
         """
         self._load_verify_cafile(
-            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
+            self.mktemp(suffix=NON_ASCII).decode(getfilesystemencoding())
         )
 
 
@@ -1041,7 +1043,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         purposes.
         """
         self._load_verify_directory_locations_capath(
-            self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
+            self.mktemp(suffix=NON_ASCII)
         )
 
 
@@ -1052,7 +1054,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         purposes.
         """
         self._load_verify_directory_locations_capath(
-            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
+            self.mktemp(suffix=NON_ASCII)
         )
 
 
@@ -1287,7 +1289,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         construct and verify a trust chain.
         """
         self._use_certificate_chain_file_test(
-            self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
+            self.mktemp(suffix=NON_ASCII)
         )
 
 
@@ -1298,7 +1300,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         to construct and verify a trust chain.
         """
         self._use_certificate_chain_file_test(
-            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
+            self.mktemp(suffix=NON_ASCII)
         )
 
 
@@ -1395,7 +1397,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         specified file (given as ``bytes``).
         """
         self._load_tmp_dh_test(
-            self.mktemp() + NON_ASCII.encode(getfilesystemencoding()),
+            self.mktemp(suffix=NON_ASCII)
         )
 
 
@@ -1405,7 +1407,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         specified file (given as ``unicode``).
         """
         self._load_tmp_dh_test(
-            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII,
+            self.mktemp(suffix=NON_ASCII).decode(getfilesystemencoding())
         )
 
 

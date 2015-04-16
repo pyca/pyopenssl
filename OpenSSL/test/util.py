@@ -296,13 +296,13 @@ class TestCase(TestCase):
 
 
     _temporaryFiles = None
-    def mktemp(self):
+    def mktemp(self, suffix=""):
         """
         Pathetic substitute for twisted.trial.unittest.TestCase.mktemp.
         """
         if self._temporaryFiles is None:
             self._temporaryFiles = []
-        temp = b(mktemp(dir="."))
+        temp = mktemp(suffix=suffix, dir=".").encode("utf-8")
         self._temporaryFiles.append(temp)
         return temp
 
