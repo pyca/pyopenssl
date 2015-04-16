@@ -20,7 +20,7 @@ from OpenSSL._util import (
 )
 
 from OpenSSL.crypto import (
-    FILETYPE_PEM, _PassphraseHelper, PKey, X509Name, X509, X509Store)
+    FILETYPE_PEM, _PassphraseHelper, PKey, X509Name, X509, X509Store, load_privatekey)
 
 try:
     _memoryview = memoryview
@@ -658,11 +658,10 @@ class Context(object):
             filetype = FILETYPE_PEM
         elif not isinstance(filetype, integer_types):
             raise TypeError("filetype must be an integer")
-
-        use_result = _lib.SSL_CTX_use_PrivateKey_file(
-            self._context, keyfile, filetype)
-        if not use_result:
-            self._raise_passphrase_exception()
+        
+        with open(keyfile, "rb") as f:
+            data = f.read()
+        self.use_privatekey(load_privatekey(filetype, data))
 
 
     def use_privatekey(self, pkey):
