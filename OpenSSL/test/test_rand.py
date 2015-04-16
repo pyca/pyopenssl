@@ -205,7 +205,8 @@ class RandTests(TestCase):
         Random data can be saved and loaded to files with paths specified as
         bytes.
         """
-        path = self.mktemp(suffix=NON_ASCII)
+        path = self.mktemp()
+        path += NON_ASCII.encode(sys.getfilesystemencoding())
         self._read_write_test(path)
 
 
@@ -214,7 +215,7 @@ class RandTests(TestCase):
         Random data can be saved and loaded to files with paths specified as
         unicode.
         """
-        path = self.mktemp(suffix=NON_ASCII).decode('utf-8')
+        path = self.mktemp().decode('utf-8') + NON_ASCII
         self._read_write_test(path)
 
 

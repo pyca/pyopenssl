@@ -436,7 +436,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         instance giving the file name to ``Context.use_privatekey_file``.
         """
         self._use_privatekey_file_test(
-            self.mktemp(suffix=NON_ASCII),
+            self.mktemp() + NON_ASCII.encode(getfilesystemencoding()),
             FILETYPE_PEM,
         )
 
@@ -447,7 +447,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         instance giving the file name to ``Context.use_privatekey_file``.
         """
         self._use_privatekey_file_test(
-            self.mktemp(suffix=NON_ASCII).decode(getfilesystemencoding()),
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII,
             FILETYPE_PEM,
         )
 
@@ -545,7 +545,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         ``bytes`` filename) which will be used to identify connections created
         using the context.
         """
-        filename = self.mktemp(suffix=NON_ASCII)
+        filename = self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
         self._use_certificate_file_test(filename)
 
 
@@ -555,9 +555,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         ``bytes`` filename) which will be used to identify connections created
         using the context.
         """
-        filename = self.mktemp(
-            suffix=NON_ASCII
-        ).decode(getfilesystemencoding())
+        filename = self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
         self._use_certificate_file_test(filename)
 
 
@@ -992,7 +990,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         ``bytes`` instance and uses the certificates within for verification
         purposes.
         """
-        cafile = self.mktemp(suffix=NON_ASCII)
+        cafile = self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
         self._load_verify_cafile(cafile)
 
 
@@ -1003,7 +1001,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         purposes.
         """
         self._load_verify_cafile(
-            self.mktemp(suffix=NON_ASCII).decode(getfilesystemencoding())
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
         )
 
 
@@ -1043,7 +1041,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         purposes.
         """
         self._load_verify_directory_locations_capath(
-            self.mktemp(suffix=NON_ASCII)
+            self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
         )
 
 
@@ -1054,7 +1052,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         purposes.
         """
         self._load_verify_directory_locations_capath(
-            self.mktemp(suffix=NON_ASCII)
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
         )
 
 
@@ -1201,11 +1199,11 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_add_extra_chain_cert(self):
         """
-        :py:obj:`Context.add_extra_chain_cert` accepts an :py:obj:`X509` instance to add to
-        the certificate chain.
+        :py:obj:`Context.add_extra_chain_cert` accepts an :py:obj:`X509`
+        instance to add to the certificate chain.
 
-        See :py:obj:`_create_certificate_chain` for the details of the certificate
-        chain tested.
+        See :py:obj:`_create_certificate_chain` for the details of the
+        certificate chain tested.
 
         The chain is tested by starting a server with scert and connecting
         to it with a client which trusts cacert and requires verification to
@@ -1216,13 +1214,15 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         # Dump the CA certificate to a file because that's the only way to load
         # it as a trusted CA in the client context.
-        for cert, name in [(cacert, 'ca.pem'), (icert, 'i.pem'), (scert, 's.pem')]:
-            fObj = open(name, 'w')
+        for cert, name in [(cacert, 'ca.pem'),
+                           (icert, 'i.pem'),
+                           (scert, 's.pem')]:
+            fObj = open(join(self.tmpdir, name), 'w')
             fObj.write(dump_certificate(FILETYPE_PEM, cert).decode('ascii'))
             fObj.close()
 
         for key, name in [(cakey, 'ca.key'), (ikey, 'i.key'), (skey, 's.key')]:
-            fObj = open(name, 'w')
+            fObj = open(join(self.tmpdir, name), 'w')
             fObj.write(dump_privatekey(FILETYPE_PEM, key).decode('ascii'))
             fObj.close()
 
@@ -1237,7 +1237,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         clientContext = Context(TLSv1_METHOD)
         clientContext.set_verify(
             VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT, verify_cb)
-        clientContext.load_verify_locations(b"ca.pem")
+        clientContext.load_verify_locations(join(self.tmpdir, "ca.pem"))
 
         # Try it out.
         self._handshake_test(serverContext, clientContext)
@@ -1289,7 +1289,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         construct and verify a trust chain.
         """
         self._use_certificate_chain_file_test(
-            self.mktemp(suffix=NON_ASCII)
+            self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
         )
 
 
@@ -1300,7 +1300,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         to construct and verify a trust chain.
         """
         self._use_certificate_chain_file_test(
-            self.mktemp(suffix=NON_ASCII)
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
         )
 
 
@@ -1397,7 +1397,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         specified file (given as ``bytes``).
         """
         self._load_tmp_dh_test(
-            self.mktemp(suffix=NON_ASCII)
+            self.mktemp() + NON_ASCII.encode(getfilesystemencoding()),
         )
 
 
@@ -1407,7 +1407,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         specified file (given as ``unicode``).
         """
         self._load_tmp_dh_test(
-            self.mktemp(suffix=NON_ASCII).decode(getfilesystemencoding())
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII,
         )
 
 
