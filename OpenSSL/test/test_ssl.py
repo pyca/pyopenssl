@@ -1217,16 +1217,14 @@ class ContextTests(TestCase, _LoopbackMixin):
         for cert, name in [(cacert, 'ca.pem'),
                            (icert, 'i.pem'),
                            (scert, 's.pem')]:
-            fObj = open(join(self.tmpdir, name), 'w')
-            fObj.write(dump_certificate(FILETYPE_PEM, cert).decode('ascii'))
-            fObj.close()
+            with open(join(self.tmpdir, name), 'w') as f:
+                f.write(dump_certificate(FILETYPE_PEM, cert).decode('ascii'))
 
         for key, name in [(cakey, 'ca.key'),
                           (ikey, 'i.key'),
                           (skey, 's.key')]:
-            fObj = open(join(self.tmpdir, name), 'w')
-            fObj.write(dump_privatekey(FILETYPE_PEM, key).decode('ascii'))
-            fObj.close()
+            with open(join(self.tmpdir, name), 'w') as f:
+                f.write(dump_privatekey(FILETYPE_PEM, key).decode('ascii'))
 
         # Create the server context
         serverContext = Context(TLSv1_METHOD)
