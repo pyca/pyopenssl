@@ -1199,11 +1199,11 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_add_extra_chain_cert(self):
         """
-        :py:obj:`Context.add_extra_chain_cert` accepts an :py:obj:`X509` instance to add to
-        the certificate chain.
+        :py:obj:`Context.add_extra_chain_cert` accepts an :py:obj:`X509`
+        instance to add to the certificate chain.
 
-        See :py:obj:`_create_certificate_chain` for the details of the certificate
-        chain tested.
+        See :py:obj:`_create_certificate_chain` for the details of the
+        certificate chain tested.
 
         The chain is tested by starting a server with scert and connecting
         to it with a client which trusts cacert and requires verification to
@@ -1214,15 +1214,17 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         # Dump the CA certificate to a file because that's the only way to load
         # it as a trusted CA in the client context.
-        for cert, name in [(cacert, 'ca.pem'), (icert, 'i.pem'), (scert, 's.pem')]:
-            fObj = open(name, 'w')
-            fObj.write(dump_certificate(FILETYPE_PEM, cert).decode('ascii'))
-            fObj.close()
+        for cert, name in [(cacert, 'ca.pem'),
+                           (icert, 'i.pem'),
+                           (scert, 's.pem')]:
+            with open(join(self.tmpdir, name), 'w') as f:
+                f.write(dump_certificate(FILETYPE_PEM, cert).decode('ascii'))
 
-        for key, name in [(cakey, 'ca.key'), (ikey, 'i.key'), (skey, 's.key')]:
-            fObj = open(name, 'w')
-            fObj.write(dump_privatekey(FILETYPE_PEM, key).decode('ascii'))
-            fObj.close()
+        for key, name in [(cakey, 'ca.key'),
+                          (ikey, 'i.key'),
+                          (skey, 's.key')]:
+            with open(join(self.tmpdir, name), 'w') as f:
+                f.write(dump_privatekey(FILETYPE_PEM, key).decode('ascii'))
 
         # Create the server context
         serverContext = Context(TLSv1_METHOD)
@@ -1235,7 +1237,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         clientContext = Context(TLSv1_METHOD)
         clientContext.set_verify(
             VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT, verify_cb)
-        clientContext.load_verify_locations(b"ca.pem")
+        clientContext.load_verify_locations(join(self.tmpdir, "ca.pem"))
 
         # Try it out.
         self._handshake_test(serverContext, clientContext)
