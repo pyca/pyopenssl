@@ -1415,9 +1415,6 @@ class Connection(object):
         if self._into_ssl is None:
             raise TypeError("Connection sock was not None")
 
-        if not isinstance(buf, bytes):
-            raise TypeError("buf must be a byte string")
-
         result = _lib.BIO_write(self._into_ssl, buf, len(buf))
         if result <= 0:
             self._handle_bio_errors(self._into_ssl, result)
@@ -1897,6 +1894,7 @@ class Connection(object):
         _lib.SSL_get0_next_proto_negotiated(self._ssl, data, data_len)
 
         return _ffi.buffer(data[0], data_len[0])[:]
+
 
     @_requires_alpn
     def set_alpn_protos(self, protos):
