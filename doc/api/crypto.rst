@@ -384,6 +384,6 @@ Type name                  Backwards-compatible name
 :py:class:`CRL`            :py:class:`CRLType`
 =========================  =============================
 
-Soem objects, such as py:class`Revoked`, don't have ``Type``
+Some objects, such as py:class`Revoked`, don't have ``Type``
 equivalents, because they were added after the restriction had been
 lifted.
