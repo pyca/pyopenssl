@@ -20,11 +20,6 @@
     instance of :py:class:`X509Name`.
 
 
-.. py:data:: X509ReqType
-
-    See :py:class:`X509Req`.
-
-
 .. py:class:: X509Req()
 
     A class representing X.509 certificate requests.
