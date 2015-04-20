@@ -252,8 +252,8 @@ The certificate for which the verification error was detected is given by the
 ``certificate`` attribute of the exception instance as a :class:`X509`
 instance.
 
-Details about the verification error are given in the exception's ``args`` attribute.
-
+Details about the verification error are given in the exception's
+``args`` attribute.
 
 X509StoreContext objects
 ------------------------
