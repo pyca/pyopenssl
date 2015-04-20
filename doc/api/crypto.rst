@@ -81,12 +81,6 @@
     A class representing Revocation objects of CRL.
 
 
-.. py:data:: FILETYPE_PEM
-             FILETYPE_ASN1
-
-    File type constants.
-
-
 .. py:data:: TYPE_RSA
              TYPE_DSA
 
