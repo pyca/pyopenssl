@@ -11,15 +11,6 @@
 
     A class representing the X.509 store context.
 
-.. py:class:: NetscapeSPKI([enc])
-
-    A class representing Netscape SPKI objects.
-
-    If the *enc* argument is present, it should be a base64-encoded string
-    representing a NetscapeSPKI object, as returned by the :py:meth:`b64_encode`
-    method.
-
-
 .. py:class:: CRL()
 
     A class representing Certifcate Revocation List objects.
