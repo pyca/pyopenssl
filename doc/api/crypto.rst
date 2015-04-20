@@ -11,11 +11,6 @@
 
     A class representing the X.509 store context.
 
-.. py:data:: PKCS12Type
-
-    A Python type object representing the PKCS12 object type.
-
-
 .. py:class:: X509Extension(typename, critical, value[, subject][, issuer])
 
     A class representing an X.509 v3 certificate extensions.  See
