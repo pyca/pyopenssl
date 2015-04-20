@@ -7,11 +7,6 @@
    :synopsis: Generic cryptographic module
 
 
-.. py:class:: X509Req()
-
-    A class representing X.509 certificate requests.
-
-
 .. py:data:: X509Store
 
     A class representing the X.509 store.
