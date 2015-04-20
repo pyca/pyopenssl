@@ -25,11 +25,6 @@
     A class representing X.509 certificate requests.
 
 
-.. py:data:: X509StoreType
-
-    See :py:class:`X509Store`
-
-
 .. py:data:: X509Store
 
     A class representing the X.509 store.
