@@ -11,10 +11,6 @@
 
     A class representing the X.509 store context.
 
-.. py:exception:: Error
-
-    Generic exception used in the :py:mod:`.crypto` module.
-
 Elliptic curves
 ---------------
 
@@ -298,6 +294,13 @@ Revoked objects
 
 .. autoclass:: Revoked
                :members:
+
+Exceptions
+----------
+
+.. py:exception:: Error
+
+    Generic exception used in the :py:mod:`.crypto` module.
 
 Digest names
 ------------
