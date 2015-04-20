@@ -7,11 +7,6 @@
    :synopsis: Generic cryptographic module
 
 
-.. py:class:: X509()
-
-    A class representing X.509 certificates.
-
-
 .. py:class:: X509Name(x509name)
 
     A class representing X.509 Distinguished Names.
@@ -183,7 +178,9 @@ Certificate revocation lists
 
 .. py:function:: load_pkcs7_data(type, buffer)
 
-    Load pkcs7 data from the string *buffer* encoded with the type *type*.
+    Load pkcs7 data from the string *buffer* encoded with the type
+    *type*. The type *type* must either :py:const:`FILETYPE_PEM` or
+    :py:const:`FILETYPE_ASN1`).
 
 
 .. py:function:: load_pkcs12(buffer[, passphrase])
