@@ -11,11 +11,6 @@
 
     A class representing the X.509 store context.
 
-.. py:data:: NetscapeSPKIType
-
-    See :py:class:`NetscapeSPKI`.
-
-
 .. py:class:: NetscapeSPKI([enc])
 
     A class representing Netscape SPKI objects.
