@@ -11,10 +11,6 @@
 
     A class representing the X.509 store context.
 
-.. py:class:: Revoked()
-
-    A class representing Revocation objects of CRL.
-
 .. py:exception:: Error
 
     Generic exception used in the :py:mod:`.crypto` module.
