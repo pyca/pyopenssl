@@ -6,11 +6,6 @@
 .. py:module:: OpenSSL.crypto
    :synopsis: Generic cryptographic module
 
-
-.. py:data:: X509StoreContext
-
-    A class representing the X.509 store context.
-
 Elliptic curves
 ---------------
 
