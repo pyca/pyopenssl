@@ -6,16 +6,22 @@ Unit tests for :py:mod:`OpenSSL.crypto`.
 """
 
 from unittest import main
+from warnings import catch_warnings, simplefilter
 
-import os, re
+import base64
+import os
+import re
 from subprocess import PIPE, Popen
 from datetime import datetime, timedelta
 
-from six import u, b, binary_type
+from six import u, b, binary_type, PY3
+from warnings import simplefilter
+from warnings import catch_warnings
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
-from OpenSSL.crypto import X509Store, X509StoreType, X509Req, X509ReqType
+from OpenSSL.crypto import X509Store, X509StoreType, X509StoreContext, X509StoreContextError
+from OpenSSL.crypto import X509Req, X509ReqType
 from OpenSSL.crypto import X509Extension, X509ExtensionType
 from OpenSSL.crypto import load_certificate, load_privatekey
 from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT
@@ -27,7 +33,9 @@ from OpenSSL.crypto import CRL, Revoked, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.crypto import (
     sign, verify, get_elliptic_curve, get_elliptic_curves)
-from OpenSSL.test.util import EqualityTestsMixin, TestCase
+from OpenSSL.test.util import (
+    EqualityTestsMixin, TestCase, WARNING_TYPE_EXPECTED
+)
 from OpenSSL._util import native, lib
 
 def normalize_certificate_pem(pem):
@@ -81,6 +89,40 @@ cbvAhow217X9V0dVerEOKxnNYspXRrh36h7k4mQA+sDq
 -----END RSA PRIVATE KEY-----
 """)
 
+intermediate_cert_pem = b("""-----BEGIN CERTIFICATE-----
+MIICVzCCAcCgAwIBAgIRAMPzhm6//0Y/g2pmnHR2C4cwDQYJKoZIhvcNAQENBQAw
+WDELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQHEwdDaGljYWdvMRAw
+DgYDVQQKEwdUZXN0aW5nMRgwFgYDVQQDEw9UZXN0aW5nIFJvb3QgQ0EwHhcNMTQw
+ODI4MDIwNDA4WhcNMjQwODI1MDIwNDA4WjBmMRUwEwYDVQQDEwxpbnRlcm1lZGlh
+dGUxDDAKBgNVBAoTA29yZzERMA8GA1UECxMIb3JnLXVuaXQxCzAJBgNVBAYTAlVT
+MQswCQYDVQQIEwJDQTESMBAGA1UEBxMJU2FuIERpZWdvMIGfMA0GCSqGSIb3DQEB
+AQUAA4GNADCBiQKBgQDYcEQw5lfbEQRjr5Yy4yxAHGV0b9Al+Lmu7wLHMkZ/ZMmK
+FGIbljbviiD1Nz97Oh2cpB91YwOXOTN2vXHq26S+A5xe8z/QJbBsyghMur88CjdT
+21H2qwMa+r5dCQwEhuGIiZ3KbzB/n4DTMYI5zy4IYPv0pjxShZn4aZTCCK2IUwID
+AQABoxMwETAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBDQUAA4GBAPIWSkLX
+QRMApOjjyC+tMxumT5e2pMqChHmxobQK4NMdrf2VCx+cRT6EmY8sK3/Xl/X8UBQ+
+9n5zXb1ZwhW/sTWgUvmOceJ4/XVs9FkdWOOn1J0XBch9ZIiFe/s5ASIgG7fUdcUF
+9mAWS6FK2ca3xIh5kIupCXOFa0dPvlw/YUFT
+-----END CERTIFICATE-----
+""")
+
+intermediate_key_pem = b("""-----BEGIN RSA PRIVATE KEY-----
+MIICWwIBAAKBgQDYcEQw5lfbEQRjr5Yy4yxAHGV0b9Al+Lmu7wLHMkZ/ZMmKFGIb
+ljbviiD1Nz97Oh2cpB91YwOXOTN2vXHq26S+A5xe8z/QJbBsyghMur88CjdT21H2
+qwMa+r5dCQwEhuGIiZ3KbzB/n4DTMYI5zy4IYPv0pjxShZn4aZTCCK2IUwIDAQAB
+AoGAfSZVV80pSeOKHTYfbGdNY/jHdU9eFUa/33YWriXU+77EhpIItJjkRRgivIfo
+rhFJpBSGmDLblaqepm8emsXMeH4+2QzOYIf0QGGP6E6scjTt1PLqdqKfVJ1a2REN
+147cujNcmFJb/5VQHHMpaPTgttEjlzuww4+BCDPsVRABWrkCQQD3loH36nLoQTtf
++kQq0T6Bs9/UWkTAGo0ND81ALj0F8Ie1oeZg6RNT96RxZ3aVuFTESTv6/TbjWywO
+wdzlmV1vAkEA38rTJ6PTwaJlw5OttdDzAXGPB9tDmzh9oSi7cHwQQXizYd8MBYx4
+sjHUKD3dCQnb1dxJFhd3BT5HsnkRMbVZXQJAbXduH17ZTzcIOXc9jHDXYiFVZV5D
+52vV0WCbLzVCZc3jMrtSUKa8lPN5EWrdU3UchWybyG0MR5mX8S5lrF4SoQJAIyUD
+DBKaSqpqONCUUx1BTFS9FYrFjzbL4+c1qHCTTPTblt8kUCrDOZjBrKAqeiTmNSum
+/qUot9YUBF8m6BuGsQJATHHmdFy/fG1VLkyBp49CAa8tN3Z5r/CgTznI4DfMTf4C
+NbRHn2UmYlwQBa+L5lg9phewNe8aEwpPyPLoV85U8Q==
+-----END RSA PRIVATE KEY-----
+""")
+
 server_cert_pem = b("""-----BEGIN CERTIFICATE-----
 MIICKDCCAZGgAwIBAgIJAJn/HpR21r/8MA0GCSqGSIb3DQEBBQUAMFgxCzAJBgNV
 BAYTAlVTMQswCQYDVQQIEwJJTDEQMA4GA1UEBxMHQ2hpY2FnbzEQMA4GA1UEChMH
@@ -113,6 +155,40 @@ NaeNCFfH3aeTrX0LyQJAMBWjWmeKM2G2sCExheeQK0ROnaBC8itCECD4Jsve4nqf
 r50+LF74iLXFwqysVCebPKMOpDWp/qQ1BbJQIPs7/A==
 -----END RSA PRIVATE KEY-----
 """))
+
+intermediate_server_cert_pem = b("""-----BEGIN CERTIFICATE-----
+MIICWDCCAcGgAwIBAgIRAPQFY9jfskSihdiNSNdt6GswDQYJKoZIhvcNAQENBQAw
+ZjEVMBMGA1UEAxMMaW50ZXJtZWRpYXRlMQwwCgYDVQQKEwNvcmcxETAPBgNVBAsT
+CG9yZy11bml0MQswCQYDVQQGEwJVUzELMAkGA1UECBMCQ0ExEjAQBgNVBAcTCVNh
+biBEaWVnbzAeFw0xNDA4MjgwMjEwNDhaFw0yNDA4MjUwMjEwNDhaMG4xHTAbBgNV
+BAMTFGludGVybWVkaWF0ZS1zZXJ2aWNlMQwwCgYDVQQKEwNvcmcxETAPBgNVBAsT
+CG9yZy11bml0MQswCQYDVQQGEwJVUzELMAkGA1UECBMCQ0ExEjAQBgNVBAcTCVNh
+biBEaWVnbzCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAqpJZygd+w1faLOr1
+iOAmbBhx5SZWcTCZ/ZjHQTJM7GuPT624QkqsixFghRKdDROwpwnAP7gMRukLqiy4
++kRuGT5OfyGggL95i2xqA+zehjj08lSTlvGHpePJgCyTavIy5+Ljsj4DKnKyuhxm
+biXTRrH83NDgixVkObTEmh/OVK0CAwEAATANBgkqhkiG9w0BAQ0FAAOBgQBa0Npw
+UkzjaYEo1OUE1sTI6Mm4riTIHMak4/nswKh9hYup//WVOlr/RBSBtZ7Q/BwbjobN
+3bfAtV7eSAqBsfxYXyof7G1ALANQERkq3+oyLP1iVt08W1WOUlIMPhdCF/QuCwy6
+x9MJLhUCGLJPM+O2rAPWVD9wCmvq10ALsiH3yA==
+-----END CERTIFICATE-----
+""")
+
+intermediate_server_key_pem = b("""-----BEGIN RSA PRIVATE KEY-----
+MIICXAIBAAKBgQCqklnKB37DV9os6vWI4CZsGHHlJlZxMJn9mMdBMkzsa49PrbhC
+SqyLEWCFEp0NE7CnCcA/uAxG6QuqLLj6RG4ZPk5/IaCAv3mLbGoD7N6GOPTyVJOW
+8Yel48mALJNq8jLn4uOyPgMqcrK6HGZuJdNGsfzc0OCLFWQ5tMSaH85UrQIDAQAB
+AoGAIQ594j5zna3/9WaPsTgnmhlesVctt4AAx/n827DA4ayyuHFlXUuVhtoWR5Pk
+5ezj9mtYW8DyeCegABnsu2vZni/CdvU6uiS1Hv6qM1GyYDm9KWgovIP9rQCDSGaz
+d57IWVGxx7ODFkm3gN5nxnSBOFVHytuW1J7FBRnEsehRroECQQDXHFOv82JuXDcz
+z3+4c74IEURdOHcbycxlppmK9kFqm5lsUdydnnGW+mvwDk0APOB7Wg7vyFyr393e
+dpmBDCzNAkEAyv6tVbTKUYhSjW+QhabJo896/EqQEYUmtMXxk4cQnKeR/Ao84Rkf
+EqD5IykMUfUI0jJU4DGX+gWZ10a7kNbHYQJAVFCuHNFxS4Cpwo0aqtnzKoZaHY/8
+X9ABZfafSHCtw3Op92M+7ikkrOELXdS9KdKyyqbKJAKNEHF3LbOfB44WIQJAA2N4
+9UNNVUsXRbElEnYUS529CdUczo4QdVgQjkvk5RiPAUwSdBd9Q0xYnFOlFwEmIowg
+ipWJWe0aAlP18ZcEQQJBAL+5lekZ/GUdQoZ4HAsN5a9syrzavJ9VvU1KOOPorPZK
+nMRZbbQgP+aSB7yl6K0gaLaZ8XaK0pjxNBh6ASqg9f4=
+-----END RSA PRIVATE KEY-----
+""")
 
 client_cert_pem = b("""-----BEGIN CERTIFICATE-----
 MIICJjCCAY+gAwIBAgIJAKxpFI5lODkjMA0GCSqGSIb3DQEBBQUAMFgxCzAJBgNV
@@ -246,6 +322,27 @@ VwnW8YxGO8Sn6UJ4FeffZNcYZddSDKosw8LtPOeWoK3JINjAk5jiPQ2cww++7QGG
 /g5NDjxFZNDJP1dGiLAxPW6JXwov4v0FmdzfLOZ01jDcgQQZqEpYlgpuI5JEWUQ9
 Ho4EzbYCOaEAMQA=
 -----END PKCS7-----
+""")
+
+pkcs7DataASN1 = base64.b64decode(b"""
+MIIDNwYJKoZIhvcNAQcCoIIDKDCCAyQCAQExADALBgkqhkiG9w0BBwGgggMKMIID
+BjCCAm+gAwIBAgIBATANBgkqhkiG9w0BAQQFADB7MQswCQYDVQQGEwJTRzERMA8G
+A1UEChMITTJDcnlwdG8xFDASBgNVBAsTC00yQ3J5cHRvIENBMSQwIgYDVQQDExtN
+MkNyeXB0byBDZXJ0aWZpY2F0ZSBNYXN0ZXIxHTAbBgkqhkiG9w0BCQEWDm5ncHNA
+cG9zdDEuY29tMB4XDTAwMDkxMDA5NTEzMFoXDTAyMDkxMDA5NTEzMFowUzELMAkG
+A1UEBhMCU0cxETAPBgNVBAoTCE0yQ3J5cHRvMRIwEAYDVQQDEwlsb2NhbGhvc3Qx
+HTAbBgkqhkiG9w0BCQEWDm5ncHNAcG9zdDEuY29tMFwwDQYJKoZIhvcNAQEBBQAD
+SwAwSAJBAKy+e3dulvXzV7zoTZWc5TzgApr8DmeQHTYC8ydfzH7EECe4R1Xh5kwI
+zOuuFfn178FBiS84gngaNcrFi0Z5fAkCAwEAAaOCAQQwggEAMAkGA1UdEwQCMAAw
+LAYJYIZIAYb4QgENBB8WHU9wZW5TU0wgR2VuZXJhdGVkIENlcnRpZmljYXRlMB0G
+A1UdDgQWBBTPhIKSvnsmYsBVNWjj0m3M2z0qVTCBpQYDVR0jBIGdMIGagBT7hyNp
+65w6kxXlxb8pUU/+7Sg4AaF/pH0wezELMAkGA1UEBhMCU0cxETAPBgNVBAoTCE0y
+Q3J5cHRvMRQwEgYDVQQLEwtNMkNyeXB0byBDQTEkMCIGA1UEAxMbTTJDcnlwdG8g
+Q2VydGlmaWNhdGUgTWFzdGVyMR0wGwYJKoZIhvcNAQkBFg5uZ3BzQHBvc3QxLmNv
+bYIBADANBgkqhkiG9w0BAQQFAAOBgQA7/CqT6PoHycTdhEStWNZde7M/2Yc6BoJu
+VwnW8YxGO8Sn6UJ4FeffZNcYZddSDKosw8LtPOeWoK3JINjAk5jiPQ2cww++7QGG
+/g5NDjxFZNDJP1dGiLAxPW6JXwov4v0FmdzfLOZ01jDcgQQZqEpYlgpuI5JEWUQ9
+Ho4EzbYCOaEAMQA=
 """)
 
 crlData = b("""\
@@ -513,7 +610,7 @@ class X509ExtTests(TestCase):
 
     def test_issuer(self):
         """
-        If an extension requires a issuer, the :py:data:`issuer` parameter to
+        If an extension requires an issuer, the :py:data:`issuer` parameter to
         :py:class:`X509Extension` provides its value.
         """
         ext2 = X509Extension(
@@ -906,7 +1003,7 @@ class X509NameTests(TestCase):
         self.assertEqual(
             a.der(),
             b('0\x1b1\x0b0\t\x06\x03U\x04\x06\x13\x02US'
-              '1\x0c0\n\x06\x03U\x04\x03\x13\x03foo'))
+              '1\x0c0\n\x06\x03U\x04\x03\x0c\x03foo'))
 
 
     def test_get_components(self):
@@ -1189,7 +1286,7 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
     def test_verify_success(self):
         """
         :py:obj:`X509Req.verify` returns :py:obj:`True` if called with a
-        :py:obj:`OpenSSL.crypto.PKey` which represents the public part ofthe key
+        :py:obj:`OpenSSL.crypto.PKey` which represents the public part of the key
         which signed the request.
         """
         request = X509Req()
@@ -1465,19 +1562,29 @@ WpOdIpB8KksUTCzV591Nr1wd
         cert.gmtime_adj_notAfter(2)
         self.assertFalse(cert.has_expired())
 
+    def test_root_has_not_expired(self):
+        """
+        :py:obj:`X509Type.has_expired` returns :py:obj:`False` if the certificate's not-after
+        time is in the future.
+        """
+        cert = load_certificate(FILETYPE_PEM, root_cert_pem)
+        self.assertFalse(cert.has_expired())
+
 
     def test_digest(self):
         """
         :py:obj:`X509.digest` returns a string giving ":"-separated hex-encoded words
         of the digest of the certificate.
         """
-        cert = X509()
+        cert = load_certificate(FILETYPE_PEM, root_cert_pem)
         self.assertEqual(
             # This is MD5 instead of GOOD_DIGEST because the digest algorithm
             # actually matters to the assertion (ie, another arbitrary, good
             # digest will not product the same digest).
+            # Digest verified with the command:
+            # openssl x509 -in root_cert.pem -noout -fingerprint -md5
             cert.digest("MD5"),
-            b("A8:EB:07:F8:53:25:0A:F2:56:05:C5:A5:C4:C4:C7:15"))
+            b("19:B3:05:26:2B:F8:F2:FF:0B:8F:21:07:A8:28:B8:75"))
 
 
     def _extcert(self, pkey, extensions):
@@ -1490,6 +1597,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         cert.set_notAfter(when)
 
         cert.add_extensions(extensions)
+        cert.sign(pkey, 'sha1')
         return load_certificate(
             FILETYPE_PEM, dump_certificate(FILETYPE_PEM, cert))
 
@@ -1969,6 +2077,31 @@ class PKCS12Tests(TestCase):
         self.verify_pkcs12_container(p12)
 
 
+    def test_load_pkcs12_text_passphrase(self):
+        """
+        A PKCS12 string generated using the openssl command line can be loaded
+        with :py:obj:`load_pkcs12` and its components extracted and examined.
+        Using text as passphrase instead of bytes. DeprecationWarning expected.
+        """
+        pem = client_key_pem + client_cert_pem
+        passwd = b"whatever"
+        p12_str = _runopenssl(pem, b"pkcs12", b"-export", b"-clcerts",
+                              b"-passout", b"pass:" + passwd)
+        with catch_warnings(record=True) as w:
+            simplefilter("always")
+            p12 = load_pkcs12(p12_str, passphrase=b"whatever".decode("ascii"))
+
+            self.assertEqual(
+                "{0} for passphrase is no longer accepted, use bytes".format(
+                    WARNING_TYPE_EXPECTED
+                ),
+                str(w[-1].message)
+            )
+            self.assertIs(w[-1].category, DeprecationWarning)
+
+        self.verify_pkcs12_container(p12)
+
+
     def test_load_pkcs12_no_passphrase(self):
         """
         A PKCS12 string generated using openssl command line can be loaded with
@@ -2168,6 +2301,26 @@ class PKCS12Tests(TestCase):
         dumped_p12 = p12.export()  # no args
         self.check_recovery(
             dumped_p12, key=server_key_pem, cert=server_cert_pem, passwd=b"")
+
+
+    def test_export_without_bytes(self):
+        """
+        Test :py:obj:`PKCS12.export` with text not bytes as passphrase
+        """
+        p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
+
+        with catch_warnings(record=True) as w:
+            simplefilter("always")
+            dumped_p12 = p12.export(passphrase=b"randomtext".decode("ascii"))
+            self.assertEqual(
+                "{0} for passphrase is no longer accepted, use bytes".format(
+                    WARNING_TYPE_EXPECTED
+                ),
+                str(w[-1].message)
+            )
+            self.assertIs(w[-1].category, DeprecationWarning)
+        self.check_recovery(
+            dumped_p12, key=server_key_pem, cert=server_cert_pem, passwd=b"randomtext")
 
 
     def test_key_cert_mismatch(self):
@@ -2560,12 +2713,21 @@ class FunctionTests(TestCase):
             dump_privatekey, FILETYPE_PEM, key, GOOD_CIPHER, cb)
 
 
-    def test_load_pkcs7_data(self):
+    def test_load_pkcs7_data_pem(self):
         """
         :py:obj:`load_pkcs7_data` accepts a PKCS#7 string and returns an instance of
         :py:obj:`PKCS7Type`.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertTrue(isinstance(pkcs7, PKCS7Type))
+
+
+    def test_load_pkcs7_data_asn1(self):
+        """
+        :py:obj:`load_pkcs7_data` accepts a bytes containing ASN1 data
+        representing PKCS#7 and returns an instance of :py:obj`PKCS7Type`.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_ASN1, pkcs7DataASN1)
         self.assertTrue(isinstance(pkcs7, PKCS7Type))
 
 
@@ -2893,11 +3055,9 @@ class CRLTests(TestCase):
         self.assertRaises(TypeError, CRL, None)
 
 
-    def test_export(self):
+    def _get_crl(self):
         """
-        Use python to create a simple CRL with a revocation, and export
-        the CRL in formats of PEM, DER and text.  Those outputs are verified
-        with the openssl program.
+        Get a new ``CRL`` with a revocation.
         """
         crl = CRL()
         revoked = Revoked()
@@ -2906,24 +3066,108 @@ class CRLTests(TestCase):
         revoked.set_serial(b('3ab'))
         revoked.set_reason(b('sUpErSeDEd'))
         crl.add_revoked(revoked)
+        return crl
 
+
+    def test_export_pem(self):
+        """
+        If not passed a format, ``CRL.export`` returns a "PEM" format string
+        representing a serial number, a revoked reason, and certificate issuer
+        information.
+        """
+        crl = self._get_crl()
         # PEM format
         dumped_crl = crl.export(self.cert, self.pkey, days=20)
         text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
+
+        # These magic values are based on the way the CRL above was constructed
+        # and with what certificate it was exported.
         text.index(b('Serial Number: 03AB'))
         text.index(b('Superseded'))
-        text.index(b('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA'))
+        text.index(
+            b('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA')
+        )
+
+
+    def test_export_der(self):
+        """
+        If passed ``FILETYPE_ASN1`` for the format, ``CRL.export`` returns a
+        "DER" format string representing a serial number, a revoked reason, and
+        certificate issuer information.
+        """
+        crl = self._get_crl()
 
         # DER format
         dumped_crl = crl.export(self.cert, self.pkey, FILETYPE_ASN1)
-        text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text", b"-inform", b"DER")
+        text = _runopenssl(
+            dumped_crl, b"crl", b"-noout", b"-text", b"-inform", b"DER"
+        )
         text.index(b('Serial Number: 03AB'))
         text.index(b('Superseded'))
-        text.index(b('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA'))
+        text.index(
+            b('Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA')
+        )
+
+
+    def test_export_text(self):
+        """
+        If passed ``FILETYPE_TEXT`` for the format, ``CRL.export`` returns a
+        text format string like the one produced by the openssl command line
+        tool.
+        """
+        crl = self._get_crl()
+
+        dumped_crl = crl.export(self.cert, self.pkey, FILETYPE_ASN1)
+        text = _runopenssl(
+            dumped_crl, b"crl", b"-noout", b"-text", b"-inform", b"DER"
+        )
 
         # text format
         dumped_text = crl.export(self.cert, self.pkey, type=FILETYPE_TEXT)
         self.assertEqual(text, dumped_text)
+
+
+    def test_export_custom_digest(self):
+        """
+        If passed the name of a digest function, ``CRL.export`` uses a
+        signature algorithm based on that digest function.
+        """
+        crl = self._get_crl()
+        dumped_crl = crl.export(self.cert, self.pkey, digest=b"sha1")
+        text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
+        text.index(b('Signature Algorithm: sha1'))
+
+
+    def test_export_md5_digest(self):
+        """
+        If passed md5 as the digest function, ``CRL.export`` uses md5 and does
+        not emit a deprecation warning.
+        """
+        crl = self._get_crl()
+        with catch_warnings(record=True) as catcher:
+            simplefilter("always")
+            self.assertEqual(0, len(catcher))
+        dumped_crl = crl.export(self.cert, self.pkey, digest=b"md5")
+        text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
+        text.index(b('Signature Algorithm: md5'))
+
+
+    def test_export_default_digest(self):
+        """
+        If not passed the name of a digest function, ``CRL.export`` uses a
+        signature algorithm based on MD5 and emits a deprecation warning.
+        """
+        crl = self._get_crl()
+        with catch_warnings(record=True) as catcher:
+            simplefilter("always")
+            dumped_crl = crl.export(self.cert, self.pkey)
+            self.assertEqual(
+                "The default message digest (md5) is deprecated.  "
+                "Pass the name of a message digest explicitly.",
+                str(catcher[0].message),
+            )
+        text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
+        text.index(b('Signature Algorithm: md5'))
 
 
     def test_export_invalid(self):
@@ -2956,7 +3200,7 @@ class CRLTests(TestCase):
         crl = CRL()
         self.assertRaises(TypeError, crl.export)
         self.assertRaises(TypeError, crl.export, self.cert)
-        self.assertRaises(TypeError, crl.export, self.cert, self.pkey, FILETYPE_PEM, 10, "foo")
+        self.assertRaises(TypeError, crl.export, self.cert, self.pkey, FILETYPE_PEM, 10, "md5", "foo")
 
         self.assertRaises(TypeError, crl.export, None, self.pkey, FILETYPE_PEM, 10)
         self.assertRaises(TypeError, crl.export, self.cert, None, FILETYPE_PEM, 10)
@@ -2972,6 +3216,19 @@ class CRLTests(TestCase):
         """
         crl = CRL()
         self.assertRaises(ValueError, crl.export, self.cert, self.pkey, 100, 10)
+
+
+    def test_export_unknown_digest(self):
+        """
+        Calling :py:obj:`OpenSSL.CRL.export` with a unsupported digest results
+        in a :py:obj:`ValueError` being raised.
+        """
+        crl = CRL()
+        self.assertRaises(
+            ValueError,
+            crl.export,
+            self.cert, self.pkey, FILETYPE_PEM, 10, b"strange-digest"
+        )
 
 
     def test_get_revoked(self):
@@ -3074,6 +3331,107 @@ class CRLTests(TestCase):
 
 
 
+class X509StoreContextTests(TestCase):
+    """
+    Tests for :py:obj:`OpenSSL.crypto.X509StoreContext`.
+    """
+    root_cert = load_certificate(FILETYPE_PEM, root_cert_pem)
+    intermediate_cert = load_certificate(FILETYPE_PEM, intermediate_cert_pem)
+    intermediate_server_cert = load_certificate(FILETYPE_PEM, intermediate_server_cert_pem)
+
+    def test_valid(self):
+        """
+        :py:obj:`verify_certificate` returns ``None`` when called with a certificate
+        and valid chain.
+        """
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        store.add_cert(self.intermediate_cert)
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        self.assertEqual(store_ctx.verify_certificate(), None)
+
+
+    def test_reuse(self):
+        """
+        :py:obj:`verify_certificate` can be called multiple times with the same
+        ``X509StoreContext`` instance to produce the same result.
+        """
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        store.add_cert(self.intermediate_cert)
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        self.assertEqual(store_ctx.verify_certificate(), None)
+        self.assertEqual(store_ctx.verify_certificate(), None)
+
+
+    def test_trusted_self_signed(self):
+        """
+        :py:obj:`verify_certificate` returns ``None`` when called with a self-signed
+        certificate and itself in the chain.
+        """
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        store_ctx = X509StoreContext(store, self.root_cert)
+        self.assertEqual(store_ctx.verify_certificate(), None)
+
+
+    def test_untrusted_self_signed(self):
+        """
+        :py:obj:`verify_certificate` raises error when a self-signed certificate is
+        verified without itself in the chain.
+        """
+        store = X509Store()
+        store_ctx = X509StoreContext(store, self.root_cert)
+        e = self.assertRaises(X509StoreContextError, store_ctx.verify_certificate)
+        self.assertEqual(e.args[0][2], 'self signed certificate')
+        self.assertEqual(e.certificate.get_subject().CN, 'Testing Root CA')
+
+
+    def test_invalid_chain_no_root(self):
+        """
+        :py:obj:`verify_certificate` raises error when a root certificate is missing
+        from the chain.
+        """
+        store = X509Store()
+        store.add_cert(self.intermediate_cert)
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        e = self.assertRaises(X509StoreContextError, store_ctx.verify_certificate)
+        self.assertEqual(e.args[0][2], 'unable to get issuer certificate')
+        self.assertEqual(e.certificate.get_subject().CN, 'intermediate')
+
+
+    def test_invalid_chain_no_intermediate(self):
+        """
+        :py:obj:`verify_certificate` raises error when an intermediate certificate is
+        missing from the chain.
+        """
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        e = self.assertRaises(X509StoreContextError, store_ctx.verify_certificate)
+        self.assertEqual(e.args[0][2], 'unable to get local issuer certificate')
+        self.assertEqual(e.certificate.get_subject().CN, 'intermediate-service')
+
+
+    def test_modification_pre_verify(self):
+        """
+        :py:obj:`verify_certificate` can use a store context modified after
+        instantiation.
+        """
+        store_bad = X509Store()
+        store_bad.add_cert(self.intermediate_cert)
+        store_good = X509Store()
+        store_good.add_cert(self.root_cert)
+        store_good.add_cert(self.intermediate_cert)
+        store_ctx = X509StoreContext(store_bad, self.intermediate_server_cert)
+        e = self.assertRaises(X509StoreContextError, store_ctx.verify_certificate)
+        self.assertEqual(e.args[0][2], 'unable to get issuer certificate')
+        self.assertEqual(e.certificate.get_subject().CN, 'intermediate')
+        store_ctx.set_store(store_good)
+        self.assertEqual(store_ctx.verify_certificate(), None)
+
+
+
 class SignVerifyTests(TestCase):
     """
     Tests for :py:obj:`OpenSSL.crypto.sign` and :py:obj:`OpenSSL.crypto.verify`.
@@ -3117,6 +3475,47 @@ class SignVerifyTests(TestCase):
             ValueError, sign, priv_key, content, "strange-digest")
         self.assertRaises(
             ValueError, verify, good_cert, sig, content, "strange-digest")
+
+
+    def test_sign_verify_with_text(self):
+        """
+        :py:obj:`sign` generates a cryptographic signature which :py:obj:`verify` can check.
+        Deprecation warnings raised because using text instead of bytes as content
+        """
+        content = (
+            b"It was a bright cold day in April, and the clocks were striking "
+            b"thirteen. Winston Smith, his chin nuzzled into his breast in an "
+            b"effort to escape the vile wind, slipped quickly through the "
+            b"glass doors of Victory Mansions, though not quickly enough to "
+            b"prevent a swirl of gritty dust from entering along with him."
+        ).decode("ascii")
+
+        priv_key = load_privatekey(FILETYPE_PEM, root_key_pem)
+        cert = load_certificate(FILETYPE_PEM, root_cert_pem)
+        for digest in ['md5', 'sha1']:
+            with catch_warnings(record=True) as w:
+                simplefilter("always")
+                sig = sign(priv_key, content, digest)
+
+                self.assertEqual(
+                    "{0} for data is no longer accepted, use bytes".format(
+                        WARNING_TYPE_EXPECTED
+                    ),
+                    str(w[-1].message)
+                )
+                self.assertIs(w[-1].category, DeprecationWarning)
+
+            with catch_warnings(record=True) as w:
+                simplefilter("always")
+                verify(cert, sig, content, digest)
+
+                self.assertEqual(
+                    "{0} for data is no longer accepted, use bytes".format(
+                        WARNING_TYPE_EXPECTED
+                    ),
+                    str(w[-1].message)
+                )
+                self.assertIs(w[-1].category, DeprecationWarning)
 
 
     def test_sign_nulls(self):

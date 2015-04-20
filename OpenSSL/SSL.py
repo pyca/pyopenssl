@@ -1,22 +1,26 @@
 from sys import platform
 from functools import wraps, partial
-from itertools import count
+from itertools import count, chain
 from weakref import WeakValueDictionary
 from errno import errorcode
 
 from six import text_type as _text_type
+from six import binary_type as _binary_type
 from six import integer_types as integer_types
+from six import int2byte, indexbytes
 
 from OpenSSL._util import (
     ffi as _ffi,
     lib as _lib,
     exception_from_error_queue as _exception_from_error_queue,
-    native as _native)
+    native as _native,
+    text_to_bytes_and_warn as _text_to_bytes_and_warn,
+    path_string as _path_string,
+    UNSPECIFIED as _UNSPECIFIED,
+)
 
 from OpenSSL.crypto import (
     FILETYPE_PEM, _PassphraseHelper, PKey, X509Name, X509, X509Store)
-
-_unspecified = object()
 
 try:
     _memoryview = memoryview
@@ -164,10 +168,41 @@ class SysCallError(Error):
     pass
 
 
+class _CallbackExceptionHelper(object):
+    """
+    A base class for wrapper classes that allow for intelligent exception
+    handling in OpenSSL callbacks.
 
-class _VerifyHelper(object):
-    def __init__(self, callback):
+    :ivar list _problems: Any exceptions that occurred while executing in a
+        context where they could not be raised in the normal way.  Typically
+        this is because OpenSSL has called into some Python code and requires a
+        return value.  The exceptions are saved to be raised later when it is
+        possible to do so.
+    """
+    def __init__(self):
         self._problems = []
+
+
+    def raise_if_problem(self):
+        """
+        Raise an exception from the OpenSSL error queue or that was previously
+        captured whe running a callback.
+        """
+        if self._problems:
+            try:
+                _raise_current_error()
+            except Error:
+                pass
+            raise self._problems.pop(0)
+
+
+class _VerifyHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as a certificate verification
+    callback.
+    """
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
 
         @wraps(callback)
         def wrapper(ok, store_ctx):
@@ -196,14 +231,142 @@ class _VerifyHelper(object):
             "int (*)(int, X509_STORE_CTX *)", wrapper)
 
 
-    def raise_if_problem(self):
-        if self._problems:
-            try:
-                _raise_current_error()
-            except Error:
-                pass
-            raise self._problems.pop(0)
+class _NpnAdvertiseHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as an NPN advertisement callback.
+    """
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
 
+        @wraps(callback)
+        def wrapper(ssl, out, outlen, arg):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+                protos = callback(conn)
+
+                # Join the protocols into a Python bytestring, length-prefixing
+                # each element.
+                protostr = b''.join(
+                    chain.from_iterable((int2byte(len(p)), p) for p in protos)
+                )
+
+                # Save our callback arguments on the connection object. This is
+                # done to make sure that they don't get freed before OpenSSL
+                # uses them. Then, return them appropriately in the output
+                # parameters.
+                conn._npn_advertise_callback_args = [
+                    _ffi.new("unsigned int *", len(protostr)),
+                    _ffi.new("unsigned char[]", protostr),
+                ]
+                outlen[0] = conn._npn_advertise_callback_args[0][0]
+                out[0] = conn._npn_advertise_callback_args[1]
+                return 0
+            except Exception as e:
+                self._problems.append(e)
+                return 2  # SSL_TLSEXT_ERR_ALERT_FATAL
+
+        self.callback = _ffi.callback(
+            "int (*)(SSL *, const unsigned char **, unsigned int *, void *)",
+            wrapper
+        )
+
+
+class _NpnSelectHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as an NPN selection callback.
+    """
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ssl, out, outlen, in_, inlen, arg):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+
+                # The string passed to us is actually made up of multiple
+                # length-prefixed bytestrings. We need to split that into a
+                # list.
+                instr = _ffi.buffer(in_, inlen)[:]
+                protolist = []
+                while instr:
+                    l = indexbytes(instr, 0)
+                    proto = instr[1:l+1]
+                    protolist.append(proto)
+                    instr = instr[l+1:]
+
+                # Call the callback
+                outstr = callback(conn, protolist)
+
+                # Save our callback arguments on the connection object. This is
+                # done to make sure that they don't get freed before OpenSSL
+                # uses them. Then, return them appropriately in the output
+                # parameters.
+                conn._npn_select_callback_args = [
+                    _ffi.new("unsigned char *", len(outstr)),
+                    _ffi.new("unsigned char[]", outstr),
+                ]
+                outlen[0] = conn._npn_select_callback_args[0][0]
+                out[0] = conn._npn_select_callback_args[1]
+                return 0
+            except Exception as e:
+                self._problems.append(e)
+                return 2  # SSL_TLSEXT_ERR_ALERT_FATAL
+
+        self.callback = _ffi.callback(
+            "int (*)(SSL *, unsigned char **, unsigned char *, "
+                    "const unsigned char *, unsigned int, void *)",
+            wrapper
+        )
+
+
+class _ALPNSelectHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as an ALPN selection callback.
+    """
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ssl, out, outlen, in_, inlen, arg):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+
+                # The string passed to us is made up of multiple
+                # length-prefixed bytestrings. We need to split that into a
+                # list.
+                instr = _ffi.buffer(in_, inlen)[:]
+                protolist = []
+                while instr:
+                    encoded_len = indexbytes(instr, 0)
+                    proto = instr[1:encoded_len + 1]
+                    protolist.append(proto)
+                    instr = instr[encoded_len + 1:]
+
+                # Call the callback
+                outstr = callback(conn, protolist)
+
+                if not isinstance(outstr, _binary_type):
+                    raise TypeError("ALPN callback must return a bytestring.")
+
+                # Save our callback arguments on the connection object to make
+                # sure that they don't get freed before OpenSSL can use them.
+                # Then, return them in the appropriate output parameters.
+                conn._alpn_select_callback_args = [
+                    _ffi.new("unsigned char *", len(outstr)),
+                    _ffi.new("unsigned char[]", outstr),
+                ]
+                outlen[0] = conn._alpn_select_callback_args[0][0]
+                out[0] = conn._alpn_select_callback_args[1]
+                return 0
+            except Exception as e:
+                self._problems.append(e)
+                return 2  # SSL_TLSEXT_ERR_ALERT_FATAL
+
+        self.callback = _ffi.callback(
+            "int (*)(SSL *, unsigned char **, unsigned char *, "
+                    "const unsigned char *, unsigned int, void *)",
+            wrapper
+        )
 
 
 def _asFileDescriptor(obj):
@@ -233,6 +396,37 @@ def SSLeay_version(type):
     :param type: One of the SSLEAY_ constants defined in this module.
     """
     return _ffi.string(_lib.SSLeay_version(type))
+
+
+def _requires_npn(func):
+    """
+    Wraps any function that requires NPN support in OpenSSL, ensuring that
+    NotImplementedError is raised if NPN is not present.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if not _lib.Cryptography_HAS_NEXTPROTONEG:
+            raise NotImplementedError("NPN not available.")
+
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+
+def _requires_alpn(func):
+    """
+    Wraps any function that requires ALPN support in OpenSSL, ensuring that
+    NotImplementedError is raised if ALPN support is not present.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if not _lib.Cryptography_HAS_ALPN:
+            raise NotImplementedError("ALPN not available.")
+
+        return func(*args, **kwargs)
+
+    return wrapper
 
 
 
@@ -293,6 +487,12 @@ class Context(object):
         self._info_callback = None
         self._tlsext_servername_callback = None
         self._app_data = None
+        self._npn_advertise_helper = None
+        self._npn_advertise_callback = None
+        self._npn_select_helper = None
+        self._npn_select_callback = None
+        self._alpn_select_helper = None
+        self._alpn_select_callback = None
 
         # SSL_CTX_set_app_data(self->ctx, self);
         # SSL_CTX_set_mode(self->ctx, SSL_MODE_ENABLE_PARTIAL_WRITE |
@@ -306,19 +506,22 @@ class Context(object):
         Let SSL know where we can find trusted certificates for the certificate
         chain
 
-        :param cafile: In which file we can find the certificates
+        :param cafile: In which file we can find the certificates (``bytes`` or
+            ``unicode``).
         :param capath: In which directory we can find the certificates
+            (``bytes`` or ``unicode``).
+
         :return: None
         """
         if cafile is None:
             cafile = _ffi.NULL
-        elif not isinstance(cafile, bytes):
-            raise TypeError("cafile must be None or a byte string")
+        else:
+            cafile = _path_string(cafile)
 
         if capath is None:
             capath = _ffi.NULL
-        elif not isinstance(capath, bytes):
-            raise TypeError("capath must be None or a byte string")
+        else:
+            capath = _path_string(capath)
 
         load_result = _lib.SSL_CTX_load_verify_locations(self._context, cafile, capath)
         if not load_result:
@@ -368,15 +571,12 @@ class Context(object):
         """
         Load a certificate chain from a file
 
-        :param certfile: The name of the certificate chain file
+        :param certfile: The name of the certificate chain file (``bytes`` or
+            ``unicode``).
+
         :return: None
         """
-        if isinstance(certfile, _text_type):
-            # Perhaps sys.getfilesystemencoding() could be better?
-            certfile = certfile.encode("utf-8")
-
-        if not isinstance(certfile, bytes):
-            raise TypeError("certfile must be bytes or unicode")
+        certfile = _path_string(certfile)
 
         result = _lib.SSL_CTX_use_certificate_chain_file(self._context, certfile)
         if not result:
@@ -387,15 +587,13 @@ class Context(object):
         """
         Load a certificate from a file
 
-        :param certfile: The name of the certificate file
+        :param certfile: The name of the certificate file (``bytes`` or
+            ``unicode``).
         :param filetype: (optional) The encoding of the file, default is PEM
+
         :return: None
         """
-        if isinstance(certfile, _text_type):
-            # Perhaps sys.getfilesystemencoding() could be better?
-            certfile = certfile.encode("utf-8")
-        if not isinstance(certfile, bytes):
-            raise TypeError("certfile must be bytes or unicode")
+        certfile = _path_string(certfile)
         if not isinstance(filetype, integer_types):
             raise TypeError("filetype must be an integer")
 
@@ -445,22 +643,18 @@ class Context(object):
             raise exception
 
 
-    def use_privatekey_file(self, keyfile, filetype=_unspecified):
+    def use_privatekey_file(self, keyfile, filetype=_UNSPECIFIED):
         """
         Load a private key from a file
 
-        :param keyfile: The name of the key file
+        :param keyfile: The name of the key file (``bytes`` or ``unicode``)
         :param filetype: (optional) The encoding of the file, default is PEM
+
         :return: None
         """
-        if isinstance(keyfile, _text_type):
-            # Perhaps sys.getfilesystemencoding() could be better?
-            keyfile = keyfile.encode("utf-8")
+        keyfile = _path_string(keyfile)
 
-        if not isinstance(keyfile, bytes):
-            raise TypeError("keyfile must be a byte string")
-
-        if filetype is _unspecified:
+        if filetype is _UNSPECIFIED:
             filetype = FILETYPE_PEM
         elif not isinstance(filetype, integer_types):
             raise TypeError("filetype must be an integer")
@@ -492,6 +686,9 @@ class Context(object):
 
         :return: None (raises an exception if something's wrong)
         """
+        if not _lib.SSL_CTX_check_private_key(self._context):
+            _raise_current_error()
+
 
     def load_client_ca(self, cafile):
         """
@@ -591,11 +788,12 @@ class Context(object):
         """
         Load parameters for Ephemeral Diffie-Hellman
 
-        :param dhfile: The file to load EDH parameters from
+        :param dhfile: The file to load EDH parameters from (``bytes`` or
+            ``unicode``).
+
         :return: None
         """
-        if not isinstance(dhfile, bytes):
-            raise TypeError("dhfile must be a byte string")
+        dhfile = _path_string(dhfile)
 
         bio = _lib.BIO_new_file(dhfile, b"r")
         if bio == _ffi.NULL:
@@ -809,6 +1007,79 @@ class Context(object):
         _lib.SSL_CTX_set_tlsext_servername_callback(
             self._context, self._tlsext_servername_callback)
 
+
+    @_requires_npn
+    def set_npn_advertise_callback(self, callback):
+        """
+        Specify a callback function that will be called when offering `Next
+        Protocol Negotiation
+        <https://technotes.googlecode.com/git/nextprotoneg.html>`_ as a server.
+
+        :param callback: The callback function.  It will be invoked with one
+            argument, the Connection instance.  It should return a list of
+            bytestrings representing the advertised protocols, like
+            ``[b'http/1.1', b'spdy/2']``.
+        """
+        self._npn_advertise_helper = _NpnAdvertiseHelper(callback)
+        self._npn_advertise_callback = self._npn_advertise_helper.callback
+        _lib.SSL_CTX_set_next_protos_advertised_cb(
+            self._context, self._npn_advertise_callback, _ffi.NULL)
+
+
+    @_requires_npn
+    def set_npn_select_callback(self, callback):
+        """
+        Specify a callback function that will be called when a server offers
+        Next Protocol Negotiation options.
+
+        :param callback: The callback function.  It will be invoked with two
+            arguments: the Connection, and a list of offered protocols as
+            bytestrings, e.g. ``[b'http/1.1', b'spdy/2']``.  It should return
+            one of those bytestrings, the chosen protocol.
+        """
+        self._npn_select_helper = _NpnSelectHelper(callback)
+        self._npn_select_callback = self._npn_select_helper.callback
+        _lib.SSL_CTX_set_next_proto_select_cb(
+            self._context, self._npn_select_callback, _ffi.NULL)
+
+    @_requires_alpn
+    def set_alpn_protos(self, protos):
+        """
+        Specify the clients ALPN protocol list.
+
+        These protocols are offered to the server during protocol negotiation.
+
+        :param protos: A list of the protocols to be offered to the server.
+            This list should be a Python list of bytestrings representing the
+            protocols to offer, e.g. ``[b'http/1.1', b'spdy/2']``.
+        """
+        # Take the list of protocols and join them together, prefixing them
+        # with their lengths.
+        protostr = b''.join(
+            chain.from_iterable((int2byte(len(p)), p) for p in protos)
+        )
+
+        # Build a C string from the list. We don't need to save this off
+        # because OpenSSL immediately copies the data out.
+        input_str = _ffi.new("unsigned char[]", protostr)
+        input_str_len = _ffi.cast("unsigned", len(protostr))
+        _lib.SSL_CTX_set_alpn_protos(self._context, input_str, input_str_len)
+
+    @_requires_alpn
+    def set_alpn_select_callback(self, callback):
+        """
+        Set the callback to handle ALPN protocol choice.
+
+        :param callback: The callback function.  It will be invoked with two
+            arguments: the Connection, and a list of offered protocols as
+            bytestrings, e.g ``[b'http/1.1', b'spdy/2']``.  It should return
+            one of those bytestrings, the chosen protocol.
+        """
+        self._alpn_select_helper = _ALPNSelectHelper(callback)
+        self._alpn_select_callback = self._alpn_select_helper.callback
+        _lib.SSL_CTX_set_alpn_select_cb(
+            self._context, self._alpn_select_callback, _ffi.NULL)
+
 ContextType = Context
 
 
@@ -832,6 +1103,19 @@ class Connection(object):
         ssl = _lib.SSL_new(context._context)
         self._ssl = _ffi.gc(ssl, _lib.SSL_free)
         self._context = context
+
+        # References to strings used for Next Protocol Negotiation. OpenSSL's
+        # header files suggest that these might get copied at some point, but
+        # doesn't specify when, so we store them here to make sure they don't
+        # get freed before OpenSSL uses them.
+        self._npn_advertise_callback_args = None
+        self._npn_select_callback_args = None
+
+        # References to strings used for Application Layer Protocol
+        # Negotiation. These strings get copied at some point but it's well
+        # after the callback returns, so we have to hang them somewhere to
+        # avoid them getting freed.
+        self._alpn_select_callback_args = None
 
         self._reverse_mapping[self._ssl] = self
 
@@ -867,6 +1151,12 @@ class Connection(object):
     def _raise_ssl_error(self, ssl, result):
         if self._context._verify_helper is not None:
             self._context._verify_helper.raise_if_problem()
+        if self._context._npn_advertise_helper is not None:
+            self._context._npn_advertise_helper.raise_if_problem()
+        if self._context._npn_select_helper is not None:
+            self._context._npn_select_helper.raise_if_problem()
+        if self._context._alpn_select_helper is not None:
+            self._context._alpn_select_helper.raise_if_problem()
 
         error = _lib.SSL_get_error(ssl, result)
         if error == _lib.SSL_ERROR_WANT_READ:
@@ -885,7 +1175,7 @@ class Connection(object):
                         errno = _ffi.getwinerror()[0]
                     else:
                         errno = _ffi.errno
-                    raise SysCallError(errno, errorcode[errno])
+                    raise SysCallError(errno, errorcode.get(errno))
                 else:
                     raise SysCallError(-1, "Unexpected EOF")
             else:
@@ -967,6 +1257,9 @@ class Connection(object):
                       API, the value is ignored
         :return: The number of bytes written
         """
+        # Backward compatibility
+        buf = _text_to_bytes_and_warn("buf", buf)
+
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
         if isinstance(buf, _buffer):
@@ -991,6 +1284,8 @@ class Connection(object):
                       API, the value is ignored
         :return: The number of bytes written
         """
+        buf = _text_to_bytes_and_warn("buf", buf)
+
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
         if isinstance(buf, _buffer):
@@ -1025,6 +1320,45 @@ class Connection(object):
         self._raise_ssl_error(self._ssl, result)
         return _ffi.buffer(buf, result)[:]
     read = recv
+
+
+    def recv_into(self, buffer, nbytes=None, flags=None):
+        """
+        Receive data on the connection and store the data into a buffer rather
+        than creating a new string.
+
+        :param buffer: The buffer to copy into.
+        :param nbytes: (optional) The maximum number of bytes to read into the
+            buffer. If not present, defaults to the size of the buffer. If
+            larger than the size of the buffer, is reduced to the size of the
+            buffer.
+        :param flags: (optional) Included for compatibility with the socket
+            API, the value is ignored.
+        :return: The number of bytes read into the buffer.
+        """
+        if nbytes is None:
+            nbytes = len(buffer)
+        else:
+            nbytes = min(nbytes, len(buffer))
+
+        # We need to create a temporary buffer. This is annoying, it would be
+        # better if we could pass memoryviews straight into the SSL_read call,
+        # but right now we can't. Revisit this if CFFI gets that ability.
+        buf = _ffi.new("char[]", nbytes)
+        result = _lib.SSL_read(self._ssl, buf, nbytes)
+        self._raise_ssl_error(self._ssl, result)
+
+        # This strange line is all to avoid a memory copy. The buffer protocol
+        # should allow us to assign a CFFI buffer to the LHS of this line, but
+        # on CPython 3.3+ that segfaults. As a workaround, we can temporarily
+        # wrap it in a memoryview, except on Python 2.6 which doesn't have a
+        # memoryview type.
+        try:
+            buffer[:result] = memoryview(_ffi.buffer(buf, result))
+        except NameError:
+            buffer[:result] = _ffi.buffer(buf, result)
+
+        return result
 
 
     def _handle_bio_errors(self, bio, result):
@@ -1076,11 +1410,10 @@ class Connection(object):
         :param buf: The string to put into the memory BIO.
         :return: The number of bytes written
         """
+        buf = _text_to_bytes_and_warn("buf", buf)
+
         if self._into_ssl is None:
             raise TypeError("Connection sock was not None")
-
-        if not isinstance(buf, bytes):
-            raise TypeError("buf must be a byte string")
 
         result = _lib.BIO_write(self._into_ssl, buf, len(buf))
         if result <= 0:
@@ -1183,8 +1516,7 @@ class Connection(object):
         """
         result = _lib.SSL_shutdown(self._ssl)
         if result < 0:
-            # TODO: This is untested.
-            _raise_current_error()
+            self._raise_ssl_error(self._ssl, result)
         elif result > 0:
             return True
         else:
@@ -1549,6 +1881,61 @@ class Connection(object):
         else:
             version =_ffi.string(_lib.SSL_CIPHER_get_version(cipher))
             return version.decode("utf-8")
+
+
+    @_requires_npn
+    def get_next_proto_negotiated(self):
+        """
+        Get the protocol that was negotiated by NPN.
+        """
+        data = _ffi.new("unsigned char **")
+        data_len = _ffi.new("unsigned int *")
+
+        _lib.SSL_get0_next_proto_negotiated(self._ssl, data, data_len)
+
+        return _ffi.buffer(data[0], data_len[0])[:]
+
+
+    @_requires_alpn
+    def set_alpn_protos(self, protos):
+        """
+        Specify the client's ALPN protocol list.
+
+        These protocols are offered to the server during protocol negotiation.
+
+        :param protos: A list of the protocols to be offered to the server.
+            This list should be a Python list of bytestrings representing the
+            protocols to offer, e.g. ``[b'http/1.1', b'spdy/2']``.
+        """
+        # Take the list of protocols and join them together, prefixing them
+        # with their lengths.
+        protostr = b''.join(
+            chain.from_iterable((int2byte(len(p)), p) for p in protos)
+        )
+
+        # Build a C string from the list. We don't need to save this off
+        # because OpenSSL immediately copies the data out.
+        input_str = _ffi.new("unsigned char[]", protostr)
+        input_str_len = _ffi.cast("unsigned", len(protostr))
+        _lib.SSL_set_alpn_protos(self._ssl, input_str, input_str_len)
+
+
+    def get_alpn_proto_negotiated(self):
+        """
+        Get the protocol that was negotiated by ALPN.
+        """
+        if not _lib.Cryptography_HAS_ALPN:
+            raise NotImplementedError("ALPN not available")
+
+        data = _ffi.new("unsigned char **")
+        data_len = _ffi.new("unsigned int *")
+
+        _lib.SSL_get0_alpn_selected(self._ssl, data, data_len)
+
+        if not data_len:
+            return b''
+
+        return _ffi.buffer(data[0], data_len[0])[:]
 
 
 

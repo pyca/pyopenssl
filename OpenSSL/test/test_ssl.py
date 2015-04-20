@@ -7,12 +7,13 @@ Unit tests for :py:obj:`OpenSSL.SSL`.
 
 from gc import collect, get_referrers
 from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE, ESHUTDOWN
-from sys import platform, version_info
+from sys import platform, getfilesystemencoding
 from socket import SHUT_RDWR, error, socket
 from os import makedirs
 from os.path import join
 from unittest import main
 from weakref import ref
+from warnings import catch_warnings, simplefilter
 
 from six import PY3, text_type, u
 
@@ -22,7 +23,6 @@ from OpenSSL.crypto import dump_privatekey, load_privatekey
 from OpenSSL.crypto import dump_certificate, load_certificate
 from OpenSSL.crypto import get_elliptic_curves
 
-from OpenSSL.SSL import _lib
 from OpenSSL.SSL import OPENSSL_VERSION_NUMBER, SSLEAY_VERSION, SSLEAY_CFLAGS
 from OpenSSL.SSL import SSLEAY_PLATFORM, SSLEAY_DIR, SSLEAY_BUILT_ON
 from OpenSSL.SSL import SENT_SHUTDOWN, RECEIVED_SHUTDOWN
@@ -43,10 +43,11 @@ from OpenSSL.SSL import (
 from OpenSSL.SSL import (
     Context, ContextType, Session, Connection, ConnectionType, SSLeay_version)
 
-from OpenSSL.test.util import TestCase, b
+from OpenSSL._util import lib as _lib
+
+from OpenSSL.test.util import WARNING_TYPE_EXPECTED, NON_ASCII, TestCase, b
 from OpenSSL.test.test_crypto import (
-    cleartextCertificatePEM, cleartextPrivateKeyPEM)
-from OpenSSL.test.test_crypto import (
+    cleartextCertificatePEM, cleartextPrivateKeyPEM,
     client_cert_pem, client_key_pem, server_cert_pem, server_key_pem,
     root_cert_pem)
 
@@ -93,6 +94,23 @@ dhparam = """\
 MBYCEQCobsg29c9WZP/54oAPcwiDAgEC
 -----END DH PARAMETERS-----
 """
+
+
+def join_bytes_or_unicode(prefix, suffix):
+    """
+    Join two path components of either ``bytes`` or ``unicode``.
+
+    The return type is the same as the type of ``prefix``.
+    """
+    # If the types are the same, nothing special is necessary.
+    if type(prefix) == type(suffix):
+        return join(prefix, suffix)
+
+    # Otherwise, coerce suffix to the type of prefix.
+    if isinstance(prefix, text_type):
+        return join(prefix, suffix.decode(getfilesystemencoding()))
+    else:
+        return join(prefix, suffix.encode(getfilesystemencoding()))
 
 
 def verify_cb(conn, cert, errnum, depth, ok):
@@ -395,23 +413,52 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(Error, ctx.use_privatekey_file, self.mktemp())
 
 
+    def _use_privatekey_file_test(self, pemfile, filetype):
+        """
+        Verify that calling ``Context.use_privatekey_file`` with the given
+        arguments does not raise an exception.
+        """
+        key = PKey()
+        key.generate_key(TYPE_RSA, 128)
+
+        with open(pemfile, "wt") as pem:
+            pem.write(
+                dump_privatekey(FILETYPE_PEM, key).decode("ascii")
+            )
+
+        ctx = Context(TLSv1_METHOD)
+        ctx.use_privatekey_file(pemfile, filetype)
+
+
+    def test_use_privatekey_file_bytes(self):
+        """
+        A private key can be specified from a file by passing a ``bytes``
+        instance giving the file name to ``Context.use_privatekey_file``.
+        """
+        self._use_privatekey_file_test(
+            self.mktemp() + NON_ASCII.encode(getfilesystemencoding()),
+            FILETYPE_PEM,
+        )
+
+
+    def test_use_privatekey_file_unicode(self):
+        """
+        A private key can be specified from a file by passing a ``unicode``
+        instance giving the file name to ``Context.use_privatekey_file``.
+        """
+        self._use_privatekey_file_test(
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII,
+            FILETYPE_PEM,
+        )
+
+
     if not PY3:
         def test_use_privatekey_file_long(self):
             """
             On Python 2 :py:obj:`Context.use_privatekey_file` accepts a
             filetype of type :py:obj:`long` as well as :py:obj:`int`.
             """
-            pemfile = self.mktemp()
-
-            key = PKey()
-            key.generate_key(TYPE_RSA, 128)
-
-            with open(pemfile, "wt") as pem:
-                pem.write(
-                    dump_privatekey(FILETYPE_PEM, key).decode("ascii"))
-
-            ctx = Context(TLSv1_METHOD)
-            ctx.use_privatekey_file(pemfile, long(FILETYPE_PEM))
+            self._use_privatekey_file_test(self.mktemp(), long(FILETYPE_PEM))
 
 
     def test_use_certificate_wrong_args(self):
@@ -476,21 +523,40 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(Error, ctx.use_certificate_file, self.mktemp())
 
 
-    def test_use_certificate_file(self):
+    def _use_certificate_file_test(self, certificate_file):
         """
-        :py:obj:`Context.use_certificate` sets the certificate which will be
-        used to identify connections created using the context.
+        Verify that calling ``Context.use_certificate_file`` with the given
+        filename doesn't raise an exception.
         """
         # TODO
         # Hard to assert anything.  But we could set a privatekey then ask
         # OpenSSL if the cert and key agree using check_privatekey.  Then as
         # long as check_privatekey works right we're good...
-        pem_filename = self.mktemp()
-        with open(pem_filename, "wb") as pem_file:
+        with open(certificate_file, "wb") as pem_file:
             pem_file.write(cleartextCertificatePEM)
 
         ctx = Context(TLSv1_METHOD)
-        ctx.use_certificate_file(pem_filename)
+        ctx.use_certificate_file(certificate_file)
+
+
+    def test_use_certificate_file_bytes(self):
+        """
+        :py:obj:`Context.use_certificate_file` sets the certificate (given as a
+        ``bytes`` filename) which will be used to identify connections created
+        using the context.
+        """
+        filename = self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
+        self._use_certificate_file_test(filename)
+
+
+    def test_use_certificate_file_unicode(self):
+        """
+        :py:obj:`Context.use_certificate_file` sets the certificate (given as a
+        ``bytes`` filename) which will be used to identify connections created
+        using the context.
+        """
+        filename = self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
+        self._use_certificate_file_test(filename)
 
 
     if not PY3:
@@ -505,6 +571,43 @@ class ContextTests(TestCase, _LoopbackMixin):
 
             ctx = Context(TLSv1_METHOD)
             ctx.use_certificate_file(pem_filename, long(FILETYPE_PEM))
+
+
+    def test_check_privatekey_valid(self):
+        """
+        :py:obj:`Context.check_privatekey` returns :py:obj:`None` if the
+        :py:obj:`Context` instance has been configured to use a matched key and
+        certificate pair.
+        """
+        key = load_privatekey(FILETYPE_PEM, client_key_pem)
+        cert = load_certificate(FILETYPE_PEM, client_cert_pem)
+        context = Context(TLSv1_METHOD)
+        context.use_privatekey(key)
+        context.use_certificate(cert)
+        self.assertIs(None, context.check_privatekey())
+
+
+    def test_check_privatekey_invalid(self):
+        """
+        :py:obj:`Context.check_privatekey` raises :py:obj:`Error` if the
+        :py:obj:`Context` instance has been configured to use a key and
+        certificate pair which don't relate to each other.
+        """
+        key = load_privatekey(FILETYPE_PEM, client_key_pem)
+        cert = load_certificate(FILETYPE_PEM, server_cert_pem)
+        context = Context(TLSv1_METHOD)
+        context.use_privatekey(key)
+        context.use_certificate(cert)
+        self.assertRaises(Error, context.check_privatekey)
+
+
+    def test_check_privatekey_wrong_args(self):
+        """
+        :py:obj:`Context.check_privatekey` raises :py:obj:`TypeError` if called
+        with other than no arguments.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertRaises(TypeError, context.check_privatekey, object())
 
 
     def test_set_app_data_wrong_args(self):
@@ -867,17 +970,39 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertEqual(cert.get_subject().CN, 'Testing Root CA')
 
 
-    def test_load_verify_file(self):
+    def _load_verify_cafile(self, cafile):
         """
-        :py:obj:`Context.load_verify_locations` accepts a file name and uses the
-        certificates within for verification purposes.
+        Verify that if path to a file containing a certificate is passed to
+        ``Context.load_verify_locations`` for the ``cafile`` parameter, that
+        certificate is used as a trust root for the purposes of verifying
+        connections created using that ``Context``.
         """
-        cafile = self.mktemp()
         fObj = open(cafile, 'w')
         fObj.write(cleartextCertificatePEM.decode('ascii'))
         fObj.close()
 
         self._load_verify_locations_test(cafile)
+
+
+    def test_load_verify_bytes_cafile(self):
+        """
+        :py:obj:`Context.load_verify_locations` accepts a file name as a
+        ``bytes`` instance and uses the certificates within for verification
+        purposes.
+        """
+        cafile = self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
+        self._load_verify_cafile(cafile)
+
+
+    def test_load_verify_unicode_cafile(self):
+        """
+        :py:obj:`Context.load_verify_locations` accepts a file name as a
+        ``unicode`` instance and uses the certificates within for verification
+        purposes.
+        """
+        self._load_verify_cafile(
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
+        )
 
 
     def test_load_verify_invalid_file(self):
@@ -890,23 +1015,45 @@ class ContextTests(TestCase, _LoopbackMixin):
             Error, clientContext.load_verify_locations, self.mktemp())
 
 
-    def test_load_verify_directory(self):
+    def _load_verify_directory_locations_capath(self, capath):
         """
-        :py:obj:`Context.load_verify_locations` accepts a directory name and uses
-        the certificates within for verification purposes.
+        Verify that if path to a directory containing certificate files is
+        passed to ``Context.load_verify_locations`` for the ``capath``
+        parameter, those certificates are used as trust roots for the purposes
+        of verifying connections created using that ``Context``.
         """
-        capath = self.mktemp()
         makedirs(capath)
         # Hash values computed manually with c_rehash to avoid depending on
         # c_rehash in the test suite.  One is from OpenSSL 0.9.8, the other
         # from OpenSSL 1.0.0.
         for name in [b'c7adac82.0', b'c3705638.0']:
-            cafile = join(capath, name)
-            fObj = open(cafile, 'w')
-            fObj.write(cleartextCertificatePEM.decode('ascii'))
-            fObj.close()
+            cafile = join_bytes_or_unicode(capath, name)
+            with open(cafile, 'w') as fObj:
+                fObj.write(cleartextCertificatePEM.decode('ascii'))
 
         self._load_verify_locations_test(None, capath)
+
+
+    def test_load_verify_directory_bytes_capath(self):
+        """
+        :py:obj:`Context.load_verify_locations` accepts a directory name as a
+        ``bytes`` instance and uses the certificates within for verification
+        purposes.
+        """
+        self._load_verify_directory_locations_capath(
+            self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
+        )
+
+
+    def test_load_verify_directory_unicode_capath(self):
+        """
+        :py:obj:`Context.load_verify_locations` accepts a directory name as a
+        ``unicode`` instance and uses the certificates within for verification
+        purposes.
+        """
+        self._load_verify_directory_locations_capath(
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
+        )
 
 
     def test_load_verify_locations_wrong_args(self):
@@ -938,8 +1085,8 @@ class ContextTests(TestCase, _LoopbackMixin):
             # in a unit test is bad, but it's the only way I can think of to
             # really test this. -exarkun
 
-            # Arg, verisign.com doesn't speak TLSv1
-            context = Context(SSLv3_METHOD)
+            # Arg, verisign.com doesn't speak anything newer than TLS 1.0
+            context = Context(TLSv1_METHOD)
             context.set_default_verify_paths()
             context.set_verify(
                 VERIFY_PEER,
@@ -1052,11 +1199,11 @@ class ContextTests(TestCase, _LoopbackMixin):
 
     def test_add_extra_chain_cert(self):
         """
-        :py:obj:`Context.add_extra_chain_cert` accepts an :py:obj:`X509` instance to add to
-        the certificate chain.
+        :py:obj:`Context.add_extra_chain_cert` accepts an :py:obj:`X509`
+        instance to add to the certificate chain.
 
-        See :py:obj:`_create_certificate_chain` for the details of the certificate
-        chain tested.
+        See :py:obj:`_create_certificate_chain` for the details of the
+        certificate chain tested.
 
         The chain is tested by starting a server with scert and connecting
         to it with a client which trusts cacert and requires verification to
@@ -1067,15 +1214,17 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         # Dump the CA certificate to a file because that's the only way to load
         # it as a trusted CA in the client context.
-        for cert, name in [(cacert, 'ca.pem'), (icert, 'i.pem'), (scert, 's.pem')]:
-            fObj = open(name, 'w')
-            fObj.write(dump_certificate(FILETYPE_PEM, cert).decode('ascii'))
-            fObj.close()
+        for cert, name in [(cacert, 'ca.pem'),
+                           (icert, 'i.pem'),
+                           (scert, 's.pem')]:
+            with open(join(self.tmpdir, name), 'w') as f:
+                f.write(dump_certificate(FILETYPE_PEM, cert).decode('ascii'))
 
-        for key, name in [(cakey, 'ca.key'), (ikey, 'i.key'), (skey, 's.key')]:
-            fObj = open(name, 'w')
-            fObj.write(dump_privatekey(FILETYPE_PEM, key).decode('ascii'))
-            fObj.close()
+        for key, name in [(cakey, 'ca.key'),
+                          (ikey, 'i.key'),
+                          (skey, 's.key')]:
+            with open(join(self.tmpdir, name), 'w') as f:
+                f.write(dump_privatekey(FILETYPE_PEM, key).decode('ascii'))
 
         # Create the server context
         serverContext = Context(TLSv1_METHOD)
@@ -1088,47 +1237,71 @@ class ContextTests(TestCase, _LoopbackMixin):
         clientContext = Context(TLSv1_METHOD)
         clientContext.set_verify(
             VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT, verify_cb)
-        clientContext.load_verify_locations(b"ca.pem")
+        clientContext.load_verify_locations(join(self.tmpdir, "ca.pem"))
 
         # Try it out.
         self._handshake_test(serverContext, clientContext)
 
 
-    def test_use_certificate_chain_file(self):
+    def _use_certificate_chain_file_test(self, certdir):
         """
-        :py:obj:`Context.use_certificate_chain_file` reads a certificate chain from
-        the specified file.
+        Verify that :py:obj:`Context.use_certificate_chain_file` reads a
+        certificate chain from a specified file.
 
-        The chain is tested by starting a server with scert and connecting
-        to it with a client which trusts cacert and requires verification to
+        The chain is tested by starting a server with scert and connecting to
+        it with a client which trusts cacert and requires verification to
         succeed.
         """
         chain = _create_certificate_chain()
         [(cakey, cacert), (ikey, icert), (skey, scert)] = chain
 
+        makedirs(certdir)
+
+        chainFile = join_bytes_or_unicode(certdir, "chain.pem")
+        caFile = join_bytes_or_unicode(certdir, "ca.pem")
+
         # Write out the chain file.
-        chainFile = self.mktemp()
-        fObj = open(chainFile, 'wb')
-        # Most specific to least general.
-        fObj.write(dump_certificate(FILETYPE_PEM, scert))
-        fObj.write(dump_certificate(FILETYPE_PEM, icert))
-        fObj.write(dump_certificate(FILETYPE_PEM, cacert))
-        fObj.close()
+        with open(chainFile, 'wb') as fObj:
+            # Most specific to least general.
+            fObj.write(dump_certificate(FILETYPE_PEM, scert))
+            fObj.write(dump_certificate(FILETYPE_PEM, icert))
+            fObj.write(dump_certificate(FILETYPE_PEM, cacert))
+
+        with open(caFile, 'w') as fObj:
+            fObj.write(dump_certificate(FILETYPE_PEM, cacert).decode('ascii'))
 
         serverContext = Context(TLSv1_METHOD)
         serverContext.use_certificate_chain_file(chainFile)
         serverContext.use_privatekey(skey)
 
-        fObj = open('ca.pem', 'w')
-        fObj.write(dump_certificate(FILETYPE_PEM, cacert).decode('ascii'))
-        fObj.close()
-
         clientContext = Context(TLSv1_METHOD)
         clientContext.set_verify(
             VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT, verify_cb)
-        clientContext.load_verify_locations(b"ca.pem")
+        clientContext.load_verify_locations(caFile)
 
         self._handshake_test(serverContext, clientContext)
+
+
+    def test_use_certificate_chain_file_bytes(self):
+        """
+        ``Context.use_certificate_chain_file`` accepts the name of a file (as
+        an instance of ``bytes``) to specify additional certificates to use to
+        construct and verify a trust chain.
+        """
+        self._use_certificate_chain_file_test(
+            self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
+        )
+
+
+    def test_use_certificate_chain_file_unicode(self):
+        """
+        ``Context.use_certificate_chain_file`` accepts the name of a file (as
+        an instance of ``unicode``) to specify additional certificates to use
+        to construct and verify a trust chain.
+        """
+        self._use_certificate_chain_file_test(
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
+        )
 
 
     def test_use_certificate_chain_file_wrong_args(self):
@@ -1205,18 +1378,37 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(Error, context.load_tmp_dh, b"hello")
 
 
-    def test_load_tmp_dh(self):
+    def _load_tmp_dh_test(self, dhfilename):
         """
-        :py:obj:`Context.load_tmp_dh` loads Diffie-Hellman parameters from the
-        specified file.
+        Verify that calling ``Context.load_tmp_dh`` with the given filename
+        does not raise an exception.
         """
         context = Context(TLSv1_METHOD)
-        dhfilename = self.mktemp()
-        dhfile = open(dhfilename, "w")
-        dhfile.write(dhparam)
-        dhfile.close()
+        with open(dhfilename, "w") as dhfile:
+            dhfile.write(dhparam)
+
         context.load_tmp_dh(dhfilename)
         # XXX What should I assert here? -exarkun
+
+
+    def test_load_tmp_dh_bytes(self):
+        """
+        :py:obj:`Context.load_tmp_dh` loads Diffie-Hellman parameters from the
+        specified file (given as ``bytes``).
+        """
+        self._load_tmp_dh_test(
+            self.mktemp() + NON_ASCII.encode(getfilesystemencoding()),
+        )
+
+
+    def test_load_tmp_dh_unicode(self):
+        """
+        :py:obj:`Context.load_tmp_dh` loads Diffie-Hellman parameters from the
+        specified file (given as ``unicode``).
+        """
+        self._load_tmp_dh_test(
+            self.mktemp().decode(getfilesystemencoding()) + NON_ASCII,
+        )
 
 
     def test_set_tmp_ecdh(self):
@@ -1434,6 +1626,396 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
         self.assertEqual([(server, b("foo1.example.com"))], args)
 
 
+class NextProtoNegotiationTests(TestCase, _LoopbackMixin):
+    """
+    Test for Next Protocol Negotiation in PyOpenSSL.
+    """
+    if _lib.Cryptography_HAS_NEXTPROTONEG:
+        def test_npn_success(self):
+            """
+            Tests that clients and servers that agree on the negotiated next
+            protocol can correct establish a connection, and that the agreed
+            protocol is reported by the connections.
+            """
+            advertise_args = []
+            select_args = []
+            def advertise(conn):
+                advertise_args.append((conn,))
+                return [b'http/1.1', b'spdy/2']
+            def select(conn, options):
+                select_args.append((conn, options))
+                return b'spdy/2'
+
+            server_context = Context(TLSv1_METHOD)
+            server_context.set_npn_advertise_callback(advertise)
+
+            client_context = Context(TLSv1_METHOD)
+            client_context.set_npn_select_callback(select)
+
+            # Necessary to actually accept the connection
+            server_context.use_privatekey(
+                load_privatekey(FILETYPE_PEM, server_key_pem))
+            server_context.use_certificate(
+                load_certificate(FILETYPE_PEM, server_cert_pem))
+
+            # Do a little connection to trigger the logic
+            server = Connection(server_context, None)
+            server.set_accept_state()
+
+            client = Connection(client_context, None)
+            client.set_connect_state()
+
+            self._interactInMemory(server, client)
+
+            self.assertEqual([(server,)], advertise_args)
+            self.assertEqual([(client, [b'http/1.1', b'spdy/2'])], select_args)
+
+            self.assertEqual(server.get_next_proto_negotiated(), b'spdy/2')
+            self.assertEqual(client.get_next_proto_negotiated(), b'spdy/2')
+
+
+        def test_npn_client_fail(self):
+            """
+            Tests that when clients and servers cannot agree on what protocol
+            to use next that the TLS connection does not get established.
+            """
+            advertise_args = []
+            select_args = []
+            def advertise(conn):
+                advertise_args.append((conn,))
+                return [b'http/1.1', b'spdy/2']
+            def select(conn, options):
+                select_args.append((conn, options))
+                return b''
+
+            server_context = Context(TLSv1_METHOD)
+            server_context.set_npn_advertise_callback(advertise)
+
+            client_context = Context(TLSv1_METHOD)
+            client_context.set_npn_select_callback(select)
+
+            # Necessary to actually accept the connection
+            server_context.use_privatekey(
+                load_privatekey(FILETYPE_PEM, server_key_pem))
+            server_context.use_certificate(
+                load_certificate(FILETYPE_PEM, server_cert_pem))
+
+            # Do a little connection to trigger the logic
+            server = Connection(server_context, None)
+            server.set_accept_state()
+
+            client = Connection(client_context, None)
+            client.set_connect_state()
+
+            # If the client doesn't return anything, the connection will fail.
+            self.assertRaises(Error, self._interactInMemory, server, client)
+
+            self.assertEqual([(server,)], advertise_args)
+            self.assertEqual([(client, [b'http/1.1', b'spdy/2'])], select_args)
+
+
+        def test_npn_select_error(self):
+            """
+            Test that we can handle exceptions in the select callback. If
+            select fails it should be fatal to the connection.
+            """
+            advertise_args = []
+            def advertise(conn):
+                advertise_args.append((conn,))
+                return [b'http/1.1', b'spdy/2']
+            def select(conn, options):
+                raise TypeError
+
+            server_context = Context(TLSv1_METHOD)
+            server_context.set_npn_advertise_callback(advertise)
+
+            client_context = Context(TLSv1_METHOD)
+            client_context.set_npn_select_callback(select)
+
+            # Necessary to actually accept the connection
+            server_context.use_privatekey(
+                load_privatekey(FILETYPE_PEM, server_key_pem))
+            server_context.use_certificate(
+                load_certificate(FILETYPE_PEM, server_cert_pem))
+
+            # Do a little connection to trigger the logic
+            server = Connection(server_context, None)
+            server.set_accept_state()
+
+            client = Connection(client_context, None)
+            client.set_connect_state()
+
+            # If the callback throws an exception it should be raised here.
+            self.assertRaises(
+                TypeError, self._interactInMemory, server, client
+            )
+            self.assertEqual([(server,)], advertise_args)
+
+
+        def test_npn_advertise_error(self):
+            """
+            Test that we can handle exceptions in the advertise callback. If
+            advertise fails no NPN is advertised to the client.
+            """
+            select_args = []
+            def advertise(conn):
+                raise TypeError
+            def select(conn, options):
+                select_args.append((conn, options))
+                return b''
+
+            server_context = Context(TLSv1_METHOD)
+            server_context.set_npn_advertise_callback(advertise)
+
+            client_context = Context(TLSv1_METHOD)
+            client_context.set_npn_select_callback(select)
+
+            # Necessary to actually accept the connection
+            server_context.use_privatekey(
+                load_privatekey(FILETYPE_PEM, server_key_pem))
+            server_context.use_certificate(
+                load_certificate(FILETYPE_PEM, server_cert_pem))
+
+            # Do a little connection to trigger the logic
+            server = Connection(server_context, None)
+            server.set_accept_state()
+
+            client = Connection(client_context, None)
+            client.set_connect_state()
+
+            # If the client doesn't return anything, the connection will fail.
+            self.assertRaises(
+                TypeError, self._interactInMemory, server, client
+            )
+            self.assertEqual([], select_args)
+
+    else:
+        # No NPN.
+        def test_npn_not_implemented(self):
+            # Test the context methods first.
+            context = Context(TLSv1_METHOD)
+            fail_methods = [
+                context.set_npn_advertise_callback,
+                context.set_npn_select_callback,
+            ]
+            for method in fail_methods:
+                self.assertRaises(
+                    NotImplementedError, method, None
+                )
+
+            # Now test a connection.
+            conn = Connection(context)
+            fail_methods = [
+                conn.get_next_proto_negotiated,
+            ]
+            for method in fail_methods:
+                self.assertRaises(NotImplementedError, method)
+
+
+
+class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
+    """
+    Tests for ALPN in PyOpenSSL.
+    """
+    # Skip tests on versions that don't support ALPN.
+    if _lib.Cryptography_HAS_ALPN:
+
+        def test_alpn_success(self):
+            """
+            Clients and servers that agree on the negotiated ALPN protocol can
+            correct establish a connection, and the agreed protocol is reported
+            by the connections.
+            """
+            select_args = []
+            def select(conn, options):
+                select_args.append((conn, options))
+                return b'spdy/2'
+
+            client_context = Context(TLSv1_METHOD)
+            client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
+
+            server_context = Context(TLSv1_METHOD)
+            server_context.set_alpn_select_callback(select)
+
+            # Necessary to actually accept the connection
+            server_context.use_privatekey(
+                load_privatekey(FILETYPE_PEM, server_key_pem))
+            server_context.use_certificate(
+                load_certificate(FILETYPE_PEM, server_cert_pem))
+
+            # Do a little connection to trigger the logic
+            server = Connection(server_context, None)
+            server.set_accept_state()
+
+            client = Connection(client_context, None)
+            client.set_connect_state()
+
+            self._interactInMemory(server, client)
+
+            self.assertEqual([(server, [b'http/1.1', b'spdy/2'])], select_args)
+
+            self.assertEqual(server.get_alpn_proto_negotiated(), b'spdy/2')
+            self.assertEqual(client.get_alpn_proto_negotiated(), b'spdy/2')
+
+
+        def test_alpn_set_on_connection(self):
+            """
+            The same as test_alpn_success, but setting the ALPN protocols on
+            the connection rather than the context.
+            """
+            select_args = []
+            def select(conn, options):
+                select_args.append((conn, options))
+                return b'spdy/2'
+
+            # Setup the client context but don't set any ALPN protocols.
+            client_context = Context(TLSv1_METHOD)
+
+            server_context = Context(TLSv1_METHOD)
+            server_context.set_alpn_select_callback(select)
+
+            # Necessary to actually accept the connection
+            server_context.use_privatekey(
+                load_privatekey(FILETYPE_PEM, server_key_pem))
+            server_context.use_certificate(
+                load_certificate(FILETYPE_PEM, server_cert_pem))
+
+            # Do a little connection to trigger the logic
+            server = Connection(server_context, None)
+            server.set_accept_state()
+
+            # Set the ALPN protocols on the client connection.
+            client = Connection(client_context, None)
+            client.set_alpn_protos([b'http/1.1', b'spdy/2'])
+            client.set_connect_state()
+
+            self._interactInMemory(server, client)
+
+            self.assertEqual([(server, [b'http/1.1', b'spdy/2'])], select_args)
+
+            self.assertEqual(server.get_alpn_proto_negotiated(), b'spdy/2')
+            self.assertEqual(client.get_alpn_proto_negotiated(), b'spdy/2')
+
+
+        def test_alpn_server_fail(self):
+            """
+            When clients and servers cannot agree on what protocol to use next
+            the TLS connection does not get established.
+            """
+            select_args = []
+            def select(conn, options):
+                select_args.append((conn, options))
+                return b''
+
+            client_context = Context(TLSv1_METHOD)
+            client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
+
+            server_context = Context(TLSv1_METHOD)
+            server_context.set_alpn_select_callback(select)
+
+            # Necessary to actually accept the connection
+            server_context.use_privatekey(
+                load_privatekey(FILETYPE_PEM, server_key_pem))
+            server_context.use_certificate(
+                load_certificate(FILETYPE_PEM, server_cert_pem))
+
+            # Do a little connection to trigger the logic
+            server = Connection(server_context, None)
+            server.set_accept_state()
+
+            client = Connection(client_context, None)
+            client.set_connect_state()
+
+            # If the client doesn't return anything, the connection will fail.
+            self.assertRaises(Error, self._interactInMemory, server, client)
+
+            self.assertEqual([(server, [b'http/1.1', b'spdy/2'])], select_args)
+
+
+        def test_alpn_no_server(self):
+            """
+            When clients and servers cannot agree on what protocol to use next
+            because the server doesn't offer ALPN, no protocol is negotiated.
+            """
+            client_context = Context(TLSv1_METHOD)
+            client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
+
+            server_context = Context(TLSv1_METHOD)
+
+            # Necessary to actually accept the connection
+            server_context.use_privatekey(
+                load_privatekey(FILETYPE_PEM, server_key_pem))
+            server_context.use_certificate(
+                load_certificate(FILETYPE_PEM, server_cert_pem))
+
+            # Do a little connection to trigger the logic
+            server = Connection(server_context, None)
+            server.set_accept_state()
+
+            client = Connection(client_context, None)
+            client.set_connect_state()
+
+            # Do the dance.
+            self._interactInMemory(server, client)
+
+            self.assertEqual(client.get_alpn_proto_negotiated(), b'')
+
+
+        def test_alpn_callback_exception(self):
+            """
+            We can handle exceptions in the ALPN select callback.
+            """
+            select_args = []
+            def select(conn, options):
+                select_args.append((conn, options))
+                raise TypeError()
+
+            client_context = Context(TLSv1_METHOD)
+            client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
+
+            server_context = Context(TLSv1_METHOD)
+            server_context.set_alpn_select_callback(select)
+
+            # Necessary to actually accept the connection
+            server_context.use_privatekey(
+                load_privatekey(FILETYPE_PEM, server_key_pem))
+            server_context.use_certificate(
+                load_certificate(FILETYPE_PEM, server_cert_pem))
+
+            # Do a little connection to trigger the logic
+            server = Connection(server_context, None)
+            server.set_accept_state()
+
+            client = Connection(client_context, None)
+            client.set_connect_state()
+
+            self.assertRaises(
+                TypeError, self._interactInMemory, server, client
+            )
+            self.assertEqual([(server, [b'http/1.1', b'spdy/2'])], select_args)
+
+    else:
+        # No ALPN.
+        def test_alpn_not_implemented(self):
+            """
+            If ALPN is not in OpenSSL, we should raise NotImplementedError.
+            """
+            # Test the context methods first.
+            context = Context(TLSv1_METHOD)
+            self.assertRaises(
+                NotImplementedError, context.set_alpn_protos, None
+            )
+            self.assertRaises(
+                NotImplementedError, context.set_alpn_select_callback, None
+            )
+
+            # Now test a connection.
+            conn = Connection(context)
+            self.assertRaises(
+                NotImplementedError, context.set_alpn_protos, None
+            )
+
+
 
 class SessionTests(TestCase):
     """
@@ -1555,7 +2137,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertRaises(
             TypeError, conn.set_tlsext_host_name, b("with\0null"))
 
-        if version_info >= (3,):
+        if PY3:
             # On Python 3.x, don't accidentally implicitly convert from text.
             self.assertRaises(
                 TypeError,
@@ -1707,6 +2289,40 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertEquals(client.get_shutdown(), SENT_SHUTDOWN|RECEIVED_SHUTDOWN)
         self.assertRaises(ZeroReturnError, server.recv, 1024)
         self.assertEquals(server.get_shutdown(), SENT_SHUTDOWN|RECEIVED_SHUTDOWN)
+
+
+    def test_shutdown_closed(self):
+        """
+        If the underlying socket is closed, :py:obj:`Connection.shutdown` propagates the
+        write error from the low level write call.
+        """
+        server, client = self._loopback()
+        server.sock_shutdown(2)
+        exc = self.assertRaises(SysCallError, server.shutdown)
+        if platform == "win32":
+            self.assertEqual(exc.args[0], ESHUTDOWN)
+        else:
+            self.assertEqual(exc.args[0], EPIPE)
+
+
+    def test_shutdown_truncated(self):
+        """
+        If the underlying connection is truncated, :obj:`Connection.shutdown`
+        raises an :obj:`Error`.
+        """
+        server_ctx = Context(TLSv1_METHOD)
+        client_ctx = Context(TLSv1_METHOD)
+        server_ctx.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_ctx.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
+        server = Connection(server_ctx, None)
+        client = Connection(client_ctx, None)
+        self._handshakeInMemory(client, server)
+        self.assertEqual(server.shutdown(), False)
+        self.assertRaises(WantReadError, server.shutdown)
+        server.bio_shutdown()
+        self.assertRaises(Error, server.shutdown)
 
 
     def test_set_shutdown(self):
@@ -2182,6 +2798,26 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
         self.assertEquals(count, 2)
         self.assertEquals(client.recv(2), b('xy'))
 
+
+    def test_text(self):
+        """
+        When passed a text, :py:obj:`Connection.send` transmits all of it and
+        returns the number of bytes sent. It also raises a DeprecationWarning.
+        """
+        server, client = self._loopback()
+        with catch_warnings(record=True) as w:
+            simplefilter("always")
+            count = server.send(b"xy".decode("ascii"))
+            self.assertEqual(
+                "{0} for buf is no longer accepted, use bytes".format(
+                    WARNING_TYPE_EXPECTED
+                ),
+                str(w[-1].message)
+            )
+            self.assertIs(w[-1].category, DeprecationWarning)
+        self.assertEquals(count, 2)
+        self.assertEquals(client.recv(2), b"xy")
+
     try:
         memoryview
     except NameError:
@@ -2217,6 +2853,164 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
 
 
 
+def _make_memoryview(size):
+    """
+    Create a new ``memoryview`` wrapped around a ``bytearray`` of the given
+    size.
+    """
+    return memoryview(bytearray(size))
+
+
+
+class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
+    """
+    Tests for :py:obj:`Connection.recv_into`
+    """
+    def _no_length_test(self, factory):
+        """
+        Assert that when the given buffer is passed to
+        ``Connection.recv_into``, whatever bytes are available to be received
+        that fit into that buffer are written into that buffer.
+        """
+        output_buffer = factory(5)
+
+        server, client = self._loopback()
+        server.send(b('xy'))
+
+        self.assertEqual(client.recv_into(output_buffer), 2)
+        self.assertEqual(output_buffer, bytearray(b('xy\x00\x00\x00')))
+
+
+    def test_bytearray_no_length(self):
+        """
+        :py:obj:`Connection.recv_into` can be passed a ``bytearray`` instance
+        and data in the receive buffer is written to it.
+        """
+        self._no_length_test(bytearray)
+
+
+    def _respects_length_test(self, factory):
+        """
+        Assert that when the given buffer is passed to ``Connection.recv_into``
+        along with a value for ``nbytes`` that is less than the size of that
+        buffer, only ``nbytes`` bytes are written into the buffer.
+        """
+        output_buffer = factory(10)
+
+        server, client = self._loopback()
+        server.send(b('abcdefghij'))
+
+        self.assertEqual(client.recv_into(output_buffer, 5), 5)
+        self.assertEqual(
+            output_buffer, bytearray(b('abcde\x00\x00\x00\x00\x00'))
+        )
+
+
+    def test_bytearray_respects_length(self):
+        """
+        When called with a ``bytearray`` instance,
+        :py:obj:`Connection.recv_into` respects the ``nbytes`` parameter and
+        doesn't copy in more than that number of bytes.
+        """
+        self._respects_length_test(bytearray)
+
+
+    def _doesnt_overfill_test(self, factory):
+        """
+        Assert that if there are more bytes available to be read from the
+        receive buffer than would fit into the buffer passed to
+        :py:obj:`Connection.recv_into`, only as many as fit are written into
+        it.
+        """
+        output_buffer = factory(5)
+
+        server, client = self._loopback()
+        server.send(b('abcdefghij'))
+
+        self.assertEqual(client.recv_into(output_buffer), 5)
+        self.assertEqual(output_buffer, bytearray(b('abcde')))
+        rest = client.recv(5)
+        self.assertEqual(b('fghij'), rest)
+
+
+    def test_bytearray_doesnt_overfill(self):
+        """
+        When called with a ``bytearray`` instance,
+        :py:obj:`Connection.recv_into` respects the size of the array and
+        doesn't write more bytes into it than will fit.
+        """
+        self._doesnt_overfill_test(bytearray)
+
+
+    def _really_doesnt_overfill_test(self, factory):
+        """
+        Assert that if the value given by ``nbytes`` is greater than the actual
+        size of the output buffer passed to :py:obj:`Connection.recv_into`, the
+        behavior is as if no value was given for ``nbytes`` at all.
+        """
+        output_buffer = factory(5)
+
+        server, client = self._loopback()
+        server.send(b('abcdefghij'))
+
+        self.assertEqual(client.recv_into(output_buffer, 50), 5)
+        self.assertEqual(output_buffer, bytearray(b('abcde')))
+        rest = client.recv(5)
+        self.assertEqual(b('fghij'), rest)
+
+
+    def test_bytearray_really_doesnt_overfill(self):
+        """
+        When called with a ``bytearray`` instance and an ``nbytes`` value that
+        is too large, :py:obj:`Connection.recv_into` respects the size of the
+        array and not the ``nbytes`` value and doesn't write more bytes into
+        the buffer than will fit.
+        """
+        self._doesnt_overfill_test(bytearray)
+
+
+    try:
+        memoryview
+    except NameError:
+        "cannot test recv_into memoryview without memoryview"
+    else:
+        def test_memoryview_no_length(self):
+            """
+            :py:obj:`Connection.recv_into` can be passed a ``memoryview``
+            instance and data in the receive buffer is written to it.
+            """
+            self._no_length_test(_make_memoryview)
+
+
+        def test_memoryview_respects_length(self):
+            """
+            When called with a ``memoryview`` instance,
+            :py:obj:`Connection.recv_into` respects the ``nbytes`` parameter
+            and doesn't copy more than that number of bytes in.
+            """
+            self._respects_length_test(_make_memoryview)
+
+
+        def test_memoryview_doesnt_overfill(self):
+            """
+            When called with a ``memoryview`` instance,
+            :py:obj:`Connection.recv_into` respects the size of the array and
+            doesn't write more bytes into it than will fit.
+            """
+            self._doesnt_overfill_test(_make_memoryview)
+
+
+        def test_memoryview_really_doesnt_overfill(self):
+            """
+            When called with a ``memoryview`` instance and an ``nbytes`` value
+            that is too large, :py:obj:`Connection.recv_into` respects the size
+            of the array and not the ``nbytes`` value and doesn't write more
+            bytes into the buffer than will fit.
+            """
+            self._doesnt_overfill_test(_make_memoryview)
+
+
+
 class ConnectionSendallTests(TestCase, _LoopbackMixin):
     """
     Tests for :py:obj:`Connection.sendall`.
@@ -2242,6 +3036,25 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         server, client = self._loopback()
         server.sendall(b('x'))
         self.assertEquals(client.recv(1), b('x'))
+
+
+    def test_text(self):
+        """
+        :py:obj:`Connection.sendall` transmits all the content in the string
+        passed to it raising a DeprecationWarning in case of this being a text.
+        """
+        server, client = self._loopback()
+        with catch_warnings(record=True) as w:
+            simplefilter("always")
+            server.sendall(b"x".decode("ascii"))
+            self.assertEqual(
+                "{0} for buf is no longer accepted, use bytes".format(
+                    WARNING_TYPE_EXPECTED
+                ),
+                str(w[-1].message)
+            )
+            self.assertIs(w[-1].category, DeprecationWarning)
+        self.assertEquals(client.recv(1), b"x")
 
 
     try:
