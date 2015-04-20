@@ -11,14 +11,6 @@
 
     A class representing the X.509 store context.
 
-.. py:class:: X509Extension(typename, critical, value[, subject][, issuer])
-
-    A class representing an X.509 v3 certificate extensions.  See
-    http://openssl.org/docs/apps/x509v3_config.html#STANDARD_EXTENSIONS for
-    *typename* strings and their options.  Optional parameters *subject* and
-    *issuer* must be X509 objects.
-
-
 .. py:data:: NetscapeSPKIType
 
     See :py:class:`NetscapeSPKI`.
