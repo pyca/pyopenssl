@@ -7,11 +7,6 @@
    :synopsis: Generic cryptographic module
 
 
-.. py:data:: X509Store
-
-    A class representing the X.509 store.
-
-
 .. py:data:: X509StoreContext
 
     A class representing the X.509 store context.
