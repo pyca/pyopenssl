@@ -49,11 +49,6 @@
     A Python type object representing the PKCS12 object type.
 
 
-.. py:data:: X509ExtensionType
-
-    See :py:class:`X509Extension`.
-
-
 .. py:class:: X509Extension(typename, critical, value[, subject][, issuer])
 
     A class representing an X.509 v3 certificate extensions.  See
