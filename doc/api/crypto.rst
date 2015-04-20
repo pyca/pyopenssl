@@ -35,11 +35,6 @@
     A class representing the X.509 store context.
 
 
-.. py:data:: PKeyType
-
-    See :py:class:`PKey`.
-
-
 .. py:class:: PKey()
 
     A class representing DSA or RSA keys.
