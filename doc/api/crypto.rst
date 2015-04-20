@@ -47,12 +47,6 @@
 
     A class representing Revocation objects of CRL.
 
-
-.. py:data:: TYPE_RSA
-             TYPE_DSA
-
-    Key type constants.
-
 .. py:exception:: Error
 
     Generic exception used in the :py:mod:`.crypto` module.
@@ -264,6 +258,11 @@ PKey objects
                :members:
 
 .. _openssl-pkcs7:
+
+.. py:data:: TYPE_RSA
+             TYPE_DSA
+
+    Key type constants.
 
 PKCS7 objects
 -------------
