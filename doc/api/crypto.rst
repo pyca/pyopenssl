@@ -7,11 +7,6 @@
    :synopsis: Generic cryptographic module
 
 
-.. py:data:: X509Type
-
-    See :py:class:`X509`.
-
-
 .. py:class:: X509()
 
     A class representing X.509 certificates.
