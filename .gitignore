@@ -5,3 +5,6 @@ dist
 *.pyo
 __pycache__
 .tox
+doc/_build/
+.coverage
+.eggs

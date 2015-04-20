@@ -6,6 +6,117 @@
 .. py:module:: OpenSSL.crypto
    :synopsis: Generic cryptographic module
 
+
+.. py:data:: X509Type
+
+    See :py:class:`X509`.
+
+
+.. py:class:: X509()
+
+    A class representing X.509 certificates.
+
+
+.. py:data:: X509NameType
+
+    See :py:class:`X509Name`.
+
+
+.. py:class:: X509Name(x509name)
+
+    A class representing X.509 Distinguished Names.
+
+    This constructor creates a copy of *x509name* which should be an
+    instance of :py:class:`X509Name`.
+
+
+.. py:data:: X509ReqType
+
+    See :py:class:`X509Req`.
+
+
+.. py:class:: X509Req()
+
+    A class representing X.509 certificate requests.
+
+
+.. py:data:: X509StoreType
+
+    See :py:class:`X509Store`
+
+
+.. py:data:: X509Store
+
+    A class representing the X.509 store.
+
+
+.. py:data:: X509StoreContext
+
+    A class representing the X.509 store context.
+
+
+.. py:data:: PKeyType
+
+    See :py:class:`PKey`.
+
+
+.. py:class:: PKey()
+
+    A class representing DSA or RSA keys.
+
+.. py:data:: PKCS7Type
+
+    A Python type object representing the PKCS7 object type.
+
+
+.. py:data:: PKCS12Type
+
+    A Python type object representing the PKCS12 object type.
+
+
+.. py:data:: X509ExtensionType
+
+    See :py:class:`X509Extension`.
+
+
+.. py:class:: X509Extension(typename, critical, value[, subject][, issuer])
+
+    A class representing an X.509 v3 certificate extensions.  See
+    http://openssl.org/docs/apps/x509v3_config.html#STANDARD_EXTENSIONS for
+    *typename* strings and their options.  Optional parameters *subject* and
+    *issuer* must be X509 objects.
+
+
+.. py:data:: NetscapeSPKIType
+
+    See :py:class:`NetscapeSPKI`.
+
+
+.. py:class:: NetscapeSPKI([enc])
+
+    A class representing Netscape SPKI objects.
+
+    If the *enc* argument is present, it should be a base64-encoded string
+    representing a NetscapeSPKI object, as returned by the :py:meth:`b64_encode`
+    method.
+
+
+.. py:class:: CRL()
+
+    A class representing Certifcate Revocation List objects.
+
+
+.. py:class:: Revoked()
+
+    A class representing Revocation objects of CRL.
+
+
+.. py:data:: FILETYPE_PEM
+             FILETYPE_ASN1
+
+    File type constants.
+
+
 .. py:data:: TYPE_RSA
              TYPE_DSA
 
@@ -181,6 +292,35 @@ X509Store objects
 
 .. autoclass:: X509Store
                :members:
+
+X509StoreContextError objects
+-----------------------------
+
+The X509StoreContextError is an exception raised from
+`X509StoreContext.verify_certificate` in circumstances where a certificate
+cannot be verified in a provided context.
+
+The certificate for which the verification error was detected is given by the
+``certificate`` attribute of the exception instance as a :class:`X509`
+instance.
+
+Details about the verification error are given in the exception's ``args`` attribute.
+
+
+X509StoreContext objects
+------------------------
+
+The X509StoreContext object is used for verifying a certificate against a set
+of trusted certificates.
+
+
+.. py:method:: X509StoreContext.verify_certificate()
+
+    Verify a certificate in the context of this initialized `X509StoreContext`.
+    On error, raises `X509StoreContextError`, otherwise does nothing.
+
+    .. versionadded:: 0.15
+
 
 .. _openssl-pkey:
 

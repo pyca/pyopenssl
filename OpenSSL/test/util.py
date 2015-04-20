@@ -7,15 +7,19 @@ Helpers for the OpenSSL test suite, largely copied from
 U{Twisted<http://twistedmatrix.com/>}.
 """
 
+import os
 import shutil
-import traceback
-import os, os.path
-from tempfile import mktemp
-from unittest import TestCase
 import sys
+import traceback
+
+from tempfile import mktemp, mkdtemp
+from unittest import TestCase
+
+from six import PY3
 
 from OpenSSL._util import exception_from_error_queue
 from OpenSSL.crypto import Error
+
 
 try:
     import memdbg
@@ -25,10 +29,17 @@ except Exception:
 
 from OpenSSL._util import ffi, lib, byte_string as b
 
+
+
+# This is the UTF-8 encoding of the SNOWMAN unicode code point.
+NON_ASCII = b("\xe2\x98\x83").decode("utf-8")
+
+
+
 class TestCase(TestCase):
     """
-    :py:class:`TestCase` adds useful testing functionality beyond what is available
-    from the standard library :py:class:`unittest.TestCase`.
+    :py:class:`TestCase` adds useful testing functionality beyond what is
+    available from the standard library :py:class:`unittest.TestCase`.
     """
     def run(self, result):
         run = super(TestCase, self).run
@@ -150,24 +161,38 @@ class TestCase(TestCase):
                     (None, Exception(stack % (allocs_report,)), None))
 
 
+    _tmpdir = None
+
+
+    @property
+    def tmpdir(self):
+        """
+        On demand create a temporary directory.
+        """
+        if self._tmpdir is not None:
+            return self._tmpdir
+
+        self._tmpdir = mkdtemp(dir=".")
+        return self._tmpdir
+
+
     def tearDown(self):
         """
-        Clean up any files or directories created using :py:meth:`TestCase.mktemp`.
-        Subclasses must invoke this method if they override it or the
-        cleanup will not occur.
+        Clean up any files or directories created using
+        :py:meth:`TestCase.mktemp`.  Subclasses must invoke this method if they
+        override it or the cleanup will not occur.
         """
-        if False and self._temporaryFiles is not None:
-            for temp in self._temporaryFiles:
-                if os.path.isdir(temp):
-                    shutil.rmtree(temp)
-                elif os.path.exists(temp):
-                    os.unlink(temp)
+        if self._tmpdir is not None:
+            shutil.rmtree(self._tmpdir)
+
         try:
             exception_from_error_queue(Error)
         except Error:
             e = sys.exc_info()[1]
             if e.args != ([],):
-                self.fail("Left over errors in OpenSSL error queue: " + repr(e))
+                self.fail(
+                    "Left over errors in OpenSSL error queue: " + repr(e)
+                )
 
 
     def assertIsInstance(self, instance, classOrTuple, message=None):
@@ -227,7 +252,7 @@ class TestCase(TestCase):
     failIfIn = assertNotIn
 
 
-    def failUnlessIdentical(self, first, second, msg=None):
+    def assertIs(self, first, second, msg=None):
         """
         Fail the test if :py:data:`first` is not :py:data:`second`.  This is an
         obect-identity-equality test, not an object equality
@@ -239,10 +264,10 @@ class TestCase(TestCase):
         if first is not second:
             raise self.failureException(msg or '%r is not %r' % (first, second))
         return first
-    assertIdentical = failUnlessIdentical
+    assertIdentical = failUnlessIdentical = assertIs
 
 
-    def failIfIdentical(self, first, second, msg=None):
+    def assertIsNot(self, first, second, msg=None):
         """
         Fail the test if :py:data:`first` is :py:data:`second`.  This is an
         obect-identity-equality test, not an object equality
@@ -254,7 +279,7 @@ class TestCase(TestCase):
         if first is second:
             raise self.failureException(msg or '%r is %r' % (first, second))
         return first
-    assertNotIdentical = failIfIdentical
+    assertNotIdentical = failIfIdentical = assertIsNot
 
 
     def failUnlessRaises(self, exception, f, *args, **kwargs):
@@ -288,16 +313,13 @@ class TestCase(TestCase):
     assertRaises = failUnlessRaises
 
 
-    _temporaryFiles = None
     def mktemp(self):
         """
-        Pathetic substitute for twisted.trial.unittest.TestCase.mktemp.
+        Return UTF-8-encoded bytes of a path to a tmp file.
+
+        The file will be cleaned up after the test run.
         """
-        if self._temporaryFiles is None:
-            self._temporaryFiles = []
-        temp = b(mktemp(dir="."))
-        self._temporaryFiles.append(temp)
-        return temp
+        return mktemp(dir=self.tmpdir).encode("utf-8")
 
 
     # Other stuff
@@ -447,3 +469,10 @@ class EqualityTestsMixin(object):
         a = self.anInstance()
         b = Delegate()
         self.assertEqual(a != b, [b])
+
+
+# The type name expected in warnings about using the wrong string type.
+if PY3:
+    WARNING_TYPE_EXPECTED = "str"
+else:
+    WARNING_TYPE_EXPECTED = "unicode"

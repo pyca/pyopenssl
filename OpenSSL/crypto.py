@@ -2,6 +2,7 @@ from time import time
 from base64 import b16encode
 from functools import partial
 from operator import __eq__, __ne__, __lt__, __le__, __gt__, __ge__
+from warnings import warn as _warn
 
 from six import (
     integer_types as _integer_types,
@@ -13,7 +14,10 @@ from OpenSSL._util import (
     lib as _lib,
     exception_from_error_queue as _exception_from_error_queue,
     byte_string as _byte_string,
-    native as _native)
+    native as _native,
+    UNSPECIFIED as _UNSPECIFIED,
+    text_to_bytes_and_warn as _text_to_bytes_and_warn,
+)
 
 FILETYPE_PEM = _lib.SSL_FILETYPE_PEM
 FILETYPE_ASN1 = _lib.SSL_FILETYPE_ASN1
@@ -25,6 +29,7 @@ TYPE_RSA = _lib.EVP_PKEY_RSA
 TYPE_DSA = _lib.EVP_PKEY_DSA
 
 
+
 class Error(Exception):
     """
     An error occurred in an `OpenSSL.crypto` API.
@@ -32,6 +37,8 @@ class Error(Exception):
 
 
 _raise_current_error = partial(_exception_from_error_queue, Error)
+
+
 
 def _untested_error(where):
     """
@@ -1493,6 +1500,125 @@ class X509Store(object):
 X509StoreType = X509Store
 
 
+class X509StoreContextError(Exception):
+    """
+    An error occurred while verifying a certificate using
+    `OpenSSL.X509StoreContext.verify_certificate`.
+
+    :ivar certificate: The certificate which caused verificate failure.
+    :type cert: :class:`X509`
+
+    """
+    def __init__(self, message, certificate):
+        super(X509StoreContextError, self).__init__(message)
+        self.certificate = certificate
+
+
+class X509StoreContext(object):
+    """
+    An X.509 store context.
+
+    An :py:class:`X509StoreContext` is used to define some of the criteria for
+    certificate verification.  The information encapsulated in this object
+    includes, but is not limited to, a set of trusted certificates,
+    verification parameters, and revoked certificates.
+
+    Of these, only the set of trusted certificates is currently exposed.
+
+    :ivar _store_ctx: The underlying X509_STORE_CTX structure used by this
+        instance.  It is dynamically allocated and automatically garbage
+        collected.
+
+    :ivar _store: See the ``store`` ``__init__`` parameter.
+
+    :ivar _cert: See the ``certificate`` ``__init__`` parameter.
+    """
+
+    def __init__(self, store, certificate):
+        """
+        :param X509Store store: The certificates which will be trusted for the
+            purposes of any verifications.
+
+        :param X509 certificate: The certificate to be verified.
+        """
+        store_ctx = _lib.X509_STORE_CTX_new()
+        self._store_ctx = _ffi.gc(store_ctx, _lib.X509_STORE_CTX_free)
+        self._store = store
+        self._cert = certificate
+        # Make the store context available for use after instantiating this
+        # class by initializing it now. Per testing, subsequent calls to
+        # :py:meth:`_init` have no adverse affect.
+        self._init()
+
+
+    def _init(self):
+        """
+        Set up the store context for a subsequent verification operation.
+        """
+        ret = _lib.X509_STORE_CTX_init(self._store_ctx, self._store._store, self._cert._x509, _ffi.NULL)
+        if ret <= 0:
+            _raise_current_error()
+
+
+    def _cleanup(self):
+        """
+        Internally cleans up the store context.
+
+        The store context can then be reused with a new call to
+        :py:meth:`_init`.
+        """
+        _lib.X509_STORE_CTX_cleanup(self._store_ctx)
+
+
+    def _exception_from_context(self):
+        """
+        Convert an OpenSSL native context error failure into a Python
+        exception.
+
+        When a call to native OpenSSL X509_verify_cert fails, additonal information
+        about the failure can be obtained from the store context.
+        """
+        errors = [
+            _lib.X509_STORE_CTX_get_error(self._store_ctx),
+            _lib.X509_STORE_CTX_get_error_depth(self._store_ctx),
+            _native(_ffi.string(_lib.X509_verify_cert_error_string(
+                        _lib.X509_STORE_CTX_get_error(self._store_ctx)))),
+        ]
+        # A context error should always be associated with a certificate, so we
+        # expect this call to never return :class:`None`.
+        _x509 = _lib.X509_STORE_CTX_get_current_cert(self._store_ctx)
+        _cert = _lib.X509_dup(_x509)
+        pycert = X509.__new__(X509)
+        pycert._x509 = _ffi.gc(_cert, _lib.X509_free)
+        return X509StoreContextError(errors, pycert)
+
+
+    def set_store(self, store):
+        """
+        Set the context's trust store.
+
+        :param X509Store store: The certificates which will be trusted for the
+            purposes of any *future* verifications.
+        """
+        self._store = store
+
+
+    def verify_certificate(self):
+        """
+        Verify a certificate in a context.
+
+        :param store_ctx: The :py:class:`X509StoreContext` to verify.
+        :raises: Error
+        """
+        # Always re-initialize the store context in case
+        # :py:meth:`verify_certificate` is called multiple times.
+        self._init()
+        ret = _lib.X509_verify_cert(self._store_ctx)
+        self._cleanup()
+        if ret <= 0:
+            raise self._exception_from_context()
+
+
 
 def load_certificate(type, buffer):
     """
@@ -1875,7 +2001,8 @@ class CRL(object):
             _raise_current_error()
 
 
-    def export(self, cert, key, type=FILETYPE_PEM, days=100):
+    def export(self, cert, key, type=FILETYPE_PEM, days=100,
+               digest=_UNSPECIFIED):
         """
         Export a CRL as a string.
 
@@ -1888,10 +2015,12 @@ class CRL(object):
         :param type: The export format, either :py:data:`FILETYPE_PEM`,
             :py:data:`FILETYPE_ASN1`, or :py:data:`FILETYPE_TEXT`.
 
-        :param days: The number of days until the next update of this CRL.
-        :type days: :py:data:`int`
+        :param int days: The number of days until the next update of this CRL.
 
-        :return: :py:data:`str`
+        :param bytes digest: The name of the message digest to use (eg
+            ``b"sha1"``).
+
+        :return: :py:data:`bytes`
         """
         if not isinstance(cert, X509):
             raise TypeError("cert must be an X509 instance")
@@ -1899,6 +2028,19 @@ class CRL(object):
             raise TypeError("key must be a PKey instance")
         if not isinstance(type, int):
             raise TypeError("type must be an integer")
+
+        if digest is _UNSPECIFIED:
+            _warn(
+                "The default message digest (md5) is deprecated.  "
+                "Pass the name of a message digest explicitly.",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+            digest = b"md5"
+
+        digest_obj = _lib.EVP_get_digestbyname(digest)
+        if digest_obj == _ffi.NULL:
+            raise ValueError("No such digest method")
 
         bio = _lib.BIO_new(_lib.BIO_s_mem())
         if bio == _ffi.NULL:
@@ -1919,7 +2061,7 @@ class CRL(object):
 
         _lib.X509_CRL_set_issuer_name(self._crl, _lib.X509_get_subject_name(cert._x509))
 
-        sign_result = _lib.X509_CRL_sign(self._crl, key._pkey, _lib.EVP_md5())
+        sign_result = _lib.X509_CRL_sign(self._crl, key._pkey, digest_obj)
         if not sign_result:
             _raise_current_error()
 
@@ -2074,7 +2216,7 @@ class PKCS12(object):
 
     def set_ca_certificates(self, cacerts):
         """
-        Set the CA certificates in the PKCS #12 structure.
+        Replace or set the CA certificates within the PKCS12 object.
 
         :param cacerts: The new CA certificates, or :py:const:`None` to unset
             them.
@@ -2138,6 +2280,8 @@ class PKCS12(object):
         :return: The string representation of the PKCS #12 structure.
         :rtype:
         """
+        passphrase = _text_to_bytes_and_warn("passphrase", passphrase)
+
         if self._cacerts is None:
             cacerts = _ffi.NULL
         else:
@@ -2454,6 +2598,8 @@ def sign(pkey, data, digest):
     :param digest: message digest to use
     :return: signature
     """
+    data = _text_to_bytes_and_warn("data", data)
+
     digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
     if digest_obj == _ffi.NULL:
         raise ValueError("No such digest method")
@@ -2488,6 +2634,8 @@ def verify(cert, signature, data, digest):
     :param digest: message digest to use
     :return: :py:const:`None` if the signature is correct, raise exception otherwise
     """
+    data = _text_to_bytes_and_warn("data", data)
+
     digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
     if digest_obj == _ffi.NULL:
         raise ValueError("No such digest method")
@@ -2507,7 +2655,6 @@ def verify(cert, signature, data, digest):
 
     if verify_result != 1:
         _raise_current_error()
-
 
 
 def load_crl(type, buffer):
@@ -2556,7 +2703,7 @@ def load_pkcs7_data(type, buffer):
     if type == FILETYPE_PEM:
         pkcs7 = _lib.PEM_read_bio_PKCS7(bio, _ffi.NULL, _ffi.NULL, _ffi.NULL)
     elif type == FILETYPE_ASN1:
-        pass
+        pkcs7 = _lib.d2i_PKCS7_bio(bio, _ffi.NULL)
     else:
         # TODO: This is untested.
         _raise_current_error()
@@ -2579,6 +2726,8 @@ def load_pkcs12(buffer, passphrase=None):
     :param passphrase: (Optional) The password to decrypt the PKCS12 lump
     :returns: The PKCS12 object
     """
+    passphrase = _text_to_bytes_and_warn("passphrase", passphrase)
+
     if isinstance(buffer, _text_type):
         buffer = buffer.encode("ascii")
 
@@ -2692,3 +2841,9 @@ _lib.OpenSSL_add_all_algorithms()
 # This is similar but exercised mainly by exception_from_error_queue.  It calls
 # both ERR_load_crypto_strings() and ERR_load_SSL_strings().
 _lib.SSL_load_error_strings()
+
+
+
+# Set the default string mask to match OpenSSL upstream (since 2005) and
+# RFC5280 recommendations.
+_lib.ASN1_STRING_set_default_mask_asc(b'utf8only')

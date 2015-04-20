@@ -472,6 +472,53 @@ Context objects have the following methods:
     .. versionadded:: 0.13
 
 
+.. py:method:: Context.set_npn_advertise_callback(callback)
+
+    Specify a callback function that will be called when offering `Next
+    Protocol Negotiation
+    <https://technotes.googlecode.com/git/nextprotoneg.html>`_ as a server.
+
+    *callback* should be the callback function.  It will be invoked with one
+    argument, the :py:class:`Connection` instance.  It should return a list of
+    bytestrings representing the advertised protocols, like
+    ``[b'http/1.1', b'spdy/2']``.
+
+    .. versionadded:: 0.15
+
+
+.. py:method:: Context.set_npn_select_callback(callback):
+
+    Specify a callback function that will be called when a server offers Next
+    Protocol Negotiation options.
+
+    *callback* should be the callback function.  It will be invoked with two
+    arguments: the :py:class:`Connection`, and a list of offered protocols as
+    bytestrings, e.g. ``[b'http/1.1', b'spdy/2']``.  It should return one of
+    those bytestrings, the chosen protocol.
+
+    .. versionadded:: 0.15
+
+.. py:method:: Context.set_alpn_protos(protos)
+
+    Specify the protocols that the client is prepared to speak after the TLS
+    connection has been negotiated using Application Layer Protocol
+    Negotiation.
+
+    *protos* should be a list of protocols that the client is offering, each
+    as a bytestring. For example, ``[b'http/1.1', b'spdy/2']``.
+
+
+.. py:method:: Context.set_alpn_select_callback(callback)
+
+    Specify a callback function that will be called on the server when a client
+    offers protocols using Application Layer Protocol Negotiation.
+
+    *callback* should be the callback function. It will be invoked with two
+    arguments: the :py:class:`Connection` and a list of offered protocols as
+    bytestrings, e.g. ``[b'http/1.1', b'spdy/2']``. It should return one of
+    these bytestrings, the chosen protocol.
+
+
 .. _openssl-session:
 
 Session objects
@@ -613,6 +660,14 @@ Connection objects have the following methods:
     data received. The maximum amount of data to be received at once, is specified
     by *bufsize*.
 
+
+.. py:method:: Connection.recv_into(buffer[, nbytes[, flags]])
+
+    Receive data from the Connection and copy it directly into the provided
+    buffer. The return value is the number of bytes read from the connection.
+    The maximum amount of data to be received at once is specified by *nbytes*.
+    *flags* is accepted for compatibility with ``socket.recv_into`` but its
+    value is ignored.
 
 .. py:method:: Connection.bio_write(bytes)
 
@@ -804,6 +859,31 @@ Connection objects have the following methods:
     Obtain the protocol name of the currently used cipher.
 
     .. versionadded:: 0.15
+
+
+.. py:method:: Connection.get_next_proto_negotiated():
+
+    Get the protocol that was negotiated by Next Protocol Negotiation. Returns
+    a bytestring of the protocol name. If no protocol has been negotiated yet,
+    returns an empty string.
+
+    .. versionadded:: 0.15
+
+.. py:method:: Connection.set_alpn_protos(protos)
+
+    Specify the protocols that the client is prepared to speak after the TLS
+    connection has been negotiated using Application Layer Protocol
+    Negotiation.
+
+    *protos* should be a list of protocols that the client is offering, each
+    as a bytestring. For example, ``[b'http/1.1', b'spdy/2']``.
+
+
+.. py:method:: Connection.get_alpn_proto_negotiated()
+
+    Get the protocol that was negotiated by Application Layer Protocol
+    Negotiation. Returns a bytestring of the protocol name. If no protocol has
+    been negotiated yet, returns an empty string.
 
 
 .. Rubric:: Footnotes

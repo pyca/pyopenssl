@@ -1,17 +1,42 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) Jean-Paul Calderone 2008-2014, All rights reserved
+# Copyright (C) Jean-Paul Calderone 2008-2015, All rights reserved
 #
 
 """
 Installation script for the OpenSSL module
 """
 
+import sys
+
 from setuptools import setup
+from setuptools.command.test import test as TestCommand
+
 
 # XXX Deduplicate this
-__version__ = '0.14'
+__version__ = '0.15.1'
+
+
+class PyTest(TestCommand):
+    user_options = [("pytest-args=", "a", "Arguments to pass to py.test")]
+
+    def initialize_options(self):
+        TestCommand.initialize_options(self)
+        self.pytest_args = None
+
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
+
+    def run_tests(self):
+        # import here, cause outside the eggs aren't loaded
+        import pytest
+        errno = pytest.main(self.pytest_args or [] +
+                            ["OpenSSL"])
+        sys.exit(errno)
+
 
 setup(name='pyOpenSSL', version=__version__,
       packages = ['OpenSSL'],
@@ -26,7 +51,9 @@ setup(name='pyOpenSSL', version=__version__,
                      'OpenSSL.test.util',
                      'OpenSSL.test.test_crypto',
                      'OpenSSL.test.test_rand',
-                     'OpenSSL.test.test_ssl'],
+                     'OpenSSL.test.test_ssl',
+                     'OpenSSL.test.test_tsafe',
+                     'OpenSSL.test.test_util',],
       description = 'Python wrapper module around the OpenSSL library',
       author = 'Jean-Paul Calderone',
       author_email = 'exarkun@twistedmatrix.com',
@@ -34,7 +61,7 @@ setup(name='pyOpenSSL', version=__version__,
       maintainer_email = 'exarkun@twistedmatrix.com',
       url = 'https://github.com/pyca/pyopenssl',
       license = 'APL2',
-      install_requires=["cryptography>=0.4", "six>=1.5.2"],
+      install_requires=["cryptography>=0.7", "six>=1.5.2"],
       long_description = """\
 High-level wrapper around a subset of the OpenSSL library, includes
  * SSL.Connection objects, wrapping the methods of Python's portable
@@ -72,4 +99,10 @@ High-level wrapper around a subset of the OpenSSL library, includes
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: System :: Networking',
         ],
-      test_suite="OpenSSL")
+      test_suite="OpenSSL",
+      tests_require=[
+          "pytest",
+      ],
+      cmdclass={
+          "test": PyTest,
+      })
