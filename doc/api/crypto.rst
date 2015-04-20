@@ -121,23 +121,6 @@ Certificate revocation lists
 
     See also the man page for the C function :py:func:`PKCS12_parse`.
 
-
-.. _crl:
-
-
-.. autoclass:: CRL
-               :members:
-               :special-members:
-               :exclude-members: __weakref__
-
-
-.. _revoked:
-
-
-.. autoclass:: Revoked
-               :members:
-
-
 Signing and verifying signatures
 --------------------------------
 
@@ -297,6 +280,24 @@ NetscapeSPKI objects
                :members:
                :special-members:
                :exclude-members: __weakref__
+
+.. _crl:
+
+CRL objects
+-----------
+
+.. autoclass:: CRL
+               :members:
+               :special-members:
+               :exclude-members: __weakref__
+
+.. _revoked:
+
+Revoked objects
+---------------
+
+.. autoclass:: Revoked
+               :members:
 
 Digest names
 ------------
