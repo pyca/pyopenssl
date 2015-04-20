@@ -12,11 +12,6 @@
     A class representing X.509 certificates.
 
 
-.. py:data:: X509NameType
-
-    See :py:class:`X509Name`.
-
-
 .. py:class:: X509Name(x509name)
 
     A class representing X.509 Distinguished Names.
