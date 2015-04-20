@@ -11,11 +11,6 @@
 
     A class representing the X.509 store context.
 
-.. py:data:: PKCS7Type
-
-    A Python type object representing the PKCS7 object type.
-
-
 .. py:data:: PKCS12Type
 
     A Python type object representing the PKCS12 object type.
