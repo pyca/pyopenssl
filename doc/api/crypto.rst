@@ -7,14 +7,6 @@
    :synopsis: Generic cryptographic module
 
 
-.. py:class:: X509Name(x509name)
-
-    A class representing X.509 Distinguished Names.
-
-    This constructor creates a copy of *x509name* which should be an
-    instance of :py:class:`X509Name`.
-
-
 .. py:class:: X509Req()
 
     A class representing X.509 certificate requests.
