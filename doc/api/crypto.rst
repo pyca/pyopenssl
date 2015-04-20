@@ -11,11 +11,6 @@
 
     A class representing the X.509 store context.
 
-.. py:class:: CRL()
-
-    A class representing Certifcate Revocation List objects.
-
-
 .. py:class:: Revoked()
 
     A class representing Revocation objects of CRL.
