@@ -1076,7 +1076,7 @@ class X509(object):
         :param digest: The name of the message digest to use.
         :type digest: :py:class:`bytes`
 
-        :return: :py:data`None`
+        :return: :py:data:`None`
         """
         if not isinstance(pkey, PKey):
             raise TypeError("pkey must be a PKey instance")
