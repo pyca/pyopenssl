@@ -1487,7 +1487,7 @@ class X509Store(object):
         :param X509 cert: The certificate to add to this store.
         :raises TypeError: If the certificate is not an :py:class:`X509`.
         :raises Error: If OpenSSL was unhappy with your certificate.
-        :return: py:data:`None` if the certificate was added successfully.
+        :return: :py:data:`None` if the certificate was added successfully.
         """
         if not isinstance(cert, X509):
             raise TypeError()
