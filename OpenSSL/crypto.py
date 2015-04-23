@@ -947,7 +947,7 @@ class X509Req(object):
 
     def sign(self, pkey, digest):
         """
-        Sign the certificate signing request using the supplied key and digest.
+        Sign the certificate signing request with this key and digest type.
 
         :param pkey: The key pair to sign with.
         :type pkey: :py:class:`PKey`
@@ -1068,7 +1068,7 @@ class X509(object):
 
     def sign(self, pkey, digest):
         """
-        Sign the certificate using the supplied key and digest type.
+        Sign the certificate with this key and digest type.
 
         :param pkey: The key to sign with.
         :type pkey: :py:class:`PKey`
