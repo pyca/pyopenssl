@@ -1105,7 +1105,7 @@ class X509(object):
 
         :raises ValueError: If the signature algorithm is undefined.
 
-        ..versionadded:: 0.13
+        .. versionadded:: 0.13
         """
         alg = self._x509.cert_info.signature.algorithm
         nid = _lib.OBJ_obj2nid(alg)
