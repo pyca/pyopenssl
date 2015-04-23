@@ -1056,7 +1056,7 @@ class X509(object):
         :param pkey: The public key.
         :type pkey: :py:class:`PKey`
 
-        :return: :py:data`None`
+        :return: :py:data:`None`
         """
         if not isinstance(pkey, PKey):
             raise TypeError("pkey must be a PKey instance")
