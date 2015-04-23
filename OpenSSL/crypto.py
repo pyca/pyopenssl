@@ -173,7 +173,7 @@ class PKey(object):
 
     def generate_key(self, type, bits):
         """
-        Generate a key pair of the given type, with the given number of a bits.
+        Generate a key pair of the given type, with the given number of bits.
 
         This generates a key "into" the this object.
 
