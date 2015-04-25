@@ -25,7 +25,7 @@ def createKeyPair(type, bits):
     pkey.generate_key(type, bits)
     return pkey
 
-def createCertRequest(pkey, digest="md5", **name):
+def createCertRequest(pkey, digest="sha256", **name):
     """
     Create a certificate request.
 
