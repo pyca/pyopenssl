@@ -1883,6 +1883,18 @@ class Connection(object):
             return version.decode("utf-8")
 
 
+    def get_protocol_version(self):
+        """
+        Obtain the protocol version of the current connection.
+
+        :returns: The TLS version of the current connection, for example
+            the value for TLS 1.2 would be 0x303.
+        :rtype: :py:class:`int`
+        """
+        version = _lib.SSL_get_version(self._ssl)
+        return version
+	
+
     @_requires_npn
     def get_next_proto_negotiated(self):
         """

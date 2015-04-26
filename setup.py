@@ -46,7 +46,6 @@ def find_meta(meta):
     raise RuntimeError("Unable to find __{meta}__ string.".format(meta=meta))
 
 
-<<<<<<< HEAD
 class PyTest(TestCommand):
     user_options = [("pytest-args=", "a", "Arguments to pass to py.test")]
 
@@ -79,41 +78,6 @@ setup(
     url=find_meta("uri"),
     license=find_meta("license"),
     classifiers=[
-=======
-# XXX Deduplicate this
-__version__ = '0.14'
-
-setup(name='pyOpenSSL', version=__version__,
-      packages = ['OpenSSL'],
-      package_dir = {'OpenSSL': 'OpenSSL'},
-      py_modules  = ['OpenSSL.__init__',
-                     'OpenSSL.tsafe',
-                     'OpenSSL.rand',
-                     'OpenSSL.crypto',
-                     'OpenSSL.SSL',
-                     'OpenSSL.version',
-                     'OpenSSL.test.__init__',
-                     'OpenSSL.test.util',
-                     'OpenSSL.test.test_crypto',
-                     'OpenSSL.test.test_rand',
-                     'OpenSSL.test.test_ssl'],
-      description = 'Python wrapper module around the OpenSSL library',
-      author = 'Jean-Paul Calderone',
-      author_email = 'exarkun@twistedmatrix.com',
-      maintainer = 'Jean-Paul Calderone',
-      maintainer_email = 'exarkun@twistedmatrix.com',
-      url = 'https://github.com/pyca/pyopenssl',
-      license = 'APL2',
-      install_requires=["cryptography>=0.7.2", "six>=1.5.2"],
-      long_description = """\
-High-level wrapper around a subset of the OpenSSL library, includes
- * SSL.Connection objects, wrapping the methods of Python's portable
-   sockets
- * Callbacks written in Python
- * Extensive error-handling mechanism, mirroring OpenSSL's error codes
-...  and much more ;)""",
-      classifiers = [
->>>>>>> Add support for querying the negotiated TLS version.
         'Development Status :: 6 - Mature',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
@@ -132,6 +96,7 @@ High-level wrapper around a subset of the OpenSSL library, includes
         'Topic :: Security :: Cryptography',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: System :: Networking',
+<<<<<<< HEAD
     ],
 
     packages=['OpenSSL'],
@@ -161,3 +126,14 @@ High-level wrapper around a subset of the OpenSSL library, includes
         "test": PyTest,
     }
 )
+=======
+        ],
+      test_suite="OpenSSL",
+      tests_require=[
+          "pytest",
+      ],
+      cmdclass={
+          "test": PyTest,
+      })
+
+>>>>>>> switch to SSL_get_version.
