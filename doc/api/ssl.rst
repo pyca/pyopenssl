@@ -598,6 +598,11 @@ Connection objects have the following methods:
     but not it returns the entire list in one go.
 
 
+.. py:method:: Connection.get_protocol_version()
+
+    Retrieve the version of the SSL or TLS protocol used by the Connection
+
+
 .. py:method:: Connection.get_client_ca_list()
 
     Retrieve the list of preferred client certificate issuers sent by the server
