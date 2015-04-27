@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
@@ -96,7 +97,6 @@ setup(
         'Topic :: Security :: Cryptography',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: System :: Networking',
-<<<<<<< HEAD
     ],
 
     packages=['OpenSSL'],
@@ -126,14 +126,3 @@ setup(
         "test": PyTest,
     }
 )
-=======
-        ],
-      test_suite="OpenSSL",
-      tests_require=[
-          "pytest",
-      ],
-      cmdclass={
-          "test": PyTest,
-      })
-
->>>>>>> switch to SSL_get_version.
