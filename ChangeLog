@@ -7,6 +7,12 @@
 
 2015-04-15  Paul Kehrer <paul.l.kehrer@gmail.com>
 
+	* OpenSSL/SSL.py, : Add ``get_protocol_version()`` to Connection
+	  Based on work from Rich Moore
+	* OpenSSL/test/test_crypto.py: tests for ``get_protocol_version``
+
+2015-04-15  Paul Kehrer <paul.l.kehrer@gmail.com>
+
 	* OpenSSL/crypto.py, OpenSSL/test/test_crypto.py: Switch to utf8string
 	  mask by default. OpenSSL formerly defaulted to a T61String if there
 	  were UTF-8 characters present.  This was changed to default to

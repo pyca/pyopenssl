@@ -2747,7 +2747,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_get_protocol_version(self):
         """
-        :py:obj:`Connection.get_protocol_version` returns a string
+        :py:obj:`Connection.get_protocol_version()` returns a string
         giving the protocol version of the current connection.
         """
         server, client = self._loopback()
