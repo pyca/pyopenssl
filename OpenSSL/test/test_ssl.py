@@ -2751,8 +2751,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         giving the protocol version of the current connection.
         """
         server, client = self._loopback()
-        server_protocol_version, client_protocol_version = \
-            server.get_protocol_version(), client.get_protocol_version()
+        client_protocol_version = client.get_protocol_version()
+        server_protocol_version = server.get_protocol_version()
 
         self.assertIsInstance(server_protocol_version, text_type)
         self.assertIsInstance(client_protocol_version, text_type)
