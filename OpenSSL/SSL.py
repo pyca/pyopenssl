@@ -1888,7 +1888,7 @@ class Connection(object):
         Obtain the protocol version of the current connection.
 
         :returns: The TLS version of the current connection, for example
-            the value for TLS 1.2 would be 0x303.
+            the value for TLS 1.2 would be ``TLSv1.2``.
         :rtype: :py:class:`unicode`
         """
         version = _ffi.string(_lib.SSL_get_version(self._ssl))
