@@ -25,7 +25,7 @@ def createKeyPair(type, bits):
     pkey.generate_key(type, bits)
     return pkey
 
-def createCertRequest(pkey, digest="md5", **name):
+def createCertRequest(pkey, digest="sha256", **name):
     """
     Create a certificate request.
 
@@ -52,7 +52,7 @@ def createCertRequest(pkey, digest="md5", **name):
     req.sign(pkey, digest)
     return req
 
-def createCertificate(req, issuerCertKey, serial, validityPeriod, digest="md5"):
+def createCertificate(req, issuerCertKey, serial, validityPeriod, digest="sha256"):
     """
     Generate a certificate given a certificate request.
 
