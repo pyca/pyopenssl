@@ -45,14 +45,14 @@ def createCertRequest(pkey, digest="md5", **name):
     req = crypto.X509Req()
     subj = req.get_subject()
 
-    for (key,value) in name.items():
+    for (key,value) in list(name.items()):
         setattr(subj, key, value)
 
     req.set_pubkey(pkey)
     req.sign(pkey, digest)
     return req
 
-def createCertificate(req, (issuerCert, issuerKey), serial, (notBefore, notAfter), digest="md5"):
+def createCertificate(req, issuerCertKey, serial, validityPeriod, digest="md5"):
     """
     Generate a certificate given a certificate request.
 
@@ -67,6 +67,8 @@ def createCertificate(req, (issuerCert, issuerKey), serial, (notBefore, notAfter
                digest     - Digest method to use for signing, default is md5
     Returns:   The signed certificate in an X509 object
     """
+    (issuerCert, issuerKey) = issuerCertKey
+    (notBefore, notAfter) = validityPeriod
     cert = crypto.X509()
     cert.set_serial_number(serial)
     cert.gmtime_adj_notBefore(notBefore)
