@@ -30,7 +30,7 @@ def createCertRequest(pkey, digest="sha256", **name):
     Create a certificate request.
 
     Arguments: pkey   - The key to associate with the request
-               digest - Digestion method to use for signing, default is md5
+               digest - Digestion method to use for signing, default is sha256
                **name - The name of the subject of the request, possible
                         arguments are:
                           C     - Country name
@@ -64,7 +64,7 @@ def createCertificate(req, issuerCertKey, serial, validityPeriod, digest="sha256
                             starts being valid
                notAfter   - Timestamp (relative to now) when the certificate
                             stops being valid
-               digest     - Digest method to use for signing, default is md5
+               digest     - Digest method to use for signing, default is sha256
     Returns:   The signed certificate in an X509 object
     """
     (issuerCert, issuerKey) = issuerCertKey
