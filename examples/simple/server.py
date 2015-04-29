@@ -95,6 +95,6 @@ while 1:
             if writers[cli] == '':
                 del writers[cli]
 
-for cli in list(clients.keys()):
+for cli in clients.keys():
     cli.close()
 server.close()

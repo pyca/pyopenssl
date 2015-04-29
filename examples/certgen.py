@@ -45,7 +45,7 @@ def createCertRequest(pkey, digest="sha256", **name):
     req = crypto.X509Req()
     subj = req.get_subject()
 
-    for (key,value) in list(name.items()):
+    for key,value in name.items():
         setattr(subj, key, value)
 
     req.set_pubkey(pkey)
@@ -67,8 +67,8 @@ def createCertificate(req, issuerCertKey, serial, validityPeriod, digest="sha256
                digest     - Digest method to use for signing, default is sha256
     Returns:   The signed certificate in an X509 object
     """
-    (issuerCert, issuerKey) = issuerCertKey
-    (notBefore, notAfter) = validityPeriod
+    issuerCert, issuerKey = issuerCertKey
+    notBefore, notAfter = validityPeriod
     cert = crypto.X509()
     cert.set_serial_number(serial)
     cert.gmtime_adj_notBefore(notBefore)
