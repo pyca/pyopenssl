@@ -13,11 +13,11 @@ import sys, os, select, socket
 
 def verify_cb(conn, cert, errnum, depth, ok):
     # This obviously has to be updated
-    print 'Got certificate: %s' % cert.get_subject()
+    print('Got certificate: %s' % cert.get_subject())
     return ok
 
 if len(sys.argv) < 3:
-    print 'Usage: python[2] client.py HOST PORT'
+    print('Usage: python[2] client.py HOST PORT')
     sys.exit(1)
 
 dir = os.path.dirname(sys.argv[0])
@@ -44,7 +44,7 @@ while 1:
         sys.stdout.write(sock.recv(1024))
         sys.stdout.flush()
     except SSL.Error:
-        print 'Connection died unexpectedly'
+        print('Connection died unexpectedly')
         break
 
 
