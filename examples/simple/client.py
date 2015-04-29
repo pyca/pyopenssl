@@ -17,7 +17,7 @@ def verify_cb(conn, cert, errnum, depth, ok):
     return ok
 
 if len(sys.argv) < 3:
-    print('Usage: python[2] client.py HOST PORT')
+    print('Usage: python client.py HOST PORT')
     sys.exit(1)
 
 dir = os.path.dirname(sys.argv[0])
