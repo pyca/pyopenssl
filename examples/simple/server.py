@@ -8,13 +8,15 @@
 Simple echo server, using nonblocking I/O
 """
 
-from OpenSSL import SSL
+from OpenSSL import SSL, crypto
 import sys, os, select, socket
 
 
 def verify_cb(conn, cert, errnum, depth, ok):
     # This obviously has to be updated
-    print('Got certificate: %s' % cert.get_subject())
+    certsubject = crypto.X509Name(cert.get_subject())
+    commonname = certsubject.commonName
+    print(('Got certificate: ' + commonname))
     return ok
 
 if len(sys.argv) < 2:
@@ -57,7 +59,7 @@ def dropClient(cli, errors=None):
 
 while 1:
     try:
-        r, w, _ = select.select([server]+clients.keys(), writers.keys(), [])
+        r, w, _ = select.select([server] + list(clients.keys()), list(writers.keys()), [])
     except:
         break
 
@@ -69,7 +71,7 @@ while 1:
 
         else:
             try:
-                ret = cli.recv(1024)
+                ret = cli.recv(1024).decode('utf-8')
             except (SSL.WantReadError, SSL.WantWriteError, SSL.WantX509LookupError):
                 pass
             except SSL.ZeroReturnError:

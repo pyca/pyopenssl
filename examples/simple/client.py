@@ -8,12 +8,14 @@
 Simple SSL client, using blocking I/O
 """
 
-from OpenSSL import SSL
+from OpenSSL import SSL, crypto
 import sys, os, select, socket
 
 def verify_cb(conn, cert, errnum, depth, ok):
     # This obviously has to be updated
-    print('Got certificate: %s' % cert.get_subject())
+    certsubject = crypto.X509Name(cert.get_subject())
+    commonname = certsubject.commonName
+    print('Got certificate: ' + commonname)
     return ok
 
 if len(sys.argv) < 3:
@@ -41,7 +43,7 @@ while 1:
         break
     try:
         sock.send(line)
-        sys.stdout.write(sock.recv(1024))
+        sys.stdout.write(sock.recv(1024).decode('utf-8'))
         sys.stdout.flush()
     except SSL.Error:
         print('Connection died unexpectedly')
