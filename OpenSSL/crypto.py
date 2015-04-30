@@ -1340,6 +1340,19 @@ class X509(object):
         extension = _lib.X509_EXTENSION_dup(ext._extension)
         ext._extension = _ffi.gc(extension, _lib.X509_EXTENSION_free)
         return ext
+        
+    def del_extension(self, index):
+        """
+        Delete a specific extension of the certificate by index.
+
+        :param index: The index of the extension to delete.
+        :return: The X509Extension object deleted at the specified index.
+        """
+        ext = X509Extension.__new__(X509Extension)
+        ext._extension = _lib.X509_delete_ext(self._x509, index)
+        if ext._extension == _ffi.NULL:
+            raise IndexError("extension index out of bounds")
+        return ext
 
 X509Type = X509
 
