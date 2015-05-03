@@ -19,7 +19,6 @@ for (fname, cname) in [('client', 'Simple Client'), ('server', 'Simple Server')]
     pkey = createKeyPair(TYPE_RSA, 2048)
     req = createCertRequest(pkey, CN=cname)
     cert = createCertificate(req, (cacert, cakey), 1, (0, 60*60*24*365*5)) # five years
-
     print('Creating Certificate %s private key in "simple/%s.pkey"' % (fname, fname))
     with open('simple/%s.pkey' % (fname,), 'w') as leafpkey:
         leafpkey.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, pkey).decode('utf-8'))

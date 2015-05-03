@@ -13,7 +13,6 @@ import sys, os, select, socket
 
 
 def verify_cb(conn, cert, errnum, depth, ok):
-    # This obviously has to be updated
     certsubject = crypto.X509Name(cert.get_subject())
     commonname = certsubject.commonName
     print(('Got certificate: ' + commonname))
