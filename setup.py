@@ -90,7 +90,6 @@ High-level wrapper around a subset of the OpenSSL library, includes
         # of those languages the project supports.
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
 
         'Programming Language :: Python :: Implementation :: CPython',
