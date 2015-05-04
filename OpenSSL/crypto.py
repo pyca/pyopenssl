@@ -27,6 +27,10 @@ FILETYPE_TEXT = 2 ** 16 - 1
 
 TYPE_RSA = _lib.EVP_PKEY_RSA
 TYPE_DSA = _lib.EVP_PKEY_DSA
+if _lib.Cryptography_HAS_EC:
+    TYPE_EC = _lib.EVP_PKEY_EC
+else:
+    TYPE_EC = None
 
 
 
@@ -172,15 +176,18 @@ class PKey(object):
         """
         Generate a key of a given type, with a given number of a bits
 
-        :param type: The key type (TYPE_RSA or TYPE_DSA)
-        :param bits: The number of bits
+        :param type: The key type (TYPE_RSA or TYPE_DSA or TYPE_EC)
+        :param bits: The number of bits or EllipticCurve
 
         :return: None
         """
         if not isinstance(type, int):
             raise TypeError("type must be an integer")
 
-        if not isinstance(bits, int):
+        if type == TYPE_EC:
+            if not isinstance(bits, _EllipticCurve):
+                raise TypeError("curve must be an EllipticCurve")
+        elif not isinstance(bits, int):
             raise TypeError("bits must be an integer")
 
         # TODO Check error return
@@ -221,6 +228,18 @@ class PKey(object):
                 _raise_current_error()
             if not _lib.EVP_PKEY_assign_DSA(self._pkey, dsa):
                 # TODO: This is untested.
+                _raise_current_error()
+        elif type == TYPE_EC:
+            self.curve = bits
+            self.ec = self.curve._to_EC_KEY()
+
+            if self.ec == _ffi.NULL:
+                _raise_current_error()
+
+            if not _lib.EC_KEY_generate_key(self.ec):
+                _raise_current_error()
+
+            if not _lib.EVP_PKEY_set1_EC_KEY(self._pkey, self.ec):
                 _raise_current_error()
         else:
             raise Error("No such key type")
