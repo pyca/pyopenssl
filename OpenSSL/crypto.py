@@ -684,6 +684,7 @@ class X509Extension(object):
                 "GENERAL_NAMES*",
                 method.d2i(_ffi.NULL, payloadptr, length))
 
+        names = _ffi.gc(names, _lib.GENERAL_NAMES_free)
         parts = []
         for i in range(_lib.sk_GENERAL_NAME_num(names)):
             name = _lib.sk_GENERAL_NAME_value(names, i)
