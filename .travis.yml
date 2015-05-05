@@ -44,6 +44,14 @@ matrix:
         packages:
           - libssl-dev/lucid
 
+  # Meta
+  - python: "2.7"
+    env: TOXENV=check-manifest
+
+  - python: "2.7"
+    env: TOXENV=pypi-readme
+
+
   # Let the cryptography master builds fail because they might be triggered by
   # cryptography changes beyond our control.
   # Also allow OS X and 0.9.8 to fail at the moment while we fix these new
