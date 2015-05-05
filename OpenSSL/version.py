@@ -11,7 +11,7 @@ __all__ = [
     "__title__", "__uri__", "__version__",
 ]
 
-__version__ = "0.15.1"
+__version__ = "0.16.dev0"
 
 __title__ = "pyOpenSSL"
 __uri__ = "https://github.com/pyca/pyopenssl"
