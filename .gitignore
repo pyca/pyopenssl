@@ -8,5 +8,3 @@ __pycache__
 doc/_build/
 .coverage
 .eggs
-examples/simple/*.cert
-examples/simple/*.pkey
