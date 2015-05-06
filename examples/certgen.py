@@ -30,7 +30,7 @@ def createCertRequest(pkey, digest="sha256", **name):
     Create a certificate request.
 
     Arguments: pkey   - The key to associate with the request
-               digest - Digestion method to use for signing, default is md5
+               digest - Digestion method to use for signing, default is sha256
                **name - The name of the subject of the request, possible
                         arguments are:
                           C     - Country name
@@ -45,14 +45,14 @@ def createCertRequest(pkey, digest="sha256", **name):
     req = crypto.X509Req()
     subj = req.get_subject()
 
-    for (key,value) in name.items():
+    for key, value in name.items():
         setattr(subj, key, value)
 
     req.set_pubkey(pkey)
     req.sign(pkey, digest)
     return req
 
-def createCertificate(req, (issuerCert, issuerKey), serial, (notBefore, notAfter), digest="md5"):
+def createCertificate(req, issuerCertKey, serial, validityPeriod, digest="sha256"):
     """
     Generate a certificate given a certificate request.
 
@@ -64,9 +64,11 @@ def createCertificate(req, (issuerCert, issuerKey), serial, (notBefore, notAfter
                             starts being valid
                notAfter   - Timestamp (relative to now) when the certificate
                             stops being valid
-               digest     - Digest method to use for signing, default is md5
+               digest     - Digest method to use for signing, default is sha256
     Returns:   The signed certificate in an X509 object
     """
+    issuerCert, issuerKey = issuerCertKey
+    notBefore, notAfter = validityPeriod
     cert = crypto.X509()
     cert.set_serial_number(serial)
     cert.gmtime_adj_notBefore(notBefore)
