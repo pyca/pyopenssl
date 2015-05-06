@@ -1,7 +1,7 @@
 2015-05-02  Jim Shaver <dcypherd@gmail.com>
 
 	* .travis.yml, setup.py, tox.ini: Removed support for Python 3.2.
-	  This version is rarely used and is now depricated by a major
+	  This version is rarely used and is now deprecated by a major
 	  dependency of pyOpenSSL(cryptography). Affected users should upgrade
 	  to Python 3.3+.
 
