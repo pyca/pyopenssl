@@ -56,11 +56,19 @@ matrix:
   - language: generic
     os: osx
     env: TOXENV=py27
+<<<<<<< HEAD
   - env: TOXENV=py26-cryptographyMaster
   - env: TOXENV=py27-cryptographyMaster
   - env: TOXENV=py33-cryptographyMaster
   - env: TOXENV=py34-cryptographyMaster
   - env: TOXENV=pypy-cryptographyMaster
+=======
+  - env: CRYPTOGRAPHY_GIT_MASTER=true TOXENV=py26
+  - env: CRYPTOGRAPHY_GIT_MASTER=true TOXENV=py27
+  - env: CRYPTOGRAPHY_GIT_MASTER=true TOXENV=py33
+  - env: CRYPTOGRAPHY_GIT_MASTER=true TOXENV=py34
+  - env: CRYPTOGRAPHY_GIT_MASTER=true TOXENV=pypy
+>>>>>>> e667f0a8af5717d82671c406fc55621f4010301e
   - env: OPENSSL=0.9.8 TOXENV=py27
 
 install:
