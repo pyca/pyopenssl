@@ -2017,6 +2017,97 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
 
 
 
+class ExplicitVerifyTests(TestCase, _LoopbackMixin):
+    """
+    Unit tests for the explicit verification helper.
+    """
+    def test_explicit_verify_success(self):
+        """
+        Test that returning True from the verify helper allows verification to
+        succeed.
+        """
+        call_args = []
+        def verify(conn, context):
+            call_args.append((conn, context))
+            return True
+
+        serverContext = Context(TLSv1_METHOD)
+        serverContext.use_privatekey(
+            load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM))
+        serverContext.use_certificate(
+            load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
+        server = Connection(serverContext, None)
+        server.set_accept_state()
+
+        # Create the client
+        clientContext = Context(TLSv1_METHOD)
+        clientContext.set_explicit_verify(VERIFY_PEER, verify)
+        client = Connection(clientContext, None)
+        client.set_connect_state()
+
+        self._interactInMemory(client, server)
+
+        # The verify function is called once per cert.
+        self.assertEqual(len(call_args), 2)
+        # The first argument is the connection object.
+        self.assertEqual(client, call_args[0][0])
+
+
+    def test_explicit_verify_fail(self):
+        """
+        Returning False from the verify helper destroys the connection.
+        """
+        call_args = []
+        def verify(conn, context):
+            call_args.append((conn, context))
+            return False
+
+        serverContext = Context(TLSv1_METHOD)
+        serverContext.use_privatekey(
+            load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM))
+        serverContext.use_certificate(
+            load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
+        server = Connection(serverContext, None)
+        server.set_accept_state()
+
+        # Create the client
+        clientContext = Context(TLSv1_METHOD)
+        clientContext.set_explicit_verify(VERIFY_PEER, verify)
+        client = Connection(clientContext, None)
+        client.set_connect_state()
+
+        self.assertRaises(Error, self._interactInMemory, server, client)
+
+        # The verify function is called only once here.
+        self.assertEqual(len(call_args), 1)
+
+
+    def test_explicit_verify_exception(self):
+        """
+        Throwing exceptions from the verify helper destroys the connection.
+        """
+        def verify(conn, context):
+            raise ValueError("Whoops!")
+            return True
+
+        serverContext = Context(TLSv1_METHOD)
+        serverContext.use_privatekey(
+            load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM))
+        serverContext.use_certificate(
+            load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
+        server = Connection(serverContext, None)
+        server.set_accept_state()
+
+        # Create the client
+        clientContext = Context(TLSv1_METHOD)
+        clientContext.set_explicit_verify(VERIFY_PEER, verify)
+        client = Connection(clientContext, None)
+        client.set_connect_state()
+
+        self.assertRaises(ValueError, self._interactInMemory, server, client)
+
+
+
 class SessionTests(TestCase):
     """
     Unit tests for :py:obj:`OpenSSL.SSL.Session`.

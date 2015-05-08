@@ -231,6 +231,36 @@ class _VerifyHelper(_CallbackExceptionHelper):
             "int (*)(int, X509_STORE_CTX *)", wrapper)
 
 
+class _ExplicitVerifyHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as a certificate verification
+    callback without the extra wrapping of ``_VerifyHelper``.
+    """
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ok, store_ctx):
+            index = _lib.SSL_get_ex_data_X509_STORE_CTX_idx()
+            ssl = _lib.X509_STORE_CTX_get_ex_data(store_ctx, index)
+            connection = Connection._reverse_mapping[ssl]
+
+            try:
+                result = callback(connection, store_ctx)
+            except Exception as e:
+                self._problems.append(e)
+                return 0
+            else:
+                if result:
+                    _lib.X509_STORE_CTX_set_error(store_ctx, _lib.X509_V_OK)
+                    return 1
+                else:
+                    return 0
+
+        self.callback = _ffi.callback(
+            "int (*)(int, X509_STORE_CTX *)", wrapper)
+
+
 class _NpnAdvertiseHelper(_CallbackExceptionHelper):
     """
     Wrap a callback such that it can be used as an NPN advertisement callback.
@@ -749,6 +779,28 @@ class Context(object):
             raise TypeError("callback must be callable")
 
         self._verify_helper = _VerifyHelper(callback)
+        self._verify_callback = self._verify_helper.callback
+        _lib.SSL_CTX_set_verify(self._context, mode, self._verify_callback)
+
+
+    def set_explicit_verify(self, mode, callback):
+        """
+        Set the verify mode and verify callback
+
+        :param mode: The verify mode, this is either VERIFY_NONE or
+                     VERIFY_PEER combined with possible other flags
+        :param callback: The Python callback to use
+        :return: None
+
+        See SSL_CTX_set_verify(3SSL) for further details.
+        """
+        if not isinstance(mode, integer_types):
+            raise TypeError("mode must be an integer")
+
+        if not callable(callback):
+            raise TypeError("callback must be callable")
+
+        self._verify_helper = _ExplicitVerifyHelper(callback)
         self._verify_callback = self._verify_helper.callback
         _lib.SSL_CTX_set_verify(self._context, mode, self._verify_callback)
 
