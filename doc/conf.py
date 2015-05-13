@@ -11,7 +11,33 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import datetime
+import codecs
+import os
+import re
+import sys
+
+
+HERE = os.path.abspath(os.path.dirname(__file__))
+
+
+def read_file(*parts):
+    """
+    Build an absolute path from *parts* and and return the contents of the
+    resulting file.  Assume UTF-8 encoding.
+    """
+    with codecs.open(os.path.join(HERE, *parts), "rb", "ascii") as f:
+        return f.read()
+
+
+def find_version(*file_paths):
+    version_file = read_file(*file_paths)
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                              version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
+
 
 DOC_DIR = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(DOC_DIR, "..")))
@@ -28,7 +54,7 @@ needs_sphinx = '1.0'
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = []
+extensions = ["sphinx.ext.autodoc"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -44,14 +70,15 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'pyOpenSSL'
-copyright = u'2011, Jean-Paul Calderone'
+authors = u"The pyOpenSSL developers"
+copyright = u"2001-{0}, {1}".format(datetime.date.today().year, authors)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = '0.15.1'
+version = find_version("../OpenSSL/version.py")
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -182,7 +209,7 @@ htmlhelp_basename = 'pyOpenSSLdoc'
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'pyOpenSSL.tex', u'pyOpenSSL Documentation',
-   u'Jean-Paul Calderone', 'manual'),
+   authors, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -215,5 +242,5 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'pyopenssl', u'pyOpenSSL Documentation',
-     [u'Jean-Paul Calderone'], 1)
+     [authors], 1)
 ]

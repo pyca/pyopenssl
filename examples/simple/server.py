@@ -8,17 +8,18 @@
 Simple echo server, using nonblocking I/O
 """
 
-from OpenSSL import SSL
+from OpenSSL import SSL, crypto
 import sys, os, select, socket
 
 
 def verify_cb(conn, cert, errnum, depth, ok):
-    # This obviously has to be updated
-    print 'Got certificate: %s' % cert.get_subject()
+    certsubject = crypto.X509Name(cert.get_subject())
+    commonname = certsubject.commonName
+    print(('Got certificate: ' + commonname))
     return ok
 
 if len(sys.argv) < 2:
-    print 'Usage: python[2] server.py PORT'
+    print('Usage: python server.py PORT')
     sys.exit(1)
 
 dir = os.path.dirname(sys.argv[0])
@@ -44,12 +45,12 @@ writers = {}
 
 def dropClient(cli, errors=None):
     if errors:
-        print 'Client %s left unexpectedly:' % (clients[cli],)
-        print '  ', errors
+        print('Client %s left unexpectedly:' % (clients[cli],))
+        print('  ', errors)
     else:
-        print 'Client %s left politely' % (clients[cli],)
+        print('Client %s left politely' % (clients[cli],))
     del clients[cli]
-    if writers.has_key(cli):
+    if cli in writers:
         del writers[cli]
     if not errors:
         cli.shutdown()
@@ -57,27 +58,27 @@ def dropClient(cli, errors=None):
 
 while 1:
     try:
-        r,w,_ = select.select([server]+clients.keys(), writers.keys(), [])
+        r, w, _ = select.select([server] + list(clients.keys()), list(writers.keys()), [])
     except:
         break
 
     for cli in r:
         if cli == server:
             cli,addr = server.accept()
-            print 'Connection from %s' % (addr,)
+            print('Connection from %s' % (addr,))
             clients[cli] = addr
 
         else:
             try:
-                ret = cli.recv(1024)
+                ret = cli.recv(1024).decode('utf-8')
             except (SSL.WantReadError, SSL.WantWriteError, SSL.WantX509LookupError):
                 pass
             except SSL.ZeroReturnError:
                 dropClient(cli)
-            except SSL.Error, errors:
+            except SSL.Error as errors:
                 dropClient(cli, errors)
             else:
-                if not writers.has_key(cli):
+                if cli not in writers:
                     writers[cli] = ''
                 writers[cli] = writers[cli] + ret
 
@@ -88,7 +89,7 @@ while 1:
             pass
         except SSL.ZeroReturnError:
             dropClient(cli)
-        except SSL.Error, errors:
+        except SSL.Error as errors:
             dropClient(cli, errors)
         else:
             writers[cli] = writers[cli][ret:]
