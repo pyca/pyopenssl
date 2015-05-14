@@ -1,11 +1,17 @@
 sudo: false
 language: python
+env:
+  global:
+    - LC_ALL=en_US.UTF-8
 
 matrix:
   include:
   - language: generic
     os: osx
-    env: TOXENV=py27
+    env: TOXENV=py27 OSX_OPENSSL=homebrew
+  - language: generic
+    os: osx
+    env: TOXENV=py27 OSX_OPENSSL=system
   - python: "2.6" # these are just to make travis's UI a bit prettier
     env: TOXENV=py26
   - python: "2.7"
@@ -58,7 +64,7 @@ matrix:
   allow_failures:
   - language: generic
     os: osx
-    env: TOXENV=py27
+    env: TOXENV=py27 OSX_OPENSSL=homebrew
   - env: TOXENV=py26-cryptographyMaster
   - env: TOXENV=py27-cryptographyMaster
   - env: TOXENV=py33-cryptographyMaster
@@ -83,11 +89,12 @@ install:
 
 script:
   - |
-    if [[ "$(uname -s)" == "Darwin" ]]; then
+    if [[ "$(uname -s)" == 'Darwin' && $OSX_OPENSSL == 'homebrew' ]]; then
       # set our flags to use homebrew openssl
       export ARCHFLAGS="-arch x86_64"
       export LDFLAGS="-L/usr/local/opt/openssl/lib"
       export CFLAGS="-I/usr/local/opt/openssl/include"
+      export PATH="/usr/local/opt/openssl/bin:$PATH"
     fi
     ~/.venv/bin/tox
 
