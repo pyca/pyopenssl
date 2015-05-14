@@ -1,5 +1,8 @@
 sudo: false
 language: python
+env:
+  global:
+    - LC_ALL=en_US.UTF-8
 
 matrix:
   include:
