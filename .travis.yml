@@ -54,7 +54,10 @@ matrix:
     env: TOXENV=pypi-readme
 
   - python: "2.7"
-    env: TOXENV=lint
+    env: TOXENV=pyflakes
+    
+  - python: "2.7"
+    env: TOXENV=pyroma
 
   # Let the cryptography master builds fail because they might be triggered by
   # cryptography changes beyond our control.
@@ -71,8 +74,9 @@ matrix:
   - env: TOXENV=py34-cryptographyMaster
   - env: TOXENV=pypy-cryptographyMaster
   - env: OPENSSL=0.9.8 TOXENV=py27
-  - env: TOXENV=lint
-
+  - env: TOXENV=pyflakes
+  - env: TOXENV=pyroma
+  
 install:
   - |
     if [[ "$(uname -s)" == 'Darwin' ]]; then
