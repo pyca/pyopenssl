@@ -8,14 +8,10 @@ matrix:
   include:
   - language: generic
     os: osx
-    env:
-      - TOXENV=py27
-      - OSX_OPENSSL=homebrew
+    env: TOXENV=py27 OSX_OPENSSL=homebrew
   - language: generic
     os: osx
-    env:
-      - TOXENV=py27
-      - OSX_OPENSSL=system
+    env: TOXENV=py27 OSX_OPENSSL=system
   - python: "2.6" # these are just to make travis's UI a bit prettier
     env: TOXENV=py26
   - python: "2.7"
@@ -65,9 +61,7 @@ matrix:
   allow_failures:
   - language: generic
     os: osx
-    env:
-      - TOXENV=py27
-      - OSX_OPENSSL=homebrew
+    env: TOXENV=py27 OSX_OPENSSL=homebrew
   - env: TOXENV=py26-cryptographyMaster
   - env: TOXENV=py27-cryptographyMaster
   - env: TOXENV=py33-cryptographyMaster
