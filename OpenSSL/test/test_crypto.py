@@ -3349,7 +3349,7 @@ class CRLTests(TestCase):
         Load a known CRL and inspect its last update timestamp.
         """
         crl = load_crl(FILETYPE_PEM, crlData)
-        self.assertEqual(crl.get_last_update(), "20090726043456Z")
+        self.assertEqual(crl.get_last_update(), b("20090726043456Z"))
 
 
     def test_get_next_update(self):
@@ -3357,7 +3357,7 @@ class CRLTests(TestCase):
         Load a known CRL and inspect its next update timestamp.
         """
         crl = load_crl(FILETYPE_PEM, crlData)
-        self.assertEqual(crl.get_next_update(), "20120927024152Z")
+        self.assertEqual(crl.get_next_update(), b("20120927024152Z"))
 
 
     def test_get_version(self):
