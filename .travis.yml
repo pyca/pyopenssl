@@ -54,7 +54,7 @@ matrix:
     env: TOXENV=pypi-readme
 
   - python: "2.7"
-    env: TOXENV=pyflakes
+    env: TOXENV=flake8
 
   - python: "2.7"
     env: TOXENV=pyroma
@@ -74,7 +74,7 @@ matrix:
   - env: TOXENV=py34-cryptographyMaster
   - env: TOXENV=pypy-cryptographyMaster
   - env: OPENSSL=0.9.8 TOXENV=py27
-  - env: TOXENV=pyflakes
+  - env: TOXENV=flake8
   - env: TOXENV=pyroma
 
 install:
