@@ -75,7 +75,6 @@ matrix:
   - env: TOXENV=pypy-cryptographyMaster
   - env: OPENSSL=0.9.8 TOXENV=py27
   - env: TOXENV=flake8
-  - env: TOXENV=pyroma
 
 install:
   - |
