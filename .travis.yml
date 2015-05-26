@@ -58,6 +58,9 @@ matrix:
 
   - python: "2.7"
     env: TOXENV=pyroma
+
+  - python: "2.7"
+    env: TOXENV=docs
     
   # Let the cryptography master builds fail because they might be triggered by
   # cryptography changes beyond our control.
