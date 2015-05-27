@@ -7,9 +7,11 @@
 
 2015-04-15  Paul Kehrer <paul.l.kehrer@gmail.com>
 
-	* OpenSSL/SSL.py, : Add ``get_protocol_version()`` to Connection
+	* OpenSSL/SSL.py, : Add ``get_protocol_version()`` and 
+	  ``get_protocol_version_name()`` to Connection
 	  Based on work from Rich Moore
-	* OpenSSL/test/test_crypto.py: tests for ``get_protocol_version``
+	* OpenSSL/test/test_crypto.py: tests for ``get_protocol_version()``
+	  and ``get_protocol_version_name()``
 
 2015-04-15  Paul Kehrer <paul.l.kehrer@gmail.com>
 
