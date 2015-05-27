@@ -1891,7 +1891,7 @@ class Connection(object):
             the value for TLS 1.2 would be ``b'TLSv1.2'``.
         :rtype: :py:class:`unicode`
         """
-        version = _lib.SSL_get_version(self._ssl)
+        version = _ffi.string(_lib.SSL_get_version(self._ssl))
         return version
 
 
