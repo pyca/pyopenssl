@@ -2017,11 +2017,11 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
 
 
 
-class ExplicitVerifyTests(TestCase, _LoopbackMixin):
+class RawVerifyTests(TestCase, _LoopbackMixin):
     """
-    Unit tests for the explicit verification helper.
+    Unit tests for the raw verification helper.
     """
-    def test_explicit_verify_success(self):
+    def test_raw_verify_success(self):
         """
         Test that returning True from the verify helper allows verification to
         succeed.
@@ -2041,7 +2041,7 @@ class ExplicitVerifyTests(TestCase, _LoopbackMixin):
 
         # Create the client
         clientContext = Context(TLSv1_METHOD)
-        clientContext.set_explicit_verify(VERIFY_PEER, verify)
+        clientContext.set_raw_verify(VERIFY_PEER, verify)
         client = Connection(clientContext, None)
         client.set_connect_state()
 
@@ -2053,7 +2053,7 @@ class ExplicitVerifyTests(TestCase, _LoopbackMixin):
         self.assertEqual(client, call_args[0][0])
 
 
-    def test_explicit_verify_fail(self):
+    def test_raw_verify_fail(self):
         """
         Returning False from the verify helper destroys the connection.
         """
@@ -2072,7 +2072,7 @@ class ExplicitVerifyTests(TestCase, _LoopbackMixin):
 
         # Create the client
         clientContext = Context(TLSv1_METHOD)
-        clientContext.set_explicit_verify(VERIFY_PEER, verify)
+        clientContext.set_raw_verify(VERIFY_PEER, verify)
         client = Connection(clientContext, None)
         client.set_connect_state()
 
@@ -2082,7 +2082,7 @@ class ExplicitVerifyTests(TestCase, _LoopbackMixin):
         self.assertEqual(len(call_args), 1)
 
 
-    def test_explicit_verify_exception(self):
+    def test_raw_verify_exception(self):
         """
         Throwing exceptions from the verify helper destroys the connection.
         """
@@ -2100,7 +2100,7 @@ class ExplicitVerifyTests(TestCase, _LoopbackMixin):
 
         # Create the client
         clientContext = Context(TLSv1_METHOD)
-        clientContext.set_explicit_verify(VERIFY_PEER, verify)
+        clientContext.set_raw_verify(VERIFY_PEER, verify)
         client = Connection(clientContext, None)
         client.set_connect_state()
 

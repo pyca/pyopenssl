@@ -231,7 +231,7 @@ class _VerifyHelper(_CallbackExceptionHelper):
             "int (*)(int, X509_STORE_CTX *)", wrapper)
 
 
-class _ExplicitVerifyHelper(_CallbackExceptionHelper):
+class _RawVerifyHelper(_CallbackExceptionHelper):
     """
     Wrap a callback such that it can be used as a certificate verification
     callback without the extra wrapping of ``_VerifyHelper``.
@@ -783,7 +783,7 @@ class Context(object):
         _lib.SSL_CTX_set_verify(self._context, mode, self._verify_callback)
 
 
-    def set_explicit_verify(self, mode, callback):
+    def set_raw_verify(self, mode, callback):
         """
         Set the verify mode and verify callback
 
@@ -800,7 +800,7 @@ class Context(object):
         if not callable(callback):
             raise TypeError("callback must be callable")
 
-        self._verify_helper = _ExplicitVerifyHelper(callback)
+        self._verify_helper = _RawVerifyHelper(callback)
         self._verify_callback = self._verify_helper.callback
         _lib.SSL_CTX_set_verify(self._context, mode, self._verify_callback)
 
