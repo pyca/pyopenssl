@@ -785,7 +785,12 @@ class Context(object):
 
     def set_raw_verify(self, mode, callback):
         """
-        Set the verify mode and verify callback
+        Set the verify mode and verify callback. Unlike set_verify, this method
+        does not provide you with any extra help to pull out useful features:
+        you are exposed directly to OpenSSL objects and functions.
+
+        This is an advanced function, and should almost never be used: instead,
+        use set_verify.
 
         :param mode: The verify mode, this is either VERIFY_NONE or
                      VERIFY_PEER combined with possible other flags
