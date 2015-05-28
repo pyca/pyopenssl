@@ -2754,8 +2754,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         client_protocol_version_name = client.get_protocol_version_name()
         server_protocol_version_name = server.get_protocol_version_name()
 
-        self.assertIsInstance(server_protocol_version_name, bytes)
-        self.assertIsInstance(client_protocol_version_name, bytes)
+        self.assertIsInstance(server_protocol_version_name, text_type)
+        self.assertIsInstance(client_protocol_version_name, text_type)
 
         self.assertEqual(server_protocol_version_name, client_protocol_version_name)
 
