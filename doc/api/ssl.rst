@@ -607,9 +607,10 @@ Connection objects have the following methods:
 
 .. py:method:: Connection.get_protocol_version_name()
 
-    Retrieve the version of the SSL or TLS protocol used by the Connection.
-    For example, it will return ``TLSv1`` for connections made over TLS version
-    1, or ``Unknown`` for connections that were not successfully established.
+    Retrieve the version of the SSL or TLS protocol used by the Connection as
+    a unicode string. For example, it will return ``TLSv1`` for connections
+    made over TLS version 1, or ``Unknown`` for connections that were not 
+    successfully established.
 
 
 .. py:method:: Connection.get_client_ca_list()

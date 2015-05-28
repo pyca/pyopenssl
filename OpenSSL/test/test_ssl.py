@@ -142,7 +142,7 @@ def socket_pair():
     # Most of our callers want non-blocking sockets, make it easy for them.
     server.setblocking(False)
     client.setblocking(False)
-
+    port.close()
     return (server, client)
 
 
