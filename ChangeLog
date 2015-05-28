@@ -3,8 +3,6 @@
 	* OpenSSL/SSL.py, : Add ``get_protocol_version()`` and 
 	  ``get_protocol_version_name()`` to Connection
 	  Based on work from Rich Moore
-	* OpenSSL/test/test_crypto.py: tests for ``get_protocol_version()``
-	  and ``get_protocol_version_name()``
 
 2015-05-02  Jim Shaver <dcypherd@gmail.com>
 
