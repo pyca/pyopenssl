@@ -1,4 +1,4 @@
-include             LICENSE ChangeLog MANIFEST.in *.rst tox.ini memdbg.py runtests.py OpenSSL/test/README
+include             LICENSE ChangeLog MANIFEST.in *.rst tox.ini memdbg.py runtests.py OpenSSL/test/README docs-requirements.txt
 exclude             leakcheck
 recursive-include   doc         *
 recursive-include   examples    *
