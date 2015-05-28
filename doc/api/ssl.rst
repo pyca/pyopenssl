@@ -601,9 +601,8 @@ Connection objects have the following methods:
 .. py:method:: Connection.get_protocol_version()
 
     Retrieve the version of the SSL or TLS protocol used by the Connection.
-    For example, it will return ``0x303`` for connections made over TLS
-    version 1.2, or ``Unknown`` for connections that were not successfully
-    established.
+    For example, it will return ``0x769`` for connections made over TLS
+    version 1.
 
 
 .. py:method:: Connection.get_protocol_version_name()

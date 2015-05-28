@@ -2775,6 +2775,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertEqual(server_protocol_version, client_protocol_version)
 
 
+
 class ConnectionGetCipherListTests(TestCase):
     """
     Tests for :py:obj:`Connection.get_cipher_list`.

@@ -1,8 +1,8 @@
 2015-05-27  Jim Shaver <dcypherd@gmail.com>
 
 	* OpenSSL/SSL.py, : Add ``get_protocol_version()`` and 
-	  ``get_protocol_version_name()`` to Connection
-	  Based on work from Rich Moore
+	  ``get_protocol_version_name()`` to ``Connection``.
+	  Based on work from Rich Moore.
 
 2015-05-02  Jim Shaver <dcypherd@gmail.com>
 

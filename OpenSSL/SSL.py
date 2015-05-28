@@ -1889,9 +1889,21 @@ class Connection(object):
 
         :returns: The TLS version of the current connection, for example
             the value for TLS 1.2 would be ``b'TLSv1.2'``.
-        :rtype: :py:class:`unicode`
+        :rtype: :py:class:`bytes`
         """
         version = _ffi.string(_lib.SSL_get_version(self._ssl))
+        return version
+
+
+    def get_protocol_version(self):
+        """
+        Obtain the protocol version of the current connection.
+
+        :returns: The TLS version of the current connection, for example
+            the value for TLS 1 would be 0x769.
+        :rtype: :py:class:`int`
+        """
+        version = _lib.SSL_version(self._ssl)
         return version
 
 
@@ -1949,17 +1961,6 @@ class Connection(object):
 
         return _ffi.buffer(data[0], data_len[0])[:]
 
-
-    def get_protocol_version(self):
-        """
-        Obtain the protocol version of the current connection.
-
-        :returns: The TLS version of the current connection, for example
-            the value for TLS 1.2 would be 0x303.
-        :rtype: :py:class:`int`
-        """
-        version = _lib.SSL_version(self._ssl)
-        return version
 
 
 ConnectionType = Connection
