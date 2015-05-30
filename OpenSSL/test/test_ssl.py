@@ -2745,6 +2745,36 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertEqual(server_cipher_bits, client_cipher_bits)
 
 
+    def test_get_protocol_version_name(self):
+        """
+        :py:obj:`Connection.get_protocol_version_name()` returns a string
+        giving the protocol version of the current connection.
+        """
+        server, client = self._loopback()
+        client_protocol_version_name = client.get_protocol_version_name()
+        server_protocol_version_name = server.get_protocol_version_name()
+
+        self.assertIsInstance(server_protocol_version_name, text_type)
+        self.assertIsInstance(client_protocol_version_name, text_type)
+
+        self.assertEqual(server_protocol_version_name, client_protocol_version_name)
+
+
+    def test_get_protocol_version(self):
+        """
+        :py:obj:`Connection.get_protocol_version()` returns an integer 
+        giving the protocol version of the current connection.
+        """
+        server, client = self._loopback()
+        client_protocol_version = client.get_protocol_version()
+        server_protocol_version = server.get_protocol_version()
+
+        self.assertIsInstance(server_protocol_version, int)
+        self.assertIsInstance(client_protocol_version, int)
+
+        self.assertEqual(server_protocol_version, client_protocol_version)
+
+
 
 class ConnectionGetCipherListTests(TestCase):
     """
