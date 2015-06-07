@@ -2,24 +2,35 @@ Contributing
 ============
 
 First of all, thank you for your interest in contributing to pyOpenSSL!
+This project has no company backing its development therefore we're dependent on help by the community.
+
 
 Filing bug reports
 ------------------
 
 Bug reports are very welcome.
-Please file them on the Github issue tracker.
+Please file them on the GitHub issue tracker.
 Good bug reports come with extensive descriptions of the error and how to reproduce it.
 Reporters are strongly encouraged to include an `short, self contained, correct example <http://www.sscce.org/>`_.
+
+
+Security
+--------
+
+If you feel that you found a security-relevant bug that you would prefer to discuss in private, please send us a GPG_-encrypted e-mail.
+
+The maintainer can be reached at hs@ox.cx and his GPG key ID is ``0xAE2536227F69F181`` (Fingerprint: ``C2A0 4F86 ACE2 8ADC F817  DBB7 AE25 3622 7F69 F181``).
+Feel free to cross-check this information with Keybase_.
+
 
 Patches
 -------
 
-All patches to pyOpenSSL should be submitted in the form of pull requests to the main pyOpenSSL repository, ``pyca/pyopenssl``.
+All patches to pyOpenSSL should be submitted in the form of pull requests to the main pyOpenSSL repository, `pyca/pyopenssl`_.
 These pull requests should satisfy the following properties:
 
 - The branch referenced should be a `feature branch`_ focusing on one particular improvement to pyOpenSSL.
   Create different branches and different pull requests for unrelated features or bugfixes.
-- The branch referenced should have a distinctive name (in particular, please do not open pull requests for your ``master`` branch).
 - Code should follow `PEP 8`_, especially in the "do what code around you does" sense.
   One notable way pyOpenSSL code differs, for example, is that there should be three empty lines between module-level elements,and two empty lines between class-level elements.
   Methods and functions are named in ``snake_case``.
@@ -33,11 +44,28 @@ Finally, pull requests must be reviewed before merging.
 This process mirrors the `cryptography code review process`_.
 Everyone can perform reviews; this is a very valuable way to contribute, and is highly encouraged.
 
-Pull requests are merged by members of the `pyopenssl-committers team <https://github.com/orgs/pyca/teams/pyopenssl-committers>`_.
-They should, of course, keep all the requirements detailed in this document as well as the pyca/cryptography merge requirements in mind.
+Pull requests are merged by members of PyCA.
+They should, of course, keep all the requirements detailed in this document as well as the ``pyca/cryptography`` merge requirements in mind.
 
-The final responsibility for the reviewing of merged code lies with the person merging it; since pyOpenSSL is obviously a sensitive project from a security perspective, so reviewers are strongly encouraged to take this review and merge process very seriously.
+The final responsibility for the reviewing of merged code lies with the person merging it.
+Since pyOpenSSL is a sensitive project from a security perspective, reviewers are strongly encouraged to take this review and merge process very seriously.
 
-.. _PEP 8: http://legacy.python.org/dev/peps/pep-0008/
+
+Finding Help
+------------
+
+If you need any help with the contribution process, you'll find us hanging out at ``#cryptography-dev`` on Freenode_ IRC.
+You can also ask questions on our `mailing list`_.
+
+Wherever we interact, we strive to follow the `Python Community Code of Conduct`_.
+
+
+.. _GPG: http://en.wikipedia.org/wiki/GNU_Privacy_Guard
+.. _Keybase: https://keybase.io/hynek
+.. _pyca/pyopenssl: https://github.com/pyca/pyopenssl
+.. _PEP 8: https://www.python.org/dev/peps/pep-0008/
 .. _cryptography code review process: https://cryptography.io/en/latest/development/reviewing-patches/
-.. _feature branch: http://nvie.com/posts/a-successful-git-branching-model/
+.. _feature branch: https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow
+.. _freenode: https://freenode.net
+.. _`mailing list`: https://mail.python.org/mailman/listinfo/cryptography-dev
+.. _`Python Community Code of Conduct`: https://www.python.org/psf/codeofconduct/

@@ -11,7 +11,7 @@ If you are installing in order to *develop* on pyOpenSSL, move to the root direc
 
 
 Documentation
-=============
+-------------
 
 The documentation is written in reStructuredText and built using Sphinx::
 
