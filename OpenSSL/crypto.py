@@ -1503,12 +1503,11 @@ X509StoreType = X509Store
 
 class X509StoreContextError(Exception):
     """
-    An error occurred while verifying a certificate using
-    `OpenSSL.X509StoreContext.verify_certificate`.
+    An exception raised when an error occurred while verifying a certificate
+    using `OpenSSL.X509StoreContext.verify_certificate`.
 
     :ivar certificate: The certificate which caused verificate failure.
-    :type cert: :class:`X509`
-
+    :type certificate: :class:`X509`
     """
     def __init__(self, message, certificate):
         super(X509StoreContextError, self).__init__(message)
@@ -1524,7 +1523,11 @@ class X509StoreContext(object):
     includes, but is not limited to, a set of trusted certificates,
     verification parameters, and revoked certificates.
 
-    Of these, only the set of trusted certificates is currently exposed.
+    .. note::
+
+      Currently, one can only set the trusted certificates on an
+      :py:class:`X509StoreContext`.  Future versions of pyOpenSSL will expose
+      verification parameters and certificate revocation lists.
 
     :ivar _store_ctx: The underlying X509_STORE_CTX structure used by this
         instance.  It is dynamically allocated and automatically garbage
@@ -1533,15 +1536,14 @@ class X509StoreContext(object):
     :ivar _store: See the ``store`` ``__init__`` parameter.
 
     :ivar _cert: See the ``certificate`` ``__init__`` parameter.
+
+    :param X509Store store: The certificates which will be trusted for the
+        purposes of any verifications.
+
+    :param X509 certificate: The certificate to be verified.
     """
 
     def __init__(self, store, certificate):
-        """
-        :param X509Store store: The certificates which will be trusted for the
-            purposes of any verifications.
-
-        :param X509 certificate: The certificate to be verified.
-        """
         store_ctx = _lib.X509_STORE_CTX_new()
         self._store_ctx = _ffi.gc(store_ctx, _lib.X509_STORE_CTX_free)
         self._store = store
@@ -1598,6 +1600,8 @@ class X509StoreContext(object):
         """
         Set the context's trust store.
 
+        .. versionadded:: 0.15
+
         :param X509Store store: The certificates which will be trusted for the
             purposes of any *future* verifications.
         """
@@ -1608,8 +1612,13 @@ class X509StoreContext(object):
         """
         Verify a certificate in a context.
 
+        .. versionadded:: 0.15
+
         :param store_ctx: The :py:class:`X509StoreContext` to verify.
-        :raises: Error
+
+        :raises X509StoreContextError: If an error occured when validating a
+          certificate in the context. Sets ``certificate`` attribute to indicate
+          which certificate caused the error.
         """
         # Always re-initialize the store context in case
         # :py:meth:`verify_certificate` is called multiple times.

@@ -175,34 +175,21 @@ X509Store objects
 .. autoclass:: X509Store
                :members:
 
+.. _openssl-x509storecontexterror:
+
 X509StoreContextError objects
 -----------------------------
 
-The X509StoreContextError is an exception raised from
-`X509StoreContext.verify_certificate` in circumstances where a certificate
-cannot be verified in a provided context.
+.. autoclass:: X509StoreContextError
+               :members:
 
-The certificate for which the verification error was detected is given by the
-``certificate`` attribute of the exception instance as a :class:`X509`
-instance.
-
-Details about the verification error are given in the exception's
-``args`` attribute.
+.. _openssl-x509storecontext:
 
 X509StoreContext objects
 ------------------------
 
-The X509StoreContext object is used for verifying a certificate against a set
-of trusted certificates.
-
-
-.. py:method:: X509StoreContext.verify_certificate()
-
-    Verify a certificate in the context of this initialized `X509StoreContext`.
-    On error, raises `X509StoreContextError`, otherwise does nothing.
-
-    .. versionadded:: 0.15
-
+.. autoclass:: X509StoreContext
+               :members:
 
 .. _openssl-pkey:
 
