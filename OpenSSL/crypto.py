@@ -1472,8 +1472,34 @@ X509Type = X509
 
 class X509Store(object):
     """
-    An X509 certificate store.
+    An X.509 store.
+
+    An X.509 store is used to describe a context in which to verify a
+    certificate. A description of a context may include a set of certificates
+    to trust, a set of certificate revocation lists, verification flags and
+    more.
+
+    An X.509 store, being only a description, cannot be used by itself to verify
+    a certificate. To carry out the actual verification process, see
+    :py:class:`X509StoreContext`.
     """
+
+    CRL_CHECK = _lib.X509_V_FLAG_CRL_CHECK
+    CRL_CHECK_ALL = _lib.X509_V_FLAG_CRL_CHECK_ALL
+    IGNORE_CRITICAL = _lib.X509_V_FLAG_IGNORE_CRITICAL
+    X509_STRICT = _lib.X509_V_FLAG_X509_STRICT
+    ALLOW_PROXY_CERTS = _lib.X509_V_FLAG_ALLOW_PROXY_CERTS
+    POLICY_CHECK = _lib.X509_V_FLAG_POLICY_CHECK
+    EXPLICIT_POLICY = _lib.X509_V_FLAG_EXPLICIT_POLICY
+    # FLAG_INHIBIT_ANY = _lib.X509_V_FLAG_FLAG_INHIBIT_ANY
+    INHIBIT_MAP = _lib.X509_V_FLAG_INHIBIT_MAP
+    NOTIFY_POLICY = _lib.X509_V_FLAG_NOTIFY_POLICY
+    # USE_DELTAS = _lib.X509_V_FLAG_USE_DELTAS
+    CHECK_SS_SIGNATURE = _lib.X509_V_FLAG_CHECK_SS_SIGNATURE
+    CB_ISSUER_CHECK = _lib.X509_V_FLAG_CB_ISSUER_CHECK
+    # NO_ALT_CHAINS = _lib.X509_V_FLAG_NO_ALT_CHAINS
+
+
     def __init__(self):
         store = _lib.X509_STORE_new()
         self._store = _ffi.gc(store, _lib.X509_STORE_free)
@@ -1481,9 +1507,10 @@ class X509Store(object):
 
     def add_cert(self, cert):
         """
-        Adds the certificate :py:data:`cert` to this store.
+        Adds a trusted certificate to this store.
 
-        This is the Python equivalent of OpenSSL's ``X509_STORE_add_cert``.
+        Adding a certificate with this method adds this certificate as a
+        *trusted* certificate.
 
         :param X509 cert: The certificate to add to this store.
         :raises TypeError: If the certificate is not an :py:class:`X509`.
@@ -1498,7 +1525,51 @@ class X509Store(object):
             _raise_current_error()
 
 
+    def add_crl(self, crl):
+        """
+        Add a certificate revocation list to this store.
+
+        The certificate revocation lists added to a store will only be used if
+        the associated flags are configured to check certificate revocation
+        lists.
+
+        .. versionadded:: 0.16
+
+        :param CRL crl: The certificate revocation list to add to this store.
+        :return: :py:data:`None` if the certificate revocation list was added successfully.
+        """
+        if _lib.X509_STORE_add_crl(self._store, crl._crl) == 0:
+            _raise_current_error()
+
+
+    def set_flags(self, flags):
+        """
+        Set verification flags to this store.
+
+        Verification flags can be combined by oring them together.
+
+        .. note::
+
+          Setting a verification flag sometimes requires clients to add
+          additional information to the store, otherwise a suitable error will
+          be raised.
+
+          For example, in setting flags to enable CRL checking a
+          suitable CRL must be added to the store otherwise an error will be
+          raised.
+
+        .. versionadded:: 0.16
+
+        :param int flags: The verification flags to set on this store.
+        :return: :py:data:`None` if the verification flags were successfully set.
+        """
+        if _lib.X509_STORE_set_flags(self._store, flags) == 0:
+            _raise_current_error()
+
+
+
 X509StoreType = X509Store
+
 
 
 class X509StoreContextError(Exception):
@@ -1518,29 +1589,19 @@ class X509StoreContext(object):
     """
     An X.509 store context.
 
-    An :py:class:`X509StoreContext` is used to define some of the criteria for
-    certificate verification.  The information encapsulated in this object
-    includes, but is not limited to, a set of trusted certificates,
-    verification parameters, and revoked certificates.
-
-    .. note::
-
-      Currently, one can only set the trusted certificates on an
-      :py:class:`X509StoreContext`.  Future versions of pyOpenSSL will expose
-      verification parameters and certificate revocation lists.
+    An X.509 store context is used to carry out the actual verification process
+    of a certificate in a described context. For describing such a context, see
+    :py:class:`X509Store`.
 
     :ivar _store_ctx: The underlying X509_STORE_CTX structure used by this
         instance.  It is dynamically allocated and automatically garbage
         collected.
-
     :ivar _store: See the ``store`` ``__init__`` parameter.
-
     :ivar _cert: See the ``certificate`` ``__init__`` parameter.
-
     :param X509Store store: The certificates which will be trusted for the
         purposes of any verifications.
-
     :param X509 certificate: The certificate to be verified.
+
     """
 
     def __init__(self, store, certificate):
@@ -1598,12 +1659,12 @@ class X509StoreContext(object):
 
     def set_store(self, store):
         """
-        Set the context's trust store.
+        Set the context's X.509 store.
 
         .. versionadded:: 0.15
 
-        :param X509Store store: The certificates which will be trusted for the
-            purposes of any *future* verifications.
+        :param X509Store store: The store description which will be used for
+            the purposes of any *future* verifications.
         """
         self._store = store
 
@@ -1614,11 +1675,9 @@ class X509StoreContext(object):
 
         .. versionadded:: 0.15
 
-        :param store_ctx: The :py:class:`X509StoreContext` to verify.
-
         :raises X509StoreContextError: If an error occured when validating a
-          certificate in the context. Sets ``certificate`` attribute to indicate
-          which certificate caused the error.
+            certificate in the context. Sets ``certificate`` attribute to indicate
+            which certificate caused the error.
         """
         # Always re-initialize the store context in case
         # :py:meth:`verify_certificate` is called multiple times.
@@ -1958,9 +2017,6 @@ class CRL(object):
     A certificate revocation list.
     """
     def __init__(self):
-        """
-        Create a new empty certificate revocation list.
-        """
         crl = _lib.X509_CRL_new()
         self._crl = _ffi.gc(crl, _lib.X509_CRL_free)
 
@@ -1995,9 +2051,7 @@ class CRL(object):
         means it's okay to mutate it after adding: it won't affect
         this CRL.
 
-        :param revoked: The new revocation.
-        :type revoked: :class:`Revoked`
-
+        :param Revoked revoked: The new revocation.
         :return: :py:const:`None`
         """
         copy = _X509_REVOKED_dup(revoked._revoked)
@@ -2011,27 +2065,123 @@ class CRL(object):
             _raise_current_error()
 
 
+    def get_issuer(self):
+        """
+        Get the CRL's issuer.
+
+        .. versionadded:: 0.16
+
+        :return: :py:class:`X509Name`
+        """
+        _issuer = _lib.X509_NAME_dup(_lib.X509_CRL_get_issuer(self._crl))
+        if _issuer == _ffi.NULL:
+            _raise_current_error()
+        _issuer = _ffi.gc(_issuer, _lib.X509_NAME_free)
+        issuer = X509Name.__new__(X509Name)
+        issuer._name = _issuer
+        return issuer
+
+
+    def set_version(self, version):
+        """
+        Set the CRL version.
+
+        .. versionadded:: 0.16
+
+        :param int version: The version of the CRL.
+        :return: :py:const:`None`
+        """
+        if _lib.X509_CRL_set_version(self._crl, version) == 0:
+            _raise_current_error()
+
+
+    def _set_boundary_time(self, which, when):
+        return _set_asn1_time(which(self._crl), when)
+
+
+    def set_lastUpdate(self, when):
+        """
+        Set when the CRL was last updated.
+
+        The timestamp is formatted as an ASN.1 GENERALIZEDTIME::
+
+            YYYYMMDDhhmmssZ
+            YYYYMMDDhhmmss+hhmm
+            YYYYMMDDhhmmss-hhmm
+
+        .. versionadded:: 0.16
+
+        :param bytes when: A timestamp string.
+        :return: :py:const:`None`
+        """
+        return self._set_boundary_time(_lib.X509_CRL_get_lastUpdate, when)
+
+
+    def set_nextUpdate(self, when):
+        """
+        Set when the CRL will next be udpated.
+
+        The timestamp is formatted as an ASN.1 GENERALIZEDTIME::
+
+            YYYYMMDDhhmmssZ
+            YYYYMMDDhhmmss+hhmm
+            YYYYMMDDhhmmss-hhmm
+
+        .. versionadded:: 0.16
+
+        :param bytes when: A timestamp string.
+        :return: :py:const:`None`
+        """
+        return self._set_boundary_time(_lib.X509_CRL_get_nextUpdate, when)
+
+
+    def sign(self, issuer_cert, issuer_key, digest='sha1'):
+        """
+        Sign the CRL.
+
+        Signing a CRL enables clients to associate the CRL itself with an
+        issuer. Before a CRL is meaningful to other OpenSSL functions, it must
+        be signed by an issuer.
+
+        This method implicitly sets the issuer's name based on the issuer
+        certificate and private key used to sign the CRL.
+
+        .. versionadded:: 0.16
+
+        :param X509 issuer_cert: The issuer's certificate.
+        :param PKey issuer_key: The issuer's private key.
+        :param str digest: The digest method to sign the CRL with.
+        """
+        digest_obj = _lib.EVP_get_digestbyname(digest)
+        if digest_obj == _ffi.NULL:
+            raise ValueError("No such digest method")
+        _lib.X509_CRL_set_issuer_name(self._crl, _lib.X509_get_subject_name(issuer_cert._x509))
+        _lib.X509_CRL_sort(self._crl)
+        sign_result = _lib.X509_CRL_sign(self._crl, issuer_key._pkey, digest_obj)
+        if not sign_result:
+            _raise_current_error()
+
+
     def export(self, cert, key, type=FILETYPE_PEM, days=100,
                digest=_UNSPECIFIED):
         """
-        Export a CRL as a string.
+        Export the CRL as a string.
 
-        :param cert: The certificate used to sign the CRL.
-        :type cert: :py:class:`X509`
-
-        :param key: The key used to sign the CRL.
-        :type key: :py:class:`PKey`
-
-        :param type: The export format, either :py:data:`FILETYPE_PEM`,
+        :param X509 cert: The certificate used to sign the CRL.
+        :param PKey key: The key used to sign the CRL.
+        :param int type: The export format, either :py:data:`FILETYPE_PEM`,
             :py:data:`FILETYPE_ASN1`, or :py:data:`FILETYPE_TEXT`.
-
         :param int days: The number of days until the next update of this CRL.
-
         :param bytes digest: The name of the message digest to use (eg
             ``b"sha1"``).
-
         :return: :py:data:`bytes`
         """
+
+        # TODO: fix this function to use functionality added in version 0.16.
+        # Doing this without changing the public API is tricky. Checking if
+        # lastUpdate, nextUpdate, issuer or signing has happened is hard to do
+        # without generating a segmentation fault.
+
         if not isinstance(cert, X509):
             raise TypeError("cert must be an X509 instance")
         if not isinstance(key, PKey):
@@ -2090,6 +2240,8 @@ class CRL(object):
             _raise_current_error()
 
         return _bio_to_string(bio)
+
+
 CRLType = CRL
 
 
