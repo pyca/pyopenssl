@@ -172,7 +172,7 @@ class PKey(object):
         self._initialized = False
 
 
-    def generate_key(self, type, bits):
+    def generate_key(self, type, bits = 1024, curve = 'prime256v1'):
         """
         Generate a key pair of the given type, with the given number of bits.
 
@@ -233,6 +233,19 @@ class PKey(object):
             if not _lib.EVP_PKEY_assign_DSA(self._pkey, dsa):
                 # TODO: This is untested.
                 _raise_current_error()
+
+        elif type == TYPE_EC:
+            curves_nid = {'prime256v1':_lib.NID_X9_62_prime256v1,
+                     'secp384r1':_lib.NID_secp384r1,
+                     'secp521r1': _lib.NID_secp521r1}
+            if curve in curves_nid:
+                ec_key = _lib.EC_KEY_new_by_curve_name(curves_nid[curve]);
+                if not _lib.EC_KEY_generate_key(ec_key):
+                    # TODO: This is untested.
+                    _raise_current_error()
+                if not _lib.EVP_PKEY_assign_EC_KEY(self._pkey, ec_key):
+                    # TODO: This is untested.
+                    _raise_current_error()
         else:
             raise Error("No such key type")
 
