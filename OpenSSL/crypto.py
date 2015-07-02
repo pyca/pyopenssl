@@ -27,6 +27,7 @@ FILETYPE_TEXT = 2 ** 16 - 1
 
 TYPE_RSA = _lib.EVP_PKEY_RSA
 TYPE_DSA = _lib.EVP_PKEY_DSA
+TYPE_EC = _lib.EVP_PKEY_EC
 
 
 
@@ -247,17 +248,22 @@ class PKey(object):
         :return: True if key is consistent.
         :raise Error: if the key is inconsistent.
         :raise TypeError: if the key is of a type which cannot be checked.
-            Only RSA keys can currently be checked.
+            Only RSA/EC keys can currently be checked.
         """
         if self._only_public:
             raise TypeError("public key only")
 
-        if _lib.EVP_PKEY_type(self._pkey.type) != _lib.EVP_PKEY_RSA:
+        if _lib.EVP_PKEY_type(self._pkey.type) == _lib.EVP_PKEY_RSA:
+            rsa = _lib.EVP_PKEY_get1_RSA(self._pkey)
+            rsa = _ffi.gc(rsa, _lib.RSA_free)
+            result = _lib.RSA_check_key(rsa)
+        elif _lib.EVP_PKEY_type(self._pkey.type) == _lib.EVP_PKEY_EC:
+            eckey = _lib.EVP_PKEY_get1_EC_KEY(self._pkey)
+            eckey = _ffi.gc(eckey, _lib.EC_KEY_free)
+            result = _lib.EC_KEY_check_key(eckey)
+        else:
             raise TypeError("key type unsupported")
 
-        rsa = _lib.EVP_PKEY_get1_RSA(self._pkey)
-        rsa = _ffi.gc(rsa, _lib.RSA_free)
-        result = _lib.RSA_check_key(rsa)
         if result:
             return True
         _raise_current_error()
