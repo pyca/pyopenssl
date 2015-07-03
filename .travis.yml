@@ -105,7 +105,7 @@ script:
     ~/.venv/bin/tox
 
 before_install:
-  - pip install codecov
+  - ~/.venv/bin/pip install codecov
 
 after_script:
   - ~/.venv/bin/codecov
