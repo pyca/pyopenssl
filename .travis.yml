@@ -91,7 +91,7 @@ install:
       pip install virtualenv
     fi
     python -m virtualenv ~/.venv
-    ~/.venv/bin/pip install tox codecov
+    ~/.venv/bin/pip install tox coverage
 
 script:
   - |
@@ -105,7 +105,7 @@ script:
     ~/.venv/bin/tox
 
 after_script:
-  - ~/.venv/bin/codecov
+  - source ~/.venv/bin/activate && bash <(curl -s https://codecov.io/bash) -e TRAVIS_OS_NAME,TOXENV,OPENSSL
 
 notifications:
   email: false
