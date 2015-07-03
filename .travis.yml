@@ -1,5 +1,10 @@
 sudo: false
 language: python
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+
 env:
   global:
     - LC_ALL=en_US.UTF-8
