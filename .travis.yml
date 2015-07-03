@@ -91,7 +91,7 @@ install:
       pip install virtualenv
     fi
     python -m virtualenv ~/.venv
-    ~/.venv/bin/pip install tox
+    ~/.venv/bin/pip install tox codecov
 
 script:
   - |
@@ -103,9 +103,6 @@ script:
       export PATH="/usr/local/opt/openssl/bin:$PATH"
     fi
     ~/.venv/bin/tox
-
-before_install:
-  - ~/.venv/bin/pip install codecov
 
 after_script:
   - ~/.venv/bin/codecov
