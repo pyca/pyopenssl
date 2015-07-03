@@ -1,15 +1,21 @@
 pyOpenSSL -- A Python wrapper around the OpenSSL library
 --------------------------------------------------------
 
-.. image:: https://coveralls.io/repos/pyca/pyopenssl/badge.svg
-  :target: https://coveralls.io/r/pyca/pyopenssl
+.. image:: https://img.shields.io/pypi/v/pyOpenSSL.svg
+   :target: https://pypi.python.org/pypi/pyOpenSSL/
+   :alt: Latest Version
 
 .. image:: https://readthedocs.org/projects/pyopenssl/badge/?version=latest
-    :target: https://pyopenssl.readthedocs.org/
-    :alt: Latest Docs
+   :target: https://pyopenssl.readthedocs.org/
+   :alt: Latest Docs
 
 .. image:: https://travis-ci.org/pyca/pyopenssl.svg?branch=master
-    :target: https://travis-ci.org/pyca/pyopenssl
+   :target: https://travis-ci.org/pyca/pyopenssl
+   :alt: Build status
+
+.. image:: https://codecov.io/github/pyca/pyopenssl/coverage.svg?branch=master
+   :target: https://codecov.io/github/pyca/pyopenssl
+   :alt: Test coverage
 
 
 High-level wrapper around a subset of the OpenSSL library.  Includes
