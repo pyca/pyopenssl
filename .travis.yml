@@ -91,7 +91,7 @@ install:
       pip install virtualenv
     fi
     python -m virtualenv ~/.venv
-    ~/.venv/bin/pip install tox codecov
+    ~/.venv/bin/pip install tox codecov coverage
 
 script:
   - |
