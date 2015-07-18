@@ -2815,14 +2815,14 @@ def pbkdf2_hmac(passphrase, salt, iterations, key_length, hash_name):
         raise NotImplementedError('PKCS5_PBKDF2_HMAC() is not available')
 
     pp = passphrase
-    if type(passphrase) is str:
-        pp = passphrase.encode('utf-8')
+    if isinstance(pp, _text_type):
+        pp = pp.encode('utf-8')
     s = salt
-    if type(salt) is str:
-        s = salt.encode('utf-8')
+    if isinstance(s, _text_type):
+        s = s.encode('utf-8')
     hn = hash_name
-    if type(hash_name) is str:
-        hn = hash_name.encode('utf-8')
+    if isinstance(hn, _text_type):
+        hn = hn.encode('utf-8')
 
     evp = _lib.EVP_get_digestbyname(hn)
     if evp == _ffi.NULL:
