@@ -1,3 +1,9 @@
+2015-07-18  Vilmos Nebehaj <v.nebehaj@gmail.com>
+
+	* OpenSSL/crypto.py, OpenSSL/test/test_crypto.py: Add new function
+	  ``pbkdf2_hmac()`` that implements key stretching on top of OpenSSL's
+	  PKCS5_PBKDF2_HMAC().
+
 2015-05-27  Jim Shaver <dcypherd@gmail.com>
 
 	* OpenSSL/SSL.py, : Add ``get_protocol_version()`` and 
