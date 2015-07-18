@@ -2825,10 +2825,8 @@ def pbkdf2_hmac(passphrase, salt, iterations, key_length, hash_name):
         raise Error('Invalid message digest algorithm "%s"' % hash_name)
 
     result_buffer = _ffi.new("unsigned char[]", key_length)
-    result = _lib.PKCS5_PBKDF2_HMAC(pp, len(pp), s, len(s), iterations, evp,
-                                    key_length, result_buffer)
-    if result != 1:
-        raise Error('PKCS5_PBKDF2_HMAC() failed, return code: %d' % result)
+    _lib.PKCS5_PBKDF2_HMAC(pp, len(pp), s, len(s), iterations, evp,
+                           key_length, result_buffer)
 
     return _ffi.buffer(result_buffer, key_length)[:]
 
