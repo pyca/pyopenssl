@@ -3732,6 +3732,17 @@ class Pbkdf2HmacTests(TestCase):
                           'p4ssphr4s3', 'salt', 10000, 80, 'foobar')
 
 
+    def test_pbkdf2_hmac_fail(self):
+        """
+        Test that :py:func`pbkdf2_hmac` raises an
+        :py:exc:`OpenSSL.crypto.Error` when supplied with an unsupported
+        key length.
+        """
+        self.assertRaises(Error,
+                          pbkdf2_hmac,
+                          'p4ssphr4s3', 'salt', 10000, 1024 * 1024, 'foobar')
+
+
 
 if __name__ == '__main__':
     main()
