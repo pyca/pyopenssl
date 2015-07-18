@@ -3685,6 +3685,19 @@ class Pbkdf2HmacTests(TestCase):
     """
 
 
+    def test_md5_buffer(self):
+        """
+        Test :py:func`pbkdf2_hmac` with EVP_md5 hash function, passing in
+        buffers.
+        """
+        result_length = 80
+        result = pbkdf2_hmac(b'p4ssphr4s3', b'0123456789abcdef', 10000,
+                             result_length, b'md5')
+        self.assertEqual(len(result), result_length)
+        self.assertEqual(result,
+                         b'\xe3\x7f\x0b\\k\x1a\xf4=X\xbc9\xb1\xecq\xba\xbb\xfc\xe7\xe1\xc3\x9cK\xd3~\x96\x94\xaf\x13\xb1\xc9\x13ad\xd3\x9e\xe5\xd7\r\x10\x8b\x9d\xadc\x00\x9d\xd1\xaf\xcc\xd3\xc4\x04\xaf\x83\xa8\xe0\xb29\xcek\xa5<\x07\xbf\xa8\xf1\x10X\xfe\xb2\x17\x16\xdb^R-\'\x15\xfe\xf2\xf5')
+
+
     def test_sha1(self):
         """
         Test :py:func`pbkdf2_hmac` with EVP_sha1 hash function.
