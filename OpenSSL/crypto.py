@@ -2810,6 +2810,10 @@ def load_pkcs12(buffer, passphrase=None):
 
 
 def pbkdf2_hmac(passphrase, salt, iterations, key_length, hash_name):
+    PKCS5_PBKDF2_HMAC = getattr(_lib, 'PKCS5_PBKDF2_HMAC', None)
+    if PKCS5_PBKDF2_HMAC is None:
+        raise NotImplementedError('PKCS5_PBKDF2_HMAC() is not available')
+
     pp = passphrase
     if type(passphrase) is str:
         pp = passphrase.encode('utf-8')
@@ -2825,8 +2829,8 @@ def pbkdf2_hmac(passphrase, salt, iterations, key_length, hash_name):
         raise Error('Invalid message digest algorithm "%s"' % hash_name)
 
     result_buffer = _ffi.new("unsigned char[]", key_length)
-    _lib.PKCS5_PBKDF2_HMAC(pp, len(pp), s, len(s), iterations, evp,
-                           key_length, result_buffer)
+    PKCS5_PBKDF2_HMAC(pp, len(pp), s, len(s), iterations, evp, key_length,
+                      result_buffer)
 
     return _ffi.buffer(result_buffer, key_length)[:]
 
