@@ -3691,7 +3691,7 @@ class Pbkdf2HmacTests(TestCase):
 
     def test_md5_buffer(self):
         """
-        Test :py:func`pbkdf2_hmac` with EVP_md5 hash function, passing in
+        Test :py:func:`pbkdf2_hmac` with EVP_md5 hash function, passing in
         buffers.
         """
         result_length = 80
@@ -3705,7 +3705,7 @@ class Pbkdf2HmacTests(TestCase):
 
     def test_sha1(self):
         """
-        Test :py:func`pbkdf2_hmac` with EVP_sha1 hash function.
+        Test :py:func:`pbkdf2_hmac` with EVP_sha1 hash function.
         """
         result_length = 80
         if pbkdf2_hmac is not None:
@@ -3718,7 +3718,7 @@ class Pbkdf2HmacTests(TestCase):
 
     def test_sha256(self):
         """
-        Test :py:func`pbkdf2_hmac` with EVP_sha256 hash function.
+        Test :py:func:`pbkdf2_hmac` with EVP_sha256 hash function.
         """
         result_length = 80
         if pbkdf2_hmac is not None:
@@ -3731,7 +3731,7 @@ class Pbkdf2HmacTests(TestCase):
 
     def test_sha512(self):
         """
-        Test :py:func`pbkdf2_hmac` with EVP_sha512 hash function.
+        Test :py:func:`pbkdf2_hmac` with EVP_sha512 hash function.
         """
         result_length = 80
         if pbkdf2_hmac is not None:
@@ -3744,7 +3744,7 @@ class Pbkdf2HmacTests(TestCase):
 
     def test_invalid_md(self):
         """
-        Test that :py:func`pbkdf2_hmac` raises an
+        Test that :py:func:`pbkdf2_hmac` raises an
         :py:exc:`OpenSSL.crypto.Error` when supplied with an unsupported
         or non-existent message digest algorithm.
         """
