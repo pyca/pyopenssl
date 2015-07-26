@@ -2808,6 +2808,36 @@ def load_pkcs12(buffer, passphrase=None):
     return pkcs12
 
 
+
+def _pbkdf2_hmac(passphrase, salt, iterations, key_length, hash_name):
+    pp = passphrase
+    if isinstance(pp, _text_type):
+        pp = pp.encode('utf-8')
+    s = salt
+    if isinstance(s, _text_type):
+        s = s.encode('utf-8')
+    hn = hash_name
+    if isinstance(hn, _text_type):
+        hn = hn.encode('utf-8')
+
+    evp = _lib.EVP_get_digestbyname(hn)
+    if evp == _ffi.NULL:
+        raise Error('Invalid message digest algorithm "%s"' % hash_name)
+
+    result_buffer = _ffi.new("unsigned char[]", key_length)
+    _PKCS5_PBKDF2_HMAC(pp, len(pp), s, len(s), iterations, evp, key_length,
+                       result_buffer)
+
+    return _ffi.buffer(result_buffer, key_length)[:]
+
+
+
+_PKCS5_PBKDF2_HMAC = getattr(_lib, 'PKCS5_PBKDF2_HMAC', None)
+if _PKCS5_PBKDF2_HMAC is not None:
+    pbkdf2_hmac = _pbkdf2_hmac
+
+
+
 def _initialize_openssl_threads(get_ident, Lock):
     import _ssl
     return

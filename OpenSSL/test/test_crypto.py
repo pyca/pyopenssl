@@ -37,6 +37,11 @@ from OpenSSL.test.util import (
     EqualityTestsMixin, TestCase, WARNING_TYPE_EXPECTED
 )
 from OpenSSL._util import native, lib
+try:
+    from OpenSSL.crypto import pbkdf2_hmac
+except ImportError:
+    pbkdf2_hmac = None
+
 
 def normalize_certificate_pem(pem):
     return dump_certificate(FILETYPE_PEM, load_certificate(FILETYPE_PEM, pem))
@@ -3679,6 +3684,78 @@ class EllipticCurveHashTests(TestCase):
         curve = get_elliptic_curve(self.curve_factory.curve_name)
         curves = set([get_elliptic_curve(self.curve_factory.another_curve_name)])
         self.assertNotIn(curve, curves)
+
+
+
+class Pbkdf2HmacTests(TestCase):
+    """
+    Tests for :py:func:`pbkdf2_hmac`.
+    """
+
+
+    def test_md5_buffer(self):
+        """
+        Test :py:func:`pbkdf2_hmac` with EVP_md5 hash function, passing in
+        buffers.
+        """
+        result_length = 80
+        if pbkdf2_hmac is not None:
+            result = pbkdf2_hmac(b'p4ssphr4s3', b'0123456789abcdef', 10000,
+                                 result_length, b'md5')
+            self.assertEqual(len(result), result_length)
+            self.assertEqual(result,
+                             b'\xe3\x7f\x0b\\k\x1a\xf4=X\xbc9\xb1\xecq\xba\xbb\xfc\xe7\xe1\xc3\x9cK\xd3~\x96\x94\xaf\x13\xb1\xc9\x13ad\xd3\x9e\xe5\xd7\r\x10\x8b\x9d\xadc\x00\x9d\xd1\xaf\xcc\xd3\xc4\x04\xaf\x83\xa8\xe0\xb29\xcek\xa5<\x07\xbf\xa8\xf1\x10X\xfe\xb2\x17\x16\xdb^R-\'\x15\xfe\xf2\xf5')
+
+
+    def test_sha1(self):
+        """
+        Test :py:func:`pbkdf2_hmac` with EVP_sha1 hash function.
+        """
+        result_length = 80
+        if pbkdf2_hmac is not None:
+            result = pbkdf2_hmac('p4ssphr4s3', '0123456789abcdef', 10000,
+                                 result_length, 'sha1')
+            self.assertEqual(len(result), result_length)
+            self.assertEqual(result,
+                             b'\xf7o\xe1\x15v^XN\xb34"\xcb\x8f\xa7V\x15\xe9\xf6\xf7\xf4\xc5\x83\xd6\x84\xc8\xbb\xad\x1a\xf4\xff&b!\xe3\xe3G\xbd\x94\x9e\x0e\x84EJu\x7fe\x9aF\xb8W\xa0\x83\xf2\xbd\xf6\xa6\xf1\x13.[\x84\xcd_\x99%\xca\x15\xf0\x15\x98Z\xb1"[~\xdfI\xc55\xc1')
+
+
+    def test_sha256(self):
+        """
+        Test :py:func:`pbkdf2_hmac` with EVP_sha256 hash function.
+        """
+        result_length = 80
+        if pbkdf2_hmac is not None:
+            result = pbkdf2_hmac('p4ssphr4s3', '0123456789abcdef', 10000,
+                                 result_length, 'sha256')
+            self.assertEqual(len(result), result_length)
+            self.assertEqual(result,
+                             b'\x01\x8d\xceT\x89\xc5\xe9\xb6\x0e\xba9g8\xff\x1c\xb9\x96\x8dtx\xd4\xa9\x0cPt\xd5\x00\x84\x12 \x08\x94\x9b\xdd\x85\xf9\xf8\x1e\xd4\xd0\xdf\x9dE\xf16\x98\xf2\xd4\x9f\xc0\xe2\x01\xee\xc7A\xbc$\xe9k\x9aSz\xf3\rP\x80\xb4\x88\xb3\x913\x0c\x9f\x1cz\xc4\x80\xf5\x0f\xc1')
+
+
+    def test_sha512(self):
+        """
+        Test :py:func:`pbkdf2_hmac` with EVP_sha512 hash function.
+        """
+        result_length = 80
+        if pbkdf2_hmac is not None:
+            result = pbkdf2_hmac('p4ssphr4s3', '0123456789abcdef', 10000,
+                                 result_length, 'sha512')
+            self.assertEqual(len(result), result_length)
+            self.assertEqual(result,
+                             b'\x0f\xd8\xde=\x8f\xf7&M\x19d\x8a]\xe7\xaf!\xba^\x95\xd5\x87{`zP;b\xde\x04G_\xff"\xb8\xac7\x19)\xe5\xc5A\x07A\xfb\xb1\xb8\x17\xf5q\x13\x17\xc1A\xc6L7@\xe8\x98\xcd9\xe3\tEKPH\xaf\xda\xfb\x8fmP\x96\n\x7f\xdd\x1e\x96\xa5S')
+
+
+    def test_invalid_md(self):
+        """
+        Test that :py:func:`pbkdf2_hmac` raises an
+        :py:exc:`OpenSSL.crypto.Error` when supplied with an unsupported
+        or non-existent message digest algorithm.
+        """
+        if pbkdf2_hmac is not None:
+            self.assertRaises(Error,
+                              pbkdf2_hmac,
+                              'p4ssphr4s3', 'salt', 10000, 80, 'foobar')
 
 
 
