@@ -1507,9 +1507,11 @@ WpOdIpB8KksUTCzV591Nr1wd
         the current time plus the number of seconds passed in.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        now = datetime.utcnow() + timedelta(seconds=100)
+        not_before_min = datetime.utcnow().replace(microsecond=0) + timedelta(seconds=100)
         cert.gmtime_adj_notBefore(100)
-        self.assertEqual(cert.get_notBefore(), b(now.strftime("%Y%m%d%H%M%SZ")))
+        not_before = datetime.strptime(cert.get_notBefore().decode(), "%Y%m%d%H%M%SZ")
+        not_before_max = datetime.utcnow() + timedelta(seconds=100)
+        self.assertTrue(not_before_min <= not_before <= not_before_max)
 
 
     def test_gmtime_adj_notAfter_wrong_args(self):
@@ -1529,9 +1531,11 @@ WpOdIpB8KksUTCzV591Nr1wd
         the current time plus the number of seconds passed in.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        now = datetime.utcnow() + timedelta(seconds=100)
+        not_after_min = datetime.utcnow().replace(microsecond=0) + timedelta(seconds=100)
         cert.gmtime_adj_notAfter(100)
-        self.assertEqual(cert.get_notAfter(), b(now.strftime("%Y%m%d%H%M%SZ")))
+        not_after = datetime.strptime(cert.get_notAfter().decode(), "%Y%m%d%H%M%SZ")
+        not_after_max = datetime.utcnow() + timedelta(seconds=100)
+        self.assertTrue(not_after_min <= not_after <= not_after_max)
 
 
     def test_has_expired_wrong_args(self):
