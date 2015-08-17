@@ -669,11 +669,12 @@ Connection objects have the following methods:
     (**not** the underlying transport buffer).
 
 
-.. py:method:: Connection.recv(bufsize)
+.. py:method:: Connection.recv(bufsize[, flags])
 
     Receive data from the Connection. The return value is a string representing the
     data received. The maximum amount of data to be received at once, is specified
-    by *bufsize*.
+    by *bufsize*. The only supported flag is ``MSG_PEEK``, all other flags are
+    ignored.
 
 
 .. py:method:: Connection.recv_into(buffer[, nbytes[, flags]])
@@ -681,8 +682,7 @@ Connection objects have the following methods:
     Receive data from the Connection and copy it directly into the provided
     buffer. The return value is the number of bytes read from the connection.
     The maximum amount of data to be received at once is specified by *nbytes*.
-    *flags* is accepted for compatibility with ``socket.recv_into`` but its
-    value is ignored.
+    The only supported flag is ``MSG_PEEK``, all other flags are ignored.
 
 .. py:method:: Connection.bio_write(bytes)
 
