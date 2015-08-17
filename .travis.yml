@@ -67,11 +67,13 @@ matrix:
   - python: "2.7"
     env: TOXENV=docs
 
-  # Let the cryptography master builds fail because they might be triggered by
-  # cryptography changes beyond our control.
-  # Also allow OS X and 0.9.8 to fail at the moment while we fix these new
-  # build configurations.
-  # Also allow lint to fail while we fix existing lint.
+  # - Let the cryptography master builds fail because they might be triggered by
+  #   cryptography changes beyond our control.
+  # - Also allow OS X and 0.9.8 to fail at the moment while we fix these new
+  #   build configurations.
+  # - Also allow lint to fail while we fix existing lint.
+  # - We alloy pypy to fail until Travis fixes their infrastructure to a pypy
+  #   with a recent enought CFFI library to run cryptography 1.0+.
   allow_failures:
   - language: generic
     os: osx
@@ -83,6 +85,7 @@ matrix:
   - env: TOXENV=pypy-cryptographyMaster
   - env: OPENSSL=0.9.8 TOXENV=py27
   - env: TOXENV=flake8
+  - env: TOXENV=pypy
 
 install:
   - |
