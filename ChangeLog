@@ -1,6 +1,12 @@
+2015-08-17  Maximilian Hils <pyopenssl@maximilianhils.com>
+
+	* OpenSSL/SSL.py, OpenSSL/test/test_ssl.py: Add support for
+	  the ``MSG_PEEK`` flag to ``Connection.recv()`` and
+	  ``Connection.recv_into()``.
+
 2015-05-27  Jim Shaver <dcypherd@gmail.com>
 
-	* OpenSSL/SSL.py, : Add ``get_protocol_version()`` and 
+	* OpenSSL/SSL.py: Add ``get_protocol_version()`` and
 	  ``get_protocol_version_name()`` to ``Connection``.
 	  Based on work from Rich Moore.
 

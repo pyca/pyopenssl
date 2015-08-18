@@ -8,7 +8,7 @@ Unit tests for :py:obj:`OpenSSL.SSL`.
 from gc import collect, get_referrers
 from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE, ESHUTDOWN
 from sys import platform, getfilesystemencoding
-from socket import SHUT_RDWR, error, socket
+from socket import MSG_PEEK, SHUT_RDWR, error, socket
 from os import makedirs
 from os.path import join
 from unittest import main
@@ -2172,6 +2172,17 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, connection.pending, None)
 
 
+    def test_peek(self):
+        """
+        :py:obj:`Connection.recv` peeks into the connection if :py:obj:`socket.MSG_PEEK` is passed.
+        """
+        server, client = self._loopback()
+        server.send(b('xy'))
+        self.assertEqual(client.recv(2, MSG_PEEK), b('xy'))
+        self.assertEqual(client.recv(2, MSG_PEEK), b('xy'))
+        self.assertEqual(client.recv(2), b('xy'))
+
+
     def test_connect_wrong_args(self):
         """
         :py:obj:`Connection.connect` raises :py:obj:`TypeError` if called with a non-address
@@ -2997,6 +3008,17 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         the buffer than will fit.
         """
         self._doesnt_overfill_test(bytearray)
+
+
+    def test_peek(self):
+
+        server, client = self._loopback()
+        server.send(b('xy'))
+
+        for _ in range(2):
+            output_buffer = bytearray(5)
+            self.assertEqual(client.recv_into(output_buffer, flags=MSG_PEEK), 2)
+            self.assertEqual(output_buffer, bytearray(b('xy\x00\x00\x00')))
 
 
     try:

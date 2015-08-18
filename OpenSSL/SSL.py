@@ -1,3 +1,4 @@
+import socket
 from sys import platform
 from functools import wraps, partial
 from itertools import count, chain
@@ -1311,12 +1312,15 @@ class Connection(object):
         method again with the SAME buffer.
 
         :param bufsiz: The maximum number of bytes to read
-        :param flags: (optional) Included for compatibility with the socket
-                      API, the value is ignored
+        :param flags: (optional) The only supported flag is ``MSG_PEEK``,
+            all other flags are ignored.
         :return: The string read from the Connection
         """
         buf = _ffi.new("char[]", bufsiz)
-        result = _lib.SSL_read(self._ssl, buf, bufsiz)
+        if flags is not None and flags & socket.MSG_PEEK:
+            result = _lib.SSL_peek(self._ssl, buf, bufsiz)
+        else:
+            result = _lib.SSL_read(self._ssl, buf, bufsiz)
         self._raise_ssl_error(self._ssl, result)
         return _ffi.buffer(buf, result)[:]
     read = recv
@@ -1332,8 +1336,8 @@ class Connection(object):
             buffer. If not present, defaults to the size of the buffer. If
             larger than the size of the buffer, is reduced to the size of the
             buffer.
-        :param flags: (optional) Included for compatibility with the socket
-            API, the value is ignored.
+        :param flags: (optional) The only supported flag is ``MSG_PEEK``,
+            all other flags are ignored.
         :return: The number of bytes read into the buffer.
         """
         if nbytes is None:
@@ -1345,7 +1349,10 @@ class Connection(object):
         # better if we could pass memoryviews straight into the SSL_read call,
         # but right now we can't. Revisit this if CFFI gets that ability.
         buf = _ffi.new("char[]", nbytes)
-        result = _lib.SSL_read(self._ssl, buf, nbytes)
+        if flags is not None and flags & socket.MSG_PEEK:
+            result = _lib.SSL_peek(self._ssl, buf, nbytes)
+        else:
+            result = _lib.SSL_read(self._ssl, buf, nbytes)
         self._raise_ssl_error(self._ssl, result)
 
         # This strange line is all to avoid a memory copy. The buffer protocol
