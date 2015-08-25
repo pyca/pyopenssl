@@ -595,7 +595,7 @@ Connection objects have the following methods:
 
     Retrieve the list of ciphers used by the Connection object. WARNING: This API
     has changed. It used to take an optional parameter and just return a string,
-    but not it returns the entire list in one go.
+    but now it returns the entire list in one go.
 
 
 .. py:method:: Connection.get_protocol_version()
