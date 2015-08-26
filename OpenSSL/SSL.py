@@ -1952,13 +1952,11 @@ class Connection(object):
         _lib.SSL_set_alpn_protos(self._ssl, input_str, input_str_len)
 
 
+    @_requires_alpn
     def get_alpn_proto_negotiated(self):
         """
         Get the protocol that was negotiated by ALPN.
         """
-        if not _lib.Cryptography_HAS_ALPN:
-            raise NotImplementedError("ALPN not available")
-
         data = _ffi.new("unsigned char **")
         data_len = _ffi.new("unsigned int *")
 
