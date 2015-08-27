@@ -1104,6 +1104,7 @@ class Connection(object):
         ssl = _lib.SSL_new(context._context)
         self._ssl = _ffi.gc(ssl, _lib.SSL_free)
         self._context = context
+        self._app_data = None
 
         # References to strings used for Next Protocol Negotiation. OpenSSL's
         # header files suggest that these might get copied at some point, but
