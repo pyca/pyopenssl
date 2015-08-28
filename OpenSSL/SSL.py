@@ -1434,6 +1434,13 @@ class Connection(object):
 
         :return: True if the renegotiation can be started, false otherwise
         """
+        if not self.renegotiate_pending():
+            result = _lib.SSL_renegotiate(self._ssl)
+            self._raise_ssl_error(self._ssl, result)
+            return True
+
+        return False
+
 
     def do_handshake(self):
         """
@@ -1453,6 +1460,7 @@ class Connection(object):
 
         :return: Whether there's a renegotiation in progress
         """
+        return bool(_lib.SSL_renegotiate_pending(self._ssl))
 
     def total_renegotiations(self):
         """
