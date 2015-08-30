@@ -2090,6 +2090,80 @@ class CRL(object):
             _raise_current_error()
 
         return _bio_to_string(bio)
+
+
+    def get_issuer(self):
+        """
+        Return the issuer of this CRL.
+
+        :return: A :py:class:`X509Name` object.
+        """
+        name = X509Name.__new__(X509Name)
+        name._name = _lib.X509_CRL_get_issuer(self._crl)
+        if name._name == _ffi.NULL:
+            # TODO: This is untested.
+            _raise_current_error()
+
+        # The name is owned by the CA structure.  As long as the X509Name
+        # Python object is alive, keep the CA Python object alive.
+        name._owner = self
+
+        return name
+
+
+    def get_last_update(self):
+        """
+        Return the last update timestamp of this CRL.
+
+        :return: :py:data:`bytes` in some format, or :py:const:`None`.
+        """
+        tstamp = _lib.X509_CRL_get_lastUpdate(self._crl)
+        if tstamp == _ffi.NULL:
+            return None
+        return _get_asn1_time(tstamp)
+
+
+    def get_next_update(self):
+        """
+        Return the next update timestamp of this CRL.
+
+        :return: :py:data:`bytes` in some format, or :py:const:`None`.
+        """
+        tstamp = _lib.X509_CRL_get_nextUpdate(self._crl)
+        if tstamp == _ffi.NULL:
+            return None
+        return _get_asn1_time(tstamp)
+
+
+    def get_version(self):
+        """
+        Return the version number of this CRL.
+
+        :return: An :py:data:`int`.
+        """
+        return _lib.X509_CRL_get_version(self._crl)
+
+
+    def get_extensions(self):
+        """
+        Return a list of the extensions of this CRL.
+
+        :return: A :py:class:`list` of :py:class:`X509Extension` objects.
+        """
+        exts = []
+        for i in range(_lib.X509_CRL_get_ext_count(self._crl)):
+            native_ext = _lib.X509_CRL_get_ext(self._crl, i)
+            if native_ext == _ffi.NULL:
+                # TODO: This is untested.
+                _raise_current_error()
+            ext = X509Extension.__new__(X509Extension)
+            ext._extension = native_ext
+            # Extensions are owned by the CA structure.  As long as the
+            # extensions Python objects are alive, keep the CA Python object
+            # alive.
+            ext._owner = self
+            exts.append(ext)
+        return exts
 CRLType = CRL
 
 

@@ -3047,6 +3047,11 @@ class CRLTests(TestCase):
         crl = CRL()
         self.assertTrue( isinstance(crl, CRL) )
         self.assertEqual(crl.get_revoked(), None)
+        self.assertEqual(crl.get_issuer().commonName, None)
+        self.assertEqual(crl.get_next_update(), None)
+        self.assertEqual(crl.get_last_update(), None)
+        self.assertEqual(crl.get_version(), 0)
+        self.assertEqual(crl.get_extensions(), [])
 
 
     def test_construction_wrong_args(self):
@@ -3332,6 +3337,47 @@ class CRLTests(TestCase):
         be loaded raises a :py:obj:`OpenSSL.crypto.Error`.
         """
         self.assertRaises(Error, load_crl, FILETYPE_PEM, b"hello, world")
+
+
+    def test_get_issuer(self):
+        """
+        Load a known CRL and inspect its issuer.
+        """
+        crl = load_crl(FILETYPE_PEM, crlData)
+        issuer = crl.get_issuer()
+        self.assertEqual(issuer.commonName, "Testing Root CA")
+
+
+    def test_get_last_update(self):
+        """
+        Load a known CRL and inspect its last update timestamp.
+        """
+        crl = load_crl(FILETYPE_PEM, crlData)
+        self.assertEqual(crl.get_last_update(), b("20090726043456Z"))
+
+
+    def test_get_next_update(self):
+        """
+        Load a known CRL and inspect its next update timestamp.
+        """
+        crl = load_crl(FILETYPE_PEM, crlData)
+        self.assertEqual(crl.get_next_update(), b("20120927024152Z"))
+
+
+    def test_get_version(self):
+        """
+        Load a known CRL and inspect its version number.
+        """
+        crl = load_crl(FILETYPE_PEM, crlData)
+        self.assertEqual(crl.get_version(), 0)
+
+
+    def test_get_extensions(self):
+        """
+        Load a known CRL and inspect its extensions.
+        """
+        crl = load_crl(FILETYPE_PEM, crlData)
+        self.assertEqual(crl.get_extensions(), [])
 
 
 
