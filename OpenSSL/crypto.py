@@ -27,6 +27,7 @@ FILETYPE_TEXT = 2 ** 16 - 1
 
 TYPE_RSA = _lib.EVP_PKEY_RSA
 TYPE_DSA = _lib.EVP_PKEY_DSA
+TYPE_EC = _lib.EVP_PKEY_EC
 
 
 
@@ -171,7 +172,7 @@ class PKey(object):
         self._initialized = False
 
 
-    def generate_key(self, type, bits):
+    def generate_key(self, type, bits = 1024, curve = 'prime256v1'):
         """
         Generate a key pair of the given type, with the given number of bits.
 
@@ -232,6 +233,19 @@ class PKey(object):
             if not _lib.EVP_PKEY_assign_DSA(self._pkey, dsa):
                 # TODO: This is untested.
                 _raise_current_error()
+
+        elif type == TYPE_EC:
+            curves_nid = {'prime256v1':_lib.NID_X9_62_prime256v1,
+                     'secp384r1':_lib.NID_secp384r1,
+                     'secp521r1': _lib.NID_secp521r1}
+            if curve in curves_nid:
+                ec_key = _lib.EC_KEY_new_by_curve_name(curves_nid[curve]);
+                if not _lib.EC_KEY_generate_key(ec_key):
+                    # TODO: This is untested.
+                    _raise_current_error()
+                if not _lib.EVP_PKEY_assign_EC_KEY(self._pkey, ec_key):
+                    # TODO: This is untested.
+                    _raise_current_error()
         else:
             raise Error("No such key type")
 
@@ -247,17 +261,22 @@ class PKey(object):
         :return: True if key is consistent.
         :raise Error: if the key is inconsistent.
         :raise TypeError: if the key is of a type which cannot be checked.
-            Only RSA keys can currently be checked.
+            Only RSA/EC keys can currently be checked.
         """
         if self._only_public:
             raise TypeError("public key only")
 
-        if _lib.EVP_PKEY_type(self._pkey.type) != _lib.EVP_PKEY_RSA:
+        if _lib.EVP_PKEY_type(self._pkey.type) == _lib.EVP_PKEY_RSA:
+            rsa = _lib.EVP_PKEY_get1_RSA(self._pkey)
+            rsa = _ffi.gc(rsa, _lib.RSA_free)
+            result = _lib.RSA_check_key(rsa)
+        elif _lib.EVP_PKEY_type(self._pkey.type) == _lib.EVP_PKEY_EC:
+            eckey = _lib.EVP_PKEY_get1_EC_KEY(self._pkey)
+            eckey = _ffi.gc(eckey, _lib.EC_KEY_free)
+            result = _lib.EC_KEY_check_key(eckey)
+        else:
             raise TypeError("key type unsupported")
 
-        rsa = _lib.EVP_PKEY_get1_RSA(self._pkey)
-        rsa = _ffi.gc(rsa, _lib.RSA_free)
-        result = _lib.RSA_check_key(rsa)
         if result:
             return True
         _raise_current_error()
