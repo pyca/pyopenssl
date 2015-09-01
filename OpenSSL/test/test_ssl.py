@@ -3210,8 +3210,8 @@ class ConnectionRenegotiateTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
 
-        server.send("hello world")
-        self.assertEquals(client.recv(len("hello world")), "hello world")
+        server.send(b"hello world")
+        self.assertEquals(client.recv(len(b"hello world")), b"hello world")
 
         self.assertEquals(server.total_renegotiations(), 0)
         self.assertTrue(server.renegotiate())
@@ -3224,8 +3224,8 @@ class ConnectionRenegotiateTests(TestCase, _LoopbackMixin):
 
         self.assertEquals(server.total_renegotiations(), 1)
         
-        server.send("hello world")
-        self.assertEquals(client.recv(len("hello world")), "hello world")
+        server.send(b"hello world")
+        self.assertEquals(client.recv(len(b"hello world")), b"hello world")
 
 
 class ErrorTests(TestCase):
