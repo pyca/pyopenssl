@@ -3,7 +3,8 @@ language: python
 
 cache:
   directories:
-    - $HOME/.cache/pip
+#    - $HOME/.cache/pip
+    - $HOME/ossl-098
 
 env:
   global:
@@ -44,12 +45,6 @@ matrix:
   - python: "2.7"
     env:
       OPENSSL=0.9.8 TOXENV=py27
-    addons:
-      apt:
-        sources:
-          - lucid
-        packages:
-          - libssl-dev/lucid
 
   # Meta
   - python: "2.7"
@@ -110,7 +105,28 @@ script:
       export CFLAGS="-I/usr/local/opt/openssl/include"
       export PATH="/usr/local/opt/openssl/bin:$PATH"
     fi
-    ~/.venv/bin/tox
+    # This section potentially downloads, compiles and installs openssl 0.9.8zg
+    if [[ "${OPENSSL}" == "0.9.8" ]]; then
+      # download, compile, and install if it's not already present via travis cache
+      if [[ ! -f "$HOME/ossl-098/bin/openssl" ]]; then
+        curl -O https://www.openssl.org/source/openssl-0.9.8zg.tar.gz
+        tar zxvf openssl-0.9.8zg.tar.gz
+        cd openssl-0.9.8zg
+        echo "OPENSSL_0.9.8ZG_CUSTOM {
+            global:
+              *;
+        };" > openssl.ld
+        ./config -Wl,--version-script=openssl.ld -Wl,-Bsymbolic-functions -fPIC shared --prefix=$HOME/ossl-098
+        make install
+        tree $HOME/ossl-098
+      fi
+      export PATH="$HOME/ossl-098/bin:$PATH"
+      export CFLAGS="-I$HOME/ossl-098/include"
+      export LDFLAGS="-L$HOME/ossl-098/lib"
+      export LD_LIBRARY_PATH="$HOME/ossl-098/lib"
+    fi
+    openssl version
+    ~/.venv/bin/tox -v
 
 after_script:
   - source ~/.venv/bin/activate && bash <(curl -s https://codecov.io/bash) -e TRAVIS_OS_NAME,TOXENV,OPENSSL
