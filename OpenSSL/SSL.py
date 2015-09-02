@@ -1146,7 +1146,10 @@ class Connection(object):
         Look up attributes on the wrapped socket object if they are not found on
         the Connection object.
         """
-        return getattr(self._socket, name)
+        if self._socket is None:
+            raise AttributeError("'" + self.__class__.__name__ + "' object has no attribute '" + name + "'")
+        else:
+            return getattr(self._socket, name)
 
 
     def _raise_ssl_error(self, ssl, result):
