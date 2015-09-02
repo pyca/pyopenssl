@@ -2193,6 +2193,17 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, connection.connect)
         self.assertRaises(TypeError, connection.connect, ("127.0.0.1", 1), None)
 
+    def test_connection_undefined_attr(self):
+        """
+        :py:obj:`Connection.connect` raises :py:obj:`TypeError` if called with a non-address
+        argument or with the wrong number of arguments.
+        """
+        
+        def attr_access_test(connection):
+            return connection.an_attribute_which_is_not_defined
+        
+        connection = Connection(Context(TLSv1_METHOD), None)
+        self.assertRaises(AttributeError, attr_access_test, connection)
 
     def test_connect_refused(self):
         """
