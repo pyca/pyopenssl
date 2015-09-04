@@ -421,6 +421,26 @@ Context objects have the following methods:
     and false otherwise.
 
 
+.. py:method:: Context.set_raw_verify(mode, callback)
+
+    A version of :py:meth:`set_verify` that provides OpenSSL objects directly
+    to *callback*, rather than unwrapping them. This is an expert-level
+    function and should only be used when you know what you're doing: in almost
+    all cases prefer :py:meth:`set_verify`.
+
+    Set the verification flags for this Context object to *mode* and specify
+    that *callback* should be used for verification callbacks. *mode* should be
+    one of :py:const:`VERIFY_NONE` and :py:const:`VERIFY_PEER`. If
+    :py:const:`VERIFY_PEER` is used, *mode* can be OR:ed with
+    :py:const:`VERIFY_FAIL_IF_NO_PEER_CERT` and :py:const:`VERIFY_CLIENT_ONCE`
+    to further control the behaviour.
+
+    *callback* should take two arguments: A Connection object, and an OpenSSL
+    X509 Store Context object. This second object can only be manipulated using
+    functions provided by the ``cryptography`` project. *callback* should
+    return true if verification passes and false otherwise.
+
+
 .. py:method:: Context.set_verify_depth(depth)
 
     Set the maximum depth for the certificate chain verification that shall be
