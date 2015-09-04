@@ -14,9 +14,7 @@ import re
 from subprocess import PIPE, Popen
 from datetime import datetime, timedelta
 
-from six import u, b, binary_type, PY3
-from warnings import simplefilter
-from warnings import catch_warnings
+from six import u, b, binary_type
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
