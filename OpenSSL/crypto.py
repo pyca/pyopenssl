@@ -567,7 +567,7 @@ class X509Name(object):
         """
         String representation of an X509Name
         """
-        result_buffer = _ffi.new("char[]", 512);
+        result_buffer = _ffi.new("char[]", 512)
         format_result = _lib.X509_NAME_oneline(
             self._name, result_buffer, len(result_buffer))
 
@@ -1649,7 +1649,7 @@ def load_certificate(type, buffer):
     if type == FILETYPE_PEM:
         x509 = _lib.PEM_read_bio_X509(bio, _ffi.NULL, _ffi.NULL, _ffi.NULL)
     elif type == FILETYPE_ASN1:
-        x509 = _lib.d2i_X509_bio(bio, _ffi.NULL);
+        x509 = _lib.d2i_X509_bio(bio, _ffi.NULL)
     else:
         raise ValueError(
             "type argument must be FILETYPE_PEM or FILETYPE_ASN1")
