@@ -22,7 +22,7 @@ Elliptic curves
     used for ECDHE key exchange.
 
 
-.. py:function:: get_elliptic_curve
+.. py:function:: get_elliptic_curve(name)
 
     Return a single curve object selected by name.
 
