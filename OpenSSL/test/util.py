@@ -7,7 +7,6 @@ Helpers for the OpenSSL test suite, largely copied from
 U{Twisted<http://twistedmatrix.com/>}.
 """
 
-import os
 import shutil
 import sys
 import traceback
@@ -21,11 +20,7 @@ from OpenSSL._util import exception_from_error_queue
 from OpenSSL.crypto import Error
 
 
-try:
-    import memdbg
-except Exception:
-    class _memdbg(object): heap = None
-    memdbg = _memdbg()
+import memdbg
 
 from OpenSSL._util import ffi, lib, byte_string as b
 
