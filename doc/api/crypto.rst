@@ -24,7 +24,7 @@ Elliptic curves
 
 .. py:function:: get_elliptic_curve(name)
 
-    Return a single curve object selected by name.
+    Return a single curve object selected by *name*.
 
     See :py:func:`get_elliptic_curves` for information about curve objects.
 
