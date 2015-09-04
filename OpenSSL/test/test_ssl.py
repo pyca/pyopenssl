@@ -2012,7 +2012,7 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
             # Now test a connection.
             conn = Connection(context)
             self.assertRaises(
-                NotImplementedError, context.set_alpn_protos, None
+                NotImplementedError, conn.set_alpn_protos, None
             )
 
 
