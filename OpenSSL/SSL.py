@@ -84,7 +84,7 @@ OP_TLS_ROLLBACK_BUG = _lib.SSL_OP_TLS_ROLLBACK_BUG
 OP_PKCS1_CHECK_1 = _lib.SSL_OP_PKCS1_CHECK_1
 OP_PKCS1_CHECK_2 = _lib.SSL_OP_PKCS1_CHECK_2
 OP_NETSCAPE_CA_DN_BUG = _lib.SSL_OP_NETSCAPE_CA_DN_BUG
-OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG= _lib.SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG
+OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG = _lib.SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG
 try:
     OP_NO_COMPRESSION = _lib.SSL_OP_NO_COMPRESSION
 except AttributeError:
@@ -97,7 +97,7 @@ try:
 except AttributeError:
     pass
 
-OP_ALL   = _lib.SSL_OP_ALL
+OP_ALL = _lib.SSL_OP_ALL
 
 VERIFY_PEER = _lib.SSL_VERIFY_PEER
 VERIFY_FAIL_IF_NO_PEER_CERT = _lib.SSL_VERIFY_FAIL_IF_NO_PEER_CERT
@@ -448,7 +448,7 @@ class Context(object):
         TLSv1_METHOD: "TLSv1_method",
         TLSv1_1_METHOD: "TLSv1_1_method",
         TLSv1_2_METHOD: "TLSv1_2_method",
-        }
+    }
     _methods = dict(
         (identifier, getattr(_lib, name))
         for (identifier, name) in _methods.items()
@@ -1886,7 +1886,7 @@ class Connection(object):
         if cipher == _ffi.NULL:
             return None
         else:
-            version =_ffi.string(_lib.SSL_CIPHER_get_version(cipher))
+            version = _ffi.string(_lib.SSL_CIPHER_get_version(cipher))
             return version.decode("utf-8")
 
 
