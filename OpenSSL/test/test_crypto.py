@@ -426,7 +426,7 @@ class X509ExtTests(TestCase):
         self.x509.set_issuer(self.subject)
         self.x509.set_pubkey(self.pkey)
         now = b(datetime.now().strftime("%Y%m%d%H%M%SZ"))
-        expire  = b((datetime.now() + timedelta(days=100)).strftime("%Y%m%d%H%M%SZ"))
+        expire = b((datetime.now() + timedelta(days=100)).strftime("%Y%m%d%H%M%SZ"))
         self.x509.set_notBefore(now)
         self.x509.set_notAfter(expire)
 
@@ -754,9 +754,9 @@ class PKeyTests(TestCase):
         """
         key = PKey()
         for type, bits in [(TYPE_RSA, 512), (TYPE_DSA, 576)]:
-             key.generate_key(type, bits)
-             self.assertEqual(key.type(), type)
-             self.assertEqual(key.bits(), bits)
+            key.generate_key(type, bits)
+            self.assertEqual(key.type(), type)
+            self.assertEqual(key.bits(), bits)
 
 
     def test_inconsistentKey(self):
@@ -1940,7 +1940,7 @@ class PKCS12Tests(TestCase):
         self.assertRaises(TypeError, p12.set_ca_certificates, 3)
         self.assertRaises(TypeError, p12.set_ca_certificates, X509())
         self.assertRaises(TypeError, p12.set_ca_certificates, (3, 4))
-        self.assertRaises(TypeError, p12.set_ca_certificates, ( PKey(), ))
+        self.assertRaises(TypeError, p12.set_ca_certificates, (PKey(),))
         self.assertRaises(TypeError, p12.set_friendlyname, 6)
         self.assertRaises(TypeError, p12.set_friendlyname, ('foo', 'bar'))
 
@@ -2173,8 +2173,8 @@ class PKCS12Tests(TestCase):
         """
         passwd = 'whatever'
         e = self.assertRaises(Error, load_pkcs12, b'fruit loops', passwd)
-        self.assertEqual( e.args[0][0][0], 'asn1 encoding routines')
-        self.assertEqual( len(e.args[0][0]), 3)
+        self.assertEqual(e.args[0][0][0], 'asn1 encoding routines')
+        self.assertEqual(len(e.args[0][0]), 3)
 
 
     def test_replace(self):
@@ -3043,7 +3043,7 @@ class CRLTests(TestCase):
         that it is empty
         """
         crl = CRL()
-        self.assertTrue( isinstance(crl, CRL) )
+        self.assertTrue(isinstance(crl, CRL))
         self.assertEqual(crl.get_revoked(), None)
 
 
@@ -3222,7 +3222,7 @@ class CRLTests(TestCase):
 
     def test_export_unknown_digest(self):
         """
-        Calling :py:obj:`OpenSSL.CRL.export` with a unsupported digest results
+        Calling :py:obj:`OpenSSL.CRL.export` with an unsupported digest results
         in a :py:obj:`ValueError` being raised.
         """
         crl = CRL()

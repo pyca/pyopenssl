@@ -2193,6 +2193,17 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, connection.connect)
         self.assertRaises(TypeError, connection.connect, ("127.0.0.1", 1), None)
 
+    def test_connection_undefined_attr(self):
+        """
+        :py:obj:`Connection.connect` raises :py:obj:`TypeError` if called with a non-address
+        argument or with the wrong number of arguments.
+        """
+        
+        def attr_access_test(connection):
+            return connection.an_attribute_which_is_not_defined
+        
+        connection = Connection(Context(TLSv1_METHOD), None)
+        self.assertRaises(AttributeError, attr_access_test, connection)
 
     def test_connect_refused(self):
         """
@@ -2297,9 +2308,9 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertRaises(ZeroReturnError, client.recv, 1024)
         self.assertEquals(client.get_shutdown(), RECEIVED_SHUTDOWN)
         client.shutdown()
-        self.assertEquals(client.get_shutdown(), SENT_SHUTDOWN|RECEIVED_SHUTDOWN)
+        self.assertEquals(client.get_shutdown(), SENT_SHUTDOWN | RECEIVED_SHUTDOWN)
         self.assertRaises(ZeroReturnError, server.recv, 1024)
-        self.assertEquals(server.get_shutdown(), SENT_SHUTDOWN|RECEIVED_SHUTDOWN)
+        self.assertEquals(server.get_shutdown(), SENT_SHUTDOWN | RECEIVED_SHUTDOWN)
 
 
     def test_shutdown_closed(self):
@@ -2773,7 +2784,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_get_protocol_version(self):
         """
-        :py:obj:`Connection.get_protocol_version()` returns an integer 
+        :py:obj:`Connection.get_protocol_version()` returns an integer
         giving the protocol version of the current connection.
         """
         server, client = self._loopback()
@@ -3374,8 +3385,8 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         # Create the server side Connection.  This is mostly setup boilerplate
         # - use TLSv1, use a particular certificate, etc.
         server_ctx = Context(TLSv1_METHOD)
-        server_ctx.set_options(OP_NO_SSLv2 | OP_NO_SSLv3 | OP_SINGLE_DH_USE )
-        server_ctx.set_verify(VERIFY_PEER|VERIFY_FAIL_IF_NO_PEER_CERT|VERIFY_CLIENT_ONCE, verify_cb)
+        server_ctx.set_options(OP_NO_SSLv2 | OP_NO_SSLv3 | OP_SINGLE_DH_USE)
+        server_ctx.set_verify(VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT | VERIFY_CLIENT_ONCE, verify_cb)
         server_store = server_ctx.get_cert_store()
         server_ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
         server_ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
@@ -3396,8 +3407,8 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         # Now create the client side Connection.  Similar boilerplate to the
         # above.
         client_ctx = Context(TLSv1_METHOD)
-        client_ctx.set_options(OP_NO_SSLv2 | OP_NO_SSLv3 | OP_SINGLE_DH_USE )
-        client_ctx.set_verify(VERIFY_PEER|VERIFY_FAIL_IF_NO_PEER_CERT|VERIFY_CLIENT_ONCE, verify_cb)
+        client_ctx.set_options(OP_NO_SSLv2 | OP_NO_SSLv3 | OP_SINGLE_DH_USE)
+        client_ctx.set_verify(VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT | VERIFY_CLIENT_ONCE, verify_cb)
         client_store = client_ctx.get_cert_store()
         client_ctx.use_privatekey(load_privatekey(FILETYPE_PEM, client_key_pem))
         client_ctx.use_certificate(load_certificate(FILETYPE_PEM, client_cert_pem))
@@ -3484,9 +3495,9 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         context = Context(SSLv3_METHOD)
         client = socket()
         clientSSL = Connection(context, client)
-        self.assertRaises( TypeError, clientSSL.bio_read, 100)
-        self.assertRaises( TypeError, clientSSL.bio_write, "foo")
-        self.assertRaises( TypeError, clientSSL.bio_shutdown )
+        self.assertRaises(TypeError, clientSSL.bio_read, 100)
+        self.assertRaises(TypeError, clientSSL.bio_write, "foo")
+        self.assertRaises(TypeError, clientSSL.bio_shutdown)
 
 
     def test_outgoingOverflow(self):

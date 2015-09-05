@@ -291,9 +291,9 @@ class _NpnSelectHelper(_CallbackExceptionHelper):
                 protolist = []
                 while instr:
                     l = indexbytes(instr, 0)
-                    proto = instr[1:l+1]
+                    proto = instr[1:l + 1]
                     protolist.append(proto)
-                    instr = instr[l+1:]
+                    instr = instr[l + 1:]
 
                 # Call the callback
                 outstr = callback(conn, protolist)
@@ -1146,7 +1146,10 @@ class Connection(object):
         Look up attributes on the wrapped socket object if they are not found on
         the Connection object.
         """
-        return getattr(self._socket, name)
+        if self._socket is None:
+            raise AttributeError("'" + self.__class__.__name__ + "' object has no attribute '" + name + "'")
+        else:
+            return getattr(self._socket, name)
 
 
     def _raise_ssl_error(self, ssl, result):

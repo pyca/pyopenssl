@@ -1579,7 +1579,7 @@ class X509StoreContext(object):
         Convert an OpenSSL native context error failure into a Python
         exception.
 
-        When a call to native OpenSSL X509_verify_cert fails, additonal information
+        When a call to native OpenSSL X509_verify_cert fails, additional information
         about the failure can be obtained from the store context.
         """
         errors = [
@@ -1617,7 +1617,7 @@ class X509StoreContext(object):
 
         :param store_ctx: The :py:class:`X509StoreContext` to verify.
 
-        :raises X509StoreContextError: If an error occured when validating a
+        :raises X509StoreContextError: If an error occurred when validating a
           certificate in the context. Sets ``certificate`` attribute to indicate
           which certificate caused the error.
         """
@@ -1785,7 +1785,7 @@ class Revoked(object):
         b"cessationOfOperation",
         b"certificateHold",
         # b"removeFromCRL",
-        ]
+    ]
 
     def __init__(self):
         revoked = _lib.X509_REVOKED_new()
