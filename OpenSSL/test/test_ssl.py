@@ -7,7 +7,7 @@ Unit tests for :py:obj:`OpenSSL.SSL`.
 
 from gc import collect, get_referrers
 from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE, ESHUTDOWN
-from sys import platform, getfilesystemencoding
+from sys import platform, getfilesystemencoding, version_info
 from socket import MSG_PEEK, SHUT_RDWR, error, socket
 from os import makedirs
 from os.path import join
@@ -100,6 +100,10 @@ MBYCEQCobsg29c9WZP/54oAPcwiDAgEC
 
 
 skip_if_py3 = pytest.mark.skipif(PY3, reason="Python 2 only")
+skip_if_py26 = pytest.mark.skipif(
+    version_info[0:2] == (2, 6),
+    reason="Python 2.7 and later only"
+)
 
 
 def join_bytes_or_unicode(prefix, suffix):
@@ -2774,17 +2778,15 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, connection.send, object())
         self.assertRaises(TypeError, connection.send, "foo", object(), "bar")
 
-
     def test_short_bytes(self):
         """
-        When passed a short byte string, :py:obj:`Connection.send` transmits all of it
-        and returns the number of bytes sent.
+        When passed a short byte string, :py:obj:`Connection.send` transmits
+        all of it and returns the number of bytes sent.
         """
         server, client = self._loopback()
         count = server.send(b('xy'))
         self.assertEquals(count, 2)
         self.assertEquals(client.recv(2), b('xy'))
-
 
     def test_text(self):
         """
@@ -2805,39 +2807,28 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
         self.assertEquals(count, 2)
         self.assertEquals(client.recv(2), b"xy")
 
-    try:
-        memoryview
-    except NameError:
-        "cannot test sending memoryview without memoryview"
-    else:
-        def test_short_memoryview(self):
-            """
-            When passed a memoryview onto a small number of bytes,
-            :py:obj:`Connection.send` transmits all of them and returns the number of
-            bytes sent.
-            """
-            server, client = self._loopback()
-            count = server.send(memoryview(b('xy')))
-            self.assertEquals(count, 2)
-            self.assertEquals(client.recv(2), b('xy'))
+    @skip_if_py26
+    def test_short_memoryview(self):
+        """
+        When passed a memoryview onto a small number of bytes,
+        :py:obj:`Connection.send` transmits all of them and returns the number
+        of bytes sent.
+        """
+        server, client = self._loopback()
+        count = server.send(memoryview(b('xy')))
+        self.assertEquals(count, 2)
+        self.assertEquals(client.recv(2), b('xy'))
 
-
-    try:
-        buffer
-    except NameError:
-        "cannot test sending buffer without buffer"
-    else:
-        def test_short_buffer(self):
-            """
-            When passed a buffer containing a small number of bytes,
-            :py:obj:`Connection.send` transmits all of them and returns the number of
-            bytes sent.
-            """
-            server, client = self._loopback()
-            count = server.send(buffer(b('xy')))
-            self.assertEquals(count, 2)
-            self.assertEquals(client.recv(2), b('xy'))
-
+    def test_short_buffer(self):
+        """
+        When passed a buffer containing a small number of bytes,
+        :py:obj:`Connection.send` transmits all of them and returns the number
+        of bytes sent.
+        """
+        server, client = self._loopback()
+        count = server.send(buffer(b('xy')))
+        self.assertEquals(count, 2)
+        self.assertEquals(client.recv(2), b('xy'))
 
 
 def _make_memoryview(size):
@@ -2846,7 +2837,6 @@ def _make_memoryview(size):
     size.
     """
     return memoryview(bytearray(size))
-
 
 
 class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
@@ -2867,14 +2857,12 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         self.assertEqual(client.recv_into(output_buffer), 2)
         self.assertEqual(output_buffer, bytearray(b('xy\x00\x00\x00')))
 
-
     def test_bytearray_no_length(self):
         """
         :py:obj:`Connection.recv_into` can be passed a ``bytearray`` instance
         and data in the receive buffer is written to it.
         """
         self._no_length_test(bytearray)
-
 
     def _respects_length_test(self, factory):
         """
@@ -2892,7 +2880,6 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
             output_buffer, bytearray(b('abcde\x00\x00\x00\x00\x00'))
         )
 
-
     def test_bytearray_respects_length(self):
         """
         When called with a ``bytearray`` instance,
@@ -2900,7 +2887,6 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         doesn't copy in more than that number of bytes.
         """
         self._respects_length_test(bytearray)
-
 
     def _doesnt_overfill_test(self, factory):
         """
@@ -2919,7 +2905,6 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         rest = client.recv(5)
         self.assertEqual(b('fghij'), rest)
 
-
     def test_bytearray_doesnt_overfill(self):
         """
         When called with a ``bytearray`` instance,
@@ -2927,7 +2912,6 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         doesn't write more bytes into it than will fit.
         """
         self._doesnt_overfill_test(bytearray)
-
 
     def _really_doesnt_overfill_test(self, factory):
         """
@@ -2945,7 +2929,6 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         rest = client.recv(5)
         self.assertEqual(b('fghij'), rest)
 
-
     def test_bytearray_really_doesnt_overfill(self):
         """
         When called with a ``bytearray`` instance and an ``nbytes`` value that
@@ -2955,7 +2938,6 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         """
         self._doesnt_overfill_test(bytearray)
 
-
     def test_peek(self):
 
         server, client = self._loopback()
@@ -2963,50 +2945,45 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
 
         for _ in range(2):
             output_buffer = bytearray(5)
-            self.assertEqual(client.recv_into(output_buffer, flags=MSG_PEEK), 2)
+            self.assertEqual(
+                client.recv_into(output_buffer, flags=MSG_PEEK), 2)
             self.assertEqual(output_buffer, bytearray(b('xy\x00\x00\x00')))
 
+    @skip_if_py26
+    def test_memoryview_no_length(self):
+        """
+        :py:obj:`Connection.recv_into` can be passed a ``memoryview``
+        instance and data in the receive buffer is written to it.
+        """
+        self._no_length_test(_make_memoryview)
 
-    try:
-        memoryview
-    except NameError:
-        "cannot test recv_into memoryview without memoryview"
-    else:
-        def test_memoryview_no_length(self):
-            """
-            :py:obj:`Connection.recv_into` can be passed a ``memoryview``
-            instance and data in the receive buffer is written to it.
-            """
-            self._no_length_test(_make_memoryview)
+    @skip_if_py26
+    def test_memoryview_respects_length(self):
+        """
+        When called with a ``memoryview`` instance,
+        :py:obj:`Connection.recv_into` respects the ``nbytes`` parameter
+        and doesn't copy more than that number of bytes in.
+        """
+        self._respects_length_test(_make_memoryview)
 
+    @skip_if_py26
+    def test_memoryview_doesnt_overfill(self):
+        """
+        When called with a ``memoryview`` instance,
+        :py:obj:`Connection.recv_into` respects the size of the array and
+        doesn't write more bytes into it than will fit.
+        """
+        self._doesnt_overfill_test(_make_memoryview)
 
-        def test_memoryview_respects_length(self):
-            """
-            When called with a ``memoryview`` instance,
-            :py:obj:`Connection.recv_into` respects the ``nbytes`` parameter
-            and doesn't copy more than that number of bytes in.
-            """
-            self._respects_length_test(_make_memoryview)
-
-
-        def test_memoryview_doesnt_overfill(self):
-            """
-            When called with a ``memoryview`` instance,
-            :py:obj:`Connection.recv_into` respects the size of the array and
-            doesn't write more bytes into it than will fit.
-            """
-            self._doesnt_overfill_test(_make_memoryview)
-
-
-        def test_memoryview_really_doesnt_overfill(self):
-            """
-            When called with a ``memoryview`` instance and an ``nbytes`` value
-            that is too large, :py:obj:`Connection.recv_into` respects the size
-            of the array and not the ``nbytes`` value and doesn't write more
-            bytes into the buffer than will fit.
-            """
-            self._doesnt_overfill_test(_make_memoryview)
-
+    @skip_if_py26
+    def test_memoryview_really_doesnt_overfill(self):
+        """
+        When called with a ``memoryview`` instance and an ``nbytes`` value
+        that is too large, :py:obj:`Connection.recv_into` respects the size
+        of the array and not the ``nbytes`` value and doesn't write more
+        bytes into the buffer than will fit.
+        """
+        self._doesnt_overfill_test(_make_memoryview)
 
 
 class ConnectionSendallTests(TestCase, _LoopbackMixin):
