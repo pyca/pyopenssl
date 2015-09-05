@@ -1321,7 +1321,8 @@ class ContextTests(TestCase, _LoopbackMixin):
         context = Context(TLSv1_METHOD)
         self.assertEquals(context.get_verify_mode(), 0)
         context.set_verify(
-            long(VERIFY_PEER | VERIFY_CLIENT_ONCE), lambda *args: None)
+            long(VERIFY_PEER | VERIFY_CLIENT_ONCE), lambda *args: None
+        )  # pragma: nocover
         self.assertEquals(
             context.get_verify_mode(), VERIFY_PEER | VERIFY_CLIENT_ONCE)
 
@@ -1724,7 +1725,10 @@ class NextProtoNegotiationTests(TestCase, _LoopbackMixin):
             def advertise(conn):
                 raise TypeError
 
-            def select(conn, options):
+            def select(conn, options):  # pragma: nocover
+                """
+                Assert later that no args are actually appended.
+                """
                 select_args.append((conn, options))
                 return b''
 
