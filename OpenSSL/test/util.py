@@ -36,6 +36,7 @@ class TestCase(TestCase):
     :py:class:`TestCase` adds useful testing functionality beyond what is
     available from the standard library :py:class:`unittest.TestCase`.
     """
+
     def run(self, result):
         run = super(TestCase, self).run
         if memdbg.heap is None:
@@ -206,7 +207,8 @@ class TestCase(TestCase):
 
     def failUnlessIn(self, containee, container, msg=None):
         """
-        Fail the test if :py:data:`containee` is not found in :py:data:`container`.
+        Fail the test if :py:data:`containee` is not found in
+        :py:data:`container`.
 
         :param containee: the value that should be in :py:class:`container`
         :param container: a sequence type, or in the case of a mapping type,
@@ -285,15 +287,15 @@ class TestCase(TestCase):
     # Other stuff
     def assertConsistentType(self, theType, name, *constructionArgs):
         """
-        Perform various assertions about :py:data:`theType` to ensure that it is a
-        well-defined type.  This is useful for extension types, where it's
+        Perform various assertions about :py:data:`theType` to ensure that it
+        is a well-defined type.  This is useful for extension types, where it's
         pretty easy to do something wacky.  If something about the type is
         unusual, an exception will be raised.
 
         :param theType: The type object about which to make assertions.
         :param name: A string giving the name of the type.
-        :param constructionArgs: Positional arguments to use with :py:data:`theType` to
-            create an instance of it.
+        :param constructionArgs: Positional arguments to use with
+            :py:data:`theType` to create an instance of it.
         """
         self.assertEqual(theType.__name__, name)
         self.assertTrue(isinstance(theType, type))
@@ -305,6 +307,7 @@ class EqualityTestsMixin(object):
     """
     A mixin defining tests for the standard implementation of C{==} and C{!=}.
     """
+
     def anInstance(self):
         """
         Return an instance of the class under test.  Each call to this method
