@@ -99,7 +99,7 @@ MBYCEQCobsg29c9WZP/54oAPcwiDAgEC
 """
 
 
-skip_if_py3 = pytest.mark.skipif(not PY3, reason="Python 2 only")
+skip_if_py3 = pytest.mark.skipif(PY3, reason="Python 2 only")
 
 
 def join_bytes_or_unicode(prefix, suffix):
