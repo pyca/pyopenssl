@@ -3003,16 +3003,14 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         self.assertRaises(
             TypeError, connection.sendall, "foo", object(), "bar")
 
-
     def test_short(self):
         """
-        :py:obj:`Connection.sendall` transmits all of the bytes in the string passed to
-        it.
+        :py:obj:`Connection.sendall` transmits all of the bytes in the string
+        passed to it.
         """
         server, client = self._loopback()
         server.sendall(b('x'))
         self.assertEquals(client.recv(1), b('x'))
-
 
     def test_text(self):
         """
@@ -3032,46 +3030,36 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
             self.assertIs(w[-1].category, DeprecationWarning)
         self.assertEquals(client.recv(1), b"x")
 
+    @skip_if_py26
+    def test_short_memoryview(self):
+        """
+        When passed a memoryview onto a small number of bytes,
+        :py:obj:`Connection.sendall` transmits all of them.
+        """
+        server, client = self._loopback()
+        server.sendall(memoryview(b('x')))
+        self.assertEquals(client.recv(1), b('x'))
 
-    try:
-        memoryview
-    except NameError:
-        "cannot test sending memoryview without memoryview"
-    else:
-        def test_short_memoryview(self):
-            """
-            When passed a memoryview onto a small number of bytes,
-            :py:obj:`Connection.sendall` transmits all of them.
-            """
-            server, client = self._loopback()
-            server.sendall(memoryview(b('x')))
-            self.assertEquals(client.recv(1), b('x'))
-
-
-    try:
-        buffer
-    except NameError:
-        "cannot test sending buffers without buffers"
-    else:
-        def test_short_buffers(self):
-            """
-            When passed a buffer containing a small number of bytes,
-            :py:obj:`Connection.sendall` transmits all of them.
-            """
-            server, client = self._loopback()
-            server.sendall(buffer(b('x')))
-            self.assertEquals(client.recv(1), b('x'))
-
+    @skip_if_py3
+    def test_short_buffers(self):
+        """
+        When passed a buffer containing a small number of bytes,
+        :py:obj:`Connection.sendall` transmits all of them.
+        """
+        server, client = self._loopback()
+        server.sendall(buffer(b('x')))
+        self.assertEquals(client.recv(1), b('x'))
 
     def test_long(self):
         """
-        :py:obj:`Connection.sendall` transmits all of the bytes in the string passed to
-        it even if this requires multiple calls of an underlying write function.
+        :py:obj:`Connection.sendall` transmits all of the bytes in the string
+        passed to it even if this requires multiple calls of an underlying
+        write function.
         """
         server, client = self._loopback()
         # Should be enough, underlying SSL_write should only do 16k at a time.
-        # On Windows, after 32k of bytes the write will block (forever - because
-        # no one is yet reading).
+        # On Windows, after 32k of bytes the write will block (forever
+        # - because no one is yet reading).
         message = b('x') * (1024 * 32 - 1) + b('y')
         server.sendall(message)
         accum = []
@@ -3082,11 +3070,10 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
             received += len(data)
         self.assertEquals(message, b('').join(accum))
 
-
     def test_closed(self):
         """
-        If the underlying socket is closed, :py:obj:`Connection.sendall` propagates the
-        write error from the low level write call.
+        If the underlying socket is closed, :py:obj:`Connection.sendall`
+        propagates the write error from the low level write call.
         """
         server, client = self._loopback()
         server.sock_shutdown(2)
@@ -3097,37 +3084,33 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
             self.assertEqual(exc.args[0], EPIPE)
 
 
-
 class ConnectionRenegotiateTests(TestCase, _LoopbackMixin):
     """
     Tests for SSL renegotiation APIs.
     """
     def test_renegotiate_wrong_args(self):
         """
-        :py:obj:`Connection.renegotiate` raises :py:obj:`TypeError` if called with any
-        arguments.
+        :py:obj:`Connection.renegotiate` raises :py:obj:`TypeError` if called
+        with any arguments.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, connection.renegotiate, None)
 
-
     def test_total_renegotiations_wrong_args(self):
         """
-        :py:obj:`Connection.total_renegotiations` raises :py:obj:`TypeError` if called with
-        any arguments.
+        :py:obj:`Connection.total_renegotiations` raises :py:obj:`TypeError` if
+        called with any arguments.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, connection.total_renegotiations, None)
 
-
     def test_total_renegotiations(self):
         """
-        :py:obj:`Connection.total_renegotiations` returns :py:obj:`0` before any
-        renegotiations have happened.
+        :py:obj:`Connection.total_renegotiations` returns :py:obj:`0` before
+        any renegotiations have happened.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertEquals(connection.total_renegotiations(), 0)
-
 
 #     def test_renegotiate(self):
 #         """
@@ -3149,8 +3132,6 @@ class ConnectionRenegotiateTests(TestCase, _LoopbackMixin):
 #         self.assertEquals(server.total_renegotiations(), 1)
 
 
-
-
 class ErrorTests(TestCase):
     """
     Unit tests for :py:obj:`OpenSSL.SSL.Error`.
@@ -3163,7 +3144,6 @@ class ErrorTests(TestCase):
         self.assertEqual(Error.__name__, 'Error')
 
 
-
 class ConstantsTests(TestCase):
     """
     Tests for the values of constants exposed in :py:obj:`OpenSSL.SSL`.
@@ -3172,50 +3152,52 @@ class ConstantsTests(TestCase):
     OpenSSL APIs.  The only assertions it seems can be made about them is
     their values.
     """
-    # unittest.TestCase has no skip mechanism
-    if OP_NO_QUERY_MTU is not None:
-        def test_op_no_query_mtu(self):
-            """
-            The value of :py:obj:`OpenSSL.SSL.OP_NO_QUERY_MTU` is 0x1000, the value of
-            :py:const:`SSL_OP_NO_QUERY_MTU` defined by :file:`openssl/ssl.h`.
-            """
-            self.assertEqual(OP_NO_QUERY_MTU, 0x1000)
-    else:
-        "OP_NO_QUERY_MTU unavailable - OpenSSL version may be too old"
+    @pytest.mark.skipif(
+        OP_NO_QUERY_MTU is None,
+        reason="OP_NO_QUERY_MTU unavailable - OpenSSL version may be too old"
+    )
+    def test_op_no_query_mtu(self):
+        """
+        The value of :py:obj:`OpenSSL.SSL.OP_NO_QUERY_MTU` is 0x1000, the value
+        of :py:const:`SSL_OP_NO_QUERY_MTU` defined by :file:`openssl/ssl.h`.
+        """
+        self.assertEqual(OP_NO_QUERY_MTU, 0x1000)
 
+    @pytest.mark.skipif(
+        OP_COOKIE_EXCHANGE is None,
+        reason="OP_COOKIE_EXCHANGE unavailable - "
+        "OpenSSL version may be too old"
+    )
+    def test_op_cookie_exchange(self):
+        """
+        The value of :py:obj:`OpenSSL.SSL.OP_COOKIE_EXCHANGE` is 0x2000, the
+        value of :py:const:`SSL_OP_COOKIE_EXCHANGE` defined by
+        :file:`openssl/ssl.h`.
+        """
+        self.assertEqual(OP_COOKIE_EXCHANGE, 0x2000)
 
-    if OP_COOKIE_EXCHANGE is not None:
-        def test_op_cookie_exchange(self):
-            """
-            The value of :py:obj:`OpenSSL.SSL.OP_COOKIE_EXCHANGE` is 0x2000, the value
-            of :py:const:`SSL_OP_COOKIE_EXCHANGE` defined by :file:`openssl/ssl.h`.
-            """
-            self.assertEqual(OP_COOKIE_EXCHANGE, 0x2000)
-    else:
-        "OP_COOKIE_EXCHANGE unavailable - OpenSSL version may be too old"
+    @pytest.mark.skipif(
+        OP_NO_TICKET is None,
+        reason="OP_NO_TICKET unavailable - OpenSSL version may be too old"
+    )
+    def test_op_no_ticket(self):
+        """
+        The value of :py:obj:`OpenSSL.SSL.OP_NO_TICKET` is 0x4000, the value of
+        :py:const:`SSL_OP_NO_TICKET` defined by :file:`openssl/ssl.h`.
+        """
+        self.assertEqual(OP_NO_TICKET, 0x4000)
 
-
-    if OP_NO_TICKET is not None:
-        def test_op_no_ticket(self):
-            """
-            The value of :py:obj:`OpenSSL.SSL.OP_NO_TICKET` is 0x4000, the value of
-            :py:const:`SSL_OP_NO_TICKET` defined by :file:`openssl/ssl.h`.
-            """
-            self.assertEqual(OP_NO_TICKET, 0x4000)
-    else:
-        "OP_NO_TICKET unavailable - OpenSSL version may be too old"
-
-
-    if OP_NO_COMPRESSION is not None:
-        def test_op_no_compression(self):
-            """
-            The value of :py:obj:`OpenSSL.SSL.OP_NO_COMPRESSION` is 0x20000, the value
-            of :py:const:`SSL_OP_NO_COMPRESSION` defined by :file:`openssl/ssl.h`.
-            """
-            self.assertEqual(OP_NO_COMPRESSION, 0x20000)
-    else:
-        "OP_NO_COMPRESSION unavailable - OpenSSL version may be too old"
-
+    @pytest.mark.skipif(
+        OP_NO_COMPRESSION is None,
+        reason="OP_NO_COMPRESSION unavailable - OpenSSL version may be too old"
+    )
+    def test_op_no_compression(self):
+        """
+        The value of :py:obj:`OpenSSL.SSL.OP_NO_COMPRESSION` is 0x20000, the
+        value of :py:const:`SSL_OP_NO_COMPRESSION` defined by
+        :file:`openssl/ssl.h`.
+        """
+        self.assertEqual(OP_NO_COMPRESSION, 0x20000)
 
     def test_sess_cache_off(self):
         """
@@ -3224,14 +3206,12 @@ class ConstantsTests(TestCase):
         """
         self.assertEqual(0x0, SESS_CACHE_OFF)
 
-
     def test_sess_cache_client(self):
         """
         The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_CLIENT` 0x1, the value of
         :py:obj:`SSL_SESS_CACHE_CLIENT` defined by ``openssl/ssl.h``.
         """
         self.assertEqual(0x1, SESS_CACHE_CLIENT)
-
 
     def test_sess_cache_server(self):
         """
@@ -3240,14 +3220,12 @@ class ConstantsTests(TestCase):
         """
         self.assertEqual(0x2, SESS_CACHE_SERVER)
 
-
     def test_sess_cache_both(self):
         """
         The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_BOTH` 0x3, the value of
         :py:obj:`SSL_SESS_CACHE_BOTH` defined by ``openssl/ssl.h``.
         """
         self.assertEqual(0x3, SESS_CACHE_BOTH)
-
 
     def test_sess_cache_no_auto_clear(self):
         """
@@ -3257,7 +3235,6 @@ class ConstantsTests(TestCase):
         """
         self.assertEqual(0x80, SESS_CACHE_NO_AUTO_CLEAR)
 
-
     def test_sess_cache_no_internal_lookup(self):
         """
         The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_NO_INTERNAL_LOOKUP` 0x100,
@@ -3265,7 +3242,6 @@ class ConstantsTests(TestCase):
         ``openssl/ssl.h``.
         """
         self.assertEqual(0x100, SESS_CACHE_NO_INTERNAL_LOOKUP)
-
 
     def test_sess_cache_no_internal_store(self):
         """
@@ -3275,7 +3251,6 @@ class ConstantsTests(TestCase):
         """
         self.assertEqual(0x200, SESS_CACHE_NO_INTERNAL_STORE)
 
-
     def test_sess_cache_no_internal(self):
         """
         The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_NO_INTERNAL` 0x300, the
@@ -3283,7 +3258,6 @@ class ConstantsTests(TestCase):
         ``openssl/ssl.h``.
         """
         self.assertEqual(0x300, SESS_CACHE_NO_INTERNAL)
-
 
 
 class MemoryBIOTests(TestCase, _LoopbackMixin):
@@ -3299,18 +3273,22 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         # - use TLSv1, use a particular certificate, etc.
         server_ctx = Context(TLSv1_METHOD)
         server_ctx.set_options(OP_NO_SSLv2 | OP_NO_SSLv3 | OP_SINGLE_DH_USE)
-        server_ctx.set_verify(VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT | VERIFY_CLIENT_ONCE, verify_cb)
+        server_ctx.set_verify(
+            VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT | VERIFY_CLIENT_ONCE,
+            verify_cb
+        )
         server_store = server_ctx.get_cert_store()
-        server_ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
-        server_ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
+        server_ctx.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_ctx.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
         server_ctx.check_privatekey()
         server_store.add_cert(load_certificate(FILETYPE_PEM, root_cert_pem))
-        # Here the Connection is actually created.  If None is passed as the 2nd
-        # parameter, it indicates a memory BIO should be created.
+        # Here the Connection is actually created.  If None is passed as the
+        # 2nd parameter, it indicates a memory BIO should be created.
         server_conn = Connection(server_ctx, sock)
         server_conn.set_accept_state()
         return server_conn
-
 
     def _client(self, sock):
         """
@@ -3321,23 +3299,27 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         # above.
         client_ctx = Context(TLSv1_METHOD)
         client_ctx.set_options(OP_NO_SSLv2 | OP_NO_SSLv3 | OP_SINGLE_DH_USE)
-        client_ctx.set_verify(VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT | VERIFY_CLIENT_ONCE, verify_cb)
+        client_ctx.set_verify(
+            VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT | VERIFY_CLIENT_ONCE,
+            verify_cb
+        )
         client_store = client_ctx.get_cert_store()
-        client_ctx.use_privatekey(load_privatekey(FILETYPE_PEM, client_key_pem))
-        client_ctx.use_certificate(load_certificate(FILETYPE_PEM, client_cert_pem))
+        client_ctx.use_privatekey(
+            load_privatekey(FILETYPE_PEM, client_key_pem))
+        client_ctx.use_certificate(
+            load_certificate(FILETYPE_PEM, client_cert_pem))
         client_ctx.check_privatekey()
         client_store.add_cert(load_certificate(FILETYPE_PEM, root_cert_pem))
         client_conn = Connection(client_ctx, sock)
         client_conn.set_connect_state()
         return client_conn
 
-
     def test_memoryConnect(self):
         """
-        Two :py:obj:`Connection`s which use memory BIOs can be manually connected by
-        reading from the output of each and writing those bytes to the input of
-        the other and in this way establish a connection and exchange
-        application-level bytes with each other.
+        Two :py:obj:`Connection`s which use memory BIOs can be manually
+        connected by reading from the output of each and writing those bytes to
+        the input of the other and in this way establish a connection and
+        exchange application-level bytes with each other.
         """
         server_conn = self._server(None)
         client_conn = self._client(None)
@@ -3357,10 +3339,14 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         self.assertNotIdentical(server_conn.master_key(), None)
         self.assertNotIdentical(server_conn.client_random(), None)
         self.assertNotIdentical(server_conn.server_random(), None)
-        self.assertEquals(server_conn.client_random(), client_conn.client_random())
-        self.assertEquals(server_conn.server_random(), client_conn.server_random())
-        self.assertNotEquals(server_conn.client_random(), server_conn.server_random())
-        self.assertNotEquals(client_conn.client_random(), client_conn.server_random())
+        self.assertEquals(
+            server_conn.client_random(), client_conn.client_random())
+        self.assertEquals(
+            server_conn.server_random(), client_conn.server_random())
+        self.assertNotEquals(
+            server_conn.client_random(), server_conn.server_random())
+        self.assertNotEquals(
+            client_conn.client_random(), client_conn.server_random())
 
         # Here are the bytes we'll try to send.
         important_message = b('One if by land, two if by sea.')
@@ -3375,16 +3361,15 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
             self._interactInMemory(client_conn, server_conn),
             (server_conn, important_message[::-1]))
 
-
     def test_socketConnect(self):
         """
         Just like :py:obj:`test_memoryConnect` but with an actual socket.
 
-        This is primarily to rule out the memory BIO code as the source of
-        any problems encountered while passing data over a :py:obj:`Connection` (if
-        this test fails, there must be a problem outside the memory BIO
-        code, as no memory BIO is involved here).  Even though this isn't a
-        memory BIO test, it's convenient to have it here.
+        This is primarily to rule out the memory BIO code as the source of any
+        problems encountered while passing data over a :py:obj:`Connection` (if
+        this test fails, there must be a problem outside the memory BIO code,
+        as no memory BIO is involved here).  Even though this isn't a memory
+        BIO test, it's convenient to have it here.
         """
         server_conn, client_conn = self._loopback()
 
@@ -3399,11 +3384,11 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         msg = client_conn.recv(1024)
         self.assertEqual(msg, important_message)
 
-
     def test_socketOverridesMemory(self):
         """
-        Test that :py:obj:`OpenSSL.SSL.bio_read` and :py:obj:`OpenSSL.SSL.bio_write` don't
-        work on :py:obj:`OpenSSL.SSL.Connection`() that use sockets.
+        Test that :py:obj:`OpenSSL.SSL.bio_read` and
+        :py:obj:`OpenSSL.SSL.bio_write` don't work on
+        :py:obj:`OpenSSL.SSL.Connection`() that use sockets.
         """
         context = Context(SSLv3_METHOD)
         client = socket()
@@ -3412,13 +3397,12 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, clientSSL.bio_write, "foo")
         self.assertRaises(TypeError, clientSSL.bio_shutdown)
 
-
     def test_outgoingOverflow(self):
         """
         If more bytes than can be written to the memory BIO are passed to
-        :py:obj:`Connection.send` at once, the number of bytes which were written is
-        returned and that many bytes from the beginning of the input can be
-        read from the other end of the connection.
+        :py:obj:`Connection.send` at once, the number of bytes which were
+        written is returned and that many bytes from the beginning of the input
+        can be read from the other end of the connection.
         """
         server = self._server(None)
         client = self._client(None)
@@ -3439,11 +3423,10 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         # _loopback passes 2 ** 16 to recv - more than 2 ** 15.
         self.assertEquals(len(received), sent)
 
-
     def test_shutdown(self):
         """
-        :py:obj:`Connection.bio_shutdown` signals the end of the data stream from
-        which the :py:obj:`Connection` reads.
+        :py:obj:`Connection.bio_shutdown` signals the end of the data stream
+        from which the :py:obj:`Connection` reads.
         """
         server = self._server(None)
         server.bio_shutdown()
@@ -3451,7 +3434,6 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         # We don't want WantReadError or ZeroReturnError or anything - it's a
         # handshake failure.
         self.assertEquals(e.__class__, Error)
-
 
     def test_unexpectedEndOfFile(self):
         """
@@ -3464,17 +3446,17 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         exc = self.assertRaises(SysCallError, server_conn.recv, 1024)
         self.assertEqual(exc.args, (-1, "Unexpected EOF"))
 
-
     def _check_client_ca_list(self, func):
         """
-        Verify the return value of the :py:obj:`get_client_ca_list` method for server and client connections.
+        Verify the return value of the :py:obj:`get_client_ca_list` method for
+        server and client connections.
 
         :param func: A function which will be called with the server context
             before the client and server are connected to each other.  This
             function should specify a list of CAs for the server to send to the
             client and return that same list.  The list will be used to verify
-            that :py:obj:`get_client_ca_list` returns the proper value at various
-            times.
+            that :py:obj:`get_client_ca_list` returns the proper value at
+            various times.
         """
         server = self._server(None)
         client = self._client(None)
@@ -3488,52 +3470,50 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         self.assertEqual(client.get_client_ca_list(), expected)
         self.assertEqual(server.get_client_ca_list(), expected)
 
-
     def test_set_client_ca_list_errors(self):
         """
-        :py:obj:`Context.set_client_ca_list` raises a :py:obj:`TypeError` if called with a
-        non-list or a list that contains objects other than X509Names.
+        :py:obj:`Context.set_client_ca_list` raises a :py:obj:`TypeError` if
+        called with a non-list or a list that contains objects other than
+        X509Names.
         """
         ctx = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, ctx.set_client_ca_list, "spam")
         self.assertRaises(TypeError, ctx.set_client_ca_list, ["spam"])
         self.assertIdentical(ctx.set_client_ca_list([]), None)
 
-
     def test_set_empty_ca_list(self):
         """
-        If passed an empty list, :py:obj:`Context.set_client_ca_list` configures the
-        context to send no CA names to the client and, on both the server and
-        client sides, :py:obj:`Connection.get_client_ca_list` returns an empty list
-        after the connection is set up.
+        If passed an empty list, :py:obj:`Context.set_client_ca_list`
+        configures the context to send no CA names to the client and, on both
+        the server and client sides, :py:obj:`Connection.get_client_ca_list`
+        returns an empty list after the connection is set up.
         """
         def no_ca(ctx):
             ctx.set_client_ca_list([])
             return []
         self._check_client_ca_list(no_ca)
 
-
     def test_set_one_ca_list(self):
         """
         If passed a list containing a single X509Name,
-        :py:obj:`Context.set_client_ca_list` configures the context to send that CA
-        name to the client and, on both the server and client sides,
+        :py:obj:`Context.set_client_ca_list` configures the context to send
+        that CA name to the client and, on both the server and client sides,
         :py:obj:`Connection.get_client_ca_list` returns a list containing that
         X509Name after the connection is set up.
         """
         cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
         cadesc = cacert.get_subject()
+
         def single_ca(ctx):
             ctx.set_client_ca_list([cadesc])
             return [cadesc]
         self._check_client_ca_list(single_ca)
 
-
     def test_set_multiple_ca_list(self):
         """
         If passed a list containing multiple X509Name objects,
-        :py:obj:`Context.set_client_ca_list` configures the context to send those CA
-        names to the client and, on both the server and client sides,
+        :py:obj:`Context.set_client_ca_list` configures the context to send
+        those CA names to the client and, on both the server and client sides,
         :py:obj:`Connection.get_client_ca_list` returns a list containing those
         X509Names after the connection is set up.
         """
@@ -3549,12 +3529,11 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
             return L
         self._check_client_ca_list(multiple_ca)
 
-
     def test_reset_ca_list(self):
         """
         If called multiple times, only the X509Names passed to the final call
-        of :py:obj:`Context.set_client_ca_list` are used to configure the CA names
-        sent to the client.
+        of :py:obj:`Context.set_client_ca_list` are used to configure the CA
+        names sent to the client.
         """
         cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
         secert = load_certificate(FILETYPE_PEM, server_cert_pem)
@@ -3569,7 +3548,6 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
             ctx.set_client_ca_list([cadesc])
             return [cadesc]
         self._check_client_ca_list(changed_ca)
-
 
     def test_mutated_ca_list(self):
         """
@@ -3590,18 +3568,16 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
             return [cadesc]
         self._check_client_ca_list(mutated_ca)
 
-
     def test_add_client_ca_errors(self):
         """
-        :py:obj:`Context.add_client_ca` raises :py:obj:`TypeError` if called with a non-X509
-        object or with a number of arguments other than one.
+        :py:obj:`Context.add_client_ca` raises :py:obj:`TypeError` if called
+        with a non-X509 object or with a number of arguments other than one.
         """
         ctx = Context(TLSv1_METHOD)
         cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
         self.assertRaises(TypeError, ctx.add_client_ca)
         self.assertRaises(TypeError, ctx.add_client_ca, "spam")
         self.assertRaises(TypeError, ctx.add_client_ca, cacert, cacert)
-
 
     def test_one_add_client_ca(self):
         """
@@ -3610,11 +3586,11 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         """
         cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
         cadesc = cacert.get_subject()
+
         def single_ca(ctx):
             ctx.add_client_ca(cacert)
             return [cadesc]
         self._check_client_ca_list(single_ca)
-
 
     def test_multiple_add_client_ca(self):
         """
@@ -3633,12 +3609,11 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
             return [cadesc, sedesc]
         self._check_client_ca_list(multiple_ca)
 
-
     def test_set_and_add_client_ca(self):
         """
         A call to :py:obj:`Context.set_client_ca_list` followed by a call to
-        :py:obj:`Context.add_client_ca` results in using the CA names from the first
-        call and the CA name from the second call.
+        :py:obj:`Context.add_client_ca` results in using the CA names from the
+        first call and the CA name from the second call.
         """
         cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
         secert = load_certificate(FILETYPE_PEM, server_cert_pem)
@@ -3654,12 +3629,11 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
             return [cadesc, sedesc, cldesc]
         self._check_client_ca_list(mixed_set_add_ca)
 
-
     def test_set_after_add_client_ca(self):
         """
         A call to :py:obj:`Context.set_client_ca_list` after a call to
-        :py:obj:`Context.add_client_ca` replaces the CA name specified by the former
-        call with the names specified by the latter cal.
+        :py:obj:`Context.add_client_ca` replaces the CA name specified by the
+        former call with the names specified by the latter call.
         """
         cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
         secert = load_certificate(FILETYPE_PEM, server_cert_pem)
@@ -3676,20 +3650,19 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         self._check_client_ca_list(set_replaces_add_ca)
 
 
-
 class ConnectionBIOTests(TestCase):
     """
     Tests for :py:obj:`Connection.bio_read` and :py:obj:`Connection.bio_write`.
     """
     def test_wantReadError(self):
         """
-        :py:obj:`Connection.bio_read` raises :py:obj:`OpenSSL.SSL.WantReadError`
-        if there are no bytes available to be read from the BIO.
+        :py:obj:`Connection.bio_read` raises
+        :py:obj:`OpenSSL.SSL.WantReadError` if there are no bytes available to
+        be read from the BIO.
         """
         ctx = Context(TLSv1_METHOD)
         conn = Connection(ctx, None)
         self.assertRaises(WantReadError, conn.bio_read, 1024)
-
 
     def test_buffer_size(self):
         """
@@ -3706,24 +3679,21 @@ class ConnectionBIOTests(TestCase):
         data = conn.bio_read(2)
         self.assertEqual(2, len(data))
 
-
-    if not PY3:
-        def test_buffer_size_long(self):
-            """
-            On Python 2 :py:obj:`Connection.bio_read` accepts values of type
-            :py:obj:`long` as well as :py:obj:`int`.
-            """
-            ctx = Context(TLSv1_METHOD)
-            conn = Connection(ctx, None)
-            conn.set_connect_state()
-            try:
-                conn.do_handshake()
-            except WantReadError:
-                pass
-            data = conn.bio_read(long(2))
-            self.assertEqual(2, len(data))
-
-
+    @skip_if_py3
+    def test_buffer_size_long(self):
+        """
+        On Python 2 :py:obj:`Connection.bio_read` accepts values of type
+        :py:obj:`long` as well as :py:obj:`int`.
+        """
+        ctx = Context(TLSv1_METHOD)
+        conn = Connection(ctx, None)
+        conn.set_connect_state()
+        try:
+            conn.do_handshake()
+        except WantReadError:
+            pass
+        data = conn.bio_read(long(2))
+        self.assertEqual(2, len(data))
 
 
 class InfoConstantTests(TestCase):
@@ -3744,8 +3714,8 @@ class InfoConstantTests(TestCase):
             SSL_CB_LOOP, SSL_CB_EXIT, SSL_CB_READ, SSL_CB_WRITE, SSL_CB_ALERT,
             SSL_CB_READ_ALERT, SSL_CB_WRITE_ALERT, SSL_CB_ACCEPT_LOOP,
             SSL_CB_ACCEPT_EXIT, SSL_CB_CONNECT_LOOP, SSL_CB_CONNECT_EXIT,
-            SSL_CB_HANDSHAKE_START, SSL_CB_HANDSHAKE_DONE]:
-
+            SSL_CB_HANDSHAKE_START, SSL_CB_HANDSHAKE_DONE
+        ]:
             self.assertTrue(isinstance(const, int))
 
 
