@@ -2172,8 +2172,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         try:
             clientSSL.connect(("127.0.0.1", 1))
         except error as e:
-            pass
-        assert e.args[0] == ECONNREFUSED
+            exc = e
+        assert exc.args[0] == ECONNREFUSED
 
     def test_connect(self):
         """
