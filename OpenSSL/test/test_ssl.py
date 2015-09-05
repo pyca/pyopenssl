@@ -3003,16 +3003,14 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         self.assertRaises(
             TypeError, connection.sendall, "foo", object(), "bar")
 
-
     def test_short(self):
         """
-        :py:obj:`Connection.sendall` transmits all of the bytes in the string passed to
-        it.
+        :py:obj:`Connection.sendall` transmits all of the bytes in the string
+        passed to it.
         """
         server, client = self._loopback()
         server.sendall(b('x'))
         self.assertEquals(client.recv(1), b('x'))
-
 
     def test_text(self):
         """
@@ -3032,35 +3030,25 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
             self.assertIs(w[-1].category, DeprecationWarning)
         self.assertEquals(client.recv(1), b"x")
 
+    @skip_if_py26
+    def test_short_memoryview(self):
+        """
+        When passed a memoryview onto a small number of bytes,
+        :py:obj:`Connection.sendall` transmits all of them.
+        """
+        server, client = self._loopback()
+        server.sendall(memoryview(b('x')))
+        self.assertEquals(client.recv(1), b('x'))
 
-    try:
-        memoryview
-    except NameError:
-        "cannot test sending memoryview without memoryview"
-    else:
-        def test_short_memoryview(self):
-            """
-            When passed a memoryview onto a small number of bytes,
-            :py:obj:`Connection.sendall` transmits all of them.
-            """
-            server, client = self._loopback()
-            server.sendall(memoryview(b('x')))
-            self.assertEquals(client.recv(1), b('x'))
-
-
-    try:
-        buffer
-    except NameError:
-        "cannot test sending buffers without buffers"
-    else:
-        def test_short_buffers(self):
-            """
-            When passed a buffer containing a small number of bytes,
-            :py:obj:`Connection.sendall` transmits all of them.
-            """
-            server, client = self._loopback()
-            server.sendall(buffer(b('x')))
-            self.assertEquals(client.recv(1), b('x'))
+    @skip_if_py3
+    def test_short_buffers(self):
+        """
+        When passed a buffer containing a small number of bytes,
+        :py:obj:`Connection.sendall` transmits all of them.
+        """
+        server, client = self._loopback()
+        server.sendall(buffer(b('x')))
+        self.assertEquals(client.recv(1), b('x'))
 
 
     def test_long(self):
