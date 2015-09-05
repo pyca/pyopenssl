@@ -41,9 +41,9 @@ def exception_from_error_queue(exception_type):
         if error == 0:
             break
         errors.append((
-                text(lib.ERR_lib_error_string(error)),
-                text(lib.ERR_func_error_string(error)),
-                text(lib.ERR_reason_error_string(error))))
+            text(lib.ERR_lib_error_string(error)),
+            text(lib.ERR_func_error_string(error)),
+            text(lib.ERR_reason_error_string(error))))
 
     raise exception_type(errors)
 
@@ -103,6 +103,7 @@ UNSPECIFIED = object()
 _TEXT_WARNING = (
     text_type.__name__ + " for {0} is no longer accepted, use bytes"
 )
+
 
 def text_to_bytes_and_warn(label, obj):
     """

@@ -25,4 +25,3 @@ class Connection:
                 return self._ssl_conn.%s(*args)
             finally:
                 self._lock.release()\n""" % (f, f))
-
