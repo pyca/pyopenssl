@@ -779,7 +779,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, context.set_passwd_cb, None)
         self.assertRaises(
             TypeError, context.set_passwd_cb, lambda: None, None, None
-        )
+        )  # pragma: nocover
 
     def test_set_passwd_cb(self):
         """
