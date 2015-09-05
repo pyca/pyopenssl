@@ -78,8 +78,7 @@ class TestCase(TestCase):
 
             # c_stack looks something like this (interesting parts indicated
             # with inserted arrows not part of the data):
-
-            """
+            #
             # /home/exarkun/Projects/pyOpenSSL/branches/use-opentls/__pycache__/_cffi__x89095113xb9185b9b.so(+0x12cf) [0x7fe2e20582cf]
             # /home/exarkun/Projects/cpython/2.7/python(PyCFunction_Call+0x8b) [0x56265a]
             # /home/exarkun/Projects/cpython/2.7/python() [0x4d5f52]
@@ -106,8 +105,7 @@ class TestCase(TestCase):
             # /home/exarkun/Projects/cpython/2.7/python(PyEval_EvalFrameEx+0x753b) [0x4d0e1e]
             # /home/exarkun/Projects/cpython/2.7/python() [0x4d6419]
             # ...
-            """  # noqa
-
+            #
             # Notice the stack is upside down compared to a Python traceback.
             # Identify the start and end of interesting bits and stuff it into
             # the stack we report.
