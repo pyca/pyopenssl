@@ -14,6 +14,8 @@ import re
 from subprocess import PIPE, Popen
 from datetime import datetime, timedelta
 
+import pytest
+
 from six import u, b, binary_type
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
@@ -2201,7 +2203,11 @@ class PKCS12Tests(TestCase):
             )
             self.assertIs(w[-1].category, DeprecationWarning)
         self.check_recovery(
-            dumped_p12, key=server_key_pem, cert=server_cert_pem, passwd=b"randomtext")
+            dumped_p12,
+            key=server_key_pem,
+            cert=server_cert_pem,
+            passwd=b"randomtext"
+        )
 
     def test_key_cert_mismatch(self):
         """
@@ -2237,14 +2243,16 @@ def cmdLineQuote(s):
 def quoteArguments(arguments):
     """
     Quote an iterable of command-line arguments for passing to CreateProcess or
-    a similar API.  This allows the list passed to :py:obj:`reactor.spawnProcess` to
-    match the child process's :py:obj:`sys.argv` properly.
+    a similar API.  This allows the list passed to
+    :py:obj:`reactor.spawnProcess` to match the child process's
+    :py:obj:`sys.argv` properly.
 
     :type arguments: :py:obj:`iterable` of :py:obj:`str`
     :param arguments: An iterable of unquoted arguments to quote
 
     :rtype: :py:obj:`str`
-    :return: A space-delimited string containing quoted versions of :py:obj:`arguments`
+    :return: A space-delimited string containing quoted versions of
+        :py:obj:`arguments`
     """
     return b' '.join(map(cmdLineQuote, arguments))
 
@@ -2276,14 +2284,15 @@ class FunctionTests(TestCase):
 
     def test_load_privatekey_invalid_format(self):
         """
-        :py:obj:`load_privatekey` raises :py:obj:`ValueError` if passed an unknown filetype.
+        :py:obj:`load_privatekey` raises :py:obj:`ValueError` if passed an
+        unknown filetype.
         """
         self.assertRaises(ValueError, load_privatekey, 100, root_key_pem)
 
     def test_load_privatekey_invalid_passphrase_type(self):
         """
-        :py:obj:`load_privatekey` raises :py:obj:`TypeError` if passed a passphrase that is
-        neither a :py:obj:`str` nor a callable.
+        :py:obj:`load_privatekey` raises :py:obj:`TypeError` if passed a
+        passphrase that is neither a :py:obj:`str` nor a callable.
         """
         self.assertRaises(
             TypeError,
@@ -2292,15 +2301,15 @@ class FunctionTests(TestCase):
 
     def test_load_privatekey_wrong_args(self):
         """
-        :py:obj:`load_privatekey` raises :py:obj:`TypeError` if called with the wrong number
-        of arguments.
+        :py:obj:`load_privatekey` raises :py:obj:`TypeError` if called with the
+        wrong number of arguments.
         """
         self.assertRaises(TypeError, load_privatekey)
 
     def test_load_privatekey_wrongPassphrase(self):
         """
-        :py:obj:`load_privatekey` raises :py:obj:`OpenSSL.crypto.Error` when it is passed an
-        encrypted PEM and an incorrect passphrase.
+        :py:obj:`load_privatekey` raises :py:obj:`OpenSSL.crypto.Error` when it
+        is passed an encrypted PEM and an incorrect passphrase.
         """
         self.assertRaises(
             Error,
@@ -2308,20 +2317,19 @@ class FunctionTests(TestCase):
 
     def test_load_privatekey_passphraseWrongType(self):
         """
-        :py:obj:`load_privatekey` raises :py:obj:`ValueError` when it is passed a passphrase
-        with a private key encoded in a format, that doesn't support
-        encryption.
+        :py:obj:`load_privatekey` raises :py:obj:`ValueError` when it is passed
+        a passphrase with a private key encoded in a format, that doesn't
+        support encryption.
         """
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         blob = dump_privatekey(FILETYPE_ASN1, key)
         self.assertRaises(ValueError,
-            load_privatekey, FILETYPE_ASN1, blob, "secret")
-
+                          load_privatekey, FILETYPE_ASN1, blob, "secret")
 
     def test_load_privatekey_passphrase(self):
         """
-        :py:obj:`load_privatekey` can create a :py:obj:`PKey` object from an encrypted PEM
-        string if given the passphrase.
+        :py:obj:`load_privatekey` can create a :py:obj:`PKey` object from an
+        encrypted PEM string if given the passphrase.
         """
         key = load_privatekey(
             FILETYPE_PEM, encryptedPrivateKeyPEM,
@@ -2330,15 +2338,14 @@ class FunctionTests(TestCase):
 
     def test_load_privatekey_passphrase_exception(self):
         """
-        If the passphrase callback raises an exception, that exception is raised
-        by :py:obj:`load_privatekey`.
+        If the passphrase callback raises an exception, that exception is
+        raised by :py:obj:`load_privatekey`.
         """
         def cb(ignored):
             raise ArithmeticError
 
-        self.assertRaises(ArithmeticError,
-            load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
-
+        with pytest.raises(ArithmeticError):
+            load_privatekey(FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
 
     def test_load_privatekey_wrongPassphraseCallback(self):
         """
@@ -2358,9 +2365,9 @@ class FunctionTests(TestCase):
 
     def test_load_privatekey_passphraseCallback(self):
         """
-        :py:obj:`load_privatekey` can create a :py:obj:`PKey` object from an encrypted PEM
-        string if given a passphrase callback which returns the correct
-        password.
+        :py:obj:`load_privatekey` can create a :py:obj:`PKey` object from an
+        encrypted PEM string if given a passphrase callback which returns the
+        correct password.
         """
         called = []
 
@@ -2383,8 +2390,8 @@ class FunctionTests(TestCase):
 
     def test_dump_privatekey_wrong_args(self):
         """
-        :py:obj:`dump_privatekey` raises :py:obj:`TypeError` if called with the wrong number
-        of arguments.
+        :py:obj:`dump_privatekey` raises :py:obj:`TypeError` if called with the
+        wrong number of arguments.
         """
         self.assertRaises(TypeError, dump_privatekey)
         # If cipher name is given, password is required.
@@ -2393,8 +2400,8 @@ class FunctionTests(TestCase):
 
     def test_dump_privatekey_unknown_cipher(self):
         """
-        :py:obj:`dump_privatekey` raises :py:obj:`ValueError` if called with an unrecognized
-        cipher name.
+        :py:obj:`dump_privatekey` raises :py:obj:`ValueError` if called with an
+        unrecognized cipher name.
         """
         key = PKey()
         key.generate_key(TYPE_RSA, 512)
@@ -2404,8 +2411,8 @@ class FunctionTests(TestCase):
 
     def test_dump_privatekey_invalid_passphrase_type(self):
         """
-        :py:obj:`dump_privatekey` raises :py:obj:`TypeError` if called with a passphrase which
-        is neither a :py:obj:`str` nor a callable.
+        :py:obj:`dump_privatekey` raises :py:obj:`TypeError` if called with a
+        passphrase which is neither a :py:obj:`str` nor a callable.
         """
         key = PKey()
         key.generate_key(TYPE_RSA, 512)
@@ -2415,8 +2422,8 @@ class FunctionTests(TestCase):
 
     def test_dump_privatekey_invalid_filetype(self):
         """
-        :py:obj:`dump_privatekey` raises :py:obj:`ValueError` if called with an unrecognized
-        filetype.
+        :py:obj:`dump_privatekey` raises :py:obj:`ValueError` if called with an
+        unrecognized filetype.
         """
         key = PKey()
         key.generate_key(TYPE_RSA, 512)
@@ -2424,19 +2431,20 @@ class FunctionTests(TestCase):
 
     def test_load_privatekey_passphraseCallbackLength(self):
         """
-        :py:obj:`crypto.load_privatekey` should raise an error when the passphrase
-        provided by the callback is too long, not silently truncate it.
+        :py:obj:`crypto.load_privatekey` should raise an error when the
+        passphrase provided by the callback is too long, not silently truncate
+        it.
         """
         def cb(ignored):
             return "a" * 1025
 
-        self.assertRaises(ValueError,
-            load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
-
+        with pytest.raises(ValueError):
+            load_privatekey(FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
 
     def test_dump_privatekey_passphrase(self):
         """
-        :py:obj:`dump_privatekey` writes an encrypted PEM when given a passphrase.
+        :py:obj:`dump_privatekey` writes an encrypted PEM when given a
+        passphrase.
         """
         passphrase = b("foo")
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
@@ -2449,14 +2457,13 @@ class FunctionTests(TestCase):
 
     def test_dump_privatekey_passphraseWrongType(self):
         """
-        :py:obj:`dump_privatekey` raises :py:obj:`ValueError` when it is passed a passphrase
-        with a private key encoded in a format, that doesn't support
-        encryption.
+        :py:obj:`dump_privatekey` raises :py:obj:`ValueError` when it is passed
+        a passphrase with a private key encoded in a format, that doesn't
+        support encryption.
         """
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
-        self.assertRaises(ValueError,
-            dump_privatekey, FILETYPE_ASN1, key, GOOD_CIPHER, "secret")
-
+        with pytest.raises(ValueError):
+            dump_privatekey(FILETYPE_ASN1, key, GOOD_CIPHER, "secret")
 
     def test_dump_certificate(self):
         """
@@ -2532,8 +2539,8 @@ class FunctionTests(TestCase):
 
     def test_dump_privatekey_passphraseCallback(self):
         """
-        :py:obj:`dump_privatekey` writes an encrypted PEM when given a callback which
-        returns the correct passphrase.
+        :py:obj:`dump_privatekey` writes an encrypted PEM when given a callback
+        which returns the correct passphrase.
         """
         passphrase = b("foo")
         called = []
@@ -2565,8 +2572,9 @@ class FunctionTests(TestCase):
 
     def test_dump_privatekey_passphraseCallbackLength(self):
         """
-        :py:obj:`crypto.dump_privatekey` should raise an error when the passphrase
-        provided by the callback is too long, not silently truncate it.
+        :py:obj:`crypto.dump_privatekey` should raise an error when the
+        passphrase provided by the callback is too long, not silently truncate
+        it.
         """
         def cb(ignored):
             return "a" * 1025
@@ -2578,8 +2586,8 @@ class FunctionTests(TestCase):
 
     def test_load_pkcs7_data_pem(self):
         """
-        :py:obj:`load_pkcs7_data` accepts a PKCS#7 string and returns an instance of
-        :py:obj:`PKCS7Type`.
+        :py:obj:`load_pkcs7_data` accepts a PKCS#7 string and returns an
+        instance of :py:obj:`PKCS7Type`.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertTrue(isinstance(pkcs7, PKCS7Type))
@@ -2633,87 +2641,89 @@ class PKCS7Tests(TestCase):
 
     def test_type_is_signed_wrong_args(self):
         """
-        :py:obj:`PKCS7Type.type_is_signed` raises :py:obj:`TypeError` if called with any
-        arguments.
+        :py:obj:`PKCS7Type.type_is_signed` raises :py:obj:`TypeError` if called
+        with any arguments.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertRaises(TypeError, pkcs7.type_is_signed, None)
 
     def test_type_is_signed(self):
         """
-        :py:obj:`PKCS7Type.type_is_signed` returns :py:obj:`True` if the PKCS7 object is of
-        the type *signed*.
+        :py:obj:`PKCS7Type.type_is_signed` returns :py:obj:`True` if the PKCS7
+        object is of the type *signed*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertTrue(pkcs7.type_is_signed())
 
     def test_type_is_enveloped_wrong_args(self):
         """
-        :py:obj:`PKCS7Type.type_is_enveloped` raises :py:obj:`TypeError` if called with any
-        arguments.
+        :py:obj:`PKCS7Type.type_is_enveloped` raises :py:obj:`TypeError` if
+        called with any arguments.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertRaises(TypeError, pkcs7.type_is_enveloped, None)
 
     def test_type_is_enveloped(self):
         """
-        :py:obj:`PKCS7Type.type_is_enveloped` returns :py:obj:`False` if the PKCS7 object is
-        not of the type *enveloped*.
+        :py:obj:`PKCS7Type.type_is_enveloped` returns :py:obj:`False` if the
+        PKCS7 object is not of the type *enveloped*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertFalse(pkcs7.type_is_enveloped())
 
     def test_type_is_signedAndEnveloped_wrong_args(self):
         """
-        :py:obj:`PKCS7Type.type_is_signedAndEnveloped` raises :py:obj:`TypeError` if called
-        with any arguments.
+        :py:obj:`PKCS7Type.type_is_signedAndEnveloped` raises
+        :py:obj:`TypeError` if called with any arguments.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertRaises(TypeError, pkcs7.type_is_signedAndEnveloped, None)
 
     def test_type_is_signedAndEnveloped(self):
         """
-        :py:obj:`PKCS7Type.type_is_signedAndEnveloped` returns :py:obj:`False` if the PKCS7
-        object is not of the type *signed and enveloped*.
+        :py:obj:`PKCS7Type.type_is_signedAndEnveloped` returns :py:obj:`False`
+        if the PKCS7 object is not of the type *signed and enveloped*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertFalse(pkcs7.type_is_signedAndEnveloped())
 
     def test_type_is_data(self):
         """
-        :py:obj:`PKCS7Type.type_is_data` returns :py:obj:`False` if the PKCS7 object is not of
-        the type data.
+        :py:obj:`PKCS7Type.type_is_data` returns :py:obj:`False` if the PKCS7
+        object is not of the type data.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertFalse(pkcs7.type_is_data())
 
     def test_type_is_data_wrong_args(self):
         """
-        :py:obj:`PKCS7Type.type_is_data` raises :py:obj:`TypeError` if called with any
-        arguments.
+        :py:obj:`PKCS7Type.type_is_data` raises :py:obj:`TypeError` if called
+        with any arguments.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertRaises(TypeError, pkcs7.type_is_data, None)
 
     def test_get_type_name_wrong_args(self):
         """
-        :py:obj:`PKCS7Type.get_type_name` raises :py:obj:`TypeError` if called with any
-        arguments.
+        :py:obj:`PKCS7Type.get_type_name` raises :py:obj:`TypeError` if called
+        with any arguments.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertRaises(TypeError, pkcs7.get_type_name, None)
 
     def test_get_type_name(self):
         """
-        :py:obj:`PKCS7Type.get_type_name` returns a :py:obj:`str` giving the type name.
+        :py:obj:`PKCS7Type.get_type_name` returns a :py:obj:`str` giving the
+        type name.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertEquals(pkcs7.get_type_name(), b('pkcs7-signedData'))
 
     def test_attribute(self):
         """
-        If an attribute other than one of the methods tested here is accessed on
-        an instance of :py:obj:`PKCS7Type`, :py:obj:`AttributeError` is raised.
+        If an attribute other than one of the methods tested here is accessed
+        on an instance of :py:obj:`PKCS7Type`, :py:obj:`AttributeError` is
+        raised.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertRaises(AttributeError, getattr, pkcs7, "foo")
@@ -2732,30 +2742,32 @@ class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):
 
     def test_type(self):
         """
-        :py:obj:`NetscapeSPKI` and :py:obj:`NetscapeSPKIType` refer to the same type object
-        and can be used to create instances of that type.
+        :py:obj:`NetscapeSPKI` and :py:obj:`NetscapeSPKIType` refer to the same
+        type object and can be used to create instances of that type.
         """
         self.assertIdentical(NetscapeSPKI, NetscapeSPKIType)
         self.assertConsistentType(NetscapeSPKI, 'NetscapeSPKI')
 
     def test_construction(self):
         """
-        :py:obj:`NetscapeSPKI` returns an instance of :py:obj:`NetscapeSPKIType`.
+        :py:obj:`NetscapeSPKI` returns an instance of
+        :py:obj:`NetscapeSPKIType`.
         """
         nspki = NetscapeSPKI()
         self.assertTrue(isinstance(nspki, NetscapeSPKIType))
 
     def test_invalid_attribute(self):
         """
-        Accessing a non-existent attribute of a :py:obj:`NetscapeSPKI` instance causes
-        an :py:obj:`AttributeError` to be raised.
+        Accessing a non-existent attribute of a :py:obj:`NetscapeSPKI` instance
+        causes an :py:obj:`AttributeError` to be raised.
         """
         nspki = NetscapeSPKI()
         self.assertRaises(AttributeError, lambda: nspki.foo)
 
     def test_b64_encode(self):
         """
-        :py:obj:`NetscapeSPKI.b64_encode` encodes the certificate to a base64 blob.
+        :py:obj:`NetscapeSPKI.b64_encode` encodes the certificate to a base64
+        blob.
         """
         nspki = NetscapeSPKI()
         blob = nspki.b64_encode()
@@ -3038,8 +3050,8 @@ class CRLTests(TestCase):
     def test_export_unknown_filetype(self):
         """
         Calling :py:obj:`OpenSSL.CRL.export` with a file type other than
-        :py:obj:`FILETYPE_PEM`, :py:obj:`FILETYPE_ASN1`, or :py:obj:`FILETYPE_TEXT` results
-        in a :py:obj:`ValueError` being raised.
+        :py:obj:`FILETYPE_PEM`, :py:obj:`FILETYPE_ASN1`, or
+        :py:obj:`FILETYPE_TEXT` results in a :py:obj:`ValueError` being raised.
         """
         crl = CRL()
         self.assertRaises(ValueError, crl.export, self.cert, self.pkey, 100, 10)
@@ -3060,8 +3072,8 @@ class CRLTests(TestCase):
     def test_get_revoked(self):
         """
         Use python to create a simple CRL with two revocations.
-        Get back the :py:obj:`Revoked` using :py:obj:`OpenSSL.CRL.get_revoked` and
-        verify them.
+        Get back the :py:obj:`Revoked` using :py:obj:`OpenSSL.CRL.get_revoked`
+        and verify them.
         """
         crl = CRL()
 
@@ -3150,7 +3162,6 @@ class CRLTests(TestCase):
         self.assertRaises(Error, load_crl, FILETYPE_PEM, b"hello, world")
 
 
-
 class X509StoreContextTests(TestCase):
     """
     Tests for :py:obj:`OpenSSL.crypto.X509StoreContext`.
@@ -3161,8 +3172,8 @@ class X509StoreContextTests(TestCase):
 
     def test_valid(self):
         """
-        :py:obj:`verify_certificate` returns ``None`` when called with a certificate
-        and valid chain.
+        :py:obj:`verify_certificate` returns ``None`` when called with a
+        certificate and valid chain.
         """
         store = X509Store()
         store.add_cert(self.root_cert)
@@ -3184,8 +3195,8 @@ class X509StoreContextTests(TestCase):
 
     def test_trusted_self_signed(self):
         """
-        :py:obj:`verify_certificate` returns ``None`` when called with a self-signed
-        certificate and itself in the chain.
+        :py:obj:`verify_certificate` returns ``None`` when called with a
+        self-signed certificate and itself in the chain.
         """
         store = X509Store()
         store.add_cert(self.root_cert)
@@ -3194,8 +3205,8 @@ class X509StoreContextTests(TestCase):
 
     def test_untrusted_self_signed(self):
         """
-        :py:obj:`verify_certificate` raises error when a self-signed certificate is
-        verified without itself in the chain.
+        :py:obj:`verify_certificate` raises error when a self-signed
+        certificate is verified without itself in the chain.
         """
         store = X509Store()
         store_ctx = X509StoreContext(store, self.root_cert)
@@ -3205,8 +3216,8 @@ class X509StoreContextTests(TestCase):
 
     def test_invalid_chain_no_root(self):
         """
-        :py:obj:`verify_certificate` raises error when a root certificate is missing
-        from the chain.
+        :py:obj:`verify_certificate` raises error when a root certificate is
+        missing from the chain.
         """
         store = X509Store()
         store.add_cert(self.intermediate_cert)
@@ -3217,8 +3228,8 @@ class X509StoreContextTests(TestCase):
 
     def test_invalid_chain_no_intermediate(self):
         """
-        :py:obj:`verify_certificate` raises error when an intermediate certificate is
-        missing from the chain.
+        :py:obj:`verify_certificate` raises error when an intermediate
+        certificate is missing from the chain.
         """
         store = X509Store()
         store.add_cert(self.root_cert)
@@ -3248,12 +3259,14 @@ class X509StoreContextTests(TestCase):
 
 class SignVerifyTests(TestCase):
     """
-    Tests for :py:obj:`OpenSSL.crypto.sign` and :py:obj:`OpenSSL.crypto.verify`.
+    Tests for :py:obj:`OpenSSL.crypto.sign` and
+    :py:obj:`OpenSSL.crypto.verify`.
     """
 
     def test_sign_verify(self):
         """
-        :py:obj:`sign` generates a cryptographic signature which :py:obj:`verify` can check.
+        :py:obj:`sign` generates a cryptographic signature which
+        :py:obj:`verify` can check.
         """
         content = b(
             "It was a bright cold day in April, and the clocks were striking "
@@ -3294,8 +3307,9 @@ class SignVerifyTests(TestCase):
 
     def test_sign_verify_with_text(self):
         """
-        :py:obj:`sign` generates a cryptographic signature which :py:obj:`verify` can check.
-        Deprecation warnings raised because using text instead of bytes as content
+        :py:obj:`sign` generates a cryptographic signature which
+        :py:obj:`verify` can check. Deprecation warnings raised because using
+        text instead of bytes as content
         """
         content = (
             b"It was a bright cold day in April, and the clocks were striking "
