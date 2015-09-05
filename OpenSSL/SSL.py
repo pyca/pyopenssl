@@ -69,7 +69,9 @@ OP_SINGLE_ECDH_USE = _lib.SSL_OP_SINGLE_ECDH_USE
 OP_EPHEMERAL_RSA = _lib.SSL_OP_EPHEMERAL_RSA
 OP_MICROSOFT_SESS_ID_BUG = _lib.SSL_OP_MICROSOFT_SESS_ID_BUG
 OP_NETSCAPE_CHALLENGE_BUG = _lib.SSL_OP_NETSCAPE_CHALLENGE_BUG
-OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG = _lib.SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG
+OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG = (
+    _lib.SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG
+)
 OP_SSLREF2_REUSE_CERT_TYPE_BUG = _lib.SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG
 OP_MICROSOFT_BIG_SSLV3_BUFFER = _lib.SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER
 try:
@@ -85,7 +87,9 @@ OP_TLS_ROLLBACK_BUG = _lib.SSL_OP_TLS_ROLLBACK_BUG
 OP_PKCS1_CHECK_1 = _lib.SSL_OP_PKCS1_CHECK_1
 OP_PKCS1_CHECK_2 = _lib.SSL_OP_PKCS1_CHECK_2
 OP_NETSCAPE_CA_DN_BUG = _lib.SSL_OP_NETSCAPE_CA_DN_BUG
-OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG = _lib.SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG
+OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG = (
+    _lib.SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG
+)
 try:
     OP_NO_COMPRESSION = _lib.SSL_OP_NO_COMPRESSION
 except AttributeError:
@@ -177,6 +181,7 @@ class _CallbackExceptionHelper(object):
         return value.  The exceptions are saved to be raised later when it is
         possible to do so.
     """
+
     def __init__(self):
         self._problems = []
 
@@ -198,6 +203,7 @@ class _VerifyHelper(_CallbackExceptionHelper):
     Wrap a callback such that it can be used as a certificate verification
     callback.
     """
+
     def __init__(self, callback):
         _CallbackExceptionHelper.__init__(self)
 
@@ -213,7 +219,9 @@ class _VerifyHelper(_CallbackExceptionHelper):
             connection = Connection._reverse_mapping[ssl]
 
             try:
-                result = callback(connection, cert, error_number, error_depth, ok)
+                result = callback(
+                    connection, cert, error_number, error_depth, ok
+                )
             except Exception as e:
                 self._problems.append(e)
                 return 0
@@ -232,6 +240,7 @@ class _NpnAdvertiseHelper(_CallbackExceptionHelper):
     """
     Wrap a callback such that it can be used as an NPN advertisement callback.
     """
+
     def __init__(self, callback):
         _CallbackExceptionHelper.__init__(self)
 
@@ -272,6 +281,7 @@ class _NpnSelectHelper(_CallbackExceptionHelper):
     """
     Wrap a callback such that it can be used as an NPN selection callback.
     """
+
     def __init__(self, callback):
         _CallbackExceptionHelper.__init__(self)
 
@@ -310,8 +320,8 @@ class _NpnSelectHelper(_CallbackExceptionHelper):
                 return 2  # SSL_TLSEXT_ERR_ALERT_FATAL
 
         self.callback = _ffi.callback(
-            "int (*)(SSL *, unsigned char **, unsigned char *, "
-                    "const unsigned char *, unsigned int, void *)",
+            ("int (*)(SSL *, unsigned char **, unsigned char *, "
+                "const unsigned char *, unsigned int, void *)"),
             wrapper
         )
 
@@ -320,6 +330,7 @@ class _ALPNSelectHelper(_CallbackExceptionHelper):
     """
     Wrap a callback such that it can be used as an ALPN selection callback.
     """
+
     def __init__(self, callback):
         _CallbackExceptionHelper.__init__(self)
 
@@ -360,8 +371,8 @@ class _ALPNSelectHelper(_CallbackExceptionHelper):
                 return 2  # SSL_TLSEXT_ERR_ALERT_FATAL
 
         self.callback = _ffi.callback(
-            "int (*)(SSL *, unsigned char **, unsigned char *, "
-                    "const unsigned char *, unsigned int, void *)",
+            ("int (*)(SSL *, unsigned char **, unsigned char *, "
+                "const unsigned char *, unsigned int, void *)"),
             wrapper
         )
 
@@ -430,8 +441,8 @@ class Session(object):
 
 class Context(object):
     """
-    :py:obj:`OpenSSL.SSL.Context` instances define the parameters for setting up
-    new SSL connections.
+    :py:obj:`OpenSSL.SSL.Context` instances define the parameters for setting
+    up new SSL connections.
     """
     _methods = {
         SSLv2_METHOD: "SSLv2_method",
@@ -514,7 +525,9 @@ class Context(object):
         else:
             capath = _path_string(capath)
 
-        load_result = _lib.SSL_CTX_load_verify_locations(self._context, cafile, capath)
+        load_result = _lib.SSL_CTX_load_verify_locations(
+            self._context, cafile, capath
+        )
         if not load_result:
             _raise_current_error()
 
@@ -565,7 +578,9 @@ class Context(object):
         """
         certfile = _path_string(certfile)
 
-        result = _lib.SSL_CTX_use_certificate_chain_file(self._context, certfile)
+        result = _lib.SSL_CTX_use_certificate_chain_file(
+            self._context, certfile
+        )
         if not result:
             _raise_current_error()
 
@@ -583,7 +598,9 @@ class Context(object):
         if not isinstance(filetype, integer_types):
             raise TypeError("filetype must be an integer")
 
-        use_result = _lib.SSL_CTX_use_certificate_file(self._context, certfile, filetype)
+        use_result = _lib.SSL_CTX_use_certificate_file(
+            self._context, certfile, filetype
+        )
         if not use_result:
             _raise_current_error()
 
@@ -671,10 +688,10 @@ class Context(object):
 
     def load_client_ca(self, cafile):
         """
-        Load the trusted certificates that will be sent to the client (basically
-        telling the client "These are the guys I trust").  Does not actually
-        imply any of the certificates are trusted; that must be configured
-        separately.
+        Load the trusted certificates that will be sent to the client
+        (basically telling the client "These are the guys I trust").  Does not
+        actually imply any of the certificates are trusted; that must be
+        configured separately.
 
         :param cafile: The name of the certificates file
         :return: None
@@ -808,10 +825,11 @@ class Context(object):
 
     def set_client_ca_list(self, certificate_authorities):
         """
-        Set the list of preferred client certificate signers for this server context.
+        Set the list of preferred client certificate signers for this server
+        context.
 
-        This list of certificate authorities will be sent to the client when the
-        server requests a client certificate.
+        This list of certificate authorities will be sent to the client when
+        the server requests a client certificate.
 
         :param certificate_authorities: a sequence of X509Names.
         :return: None
@@ -825,8 +843,11 @@ class Context(object):
             for ca_name in certificate_authorities:
                 if not isinstance(ca_name, X509Name):
                     raise TypeError(
-                        "client CAs must be X509Name objects, not %s objects" % (
-                            type(ca_name).__name__,))
+                        "client CAs must be X509Name objects, not %s "
+                        "objects" % (
+                            type(ca_name).__name__,
+                        )
+                    )
                 copy = _lib.X509_NAME_dup(ca_name._name)
                 if copy == _ffi.NULL:
                     # TODO: This is untested.
@@ -843,7 +864,8 @@ class Context(object):
 
     def add_client_ca(self, certificate_authority):
         """
-        Add the CA certificate to the list of preferred signers for this context.
+        Add the CA certificate to the list of preferred signers for this
+        context.
 
         The list of certificate authorities will be sent to the client when the
         server requests a client certificate.
@@ -952,7 +974,8 @@ class Context(object):
 
     def set_tlsext_servername_callback(self, callback):
         """
-        Specify a callback function to be called when clients specify a server name.
+        Specify a callback function to be called when clients specify a server
+        name.
 
         :param callback: The callback function.  It will be invoked with one
             argument, the Connection instance.
@@ -1091,18 +1114,21 @@ class Connection(object):
             self._into_ssl = None
             self._from_ssl = None
             self._socket = socket
-            set_result = _lib.SSL_set_fd(self._ssl, _asFileDescriptor(self._socket))
+            set_result = _lib.SSL_set_fd(
+                self._ssl, _asFileDescriptor(self._socket))
             if not set_result:
                 # TODO: This is untested.
                 _raise_current_error()
 
     def __getattr__(self, name):
         """
-        Look up attributes on the wrapped socket object if they are not found on
-        the Connection object.
+        Look up attributes on the wrapped socket object if they are not found
+        on the Connection object.
         """
         if self._socket is None:
-            raise AttributeError("'" + self.__class__.__name__ + "' object has no attribute '" + name + "'")
+            raise AttributeError("'%s' object has no attribute '%s'" % (
+                self.__class__.__name__, name
+            ))
         else:
             return getattr(self._socket, name)
 
@@ -1170,7 +1196,9 @@ class Connection(object):
 
         :return: A byte string giving the server name or :py:data:`None`.
         """
-        name = _lib.SSL_get_servername(self._ssl, _lib.TLSEXT_NAMETYPE_host_name)
+        name = _lib.SSL_get_servername(
+            self._ssl, _lib.TLSEXT_NAMETYPE_host_name
+        )
         if name == _ffi.NULL:
             return None
 
@@ -1417,8 +1445,8 @@ class Connection(object):
 
     def connect_ex(self, addr):
         """
-        Connect to remote host and set up client-side SSL. Note that if the socket's
-        connect_ex method doesn't return 0, SSL won't be initialized.
+        Connect to remote host and set up client-side SSL. Note that if the
+        socket's connect_ex method doesn't return 0, SSL won't be initialized.
 
         :param addr: A remove address
         :return: What the socket's connect_ex method returns
@@ -1485,11 +1513,12 @@ class Connection(object):
         """
         Get CAs whose certificates are suggested for client authentication.
 
-        :return: If this is a server connection, a list of X509Names representing
-            the acceptable CAs as set by :py:meth:`OpenSSL.SSL.Context.set_client_ca_list` or
-            :py:meth:`OpenSSL.SSL.Context.add_client_ca`.  If this is a client connection,
-            the list of such X509Names sent by the server, or an empty list if that
-            has not yet happened.
+        :return: If this is a server connection, a list of X509Names
+            representing the acceptable CAs as set by
+            :py:meth:`OpenSSL.SSL.Context.set_client_ca_list` or
+            :py:meth:`OpenSSL.SSL.Context.add_client_ca`.  If this is a client
+            connection, the list of such X509Names sent by the server, or an
+            empty list if that has not yet happened.
         """
         ca_names = _lib.SSL_get_client_CA_list(self._ssl)
         if ca_names == _ffi.NULL:
@@ -1511,8 +1540,8 @@ class Connection(object):
 
     def makefile(self):
         """
-        The makefile() method is not implemented, since there is no dup semantics
-        for SSL connections
+        The makefile() method is not implemented, since there is no dup
+        semantics for SSL connections
 
         :raise: NotImplementedError
         """
@@ -1540,7 +1569,8 @@ class Connection(object):
         """
         Get shutdown state
 
-        :return: The shutdown state, a bitvector of SENT_SHUTDOWN, RECEIVED_SHUTDOWN.
+        :return: The shutdown state, a bitvector of SENT_SHUTDOWN,
+            RECEIVED_SHUTDOWN.
         """
         return _lib.SSL_get_shutdown(self._ssl)
 
@@ -1642,8 +1672,8 @@ class Connection(object):
 
     def want_read(self):
         """
-        Checks if more data has to be read from the transport layer to complete an
-        operation.
+        Checks if more data has to be read from the transport layer to complete
+        an operation.
 
         :return: True iff more data has to be read
         """
@@ -1660,8 +1690,8 @@ class Connection(object):
 
     def set_accept_state(self):
         """
-        Set the connection to work in server mode. The handshake will be handled
-        automatically by read/write.
+        Set the connection to work in server mode. The handshake will be
+        handled automatically by read/write.
 
         :return: None
         """
@@ -1669,8 +1699,8 @@ class Connection(object):
 
     def set_connect_state(self):
         """
-        Set the connection to work in client mode. The handshake will be handled
-        automatically by read/write.
+        Set the connection to work in client mode. The handshake will be
+        handled automatically by read/write.
 
         :return: None
         """
@@ -1680,8 +1710,8 @@ class Connection(object):
         """
         Returns the Session currently used.
 
-        @return: An instance of :py:class:`OpenSSL.SSL.Session` or :py:obj:`None` if
-            no session exists.
+        @return: An instance of :py:class:`OpenSSL.SSL.Session` or
+            :py:obj:`None` if no session exists.
         """
         session = _lib.SSL_get1_session(self._ssl)
         if session == _ffi.NULL:
