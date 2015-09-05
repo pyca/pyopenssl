@@ -119,7 +119,8 @@ class TestCase(TestCase):
 
             # Figure the last interesting frame will always be CRYPTO_malloc,
             # since that's where we hooked in to things.
-            while c_stack and 'CRYPTO_malloc' not in c_stack[0] and 'CRYPTO_realloc' not in c_stack[0]:
+            while (c_stack and 'CRYPTO_malloc' not in c_stack[0] and
+                   'CRYPTO_realloc' not in c_stack[0]):
                 c_stack.pop(0)
 
             if c_stack:
@@ -210,7 +211,7 @@ class TestCase(TestCase):
 
     def failUnlessIn(self, containee, container, msg=None):
         """
-        Fail the test if :py:data:`containee` is not found in :py:data:`container`.
+        Fail the test if *containee* is not found in *container*.
 
         :param containee: the value that should be in :py:class:`container`
         :param container: a sequence type, or in the case of a mapping type,
@@ -250,7 +251,9 @@ class TestCase(TestCase):
         '%r is not %r' % (first, second)
         """
         if first is not second:
-            raise self.failureException(msg or '%r is not %r' % (first, second))
+            raise self.failureException(
+                msg or '%r is not %r' % (first, second)
+            )
         return first
     assertIdentical = failUnlessIdentical = assertIs
 
@@ -309,15 +312,15 @@ class TestCase(TestCase):
     # Other stuff
     def assertConsistentType(self, theType, name, *constructionArgs):
         """
-        Perform various assertions about :py:data:`theType` to ensure that it is a
-        well-defined type.  This is useful for extension types, where it's
+        Perform various assertions about :py:data:`theType` to ensure that it
+        is a well-defined type.  This is useful for extension types, where it's
         pretty easy to do something wacky.  If something about the type is
         unusual, an exception will be raised.
 
         :param theType: The type object about which to make assertions.
         :param name: A string giving the name of the type.
-        :param constructionArgs: Positional arguments to use with :py:data:`theType` to
-            create an instance of it.
+        :param constructionArgs: Positional arguments to use with
+            *theType* to create an instance of it.
         """
         self.assertEqual(theType.__name__, name)
         self.assertTrue(isinstance(theType, type))
