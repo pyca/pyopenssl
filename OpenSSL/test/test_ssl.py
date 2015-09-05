@@ -2215,9 +2215,11 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         client = socket()
         context = Context(TLSv1_METHOD)
         clientSSL = Connection(context, client)
-        with pytest.raises(error) as exc:
+        try:
             clientSSL.connect(("127.0.0.1", 1))
-        assert exc.value.args[0] == ECONNREFUSED
+        except error as e:
+            pass
+        assert e.args[0] == ECONNREFUSED
 
     def test_connect(self):
         """
