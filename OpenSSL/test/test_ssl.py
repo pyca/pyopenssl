@@ -15,8 +15,6 @@ from unittest import main
 from weakref import ref
 from warnings import catch_warnings, simplefilter
 
-import pytest
-
 from six import PY3, text_type, u
 
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
