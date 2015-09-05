@@ -10,7 +10,6 @@ from six import (
     PY3 as _PY3)
 
 from OpenSSL._util import (
-    binding as _binding,
     ffi as _ffi,
     lib as _lib,
     exception_from_error_queue as _exception_from_error_queue,
@@ -2808,8 +2807,6 @@ def load_pkcs12(buffer, passphrase=None):
     pkcs12._friendlyname = friendlyname
     return pkcs12
 
-
-_binding.init_static_locks()
 
 # There are no direct unit tests for this initialization.  It is tested
 # indirectly since it is necessary for functions like dump_privatekey when
