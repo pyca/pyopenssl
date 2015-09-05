@@ -2461,9 +2461,9 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_set_session_wrong_args(self):
         """
-        If called with an object that is not an instance of :py:class:`Session`,
-        or with other than one argument, :py:obj:`Connection.set_session` raises
-        :py:obj:`TypeError`.
+        If called with an object that is not an instance of
+        :py:class:`Session`, or with other than one argument,
+        :py:obj:`Connection.set_session` raises :py:obj:`TypeError`.
         """
         ctx = Context(TLSv1_METHOD)
         connection = Connection(ctx, None)
@@ -2624,11 +2624,11 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_tls_finished_message_symmetry(self):
         """
-        The TLS Finished message send by server must be the TLS Finished message
-        received by client.
+        The TLS Finished message send by server must be the TLS Finished
+        message received by client.
 
-        The TLS Finished message send by client must be the TLS Finished message
-        received by server.
+        The TLS Finished message send by client must be the TLS Finished
+        message received by server.
         """
         server, client = self._loopback()
 
@@ -2741,12 +2741,11 @@ class ConnectionGetCipherListTests(TestCase):
     """
     def test_wrong_args(self):
         """
-        :py:obj:`Connection.get_cipher_list` raises :py:obj:`TypeError` if called with any
-        arguments.
+        :py:obj:`Connection.get_cipher_list` raises :py:obj:`TypeError` if
+        called with any arguments.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(TypeError, connection.get_cipher_list, None)
-
 
     def test_result(self):
         """
@@ -2758,7 +2757,6 @@ class ConnectionGetCipherListTests(TestCase):
         self.assertTrue(isinstance(ciphers, list))
         for cipher in ciphers:
             self.assertTrue(isinstance(cipher, str))
-
 
 
 class ConnectionSendTests(TestCase, _LoopbackMixin):
