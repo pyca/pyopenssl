@@ -430,10 +430,10 @@ class X509ExtTests(TestCase):
         self.subject.commonName = self.req.get_subject().commonName
         self.x509.set_issuer(self.subject)
         self.x509.set_pubkey(self.pkey)
-        now = b(datetime.now().strftime("%Y%m%d%H%M%SZ"))
-        expire = b((datetime.now() + timedelta(days=100)).strftime("%Y%m%d%H%M%SZ"))
-        self.x509.set_notBefore(now)
-        self.x509.set_notAfter(expire)
+        now = datetime.now()
+        expire = datetime.now() + timedelta(days=100)
+        self.x509.set_notBefore(now.strftime("%Y%m%d%H%M%SZ").encode())
+        self.x509.set_notAfter(expire.strftime("%Y%m%d%H%M%SZ").encode())
 
     def tearDown(self):
         """
@@ -786,6 +786,7 @@ class X509NameTests(TestCase):
         # XXX There's no other way to get a new X509Name yet.
         name = X509().get_subject()
         attrs = list(attrs.items())
+
         # Make the order stable - order matters!
         def key(attr):
             return attr[1]
@@ -1396,7 +1397,8 @@ WpOdIpB8KksUTCzV591Nr1wd
 
         # The wrong number of arguments results in a TypeError.
         self.assertRaises(TypeError, set)
-        self.assertRaises(TypeError, set, b("20040203040506Z"), b("20040203040506Z"))
+        with pytest.raises(TypeError):
+            set(b"20040203040506Z", b"20040203040506Z")
         self.assertRaises(TypeError, get, b("foo bar"))
 
     # XXX ASN1_TIME (not GENERALIZEDTIME)
@@ -1452,9 +1454,13 @@ WpOdIpB8KksUTCzV591Nr1wd
         timestamp to be the current time plus the number of seconds passed in.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        not_before_min = datetime.utcnow().replace(microsecond=0) + timedelta(seconds=100)
+        not_before_min = (
+            datetime.utcnow().replace(microsecond=0) + timedelta(seconds=100)
+        )
         cert.gmtime_adj_notBefore(100)
-        not_before = datetime.strptime(cert.get_notBefore().decode(), "%Y%m%d%H%M%SZ")
+        not_before = datetime.strptime(
+            cert.get_notBefore().decode(), "%Y%m%d%H%M%SZ"
+        )
         not_before_max = datetime.utcnow() + timedelta(seconds=100)
         self.assertTrue(not_before_min <= not_before <= not_before_max)
 
@@ -1475,9 +1481,13 @@ WpOdIpB8KksUTCzV591Nr1wd
         to be the current time plus the number of seconds passed in.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        not_after_min = datetime.utcnow().replace(microsecond=0) + timedelta(seconds=100)
+        not_after_min = (
+            datetime.utcnow().replace(microsecond=0) + timedelta(seconds=100)
+        )
         cert.gmtime_adj_notAfter(100)
-        not_after = datetime.strptime(cert.get_notAfter().decode(), "%Y%m%d%H%M%SZ")
+        not_after = datetime.strptime(
+            cert.get_notAfter().decode(), "%Y%m%d%H%M%SZ"
+        )
         not_after_max = datetime.utcnow() + timedelta(seconds=100)
         self.assertTrue(not_after_min <= not_after <= not_after_max)
 
@@ -1653,8 +1663,8 @@ WpOdIpB8KksUTCzV591Nr1wd
         cert = X509()
         self.assertRaises(TypeError, cert.set_subject)
         self.assertRaises(TypeError, cert.set_subject, None)
-        self.assertRaises(TypeError, cert.set_subject, cert.get_subject(), None)
-
+        with pytest.raises(TypeError):
+            cert.set_subject(cert.get_subject(), None)
 
     def test_set_subject(self):
         """
@@ -1944,7 +1954,9 @@ class PKCS12Tests(TestCase):
             ret = p12.set_privatekey(load_privatekey(FILETYPE_PEM, key_pem))
             self.assertEqual(ret, None)
         if ca_pem:
-            ret = p12.set_ca_certificates((load_certificate(FILETYPE_PEM, ca_pem),))
+            ret = p12.set_ca_certificates(
+                (load_certificate(FILETYPE_PEM, ca_pem),)
+            )
             self.assertEqual(ret, None)
         if friendly_name:
             ret = p12.set_friendlyname(friendly_name)
@@ -1995,7 +2007,13 @@ class PKCS12Tests(TestCase):
         passwd = b"whatever"
         pem = client_key_pem + client_cert_pem
         p12_str = _runopenssl(
-            pem, b"pkcs12", b"-export", b"-clcerts", b"-passout", b"pass:" + passwd)
+            pem,
+            b"pkcs12",
+            b"-export",
+            b"-clcerts",
+            b"-passout",
+            b"pass:" + passwd
+        )
         p12 = load_pkcs12(p12_str, passphrase=passwd)
         self.verify_pkcs12_container(p12)
 
@@ -2081,8 +2099,8 @@ class PKCS12Tests(TestCase):
 
     def test_load_pkcs12_garbage(self):
         """
-        :py:obj:`load_pkcs12` raises :py:obj:`OpenSSL.crypto.Error` when passed a string
-        which is not a PKCS12 dump.
+        :py:obj:`load_pkcs12` raises :py:obj:`OpenSSL.crypto.Error` when passed
+        a string which is not a PKCS12 dump.
         """
         passwd = 'whatever'
         e = self.assertRaises(Error, load_pkcs12, b'fruit loops', passwd)
@@ -2111,9 +2129,9 @@ class PKCS12Tests(TestCase):
     def test_friendly_name(self):
         """
         The *friendlyName* of a PKCS12 can be set and retrieved via
-        :py:obj:`PKCS12.get_friendlyname` and :py:obj:`PKCS12_set_friendlyname`,
-        and a :py:obj:`PKCS12` with a friendly name set can be dumped with
-        :py:obj:`PKCS12.export`.
+        :py:obj:`PKCS12.get_friendlyname` and
+        :py:obj:`PKCS12_set_friendlyname`, and a :py:obj:`PKCS12` with a
+        friendly name set can be dumped with :py:obj:`PKCS12.export`.
         """
         passwd = b'Dogmeat[]{}!@#$%^&*()~`?/.,<>-_+=";:'
         p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
@@ -2194,12 +2212,12 @@ class PKCS12Tests(TestCase):
         """
         passwd = 'Hobie 18'
         p12 = self.gen_pkcs12(server_cert_pem, server_key_pem)
-        # p12.set_ca_certificates([])
-        # self.assertEqual((), p12.get_ca_certificates())
-        # dumped_p12 = p12.export(passphrase=passwd, iter=3)
-        # self.check_recovery(
-        #     dumped_p12, key=server_key_pem, cert=server_cert_pem,
-        #     passwd=passwd)
+        p12.set_ca_certificates([])
+        self.assertEqual((), p12.get_ca_certificates())
+        dumped_p12 = p12.export(passphrase=passwd, iter=3)
+        self.check_recovery(
+            dumped_p12, key=server_key_pem, cert=server_cert_pem,
+            passwd=passwd)
 
     def test_export_without_args(self):
         """
@@ -2288,8 +2306,9 @@ def _runopenssl(pem, *args):
     """
     if os.name == 'posix':
         command = b"openssl " + b" ".join([
-                (b"'" + arg.replace(b"'", b"'\\''") + b"'")
-                for arg in args])
+            (b"'" + arg.replace(b"'", b"'\\''") + b"'")
+            for arg in args
+        ])
     else:
         command = b"openssl " + quoteArguments(args)
     proc = Popen(native(command), shell=True, stdin=PIPE, stdout=PIPE)
@@ -2590,9 +2609,8 @@ class FunctionTests(TestCase):
             raise ArithmeticError
 
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
-        self.assertRaises(ArithmeticError,
-            dump_privatekey, FILETYPE_PEM, key, GOOD_CIPHER, cb)
-
+        with pytest.raises(ArithmeticError):
+            dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, cb)
 
     def test_dump_privatekey_passphraseCallbackLength(self):
         """
@@ -2604,9 +2622,8 @@ class FunctionTests(TestCase):
             return "a" * 1025
 
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
-        self.assertRaises(ValueError,
-            dump_privatekey, FILETYPE_PEM, key, GOOD_CIPHER, cb)
-
+        with pytest.raises(ValueError):
+            dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, cb)
 
     def test_load_pkcs7_data_pem(self):
         """
@@ -3064,11 +3081,14 @@ class CRLTests(TestCase):
         crl = CRL()
         self.assertRaises(TypeError, crl.export)
         self.assertRaises(TypeError, crl.export, self.cert)
-        self.assertRaises(TypeError, crl.export, self.cert, self.pkey, FILETYPE_PEM, 10, "md5", "foo")
-
-        self.assertRaises(TypeError, crl.export, None, self.pkey, FILETYPE_PEM, 10)
-        self.assertRaises(TypeError, crl.export, self.cert, None, FILETYPE_PEM, 10)
-        self.assertRaises(TypeError, crl.export, self.cert, self.pkey, None, 10)
+        with pytest.raises(TypeError):
+            crl.export(self.cert, self.pkey, FILETYPE_PEM, 10, "md5", "foo")
+        with pytest.raises(TypeError):
+            crl.export(None, self.pkey, FILETYPE_PEM, 10)
+        with pytest.raises(TypeError):
+            crl.export(self.cert, None, FILETYPE_PEM, 10)
+        with pytest.raises(TypeError):
+            crl.export(self.cert, self.pkey, None, 10)
         self.assertRaises(TypeError, crl.export, self.cert, FILETYPE_PEM, None)
 
     def test_export_unknown_filetype(self):
@@ -3078,8 +3098,8 @@ class CRLTests(TestCase):
         :py:obj:`FILETYPE_TEXT` results in a :py:obj:`ValueError` being raised.
         """
         crl = CRL()
-        self.assertRaises(ValueError, crl.export, self.cert, self.pkey, 100, 10)
-
+        with pytest.raises(ValueError):
+            crl.export(self.cert, self.pkey, 100, 10)
 
     def test_export_unknown_digest(self):
         """
@@ -3235,9 +3255,11 @@ class X509StoreContextTests(TestCase):
         """
         store = X509Store()
         store_ctx = X509StoreContext(store, self.root_cert)
-        e = self.assertRaises(X509StoreContextError, store_ctx.verify_certificate)
-        self.assertEqual(e.args[0][2], 'self signed certificate')
-        self.assertEqual(e.certificate.get_subject().CN, 'Testing Root CA')
+        with pytest.raises(X509StoreContextError) as exc:
+            store_ctx.verify_certificate()
+
+        assert exc.value.args[0][2] == 'self signed certificate'
+        assert exc.value.certificate.get_subject().CN == 'Testing Root CA'
 
     def test_invalid_chain_no_root(self):
         """
@@ -3247,9 +3269,12 @@ class X509StoreContextTests(TestCase):
         store = X509Store()
         store.add_cert(self.intermediate_cert)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        e = self.assertRaises(X509StoreContextError, store_ctx.verify_certificate)
-        self.assertEqual(e.args[0][2], 'unable to get issuer certificate')
-        self.assertEqual(e.certificate.get_subject().CN, 'intermediate')
+
+        with pytest.raises(X509StoreContextError) as exc:
+            store_ctx.verify_certificate()
+
+        assert exc.value.args[0][2] == 'unable to get issuer certificate'
+        assert exc.value.certificate.get_subject().CN == 'intermediate'
 
     def test_invalid_chain_no_intermediate(self):
         """
@@ -3259,10 +3284,12 @@ class X509StoreContextTests(TestCase):
         store = X509Store()
         store.add_cert(self.root_cert)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        e = self.assertRaises(X509StoreContextError, store_ctx.verify_certificate)
-        self.assertEqual(e.args[0][2], 'unable to get local issuer certificate')
-        self.assertEqual(e.certificate.get_subject().CN, 'intermediate-service')
 
+        with pytest.raises(X509StoreContextError) as exc:
+            store_ctx.verify_certificate()
+
+        assert exc.value.args[0][2] == 'unable to get local issuer certificate'
+        assert exc.value.certificate.get_subject().CN == 'intermediate-service'
 
     def test_modification_pre_verify(self):
         """
@@ -3275,9 +3302,13 @@ class X509StoreContextTests(TestCase):
         store_good.add_cert(self.root_cert)
         store_good.add_cert(self.intermediate_cert)
         store_ctx = X509StoreContext(store_bad, self.intermediate_server_cert)
-        e = self.assertRaises(X509StoreContextError, store_ctx.verify_certificate)
-        self.assertEqual(e.args[0][2], 'unable to get issuer certificate')
-        self.assertEqual(e.certificate.get_subject().CN, 'intermediate')
+
+        with pytest.raises(X509StoreContextError) as exc:
+            store_ctx.verify_certificate()
+
+        assert exc.value.args[0][2] == 'unable to get issuer certificate'
+        assert exc.value.certificate.get_subject().CN == 'intermediate'
+
         store_ctx.set_store(store_good)
         self.assertEqual(store_ctx.verify_certificate(), None)
 
@@ -3515,7 +3546,9 @@ class EllipticCurveHashTests(TestCase):
         curve does not contain that curve.
         """
         curve = get_elliptic_curve(self.curve_factory.curve_name)
-        curves = set([get_elliptic_curve(self.curve_factory.another_curve_name)])
+        curves = set([
+            get_elliptic_curve(self.curve_factory.another_curve_name)
+        ])
         self.assertNotIn(curve, curves)
 
 
