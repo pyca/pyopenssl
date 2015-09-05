@@ -29,7 +29,6 @@ TYPE_RSA = _lib.EVP_PKEY_RSA
 TYPE_DSA = _lib.EVP_PKEY_DSA
 
 
-
 class Error(Exception):
     """
     An error occurred in an `OpenSSL.crypto` API.
@@ -39,7 +38,6 @@ class Error(Exception):
 _raise_current_error = partial(_exception_from_error_queue, Error)
 
 
-
 def _untested_error(where):
     """
     An OpenSSL API failed somehow.  Additionally, the failure which was
@@ -47,7 +45,6 @@ def _untested_error(where):
     of pyOpenSSL is now somewhat less predictable.
     """
     raise RuntimeError("Unknown %s failure" % (where,))
-
 
 
 def _new_mem_buf(buffer=None):
@@ -77,7 +74,6 @@ def _new_mem_buf(buffer=None):
     return bio
 
 
-
 def _bio_to_string(bio):
     """
     Copy the contents of an OpenSSL BIO object into a Python byte string.
@@ -85,7 +81,6 @@ def _bio_to_string(bio):
     result_buffer = _ffi.new('char**')
     buffer_length = _lib.BIO_get_mem_data(bio, result_buffer)
     return _ffi.buffer(result_buffer[0], buffer_length)[:]
-
 
 
 def _set_asn1_time(boundary, when):
@@ -116,7 +111,6 @@ def _set_asn1_time(boundary, when):
             raise ValueError("Invalid string")
         else:
             _untested_error()
-
 
 
 def _get_asn1_time(timestamp):
@@ -157,7 +151,6 @@ def _get_asn1_time(timestamp):
             return string_result
 
 
-
 class PKey(object):
     """
     A class representing an DSA or RSA public key or key pair.
@@ -169,7 +162,6 @@ class PKey(object):
         pkey = _lib.EVP_PKEY_new()
         self._pkey = _ffi.gc(pkey, _lib.EVP_PKEY_free)
         self._initialized = False
-
 
     def generate_key(self, type, bits):
         """
@@ -237,7 +229,6 @@ class PKey(object):
 
         self._initialized = True
 
-
     def check(self):
         """
         Check the consistency of an RSA private key.
@@ -262,7 +253,6 @@ class PKey(object):
             return True
         _raise_current_error()
 
-
     def type(self):
         """
         Returns the type of the key
@@ -270,7 +260,6 @@ class PKey(object):
         :return: The type of the key.
         """
         return self._pkey.type
-
 
     def bits(self):
         """
@@ -280,7 +269,6 @@ class PKey(object):
         """
         return _lib.EVP_PKEY_bits(self._pkey)
 PKeyType = PKey
-
 
 
 class _EllipticCurve(object):
@@ -307,7 +295,6 @@ class _EllipticCurve(object):
                 return super(_EllipticCurve, self).__ne__(other)
             return NotImplemented
 
-
     @classmethod
     def _load_elliptic_curves(cls, lib):
         """
@@ -330,7 +317,6 @@ class _EllipticCurve(object):
                 for c in builtin_curves)
         return set()
 
-
     @classmethod
     def _get_elliptic_curves(cls, lib):
         """
@@ -344,7 +330,6 @@ class _EllipticCurve(object):
         if cls._curves is None:
             cls._curves = cls._load_elliptic_curves(lib)
         return cls._curves
-
 
     @classmethod
     def from_nid(cls, lib, nid):
@@ -363,7 +348,6 @@ class _EllipticCurve(object):
         """
         return cls(lib, nid, _ffi.string(lib.OBJ_nid2sn(nid)).decode("ascii"))
 
-
     def __init__(self, lib, nid, name):
         """
         :param _lib: The :py:mod:`cryptography` binding instance used to
@@ -381,10 +365,8 @@ class _EllipticCurve(object):
         self._nid = nid
         self.name = name
 
-
     def __repr__(self):
         return "<Curve %r>" % (self.name,)
-
 
     def _to_EC_KEY(self):
         """
@@ -395,7 +377,6 @@ class _EllipticCurve(object):
         """
         key = self._lib.EC_KEY_new_by_curve_name(self._nid)
         return _ffi.gc(key, _lib.EC_KEY_free)
-
 
 
 def get_elliptic_curves():
@@ -411,7 +392,6 @@ def get_elliptic_curves():
     used for ECDHE key exchange.
     """
     return _EllipticCurve._get_elliptic_curves(_lib)
-
 
 
 def get_elliptic_curve(name):
@@ -430,7 +410,6 @@ def get_elliptic_curve(name):
         if curve.name == name:
             return curve
     raise ValueError("unknown curve name", name)
-
 
 
 class X509Name(object):
@@ -467,7 +446,6 @@ class X509Name(object):
         name = _lib.X509_NAME_dup(name._name)
         self._name = _ffi.gc(name, _lib.X509_NAME_free)
 
-
     def __setattr__(self, name, value):
         if name.startswith('_'):
             return super(X509Name, self).__setattr__(name, value)
@@ -476,7 +454,7 @@ class X509Name(object):
         # isinstance.
         if type(name) is not str:
             raise TypeError("attribute name must be string, not '%.200s'" % (
-                    type(value).__name__,))
+                type(value).__name__,))
 
         nid = _lib.OBJ_txt2nid(_byte_string(name))
         if nid == _lib.NID_undef:
@@ -503,7 +481,6 @@ class X509Name(object):
             self._name, nid, _lib.MBSTRING_UTF8, value, -1, -1, 0)
         if not add_result:
             _raise_current_error()
-
 
     def __getattr__(self, name):
         """
@@ -545,7 +522,6 @@ class X509Name(object):
             _lib.OPENSSL_free(result_buffer[0])
         return result
 
-
     def _cmp(op):
         def f(self, other):
             if not isinstance(other, X509Name):
@@ -578,7 +554,6 @@ class X509Name(object):
         return "<X509Name object '%s'>" % (
             _native(_ffi.string(result_buffer)),)
 
-
     def hash(self):
         """
         Return an integer representation of the first four bytes of the
@@ -590,7 +565,6 @@ class X509Name(object):
         :rtype: :py:class:`int`
         """
         return _lib.X509_NAME_hash(self._name)
-
 
     def der(self):
         """
@@ -608,7 +582,6 @@ class X509Name(object):
         string_result = _ffi.buffer(result_buffer[0], encode_result)[:]
         _lib.OPENSSL_free(result_buffer[0])
         return string_result
-
 
     def get_components(self):
         """
@@ -628,17 +601,15 @@ class X509Name(object):
             name = _lib.OBJ_nid2sn(nid)
 
             result.append((
-                    _ffi.string(name),
-                    _ffi.string(
-                        _lib.ASN1_STRING_data(fval),
-                        _lib.ASN1_STRING_length(fval))))
+                _ffi.string(name),
+                _ffi.string(
+                    _lib.ASN1_STRING_data(fval),
+                    _lib.ASN1_STRING_length(fval))))
 
         return result
 
 
-
 X509NameType = X509Name
-
 
 
 class X509Extension(object):
@@ -677,7 +648,8 @@ class X509Extension(object):
 
         # Initialize the subject and issuer, if appropriate.  ctx is a local,
         # and as far as I can tell none of the X509V3_* APIs invoked here steal
-        # any references, so no need to mess with reference counts or duplicates.
+        # any references, so no need to mess with reference counts or
+        # duplicates.
         if issuer is not None:
             if not isinstance(issuer, X509):
                 raise TypeError("issuer must be an X509 instance")
@@ -702,7 +674,6 @@ class X509Extension(object):
             _raise_current_error()
         self._extension = _ffi.gc(extension, _lib.X509_EXTENSION_free)
 
-
     @property
     def _nid(self):
         return _lib.OBJ_obj2nid(self._extension.object)
@@ -711,7 +682,7 @@ class X509Extension(object):
         _lib.GEN_EMAIL: "email",
         _lib.GEN_DNS: "DNS",
         _lib.GEN_URI: "URI",
-        }
+    }
 
     def _subjectAltNameString(self):
         method = _lib.X509V3_EXT_get(self._extension)
@@ -749,7 +720,6 @@ class X509Extension(object):
                 parts.append(label + ":" + value)
         return ", ".join(parts)
 
-
     def __str__(self):
         """
         :return: a nice text representation of the extension
@@ -765,7 +735,6 @@ class X509Extension(object):
 
         return _native(_bio_to_string(bio))
 
-
     def get_critical(self):
         """
         Returns the critical field of this X.509 extension.
@@ -773,7 +742,6 @@ class X509Extension(object):
         :return: The critical field.
         """
         return _lib.X509_EXTENSION_get_critical(self._extension)
-
 
     def get_short_name(self):
         """
@@ -789,7 +757,6 @@ class X509Extension(object):
         obj = _lib.X509_EXTENSION_get_object(self._extension)
         nid = _lib.OBJ_obj2nid(obj)
         return _ffi.string(_lib.OBJ_nid2sn(nid))
-
 
     def get_data(self):
         """
@@ -807,19 +774,17 @@ class X509Extension(object):
         return _ffi.buffer(char_result, result_length)[:]
 
 
-
 X509ExtensionType = X509Extension
-
 
 
 class X509Req(object):
     """
     An X.509 certificate signing requests.
     """
+
     def __init__(self):
         req = _lib.X509_REQ_new()
         self._req = _ffi.gc(req, _lib.X509_REQ_free)
-
 
     def set_pubkey(self, pkey):
         """
@@ -834,7 +799,6 @@ class X509Req(object):
         if not set_result:
             # TODO: This is untested.
             _raise_current_error()
-
 
     def get_pubkey(self):
         """
@@ -852,7 +816,6 @@ class X509Req(object):
         pkey._only_public = True
         return pkey
 
-
     def set_version(self, version):
         """
         Set the version subfield (RFC 2459, section 4.1.2.1) of the certificate
@@ -865,7 +828,6 @@ class X509Req(object):
         if not set_result:
             _raise_current_error()
 
-
     def get_version(self):
         """
         Get the version subfield (RFC 2459, section 4.1.2.1) of the certificate
@@ -875,7 +837,6 @@ class X509Req(object):
         :rtype: :py:class:`int`
         """
         return _lib.X509_REQ_get_version(self._req)
-
 
     def get_subject(self):
         """
@@ -898,7 +859,6 @@ class X509Req(object):
         name._owner = self
 
         return name
-
 
     def add_extensions(self, extensions):
         """
@@ -927,7 +887,6 @@ class X509Req(object):
             # TODO: This is untested.
             _raise_current_error()
 
-
     def get_extensions(self):
         """
         Get X.509 extensions in the certificate signing request.
@@ -944,7 +903,6 @@ class X509Req(object):
             ext._extension = _lib.sk_X509_EXTENSION_value(native_exts_obj, i)
             exts.append(ext)
         return exts
-
 
     def sign(self, pkey, digest):
         """
@@ -972,7 +930,6 @@ class X509Req(object):
             # TODO: This is untested.
             _raise_current_error()
 
-
     def verify(self, pkey):
         """
         Verifies the signature on this certificate signing request.
@@ -994,20 +951,18 @@ class X509Req(object):
         return result
 
 
-
 X509ReqType = X509Req
-
 
 
 class X509(object):
     """
     An X.509 certificate.
     """
+
     def __init__(self):
         # TODO Allocation failure?  And why not __new__ instead of __init__?
         x509 = _lib.X509_new()
         self._x509 = _ffi.gc(x509, _lib.X509_free)
-
 
     def set_version(self, version):
         """
@@ -1023,7 +978,6 @@ class X509(object):
 
         _lib.X509_set_version(self._x509, version)
 
-
     def get_version(self):
         """
         Return the version number of the certificate.
@@ -1032,7 +986,6 @@ class X509(object):
         :rtype: :py:class:`int`
         """
         return _lib.X509_get_version(self._x509)
-
 
     def get_pubkey(self):
         """
@@ -1049,7 +1002,6 @@ class X509(object):
         pkey._only_public = True
         return pkey
 
-
     def set_pubkey(self, pkey):
         """
         Set the public key of the certificate.
@@ -1065,7 +1017,6 @@ class X509(object):
         set_result = _lib.X509_set_pubkey(self._x509, pkey._pkey)
         if not set_result:
             _raise_current_error()
-
 
     def sign(self, pkey, digest):
         """
@@ -1096,7 +1047,6 @@ class X509(object):
         if not sign_result:
             _raise_current_error()
 
-
     def get_signature_algorithm(self):
         """
         Return the signature algorithm used in the certificate.
@@ -1113,7 +1063,6 @@ class X509(object):
         if nid == _lib.NID_undef:
             raise ValueError("Undefined signature algorithm")
         return _ffi.string(_lib.OBJ_nid2ln(nid))
-
 
     def digest(self, digest_name):
         """
@@ -1142,9 +1091,8 @@ class X509(object):
             _raise_current_error()
 
         return b":".join([
-                b16encode(ch).upper() for ch
-                in _ffi.buffer(result_buffer, result_length[0])])
-
+            b16encode(ch).upper() for ch
+            in _ffi.buffer(result_buffer, result_length[0])])
 
     def subject_name_hash(self):
         """
@@ -1154,7 +1102,6 @@ class X509(object):
         :rtype: :py:class:`bytes`
         """
         return _lib.X509_subject_name_hash(self._x509)
-
 
     def set_serial_number(self, serial):
         """
@@ -1197,7 +1144,6 @@ class X509(object):
                 # TODO Not tested
                 _raise_current_error()
 
-
     def get_serial_number(self):
         """
         Return the serial number of this certificate.
@@ -1218,7 +1164,6 @@ class X509(object):
         finally:
             _lib.BN_free(bignum_serial)
 
-
     def gmtime_adj_notAfter(self, amount):
         """
         Adjust the time stamp on which the certificate stops being valid.
@@ -1234,7 +1179,6 @@ class X509(object):
         notAfter = _lib.X509_get_notAfter(self._x509)
         _lib.X509_gmtime_adj(notAfter, amount)
 
-
     def gmtime_adj_notBefore(self, amount):
         """
         Adjust the timestamp on which the certificate starts being valid.
@@ -1247,7 +1191,6 @@ class X509(object):
 
         notBefore = _lib.X509_get_notBefore(self._x509)
         _lib.X509_gmtime_adj(notBefore, amount)
-
 
     def has_expired(self):
         """
@@ -1262,10 +1205,8 @@ class X509(object):
         return _lib.ASN1_UTCTIME_cmp_time_t(
             _ffi.cast('ASN1_UTCTIME*', notAfter), now) < 0
 
-
     def _get_boundary_time(self, which):
         return _get_asn1_time(which(self._x509))
-
 
     def get_notBefore(self):
         """
@@ -1282,10 +1223,8 @@ class X509(object):
         """
         return self._get_boundary_time(_lib.X509_get_notBefore)
 
-
     def _set_boundary_time(self, which, when):
         return _set_asn1_time(which(self._x509), when)
-
 
     def set_notBefore(self, when):
         """
@@ -1304,7 +1243,6 @@ class X509(object):
         """
         return self._set_boundary_time(_lib.X509_get_notBefore, when)
 
-
     def get_notAfter(self):
         """
         Get the timestamp at which the certificate stops being valid.
@@ -1319,7 +1257,6 @@ class X509(object):
         :rtype: :py:class:`bytes` or :py:const:`None`
         """
         return self._get_boundary_time(_lib.X509_get_notAfter)
-
 
     def set_notAfter(self, when):
         """
@@ -1338,7 +1275,6 @@ class X509(object):
         """
         return self._set_boundary_time(_lib.X509_get_notAfter, when)
 
-
     def _get_name(self, which):
         name = X509Name.__new__(X509Name)
         name._name = which(self._x509)
@@ -1352,7 +1288,6 @@ class X509(object):
 
         return name
 
-
     def _set_name(self, which, name):
         if not isinstance(name, X509Name):
             raise TypeError("name must be an X509Name")
@@ -1360,7 +1295,6 @@ class X509(object):
         if not set_result:
             # TODO: This is untested.
             _raise_current_error()
-
 
     def get_issuer(self):
         """
@@ -1374,7 +1308,6 @@ class X509(object):
         """
         return self._get_name(_lib.X509_get_issuer_name)
 
-
     def set_issuer(self, issuer):
         """
         Set the issuer of this certificate.
@@ -1385,7 +1318,6 @@ class X509(object):
         :return: :py:const:`None`
         """
         return self._set_name(_lib.X509_set_issuer_name, issuer)
-
 
     def get_subject(self):
         """
@@ -1399,7 +1331,6 @@ class X509(object):
         """
         return self._get_name(_lib.X509_get_subject_name)
 
-
     def set_subject(self, subject):
         """
         Set the subject of this certificate.
@@ -1411,7 +1342,6 @@ class X509(object):
         """
         return self._set_name(_lib.X509_set_subject_name, subject)
 
-
     def get_extension_count(self):
         """
         Get the number of extensions on this certificate.
@@ -1422,7 +1352,6 @@ class X509(object):
         .. versionadded:: 0.12
         """
         return _lib.X509_get_ext_count(self._x509)
-
 
     def add_extensions(self, extensions):
         """
@@ -1439,7 +1368,6 @@ class X509(object):
             add_result = _lib.X509_add_ext(self._x509, ext._extension, -1)
             if not add_result:
                 _raise_current_error()
-
 
     def get_extension(self, index):
         """
@@ -1465,19 +1393,17 @@ class X509(object):
         return ext
 
 
-
 X509Type = X509
-
 
 
 class X509Store(object):
     """
     An X509 certificate store.
     """
+
     def __init__(self):
         store = _lib.X509_STORE_new()
         self._store = _ffi.gc(store, _lib.X509_STORE_free)
-
 
     def add_cert(self, cert):
         """
@@ -1509,6 +1435,7 @@ class X509StoreContextError(Exception):
     :ivar certificate: The certificate which caused verificate failure.
     :type certificate: :class:`X509`
     """
+
     def __init__(self, message, certificate):
         super(X509StoreContextError, self).__init__(message)
         self.certificate = certificate
@@ -1553,7 +1480,6 @@ class X509StoreContext(object):
         # :py:meth:`_init` have no adverse affect.
         self._init()
 
-
     def _init(self):
         """
         Set up the store context for a subsequent verification operation.
@@ -1561,7 +1487,6 @@ class X509StoreContext(object):
         ret = _lib.X509_STORE_CTX_init(self._store_ctx, self._store._store, self._cert._x509, _ffi.NULL)
         if ret <= 0:
             _raise_current_error()
-
 
     def _cleanup(self):
         """
@@ -1571,7 +1496,6 @@ class X509StoreContext(object):
         :py:meth:`_init`.
         """
         _lib.X509_STORE_CTX_cleanup(self._store_ctx)
-
 
     def _exception_from_context(self):
         """
@@ -1595,7 +1519,6 @@ class X509StoreContext(object):
         pycert._x509 = _ffi.gc(_cert, _lib.X509_free)
         return X509StoreContextError(errors, pycert)
 
-
     def set_store(self, store):
         """
         Set the context's trust store.
@@ -1606,7 +1529,6 @@ class X509StoreContext(object):
             purposes of any *future* verifications.
         """
         self._store = store
-
 
     def verify_certificate(self):
         """
@@ -1627,7 +1549,6 @@ class X509StoreContext(object):
         self._cleanup()
         if ret <= 0:
             raise self._exception_from_context()
-
 
 
 def load_certificate(type, buffer):
@@ -1739,7 +1660,6 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
     return _bio_to_string(bio)
 
 
-
 def _X509_REVOKED_dup(original):
     copy = _lib.X509_REVOKED_new()
     if copy == _ffi.NULL:
@@ -1766,7 +1686,6 @@ def _X509_REVOKED_dup(original):
     return copy
 
 
-
 class Revoked(object):
     """
     A certificate revocation.
@@ -1789,7 +1708,6 @@ class Revoked(object):
     def __init__(self):
         revoked = _lib.X509_REVOKED_new()
         self._revoked = _ffi.gc(revoked, _lib.X509_REVOKED_free)
-
 
     def set_serial(self, hex_str):
         """
@@ -1815,7 +1733,6 @@ class Revoked(object):
             _lib.ASN1_INTEGER_free)
         _lib.X509_REVOKED_set_serialNumber(self._revoked, asn1_serial)
 
-
     def get_serial(self):
         """
         Get the serial number.
@@ -1835,7 +1752,6 @@ class Revoked(object):
 
         return _bio_to_string(bio)
 
-
     def _delete_reason(self):
         stack = self._revoked.extensions
         for i in range(_lib.sk_X509_EXTENSION_num(stack)):
@@ -1844,7 +1760,6 @@ class Revoked(object):
                 _lib.X509_EXTENSION_free(ext)
                 _lib.sk_X509_EXTENSION_delete(stack, i)
                 break
-
 
     def set_reason(self, reason):
         """
@@ -1889,7 +1804,6 @@ class Revoked(object):
                 # TODO: This is untested.
                 _raise_current_error()
 
-
     def get_reason(self):
         """
         Set the reason of this revocation.
@@ -1917,7 +1831,6 @@ class Revoked(object):
 
                 return _bio_to_string(bio)
 
-
     def all_reasons(self):
         """
         Return a list of all the supported reason strings.
@@ -1930,7 +1843,6 @@ class Revoked(object):
         """
         return self._crl_reasons[:]
 
-
     def set_rev_date(self, when):
         """
         Set the revocation timestamp.
@@ -1940,7 +1852,6 @@ class Revoked(object):
         :return: :py:const:`None`
         """
         return _set_asn1_time(self._revoked.revocationDate, when)
-
 
     def get_rev_date(self):
         """
@@ -1952,18 +1863,17 @@ class Revoked(object):
         return _get_asn1_time(self._revoked.revocationDate)
 
 
-
 class CRL(object):
     """
     A certificate revocation list.
     """
+
     def __init__(self):
         """
         Create a new empty certificate revocation list.
         """
         crl = _lib.X509_CRL_new()
         self._crl = _ffi.gc(crl, _lib.X509_CRL_free)
-
 
     def get_revoked(self):
         """
@@ -1985,7 +1895,6 @@ class CRL(object):
             results.append(pyrev)
         if results:
             return tuple(results)
-
 
     def add_revoked(self, revoked):
         """
@@ -2009,7 +1918,6 @@ class CRL(object):
         if add_result == 0:
             # TODO: This is untested.
             _raise_current_error()
-
 
     def export(self, cert, key, type=FILETYPE_PEM, days=100,
                digest=_UNSPECIFIED):
@@ -2057,7 +1965,8 @@ class CRL(object):
             # TODO: This is untested.
             _raise_current_error()
 
-        # A scratch time object to give different values to different CRL fields
+        # A scratch time object to give different values to different CRL
+        # fields
         sometime = _lib.ASN1_TIME_new()
         if sometime == _ffi.NULL:
             # TODO: This is untested.
@@ -2093,7 +2002,6 @@ class CRL(object):
 CRLType = CRL
 
 
-
 class PKCS7(object):
     def type_is_signed(self):
         """
@@ -2105,7 +2013,6 @@ class PKCS7(object):
             return True
         return False
 
-
     def type_is_enveloped(self):
         """
         Check if this NID_pkcs7_enveloped object
@@ -2115,7 +2022,6 @@ class PKCS7(object):
         if _lib.PKCS7_type_is_enveloped(self._pkcs7):
             return True
         return False
-
 
     def type_is_signedAndEnveloped(self):
         """
@@ -2127,7 +2033,6 @@ class PKCS7(object):
             return True
         return False
 
-
     def type_is_data(self):
         """
         Check if this NID_pkcs7_data object
@@ -2137,7 +2042,6 @@ class PKCS7(object):
         if _lib.PKCS7_type_is_data(self._pkcs7):
             return True
         return False
-
 
     def get_type_name(self):
         """
@@ -2152,17 +2056,16 @@ class PKCS7(object):
 PKCS7Type = PKCS7
 
 
-
 class PKCS12(object):
     """
     A PKCS #12 archive.
     """
+
     def __init__(self):
         self._pkey = None
         self._cert = None
         self._cacerts = None
         self._friendlyname = None
-
 
     def get_certificate(self):
         """
@@ -2172,7 +2075,6 @@ class PKCS12(object):
         :rtype: :py:class:`X509` or :py:const:`None`
         """
         return self._cert
-
 
     def set_certificate(self, cert):
         """
@@ -2187,7 +2089,6 @@ class PKCS12(object):
             raise TypeError("cert must be an X509 instance")
         self._cert = cert
 
-
     def get_privatekey(self):
         """
         Get the private key in the PKCS #12 structure.
@@ -2196,7 +2097,6 @@ class PKCS12(object):
         :rtype: :py:class:`PKey`
         """
         return self._pkey
-
 
     def set_privatekey(self, pkey):
         """
@@ -2211,7 +2111,6 @@ class PKCS12(object):
             raise TypeError("pkey must be a PKey instance")
         self._pkey = pkey
 
-
     def get_ca_certificates(self):
         """
         Get the CA certificates in the PKCS #12 structure.
@@ -2222,7 +2121,6 @@ class PKCS12(object):
         """
         if self._cacerts is not None:
             return tuple(self._cacerts)
-
 
     def set_ca_certificates(self, cacerts):
         """
@@ -2243,7 +2141,6 @@ class PKCS12(object):
                     raise TypeError("iterable must only contain X509 instances")
             self._cacerts = cacerts
 
-
     def set_friendlyname(self, name):
         """
         Set the friendly name in the PKCS #12 structure.
@@ -2259,7 +2156,6 @@ class PKCS12(object):
             raise TypeError("name must be a byte string or None (not %r)" % (name,))
         self._friendlyname = name
 
-
     def get_friendlyname(self):
         """
         Get the friendly name in the PKCS# 12 structure.
@@ -2268,7 +2164,6 @@ class PKCS12(object):
         :rtype: :py:class:`bytes` or :py:const:`None`
         """
         return self._friendlyname
-
 
     def export(self, passphrase=None, iter=2048, maciter=1):
         """
@@ -2331,19 +2226,17 @@ class PKCS12(object):
         return _bio_to_string(bio)
 
 
-
 PKCS12Type = PKCS12
-
 
 
 class NetscapeSPKI(object):
     """
     A Netscape SPKI object.
     """
+
     def __init__(self):
         spki = _lib.NETSCAPE_SPKI_new()
         self._spki = _ffi.gc(spki, _lib.NETSCAPE_SPKI_free)
-
 
     def sign(self, pkey, digest):
         """
@@ -2372,7 +2265,6 @@ class NetscapeSPKI(object):
             # TODO: This is untested.
             _raise_current_error()
 
-
     def verify(self, key):
         """
         Verifies a signature on a certificate request.
@@ -2391,7 +2283,6 @@ class NetscapeSPKI(object):
             _raise_current_error()
         return True
 
-
     def b64_encode(self):
         """
         Generate a base64 encoded representation of this SPKI object.
@@ -2403,7 +2294,6 @@ class NetscapeSPKI(object):
         result = _ffi.string(encoded)
         _lib.CRYPTO_free(encoded)
         return result
-
 
     def get_pubkey(self):
         """
@@ -2421,7 +2311,6 @@ class NetscapeSPKI(object):
         pkey._only_public = True
         return pkey
 
-
     def set_pubkey(self, pkey):
         """
         Set the public key of the certificate
@@ -2435,9 +2324,7 @@ class NetscapeSPKI(object):
             _raise_current_error()
 
 
-
 NetscapeSPKIType = NetscapeSPKI
-
 
 
 class _PassphraseHelper(object):
@@ -2448,7 +2335,6 @@ class _PassphraseHelper(object):
         self._more_args = more_args
         self._truncate = truncate
         self._problems = []
-
 
     @property
     def callback(self):
@@ -2461,7 +2347,6 @@ class _PassphraseHelper(object):
         else:
             raise TypeError("Last argument must be string or callable")
 
-
     @property
     def callback_args(self):
         if self._passphrase is None:
@@ -2473,7 +2358,6 @@ class _PassphraseHelper(object):
         else:
             raise TypeError("Last argument must be string or callable")
 
-
     def raise_if_problem(self, exceptionType=Error):
         try:
             _exception_from_error_queue(exceptionType)
@@ -2482,7 +2366,6 @@ class _PassphraseHelper(object):
         if self._problems:
             raise self._problems[0]
         return from_queue
-
 
     def _read_passphrase(self, buf, size, rwflag, userdata):
         try:
@@ -2503,7 +2386,6 @@ class _PassphraseHelper(object):
         except Exception as e:
             self._problems.append(e)
             return 0
-
 
 
 def load_privatekey(type, buffer, passphrase=None):
@@ -2541,7 +2423,6 @@ def load_privatekey(type, buffer, passphrase=None):
     return pkey
 
 
-
 def dump_certificate_request(type, req):
     """
     Dump a certificate request to a buffer
@@ -2566,7 +2447,6 @@ def dump_certificate_request(type, req):
         _raise_current_error()
 
     return _bio_to_string(bio)
-
 
 
 def load_certificate_request(type, buffer):
@@ -2596,7 +2476,6 @@ def load_certificate_request(type, buffer):
     x509req = X509Req.__new__(X509Req)
     x509req._req = _ffi.gc(req, _lib.X509_REQ_free)
     return x509req
-
 
 
 def sign(pkey, data, digest):
@@ -2631,7 +2510,6 @@ def sign(pkey, data, digest):
         _raise_current_error()
 
     return _ffi.buffer(signature_buffer, signature_length[0])[:]
-
 
 
 def verify(cert, signature, data, digest):
@@ -2696,7 +2574,6 @@ def load_crl(type, buffer):
     return result
 
 
-
 def load_pkcs7_data(type, buffer):
     """
     Load pkcs7 data from a buffer
@@ -2725,7 +2602,6 @@ def load_pkcs7_data(type, buffer):
     pypkcs7 = PKCS7.__new__(PKCS7)
     pypkcs7._pkcs7 = _ffi.gc(pkcs7, _lib.PKCS7_free)
     return pypkcs7
-
 
 
 def load_pkcs12(buffer, passphrase=None):
@@ -2808,35 +2684,6 @@ def load_pkcs12(buffer, passphrase=None):
     return pkcs12
 
 
-def _initialize_openssl_threads(get_ident, Lock):
-    import _ssl
-    return
-
-    locks = list(Lock() for n in range(_lib.CRYPTO_num_locks()))
-
-    def locking_function(mode, index, filename, line):
-        if mode & _lib.CRYPTO_LOCK:
-            locks[index].acquire()
-        else:
-            locks[index].release()
-
-    _lib.CRYPTO_set_id_callback(
-        _ffi.callback("unsigned long (*)(void)", get_ident))
-
-    _lib.CRYPTO_set_locking_callback(
-        _ffi.callback(
-            "void (*)(int, int, const char*, int)", locking_function))
-
-
-try:
-    from thread import get_ident
-    from threading import Lock
-except ImportError:
-    pass
-else:
-    _initialize_openssl_threads(get_ident, Lock)
-    del get_ident, Lock
-
 # There are no direct unit tests for this initialization.  It is tested
 # indirectly since it is necessary for functions like dump_privatekey when
 # using encryption.
@@ -2851,7 +2698,6 @@ _lib.OpenSSL_add_all_algorithms()
 # This is similar but exercised mainly by exception_from_error_queue.  It calls
 # both ERR_load_crypto_strings() and ERR_load_SSL_strings().
 _lib.SSL_load_error_strings()
-
 
 
 # Set the default string mask to match OpenSSL upstream (since 2005) and
