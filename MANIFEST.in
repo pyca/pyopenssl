@@ -5,3 +5,4 @@ recursive-include   examples    *
 recursive-include   rpm         *
 recursive-exclude   leakcheck   *.py *.pem
 prune               doc/_build
+prune               .travis
