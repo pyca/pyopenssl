@@ -87,6 +87,7 @@ from OpenSSL.SSL import (
     SSL_CB_ACCEPT_EXIT, SSL_CB_CONNECT_LOOP, SSL_CB_CONNECT_EXIT,
     SSL_CB_HANDSHAKE_START, SSL_CB_HANDSHAKE_DONE)
 
+
 # openssl dhparam 128 -out dh-128.pem (note that 128 is a small number of bits
 # to use)
 dhparam = """\
@@ -144,7 +145,6 @@ def socket_pair():
     client.setblocking(False)
 
     return (server, client)
-
 
 
 def handshake(client, server):
@@ -205,24 +205,23 @@ def _create_certificate_chain():
     scert.set_notBefore(b("20000101000000Z"))
     scert.set_notAfter(b("20200101000000Z"))
     scert.add_extensions([
-            X509Extension(b('basicConstraints'), True, b('CA:false'))])
+        X509Extension(b('basicConstraints'), True, b('CA:false'))])
     scert.set_serial_number(0)
     scert.sign(ikey, "sha1")
 
     return [(cakey, cacert), (ikey, icert), (skey, scert)]
 
 
-
 class _LoopbackMixin:
     """
     Helper mixin which defines methods for creating a connected socket pair and
-    for forcing two connected SSL sockets to talk to each other via memory BIOs.
+    for forcing two connected SSL sockets to talk to each other via memory
+    BIOs.
     """
     def _loopbackClientFactory(self, socket):
         client = Connection(Context(TLSv1_METHOD), socket)
         client.set_connect_state()
         return client
-
 
     def _loopbackServerFactory(self, socket):
         ctx = Context(TLSv1_METHOD)
@@ -231,7 +230,6 @@ class _LoopbackMixin:
         server = Connection(ctx, socket)
         server.set_accept_state()
         return server
-
 
     def _loopback(self, serverFactory=None, clientFactory=None):
         if serverFactory is None:
@@ -249,15 +247,14 @@ class _LoopbackMixin:
         client.setblocking(True)
         return server, client
 
-
     def _interactInMemory(self, client_conn, server_conn):
         """
         Try to read application bytes from each of the two :py:obj:`Connection`
         objects.  Copy bytes back and forth between their send/receive buffers
         for as long as there is anything to copy.  When there is nothing more
-        to copy, return :py:obj:`None`.  If one of them actually manages to deliver
-        some application bytes, return a two-tuple of the connection from which
-        the bytes were read and the bytes themselves.
+        to copy, return :py:obj:`None`.  If one of them actually manages to
+        deliver some application bytes, return a two-tuple of the connection
+        from which the bytes were read and the bytes themselves.
         """
         wrote = True
         while wrote:
@@ -296,7 +293,6 @@ class _LoopbackMixin:
                         wrote = True
                         write.bio_write(dirty)
 
-
     def _handshakeInMemory(self, client_conn, server_conn):
         """
         Perform the TLS handshake between two :py:class:`Connection` instances
@@ -314,7 +310,6 @@ class _LoopbackMixin:
         self._interactInMemory(client_conn, server_conn)
 
 
-
 class VersionTests(TestCase):
     """
     Tests for version information exposed by
@@ -328,7 +323,6 @@ class VersionTests(TestCase):
         nibbles above that.
         """
         self.assertTrue(isinstance(OPENSSL_VERSION_NUMBER, int))
-
 
     def test_SSLeay_version(self):
         """
@@ -344,22 +338,21 @@ class VersionTests(TestCase):
         self.assertEqual(len(versions), 5)
 
 
-
 class ContextTests(TestCase, _LoopbackMixin):
     """
     Unit tests for :py:obj:`OpenSSL.SSL.Context`.
     """
     def test_method(self):
         """
-        :py:obj:`Context` can be instantiated with one of :py:obj:`SSLv2_METHOD`,
-        :py:obj:`SSLv3_METHOD`, :py:obj:`SSLv23_METHOD`, :py:obj:`TLSv1_METHOD`,
+        :py:obj:`Context` can be instantiated with one of
+        :py:obj:`SSLv2_METHOD`, :py:obj:`SSLv3_METHOD`,
+        :py:obj:`SSLv23_METHOD`, :py:obj:`TLSv1_METHOD`,
         :py:obj:`TLSv1_1_METHOD`, or :py:obj:`TLSv1_2_METHOD`.
         """
         methods = [
             SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD]
         for meth in methods:
             Context(meth)
-
 
         maybe = [SSLv2_METHOD, TLSv1_1_METHOD, TLSv1_2_METHOD]
         for meth in maybe:
@@ -373,7 +366,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, Context, "")
         self.assertRaises(ValueError, Context, 10)
 
-
     if not PY3:
         def test_method_long(self):
             """
@@ -382,20 +374,18 @@ class ContextTests(TestCase, _LoopbackMixin):
             """
             Context(long(TLSv1_METHOD))
 
-
-
     def test_type(self):
         """
-        :py:obj:`Context` and :py:obj:`ContextType` refer to the same type object and can be
-        used to create instances of that type.
+        :py:obj:`Context` and :py:obj:`ContextType` refer to the same type
+        object and can be used to create instances of that type.
         """
         self.assertIdentical(Context, ContextType)
         self.assertConsistentType(Context, 'Context', TLSv1_METHOD)
 
-
     def test_use_privatekey(self):
         """
-        :py:obj:`Context.use_privatekey` takes an :py:obj:`OpenSSL.crypto.PKey` instance.
+        :py:obj:`Context.use_privatekey` takes an :py:obj:`OpenSSL.crypto.PKey`
+        instance.
         """
         key = PKey()
         key.generate_key(TYPE_RSA, 128)
@@ -403,15 +393,14 @@ class ContextTests(TestCase, _LoopbackMixin):
         ctx.use_privatekey(key)
         self.assertRaises(TypeError, ctx.use_privatekey, "")
 
-
     def test_use_privatekey_file_missing(self):
         """
-        :py:obj:`Context.use_privatekey_file` raises :py:obj:`OpenSSL.SSL.Error`
-        when passed the name of a file which does not exist.
+        :py:obj:`Context.use_privatekey_file` raises
+        :py:obj:`OpenSSL.SSL.Error` when passed the name of a file which does
+        not exist.
         """
         ctx = Context(TLSv1_METHOD)
         self.assertRaises(Error, ctx.use_privatekey_file, self.mktemp())
-
 
     def _use_privatekey_file_test(self, pemfile, filetype):
         """
@@ -429,7 +418,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         ctx = Context(TLSv1_METHOD)
         ctx.use_privatekey_file(pemfile, filetype)
 
-
     def test_use_privatekey_file_bytes(self):
         """
         A private key can be specified from a file by passing a ``bytes``
@@ -439,7 +427,6 @@ class ContextTests(TestCase, _LoopbackMixin):
             self.mktemp() + NON_ASCII.encode(getfilesystemencoding()),
             FILETYPE_PEM,
         )
-
 
     def test_use_privatekey_file_unicode(self):
         """
@@ -451,7 +438,6 @@ class ContextTests(TestCase, _LoopbackMixin):
             FILETYPE_PEM,
         )
 
-
     if not PY3:
         def test_use_privatekey_file_long(self):
             """
@@ -460,18 +446,18 @@ class ContextTests(TestCase, _LoopbackMixin):
             """
             self._use_privatekey_file_test(self.mktemp(), long(FILETYPE_PEM))
 
-
     def test_use_certificate_wrong_args(self):
         """
         :py:obj:`Context.use_certificate_wrong_args` raises :py:obj:`TypeError`
-        when not passed exactly one :py:obj:`OpenSSL.crypto.X509` instance as an
-        argument.
+        when not passed exactly one :py:obj:`OpenSSL.crypto.X509` instance as
+        an argument.
         """
         ctx = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, ctx.use_certificate)
         self.assertRaises(TypeError, ctx.use_certificate, "hello, world")
-        self.assertRaises(TypeError, ctx.use_certificate, X509(), "hello, world")
-
+        self.assertRaises(
+            TypeError, ctx.use_certificate, X509(), "hello, world"
+        )
 
     def test_use_certificate_uninitialized(self):
         """
@@ -481,7 +467,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         ctx = Context(TLSv1_METHOD)
         self.assertRaises(Error, ctx.use_certificate, X509())
-
 
     def test_use_certificate(self):
         """
@@ -493,35 +478,37 @@ class ContextTests(TestCase, _LoopbackMixin):
         # OpenSSL if the cert and key agree using check_privatekey.  Then as
         # long as check_privatekey works right we're good...
         ctx = Context(TLSv1_METHOD)
-        ctx.use_certificate(load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
-
+        ctx.use_certificate(
+            load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+        )
 
     def test_use_certificate_file_wrong_args(self):
         """
         :py:obj:`Context.use_certificate_file` raises :py:obj:`TypeError` if
         called with zero arguments or more than two arguments, or if the first
-        argument is not a byte string or the second argumnent is not an integer.
+        argument is not a byte string or the second argumnent is not an
+        integer.
         """
         ctx = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, ctx.use_certificate_file)
-        self.assertRaises(TypeError, ctx.use_certificate_file, b"somefile", object())
+        self.assertRaises(TypeError, ctx.use_certificate_file, b"somefile",
+                          object())
         self.assertRaises(
-            TypeError, ctx.use_certificate_file, b"somefile", FILETYPE_PEM, object())
+            TypeError, ctx.use_certificate_file, b"somefile", FILETYPE_PEM,
+            object())
         self.assertRaises(
             TypeError, ctx.use_certificate_file, object(), FILETYPE_PEM)
         self.assertRaises(
             TypeError, ctx.use_certificate_file, b"somefile", object())
 
-
     def test_use_certificate_file_missing(self):
         """
         :py:obj:`Context.use_certificate_file` raises
-        `:py:obj:`OpenSSL.SSL.Error` if passed the name of a file which does not
-        exist.
+        `:py:obj:`OpenSSL.SSL.Error` if passed the name of a file which does
+        not exist.
         """
         ctx = Context(TLSv1_METHOD)
         self.assertRaises(Error, ctx.use_certificate_file, self.mktemp())
-
 
     def _use_certificate_file_test(self, certificate_file):
         """
@@ -538,7 +525,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         ctx = Context(TLSv1_METHOD)
         ctx.use_certificate_file(certificate_file)
 
-
     def test_use_certificate_file_bytes(self):
         """
         :py:obj:`Context.use_certificate_file` sets the certificate (given as a
@@ -548,7 +534,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         filename = self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
         self._use_certificate_file_test(filename)
 
-
     def test_use_certificate_file_unicode(self):
         """
         :py:obj:`Context.use_certificate_file` sets the certificate (given as a
@@ -557,7 +542,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         filename = self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
         self._use_certificate_file_test(filename)
-
 
     if not PY3:
         def test_use_certificate_file_long(self):
@@ -572,7 +556,6 @@ class ContextTests(TestCase, _LoopbackMixin):
             ctx = Context(TLSv1_METHOD)
             ctx.use_certificate_file(pem_filename, long(FILETYPE_PEM))
 
-
     def test_check_privatekey_valid(self):
         """
         :py:obj:`Context.check_privatekey` returns :py:obj:`None` if the
@@ -585,7 +568,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         context.use_privatekey(key)
         context.use_certificate(cert)
         self.assertIs(None, context.check_privatekey())
-
 
     def test_check_privatekey_invalid(self):
         """
@@ -600,7 +582,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         context.use_certificate(cert)
         self.assertRaises(Error, context.check_privatekey)
 
-
     def test_check_privatekey_wrong_args(self):
         """
         :py:obj:`Context.check_privatekey` raises :py:obj:`TypeError` if called
@@ -609,47 +590,42 @@ class ContextTests(TestCase, _LoopbackMixin):
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.check_privatekey, object())
 
-
     def test_set_app_data_wrong_args(self):
         """
-        :py:obj:`Context.set_app_data` raises :py:obj:`TypeError` if called with other than
-        one argument.
+        :py:obj:`Context.set_app_data` raises :py:obj:`TypeError` if called
+        with other than one argument.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.set_app_data)
         self.assertRaises(TypeError, context.set_app_data, None, None)
 
-
     def test_get_app_data_wrong_args(self):
         """
-        :py:obj:`Context.get_app_data` raises :py:obj:`TypeError` if called with any
-        arguments.
+        :py:obj:`Context.get_app_data` raises :py:obj:`TypeError` if called
+        with any arguments.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.get_app_data, None)
 
-
     def test_app_data(self):
         """
-        :py:obj:`Context.set_app_data` stores an object for later retrieval using
-        :py:obj:`Context.get_app_data`.
+        :py:obj:`Context.set_app_data` stores an object for later retrieval
+        using :py:obj:`Context.get_app_data`.
         """
         app_data = object()
         context = Context(TLSv1_METHOD)
         context.set_app_data(app_data)
         self.assertIdentical(context.get_app_data(), app_data)
 
-
     def test_set_options_wrong_args(self):
         """
-        :py:obj:`Context.set_options` raises :py:obj:`TypeError` if called with the wrong
-        number of arguments or a non-:py:obj:`int` argument.
+        :py:obj:`Context.set_options` raises :py:obj:`TypeError` if called with
+        the wrong number of arguments or a non-:py:obj:`int` argument.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.set_options)
         self.assertRaises(TypeError, context.set_options, None)
         self.assertRaises(TypeError, context.set_options, 1, None)
-
 
     def test_set_options(self):
         """
@@ -658,7 +634,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         context = Context(TLSv1_METHOD)
         options = context.set_options(OP_NO_SSLv2)
         self.assertTrue(OP_NO_SSLv2 & options)
-
 
     if not PY3:
         def test_set_options_long(self):
@@ -670,23 +645,21 @@ class ContextTests(TestCase, _LoopbackMixin):
             options = context.set_options(long(OP_NO_SSLv2))
             self.assertTrue(OP_NO_SSLv2 & options)
 
-
     def test_set_mode_wrong_args(self):
         """
-        :py:obj:`Context.set`mode} raises :py:obj:`TypeError` if called with the wrong
-        number of arguments or a non-:py:obj:`int` argument.
+        :py:obj:`Context.set`mode} raises :py:obj:`TypeError` if called with
+        the wrong number of arguments or a non-:py:obj:`int` argument.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.set_mode)
         self.assertRaises(TypeError, context.set_mode, None)
         self.assertRaises(TypeError, context.set_mode, 1, None)
 
-
     if MODE_RELEASE_BUFFERS is not None:
         def test_set_mode(self):
             """
-            :py:obj:`Context.set_mode` accepts a mode bitvector and returns the newly
-            set mode.
+            :py:obj:`Context.set_mode` accepts a mode bitvector and returns the
+            newly set mode.
             """
             context = Context(TLSv1_METHOD)
             self.assertTrue(
@@ -704,36 +677,33 @@ class ContextTests(TestCase, _LoopbackMixin):
     else:
         "MODE_RELEASE_BUFFERS unavailable - OpenSSL version may be too old"
 
-
     def test_set_timeout_wrong_args(self):
         """
-        :py:obj:`Context.set_timeout` raises :py:obj:`TypeError` if called with the wrong
-        number of arguments or a non-:py:obj:`int` argument.
+        :py:obj:`Context.set_timeout` raises :py:obj:`TypeError` if called with
+        the wrong number of arguments or a non-:py:obj:`int` argument.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.set_timeout)
         self.assertRaises(TypeError, context.set_timeout, None)
         self.assertRaises(TypeError, context.set_timeout, 1, None)
 
-
     def test_get_timeout_wrong_args(self):
         """
-        :py:obj:`Context.get_timeout` raises :py:obj:`TypeError` if called with any arguments.
+        :py:obj:`Context.get_timeout` raises :py:obj:`TypeError` if called with
+        any arguments.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.get_timeout, None)
 
-
     def test_timeout(self):
         """
-        :py:obj:`Context.set_timeout` sets the session timeout for all connections
-        created using the context object.  :py:obj:`Context.get_timeout` retrieves this
-        value.
+        :py:obj:`Context.set_timeout` sets the session timeout for all
+        connections created using the context object.
+        :py:obj:`Context.get_timeout` retrieves this value.
         """
         context = Context(TLSv1_METHOD)
         context.set_timeout(1234)
         self.assertEquals(context.get_timeout(), 1234)
-
 
     if not PY3:
         def test_timeout_long(self):
@@ -745,36 +715,33 @@ class ContextTests(TestCase, _LoopbackMixin):
             context.set_timeout(long(1234))
             self.assertEquals(context.get_timeout(), 1234)
 
-
     def test_set_verify_depth_wrong_args(self):
         """
-        :py:obj:`Context.set_verify_depth` raises :py:obj:`TypeError` if called with the wrong
-        number of arguments or a non-:py:obj:`int` argument.
+        :py:obj:`Context.set_verify_depth` raises :py:obj:`TypeError` if called
+        with the wrong number of arguments or a non-:py:obj:`int` argument.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.set_verify_depth)
         self.assertRaises(TypeError, context.set_verify_depth, None)
         self.assertRaises(TypeError, context.set_verify_depth, 1, None)
 
-
     def test_get_verify_depth_wrong_args(self):
         """
-        :py:obj:`Context.get_verify_depth` raises :py:obj:`TypeError` if called with any arguments.
+        :py:obj:`Context.get_verify_depth` raises :py:obj:`TypeError` if called
+        with any arguments.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.get_verify_depth, None)
 
-
     def test_verify_depth(self):
         """
-        :py:obj:`Context.set_verify_depth` sets the number of certificates in a chain
-        to follow before giving up.  The value can be retrieved with
+        :py:obj:`Context.set_verify_depth` sets the number of certificates in
+        a chain to follow before giving up.  The value can be retrieved with
         :py:obj:`Context.get_verify_depth`.
         """
         context = Context(TLSv1_METHOD)
         context.set_verify_depth(11)
         self.assertEquals(context.get_verify_depth(), 11)
-
 
     if not PY3:
         def test_verify_depth_long(self):
@@ -785,7 +752,6 @@ class ContextTests(TestCase, _LoopbackMixin):
             context = Context(TLSv1_METHOD)
             context.set_verify_depth(long(11))
             self.assertEquals(context.get_verify_depth(), 11)
-
 
     def _write_encrypted_pem(self, passphrase):
         """
@@ -801,26 +767,27 @@ class ContextTests(TestCase, _LoopbackMixin):
         fObj.close()
         return pemFile
 
-
     def test_set_passwd_cb_wrong_args(self):
         """
-        :py:obj:`Context.set_passwd_cb` raises :py:obj:`TypeError` if called with the
-        wrong arguments or with a non-callable first argument.
+        :py:obj:`Context.set_passwd_cb` raises :py:obj:`TypeError` if called
+        with the wrong arguments or with a non-callable first argument.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.set_passwd_cb)
         self.assertRaises(TypeError, context.set_passwd_cb, None)
-        self.assertRaises(TypeError, context.set_passwd_cb, lambda: None, None, None)
-
+        self.assertRaises(
+            TypeError, context.set_passwd_cb, lambda: None, None, None
+        )
 
     def test_set_passwd_cb(self):
         """
-        :py:obj:`Context.set_passwd_cb` accepts a callable which will be invoked when
-        a private key is loaded from an encrypted PEM.
+        :py:obj:`Context.set_passwd_cb` accepts a callable which will be
+        invoked when a private key is loaded from an encrypted PEM.
         """
         passphrase = b("foobar")
         pemFile = self._write_encrypted_pem(passphrase)
         calledWith = []
+
         def passphraseCallback(maxlen, verify, extra):
             calledWith.append((maxlen, verify, extra))
             return passphrase
@@ -832,13 +799,13 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertTrue(isinstance(calledWith[0][1], int))
         self.assertEqual(calledWith[0][2], None)
 
-
     def test_passwd_callback_exception(self):
         """
-        :py:obj:`Context.use_privatekey_file` propagates any exception raised by the
-        passphrase callback.
+        :py:obj:`Context.use_privatekey_file` propagates any exception raised
+        by the passphrase callback.
         """
         pemFile = self._write_encrypted_pem(b("monkeys are nice"))
+
         def passphraseCallback(maxlen, verify, extra):
             raise RuntimeError("Sorry, I am a fail.")
 
@@ -846,13 +813,14 @@ class ContextTests(TestCase, _LoopbackMixin):
         context.set_passwd_cb(passphraseCallback)
         self.assertRaises(RuntimeError, context.use_privatekey_file, pemFile)
 
-
     def test_passwd_callback_false(self):
         """
-        :py:obj:`Context.use_privatekey_file` raises :py:obj:`OpenSSL.SSL.Error` if the
-        passphrase callback returns a false value.
+        :py:obj:`Context.use_privatekey_file` raises
+        :py:obj:`OpenSSL.SSL.Error` if the passphrase callback returns a false
+        value.
         """
         pemFile = self._write_encrypted_pem(b("monkeys are nice"))
+
         def passphraseCallback(maxlen, verify, extra):
             return b""
 
@@ -860,20 +828,20 @@ class ContextTests(TestCase, _LoopbackMixin):
         context.set_passwd_cb(passphraseCallback)
         self.assertRaises(Error, context.use_privatekey_file, pemFile)
 
-
     def test_passwd_callback_non_string(self):
         """
-        :py:obj:`Context.use_privatekey_file` raises :py:obj:`OpenSSL.SSL.Error` if the
-        passphrase callback returns a true non-string value.
+        :py:obj:`Context.use_privatekey_file` raises
+        :py:obj:`OpenSSL.SSL.Error` if the passphrase callback returns a true
+        non-string value.
         """
         pemFile = self._write_encrypted_pem(b("monkeys are nice"))
+
         def passphraseCallback(maxlen, verify, extra):
             return 10
 
         context = Context(TLSv1_METHOD)
         context.set_passwd_cb(passphraseCallback)
         self.assertRaises(ValueError, context.use_privatekey_file, pemFile)
-
 
     def test_passwd_callback_too_long(self):
         """
@@ -883,6 +851,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         # A priori knowledge!
         passphrase = b("x") * 1024
         pemFile = self._write_encrypted_pem(passphrase)
+
         def passphraseCallback(maxlen, verify, extra):
             assert maxlen == 1024
             return passphrase + b("y")
@@ -893,11 +862,10 @@ class ContextTests(TestCase, _LoopbackMixin):
         # passphrase.
         context.use_privatekey_file(pemFile)
 
-
     def test_set_info_callback(self):
         """
-        :py:obj:`Context.set_info_callback` accepts a callable which will be invoked
-        when certain information about an SSL connection is available.
+        :py:obj:`Context.set_info_callback` accepts a callable which will be
+        invoked when certain information about an SSL connection is available.
         """
         (server, client) = socket_pair()
 
@@ -905,6 +873,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         clientSSL.set_connect_state()
 
         called = []
+
         def info(conn, where, ret):
             called.append((conn, where, ret))
         context = Context(TLSv1_METHOD)
@@ -930,7 +899,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertEqual(
             [], notConnections,
             "Some info callback arguments were not Connection instaces.")
-
 
     def _load_verify_locations_test(self, *args):
         """
@@ -969,7 +937,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         cert = clientSSL.get_peer_certificate()
         self.assertEqual(cert.get_subject().CN, 'Testing Root CA')
 
-
     def _load_verify_cafile(self, cafile):
         """
         Verify that if path to a file containing a certificate is passed to
@@ -983,7 +950,6 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         self._load_verify_locations_test(cafile)
 
-
     def test_load_verify_bytes_cafile(self):
         """
         :py:obj:`Context.load_verify_locations` accepts a file name as a
@@ -992,7 +958,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         cafile = self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
         self._load_verify_cafile(cafile)
-
 
     def test_load_verify_unicode_cafile(self):
         """
@@ -1004,16 +969,14 @@ class ContextTests(TestCase, _LoopbackMixin):
             self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
         )
 
-
     def test_load_verify_invalid_file(self):
         """
-        :py:obj:`Context.load_verify_locations` raises :py:obj:`Error` when passed a
-        non-existent cafile.
+        :py:obj:`Context.load_verify_locations` raises :py:obj:`Error` when
+        passed a non-existent cafile.
         """
         clientContext = Context(TLSv1_METHOD)
         self.assertRaises(
             Error, clientContext.load_verify_locations, self.mktemp())
-
 
     def _load_verify_directory_locations_capath(self, capath):
         """
@@ -1033,7 +996,6 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         self._load_verify_locations_test(None, capath)
 
-
     def test_load_verify_directory_bytes_capath(self):
         """
         :py:obj:`Context.load_verify_locations` accepts a directory name as a
@@ -1043,7 +1005,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         self._load_verify_directory_locations_capath(
             self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
         )
-
 
     def test_load_verify_directory_unicode_capath(self):
         """
@@ -1055,18 +1016,21 @@ class ContextTests(TestCase, _LoopbackMixin):
             self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
         )
 
-
     def test_load_verify_locations_wrong_args(self):
         """
-        :py:obj:`Context.load_verify_locations` raises :py:obj:`TypeError` if called with
-        the wrong number of arguments or with non-:py:obj:`str` arguments.
+        :py:obj:`Context.load_verify_locations` raises :py:obj:`TypeError` if
+        called with the wrong number of arguments or with non-:py:obj:`str`
+        arguments.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.load_verify_locations)
         self.assertRaises(TypeError, context.load_verify_locations, object())
-        self.assertRaises(TypeError, context.load_verify_locations, object(), object())
-        self.assertRaises(TypeError, context.load_verify_locations, None, None, None)
-
+        self.assertRaises(
+            TypeError, context.load_verify_locations, object(), object()
+        )
+        self.assertRaises(
+            TypeError, context.load_verify_locations, None, None, None
+        )
 
     if platform == "win32":
         "set_default_verify_paths appears not to work on Windows.  "
@@ -1074,12 +1038,13 @@ class ContextTests(TestCase, _LoopbackMixin):
     else:
         def test_set_default_verify_paths(self):
             """
-            :py:obj:`Context.set_default_verify_paths` causes the platform-specific CA
-            certificate locations to be used for verification purposes.
+            :py:obj:`Context.set_default_verify_paths` causes the
+            platform-specific CA certificate locations to be used for
+            verification purposes.
             """
-            # Testing this requires a server with a certificate signed by one of
-            # the CAs in the platform CA location.  Getting one of those costs
-            # money.  Fortunately (or unfortunately, depending on your
+            # Testing this requires a server with a certificate signed by one
+            # of the CAs in the platform CA location.  Getting one of those
+            # costs money.  Fortunately (or unfortunately, depending on your
             # perspective), it's easy to think of a public server on the
             # internet which has such a certificate.  Connecting to the network
             # in a unit test is bad, but it's the only way I can think of to
@@ -1100,29 +1065,28 @@ class ContextTests(TestCase, _LoopbackMixin):
             clientSSL.send(b"GET / HTTP/1.0\r\n\r\n")
             self.assertTrue(clientSSL.recv(1024))
 
-
     def test_set_default_verify_paths_signature(self):
         """
-        :py:obj:`Context.set_default_verify_paths` takes no arguments and raises
-        :py:obj:`TypeError` if given any.
+        :py:obj:`Context.set_default_verify_paths` takes no arguments and
+        raises :py:obj:`TypeError` if given any.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.set_default_verify_paths, None)
         self.assertRaises(TypeError, context.set_default_verify_paths, 1)
         self.assertRaises(TypeError, context.set_default_verify_paths, "")
 
-
     def test_add_extra_chain_cert_invalid_cert(self):
         """
-        :py:obj:`Context.add_extra_chain_cert` raises :py:obj:`TypeError` if called with
-        other than one argument or if called with an object which is not an
-        instance of :py:obj:`X509`.
+        :py:obj:`Context.add_extra_chain_cert` raises :py:obj:`TypeError` if
+        called with other than one argument or if called with an object which
+        is not an instance of :py:obj:`X509`.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.add_extra_chain_cert)
         self.assertRaises(TypeError, context.add_extra_chain_cert, object())
-        self.assertRaises(TypeError, context.add_extra_chain_cert, object(), object())
-
+        self.assertRaises(
+            TypeError, context.add_extra_chain_cert, object(), object()
+        )
 
     def _handshake_test(self, serverContext, clientContext):
         """
@@ -1145,7 +1109,6 @@ class ContextTests(TestCase, _LoopbackMixin):
                     s.do_handshake()
                 except WantReadError:
                     pass
-
 
     def test_set_verify_callback_connection_argument(self):
         """
@@ -1174,7 +1137,6 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         self.assertIdentical(verify.connection, clientConnection)
 
-
     def test_set_verify_callback_exception(self):
         """
         If the verify callback passed to :py:obj:`Context.set_verify` raises an
@@ -1188,6 +1150,7 @@ class ContextTests(TestCase, _LoopbackMixin):
             load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
 
         clientContext = Context(TLSv1_METHOD)
+
         def verify_callback(*args):
             raise Exception("silly verify failure")
         clientContext.set_verify(VERIFY_PEER, verify_callback)
@@ -1195,7 +1158,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         exc = self.assertRaises(
             Exception, self._handshake_test, serverContext, clientContext)
         self.assertEqual("silly verify failure", str(exc))
-
 
     def test_add_extra_chain_cert(self):
         """
@@ -1242,7 +1204,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         # Try it out.
         self._handshake_test(serverContext, clientContext)
 
-
     def _use_certificate_chain_file_test(self, certdir):
         """
         Verify that :py:obj:`Context.use_certificate_chain_file` reads a
@@ -1281,7 +1242,6 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         self._handshake_test(serverContext, clientContext)
 
-
     def test_use_certificate_chain_file_bytes(self):
         """
         ``Context.use_certificate_chain_file`` accepts the name of a file (as
@@ -1291,7 +1251,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         self._use_certificate_chain_file_test(
             self.mktemp() + NON_ASCII.encode(getfilesystemencoding())
         )
-
 
     def test_use_certificate_chain_file_unicode(self):
         """
@@ -1303,38 +1262,42 @@ class ContextTests(TestCase, _LoopbackMixin):
             self.mktemp().decode(getfilesystemencoding()) + NON_ASCII
         )
 
-
     def test_use_certificate_chain_file_wrong_args(self):
         """
         :py:obj:`Context.use_certificate_chain_file` raises :py:obj:`TypeError`
         if passed zero or more than one argument or when passed a non-byte
-        string single argument.  It also raises :py:obj:`OpenSSL.SSL.Error` when
-        passed a bad chain file name (for example, the name of a file which does
-        not exist).
+        string single argument.  It also raises :py:obj:`OpenSSL.SSL.Error`
+        when passed a bad chain file name (for example, the name of a file
+        which does not exist).
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.use_certificate_chain_file)
-        self.assertRaises(TypeError, context.use_certificate_chain_file, object())
-        self.assertRaises(TypeError, context.use_certificate_chain_file, b"foo", object())
+        self.assertRaises(
+            TypeError, context.use_certificate_chain_file, object()
+        )
+        self.assertRaises(
+            TypeError, context.use_certificate_chain_file, b"foo", object()
+        )
 
-        self.assertRaises(Error, context.use_certificate_chain_file, self.mktemp())
+        self.assertRaises(
+            Error, context.use_certificate_chain_file, self.mktemp()
+        )
 
     # XXX load_client_ca
     # XXX set_session_id
 
     def test_get_verify_mode_wrong_args(self):
         """
-        :py:obj:`Context.get_verify_mode` raises :py:obj:`TypeError` if called with any
-        arguments.
+        :py:obj:`Context.get_verify_mode` raises :py:obj:`TypeError` if called
+        with any arguments.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.get_verify_mode, None)
 
-
     def test_set_verify_mode(self):
         """
-        :py:obj:`Context.get_verify_mode` returns the verify mode flags previously
-        passed to :py:obj:`Context.set_verify`.
+        :py:obj:`Context.get_verify_mode` returns the verify mode flags
+        previously passed to :py:obj:`Context.set_verify`.
         """
         context = Context(TLSv1_METHOD)
         self.assertEquals(context.get_verify_mode(), 0)
@@ -1342,7 +1305,6 @@ class ContextTests(TestCase, _LoopbackMixin):
             VERIFY_PEER | VERIFY_CLIENT_ONCE, lambda *args: None)
         self.assertEquals(
             context.get_verify_mode(), VERIFY_PEER | VERIFY_CLIENT_ONCE)
-
 
     if not PY3:
         def test_set_verify_mode_long(self):
@@ -1357,26 +1319,23 @@ class ContextTests(TestCase, _LoopbackMixin):
             self.assertEquals(
                 context.get_verify_mode(), VERIFY_PEER | VERIFY_CLIENT_ONCE)
 
-
     def test_load_tmp_dh_wrong_args(self):
         """
-        :py:obj:`Context.load_tmp_dh` raises :py:obj:`TypeError` if called with the wrong
-        number of arguments or with a non-:py:obj:`str` argument.
+        :py:obj:`Context.load_tmp_dh` raises :py:obj:`TypeError` if called with
+        the wrong number of arguments or with a non-:py:obj:`str` argument.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.load_tmp_dh)
         self.assertRaises(TypeError, context.load_tmp_dh, "foo", None)
         self.assertRaises(TypeError, context.load_tmp_dh, object())
 
-
     def test_load_tmp_dh_missing_file(self):
         """
-        :py:obj:`Context.load_tmp_dh` raises :py:obj:`OpenSSL.SSL.Error` if the specified file
-        does not exist.
+        :py:obj:`Context.load_tmp_dh` raises :py:obj:`OpenSSL.SSL.Error` if the
+        specified file does not exist.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(Error, context.load_tmp_dh, b"hello")
-
 
     def _load_tmp_dh_test(self, dhfilename):
         """
@@ -1390,7 +1349,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         context.load_tmp_dh(dhfilename)
         # XXX What should I assert here? -exarkun
 
-
     def test_load_tmp_dh_bytes(self):
         """
         :py:obj:`Context.load_tmp_dh` loads Diffie-Hellman parameters from the
@@ -1400,7 +1358,6 @@ class ContextTests(TestCase, _LoopbackMixin):
             self.mktemp() + NON_ASCII.encode(getfilesystemencoding()),
         )
 
-
     def test_load_tmp_dh_unicode(self):
         """
         :py:obj:`Context.load_tmp_dh` loads Diffie-Hellman parameters from the
@@ -1409,7 +1366,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         self._load_tmp_dh_test(
             self.mktemp().decode(getfilesystemencoding()) + NON_ASCII,
         )
-
 
     def test_set_tmp_ecdh(self):
         """
@@ -1422,7 +1378,6 @@ class ContextTests(TestCase, _LoopbackMixin):
             # exception.
             context.set_tmp_ecdh(curve)
 
-
     def test_set_cipher_list_bytes(self):
         """
         :py:obj:`Context.set_cipher_list` accepts a :py:obj:`bytes` naming the
@@ -1433,7 +1388,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         context.set_cipher_list(b"hello world:EXP-RC4-MD5")
         conn = Connection(context, None)
         self.assertEquals(conn.get_cipher_list(), ["EXP-RC4-MD5"])
-
 
     def test_set_cipher_list_text(self):
         """
@@ -1446,7 +1400,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         conn = Connection(context, None)
         self.assertEquals(conn.get_cipher_list(), ["EXP-RC4-MD5"])
 
-
     def test_set_cipher_list_wrong_args(self):
         """
         :py:obj:`Context.set_cipher_list` raises :py:obj:`TypeError` when
@@ -1457,10 +1410,11 @@ class ContextTests(TestCase, _LoopbackMixin):
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.set_cipher_list)
         self.assertRaises(TypeError, context.set_cipher_list, object())
-        self.assertRaises(TypeError, context.set_cipher_list, b"EXP-RC4-MD5", object())
+        self.assertRaises(
+            TypeError, context.set_cipher_list, b"EXP-RC4-MD5", object()
+        )
 
         self.assertRaises(Error, context.set_cipher_list, "imaginary-cipher")
-
 
     def test_set_session_cache_mode_wrong_args(self):
         """
@@ -1471,7 +1425,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, context.set_session_cache_mode)
         self.assertRaises(TypeError, context.set_session_cache_mode, object())
 
-
     def test_get_session_cache_mode_wrong_args(self):
         """
         :py:obj:`Context.get_session_cache_mode` raises :py:obj:`TypeError` if
@@ -1479,7 +1432,6 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.get_session_cache_mode, 1)
-
 
     def test_session_cache_mode(self):
         """
@@ -1504,15 +1456,14 @@ class ContextTests(TestCase, _LoopbackMixin):
             self.assertEqual(
                 SESS_CACHE_BOTH, context.get_session_cache_mode())
 
-
     def test_get_cert_store(self):
         """
-        :py:obj:`Context.get_cert_store` returns a :py:obj:`X509Store` instance.
+        :py:obj:`Context.get_cert_store` returns a :py:obj:`X509Store`
+        instance.
         """
         context = Context(TLSv1_METHOD)
         store = context.get_cert_store()
         self.assertIsInstance(store, X509Store)
-
 
 
 class ServerNameCallbackTests(TestCase, _LoopbackMixin):
