@@ -12,7 +12,6 @@ from OpenSSL.version import (
 )
 
 
-
 __all__ = [
     "SSL", "crypto", "rand", "tsafe",
 

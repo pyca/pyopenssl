@@ -9,7 +9,6 @@ ffi = binding.ffi
 lib = binding.lib
 
 
-
 def text(charp):
     """
     Get a native string type representing of the given CFFI ``char*`` object.
@@ -21,7 +20,6 @@ def text(charp):
     if not charp:
         return ""
     return native(ffi.string(charp))
-
 
 
 def exception_from_error_queue(exception_type):
@@ -48,7 +46,6 @@ def exception_from_error_queue(exception_type):
     raise exception_type(errors)
 
 
-
 def native(s):
     """
     Convert :py:class:`bytes` or :py:class:`unicode` to the native
@@ -68,7 +65,6 @@ def native(s):
         if isinstance(s, text_type):
             return s.encode("utf-8")
     return s
-
 
 
 def path_string(s):
