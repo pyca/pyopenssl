@@ -2819,6 +2819,7 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
         self.assertEquals(count, 2)
         self.assertEquals(client.recv(2), b('xy'))
 
+    @skip_if_py3
     def test_short_buffer(self):
         """
         When passed a buffer containing a small number of bytes,
