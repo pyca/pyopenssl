@@ -15,6 +15,8 @@ from unittest import main
 from weakref import ref
 from warnings import catch_warnings, simplefilter
 
+import pytest
+
 from six import PY3, text_type, u
 
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
@@ -2198,10 +2200,10 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         :py:obj:`Connection.connect` raises :py:obj:`TypeError` if called with a non-address
         argument or with the wrong number of arguments.
         """
-        
+
         def attr_access_test(connection):
             return connection.an_attribute_which_is_not_defined
-        
+
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(AttributeError, attr_access_test, connection)
 
@@ -2213,9 +2215,9 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         client = socket()
         context = Context(TLSv1_METHOD)
         clientSSL = Connection(context, client)
-        exc = self.assertRaises(error, clientSSL.connect, ("127.0.0.1", 1))
-        self.assertEquals(exc.args[0], ECONNREFUSED)
-
+        with pytest.raises(error) as exc:
+            clientSSL.connect(("127.0.0.1", 1))
+        assert exc.value.args[0] == ECONNREFUSED
 
     def test_connect(self):
         """
