@@ -291,9 +291,9 @@ class _NpnSelectHelper(_CallbackExceptionHelper):
                 protolist = []
                 while instr:
                     l = indexbytes(instr, 0)
-                    proto = instr[1:l+1]
+                    proto = instr[1:l + 1]
                     protolist.append(proto)
-                    instr = instr[l+1:]
+                    instr = instr[l + 1:]
 
                 # Call the callback
                 outstr = callback(conn, protolist)

@@ -26,6 +26,7 @@ _unspecified = object()
 
 _builtin_bytes = bytes
 
+
 def bytes(num_bytes):
     """
     Get some random bytes as a string.
