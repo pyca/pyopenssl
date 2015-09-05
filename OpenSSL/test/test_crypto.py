@@ -20,7 +20,9 @@ from six import u, b, binary_type
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
-from OpenSSL.crypto import X509Store, X509StoreType, X509StoreContext, X509StoreContextError
+from OpenSSL.crypto import (
+    X509Store, X509StoreType, X509StoreContext, X509StoreContextError
+)
 from OpenSSL.crypto import X509Req, X509ReqType
 from OpenSSL.crypto import X509Extension, X509ExtensionType
 from OpenSSL.crypto import load_certificate, load_privatekey
@@ -443,8 +445,8 @@ class X509ExtTests(TestCase):
 
     def test_str(self):
         """
-        The string representation of :py:class:`X509Extension` instances as returned by
-        :py:data:`str` includes stuff.
+        The string representation of :py:class:`X509Extension` instances as
+        returned by :py:data:`str` includes stuff.
         """
         # This isn't necessarily the best string representation.  Perhaps it
         # will be changed/improved in the future.
@@ -454,8 +456,8 @@ class X509ExtTests(TestCase):
 
     def test_type(self):
         """
-        :py:class:`X509Extension` and :py:class:`X509ExtensionType` refer to the same type object
-        and can be used to create instances of that type.
+        :py:class:`X509Extension` and :py:class:`X509ExtensionType` refer to
+        the same type object and can be used to create instances of that type.
         """
         self.assertIdentical(X509Extension, X509ExtensionType)
         self.assertConsistentType(
@@ -464,8 +466,9 @@ class X509ExtTests(TestCase):
 
     def test_construction(self):
         """
-        :py:class:`X509Extension` accepts an extension type name, a critical flag,
-        and an extension value and returns an :py:class:`X509ExtensionType` instance.
+        :py:class:`X509Extension` accepts an extension type name, a critical
+        flag, and an extension value and returns an
+        :py:class:`X509ExtensionType` instance.
         """
         basic = X509Extension(b('basicConstraints'), True, b('CA:true'))
         self.assertTrue(
@@ -482,8 +485,8 @@ class X509ExtTests(TestCase):
 
     def test_invalid_extension(self):
         """
-        :py:class:`X509Extension` raises something if it is passed a bad extension
-        name or value.
+        :py:class:`X509Extension` raises something if it is passed a bad
+        extension name or value.
         """
         self.assertRaises(
             Error, X509Extension, b('thisIsMadeUp'), False, b('hi'))
@@ -510,8 +513,8 @@ class X509ExtTests(TestCase):
 
     def test_get_short_name(self):
         """
-        :py:meth:`X509ExtensionType.get_short_name` returns a string giving the short
-        type name of the extension.
+        :py:meth:`X509ExtensionType.get_short_name` returns a string giving the
+        short type name of the extension.
         """
         ext = X509Extension(b('basicConstraints'), True, b('CA:true'))
         self.assertEqual(ext.get_short_name(), b('basicConstraints'))
@@ -520,8 +523,8 @@ class X509ExtTests(TestCase):
 
     def test_get_data(self):
         """
-        :py:meth:`X509Extension.get_data` returns a string giving the data of the
-        extension.
+        :py:meth:`X509Extension.get_data` returns a string giving the data of
+        the extension.
         """
         ext = X509Extension(b('basicConstraints'), True, b('CA:true'))
         # Expect to get back the DER encoded form of CA:true.
@@ -529,7 +532,8 @@ class X509ExtTests(TestCase):
 
     def test_get_data_wrong_args(self):
         """
-        :py:meth:`X509Extension.get_data` raises :py:exc:`TypeError` if passed any arguments.
+        :py:meth:`X509Extension.get_data` raises :py:exc:`TypeError` if passed
+        any arguments.
         """
         ext = X509Extension(b('basicConstraints'), True, b('CA:true'))
         self.assertRaises(TypeError, ext.get_data, None)
@@ -538,8 +542,9 @@ class X509ExtTests(TestCase):
 
     def test_unused_subject(self):
         """
-        The :py:data:`subject` parameter to :py:class:`X509Extension` may be provided for an
-        extension which does not use it and is ignored in this case.
+        The :py:data:`subject` parameter to :py:class:`X509Extension` may be
+        provided for an extension which does not use it and is ignored in this
+        case.
         """
         ext1 = X509Extension(
             b('basicConstraints'), False, b('CA:TRUE'), subject=self.x509)
@@ -564,8 +569,8 @@ class X509ExtTests(TestCase):
 
     def test_missing_subject(self):
         """
-        If an extension requires a subject and the :py:data:`subject` parameter is
-        given no value, something happens.
+        If an extension requires a subject and the :py:data:`subject` parameter
+        is given no value, something happens.
         """
         self.assertRaises(
             Error, X509Extension, b('subjectKeyIdentifier'), False, b('hash'))
@@ -583,8 +588,9 @@ class X509ExtTests(TestCase):
 
     def test_unused_issuer(self):
         """
-        The :py:data:`issuer` parameter to :py:class:`X509Extension` may be provided for an
-        extension which does not use it and is ignored in this case.
+        The :py:data:`issuer` parameter to :py:class:`X509Extension` may be
+        provided for an extension which does not use it and is ignored in this
+        case.
         """
         ext1 = X509Extension(
             b('basicConstraints'), False, b('CA:TRUE'), issuer=self.x509)
@@ -610,8 +616,8 @@ class X509ExtTests(TestCase):
 
     def test_missing_issuer(self):
         """
-        If an extension requires an issue and the :py:data:`issuer` parameter is given
-        no value, something happens.
+        If an extension requires an issue and the :py:data:`issuer` parameter
+        is given no value, something happens.
         """
         self.assertRaises(
             Error,
@@ -647,7 +653,8 @@ class PKeyTests(TestCase):
 
     def test_construction(self):
         """
-        :py:class:`PKey` takes no arguments and returns a new :py:class:`PKey` instance.
+        :py:class:`PKey` takes no arguments and returns a new :py:class:`PKey`
+        instance.
         """
         self.assertRaises(TypeError, PKey, None)
         key = PKey()
@@ -657,9 +664,9 @@ class PKeyTests(TestCase):
 
     def test_pregeneration(self):
         """
-        :py:attr:`PKeyType.bits` and :py:attr:`PKeyType.type` return :py:data:`0` before the key is
-        generated.  :py:attr:`PKeyType.check` raises :py:exc:`TypeError` before the key is
-        generated.
+        :py:attr:`PKeyType.bits` and :py:attr:`PKeyType.type` return
+        :py:data:`0` before the key is generated.  :py:attr:`PKeyType.check`
+        raises :py:exc:`TypeError` before the key is generated.
         """
         key = PKey()
         self.assertEqual(key.type(), 0)
@@ -668,11 +675,12 @@ class PKeyTests(TestCase):
 
     def test_failedGeneration(self):
         """
-        :py:meth:`PKeyType.generate_key` takes two arguments, the first giving the key
-        type as one of :py:data:`TYPE_RSA` or :py:data:`TYPE_DSA` and the second giving the
-        number of bits to generate.  If an invalid type is specified or
-        generation fails, :py:exc:`Error` is raised.  If an invalid number of bits is
-        specified, :py:exc:`ValueError` or :py:exc:`Error` is raised.
+        :py:meth:`PKeyType.generate_key` takes two arguments, the first giving
+        the key type as one of :py:data:`TYPE_RSA` or :py:data:`TYPE_DSA` and
+        the second giving the number of bits to generate.  If an invalid type
+        is specified or generation fails, :py:exc:`Error` is raised.  If an
+        invalid number of bits is specified, :py:exc:`ValueError` or
+        :py:exc:`Error` is raised.
         """
         key = PKey()
         self.assertRaises(TypeError, key.generate_key)
@@ -729,8 +737,8 @@ class PKeyTests(TestCase):
 
     def test_regeneration(self):
         """
-        :py:meth:`PKeyType.generate_key` can be called multiple times on the same
-        key to generate new keys.
+        :py:meth:`PKeyType.generate_key` can be called multiple times on the
+        same key to generate new keys.
         """
         key = PKey()
         for type, bits in [(TYPE_RSA, 512), (TYPE_DSA, 576)]:
@@ -740,14 +748,16 @@ class PKeyTests(TestCase):
 
     def test_inconsistentKey(self):
         """
-        :py:`PKeyType.check` returns :py:exc:`Error` if the key is not consistent.
+        :py:`PKeyType.check` returns :py:exc:`Error` if the key is not
+        consistent.
         """
         key = load_privatekey(FILETYPE_PEM, inconsistentPrivateKeyPEM)
         self.assertRaises(Error, key.check)
 
     def test_check_wrong_args(self):
         """
-        :py:meth:`PKeyType.check` raises :py:exc:`TypeError` if called with any arguments.
+        :py:meth:`PKeyType.check` raises :py:exc:`TypeError` if called with any
+        arguments.
         """
         self.assertRaises(TypeError, PKey().check, None)
         self.assertRaises(TypeError, PKey().check, object())
@@ -800,36 +810,37 @@ class X509NameTests(TestCase):
 
     def test_onlyStringAttributes(self):
         """
-        Attempting to set a non-:py:data:`str` attribute name on an :py:class:`X509NameType`
-        instance causes :py:exc:`TypeError` to be raised.
+        Attempting to set a non-:py:data:`str` attribute name on an
+        :py:class:`X509NameType` instance causes :py:exc:`TypeError` to be
+        raised.
         """
         name = self._x509name()
         # Beyond these cases, you may also think that unicode should be
-        # rejected.  Sorry, you're wrong.  unicode is automatically converted to
-        # str outside of the control of X509Name, so there's no way to reject
-        # it.
+        # rejected.  Sorry, you're wrong.  unicode is automatically converted
+        # to str outside of the control of X509Name, so there's no way to
+        # reject it.
 
-        # Also, this used to test str subclasses, but that test is less relevant
-        # now that the implementation is in Python instead of C.  Also PyPy
-        # automatically converts str subclasses to str when they are passed to
-        # setattr, so we can't test it on PyPy.  Apparently CPython does this
-        # sometimes as well.
+        # Also, this used to test str subclasses, but that test is less
+        # relevant now that the implementation is in Python instead of C.  Also
+        # PyPy automatically converts str subclasses to str when they are
+        # passed to setattr, so we can't test it on PyPy.  Apparently CPython
+        # does this sometimes as well.
         self.assertRaises(TypeError, setattr, name, None, "hello")
         self.assertRaises(TypeError, setattr, name, 30, "hello")
 
     def test_setInvalidAttribute(self):
         """
-        Attempting to set any attribute name on an :py:class:`X509NameType` instance for
-        which no corresponding NID is defined causes :py:exc:`AttributeError` to be
-        raised.
+        Attempting to set any attribute name on an :py:class:`X509NameType`
+        instance for which no corresponding NID is defined causes
+        :py:exc:`AttributeError` to be raised.
         """
         name = self._x509name()
         self.assertRaises(AttributeError, setattr, name, "no such thing", None)
 
     def test_attributes(self):
         """
-        :py:class:`X509NameType` instances have attributes for each standard (?)
-        X509Name field.
+        :py:class:`X509NameType` instances have attributes for each standard
+        (?) X509Name field.
         """
         name = self._x509name()
         name.commonName = "foo"
@@ -847,9 +858,9 @@ class X509NameTests(TestCase):
 
     def test_copy(self):
         """
-        :py:class:`X509Name` creates a new :py:class:`X509NameType` instance with all the same
-        attributes as an existing :py:class:`X509NameType` instance when called with
-        one.
+        :py:class:`X509Name` creates a new :py:class:`X509NameType` instance
+        with all the same attributes as an existing :py:class:`X509NameType`
+        instance when called with one.
         """
         name = self._x509name(commonName="foo", emailAddress="bar@example.com")
 
@@ -867,9 +878,9 @@ class X509NameTests(TestCase):
 
     def test_repr(self):
         """
-        :py:func:`repr` passed an :py:class:`X509NameType` instance should return a string
-        containing a description of the type and the NIDs which have been set
-        on it.
+        :py:func:`repr` passed an :py:class:`X509NameType` instance should
+        return a string containing a description of the type and the NIDs which
+        have been set on it.
         """
         name = self._x509name(commonName="foo", emailAddress="bar")
         self.assertEqual(
@@ -952,8 +963,8 @@ class X509NameTests(TestCase):
 
     def test_hash(self):
         """
-        :py:meth:`X509Name.hash` returns an integer hash based on the value of the
-        name.
+        :py:meth:`X509Name.hash` returns an integer hash based on the value of
+        the name.
         """
         a = self._x509name(CN="foo")
         b = self._x509name(CN="foo")
@@ -1042,8 +1053,8 @@ class _PKeyInteractionTestsMixin:
 
     def test_signWithUnknownDigest(self):
         """
-        :py:meth:`X509Req.sign` raises :py:exc:`ValueError` when passed a digest name which is
-        not known.
+        :py:meth:`X509Req.sign` raises :py:exc:`ValueError` when passed a
+        digest name which is not known.
         """
         request = self.signable()
         key = PKey()
@@ -1052,8 +1063,9 @@ class _PKeyInteractionTestsMixin:
 
     def test_sign(self):
         """
-        :py:meth:`X509Req.sign` succeeds when passed a private key object and a valid
-        digest function.  :py:meth:`X509Req.verify` can be used to check the signature.
+        :py:meth:`X509Req.sign` succeeds when passed a private key object and a
+        valid digest function. :py:meth:`X509Req.verify` can be used to check
+        the signature.
         """
         request = self.signable()
         key = PKey()
@@ -1083,26 +1095,26 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
 
     def test_type(self):
         """
-        :py:obj:`X509Req` and :py:obj:`X509ReqType` refer to the same type object and can be
-        used to create instances of that type.
+        :py:obj:`X509Req` and :py:obj:`X509ReqType` refer to the same type
+        object and can be used to create instances of that type.
         """
         self.assertIdentical(X509Req, X509ReqType)
         self.assertConsistentType(X509Req, 'X509Req')
 
     def test_construction(self):
         """
-        :py:obj:`X509Req` takes no arguments and returns an :py:obj:`X509ReqType` instance.
+        :py:obj:`X509Req` takes no arguments and returns an
+        :py:obj:`X509ReqType` instance.
         """
         request = X509Req()
-        self.assertTrue(
-            isinstance(request, X509ReqType),
-            "%r is of type %r, should be %r" % (request, type(request), X509ReqType))
+        assert isinstance(request, X509ReqType)
 
     def test_version(self):
         """
-        :py:obj:`X509ReqType.set_version` sets the X.509 version of the certificate
-        request.  :py:obj:`X509ReqType.get_version` returns the X.509 version of
-        the certificate request.  The initial value of the version is 0.
+        :py:obj:`X509ReqType.set_version` sets the X.509 version of the
+        certificate request. :py:obj:`X509ReqType.get_version` returns the
+        X.509 version of the certificate request. The initial value of the
+        version is 0.
         """
         request = X509Req()
         self.assertEqual(request.get_version(), 0)
@@ -1113,10 +1125,10 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
 
     def test_version_wrong_args(self):
         """
-        :py:obj:`X509ReqType.set_version` raises :py:obj:`TypeError` if called with the wrong
-        number of arguments or with a non-:py:obj:`int` argument.
-        :py:obj:`X509ReqType.get_version` raises :py:obj:`TypeError` if called with any
-        arguments.
+        :py:obj:`X509ReqType.set_version` raises :py:obj:`TypeError` if called
+        with the wrong number of arguments or with a non-:py:obj:`int`
+        argument. :py:obj:`X509ReqType.get_version` raises :py:obj:`TypeError`
+        if called with any arguments.
         """
         request = X509Req()
         self.assertRaises(TypeError, request.set_version)
@@ -1126,15 +1138,13 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
 
     def test_get_subject(self):
         """
-        :py:obj:`X509ReqType.get_subject` returns an :py:obj:`X509Name` for the subject of
-        the request and which is valid even after the request object is
-        otherwise dead.
+        :py:obj:`X509ReqType.get_subject` returns an :py:obj:`X509Name` for the
+        subject of the request and which is valid even after the request object
+        is otherwise dead.
         """
         request = X509Req()
         subject = request.get_subject()
-        self.assertTrue(
-            isinstance(subject, X509NameType),
-            "%r is of type %r, should be %r" % (subject, type(subject), X509NameType))
+        assert isinstance(subject, X509NameType)
         subject.commonName = "foo"
         self.assertEqual(request.get_subject().commonName, "foo")
         del request
@@ -1143,16 +1153,16 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
 
     def test_get_subject_wrong_args(self):
         """
-        :py:obj:`X509ReqType.get_subject` raises :py:obj:`TypeError` if called with any
-        arguments.
+        :py:obj:`X509ReqType.get_subject` raises :py:obj:`TypeError` if called
+        with any arguments.
         """
         request = X509Req()
         self.assertRaises(TypeError, request.get_subject, None)
 
     def test_add_extensions(self):
         """
-        :py:obj:`X509Req.add_extensions` accepts a :py:obj:`list` of :py:obj:`X509Extension`
-        instances and adds them to the X509 request.
+        :py:obj:`X509Req.add_extensions` accepts a :py:obj:`list` of
+        :py:obj:`X509Extension` instances and adds them to the X509 request.
         """
         request = X509Req()
         request.add_extensions([
@@ -1185,10 +1195,10 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
 
     def test_add_extensions_wrong_args(self):
         """
-        :py:obj:`X509Req.add_extensions` raises :py:obj:`TypeError` if called with the wrong
-        number of arguments or with a non-:py:obj:`list`.  Or it raises :py:obj:`ValueError`
-        if called with a :py:obj:`list` containing objects other than :py:obj:`X509Extension`
-        instances.
+        :py:obj:`X509Req.add_extensions` raises :py:obj:`TypeError` if called
+        with the wrong number of arguments or with a non-:py:obj:`list`.  Or it
+        raises :py:obj:`ValueError` if called with a :py:obj:`list` containing
+        objects other than :py:obj:`X509Extension` instances.
         """
         request = X509Req()
         self.assertRaises(TypeError, request.add_extensions)
@@ -1209,8 +1219,8 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
 
     def test_verify_uninitialized_key(self):
         """
-        :py:obj:`X509Req.verify` raises :py:obj:`OpenSSL.crypto.Error` if called
-        with a :py:obj:`OpenSSL.crypto.PKey` which contains no key data.
+        :py:obj:`X509Req.verify` raises :py:obj:`OpenSSL.crypto.Error` if
+        called with a :py:obj:`OpenSSL.crypto.PKey` which contains no key data.
         """
         request = X509Req()
         pkey = PKey()
@@ -1218,9 +1228,9 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
 
     def test_verify_wrong_key(self):
         """
-        :py:obj:`X509Req.verify` raises :py:obj:`OpenSSL.crypto.Error` if called
-        with a :py:obj:`OpenSSL.crypto.PKey` which does not represent the public
-        part of the key which signed the request.
+        :py:obj:`X509Req.verify` raises :py:obj:`OpenSSL.crypto.Error` if
+        called with a :py:obj:`OpenSSL.crypto.PKey` which does not represent
+        the public part of the key which signed the request.
         """
         request = X509Req()
         pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
@@ -1231,8 +1241,8 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
     def test_verify_success(self):
         """
         :py:obj:`X509Req.verify` returns :py:obj:`True` if called with a
-        :py:obj:`OpenSSL.crypto.PKey` which represents the public part of the key
-        which signed the request.
+        :py:obj:`OpenSSL.crypto.PKey` which represents the public part of the
+        key which signed the request.
         """
         request = X509Req()
         pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
@@ -1275,15 +1285,16 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_type(self):
         """
-        :py:obj:`X509` and :py:obj:`X509Type` refer to the same type object and can be used
-        to create instances of that type.
+        :py:obj:`X509` and :py:obj:`X509Type` refer to the same type object and
+        can be used to create instances of that type.
         """
         self.assertIdentical(X509, X509Type)
         self.assertConsistentType(X509, 'X509')
 
     def test_construction(self):
         """
-        :py:obj:`X509` takes no arguments and returns an instance of :py:obj:`X509Type`.
+        :py:obj:`X509` takes no arguments and returns an instance of
+        :py:obj:`X509Type`.
         """
         certificate = X509()
         self.assertTrue(
@@ -1298,15 +1309,16 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_get_version_wrong_args(self):
         """
-        :py:obj:`X509.get_version` raises :py:obj:`TypeError` if invoked with any arguments.
+        :py:obj:`X509.get_version` raises :py:obj:`TypeError` if invoked with
+        any arguments.
         """
         cert = X509()
         self.assertRaises(TypeError, cert.get_version, None)
 
     def test_set_version_wrong_args(self):
         """
-        :py:obj:`X509.set_version` raises :py:obj:`TypeError` if invoked with the wrong number
-        of arguments or an argument not of type :py:obj:`int`.
+        :py:obj:`X509.set_version` raises :py:obj:`TypeError` if invoked with
+        the wrong number of arguments or an argument not of type :py:obj:`int`.
         """
         cert = X509()
         self.assertRaises(TypeError, cert.set_version)
@@ -1324,16 +1336,17 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_get_serial_number_wrong_args(self):
         """
-        :py:obj:`X509.get_serial_number` raises :py:obj:`TypeError` if invoked with any
-        arguments.
+        :py:obj:`X509.get_serial_number` raises :py:obj:`TypeError` if invoked
+        with any arguments.
         """
         cert = X509()
         self.assertRaises(TypeError, cert.get_serial_number, None)
 
     def test_serial_number(self):
         """
-        The serial number of an :py:obj:`X509Type` can be retrieved and modified with
-        :py:obj:`X509Type.get_serial_number` and :py:obj:`X509Type.set_serial_number`.
+        The serial number of an :py:obj:`X509Type` can be retrieved and
+        modified with :py:obj:`X509Type.get_serial_number` and
+        :py:obj:`X509Type.set_serial_number`.
         """
         certificate = X509()
         self.assertRaises(TypeError, certificate.set_serial_number)
@@ -1352,9 +1365,9 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def _setBoundTest(self, which):
         """
-        :py:obj:`X509Type.set_notBefore` takes a string in the format of an ASN1
-        GENERALIZEDTIME and sets the beginning of the certificate's validity
-        period to it.
+        :py:obj:`X509Type.set_notBefore` takes a string in the format of an
+        ASN1 GENERALIZEDTIME and sets the beginning of the certificate's
+        validity period to it.
         """
         certificate = X509()
         set = getattr(certificate, 'set_not' + which)
@@ -1390,9 +1403,9 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_set_notBefore(self):
         """
-        :py:obj:`X509Type.set_notBefore` takes a string in the format of an ASN1
-        GENERALIZEDTIME and sets the beginning of the certificate's validity
-        period to it.
+        :py:obj:`X509Type.set_notBefore` takes a string in the format of an
+        ASN1 GENERALIZEDTIME and sets the beginning of the certificate's
+        validity period to it.
         """
         self._setBoundTest("Before")
 
@@ -1406,8 +1419,8 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_get_notBefore(self):
         """
-        :py:obj:`X509Type.get_notBefore` returns a string in the format of an ASN1
-        GENERALIZEDTIME even for certificates which store it as UTCTIME
+        :py:obj:`X509Type.get_notBefore` returns a string in the format of an
+        ASN1 GENERALIZEDTIME even for certificates which store it as UTCTIME
         internally.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
@@ -1415,8 +1428,8 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_get_notAfter(self):
         """
-        :py:obj:`X509Type.get_notAfter` returns a string in the format of an ASN1
-        GENERALIZEDTIME even for certificates which store it as UTCTIME
+        :py:obj:`X509Type.get_notAfter` returns a string in the format of an
+        ASN1 GENERALIZEDTIME even for certificates which store it as UTCTIME
         internally.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
@@ -1424,8 +1437,9 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_gmtime_adj_notBefore_wrong_args(self):
         """
-        :py:obj:`X509Type.gmtime_adj_notBefore` raises :py:obj:`TypeError` if called with the
-        wrong number of arguments or a non-:py:obj:`int` argument.
+        :py:obj:`X509Type.gmtime_adj_notBefore` raises :py:obj:`TypeError` if
+        called with the wrong number of arguments or a non-:py:obj:`int`
+        argument.
         """
         cert = X509()
         self.assertRaises(TypeError, cert.gmtime_adj_notBefore)
@@ -1434,8 +1448,8 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_gmtime_adj_notBefore(self):
         """
-        :py:obj:`X509Type.gmtime_adj_notBefore` changes the not-before timestamp to be
-        the current time plus the number of seconds passed in.
+        :py:obj:`X509Type.gmtime_adj_notBefore` changes the not-before
+        timestamp to be the current time plus the number of seconds passed in.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
         not_before_min = datetime.utcnow().replace(microsecond=0) + timedelta(seconds=100)
@@ -1446,8 +1460,9 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_gmtime_adj_notAfter_wrong_args(self):
         """
-        :py:obj:`X509Type.gmtime_adj_notAfter` raises :py:obj:`TypeError` if called with the
-        wrong number of arguments or a non-:py:obj:`int` argument.
+        :py:obj:`X509Type.gmtime_adj_notAfter` raises :py:obj:`TypeError` if
+        called with the wrong number of arguments or a non-:py:obj:`int`
+        argument.
         """
         cert = X509()
         self.assertRaises(TypeError, cert.gmtime_adj_notAfter)
@@ -1456,8 +1471,8 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_gmtime_adj_notAfter(self):
         """
-        :py:obj:`X509Type.gmtime_adj_notAfter` changes the not-after timestamp to be
-        the current time plus the number of seconds passed in.
+        :py:obj:`X509Type.gmtime_adj_notAfter` changes the not-after timestamp
+        to be the current time plus the number of seconds passed in.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
         not_after_min = datetime.utcnow().replace(microsecond=0) + timedelta(seconds=100)
@@ -1468,16 +1483,16 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_has_expired_wrong_args(self):
         """
-        :py:obj:`X509Type.has_expired` raises :py:obj:`TypeError` if called with any
-        arguments.
+        :py:obj:`X509Type.has_expired` raises :py:obj:`TypeError` if called
+        with any arguments.
         """
         cert = X509()
         self.assertRaises(TypeError, cert.has_expired, None)
 
     def test_has_expired(self):
         """
-        :py:obj:`X509Type.has_expired` returns :py:obj:`True` if the certificate's not-after
-        time is in the past.
+        :py:obj:`X509Type.has_expired` returns :py:obj:`True` if the
+        certificate's not-after time is in the past.
         """
         cert = X509()
         cert.gmtime_adj_notAfter(-1)
@@ -1485,8 +1500,8 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_has_not_expired(self):
         """
-        :py:obj:`X509Type.has_expired` returns :py:obj:`False` if the certificate's not-after
-        time is in the future.
+        :py:obj:`X509Type.has_expired` returns :py:obj:`False` if the
+        certificate's not-after time is in the future.
         """
         cert = X509()
         cert.gmtime_adj_notAfter(2)
@@ -1494,16 +1509,16 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_root_has_not_expired(self):
         """
-        :py:obj:`X509Type.has_expired` returns :py:obj:`False` if the certificate's not-after
-        time is in the future.
+        :py:obj:`X509Type.has_expired` returns :py:obj:`False` if the
+        certificate's not-after time is in the future.
         """
         cert = load_certificate(FILETYPE_PEM, root_cert_pem)
         self.assertFalse(cert.has_expired())
 
     def test_digest(self):
         """
-        :py:obj:`X509.digest` returns a string giving ":"-separated hex-encoded words
-        of the digest of the certificate.
+        :py:obj:`X509.digest` returns a string giving ":"-separated hex-encoded
+        words of the digest of the certificate.
         """
         cert = load_certificate(FILETYPE_PEM, root_cert_pem)
         self.assertEqual(
@@ -1531,8 +1546,8 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_extension_count(self):
         """
-        :py:obj:`X509.get_extension_count` returns the number of extensions that are
-        present in the certificate.
+        :py:obj:`X509.get_extension_count` returns the number of extensions
+        that are present in the certificate.
         """
         pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
         ca = X509Extension(b('basicConstraints'), True, b('CA:FALSE'))
@@ -1554,8 +1569,8 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_get_extension(self):
         """
-        :py:obj:`X509.get_extension` takes an integer and returns an :py:obj:`X509Extension`
-        corresponding to the extension at that index.
+        :py:obj:`X509.get_extension` takes an integer and returns an
+        :py:obj:`X509Extension` corresponding to the extension at that index.
         """
         pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
         ca = X509Extension(b('basicConstraints'), True, b('CA:FALSE'))
@@ -1603,15 +1618,16 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_invalid_digest_algorithm(self):
         """
-        :py:obj:`X509.digest` raises :py:obj:`ValueError` if called with an unrecognized hash
-        algorithm.
+        :py:obj:`X509.digest` raises :py:obj:`ValueError` if called with an
+        unrecognized hash algorithm.
         """
         cert = X509()
         self.assertRaises(ValueError, cert.digest, BAD_DIGEST)
 
     def test_get_subject_wrong_args(self):
         """
-        :py:obj:`X509.get_subject` raises :py:obj:`TypeError` if called with any arguments.
+        :py:obj:`X509.get_subject` raises :py:obj:`TypeError` if called with
+        any arguments.
         """
         cert = X509()
         self.assertRaises(TypeError, cert.get_subject, None)
@@ -1630,8 +1646,9 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_set_subject_wrong_args(self):
         """
-        :py:obj:`X509.set_subject` raises a :py:obj:`TypeError` if called with the wrong
-        number of arguments or an argument not of type :py:obj:`X509Name`.
+        :py:obj:`X509.set_subject` raises a :py:obj:`TypeError` if called with
+        the wrong number of arguments or an argument not of type
+        :py:obj:`X509Name`.
         """
         cert = X509()
         self.assertRaises(TypeError, cert.set_subject)
@@ -1641,8 +1658,8 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_set_subject(self):
         """
-        :py:obj:`X509.set_subject` changes the subject of the certificate to the one
-        passed in.
+        :py:obj:`X509.set_subject` changes the subject of the certificate to
+        the one passed in.
         """
         cert = X509()
         name = cert.get_subject()
@@ -1655,7 +1672,8 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_get_issuer_wrong_args(self):
         """
-        :py:obj:`X509.get_issuer` raises :py:obj:`TypeError` if called with any arguments.
+        :py:obj:`X509.get_issuer` raises :py:obj:`TypeError` if called with any
+        arguments.
         """
         cert = X509()
         self.assertRaises(TypeError, cert.get_issuer, None)
@@ -1675,8 +1693,9 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_set_issuer_wrong_args(self):
         """
-        :py:obj:`X509.set_issuer` raises a :py:obj:`TypeError` if called with the wrong
-        number of arguments or an argument not of type :py:obj:`X509Name`.
+        :py:obj:`X509.set_issuer` raises a :py:obj:`TypeError` if called with
+        the wrong number of arguments or an argument not of type
+        :py:obj:`X509Name`.
         """
         cert = X509()
         self.assertRaises(TypeError, cert.set_issuer)
@@ -1685,8 +1704,8 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_set_issuer(self):
         """
-        :py:obj:`X509.set_issuer` changes the issuer of the certificate to the one
-        passed in.
+        :py:obj:`X509.set_issuer` changes the issuer of the certificate to the
+        one passed in.
         """
         cert = X509()
         name = cert.get_issuer()
@@ -1699,24 +1718,24 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_get_pubkey_uninitialized(self):
         """
-        When called on a certificate with no public key, :py:obj:`X509.get_pubkey`
-        raises :py:obj:`OpenSSL.crypto.Error`.
+        When called on a certificate with no public key,
+        :py:obj:`X509.get_pubkey` raises :py:obj:`OpenSSL.crypto.Error`.
         """
         cert = X509()
         self.assertRaises(Error, cert.get_pubkey)
 
     def test_subject_name_hash_wrong_args(self):
         """
-        :py:obj:`X509.subject_name_hash` raises :py:obj:`TypeError` if called with any
-        arguments.
+        :py:obj:`X509.subject_name_hash` raises :py:obj:`TypeError` if called
+        with any arguments.
         """
         cert = X509()
         self.assertRaises(TypeError, cert.subject_name_hash, None)
 
     def test_subject_name_hash(self):
         """
-        :py:obj:`X509.subject_name_hash` returns the hash of the certificate's subject
-        name.
+        :py:obj:`X509.subject_name_hash` returns the hash of the certificate's
+        subject name.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
         self.assertIn(
@@ -1736,8 +1755,8 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_get_undefined_signature_algorithm(self):
         """
-        :py:obj:`X509Type.get_signature_algorithm` raises :py:obj:`ValueError` if the
-        signature algorithm is undefined or unknown.
+        :py:obj:`X509Type.get_signature_algorithm` raises :py:obj:`ValueError`
+        if the signature algorithm is undefined or unknown.
         """
         # This certificate has been modified to indicate a bogus OID in the
         # signature algorithm field so that OpenSSL does not recognize it.
@@ -1795,8 +1814,9 @@ class X509StoreTests(TestCase):
 
     def test_add_cert_rejects_duplicate(self):
         """
-        :py:obj:`X509Store.add_cert` raises :py:obj:`OpenSSL.crypto.Error` if an
-        attempt is made to add the same certificate to the store more than once.
+        :py:obj:`X509Store.add_cert` raises :py:obj:`OpenSSL.crypto.Error` if
+        an attempt is made to add the same certificate to the store more than
+        once.
         """
         cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
         store = X509Store()
@@ -1806,7 +1826,8 @@ class X509StoreTests(TestCase):
 
 class PKCS12Tests(TestCase):
     """
-    Test for :py:obj:`OpenSSL.crypto.PKCS12` and :py:obj:`OpenSSL.crypto.load_pkcs12`.
+    Test for :py:obj:`OpenSSL.crypto.PKCS12` and
+    :py:obj:`OpenSSL.crypto.load_pkcs12`.
     """
     pemData = cleartextCertificatePEM + cleartextPrivateKeyPEM
 
@@ -1819,8 +1840,8 @@ class PKCS12Tests(TestCase):
 
     def test_empty_construction(self):
         """
-        :py:obj:`PKCS12` returns a new instance of :py:obj:`PKCS12` with no certificate,
-        private key, CA certificates, or friendly name.
+        :py:obj:`PKCS12` returns a new instance of :py:obj:`PKCS12` with no
+        certificate, private key, CA certificates, or friendly name.
         """
         p12 = PKCS12()
         self.assertEqual(None, p12.get_certificate())
@@ -1830,9 +1851,10 @@ class PKCS12Tests(TestCase):
 
     def test_type_errors(self):
         """
-        The :py:obj:`PKCS12` setter functions (:py:obj:`set_certificate`, :py:obj:`set_privatekey`,
-        :py:obj:`set_ca_certificates`, and :py:obj:`set_friendlyname`) raise :py:obj:`TypeError`
-        when passed objects of types other than those expected.
+        The :py:obj:`PKCS12` setter functions (:py:obj:`set_certificate`,
+        :py:obj:`set_privatekey`, :py:obj:`set_ca_certificates`, and
+        :py:obj:`set_friendlyname`) raise :py:obj:`TypeError` when passed
+        objects of types other than those expected.
         """
         p12 = PKCS12()
         self.assertRaises(TypeError, p12.set_certificate, 3)
@@ -1908,7 +1930,8 @@ class PKCS12Tests(TestCase):
             cleartextCertificatePEM,
             dump_certificate(FILETYPE_PEM, p12.get_ca_certificates()[0]))
 
-    def gen_pkcs12(self, cert_pem=None, key_pem=None, ca_pem=None, friendly_name=None):
+    def gen_pkcs12(self, cert_pem=None, key_pem=None, ca_pem=None,
+                   friendly_name=None):
         """
         Generate a PKCS12 object with components from PEM.  Verify that the set
         functions return None.
@@ -2068,8 +2091,8 @@ class PKCS12Tests(TestCase):
 
     def test_replace(self):
         """
-        :py:obj:`PKCS12.set_certificate` replaces the certificate in a PKCS12 cluster.
-        :py:obj:`PKCS12.set_privatekey` replaces the private key.
+        :py:obj:`PKCS12.set_certificate` replaces the certificate in a PKCS12
+        cluster. :py:obj:`PKCS12.set_privatekey` replaces the private key.
         :py:obj:`PKCS12.set_ca_certificates` replaces the CA certificates.
         """
         p12 = self.gen_pkcs12(client_cert_pem, client_key_pem, root_cert_pem)
@@ -2088,8 +2111,9 @@ class PKCS12Tests(TestCase):
     def test_friendly_name(self):
         """
         The *friendlyName* of a PKCS12 can be set and retrieved via
-        :py:obj:`PKCS12.get_friendlyname` and :py:obj:`PKCS12_set_friendlyname`, and a
-        :py:obj:`PKCS12` with a friendly name set can be dumped with :py:obj:`PKCS12.export`.
+        :py:obj:`PKCS12.get_friendlyname` and :py:obj:`PKCS12_set_friendlyname`,
+        and a :py:obj:`PKCS12` with a friendly name set can be dumped with
+        :py:obj:`PKCS12.export`.
         """
         passwd = b'Dogmeat[]{}!@#$%^&*()~`?/.,<>-_+=";:'
         p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
@@ -2125,8 +2149,8 @@ class PKCS12Tests(TestCase):
 
     def test_removing_ca_cert(self):
         """
-        Passing :py:obj:`None` to :py:obj:`PKCS12.set_ca_certificates` removes all CA
-        certificates.
+        Passing :py:obj:`None` to :py:obj:`PKCS12.set_ca_certificates` removes
+        all CA certificates.
         """
         p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
         p12.set_ca_certificates(None)
@@ -2518,12 +2542,12 @@ class FunctionTests(TestCase):
         good_text = _runopenssl(dumped_pem, b"rsa", b"-noout", b"-text")
         self.assertEqual(dumped_text, good_text)
 
-
     def test_dump_certificate_request(self):
         """
         :py:obj:`dump_certificate_request` writes a PEM, DER, and text.
         """
-        req = load_certificate_request(FILETYPE_PEM, cleartextCertificateRequestPEM)
+        req = load_certificate_request(
+            FILETYPE_PEM, cleartextCertificateRequestPEM)
         dumped_pem = dump_certificate_request(FILETYPE_PEM, req)
         self.assertEqual(dumped_pem, cleartextCertificateRequestPEM)
         dumped_der = dump_certificate_request(FILETYPE_ASN1, req)
@@ -3168,7 +3192,8 @@ class X509StoreContextTests(TestCase):
     """
     root_cert = load_certificate(FILETYPE_PEM, root_cert_pem)
     intermediate_cert = load_certificate(FILETYPE_PEM, intermediate_cert_pem)
-    intermediate_server_cert = load_certificate(FILETYPE_PEM, intermediate_server_cert_pem)
+    intermediate_server_cert = load_certificate(
+        FILETYPE_PEM, intermediate_server_cert_pem)
 
     def test_valid(self):
         """
