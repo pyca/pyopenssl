@@ -14,6 +14,8 @@ import traceback
 from tempfile import mktemp, mkdtemp
 from unittest import TestCase
 
+import pytest
+
 from six import PY3
 
 from OpenSSL._util import exception_from_error_queue
@@ -200,13 +202,7 @@ class TestCase(TestCase):
         @param message: Custom text to include in the exception text if the
             assertion fails.
         """
-        if not isinstance(instance, classOrTuple):
-            if message is None:
-                suffix = ""
-            else:
-                suffix = ": " + message
-            self.fail("%r is not an instance of %s%s" % (
-                instance, classOrTuple, suffix))
+        assert isinstance(instance, classOrTuple)
 
     def failUnlessIn(self, containee, container, msg=None):
         """
@@ -218,10 +214,7 @@ class TestCase(TestCase):
         :param msg: if msg is None, then the failure message will be
                     '%r not in %r' % (first, second)
         """
-        if containee not in container:
-            raise self.failureException(msg or "%r not in %r"
-                                        % (containee, container))
-        return containee
+        assert containee in container
     assertIn = failUnlessIn
 
     def assertNotIn(self, containee, container, msg=None):
@@ -234,10 +227,7 @@ class TestCase(TestCase):
         @param msg: if msg is None, then the failure message will be
                     '%r in %r' % (first, second)
         """
-        if containee in container:
-            raise self.failureException(msg or "%r in %r"
-                                        % (containee, container))
-        return containee
+        assert containee not in container
     failIfIn = assertNotIn
 
     def assertIs(self, first, second, msg=None):
@@ -249,9 +239,7 @@ class TestCase(TestCase):
         :param msg: if msg is None, then the failure message will be
         '%r is not %r' % (first, second)
         """
-        if first is not second:
-            raise self.failureException(msg or '%r is not %r' % (first, second))
-        return first
+        assert first is second
     assertIdentical = failUnlessIdentical = assertIs
 
     def assertIsNot(self, first, second, msg=None):
@@ -263,9 +251,7 @@ class TestCase(TestCase):
         :param msg: if msg is None, then the failure message will be
         '%r is %r' % (first, second)
         """
-        if first is second:
-            raise self.failureException(msg or '%r is %r' % (first, second))
-        return first
+        assert first is not second
     assertNotIdentical = failIfIdentical = assertIsNot
 
     def failUnlessRaises(self, exception, f, *args, **kwargs):
@@ -283,19 +269,9 @@ class TestCase(TestCase):
             not raise an exception or if it raises an exception of a
             different type.
         """
-        try:
-            result = f(*args, **kwargs)
-        except exception:
-            inst = sys.exc_info()[1]
-            return inst
-        except:
-            raise self.failureException('%s raised instead of %s'
-                                        % (sys.exc_info()[0],
-                                           exception.__name__,
-                                           ))
-        else:
-            raise self.failureException('%s not raised (%r returned)'
-                                        % (exception.__name__, result))
+        with pytest.raises(exception) as cm:
+            f(*args, **kwargs)
+        return cm.value
     assertRaises = failUnlessRaises
 
     def mktemp(self):

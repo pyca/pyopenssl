@@ -2154,10 +2154,10 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         :py:obj:`Connection.connect` raises :py:obj:`TypeError` if called with a non-address
         argument or with the wrong number of arguments.
         """
-        
+
         def attr_access_test(connection):
             return connection.an_attribute_which_is_not_defined
-        
+
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertRaises(AttributeError, attr_access_test, connection)
 
@@ -2169,9 +2169,13 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         client = socket()
         context = Context(TLSv1_METHOD)
         clientSSL = Connection(context, client)
-        exc = self.assertRaises(error, clientSSL.connect, ("127.0.0.1", 1))
-        self.assertEquals(exc.args[0], ECONNREFUSED)
-
+        # pytest.raises here doesn't work because of a bug in py.test on Python
+        # 2.6: https://github.com/pytest-dev/pytest/issues/988
+        try:
+            clientSSL.connect(("127.0.0.1", 1))
+        except error as e:
+            exc = e
+        assert exc.args[0] == ECONNREFUSED
 
     def test_connect(self):
         """
