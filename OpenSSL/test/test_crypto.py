@@ -2210,7 +2210,7 @@ class PKCS12Tests(TestCase):
         """
         A PKCS12 with an empty CA certificates list can be exported.
         """
-        passwd = 'Hobie 18'
+        passwd = b'Hobie 18'
         p12 = self.gen_pkcs12(server_cert_pem, server_key_pem)
         p12.set_ca_certificates([])
         self.assertEqual((), p12.get_ca_certificates())
