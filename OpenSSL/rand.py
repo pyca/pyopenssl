@@ -50,7 +50,6 @@ def bytes(num_bytes):
     return _ffi.buffer(result_buffer)[:]
 
 
-
 def add(buffer, entropy):
     """
     Add data with a given entropy to the PRNG
@@ -69,7 +68,6 @@ def add(buffer, entropy):
     _lib.RAND_add(buffer, len(buffer), entropy)
 
 
-
 def seed(buffer):
     """
     Alias for rand_add, with entropy equal to length
@@ -84,7 +82,6 @@ def seed(buffer):
     _lib.RAND_seed(buffer, len(buffer))
 
 
-
 def status():
     """
     Retrieve the status of the PRNG
@@ -92,7 +89,6 @@ def status():
     :return: True if the PRNG is seeded enough, false otherwise
     """
     return _lib.RAND_status()
-
 
 
 def egd(path, bytes=_unspecified):
@@ -117,7 +113,6 @@ def egd(path, bytes=_unspecified):
     return _lib.RAND_egd_bytes(path, bytes)
 
 
-
 def cleanup():
     """
     Erase the memory used by the PRNG.
@@ -126,7 +121,6 @@ def cleanup():
     """
     # TODO Nothing tests this call actually being made, or made properly.
     _lib.RAND_cleanup()
-
 
 
 def load_file(filename, maxbytes=_unspecified):
@@ -147,7 +141,6 @@ def load_file(filename, maxbytes=_unspecified):
         raise TypeError("maxbytes must be an integer")
 
     return _lib.RAND_load_file(filename, maxbytes)
-
 
 
 def write_file(filename):
