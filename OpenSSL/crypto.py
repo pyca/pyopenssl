@@ -62,6 +62,7 @@ def _new_mem_buf(buffer=None):
     else:
         data = _ffi.new("char[]", buffer)
         bio = _lib.BIO_new_mem_buf(data, len(buffer))
+
         # Keep the memory alive as long as the bio is alive!
         def free(bio, ref=data):
             return _lib.BIO_free(bio)
@@ -126,7 +127,9 @@ def _get_asn1_time(timestamp):
     string_timestamp = _ffi.cast('ASN1_STRING*', timestamp)
     if _lib.ASN1_STRING_length(string_timestamp) == 0:
         return None
-    elif _lib.ASN1_STRING_type(string_timestamp) == _lib.V_ASN1_GENERALIZEDTIME:
+    elif (
+        _lib.ASN1_STRING_type(string_timestamp) == _lib.V_ASN1_GENERALIZEDTIME
+    ):
         return _ffi.string(_lib.ASN1_STRING_data(string_timestamp))
     else:
         generalized_timestamp = _ffi.new("ASN1_GENERALIZEDTIME**")
@@ -308,9 +311,9 @@ class _EllipticCurve(object):
         if lib.Cryptography_HAS_EC:
             num_curves = lib.EC_get_builtin_curves(_ffi.NULL, 0)
             builtin_curves = _ffi.new('EC_builtin_curve[]', num_curves)
-            # The return value on this call should be num_curves again.  We could
-            # check it to make sure but if it *isn't* then.. what could we do?
-            # Abort the whole process, I suppose...?  -exarkun
+            # The return value on this call should be num_curves again.  We
+            # could check it to make sure but if it *isn't* then.. what could
+            # we do? Abort the whole process, I suppose...?  -exarkun
             lib.EC_get_builtin_curves(builtin_curves, num_curves)
             return set(
                 cls.from_nid(lib, c.nid)
@@ -436,6 +439,7 @@ class X509Name(object):
 
     :ivar emailAddress: The e-mail address of the entity.
     """
+
     def __init__(self, name):
         """
         Create a new X509Name, copying the given X509Name instance.
@@ -486,8 +490,8 @@ class X509Name(object):
         """
         Find attribute. An X509Name object has the following attributes:
         countryName (alias C), stateOrProvince (alias ST), locality (alias L),
-        organization (alias O), organizationalUnit (alias OU), commonName (alias
-        CN) and more...
+        organization (alias O), organizationalUnit (alias OU), commonName
+        (alias CN) and more...
         """
         nid = _lib.OBJ_txt2nid(_byte_string(name))
         if nid == _lib.NID_undef:
@@ -516,7 +520,9 @@ class X509Name(object):
             _raise_current_error()
 
         try:
-            result = _ffi.buffer(result_buffer[0], data_length)[:].decode('utf-8')
+            result = _ffi.buffer(
+                result_buffer[0], data_length
+            )[:].decode('utf-8')
         finally:
             # XXX untested
             _lib.OPENSSL_free(result_buffer[0])
@@ -616,6 +622,7 @@ class X509Extension(object):
     """
     An X.509 v3 certificate extension.
     """
+
     def __init__(self, type_name, critical, value, subject=None, issuer=None):
         """
         Initializes an X509 extension.
@@ -624,7 +631,8 @@ class X509Extension(object):
             http://openssl.org/docs/apps/x509v3_config.html#STANDARD_EXTENSIONS
         :type typename: :py:data:`str`
 
-        :param bool critical: A flag indicating whether this is a critical extension.
+        :param bool critical: A flag indicating whether this is a critical
+            extension.
 
         :param value: The value of the extension.
         :type value: :py:data:`str`
@@ -637,9 +645,9 @@ class X509Extension(object):
         """
         ctx = _ffi.new("X509V3_CTX*")
 
-        # A context is necessary for any extension which uses the r2i conversion
-        # method.  That is, X509V3_EXT_nconf may segfault if passed a NULL ctx.
-        # Start off by initializing most of the fields to NULL.
+        # A context is necessary for any extension which uses the r2i
+        # conversion method.  That is, X509V3_EXT_nconf may segfault if passed
+        # a NULL ctx. Start off by initializing most of the fields to NULL.
         _lib.X509V3_set_ctx(ctx, _ffi.NULL, _ffi.NULL, _ffi.NULL, _ffi.NULL, 0)
 
         # We have no configuration database - but perhaps we should (some
@@ -664,9 +672,9 @@ class X509Extension(object):
             # separately, but they're harder to use, and since value is already
             # a pile of crappy junk smuggling a ton of utterly important
             # structured data, what's the point of trying to avoid nasty stuff
-            # with strings? (However, X509V3_EXT_i2d in particular seems like it
-            # would be a better API to invoke.  I do not know where to get the
-            # ext_struc it desires for its last parameter, though.)
+            # with strings? (However, X509V3_EXT_i2d in particular seems like
+            # it would be a better API to invoke.  I do not know where to get
+            # the ext_struc it desires for its last parameter, though.)
             value = b"critical," + value
 
         extension = _lib.X509V3_EXT_nconf(_ffi.NULL, ctx, type_name, value)
@@ -1122,8 +1130,8 @@ class X509(object):
         bignum_serial = _ffi.new("BIGNUM**")
 
         # BN_hex2bn stores the result in &bignum.  Unless it doesn't feel like
-        # it.  If bignum is still NULL after this call, then the return value is
-        # actually the result.  I hope.  -exarkun
+        # it.  If bignum is still NULL after this call, then the return value
+        # is actually the result.  I hope.  -exarkun
         small_serial = _lib.BN_hex2bn(bignum_serial, hex_serial)
 
         if bignum_serial[0] == _ffi.NULL:
@@ -1484,7 +1492,9 @@ class X509StoreContext(object):
         """
         Set up the store context for a subsequent verification operation.
         """
-        ret = _lib.X509_STORE_CTX_init(self._store_ctx, self._store._store, self._cert._x509, _ffi.NULL)
+        ret = _lib.X509_STORE_CTX_init(
+            self._store_ctx, self._store._store, self._cert._x509, _ffi.NULL
+        )
         if ret <= 0:
             _raise_current_error()
 
@@ -1502,14 +1512,14 @@ class X509StoreContext(object):
         Convert an OpenSSL native context error failure into a Python
         exception.
 
-        When a call to native OpenSSL X509_verify_cert fails, additional information
-        about the failure can be obtained from the store context.
+        When a call to native OpenSSL X509_verify_cert fails, additional
+        information about the failure can be obtained from the store context.
         """
         errors = [
             _lib.X509_STORE_CTX_get_error(self._store_ctx),
             _lib.X509_STORE_CTX_get_error_depth(self._store_ctx),
             _native(_ffi.string(_lib.X509_verify_cert_error_string(
-                        _lib.X509_STORE_CTX_get_error(self._store_ctx)))),
+                _lib.X509_STORE_CTX_get_error(self._store_ctx)))),
         ]
         # A context error should always be associated with a certificate, so we
         # expect this call to never return :class:`None`.
@@ -1539,8 +1549,8 @@ class X509StoreContext(object):
         :param store_ctx: The :py:class:`X509StoreContext` to verify.
 
         :raises X509StoreContextError: If an error occurred when validating a
-          certificate in the context. Sets ``certificate`` attribute to indicate
-          which certificate caused the error.
+          certificate in the context. Sets ``certificate`` attribute to
+          indicate which certificate caused the error.
         """
         # Always re-initialize the store context in case
         # :py:meth:`verify_certificate` is called multiple times.
@@ -1824,7 +1834,9 @@ class Revoked(object):
 
                 print_result = _lib.X509V3_EXT_print(bio, ext, 0, 0)
                 if not print_result:
-                    print_result = _lib.M_ASN1_OCTET_STRING_print(bio, ext.value)
+                    print_result = _lib.M_ASN1_OCTET_STRING_print(
+                        bio, ext.value
+                    )
                     if print_result == 0:
                         # TODO: This is untested.
                         _raise_current_error()
@@ -1978,7 +1990,9 @@ class CRL(object):
         _lib.X509_gmtime_adj(sometime, days * 24 * 60 * 60)
         _lib.X509_CRL_set_nextUpdate(self._crl, sometime)
 
-        _lib.X509_CRL_set_issuer_name(self._crl, _lib.X509_get_subject_name(cert._x509))
+        _lib.X509_CRL_set_issuer_name(
+            self._crl, _lib.X509_get_subject_name(cert._x509)
+        )
 
         sign_result = _lib.X509_CRL_sign(self._crl, key._pkey, digest_obj)
         if not sign_result:
@@ -1992,7 +2006,9 @@ class CRL(object):
             ret = _lib.X509_CRL_print(bio, self._crl)
         else:
             raise ValueError(
-                "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or FILETYPE_TEXT")
+                "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or "
+                "FILETYPE_TEXT"
+            )
 
         if not ret:
             # TODO: This is untested.
@@ -2138,7 +2154,9 @@ class PKCS12(object):
             cacerts = list(cacerts)
             for cert in cacerts:
                 if not isinstance(cert, X509):
-                    raise TypeError("iterable must only contain X509 instances")
+                    raise TypeError(
+                        "iterable must only contain X509 instances"
+                    )
             self._cacerts = cacerts
 
     def set_friendlyname(self, name):
@@ -2153,7 +2171,9 @@ class PKCS12(object):
         if name is None:
             self._friendlyname = None
         elif not isinstance(name, bytes):
-            raise TypeError("name must be a byte string or None (not %r)" % (name,))
+            raise TypeError(
+                "name must be a byte string or None (not %r)" % (name,)
+            )
         self._friendlyname = name
 
     def get_friendlyname(self):
@@ -2260,7 +2280,9 @@ class NetscapeSPKI(object):
         if digest_obj == _ffi.NULL:
             raise ValueError("No such digest method")
 
-        sign_result = _lib.NETSCAPE_SPKI_sign(self._spki, pkey._pkey, digest_obj)
+        sign_result = _lib.NETSCAPE_SPKI_sign(
+            self._spki, pkey._pkey, digest_obj
+        )
         if not sign_result:
             # TODO: This is untested.
             _raise_current_error()
@@ -2330,7 +2352,9 @@ NetscapeSPKIType = NetscapeSPKI
 class _PassphraseHelper(object):
     def __init__(self, type, passphrase, more_args=False, truncate=False):
         if type != FILETYPE_PEM and passphrase is not None:
-            raise ValueError("only FILETYPE_PEM key format supports encryption")
+            raise ValueError(
+                "only FILETYPE_PEM key format supports encryption"
+            )
         self._passphrase = passphrase
         self._more_args = more_args
         self._truncate = truncate
@@ -2379,7 +2403,9 @@ class _PassphraseHelper(object):
                 if self._truncate:
                     result = result[:size]
                 else:
-                    raise ValueError("passphrase returned by callback is too long")
+                    raise ValueError(
+                        "passphrase returned by callback is too long"
+                    )
             for i in range(len(result)):
                 buf[i] = result[i:i + 1]
             return len(result)
@@ -2440,7 +2466,10 @@ def dump_certificate_request(type, req):
     elif type == FILETYPE_TEXT:
         result_code = _lib.X509_REQ_print_ex(bio, req._req, 0, 0)
     else:
-        raise ValueError("type argument must be FILETYPE_PEM, FILETYPE_ASN1, or FILETYPE_TEXT")
+        raise ValueError(
+            "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or "
+            "FILETYPE_TEXT"
+        )
 
     if result_code == 0:
         # TODO: This is untested.
@@ -2520,7 +2549,8 @@ def verify(cert, signature, data, digest):
     :param signature: signature returned by sign function
     :param data: data to be verified
     :param digest: message digest to use
-    :return: :py:const:`None` if the signature is correct, raise exception otherwise
+    :return: :py:const:`None` if the signature is correct, raise exception
+        otherwise
     """
     data = _text_to_bytes_and_warn("data", data)
 
@@ -2539,7 +2569,9 @@ def verify(cert, signature, data, digest):
 
     _lib.EVP_VerifyInit(md_ctx, digest_obj)
     _lib.EVP_VerifyUpdate(md_ctx, data, len(data))
-    verify_result = _lib.EVP_VerifyFinal(md_ctx, signature, len(signature), pkey)
+    verify_result = _lib.EVP_VerifyFinal(
+        md_ctx, signature, len(signature), pkey
+    )
 
     if verify_result != 1:
         _raise_current_error()
@@ -2663,8 +2695,12 @@ def load_pkcs12(buffer, passphrase=None):
         pycert._x509 = _ffi.gc(cert[0], _lib.X509_free)
 
         friendlyname_length = _ffi.new("int*")
-        friendlyname_buffer = _lib.X509_alias_get0(cert[0], friendlyname_length)
-        friendlyname = _ffi.buffer(friendlyname_buffer, friendlyname_length[0])[:]
+        friendlyname_buffer = _lib.X509_alias_get0(
+            cert[0], friendlyname_length
+        )
+        friendlyname = _ffi.buffer(
+            friendlyname_buffer, friendlyname_length[0]
+        )[:]
         if friendlyname_buffer == _ffi.NULL:
             friendlyname = None
 
