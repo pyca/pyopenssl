@@ -15,6 +15,8 @@ from unittest import main
 from weakref import ref
 from warnings import catch_warnings, simplefilter
 
+import pytest
+
 from six import PY3, text_type, u
 
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
@@ -1032,38 +1034,39 @@ class ContextTests(TestCase, _LoopbackMixin):
             TypeError, context.load_verify_locations, None, None, None
         )
 
-    if platform == "win32":
-        "set_default_verify_paths appears not to work on Windows.  "
+    @pytest.mark.skipif(
+        platform == "win32",
+        reason="set_default_verify_paths appears not to work on Windows.  "
         "See LP#404343 and LP#404344."
-    else:
-        def test_set_default_verify_paths(self):
-            """
-            :py:obj:`Context.set_default_verify_paths` causes the
-            platform-specific CA certificate locations to be used for
-            verification purposes.
-            """
-            # Testing this requires a server with a certificate signed by one
-            # of the CAs in the platform CA location.  Getting one of those
-            # costs money.  Fortunately (or unfortunately, depending on your
-            # perspective), it's easy to think of a public server on the
-            # internet which has such a certificate.  Connecting to the network
-            # in a unit test is bad, but it's the only way I can think of to
-            # really test this. -exarkun
+    )
+    def test_set_default_verify_paths(self):
+        """
+        :py:obj:`Context.set_default_verify_paths` causes the
+        platform-specific CA certificate locations to be used for
+        verification purposes.
+        """
+        # Testing this requires a server with a certificate signed by one
+        # of the CAs in the platform CA location.  Getting one of those
+        # costs money.  Fortunately (or unfortunately, depending on your
+        # perspective), it's easy to think of a public server on the
+        # internet which has such a certificate.  Connecting to the network
+        # in a unit test is bad, but it's the only way I can think of to
+        # really test this. -exarkun
 
-            # Arg, verisign.com doesn't speak anything newer than TLS 1.0
-            context = Context(TLSv1_METHOD)
-            context.set_default_verify_paths()
-            context.set_verify(
-                VERIFY_PEER,
-                lambda conn, cert, errno, depth, preverify_ok: preverify_ok)
+        # Arg, verisign.com doesn't speak anything newer than TLS 1.0
+        context = Context(TLSv1_METHOD)
+        context.set_default_verify_paths()
+        context.set_verify(
+            VERIFY_PEER,
+            lambda conn, cert, errno, depth, preverify_ok: preverify_ok)
 
-            client = socket()
-            client.connect(('verisign.com', 443))
-            clientSSL = Connection(context, client)
-            clientSSL.set_connect_state()
-            clientSSL.do_handshake()
-            clientSSL.send(b"GET / HTTP/1.0\r\n\r\n")
-            self.assertTrue(clientSSL.recv(1024))
+        client = socket()
+        client.connect(('verisign.com', 443))
+        clientSSL = Connection(context, client)
+        clientSSL.set_connect_state()
+        clientSSL.do_handshake()
+        clientSSL.send(b"GET / HTTP/1.0\r\n\r\n")
+        self.assertTrue(clientSSL.recv(1024))
 
     def test_set_default_verify_paths_signature(self):
         """
