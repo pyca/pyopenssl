@@ -39,11 +39,12 @@ Context, Connection.
 
 
 .. py:data:: OP_SINGLE_DH_USE
+             OP_SINGLE_ECDH_USE
 
     Constant used with :py:meth:`set_options` of Context objects.
 
     When this option is used, a new key will always be created when using
-    ephemeral Diffie-Hellman.
+    ephemeral (Elliptic curve) Diffie-Hellman.
 
 
 .. py:data:: OP_EPHEMERAL_RSA
