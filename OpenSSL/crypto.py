@@ -1615,7 +1615,7 @@ def dump_certificate(type, cert):
             "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or "
             "FILETYPE_TEXT")
 
-    assert result_code == 0
+    assert result_code == 1
     return _bio_to_string(bio)
 
 
