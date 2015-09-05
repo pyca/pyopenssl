@@ -1471,24 +1471,23 @@ class ContextTests(TestCase, _LoopbackMixin):
 
 class ServerNameCallbackTests(TestCase, _LoopbackMixin):
     """
-    Tests for :py:obj:`Context.set_tlsext_servername_callback` and its interaction with
-    :py:obj:`Connection`.
+    Tests for :py:obj:`Context.set_tlsext_servername_callback` and its
+    interaction with :py:obj:`Connection`.
     """
     def test_wrong_args(self):
         """
-        :py:obj:`Context.set_tlsext_servername_callback` raises :py:obj:`TypeError` if called
-        with other than one argument.
+        :py:obj:`Context.set_tlsext_servername_callback` raises
+        :py:obj:`TypeError` if called with other than one argument.
         """
         context = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, context.set_tlsext_servername_callback)
         self.assertRaises(
             TypeError, context.set_tlsext_servername_callback, 1, 2)
 
-
     def test_old_callback_forgotten(self):
         """
-        If :py:obj:`Context.set_tlsext_servername_callback` is used to specify a new
-        callback, the one it replaces is dereferenced.
+        If :py:obj:`Context.set_tlsext_servername_callback` is used to specify
+        a new callback, the one it replaces is dereferenced.
         """
         def callback(connection):
             pass
@@ -1517,14 +1516,14 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
             if len(referrers) > 1:
                 self.fail("Some references remain: %r" % (referrers,))
 
-
     def test_no_servername(self):
         """
         When a client specifies no server name, the callback passed to
-        :py:obj:`Context.set_tlsext_servername_callback` is invoked and the result of
-        :py:obj:`Connection.get_servername` is :py:obj:`None`.
+        :py:obj:`Context.set_tlsext_servername_callback` is invoked and the
+        result of :py:obj:`Connection.get_servername` is :py:obj:`None`.
         """
         args = []
+
         def servername(conn):
             args.append((conn, conn.get_servername()))
         context = Context(TLSv1_METHOD)
@@ -1537,7 +1536,8 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
 
         # Necessary to actually accept the connection
         context.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
-        context.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
+        context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
 
         # Do a little connection to trigger the logic
         server = Connection(context, None)
@@ -1550,14 +1550,15 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
 
         self.assertEqual([(server, None)], args)
 
-
     def test_servername(self):
         """
-        When a client specifies a server name in its hello message, the callback
-        passed to :py:obj:`Contexts.set_tlsext_servername_callback` is invoked and the
-        result of :py:obj:`Connection.get_servername` is that server name.
+        When a client specifies a server name in its hello message, the
+        callback passed to :py:obj:`Contexts.set_tlsext_servername_callback` is
+        invoked and the result of :py:obj:`Connection.get_servername` is that
+        server name.
         """
         args = []
+
         def servername(conn):
             args.append((conn, conn.get_servername()))
         context = Context(TLSv1_METHOD)
@@ -1565,7 +1566,8 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
 
         # Necessary to actually accept the connection
         context.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
-        context.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
+        context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
 
         # Do a little connection to trigger the logic
         server = Connection(context, None)
