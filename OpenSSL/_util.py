@@ -5,6 +5,7 @@ from six import PY3, binary_type, text_type
 
 from cryptography.hazmat.bindings.openssl.binding import Binding
 binding = Binding()
+binding.init_static_locks()
 ffi = binding.ffi
 lib = binding.lib
 

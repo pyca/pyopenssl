@@ -2808,35 +2808,6 @@ def load_pkcs12(buffer, passphrase=None):
     return pkcs12
 
 
-def _initialize_openssl_threads(get_ident, Lock):
-    import _ssl
-    return
-
-    locks = list(Lock() for n in range(_lib.CRYPTO_num_locks()))
-
-    def locking_function(mode, index, filename, line):
-        if mode & _lib.CRYPTO_LOCK:
-            locks[index].acquire()
-        else:
-            locks[index].release()
-
-    _lib.CRYPTO_set_id_callback(
-        _ffi.callback("unsigned long (*)(void)", get_ident))
-
-    _lib.CRYPTO_set_locking_callback(
-        _ffi.callback(
-            "void (*)(int, int, const char*, int)", locking_function))
-
-
-try:
-    from thread import get_ident
-    from threading import Lock
-except ImportError:
-    pass
-else:
-    _initialize_openssl_threads(get_ident, Lock)
-    del get_ident, Lock
-
 # There are no direct unit tests for this initialization.  It is tested
 # indirectly since it is necessary for functions like dump_privatekey when
 # using encryption.
