@@ -2213,6 +2213,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         client = socket()
         context = Context(TLSv1_METHOD)
         clientSSL = Connection(context, client)
+        # pytest.raises here doesn't work because of a bug in py.test:
+        # https://github.com/pytest-dev/pytest/issues/988
         try:
             clientSSL.connect(("127.0.0.1", 1))
         except error as e:
