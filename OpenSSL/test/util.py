@@ -25,10 +25,8 @@ import memdbg
 from OpenSSL._util import ffi, lib, byte_string as b
 
 
-
 # This is the UTF-8 encoding of the SNOWMAN unicode code point.
 NON_ASCII = b("\xe2\x98\x83").decode("utf-8")
-
 
 
 class TestCase(TestCase):
@@ -68,7 +66,6 @@ class TestCase(TestCase):
             after = set(memdbg.heap)
 
             self._reportLeaks(after - before, result)
-
 
     def _reportLeaks(self, leaks, result):
         def format_leak(p):
@@ -110,11 +107,13 @@ class TestCase(TestCase):
             # ...
             #
             # Notice the stack is upside down compared to a Python traceback.
-            # Identify the start and end of interesting bits and stuff it into the stack we report.
+            # Identify the start and end of interesting bits and stuff it into
+            # the stack we report.
 
             saved = list(c_stack)
 
-            # Figure the first interesting frame will be after a the cffi-compiled module
+            # Figure the first interesting frame will be after a the
+            # cffi-compiled module
             while c_stack and '/__pycache__/_cffi__' not in c_stack[-1]:
                 c_stack.pop()
 
@@ -155,9 +154,7 @@ class TestCase(TestCase):
                     self,
                     (None, Exception(stack % (allocs_report,)), None))
 
-
     _tmpdir = None
-
 
     @property
     def tmpdir(self):
@@ -169,7 +166,6 @@ class TestCase(TestCase):
 
         self._tmpdir = mkdtemp(dir=".")
         return self._tmpdir
-
 
     def tearDown(self):
         """
@@ -188,7 +184,6 @@ class TestCase(TestCase):
                 self.fail(
                     "Left over errors in OpenSSL error queue: " + repr(e)
                 )
-
 
     def assertIsInstance(self, instance, classOrTuple, message=None):
         """
@@ -211,8 +206,7 @@ class TestCase(TestCase):
             else:
                 suffix = ": " + message
             self.fail("%r is not an instance of %s%s" % (
-                    instance, classOrTuple, suffix))
-
+                instance, classOrTuple, suffix))
 
     def failUnlessIn(self, containee, container, msg=None):
         """
@@ -246,7 +240,6 @@ class TestCase(TestCase):
         return containee
     failIfIn = assertNotIn
 
-
     def assertIs(self, first, second, msg=None):
         """
         Fail the test if :py:data:`first` is not :py:data:`second`.  This is an
@@ -261,7 +254,6 @@ class TestCase(TestCase):
         return first
     assertIdentical = failUnlessIdentical = assertIs
 
-
     def assertIsNot(self, first, second, msg=None):
         """
         Fail the test if :py:data:`first` is :py:data:`second`.  This is an
@@ -275,7 +267,6 @@ class TestCase(TestCase):
             raise self.failureException(msg or '%r is %r' % (first, second))
         return first
     assertNotIdentical = failIfIdentical = assertIsNot
-
 
     def failUnlessRaises(self, exception, f, *args, **kwargs):
         """
@@ -301,12 +292,11 @@ class TestCase(TestCase):
             raise self.failureException('%s raised instead of %s'
                                         % (sys.exc_info()[0],
                                            exception.__name__,
-                                          ))
+                                           ))
         else:
             raise self.failureException('%s not raised (%r returned)'
                                         % (exception.__name__, result))
     assertRaises = failUnlessRaises
-
 
     def mktemp(self):
         """
@@ -315,7 +305,6 @@ class TestCase(TestCase):
         The file will be cleaned up after the test run.
         """
         return mktemp(dir=self.tmpdir).encode("utf-8")
-
 
     # Other stuff
     def assertConsistentType(self, theType, name, *constructionArgs):
@@ -336,7 +325,6 @@ class TestCase(TestCase):
         self.assertIdentical(type(instance), theType)
 
 
-
 class EqualityTestsMixin(object):
     """
     A mixin defining tests for the standard implementation of C{==} and C{!=}.
@@ -349,7 +337,6 @@ class EqualityTestsMixin(object):
         """
         raise NotImplementedError()
 
-
     def anotherInstance(self):
         """
         Return an instance of the class under test.  Each call to this method
@@ -359,7 +346,6 @@ class EqualityTestsMixin(object):
         """
         raise NotImplementedError()
 
-
     def test_identicalEq(self):
         """
         An object compares equal to itself using the C{==} operator.
@@ -367,14 +353,12 @@ class EqualityTestsMixin(object):
         o = self.anInstance()
         self.assertTrue(o == o)
 
-
     def test_identicalNe(self):
         """
         An object doesn't compare not equal to itself using the C{!=} operator.
         """
         o = self.anInstance()
         self.assertFalse(o != o)
-
 
     def test_sameEq(self):
         """
@@ -385,7 +369,6 @@ class EqualityTestsMixin(object):
         b = self.anInstance()
         self.assertTrue(a == b)
 
-
     def test_sameNe(self):
         """
         Two objects that are equal to each other do not compare not equal to
@@ -394,7 +377,6 @@ class EqualityTestsMixin(object):
         a = self.anInstance()
         b = self.anInstance()
         self.assertFalse(a != b)
-
 
     def test_differentEq(self):
         """
@@ -405,7 +387,6 @@ class EqualityTestsMixin(object):
         b = self.anotherInstance()
         self.assertFalse(a == b)
 
-
     def test_differentNe(self):
         """
         Two objects that are not equal to each other compare not equal to each
@@ -414,7 +395,6 @@ class EqualityTestsMixin(object):
         a = self.anInstance()
         b = self.anotherInstance()
         self.assertTrue(a != b)
-
 
     def test_anotherTypeEq(self):
         """
@@ -425,7 +405,6 @@ class EqualityTestsMixin(object):
         b = object()
         self.assertFalse(a == b)
 
-
     def test_anotherTypeNe(self):
         """
         The object compares not equal to an object of an unrelated type (which
@@ -434,7 +413,6 @@ class EqualityTestsMixin(object):
         a = self.anInstance()
         b = object()
         self.assertTrue(a != b)
-
 
     def test_delegatedEq(self):
         """
@@ -449,7 +427,6 @@ class EqualityTestsMixin(object):
         a = self.anInstance()
         b = Delegate()
         self.assertEqual(a == b, [b])
-
 
     def test_delegateNe(self):
         """
