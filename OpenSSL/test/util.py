@@ -121,8 +121,8 @@ class TestCase(TestCase):
 
             # Figure the last interesting frame will always be CRYPTO_malloc,
             # since that's where we hooked in to things.
-            while c_stack and 'CRYPTO_malloc' not in c_stack[0] and \
-                    'CRYPTO_realloc' not in c_stack[0]:
+            while (c_stack and 'CRYPTO_malloc' not in c_stack[0] and
+                   'CRYPTO_realloc' not in c_stack[0]):
                 c_stack.pop(0)
 
             if c_stack:
