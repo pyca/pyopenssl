@@ -129,7 +129,7 @@ script:
     ~/.venv/bin/tox -v
 
 after_script:
-  - source ~/.venv/bin/activate && bash <(curl -s https://codecov.io/bash) -e TRAVIS_OS_NAME,TOXENV,OPENSSL
+  - ./.travis/upload_coverage.sh
 
 notifications:
   email: false
