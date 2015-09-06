@@ -45,7 +45,7 @@ Finally, pull requests must be reviewed before merging.
 This process mirrors the `cryptography code review process`_.
 Everyone can perform reviews; this is a very valuable way to contribute, and is highly encouraged.
 
-Pull requests are merged by members of PyCA_.
+Pull requests are merged by `members of PyCA`_.
 They should, of course, keep all the requirements detailed in this document as well as the ``pyca/cryptography`` merge requirements in mind.
 
 The final responsibility for the reviewing of merged code lies with the person merging it.
@@ -71,4 +71,4 @@ Wherever we interact, we strive to follow the `Python Community Code of Conduct`
 .. _freenode: https://freenode.net
 .. _mailing list: https://mail.python.org/mailman/listinfo/cryptography-dev
 .. _Python Community Code of Conduct: https://www.python.org/psf/codeofconduct/
-.. _PyCA: https://github.com/orgs/pyca/people
+.. _members of PyCA: https://github.com/orgs/pyca/people
