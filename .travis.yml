@@ -6,10 +6,6 @@ cache:
 #    - $HOME/.cache/pip
     - $HOME/ossl-098
 
-env:
-  global:
-    - LC_ALL=en_US.UTF-8
-
 matrix:
   include:
   - language: generic
@@ -78,7 +74,6 @@ matrix:
   - env: TOXENV=py33-cryptographyMaster
   - env: TOXENV=py34-cryptographyMaster
   - env: TOXENV=pypy-cryptographyMaster
-  - env: OPENSSL=0.9.8 TOXENV=py27
   - env: TOXENV=pypy
 
 install:

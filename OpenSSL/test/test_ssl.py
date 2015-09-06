@@ -9,7 +9,7 @@ from gc import collect, get_referrers
 from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE, ESHUTDOWN
 from sys import platform, getfilesystemencoding, version_info
 from socket import MSG_PEEK, SHUT_RDWR, error, socket
-from os import makedirs
+from os import environ, makedirs
 from os.path import join
 from unittest import main
 from weakref import ref
@@ -1046,6 +1046,13 @@ class ContextTests(TestCase, _LoopbackMixin):
         reason="set_default_verify_paths appears not to work on Windows.  "
         "See LP#404343 and LP#404344."
     )
+    @pytest.mark.skipif(
+        environ.get("TRAVIS") == "true" and
+        environ.get("OPENSSL") == "0.9.8" and
+        platform.startswith("linux"),
+        reason="Our self-compiled 0.9.8 doesn't properly support system"
+        "certificate locations."
+    )
     def test_set_default_verify_paths(self):
         """
         :py:obj:`Context.set_default_verify_paths` causes the
@@ -1060,20 +1067,21 @@ class ContextTests(TestCase, _LoopbackMixin):
         # in a unit test is bad, but it's the only way I can think of to
         # really test this. -exarkun
 
-        # Arg, verisign.com doesn't speak anything newer than TLS 1.0
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         context.set_default_verify_paths()
         context.set_verify(
             VERIFY_PEER,
             lambda conn, cert, errno, depth, preverify_ok: preverify_ok)
 
         client = socket()
-        client.connect(('verisign.com', 443))
+        client.connect(("encrypted.google.com", 443))
         clientSSL = Connection(context, client)
         clientSSL.set_connect_state()
         clientSSL.do_handshake()
         clientSSL.send(b"GET / HTTP/1.0\r\n\r\n")
         self.assertTrue(clientSSL.recv(1024))
+        clientSSL.shutdown()
+        clientSSL.close()
 
     def test_set_default_verify_paths_signature(self):
         """
