@@ -72,47 +72,52 @@ class TestCase(TestCase):
 
     def _reportLeaks(self, leaks, result):
         def format_leak(p):
+            """
+            c_stack looks something like this (interesting parts indicated
+            with inserted arrows not part of the data):
+
+            cpython/2.7/python(PyCFunction_Call+0x8b) [0x56265a]
+            cpython/2.7/python() [0x4d5f52]
+            cpython/2.7/python(PyEval_EvalFrameEx+0x753b) [0x4d0e1e]
+            cpython/2.7/python() [0x4d6419]
+            cpython/2.7/python() [0x4d6129]
+            cpython/2.7/python(PyEval_EvalFrameEx+0x753b) [0x4d0e1e]
+            cpython/2.7/python(PyEval_EvalCodeEx+0x1043) [0x4d3726]
+            cpython/2.7/python() [0x55fd51]
+            cpython/2.7/python(PyObject_Call+0x7e) [0x420ee6]
+            cpython/2.7/python(PyEval_CallObjectWithKeywords+0x158) [0x4d56ec]
+            _cffi_backend.so(+0xe96e) [0x7fe2e38be96e]
+            libffi.so.6(ffi_closure_unix64_inner+0x1b9) [0x7fe2e36ad819]
+            libffi.so.6(ffi_closure_unix64+0x46) [0x7fe2e36adb7c]
+
+            |----- end interesting
+            v
+            libcrypto.so.1.0.0(CRYPTO_malloc+0x64) [0x7fe2e1cef784]
+            libcrypto.so.1.0.0(lh_insert+0x16b) [0x7fe2e1d6a24b]
+            libcrypto.so.1.0.0(+0x61c18) [0x7fe2e1cf0c18]
+            libcrypto.so.1.0.0(+0x625ec) [0x7fe2e1cf15ec]
+            libcrypto.so.1.0.0(DSA_new_method+0xe6) [0x7fe2e1d524d6]
+            libcrypto.so.1.0.0(DSA_generate_parameters+0x3a) [0x7fe2e1d5364a]
+            ^
+            |----- begin interesting
+
+            _cffi__x305d4698xb539baaa.so(+0x1f397) [0x7fe2df84d397]
+            cpython/2.7/python(PyCFunction_Call+0x8b) [0x56265a]
+            cpython/2.7/python() [0x4d5f52]
+            cpython/2.7/python(PyEval_EvalFrameEx+0x753b) [0x4d0e1e]
+            cpython/2.7/python() [0x4d6419]
+            ...
+
+            Notice the stack is upside down compared to a Python traceback.
+            Identify the start and end of interesting bits and stuff it into
+            the stack we report.
+            """
             stacks = memdbg.heap[p]
             # Eventually look at multiple stacks for the realloc() case.  For
             # now just look at the original allocation location.
             (size, python_stack, c_stack) = stacks[0]
 
             stack = traceback.format_list(python_stack)[:-1]
-
-            # c_stack looks something like this (interesting parts indicated
-            # with inserted arrows not part of the data):
-            #
-            # /home/exarkun/Projects/pyOpenSSL/branches/use-opentls/__pycache__/_cffi__x89095113xb9185b9b.so(+0x12cf) [0x7fe2e20582cf]
-            # /home/exarkun/Projects/cpython/2.7/python(PyCFunction_Call+0x8b) [0x56265a]
-            # /home/exarkun/Projects/cpython/2.7/python() [0x4d5f52]
-            # /home/exarkun/Projects/cpython/2.7/python(PyEval_EvalFrameEx+0x753b) [0x4d0e1e]
-            # /home/exarkun/Projects/cpython/2.7/python() [0x4d6419]
-            # /home/exarkun/Projects/cpython/2.7/python() [0x4d6129]
-            # /home/exarkun/Projects/cpython/2.7/python(PyEval_EvalFrameEx+0x753b) [0x4d0e1e]
-            # /home/exarkun/Projects/cpython/2.7/python(PyEval_EvalCodeEx+0x1043) [0x4d3726]
-            # /home/exarkun/Projects/cpython/2.7/python() [0x55fd51]
-            # /home/exarkun/Projects/cpython/2.7/python(PyObject_Call+0x7e) [0x420ee6]
-            # /home/exarkun/Projects/cpython/2.7/python(PyEval_CallObjectWithKeywords+0x158) [0x4d56ec]
-            # /home/exarkun/.local/lib/python2.7/site-packages/cffi-0.5-py2.7-linux-x86_64.egg/_cffi_backend.so(+0xe96e) [0x7fe2e38be96e]
-            # /usr/lib/x86_64-linux-gnu/libffi.so.6(ffi_closure_unix64_inner+0x1b9) [0x7fe2e36ad819]
-            # /usr/lib/x86_64-linux-gnu/libffi.so.6(ffi_closure_unix64+0x46) [0x7fe2e36adb7c]
-            # /lib/x86_64-linux-gnu/libcrypto.so.1.0.0(CRYPTO_malloc+0x64) [0x7fe2e1cef784]           <------ end interesting
-            # /lib/x86_64-linux-gnu/libcrypto.so.1.0.0(lh_insert+0x16b) [0x7fe2e1d6a24b]                      .
-            # /lib/x86_64-linux-gnu/libcrypto.so.1.0.0(+0x61c18) [0x7fe2e1cf0c18]                             .
-            # /lib/x86_64-linux-gnu/libcrypto.so.1.0.0(+0x625ec) [0x7fe2e1cf15ec]                             .
-            # /lib/x86_64-linux-gnu/libcrypto.so.1.0.0(DSA_new_method+0xe6) [0x7fe2e1d524d6]                  .
-            # /lib/x86_64-linux-gnu/libcrypto.so.1.0.0(DSA_generate_parameters+0x3a) [0x7fe2e1d5364a] <------ begin interesting
-            # /home/exarkun/Projects/opentls/trunk/tls/c/__pycache__/_cffi__x305d4698xb539baaa.so(+0x1f397) [0x7fe2df84d397]
-            # /home/exarkun/Projects/cpython/2.7/python(PyCFunction_Call+0x8b) [0x56265a]
-            # /home/exarkun/Projects/cpython/2.7/python() [0x4d5f52]
-            # /home/exarkun/Projects/cpython/2.7/python(PyEval_EvalFrameEx+0x753b) [0x4d0e1e]
-            # /home/exarkun/Projects/cpython/2.7/python() [0x4d6419]
-            # ...
-            #
-            # Notice the stack is upside down compared to a Python traceback.
-            # Identify the start and end of interesting bits and stuff it into
-            # the stack we report.
-
             saved = list(c_stack)
 
             # Figure the first interesting frame will be after a the
@@ -122,7 +127,10 @@ class TestCase(TestCase):
 
             # Figure the last interesting frame will always be CRYPTO_malloc,
             # since that's where we hooked in to things.
-            while c_stack and 'CRYPTO_malloc' not in c_stack[0] and 'CRYPTO_realloc' not in c_stack[0]:
+            while (
+                c_stack and 'CRYPTO_malloc' not in c_stack[0] and
+                'CRYPTO_realloc' not in c_stack[0]
+            ):
                 c_stack.pop(0)
 
             if c_stack:
