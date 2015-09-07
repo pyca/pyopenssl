@@ -2354,7 +2354,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
                 pass
 
         self.assertEqual('SSLv3 read client hello B',
-                        server.state_string().decode())
+                         server.state_string().decode())
         self.assertEqual('SSLv3 read server hello A',
                          client.state_string().decode())
 
