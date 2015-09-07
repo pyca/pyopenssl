@@ -2370,10 +2370,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
                          client.state_string().decode())
 
         for conn in [server, client]:
-            try:
-                conn.do_handshake()
-            except WantReadError:
-                pass
+            conn.do_handshake()
 
         self.assertEqual('SSL negotiation finished successfully',
                          server.state_string().decode())
