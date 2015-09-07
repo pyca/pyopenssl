@@ -2355,6 +2355,44 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         conn.set_app_data(app_data)
         self.assertIdentical(conn.get_app_data(), app_data)
 
+    def test_state_string(self):
+        """
+        State string verbosely describes the current :py:obj:`Connection` state.
+        """
+        (server, client) = socket_pair()
+        server = self._loopbackServerFactory(server)
+        client = self._loopbackClientFactory(client)
+
+        self.assertEqual('before/accept initialization', server.state_string())
+        self.assertEqual('before/connect initialization', client.state_string())
+
+        for conn in [server, client]:
+            try:
+              conn.do_handshake()
+            except WantReadError:
+              pass
+
+        self.assertEqual('SSLv3 read client hello B', server.state_string())
+        self.assertEqual('SSLv3 read server hello A', client.state_string())
+
+        for conn in [server, client]:
+            try:
+              conn.do_handshake()
+            except WantReadError:
+              pass
+
+        self.assertEqual('SSLv3 read client certificate A', server.state_string())
+        self.assertEqual('SSLv3 read server session ticket A', client.state_string())
+
+        for conn in [server, client]:
+            try:
+              conn.do_handshake()
+            except WantReadError:
+              pass
+
+        self.assertEqual('SSL negotiation finished successfully', server.state_string())
+        self.assertEqual('SSL negotiation finished successfully', client.state_string())
+
     def test_makefile(self):
         """
         :py:obj:`Connection.makefile` is not implemented and calling that
