@@ -2365,9 +2365,9 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         client = self._loopbackClientFactory(client)
 
         self.assertEqual('before/accept initialization',
-            server.state_string())
+            str(server.state_string()))
         self.assertEqual('before/connect initialization',
-            client.state_string())
+            str(client.state_string()))
 
         for conn in [server, client]:
             try:
@@ -2376,9 +2376,9 @@ class ConnectionTests(TestCase, _LoopbackMixin):
                 pass
 
         self.assertEqual('SSLv3 read client hello B',
-            server.state_string())
+            str(server.state_string()))
         self.assertEqual('SSLv3 read server hello A',
-            client.state_string())
+            str(client.state_string()))
 
         for conn in [server, client]:
             try:
@@ -2387,9 +2387,9 @@ class ConnectionTests(TestCase, _LoopbackMixin):
                 pass
 
         self.assertEqual('SSLv3 read client certificate A',
-            server.state_string())
+            str(server.state_string()))
         self.assertEqual('SSLv3 read server session ticket A',
-            client.state_string())
+            str(client.state_string()))
 
         for conn in [server, client]:
             try:
@@ -2398,9 +2398,9 @@ class ConnectionTests(TestCase, _LoopbackMixin):
                 pass
 
         self.assertEqual('SSL negotiation finished successfully',
-            server.state_string())
+            str(server.state_string()))
         self.assertEqual('SSL negotiation finished successfully',
-            client.state_string())
+            str(client.state_string()))
 
     def test_makefile(self):
         """
