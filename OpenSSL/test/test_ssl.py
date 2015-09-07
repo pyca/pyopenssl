@@ -2357,7 +2357,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_state_string(self):
         """
-        State string verbosely describes the current :py:obj:`Connection` state.
+        :py:obj:`Connection.state_string` verbosely describes the current
+        state of the :py:obj:`Connection`.
         """
         (server, client) = socket_pair()
         server = self._loopbackServerFactory(server)
