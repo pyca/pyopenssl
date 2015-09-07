@@ -1592,6 +1592,7 @@ class Connection(object):
 
         :return: A string representing the state
         """
+        return _ffi.string(_lib.SSL_state_string_long(self._ssl))
 
     def server_random(self):
         """
