@@ -114,7 +114,7 @@ setup(
                 'OpenSSL.test.test_tsafe',
                 'OpenSSL.test.test_util',],
     install_requires=[
-        "cryptography>=0.7",
+        "cryptography>=1.0.1",
         "six>=1.5.2"
     ],
     test_suite="OpenSSL",
