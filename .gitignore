@@ -10,3 +10,4 @@ doc/_build/
 .eggs
 examples/simple/*.cert
 examples/simple/*.pkey
+.cache

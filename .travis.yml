@@ -26,6 +26,8 @@ matrix:
     env: TOXENV=py33
   - python: "3.4"
     env: TOXENV=py34
+  - python: "3.5"
+    env: TOXENV=py35
   - python: "pypy"
     env: TOXENV=pypy
 
@@ -38,6 +40,8 @@ matrix:
     env: TOXENV=py33-cryptographyMaster
   - python: "3.4"
     env: TOXENV=py34-cryptographyMaster
+  - python: "3.5"
+    env: TOXENV=py35-cryptographyMaster
   - python: "pypy"
     env: TOXENV=pypy-cryptographyMaster
 
@@ -77,6 +81,7 @@ matrix:
   - env: TOXENV=py27-cryptographyMaster
   - env: TOXENV=py33-cryptographyMaster
   - env: TOXENV=py34-cryptographyMaster
+  - env: TOXENV=py35-cryptographyMaster
   - env: TOXENV=pypy-cryptographyMaster
   - env: OPENSSL=0.9.8 TOXENV=py27
   - env: TOXENV=pypy
