@@ -19,7 +19,7 @@ import pytest
 
 from six import PY3, text_type, u
 
-from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
+from OpenSSL.crypto import FILETYPE_PEM
 from OpenSSL.crypto import PKey, X509, X509Extension, X509Store
 from OpenSSL.crypto import dump_privatekey, load_privatekey
 from OpenSSL.crypto import dump_certificate, load_certificate

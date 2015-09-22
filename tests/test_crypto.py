@@ -734,9 +734,10 @@ class PKeyTests(TestCase):
 
     def test_failedGeneration_rsa(self):
         """
-        :py:meth:`PKeyType.generate_rsa_key` takes the number of bits to generate.
-        If an invalid type is specified or generation fails, :py:exc:`TypeError`
-        is raised. If an invalid number of bits is specified, :py:exc:`ValueError`
+        :py:meth:`PKeyType.generate_rsa_key` takes the number of bits to
+        generate. If an invalid type is specified or generation fails,
+        :py:exc:`TypeError` is raised. If an invalid number of bits is *
+        specified, :py:exc:`ValueError`
         """
         key = PKey()
 
@@ -755,9 +756,10 @@ class PKeyTests(TestCase):
 
     def test_failedGeneration_dsa(self):
         """
-        :py:meth:`PKeyType.generate_dsa_key` takes the number of bits to generate.
-        If an invalid type is specified or generation fails, :py:exc:`TypeError`
-        is raised.
+        :py:meth:`PKeyType.generate_dsa_key` takes the number of bits to
+        generate.
+        If an invalid type is specified or generation fails,
+        :py:exc:`TypeError` is raised.
         """
         key = PKey()
 
@@ -771,10 +773,10 @@ class PKeyTests(TestCase):
 
     def test_failedGeneration_ec(self):
         """
-        :py:meth:`PKeyType.generate_ec_key` takes the name of the elliptic curve
-        to use to generate a key. If an invalid type is specified or generation
-        fails, :py:exc:`TypeError` is raised. If an invalid curve name is
-        specified, :py:exc:`ValueError` is raised.
+        :py:meth:`PKeyType.generate_ec_key` takes the name of the elliptic
+        curve to use to generate a key. If an invalid type is specified or
+        generation fails, :py:exc:`TypeError` is raised. If an invalid curve
+        name is specified, :py:exc:`ValueError` is raised.
         """
         key = PKey()
 

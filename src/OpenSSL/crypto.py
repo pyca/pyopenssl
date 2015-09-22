@@ -34,6 +34,7 @@ if _lib.Cryptography_HAS_EC:
 else:
     TYPE_EC = None
 
+
 class Error(Exception):
     """
     An error occurred in an `OpenSSL.crypto` API.
@@ -252,8 +253,9 @@ class PKey(object):
 
         This generates a key "into" the this object.
 
-        :param bits: The number of bits. If bits is < 512 DSA_generate_parameters
-            will silently promote any value below 512 to 512.
+        :param bits: The number of bits. If bits is < 512
+            DSA_generate_parameters will silently promote any value
+            below 512 to 512.
         :type bits: :py:data:`int`
         :raises TypeError: If :py:data:`bits` isn't of the appropriate type.
         :raises ValueError: If the number of bits isn't an integer of
