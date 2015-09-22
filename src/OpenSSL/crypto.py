@@ -29,7 +29,10 @@ FILETYPE_TEXT = 2 ** 16 - 1
 
 TYPE_RSA = _lib.EVP_PKEY_RSA
 TYPE_DSA = _lib.EVP_PKEY_DSA
-
+if _lib.Cryptography_HAS_EC:
+    TYPE_EC = _lib.EVP_PKEY_EC
+else:
+    TYPE_EC = None
 
 class Error(Exception):
     """
@@ -170,6 +173,10 @@ class PKey(object):
 
     def generate_key(self, type, bits):
         """
+        .. deprecated:: 0.15.2
+
+            Use :func:`generate_rsa_key` or :func:`generate_dsa_key` instead.
+
         Generate a key pair of the given type, with the given number of bits.
 
         This generates a key "into" the this object.
@@ -187,6 +194,27 @@ class PKey(object):
         if not isinstance(type, int):
             raise TypeError("type must be an integer")
 
+        if type == TYPE_RSA:
+            self.generate_rsa_key(bits)
+        elif type == TYPE_DSA:
+            self.generate_dsa_key(bits)
+        else:
+            raise TypeError("No such key type")
+
+    def generate_rsa_key(self, bits):
+        """
+        Generate a rsa key pair with the given number of bits.
+
+        This generates a key "into" the this object.
+
+        :param bits: The number of bits.
+        :type bits: :py:data:`int` ``>= 0``
+        :raises TypeError: If :py:data:`bits` isn't of the appropriate type.
+        :raises ValueError: If the number of bits isn't an integer of
+            the appropriate size.
+        :return: :py:const:`None`
+        """
+
         if not isinstance(bits, int):
             raise TypeError("bits must be an integer")
 
@@ -195,42 +223,85 @@ class PKey(object):
         exponent = _ffi.gc(exponent, _lib.BN_free)
         _lib.BN_set_word(exponent, _lib.RSA_F4)
 
-        if type == TYPE_RSA:
-            if bits <= 0:
-                raise ValueError("Invalid number of bits")
+        if bits <= 0:
+            raise ValueError("Invalid number of bits")
 
-            rsa = _lib.RSA_new()
+        rsa = _lib.RSA_new()
 
-            result = _lib.RSA_generate_key_ex(rsa, bits, exponent, _ffi.NULL)
-            if result == 0:
-                # TODO: The test for this case is commented out.  Different
-                # builds of OpenSSL appear to have different failure modes that
-                # make it hard to test.  Visual inspection of the OpenSSL
-                # source reveals that a return value of 0 signals an error.
-                # Manual testing on a particular build of OpenSSL suggests that
-                # this is probably the appropriate way to handle those errors.
-                _raise_current_error()
+        result = _lib.RSA_generate_key_ex(rsa, bits, exponent, _ffi.NULL)
+        if result == 0:
+            # TODO: The test for this case is commented out.  Different
+            # builds of OpenSSL appear to have different failure modes that
+            # make it hard to test.  Visual inspection of the OpenSSL
+            # source reveals that a return value of 0 signals an error.
+            # Manual testing on a particular build of OpenSSL suggests that
+            # this is probably the appropriate way to handle those errors.
+            _raise_current_error()
 
-            result = _lib.EVP_PKEY_assign_RSA(self._pkey, rsa)
-            if not result:
-                # TODO: It appears as though this can fail if an engine is in
-                # use which does not support RSA.
-                _raise_current_error()
+        result = _lib.EVP_PKEY_assign_RSA(self._pkey, rsa)
+        if not result:
+            # TODO: It appears as though this can fail if an engine is in
+            # use which does not support RSA.
+            _raise_current_error()
 
-        elif type == TYPE_DSA:
-            dsa = _lib.DSA_generate_parameters(
-                bits, _ffi.NULL, 0, _ffi.NULL, _ffi.NULL, _ffi.NULL, _ffi.NULL)
-            if dsa == _ffi.NULL:
-                # TODO: This is untested.
-                _raise_current_error()
-            if not _lib.DSA_generate_key(dsa):
-                # TODO: This is untested.
-                _raise_current_error()
-            if not _lib.EVP_PKEY_assign_DSA(self._pkey, dsa):
-                # TODO: This is untested.
-                _raise_current_error()
-        else:
-            raise Error("No such key type")
+        self._initialized = True
+
+    def generate_dsa_key(self, bits):
+        """
+        Generate a dsa key pair with the given number of bits.
+
+        This generates a key "into" the this object.
+
+        :param bits: The number of bits. If bits is < 512 DSA_generate_parameters
+            will silently promote any value below 512 to 512.
+        :type bits: :py:data:`int`
+        :raises TypeError: If :py:data:`bits` isn't of the appropriate type.
+        :raises ValueError: If the number of bits isn't an integer of
+            the appropriate size.
+        :return: :py:const:`None`
+        """
+
+        if not isinstance(bits, int):
+            raise TypeError("bits must be an integer")
+
+        dsa = _lib.DSA_generate_parameters(
+            bits, _ffi.NULL, 0, _ffi.NULL, _ffi.NULL, _ffi.NULL, _ffi.NULL)
+        if dsa == _ffi.NULL:
+            # TODO: This is untested.
+            _raise_current_error()
+        if not _lib.DSA_generate_key(dsa):
+            # TODO: This is untested.
+            _raise_current_error()
+        if not _lib.EVP_PKEY_assign_DSA(self._pkey, dsa):
+            # TODO: This is untested.
+            _raise_current_error()
+
+        self._initialized = True
+
+    def generate_ec_key(self, curve_name):
+        """
+        Generate an ec key with the given curve name.
+
+        This generated a key "into" the this object.
+
+        :param curve_name: The name of the elliptic curve to use.
+        :type curve_name: :py:data:`str`
+        :raises TypeError: If :py:data:`curve_name` is not a string.
+        :raises ValueError: If :py:data:`curve_name` is not a supported
+            curve name.
+        """
+        if not isinstance(curve_name, str):
+            raise TypeError("curve_name must be a string")
+
+        curve = get_elliptic_curve(curve_name)
+        ec = curve._to_EC_KEY()
+
+        if not _lib.EC_KEY_generate_key(ec):
+            # TODO: This is untested.
+            _raise_current_error()
+        if not _lib.EVP_PKEY_set1_EC_KEY(self._pkey, ec):
+            # TODO: This is untested.
+            _raise_current_error()
 
         self._initialized = True
 
@@ -271,7 +342,17 @@ class PKey(object):
         Returns the number of bits of the key
 
         :return: The number of bits of the key.
+        :raise TypeError: if the key is initialized and is of a type
+            which does not have bits parameter.
         """
+
+        if not self._initialized:
+            return 0
+
+        key_type = _lib.EVP_PKEY_type(self._pkey.type)
+        if key_type != _lib.EVP_PKEY_RSA and key_type != _lib.EVP_PKEY_DSA:
+            raise TypeError("key type unsupported")
+
         return _lib.EVP_PKEY_bits(self._pkey)
 PKeyType = PKey
 

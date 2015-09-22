@@ -18,7 +18,7 @@ import pytest
 
 from six import u, b, binary_type
 
-from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
+from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, TYPE_EC, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
 from OpenSSL.crypto import (
     X509Store, X509StoreType, X509StoreContext, X509StoreContextError
@@ -683,27 +683,37 @@ class PKeyTests(TestCase):
         raises :py:exc:`TypeError` before the key is generated.
         """
         key = PKey()
-        self.assertEqual(key.type(), 0)
-        self.assertEqual(key.bits(), 0)
-        self.assertRaises(TypeError, key.check)
+        assert key.type() == 0
+        assert key.bits() == 0
+        with pytest.raises(TypeError):
+            key.check()
 
-    def test_failedGeneration(self):
+    def test_failedGeneration_deprecated(self):
         """
         :py:meth:`PKeyType.generate_key` takes two arguments, the first giving
         the key type as one of :py:data:`TYPE_RSA` or :py:data:`TYPE_DSA` and
         the second giving the number of bits to generate.  If an invalid type
-        is specified or generation fails, :py:exc:`Error` is raised.  If an
-        invalid number of bits is specified, :py:exc:`ValueError` or
-        :py:exc:`Error` is raised.
+        is specified or generation fails, :py:exc:`TypeError` is raised.  If an
+        invalid number of bits is specified, :py:exc:`ValueError`
         """
         key = PKey()
-        self.assertRaises(TypeError, key.generate_key)
-        self.assertRaises(TypeError, key.generate_key, 1, 2, 3)
-        self.assertRaises(TypeError, key.generate_key, "foo", "bar")
-        self.assertRaises(Error, key.generate_key, -1, 0)
 
-        self.assertRaises(ValueError, key.generate_key, TYPE_RSA, -1)
-        self.assertRaises(ValueError, key.generate_key, TYPE_RSA, 0)
+        # legacy generate_key
+        with pytest.raises(TypeError):
+            key.generate_key()
+        with pytest.raises(TypeError):
+            key.generate_key(1, 2, 3)
+        with pytest.raises(TypeError):
+            key.generate_key(TYPE_RSA, "bar")
+        with pytest.raises(TypeError):
+            key.generate_key(0x1337, 512)
+        with pytest.raises(TypeError):
+            key.generate_key("foo", "bar")
+
+        with pytest.raises(ValueError):
+            key.generate_key(TYPE_RSA, -1)
+        with pytest.raises(ValueError):
+            key.generate_key(TYPE_RSA, 0)
 
         # XXX RSA generation for small values of bits is fairly buggy in a wide
         # range of OpenSSL versions.  I need to figure out what the safe lower
@@ -722,7 +732,64 @@ class PKeyTests(TestCase):
 
         # self.assertRaises(Error, key.generate_key, TYPE_DSA, -7)
 
-    def test_rsaGeneration(self):
+    def test_failedGeneration_rsa(self):
+        """
+        :py:meth:`PKeyType.generate_rsa_key` takes the number of bits to generate.
+        If an invalid type is specified or generation fails, :py:exc:`TypeError`
+        is raised. If an invalid number of bits is specified, :py:exc:`ValueError`
+        """
+        key = PKey()
+
+        # generate_rsa_key
+        with pytest.raises(TypeError):
+            key.generate_rsa_key()
+        with pytest.raises(TypeError):
+            key.generate_rsa_key(1, 2, 3)
+        with pytest.raises(TypeError):
+            key.generate_rsa_key("foo")
+
+        with pytest.raises(ValueError):
+            key.generate_rsa_key(-1)
+        with pytest.raises(ValueError):
+            key.generate_rsa_key(0)
+
+    def test_failedGeneration_dsa(self):
+        """
+        :py:meth:`PKeyType.generate_dsa_key` takes the number of bits to generate.
+        If an invalid type is specified or generation fails, :py:exc:`TypeError`
+        is raised.
+        """
+        key = PKey()
+
+        # generate_dsa_key
+        with pytest.raises(TypeError):
+            key.generate_dsa_key()
+        with pytest.raises(TypeError):
+            key.generate_dsa_key(1, 2, 3)
+        with pytest.raises(TypeError):
+            key.generate_dsa_key("foo")
+
+    def test_failedGeneration_ec(self):
+        """
+        :py:meth:`PKeyType.generate_ec_key` takes the name of the elliptic curve
+        to use to generate a key. If an invalid type is specified or generation
+        fails, :py:exc:`TypeError` is raised. If an invalid curve name is
+        specified, :py:exc:`ValueError` is raised.
+        """
+        key = PKey()
+
+        # generate_ec_key
+        with pytest.raises(TypeError):
+            key.generate_ec_key()
+        with pytest.raises(TypeError):
+            key.generate_ec_key(1, 2, 3)
+        with pytest.raises(TypeError):
+            key.generate_ec_key(1)
+
+        with pytest.raises(ValueError):
+            key.generate_ec_key("not_a_curve_name")
+
+    def test_rsaGeneration_deprecated(self):
         """
         :py:meth:`PKeyType.generate_key` generates an RSA key when passed
         :py:data:`TYPE_RSA` as a type and a reasonable number of bits.
@@ -730,14 +797,26 @@ class PKeyTests(TestCase):
         bits = 128
         key = PKey()
         key.generate_key(TYPE_RSA, bits)
-        self.assertEqual(key.type(), TYPE_RSA)
-        self.assertEqual(key.bits(), bits)
-        self.assertTrue(key.check())
+        assert key.type() == TYPE_RSA
+        assert key.bits() == bits
+        assert key.check()
 
-    def test_dsaGeneration(self):
+    def test_rsaGeneration(self):
+        """
+        :py:meth:`PKeyType.generate_rsa_key` generates an RSA key when passed
+        :py:data:`TYPE_RSA` as a type and a reasonable number of bits.
+        """
+        bits = 128
+        key = PKey()
+        key.generate_rsa_key(bits)
+        assert key.type() == TYPE_RSA
+        assert key.bits() == bits
+        assert key.check()
+
+    def test_dsaGeneration_deprecated(self):
         """
         :py:meth:`PKeyType.generate_key` generates a DSA key when passed
-        :py:data:`TYPE_DSA` as a type and a reasonable number of bits.
+        a reasonable number of bits.
         """
         # 512 is a magic number.  The DSS (Digital Signature Standard)
         # allows a minimum of 512 bits for DSA.  DSA_generate_parameters
@@ -745,20 +824,73 @@ class PKeyTests(TestCase):
         bits = 512
         key = PKey()
         key.generate_key(TYPE_DSA, bits)
-        # self.assertEqual(key.type(), TYPE_DSA)
-        # self.assertEqual(key.bits(), bits)
-        # self.assertRaises(TypeError, key.check)
+        assert key.type() == TYPE_DSA
+        assert key.bits() == bits
+        with pytest.raises(TypeError):
+            key.check()
 
-    def test_regeneration(self):
+    def test_dsaGeneration(self):
+        """
+        :py:meth:`PKeyType.generate_dsa_key` generates a DSA key when passed
+        a reasonable number of bits.
+        """
+        # 512 is a magic number.  The DSS (Digital Signature Standard)
+        # allows a minimum of 512 bits for DSA.  DSA_generate_parameters
+        # will silently promote any value below 512 to 512.
+        bits = 512
+        key = PKey()
+        key.generate_dsa_key(bits)
+        assert key.type() == TYPE_DSA
+        assert key.bits() == bits
+        with pytest.raises(TypeError):
+            key.check()
+
+    def test_ecGeneration(self):
+        """
+        :py:meth:`PKeyType.generate_ec_key` generates a EC key when passed
+        a valid curve name.
+        """
+        key = PKey()
+        if TYPE_EC is not None:
+            key.generate_ec_key("prime256v1")
+            assert key.type() == TYPE_EC
+            with pytest.raises(TypeError):
+                key.bits()
+            with pytest.raises(TypeError):
+                key.bits()
+
+    def test_regeneration_deprecated(self):
         """
         :py:meth:`PKeyType.generate_key` can be called multiple times on the
         same key to generate new keys.
         """
         key = PKey()
-        for type, bits in [(TYPE_RSA, 512), (TYPE_DSA, 576)]:
-            key.generate_key(type, bits)
-            self.assertEqual(key.type(), type)
-            self.assertEqual(key.bits(), bits)
+        for key_type, bits in [(TYPE_RSA, 512), (TYPE_DSA, 576)]:
+            key.generate_key(key_type, bits)
+            assert key.type() == key_type
+            assert key.bits() == bits
+
+    def test_regeneration(self):
+        """
+        :py:meth:`PKeyType.generate_rsa_key` can be called multiple times
+        :py:meth:`PKeyType.generate_dsa_key` can be called multiple times
+        :py:meth:`PKeyType.generate_ec_key` can be called multiple times
+        """
+        bits = 512
+        key = PKey()
+        key.generate_rsa_key(bits)
+        assert key.type() == TYPE_RSA
+        assert key.bits() == bits
+
+        key.generate_dsa_key(bits)
+        assert key.type() == TYPE_DSA
+        assert key.bits() == bits
+
+        if TYPE_EC is not None:
+            key.generate_ec_key("prime256v1")
+            assert key.type() == TYPE_EC
+            with pytest.raises(TypeError):
+                key.bits()
 
     def test_inconsistentKey(self):
         """
