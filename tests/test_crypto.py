@@ -434,7 +434,7 @@ class X509ExtTests(TestCase):
         super(X509ExtTests, self).setUp()
         # Basic setup stuff to generate a certificate
         self.pkey = PKey()
-        self.pkey.generate_key(TYPE_RSA, 384)
+        self.pkey.generate_rsa_key(384)
         self.req = X509Req()
         self.req.set_pubkey(self.pkey)
         # Authority good you have.
@@ -916,7 +916,7 @@ class PKeyTests(TestCase):
         """
         # A trick to get a public-only key
         key = PKey()
-        key.generate_key(TYPE_RSA, 512)
+        key.generate_rsa_key(512)
         cert = X509()
         cert.set_pubkey(key)
         pub = cert.get_pubkey()
@@ -1193,7 +1193,7 @@ class _PKeyInteractionTestsMixin:
         """
         request = self.signable()
         key = PKey()
-        key.generate_key(TYPE_RSA, 512)
+        key.generate_rsa_key(512)
         request.set_pubkey(key)
         pub = request.get_pubkey()
         self.assertRaises(ValueError, request.sign, pub, GOOD_DIGEST)
@@ -1205,7 +1205,7 @@ class _PKeyInteractionTestsMixin:
         """
         request = self.signable()
         key = PKey()
-        key.generate_key(TYPE_RSA, 512)
+        key.generate_rsa_key(512)
         self.assertRaises(ValueError, request.sign, key, BAD_DIGEST)
 
     def test_sign(self):
@@ -1216,7 +1216,7 @@ class _PKeyInteractionTestsMixin:
         """
         request = self.signable()
         key = PKey()
-        key.generate_key(TYPE_RSA, 512)
+        key.generate_rsa_key(512)
         request.set_pubkey(key)
         request.sign(key, GOOD_DIGEST)
         # If the type has a verify method, cover that too.
@@ -1225,7 +1225,7 @@ class _PKeyInteractionTestsMixin:
             self.assertTrue(request.verify(pub))
             # Make another key that won't verify.
             key = PKey()
-            key.generate_key(TYPE_RSA, 512)
+            key.generate_rsa_key(512)
             self.assertRaises(Error, request.verify, key)
 
 
@@ -2593,7 +2593,7 @@ class FunctionTests(TestCase):
         unrecognized cipher name.
         """
         key = PKey()
-        key.generate_key(TYPE_RSA, 512)
+        key.generate_rsa_key(512)
         self.assertRaises(
             ValueError, dump_privatekey,
             FILETYPE_PEM, key, BAD_CIPHER, "passphrase")
@@ -2604,7 +2604,7 @@ class FunctionTests(TestCase):
         passphrase which is neither a :py:obj:`str` nor a callable.
         """
         key = PKey()
-        key.generate_key(TYPE_RSA, 512)
+        key.generate_rsa_key(512)
         self.assertRaises(
             TypeError,
             dump_privatekey, FILETYPE_PEM, key, GOOD_CIPHER, object())
@@ -2615,7 +2615,7 @@ class FunctionTests(TestCase):
         unrecognized filetype.
         """
         key = PKey()
-        key.generate_key(TYPE_RSA, 512)
+        key.generate_rsa_key(512)
         self.assertRaises(ValueError, dump_privatekey, 100, key)
 
     def test_load_privatekey_passphraseCallbackLength(self):
