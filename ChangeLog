@@ -1,3 +1,9 @@
+2015-09-07 Sam Lee <sam.rr.lee@gmail.com>
+
+	* OpenSSL/SSL.py, OpenSSL/test/test_ssl.py: Implemented
+	  the ``Connection.state_string()`` function, using
+	  the OpenSSL binding state_string_long.
+
 2015-08-17  Maximilian Hils <pyopenssl@maximilianhils.com>
 
 	* OpenSSL/SSL.py, OpenSSL/test/test_ssl.py: Add support for

@@ -2341,6 +2341,50 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         connection.set_shutdown(long(RECEIVED_SHUTDOWN))
         self.assertEquals(connection.get_shutdown(), RECEIVED_SHUTDOWN)
 
+    def test_state_string(self):
+        """
+        :py:obj:`Connection.state_string` verbosely describes the current
+        state of the :py:obj:`Connection`.
+        """
+        (server, client) = socket_pair()
+        server = self._loopbackServerFactory(server)
+        client = self._loopbackClientFactory(client)
+
+        self.assertEqual('before/accept initialization',
+                         server.state_string().decode())
+        self.assertEqual('before/connect initialization',
+                         client.state_string().decode())
+
+        for conn in [server, client]:
+            try:
+                conn.do_handshake()
+            except WantReadError:
+                pass
+
+        self.assertEqual('SSLv3 read client hello B',
+                         server.state_string().decode())
+        self.assertEqual('SSLv3 read server hello A',
+                         client.state_string().decode())
+
+        for conn in [server, client]:
+            try:
+                conn.do_handshake()
+            except WantReadError:
+                pass
+
+        self.assertEqual('SSLv3 read client certificate A',
+                         server.state_string().decode())
+        self.assertEqual('SSLv3 read server session ticket A',
+                         client.state_string().decode())
+
+        for conn in [server, client]:
+            conn.do_handshake()
+
+        self.assertEqual('SSL negotiation finished successfully',
+                         server.state_string().decode())
+        self.assertEqual('SSL negotiation finished successfully',
+                         client.state_string().decode())
+
     def test_app_data_wrong_args(self):
         """
         :py:obj:`Connection.set_app_data` raises :py:obj:`TypeError` if called
