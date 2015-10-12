@@ -26,7 +26,8 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-*none*
+- Added `OpenSSL.crypto.PKCS7.get_certificates()`, `OpenSSL.crypto.PKCS7.get_crls()`, and `OpenSSL.crypto.PKCS7.get_data()` to extract certificates, CRL's, and data from certain types of PKCS#7 objects. Also, added `OpenSSL.crypto.PKCS7.type_is_encrypted()` and `OpenSSL.crypto.PKCS7.type_is_digested()` to support querying additional PKCS#7 object types.
+  [`#367 <https://github.com/pyca/pyopenssl/pull/367>`_]
 
 
 ----

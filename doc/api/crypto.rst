@@ -159,12 +159,12 @@ PKey objects
 .. autoclass:: PKey
                :members:
 
-.. _openssl-pkcs7:
-
 .. py:data:: TYPE_RSA
              TYPE_DSA
 
     Key type constants.
+
+.. _openssl-pkcs7:
 
 PKCS7 objects
 -------------

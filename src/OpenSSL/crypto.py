@@ -2298,45 +2298,148 @@ class CRL(object):
 class PKCS7(object):
     def type_is_signed(self):
         """
-        Check if this NID_pkcs7_signed object
+        Check if this is a NID_pkcs7_signed object, which contains unencrypted
+        data and encrypted message digests for each signer.
 
-        :return: True if the PKCS7 is of type signed
+        :return: ``True`` if the PKCS7 is of type *signed*, ``False``
+            otherwise.
+        :rtype: `bool`
         """
         return bool(_lib.PKCS7_type_is_signed(self._pkcs7))
 
+    def type_is_encrypted(self):
+        """
+        Check if this is a NID_pkcs7_encrypted object, which contains
+        unencrypted data and encrypted message digests for each signer.
+
+        :returns: ``True`` if the PKCS7 is of type *encrypted*, ``False``
+            otherwise.
+        :rtype: `bool`
+        """
+        return bool(_lib.PKCS7_type_is_encrypted(self._pkcs7))
+
     def type_is_enveloped(self):
         """
-        Check if this NID_pkcs7_enveloped object
+        Check if this is a NID_pkcs7_enveloped object, which contains encrypted
+        data and encrypted decryption keys for each recipient.
 
-        :returns: True if the PKCS7 is of type enveloped
+        :returns: ``True`` if the PKCS7 is of type *enveloped*, ``False``
+            otherwise.
+        :rtype: `bool`
         """
         return bool(_lib.PKCS7_type_is_enveloped(self._pkcs7))
 
     def type_is_signedAndEnveloped(self):
         """
-        Check if this NID_pkcs7_signedAndEnveloped object
+        Check if this is a NID_pkcs7_signedAndEnveloped object, which contains
+        encrypted data, encrypted decryption keys for each recipient, and
+        doubly encrypted message digests.
 
-        :returns: True if the PKCS7 is of type signedAndEnveloped
+        :returns: ``True`` if the PKCS7 is of type
+            ``signedAndEnveloped``,``False`` otherwise.
+        :rtype: `bool`
         """
         return bool(_lib.PKCS7_type_is_signedAndEnveloped(self._pkcs7))
 
     def type_is_data(self):
         """
-        Check if this NID_pkcs7_data object
+        Check if this is a NID_pkcs7_data object, which contains plain data.
 
-        :return: True if the PKCS7 is of type data
+        :return: ``True`` if the PKCS7 is of type data,``False`` otherwise.
+        :rtype: `bool`
         """
         return bool(_lib.PKCS7_type_is_data(self._pkcs7))
 
+    def type_is_digest(self):
+        """
+        Check if this is a NID_pkcs7_digested object, which contains
+        unencrypted data and a message digest.
+
+        :return: ``True`` if the PKCS7 is of type *digested*, ``False``
+            otherwise.
+        :rtype: `bool`
+        """
+        return _lib.PKCS7_type_is_digest(self._pkcs7)
+
     def get_type_name(self):
         """
-        Returns the type name of the PKCS7 structure
+        Returns the type name of the PKCS7 structure.
 
-        :return: A string with the typename
+        :return: A string with the type name.
+        :rtype: :class:`bytes`
         """
         nid = _lib.OBJ_obj2nid(self._pkcs7.type)
         string_type = _lib.OBJ_nid2sn(nid)
         return _ffi.string(string_type)
+
+    def get_certificates(self):
+        """
+        Returns all certificates for the PKCS7 structure, if present. Only
+        objects of type *signed* or *signed and enveloped* can embed
+        certificates.
+
+        :return: The certificates in the PKCS7, or ``None`` if
+            there are none.
+        :rtype: :class:`tuple` of :class:`X509` or ``None``
+        """
+        certs = _ffi.NULL
+        if self.type_is_signed():
+            certs = self._pkcs7.d.sign.cert
+        elif self.type_is_signedAndEnveloped():
+            certs = self._pkcs7.d.signed_and_enveloped.cert
+
+        pycerts = []
+        for i in range(_lib.sk_X509_num(certs)):
+            x509 = _ffi.gc(_lib.X509_dup(_lib.sk_X509_value(certs, i)),
+                           _lib.X509_free)
+            pycert = X509._from_raw_x509_ptr(x509)
+            pycerts.append(pycert)
+        if pycerts:
+            return tuple(pycerts)
+
+    def get_crls(self):
+        """
+        Returns all CRL's for the PKCS7 structure, if present. Only objects of
+        type *signed* or *signed and enveloped* can embed CRL's.
+
+        :return: The CRL's in the PKCS7, or ``None`` if there are none.
+        :rtype: :class:`tuple` of :class:`CRL` or ``None``.
+        """
+        crls = _ffi.NULL
+        if self.type_is_signed():
+            crls = self._pkcs7.d.sign.crl
+        elif self.type_is_signedAndEnveloped():
+            crls = self._pkcs7.d.signed_and_enveloped.crl
+
+        pycrls = []
+        for i in range(_lib.sk_X509_CRL_num(crls)):
+            crl = _ffi.gc(_lib.X509_CRL_dup(_lib.sk_X509_CRL_value(crls, i)),
+                          _lib.X509_CRL_free)
+            pycrl = CRL.__new__(CRL)
+            pycrl._crl = crl
+            pycrls.append(pycrl)
+        if pycrls:
+            return tuple(pycrls)
+
+    def get_data(self):
+        """
+        Returns the unencrypted data from within the PKCS7 structure. Only
+        objects of type data, *digested*, and *signed* can contain unencrypted
+        data.
+
+        :raises ValueError: If the data is encrypted.
+        :return: A string with the data.
+        :rtype: :class:`bytes`.
+        """
+        bio = _lib.PKCS7_dataInit(self._pkcs7, _ffi.NULL)
+        if bio == _ffi.NULL:
+            try:
+                _raise_current_error()
+            except Error:
+                pass
+            raise ValueError("encrypted data not supported")
+        bio = _ffi.gc(bio, _lib.BIO_free_all)
+        return _bio_to_string(bio)
 
 
 class PKCS12(object):
@@ -2905,7 +3008,7 @@ def load_crl(type, buffer):
     :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)
     :param buffer: The buffer the CRL is stored in
 
-    :return: The PKey object
+    :return: The CRL object
     """
     if isinstance(buffer, _text_type):
         buffer = buffer.encode("ascii")
