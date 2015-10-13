@@ -90,6 +90,8 @@ Private keys
 Certificate revocation lists
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. autofunction:: dump_crl
+
 .. py:function:: load_crl(type, buffer)
 
     Load Certificate Revocation List (CRL) data from a string *buffer*.
