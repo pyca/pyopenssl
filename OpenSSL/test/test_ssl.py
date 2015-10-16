@@ -2017,7 +2017,6 @@ class ConnectionTests(TestCase, _LoopbackMixin):
     # XXX sock_shutdown
     # XXX master_key -> TypeError
     # XXX server_random -> TypeError
-    # XXX state_string
     # XXX connect -> TypeError
     # XXX connect_ex -> TypeError
     # XXX set_connect_state -> TypeError
@@ -2335,10 +2334,10 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
     def test_state_string(self):
         """
-        :py:obj:`Connection.state_string` verbosely describes the current
-        state of the :py:obj:`Connection`.
+        :meth:`Connection.state_string` verbosely describes the current
+        state of the :class:`Connection`.
         """
-        (server, client) = socket_pair()
+        server, client = socket_pair()
         server = self._loopbackServerFactory(server)
         client = self._loopbackClientFactory(client)
 
@@ -2364,8 +2363,10 @@ class ConnectionTests(TestCase, _LoopbackMixin):
             except WantReadError:
                 pass
 
-        self.assertEqual('SSLv3 read client certificate A',
-                         server.state_string().decode())
+        assert server.state_string().decode() in (
+            "SSLv3 read client certificate A",
+            "SSLv3 read client key exchange A",  # 1.0.2d+
+        )
         self.assertEqual('SSLv3 read server session ticket A',
                          client.state_string().decode())
 
