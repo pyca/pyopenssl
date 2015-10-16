@@ -83,7 +83,6 @@ matrix:
   - env: TOXENV=py34-cryptographyMaster
   - env: TOXENV=py35-cryptographyMaster
   - env: TOXENV=pypy-cryptographyMaster
-  - env: OPENSSL=0.9.8 TOXENV=py27
   - env: TOXENV=pypy
 
 install:
@@ -120,7 +119,7 @@ script:
             global:
               *;
         };" > openssl.ld
-        ./config -Wl,--version-script=openssl.ld -Wl,-Bsymbolic-functions -fPIC shared --prefix=$HOME/ossl-098
+        ./config -Wl,--version-script=openssl.ld -Wl,-Bsymbolic-functions -fPIC shared --prefix=$HOME/ossl-098 --openssldir=/etc/ssl
         make install
         tree $HOME/ossl-098
       fi
