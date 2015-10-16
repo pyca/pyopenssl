@@ -6,7 +6,7 @@ dist
 __pycache__
 .tox
 doc/_build/
-.coverage
+.coverage*
 .eggs
 examples/simple/*.cert
 examples/simple/*.pkey

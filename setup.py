@@ -11,14 +11,12 @@ Installation script for the OpenSSL module.
 import codecs
 import os
 import re
-import sys
 
-from setuptools import setup
-from setuptools.command.test import test as TestCommand
+from setuptools import setup, find_packages
 
 
 HERE = os.path.abspath(os.path.dirname(__file__))
-META_PATH = os.path.join("OpenSSL", "version.py")
+META_PATH = os.path.join("src", "OpenSSL", "version.py")
 
 
 def read_file(*parts):
@@ -46,82 +44,45 @@ def find_meta(meta):
     raise RuntimeError("Unable to find __{meta}__ string.".format(meta=meta))
 
 
-class PyTest(TestCommand):
-    user_options = [("pytest-args=", "a", "Arguments to pass to py.test")]
+if __name__ == "__main__":
+    setup(
+        name=find_meta("title"),
+        version=find_meta("version"),
+        description=find_meta("summary"),
+        long_description=read_file("README.rst"),
+        author=find_meta("author"),
+        author_email=find_meta("email"),
+        maintainer="Hynek Schlawack",
+        maintainer_email="hs@ox.cx",
+        url=find_meta("uri"),
+        license=find_meta("license"),
+        classifiers=[
+            'Development Status :: 6 - Mature',
+            'Intended Audience :: Developers',
+            'License :: OSI Approved :: Apache Software License',
+            'Operating System :: MacOS :: MacOS X',
+            'Operating System :: Microsoft :: Windows',
+            'Operating System :: POSIX',
 
-    def initialize_options(self):
-        TestCommand.initialize_options(self)
-        self.pytest_args = None
+            'Programming Language :: Python :: 2',
+            'Programming Language :: Python :: 2.6',
+            'Programming Language :: Python :: 2.7',
+            'Programming Language :: Python :: 3',
+            'Programming Language :: Python :: 3.3',
+            'Programming Language :: Python :: 3.4',
+            'Programming Language :: Python :: 3.5',
 
-    def finalize_options(self):
-        TestCommand.finalize_options(self)
-        self.test_args = []
-        self.test_suite = True
+            'Programming Language :: Python :: Implementation :: CPython',
+            'Programming Language :: Python :: Implementation :: PyPy',
+            'Topic :: Security :: Cryptography',
+            'Topic :: Software Development :: Libraries :: Python Modules',
+            'Topic :: System :: Networking',
+        ],
 
-    def run_tests(self):
-        # import here, cause outside the eggs aren't loaded
-        import pytest
-        errno = pytest.main(self.pytest_args or [] +
-                            ["OpenSSL"])
-        sys.exit(errno)
-
-
-setup(
-    name=find_meta("title"),
-    version=find_meta("version"),
-    description=find_meta("summary"),
-    long_description=read_file("README.rst"),
-    author=find_meta("author"),
-    author_email=find_meta("email"),
-    maintainer="Hynek Schlawack",
-    maintainer_email="hs@ox.cx",
-    url=find_meta("uri"),
-    license=find_meta("license"),
-    classifiers=[
-        'Development Status :: 6 - Mature',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: Apache Software License',
-        'Operating System :: MacOS :: MacOS X',
-        'Operating System :: Microsoft :: Windows',
-        'Operating System :: POSIX',
-
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy',
-        'Topic :: Security :: Cryptography',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-        'Topic :: System :: Networking',
-    ],
-
-    packages=['OpenSSL'],
-    package_dir={'OpenSSL': 'OpenSSL'},
-    py_modules=['OpenSSL.__init__',
-                'OpenSSL.tsafe',
-                'OpenSSL.rand',
-                'OpenSSL.crypto',
-                'OpenSSL.SSL',
-                'OpenSSL.version',
-                'OpenSSL.test.__init__',
-                'OpenSSL.test.util',
-                'OpenSSL.test.test_crypto',
-                'OpenSSL.test.test_rand',
-                'OpenSSL.test.test_ssl',
-                'OpenSSL.test.test_tsafe',
-                'OpenSSL.test.test_util',],
-    install_requires=[
-        "cryptography>=0.7",
-        "six>=1.5.2"
-    ],
-    test_suite="OpenSSL",
-    tests_require=[
-        "pytest",
-    ],
-    cmdclass={
-        "test": PyTest,
-    }
-)
+        packages=find_packages(where="src"),
+        package_dir={"": "src"},
+        install_requires=[
+            "cryptography>=0.7",
+            "six>=1.5.2"
+        ],
+    )

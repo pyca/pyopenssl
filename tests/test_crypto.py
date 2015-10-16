@@ -35,10 +35,11 @@ from OpenSSL.crypto import CRL, Revoked, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.crypto import (
     sign, verify, get_elliptic_curve, get_elliptic_curves)
-from OpenSSL.test.util import (
+from OpenSSL._util import native, lib
+
+from .util import (
     EqualityTestsMixin, TestCase, WARNING_TYPE_EXPECTED
 )
-from OpenSSL._util import native, lib
 
 
 def normalize_certificate_pem(pem):

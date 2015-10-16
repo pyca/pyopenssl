@@ -3,9 +3,9 @@ sys.modules['ssl'] = None
 sys.modules['_hashlib'] = None
 
 try:
-   import memdbg
+    from OpenSSL.test import memdbg  # noqa
 except Exception as e:
-   pass
+    pass
 
 from twisted.scripts.trial import run
 run()

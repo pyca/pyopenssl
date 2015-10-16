@@ -1,5 +1,6 @@
 from OpenSSL._util import exception_from_error_queue, lib
-from OpenSSL.test.util import TestCase
+
+from .util import TestCase
 
 
 class ErrorTests(TestCase):

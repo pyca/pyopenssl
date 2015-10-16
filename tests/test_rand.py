@@ -10,8 +10,9 @@ import os
 import stat
 import sys
 
-from OpenSSL.test.util import NON_ASCII, TestCase, b
 from OpenSSL import rand
+
+from .util import NON_ASCII, TestCase, b
 
 
 class RandTests(TestCase):

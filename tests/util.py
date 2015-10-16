@@ -22,7 +22,7 @@ from OpenSSL._util import exception_from_error_queue
 from OpenSSL.crypto import Error
 
 
-import memdbg
+from . import memdbg
 
 from OpenSSL._util import ffi, lib, byte_string as b
 

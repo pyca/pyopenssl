@@ -7,7 +7,8 @@ Unit tests for :py:obj:`OpenSSL.tsafe`.
 
 from OpenSSL.SSL import TLSv1_METHOD, Context
 from OpenSSL.tsafe import Connection
-from OpenSSL.test.util import TestCase
+
+from .util import TestCase
 
 
 class ConnectionTest(TestCase):
