@@ -18,7 +18,7 @@ _ffi.cdef(
     int backtrace(void **buffer, int size);
     char **backtrace_symbols(void *const *buffer, int size);
     void backtrace_symbols_fd(void *const *buffer, int size, int fd);
-    """)
+    """)  # noqa
 _api = _ffi.verify(
     """
     #include <openssl/crypto.h>
@@ -29,9 +29,11 @@ C = _ffi.dlopen(None)
 
 verbose = False
 
+
 def log(s):
     if verbose:
         print(s)
+
 
 def _backtrace():
     buf = _ffi.new("void*[]", 64)
