@@ -1385,6 +1385,11 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         context = Context(TLSv1_METHOD)
         for curve in get_elliptic_curves():
+            if curve.name.startswith(u"Oakley-"):
+                # Setting Oakley-EC2N-4 and Oakley-EC2N-3 adds
+                # ('bignum routines', 'BN_mod_inverse', 'no inverse') to the
+                # error queue on OpenSSL 1.0.2.
+                continue
             # The only easily "assertable" thing is that it does not raise an
             # exception.
             context.set_tmp_ecdh(curve)
