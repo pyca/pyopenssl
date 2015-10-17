@@ -806,6 +806,20 @@ class Context(object):
         """
         _lib.SSL_CTX_set_tmp_ecdh(self._context, curve._to_EC_KEY())
 
+    def set_ecdh_auto(self, onoff):
+        """
+        Set automatic curve selection for this server context. If onoff is 1
+        then the highest preference curve is automatically used for ECDH
+        temporary keys used during key exchange
+
+        :param onoff: 1 or 0
+        :return: None
+        """
+        if hasattr(_lib, "SSL_CTX_set_ecdh_auto"):
+            _lib.SSL_CTX_set_ecdh_auto(self._context, onoff)
+        else:
+            raise NotImplementedError("require newer OpenSSL")
+
     def set_cipher_list(self, cipher_list):
         """
         Change the cipher list

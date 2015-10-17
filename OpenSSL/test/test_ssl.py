@@ -1394,6 +1394,22 @@ class ContextTests(TestCase, _LoopbackMixin):
             # exception.
             context.set_tmp_ecdh(curve)
 
+    def test_set_ecdh_auto(self):
+        """
+        :py:obj:`Context.set_ecdh_auto` sets to use the highest preference
+        curve automatically for ECDH.
+        """
+        context = Context(TLSv1_METHOD)
+        if hasattr(_lib, "SSL_CTX_set_ecdh_auto"):
+            # The only easily "assertable" thing is that it does not raise an
+            # exception.
+            try:
+                context.set_ecdh_auto(1)
+            except:
+                self.fail("set_ecdh_auto() raised Exception unexpectedly")
+        else:
+            self.assertRaises(NotImplementedError, context.set_ecdh_auto, 1)
+
     def test_set_cipher_list_bytes(self):
         """
         :py:obj:`Context.set_cipher_list` accepts a :py:obj:`bytes` naming the
