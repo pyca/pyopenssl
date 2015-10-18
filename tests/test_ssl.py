@@ -47,12 +47,6 @@ from OpenSSL.SSL import (
 
 from OpenSSL._util import lib as _lib
 
-from OpenSSL.test.util import WARNING_TYPE_EXPECTED, NON_ASCII, TestCase, b
-from OpenSSL.test.test_crypto import (
-    cleartextCertificatePEM, cleartextPrivateKeyPEM,
-    client_cert_pem, client_key_pem, server_cert_pem, server_key_pem,
-    root_cert_pem)
-
 try:
     from OpenSSL.SSL import OP_NO_QUERY_MTU
 except ImportError:
@@ -88,6 +82,12 @@ from OpenSSL.SSL import (
     SSL_CB_READ_ALERT, SSL_CB_WRITE_ALERT, SSL_CB_ACCEPT_LOOP,
     SSL_CB_ACCEPT_EXIT, SSL_CB_CONNECT_LOOP, SSL_CB_CONNECT_EXIT,
     SSL_CB_HANDSHAKE_START, SSL_CB_HANDSHAKE_DONE)
+
+from .util import WARNING_TYPE_EXPECTED, NON_ASCII, TestCase, b
+from .test_crypto import (
+    cleartextCertificatePEM, cleartextPrivateKeyPEM,
+    client_cert_pem, client_key_pem, server_cert_pem, server_key_pem,
+    root_cert_pem)
 
 
 # openssl dhparam 128 -out dh-128.pem (note that 128 is a small number of bits

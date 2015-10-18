@@ -78,7 +78,7 @@ copyright = u"2001-{0}, {1}".format(datetime.date.today().year, authors)
 # built documents.
 #
 # The short X.Y version.
-version = find_version("../OpenSSL/version.py")
+version = find_version("..", "src", "OpenSSL", "version.py")
 # The full version, including alpha/beta/rc tags.
 release = version
 
