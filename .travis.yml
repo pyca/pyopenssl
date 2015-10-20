@@ -61,9 +61,6 @@ matrix:
     env: TOXENV=flake8
 
   - python: "2.7"
-    env: TOXENV=pyroma
-
-  - python: "2.7"
     env: TOXENV=docs
 
   # - Let the cryptography master builds fail because they might be triggered by
