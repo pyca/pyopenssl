@@ -129,7 +129,6 @@ script:
     ~/.venv/bin/tox -v
 
 after_script:
-    ~/.venv/bin/coverage combine
   - ./.travis/upload_coverage.sh
 
 notifications:
