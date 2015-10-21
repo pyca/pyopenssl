@@ -1061,14 +1061,14 @@ class ContextTests(TestCase, _LoopbackMixin):
         # really test this. -exarkun
 
         # Arg, verisign.com doesn't speak anything newer than TLS 1.0
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         context.set_default_verify_paths()
         context.set_verify(
             VERIFY_PEER,
             lambda conn, cert, errno, depth, preverify_ok: preverify_ok)
 
         client = socket()
-        client.connect(('verisign.com', 443))
+        client.connect(("encrypted.google.com", 443))
         clientSSL = Connection(context, client)
         clientSSL.set_connect_state()
         clientSSL.do_handshake()
