@@ -1998,23 +1998,9 @@ class CRL(object):
         if not sign_result:
             _raise_current_error()
 
-        if type == FILETYPE_PEM:
-            ret = _lib.PEM_write_bio_X509_CRL(bio, self._crl)
-        elif type == FILETYPE_ASN1:
-            ret = _lib.i2d_X509_CRL_bio(bio, self._crl)
-        elif type == FILETYPE_TEXT:
-            ret = _lib.X509_CRL_print(bio, self._crl)
-        else:
-            raise ValueError(
-                "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or "
-                "FILETYPE_TEXT"
-            )
+        return dump_crl(type, self)
 
-        if not ret:
-            # TODO: This is untested.
-            _raise_current_error()
 
-        return _bio_to_string(bio)
 CRLType = CRL
 
 
@@ -2575,6 +2561,34 @@ def verify(cert, signature, data, digest):
 
     if verify_result != 1:
         _raise_current_error()
+
+
+def dump_crl(type, crl):
+    """
+    Dump a certificate revocation list to a buffer.
+
+    :param type: The file type (one of ``FILETYPE_PEM``, ``FILETYPE_ASN1``, or
+        ``FILETYPE_TEXT``).
+    :param CRL crl: The CRL to dump.
+
+    :return: The buffer with the CRL.
+    :rtype: :data:`bytes`
+    """
+    bio = _new_mem_buf()
+
+    if type == FILETYPE_PEM:
+        ret = _lib.PEM_write_bio_X509_CRL(bio, crl._crl)
+    elif type == FILETYPE_ASN1:
+        ret = _lib.i2d_X509_CRL_bio(bio, crl._crl)
+    elif type == FILETYPE_TEXT:
+        ret = _lib.X509_CRL_print(bio, crl._crl)
+    else:
+        raise ValueError(
+            "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or "
+            "FILETYPE_TEXT")
+
+    assert ret == 1
+    return _bio_to_string(bio)
 
 
 def load_crl(type, buffer):
