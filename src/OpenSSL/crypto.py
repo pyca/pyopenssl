@@ -2569,9 +2569,10 @@ def dump_crl(type, crl):
 
     :param type: The file type (one of ``FILETYPE_PEM``, ``FILETYPE_ASN1``, or
         ``FILETYPE_TEXT``).
-    :param cert: The CRL to dump.
+    :param CRL crl: The CRL to dump.
+
     :return: The buffer with the CRL.
-    :rtype: :py:data:`bytes`
+    :rtype: :data:`bytes`
     """
     bio = _new_mem_buf()
 
