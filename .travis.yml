@@ -47,7 +47,7 @@ matrix:
 
   # Make sure we don't break Twisted
   - python: "2.7"
-    env: TOXENV=py27-twisted
+    env: TOXENV=py27-twistedMaster
 
 
   # Also run at least a little bit against an older version of OpenSSL.
