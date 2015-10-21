@@ -4,7 +4,7 @@
 ==========================================================================
 
 .. warning::
-   Functions from this methods shouldn't be used.
+   Functions from this module shouldn't be used.
    `Use urandom <http://sockpuppet.org/blog/2014/02/25/safely-generate-random-numbers/>`_ instead.
 
 
