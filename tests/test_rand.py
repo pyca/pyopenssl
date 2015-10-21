@@ -5,10 +5,11 @@
 Unit tests for :py:obj:`OpenSSL.rand`.
 """
 
-from unittest import main
 import os
 import stat
 import sys
+
+import pytest
 
 from OpenSSL import rand
 
@@ -97,40 +98,26 @@ class RandTests(TestCase):
         # entropy or not.
         self.assertTrue(rand.status() in (1, 2))
 
+    def test_egd_warning(self):
+        """
+        Calling egd raises :exc:`DeprecationWarning`.
+        """
+        pytest.deprecated_call(rand.egd, b"foo", 255)
+        pytest.deprecated_call(rand.egd, b"foo")
+
     def test_egd_wrong_args(self):
         """
-        :py:obj:`OpenSSL.rand.egd` raises :py:obj:`TypeError` when called with
-        the wrong number of arguments or with arguments not of type
-        :py:obj:`str` and :py:obj:`int`.
+        :meth:`OpenSSL.rand.egd` raises :exc:`TypeError` when called with the
+        wrong number of arguments or with arguments not of type :obj:`str` and
+        :obj:`int`.
         """
-        self.assertRaises(TypeError, rand.egd)
-        self.assertRaises(TypeError, rand.egd, None)
-        self.assertRaises(TypeError, rand.egd, "foo", None)
-        self.assertRaises(TypeError, rand.egd, None, 3)
-        self.assertRaises(TypeError, rand.egd, "foo", 3, None)
-
-    def test_egd_missing(self):
-        """
-        :py:obj:`OpenSSL.rand.egd` returns :py:obj:`0` or :py:obj:`-1` if the
-        EGD socket passed to it does not exist.
-        """
-        result = rand.egd(self.mktemp())
-        expected = (-1, 0)
-        self.assertTrue(
-            result in expected,
-            "%r not in %r" % (result, expected))
-
-    def test_egd_missing_and_bytes(self):
-        """
-        :py:obj:`OpenSSL.rand.egd` returns :py:obj:`0` or :py:obj:`-1` if the
-        EGD socket passed to it does not exist even if a size argument is
-        explicitly passed.
-        """
-        result = rand.egd(self.mktemp(), 1024)
-        expected = (-1, 0)
-        self.assertTrue(
-            result in expected,
-            "%r not in %r" % (result, expected))
+        for args in [(),
+                     (None,),
+                     ("foo", None),
+                     (None, 3),
+                     ("foo", 3, None)]:
+            with pytest.raises(TypeError):
+                rand.egd(*args)
 
     def test_cleanup_wrong_args(self):
         """
@@ -206,7 +193,3 @@ class RandTests(TestCase):
         """
         path = self.mktemp().decode('utf-8') + NON_ASCII
         self._read_write_test(path)
-
-
-if __name__ == '__main__':
-    main()
