@@ -1,4 +1,5 @@
-from time import time
+import datetime
+from time import mktime, time
 from base64 import b16encode
 from functools import partial
 from operator import __eq__, __ne__, __lt__, __le__, __gt__, __ge__
@@ -1208,10 +1209,12 @@ class X509(object):
             :py:const:`False` otherwise.
         :rtype: :py:class:`bool`
         """
-        now = int(time())
-        notAfter = _lib.X509_get_notAfter(self._x509)
-        return _lib.ASN1_UTCTIME_cmp_time_t(
-            _ffi.cast('ASN1_UTCTIME*', notAfter), now) < 0
+        time_string = self.get_notAfter()
+        timestamp = mktime(datetime.datetime.strptime(
+            time_string, "%Y%m%d%H%M%SZ").timetuple())
+        now = mktime(datetime.datetime.utcnow().timetuple())
+
+        return timestamp < now
 
     def _get_boundary_time(self, which):
         return _get_asn1_time(which(self._x509))
