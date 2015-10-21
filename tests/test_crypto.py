@@ -31,7 +31,7 @@ from OpenSSL.crypto import dump_certificate, load_certificate_request
 from OpenSSL.crypto import dump_certificate_request, dump_privatekey
 from OpenSSL.crypto import PKCS7Type, load_pkcs7_data
 from OpenSSL.crypto import PKCS12, PKCS12Type, load_pkcs12
-from OpenSSL.crypto import CRL, Revoked, load_crl
+from OpenSSL.crypto import CRL, Revoked, dump_crl, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.crypto import (
     sign, verify, get_elliptic_curve, get_elliptic_curves)
@@ -3205,6 +3205,14 @@ class CRLTests(TestCase):
         be loaded raises a :py:obj:`OpenSSL.crypto.Error`.
         """
         self.assertRaises(Error, load_crl, FILETYPE_PEM, b"hello, world")
+
+    def test_dump_crl(self):
+        """
+        The dumped CRL matches the original input.
+        """
+        crl = load_crl(FILETYPE_PEM, crlData)
+        buf = dump_crl(FILETYPE_PEM, crl)
+        assert buf == crlData
 
 
 class X509StoreContextTests(TestCase):

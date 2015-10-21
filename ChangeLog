@@ -1,3 +1,8 @@
+2015-10-13 Dominic Chen <d.c.ddcc@gmail.com>
+
+	* OpenSSL/crypto.py: Implement the ``dump_crl()`` function to dump a
+	  certificate revocation list out to a string buffer.
+
 2015-09-07 Sam Lee <sam.rr.lee@gmail.com>
 
 	* OpenSSL/SSL.py, OpenSSL/test/test_ssl.py: Implemented
@@ -45,7 +50,7 @@
 	  Connection.shutdown() is called when the underlying transport has
 	  gone away.
 
-2011-09-02  Hynek Schlawack  <hs@ox.cx>
+2015-04-14  Hynek Schlawack  <hs@ox.cx>
 
 	* Release 0.15
 
