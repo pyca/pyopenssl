@@ -1,5 +1,6 @@
 import datetime
-from time import mktime, time
+
+from time import mktime
 from base64 import b16encode
 from functools import partial
 from operator import __eq__, __ne__, __lt__, __le__, __gt__, __ge__
@@ -1209,7 +1210,7 @@ class X509(object):
             :py:const:`False` otherwise.
         :rtype: :py:class:`bool`
         """
-        time_string = self.get_notAfter()
+        time_string = _native(self.get_notAfter())
         timestamp = mktime(datetime.datetime.strptime(
             time_string, "%Y%m%d%H%M%SZ").timetuple())
         now = mktime(datetime.datetime.utcnow().timetuple())
