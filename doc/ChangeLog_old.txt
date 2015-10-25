@@ -1,42 +1,7 @@
-2015-10-13 Dominic Chen <d.c.ddcc@gmail.com>
+This file only contains the changes up to release 0.15.1.  Newer changes can be
+found at <https://pyopenssl.readthedocs.org/en/latest/changelog.html>.
 
-	* OpenSSL/crypto.py: Implement the ``dump_crl()`` function to dump a
-	  certificate revocation list out to a string buffer.
-
-2015-09-07 Sam Lee <sam.rr.lee@gmail.com>
-
-	* OpenSSL/SSL.py, OpenSSL/test/test_ssl.py: Implemented
-	  the ``Connection.state_string()`` function, using
-	  the OpenSSL binding state_string_long.
-
-2015-08-17  Maximilian Hils <pyopenssl@maximilianhils.com>
-
-	* OpenSSL/SSL.py, OpenSSL/test/test_ssl.py: Add support for
-	  the ``MSG_PEEK`` flag to ``Connection.recv()`` and
-	  ``Connection.recv_into()``.
-
-2015-05-27  Jim Shaver <dcypherd@gmail.com>
-
-	* OpenSSL/SSL.py: Add ``get_protocol_version()`` and
-	  ``get_protocol_version_name()`` to ``Connection``.
-	  Based on work from Rich Moore.
-
-2015-05-02  Jim Shaver <dcypherd@gmail.com>
-
-	* .travis.yml, setup.py, tox.ini: Removed support for Python 3.2.
-	  This version is rarely used and is now deprecated by a major
-	  dependency of pyOpenSSL (cryptography).  Affected users should upgrade
-	  to Python 3.3+.
-
-2015-04-15  Paul Kehrer <paul.l.kehrer@gmail.com>
-
-	* OpenSSL/crypto.py, OpenSSL/test/test_crypto.py: Switch to utf8string
-	  mask by default. OpenSSL formerly defaulted to a T61String if there
-	  were UTF-8 characters present.  This was changed to default to
-	  UTF8String in the config around 2005, but the actual code didn't
-	  change it until late last year. This will default us to the setting
-	  that actually works. To revert this you can call
-	  crypto._lib.ASN1_STRING_set_default_mask_asc(b"default")
+***
 
 2015-04-14  Hynek Schlawack  <hs@ox.cx>
 
