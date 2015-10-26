@@ -38,7 +38,7 @@ These pull requests should satisfy the following properties:
 - Pull requests are not allowed to break existing tests.
   We usually don't comment on pull requests that are breaking the CI because we consider them work in progress.
   Please note that not having 100% code coverage for the code you wrote/touched also causes our CI to fail.
-- Pull requests that introduce features or fix bugs should note those changes in the ``ChangeLog`` text file in the root of the repository.
+- Pull requests that introduce features or fix bugs should note those changes in ``CHANGELOG.rst`` in the root of the repository.
   They should also document the changes, both in docstrings and in the documentation in the ``doc/`` directory.
 
 Finally, pull requests must be reviewed before merging.
