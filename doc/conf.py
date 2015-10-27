@@ -26,7 +26,7 @@ def read_file(*parts):
     Build an absolute path from *parts* and return the contents of the
     resulting file.  Assume UTF-8 encoding.
     """
-    with codecs.open(os.path.join(HERE, *parts), "rb", "ascii") as f:
+    with codecs.open(os.path.join(HERE, *parts), "rb", "utf-8") as f:
         return f.read()
 
 

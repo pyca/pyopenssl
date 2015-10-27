@@ -45,4 +45,3 @@ but uses secure connections. The technique and classes should work for any
 SocketServer style server. However, the code has not been extensively tested.
 
 Contributed by Michal Wallace
-

@@ -11,3 +11,4 @@ doc/_build/
 examples/simple/*.cert
 examples/simple/*.pkey
 .cache
+_trial_temp.lock

@@ -1,0 +1,16 @@
+pyOpenSSL
+Copyright 2001 Martin Sjögren
+
+Initial work has been made while Martin worked at AB Strakt
+<http://www.strakt.com/>.
+
+This product includes software developed by Jean-Paul Calderone
+<http://as.ynchrono.us> who maintained pyOpenSSL from 2008 until 2015.
+
+Portions of this software have been taken from Twisted
+<https://twistedmatrix.com/>.
+
+Some of the examples have been contributed by Michal Wallace
+<http://www.sabren.net/> and Mihai Ibanescu <misa@redhat.com>.
+
+tests/test_rand.py has been originally written by Frederick Dean.

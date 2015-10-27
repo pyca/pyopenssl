@@ -1,23 +1,32 @@
-"""
-SecureXMLRPCServer module using pyOpenSSL 0.5
-Written 0907.2002
-by Michal Wallace
-http://www.sabren.net/
+# -*- coding: utf-8 -*-
 
-This acts exactly like SimpleXMLRPCServer
-from the standard python library, but
-uses secure connections. The technique
-and classes should work for any SocketServer
-style server. However, the code has not
-been extensively tested.
+# Copyright 2001 Martin Sjögren and pyOpenSSL contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-This code is in the public domain.
-It is provided AS-IS WITH NO WARRANTY WHATSOEVER.
 """
+SecureXMLRPCServer module using pyOpenSSL
+
+This acts exactly like SimpleXMLRPCServer from the standard python library, but
+uses secure connections. The technique and classes should work for any
+SocketServer style server. However, the code has not been extensively tested.
+"""
+
 import SocketServer
 import os, socket
 import SimpleXMLRPCServer
 from OpenSSL import SSL
+
 
 class SSLWrapper:
     """
