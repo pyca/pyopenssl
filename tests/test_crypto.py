@@ -2593,6 +2593,38 @@ class FunctionTests(TestCase):
         dumped_pem2 = dump_publickey(FILETYPE_PEM, key2)
         assert dumped_pem2 == cleartextPublicKeyPEM
 
+    def test_dump_publickey_invalid_type(self):
+        """
+        dump_publickey doesn't support FILETYPE_TEXT.
+        """
+        key = load_publickey(FILETYPE_PEM, cleartextPublicKeyPEM)
+
+        with pytest.raises(ValueError):
+            dump_publickey(FILETYPE_TEXT, key)
+
+    def test_load_publickey_invalid_type(self):
+        """
+        load_publickey doesn't support FILETYPE_TEXT.
+        """
+        with pytest.raises(ValueError):
+            load_publickey(FILETYPE_TEXT, cleartextPublicKeyPEM)
+
+    def test_load_publickey_invalid_key_format(self):
+        """
+        load_publickey explodes on incorrect keys.
+        """
+        with pytest.raises(Error):
+            load_publickey(FILETYPE_ASN1, cleartextPublicKeyPEM)
+
+    def test_load_publickey_tolerates_unicode_strings(self):
+        """
+        load_publickey works with text strings, not just bytes.
+        """
+        serialized = cleartextPublicKeyPEM.decode('ascii')
+        key = load_publickey(FILETYPE_PEM, serialized)
+        dumped_pem = dump_publickey(FILETYPE_PEM, key)
+        assert dumped_pem == cleartextPublicKeyPEM
+
     def test_dump_certificate_request(self):
         """
         :py:obj:`dump_certificate_request` writes a PEM, DER, and text.
