@@ -1642,8 +1642,7 @@ def dump_publickey(type, pkey):
         raise ValueError("type argument must be FILETYPE_PEM or FILETYPE_ASN1")
 
     result_code = write_bio(bio, pkey._pkey)
-    if result_code != 1:
-        # TODO: This is untested.
+    if result_code != 1:  # pragma: no cover
         _raise_current_error()
 
     return _bio_to_string(bio)
