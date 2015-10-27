@@ -1625,12 +1625,13 @@ def dump_certificate(type, cert):
 
 def dump_publickey(type, pkey):
     """
-    Dump a public key to a buffer
+    Dump a public key to a buffer.
 
-    :param type: The file type (one of FILETYPE_PEM or FILETYPE_ASN1).
-    :param pkey: The PKey to dump.
+    :param type: The file type (one of :py:data:`FILETYPE_PEM` or
+        :py:data:`FILETYPE_ASN1`).
+    :param pkey: The :py:class:`PKey` to dump.
     :return: The buffer with the dumped key in it.
-    :rtype: :py:data:`bytes`
+    :rtype: bytes
     """
     bio = _new_mem_buf()
     if type == FILETYPE_PEM:
@@ -2431,11 +2432,12 @@ class _PassphraseHelper(object):
 
 def load_publickey(type, buffer):
     """
-    Load a public key from a buffer
+    Load a public key from a buffer.
 
-    :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)
-    :param buffer: The buffer the key is stored in
-    :return: The PKey object
+    :param type: The file type (one of :py:data:`FILETYPE_PEM`,
+        :py:data:`FILETYPE_ASN1`).
+    :param buffer: The buffer the key is stored in.
+    :return: The :py:class:`PKey` object.
     """
     if isinstance(buffer, _text_type):
         buffer = buffer.encode("ascii")

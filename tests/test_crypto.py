@@ -2577,7 +2577,7 @@ class FunctionTests(TestCase):
 
     def test_dump_publickey_pem(self):
         """
-        :py:obj:`dump_publickey` writes a PEM
+        dump_publickey writes a PEM.
         """
         key = load_publickey(FILETYPE_PEM, cleartextPublicKeyPEM)
         dumped_pem = dump_publickey(FILETYPE_PEM, key)
@@ -2585,7 +2585,7 @@ class FunctionTests(TestCase):
 
     def test_dump_publickey_asn1(self):
         """
-        :py:obj:`dump_publickey` writes a DER
+        dump_publickey writes a DER.
         """
         key = load_publickey(FILETYPE_PEM, cleartextPublicKeyPEM)
         dumped_der = dump_publickey(FILETYPE_ASN1, key)
