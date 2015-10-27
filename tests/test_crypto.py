@@ -2581,7 +2581,7 @@ class FunctionTests(TestCase):
         """
         key = load_publickey(FILETYPE_PEM, cleartextPublicKeyPEM)
         dumped_pem = dump_publickey(FILETYPE_PEM, key)
-        self.assertEqual(dumped_pem, cleartextPublicKeyPEM)
+        assert dumped_pem == cleartextPublicKeyPEM
 
     def test_dump_publickey_asn1(self):
         """
@@ -2591,7 +2591,7 @@ class FunctionTests(TestCase):
         dumped_der = dump_publickey(FILETYPE_ASN1, key)
         key2 = load_publickey(FILETYPE_ASN1, dumped_der)
         dumped_pem2 = dump_publickey(FILETYPE_PEM, key2)
-        self.assertEqual(dumped_pem2, cleartextPublicKeyPEM)
+        assert dumped_pem2 == cleartextPublicKeyPEM
 
     def test_dump_certificate_request(self):
         """
