@@ -14,15 +14,6 @@ Good bug reports come with extensive descriptions of the error and how to reprod
 Reporters are strongly encouraged to include an `short, self contained, correct example <http://www.sscce.org/>`_.
 
 
-Security
---------
-
-If you feel that you found a security-relevant bug that you would prefer to discuss in private, please send us a GPG_-encrypted e-mail.
-
-The maintainer can be reached at hs@ox.cx and his GPG key ID is ``0xAE2536227F69F181`` (Fingerprint: ``C2A0 4F86 ACE2 8ADC F817  DBB7 AE25 3622 7F69 F181``).
-Feel free to cross-check this information with Keybase_.
-
-
 Patches
 -------
 
@@ -103,6 +94,15 @@ If you need any help with the contribution process, you'll find us hanging out a
 You can also ask questions on our `mailing list`_.
 
 Wherever we interact, we strive to follow the `Python Community Code of Conduct`_.
+
+
+Security
+--------
+
+If you feel that you found a security-relevant bug that you would prefer to discuss in private, please send us a GPG_-encrypted e-mail.
+
+The maintainer can be reached at hs@ox.cx and his GPG key ID is ``0xAE2536227F69F181`` (Fingerprint: ``C2A0 4F86 ACE2 8ADC F817  DBB7 AE25 3622 7F69 F181``).
+Feel free to cross-check this information with Keybase_.
 
 
 .. _GitHub issue tracker: https://github.com/pyca/pyopenssl/issues
