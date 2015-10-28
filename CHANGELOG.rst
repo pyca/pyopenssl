@@ -13,7 +13,7 @@ We have made *many* changes to make local development more pleasing.
 The test suite now passes both on Linux and OS X with OpenSSL 0.9.8, 1.0.1, and 1.0.2.
 It has been moved to `py.test <http://pytest.org/latest/>`_, all CI test runs are part of `tox <https://testrun.org/tox/>`_ and the source code has been made fully `flake8 <https://flake8.readthedocs.org/en/>`_ compliant.
 
-We hope to have lowered the barrier for contributions significantly but are open to hear about any remaining frustrations. 
+We hope to have lowered the barrier for contributions significantly but are open to hear about any remaining frustrations.
 
 
 Backward-incompatible changes:
@@ -40,6 +40,8 @@ In accordance with our backward compatibility policy :func:`OpenSSL.rand.egd` wi
 Changes:
 ^^^^^^^^
 
+- Added :func:`OpenSSL.crypto.dump_publickey` to dump :class:`OpenSSL.crypto.PKey` objects that represent public keys, and :func:`OpenSSL.crypto.load_publickey` to load such objects from serialized representations.
+  [`#382 <https://github.com/pyca/pyopenssl/pull/382>`_]
 - Added :func:`OpenSSL.crypto.dump_crl` to dump a certificate revocation list out to a string buffer.
   [`#368 <https://github.com/pyca/pyopenssl/pull/368>`_]
 - Added :meth:`OpenSSL.SSL.Connection.state_string` using the OpenSSL binding ``state_string_long``.

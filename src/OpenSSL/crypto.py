@@ -1623,6 +1623,31 @@ def dump_certificate(type, cert):
     return _bio_to_string(bio)
 
 
+def dump_publickey(type, pkey):
+    """
+    Dump a public key to a buffer.
+
+    :param type: The file type (one of :data:`FILETYPE_PEM` or
+        :data:`FILETYPE_ASN1`).
+    :param PKey pkey: The public key to dump
+    :return: The buffer with the dumped key in it.
+    :rtype: bytes
+    """
+    bio = _new_mem_buf()
+    if type == FILETYPE_PEM:
+        write_bio = _lib.PEM_write_bio_PUBKEY
+    elif type == FILETYPE_ASN1:
+        write_bio = _lib.i2d_PUBKEY_bio
+    else:
+        raise ValueError("type argument must be FILETYPE_PEM or FILETYPE_ASN1")
+
+    result_code = write_bio(bio, pkey._pkey)
+    if result_code != 1:  # pragma: no cover
+        _raise_current_error()
+
+    return _bio_to_string(bio)
+
+
 def dump_privatekey(type, pkey, cipher=None, passphrase=None):
     """
     Dump a private key to a buffer
@@ -2402,6 +2427,38 @@ class _PassphraseHelper(object):
         except Exception as e:
             self._problems.append(e)
             return 0
+
+
+def load_publickey(type, buffer):
+    """
+    Load a public key from a buffer.
+
+    :param type: The file type (one of :data:`FILETYPE_PEM`,
+        :data:`FILETYPE_ASN1`).
+    :param buffer: The buffer the key is stored in.
+    :type buffer: A Python string object, either unicode or bytestring.
+    :return: The PKey object.
+    :rtype: :class:`PKey`
+    """
+    if isinstance(buffer, _text_type):
+        buffer = buffer.encode("ascii")
+
+    bio = _new_mem_buf(buffer)
+
+    if type == FILETYPE_PEM:
+        evp_pkey = _lib.PEM_read_bio_PUBKEY(
+            bio, _ffi.NULL, _ffi.NULL, _ffi.NULL)
+    elif type == FILETYPE_ASN1:
+        evp_pkey = _lib.d2i_PUBKEY_bio(bio, _ffi.NULL)
+    else:
+        raise ValueError("type argument must be FILETYPE_PEM or FILETYPE_ASN1")
+
+    if evp_pkey == _ffi.NULL:
+        _raise_current_error()
+
+    pkey = PKey.__new__(PKey)
+    pkey._pkey = _ffi.gc(evp_pkey, _lib.EVP_PKEY_free)
+    return pkey
 
 
 def load_privatekey(type, buffer, passphrase=None):

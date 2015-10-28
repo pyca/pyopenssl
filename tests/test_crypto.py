@@ -26,6 +26,7 @@ from OpenSSL.crypto import (
 from OpenSSL.crypto import X509Req, X509ReqType
 from OpenSSL.crypto import X509Extension, X509ExtensionType
 from OpenSSL.crypto import load_certificate, load_privatekey
+from OpenSSL.crypto import load_publickey, dump_publickey
 from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT
 from OpenSSL.crypto import dump_certificate, load_certificate_request
 from OpenSSL.crypto import dump_certificate_request, dump_privatekey
@@ -299,6 +300,18 @@ MbzjS007Oe4qqBnCWaFPSnJX6uLApeTbqAxAeyCql56ULW5x6vDMNC3dwjvS/CEh
 """)
 
 encryptedPrivateKeyPEMPassphrase = b("foobar")
+
+
+cleartextPublicKeyPEM = b("""-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxszlc+b71LvlLS0ypt/l
+gT/JzSVJtnEqw9WUNGeiChywX2mmQLHEt7KP0JikqUFZOtPclNY823Q4pErMTSWC
+90qlUxI47vNJbXGRfmO2q6Zfw6SE+E9iUb74xezbOJLjBuUIkQzEKEFV+8taiRV+
+ceg1v01yCT2+OjhQW3cxG42zxyRFmqesbQAUWgS3uhPrUQqYQUEiTmVhh4FBUKZ5
+XIneGUpX1S7mXRxTLH6YzRoGFqRoc9A0BBNcoXHTWnxV215k4TeHMFYE5RG0KYAS
+8Xk5iKICEXwnZreIt3jyygqoOKsKZMK/Zl2VhMGhJR6HXRpQCyASzEG7bgtROLhL
+ywIDAQAB
+-----END PUBLIC KEY-----
+""")
 
 # Some PKCS#7 stuff.  Generated with the openssl command line:
 #
@@ -2561,6 +2574,56 @@ class FunctionTests(TestCase):
         dumped_text = dump_privatekey(FILETYPE_TEXT, key)
         good_text = _runopenssl(dumped_pem, b"rsa", b"-noout", b"-text")
         self.assertEqual(dumped_text, good_text)
+
+    def test_dump_publickey_pem(self):
+        """
+        dump_publickey writes a PEM.
+        """
+        key = load_publickey(FILETYPE_PEM, cleartextPublicKeyPEM)
+        dumped_pem = dump_publickey(FILETYPE_PEM, key)
+        assert dumped_pem == cleartextPublicKeyPEM
+
+    def test_dump_publickey_asn1(self):
+        """
+        dump_publickey writes a DER.
+        """
+        key = load_publickey(FILETYPE_PEM, cleartextPublicKeyPEM)
+        dumped_der = dump_publickey(FILETYPE_ASN1, key)
+        key2 = load_publickey(FILETYPE_ASN1, dumped_der)
+        dumped_pem2 = dump_publickey(FILETYPE_PEM, key2)
+        assert dumped_pem2 == cleartextPublicKeyPEM
+
+    def test_dump_publickey_invalid_type(self):
+        """
+        dump_publickey doesn't support FILETYPE_TEXT.
+        """
+        key = load_publickey(FILETYPE_PEM, cleartextPublicKeyPEM)
+
+        with pytest.raises(ValueError):
+            dump_publickey(FILETYPE_TEXT, key)
+
+    def test_load_publickey_invalid_type(self):
+        """
+        load_publickey doesn't support FILETYPE_TEXT.
+        """
+        with pytest.raises(ValueError):
+            load_publickey(FILETYPE_TEXT, cleartextPublicKeyPEM)
+
+    def test_load_publickey_invalid_key_format(self):
+        """
+        load_publickey explodes on incorrect keys.
+        """
+        with pytest.raises(Error):
+            load_publickey(FILETYPE_ASN1, cleartextPublicKeyPEM)
+
+    def test_load_publickey_tolerates_unicode_strings(self):
+        """
+        load_publickey works with text strings, not just bytes.
+        """
+        serialized = cleartextPublicKeyPEM.decode('ascii')
+        key = load_publickey(FILETYPE_PEM, serialized)
+        dumped_pem = dump_publickey(FILETYPE_PEM, key)
+        assert dumped_pem == cleartextPublicKeyPEM
 
     def test_dump_certificate_request(self):
         """
