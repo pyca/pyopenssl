@@ -40,6 +40,8 @@ In accordance with our backward compatibility policy :func:`OpenSSL.rand.egd` wi
 Changes:
 ^^^^^^^^
 
+- Added :func:`OpenSSL.crypto.dump_publickey` to dump :class:`OpenSSL.crypto.PKey` objects that represent public keys, and :func:`OpenSSL.crypto.load_publickey` to load such objects from serialized representations.
+  [`#382 <https://github.com/pyca/pyopenssl/pull/382>`_]
 - Added :func:`OpenSSL.crypto.dump_crl` to dump a certificate revocation list out to a string buffer.
   [`#368 <https://github.com/pyca/pyopenssl/pull/368>`_]
 - Added :meth:`OpenSSL.SSL.Connection.state_string` using the OpenSSL binding ``state_string_long``.
@@ -54,10 +56,6 @@ Changes:
   This will default us to the setting that actually works.
   To revert this you can call ``OpenSSL.crypto._lib.ASN1_STRING_set_default_mask_asc(b"default")``.
   [`#234 <https://github.com/pyca/pyopenssl/pull/234>`_]
-- Added :func:`OpenSSL.crypto.dump_publickey` to dump :class:`OpenSSL.crypto.PKey` objects that represent public keys.
-  [`#382 <https://github.com/pyca/pyopenssl/pull/382>`_]
-- Added :func:`OpenSSL.crypto.load_publickey` to load :class:`OpenSSL.crypto.PKey` objects that represent public keys from serialized representations.
-  [`#382 <https://github.com/pyca/pyopenssl/pull/382>`_]
 
 
 
