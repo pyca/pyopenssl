@@ -1629,8 +1629,7 @@ def dump_publickey(type, pkey):
 
     :param type: The file type (one of :data:`FILETYPE_PEM` or
         :data:`FILETYPE_ASN1`).
-    :param pkey: The PKey to dump.
-    :type pkey: :class:`PKey`
+    :param PKey pkey: The public key to dump
     :return: The buffer with the dumped key in it.
     :rtype: bytes
     """
