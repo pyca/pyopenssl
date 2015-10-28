@@ -87,6 +87,13 @@ Private keys
     *passphrase* must be either a string or a callback for providing the pass
     phrase.
 
+Public keys
+~~~~~~~~~~~
+
+.. autofunction:: dump_publickey
+
+.. autofunction:: load_publickey
+
 Certificate revocation lists
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
