@@ -54,6 +54,8 @@ Changes:
   This will default us to the setting that actually works.
   To revert this you can call ``OpenSSL.crypto._lib.ASN1_STRING_set_default_mask_asc(b"default")``.
   [`#234 <https://github.com/pyca/pyopenssl/pull/234>`_]
+- Added :func:`OpenSSL.crypto.dump_publickey` to dump :class:`OpenSSL.crypto.PKey` objects that represent public keys. [`#382 <https://github.com/pyca/pyopenssl/pull/382>`_]
+- Added :func:`OpenSSL.crypto.load_publickey` to load :class:`OpenSSL.crypto.PKey` objects that represent public keys from serialized representations. [`#382 <https://github.com/pyca/pyopenssl/pull/382>`_]
 
 
 
