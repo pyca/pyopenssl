@@ -1627,7 +1627,7 @@ def dump_publickey(type, pkey):
     """
     Dump a public key to a buffer.
 
-    :param type: The file type (one of :py:data:`FILETYPE_PEM` or
+    :param type: The file type (one of :data:`FILETYPE_PEM` or
         :data:`FILETYPE_ASN1`).
     :param pkey: The :class:`PKey` to dump.
     :return: The buffer with the dumped key in it.
@@ -2433,9 +2433,10 @@ def load_publickey(type, buffer):
     """
     Load a public key from a buffer.
 
-    :param type: The file type (one of :py:data:`FILETYPE_PEM`,
+    :param type: The file type (one of :data:`FILETYPE_PEM`,
         :data:`FILETYPE_ASN1`).
-    :param buffer: The buffer the key is stored in.
+    :param buffer: The buffer the key is stored in. Must be a Python string
+        object, either unicode or bytestring.
     :return: The :class:`PKey` object.
     """
     if isinstance(buffer, _text_type):
