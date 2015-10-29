@@ -14,32 +14,67 @@ Good bug reports come with extensive descriptions of the error and how to reprod
 Reporters are strongly encouraged to include an `short, self contained, correct example <http://www.sscce.org/>`_.
 
 
-Security
---------
-
-If you feel that you found a security-relevant bug that you would prefer to discuss in private, please send us a GPG_-encrypted e-mail.
-
-The maintainer can be reached at hs@ox.cx and his GPG key ID is ``0xAE2536227F69F181`` (Fingerprint: ``C2A0 4F86 ACE2 8ADC F817  DBB7 AE25 3622 7F69 F181``).
-Feel free to cross-check this information with Keybase_.
-
-
 Patches
 -------
 
 All patches to pyOpenSSL should be submitted in the form of pull requests to the main pyOpenSSL repository, `pyca/pyopenssl`_.
 These pull requests should satisfy the following properties:
 
+
+Code
+^^^^
+
 - The pull request should focus on one particular improvement to pyOpenSSL.
   Create different pull requests for unrelated features or bugfixes.
 - Code should follow `PEP 8`_, especially in the "do what code around you does" sense.
   Follow OpenSSL naming for callables whenever possible is preferred.
-- New tests should use `py.test-style assertions`_ instead of the old `self.assertXYZ`-style.
+- New tests should use `py.test-style assertions`_ instead of the old ``self.assertXYZ``-style.
 - Pull requests that introduce code must test all new behavior they introduce as well as for previously untested or poorly tested behavior that they touch.
 - Pull requests are not allowed to break existing tests.
   We usually don't comment on pull requests that are breaking the CI because we consider them work in progress.
   Please note that not having 100% code coverage for the code you wrote/touched also causes our CI to fail.
-- Pull requests that introduce features or fix bugs should note those changes in ``CHANGELOG.rst`` in the root of the repository.
-  They should also document the changes, both in docstrings and in the documentation in the ``doc/`` directory.
+
+
+Documentation
+^^^^^^^^^^^^^
+
+When introducing new functionality, please remember to write documentation.
+
+- New functions and methods should have a docstring describing what they do, what parameters they takes, what types those parameters are, and what they return.
+
+  .. code-block:: python
+
+     def dump_publickey(type, pkey):
+         """
+         Dump a public key to a buffer.
+
+         :param type: The file type (one of :data:`FILETYPE_PEM` or
+             :data:`FILETYPE_ASN1`).
+         :param PKey pkey: The PKey to dump.
+
+         :return: The buffer with the dumped key in it.
+         :rtype: bytes
+         """
+
+
+  Don't forget to add an ``.. auto(function|class|method)::`` statement to the relevant API document found in ``doc/api/`` to actually add your function to the Sphinx documentation.
+- Do *not* use ``:py:`` prefixes when cross-linking (Python is default).
+  Do *not* use the generic ``:data:`` or ``:obj:``.
+  Instead use more specific types like ``:class:``, ``:func:`` or ``:meth:`` if applicable.
+- Pull requests that introduce features or fix bugs should note those changes in the CHANGELOG.rst_ file.
+  Please add new entries to the *top* of the *current* Changes section followed by a line linking to the relevant pull request:
+
+  .. code-block:: rst
+
+     - Added :func:`OpenSSL.crypto.some_func` to do something awesome.
+       [`#1 <https://github.com/pyca/pyopenssl/pull/1>`_]
+
+
+- Use `semantic newlines`_ in reStructuredText_ files (files ending in ``.rst``).
+
+
+Review
+------
 
 Finally, pull requests must be reviewed before merging.
 This process mirrors the `cryptography code review process`_.
@@ -61,6 +96,15 @@ You can also ask questions on our `mailing list`_.
 Wherever we interact, we strive to follow the `Python Community Code of Conduct`_.
 
 
+Security
+--------
+
+If you feel that you found a security-relevant bug that you would prefer to discuss in private, please send us a GPG_-encrypted e-mail.
+
+The maintainer can be reached at hs@ox.cx and his GPG key ID is ``0xAE2536227F69F181`` (Fingerprint: ``C2A0 4F86 ACE2 8ADC F817  DBB7 AE25 3622 7F69 F181``).
+Feel free to cross-check this information with Keybase_.
+
+
 .. _GitHub issue tracker: https://github.com/pyca/pyopenssl/issues
 .. _GPG: http://en.wikipedia.org/wiki/GNU_Privacy_Guard
 .. _Keybase: https://keybase.io/hynek
@@ -72,3 +116,6 @@ Wherever we interact, we strive to follow the `Python Community Code of Conduct`
 .. _mailing list: https://mail.python.org/mailman/listinfo/cryptography-dev
 .. _Python Community Code of Conduct: https://www.python.org/psf/codeofconduct/
 .. _members of PyCA: https://github.com/orgs/pyca/people
+.. _semantic newlines: http://rhodesmill.org/brandon/2012/one-sentence-per-line/
+.. _reStructuredText: http://sphinx-doc.org/rest.htm
+.. _CHANGELOG.rst: https://github.com/pyca/pyopenssl/blob/master/CHANGELOG.rst
