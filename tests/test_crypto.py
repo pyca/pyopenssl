@@ -54,8 +54,6 @@ def normalize_privatekey_pem(pem):
 GOOD_CIPHER = "blowfish"
 BAD_CIPHER = "zippers"
 
-#GOOD_DIGEST = "MD5"
-# MD5 verification disabled in some distros OpenSSL
 GOOD_DIGEST = "SHA1"
 BAD_DIGEST = "monkeys"
 
