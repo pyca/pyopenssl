@@ -34,7 +34,6 @@ if _lib.Cryptography_HAS_EC:
 else:
     TYPE_EC = None
 
-
 class Error(Exception):
     """
     An error occurred in an `OpenSSL.crypto` API.
@@ -183,15 +182,18 @@ class PKey(object):
         This generates a key "into" the this object.
 
         :param type: The key type.
-        :type type: :py:data:`TYPE_RSA` or :py:data:`TYPE_DSA`
+        :type type: :data:`TYPE_RSA` or :data:`TYPE_DSA`
         :param bits: The number of bits.
-        :type bits: :py:data:`int` ``>= 0``
-        :raises TypeError: If :py:data:`type` or :py:data:`bits` isn't
-            of the appropriate type.
+        :type bits: :class:`int` ``>= 0``
+        :raises TypeError: If type or bits isn't of the appropriate type.
         :raises ValueError: If the number of bits isn't an integer of
             the appropriate size.
-        :return: :py:const:`None`
+        :return: :const:`None`
         """
+
+        _warn("OpenSSL.crypto.Pkey.generate_key() is deprecated as of 15.2.0.",
+              DeprecationWarning)
+
         if not isinstance(type, int):
             raise TypeError("type must be an integer")
 
@@ -209,11 +211,11 @@ class PKey(object):
         This generates a key "into" the this object.
 
         :param bits: The number of bits.
-        :type bits: :py:data:`int` ``>= 0``
-        :raises TypeError: If :py:data:`bits` isn't of the appropriate type.
+        :type bits: :class:`int` ``>= 0``
+        :raises TypeError: If bits isn't of the appropriate type.
         :raises ValueError: If the number of bits isn't an integer of
             the appropriate size.
-        :return: :py:const:`None`
+        :return: :const:`None`
         """
 
         if not isinstance(bits, int):
@@ -253,14 +255,13 @@ class PKey(object):
 
         This generates a key "into" the this object.
 
-        :param bits: The number of bits. If bits is < 512
-            DSA_generate_parameters will silently promote any value
-            below 512 to 512.
-        :type bits: :py:data:`int`
-        :raises TypeError: If :py:data:`bits` isn't of the appropriate type.
+        :param bits: The number of bits. If bits is < 512 DSA_generate_parameters
+            will silently promote any value below 512 to 512.
+        :type bits: :class:`int`
+        :raises TypeError: If bits isn't of the appropriate type.
         :raises ValueError: If the number of bits isn't an integer of
             the appropriate size.
-        :return: :py:const:`None`
+        :return: :const:`None`
         """
 
         if not isinstance(bits, int):
@@ -287,9 +288,9 @@ class PKey(object):
         This generated a key "into" the this object.
 
         :param curve_name: The name of the elliptic curve to use.
-        :type curve_name: :py:data:`str`
-        :raises TypeError: If :py:data:`curve_name` is not a string.
-        :raises ValueError: If :py:data:`curve_name` is not a supported
+        :type curve_name: :class:`str`
+        :raises TypeError: If curve_name is not a string.
+        :raises ValueError: If curve_name is not a supported
             curve name.
         """
         if not isinstance(curve_name, str):
