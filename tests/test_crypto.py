@@ -695,6 +695,7 @@ class PKeyTests(TestCase):
         the second giving the number of bits to generate.  If an invalid type
         is specified or generation fails, :py:exc:`TypeError` is raised.  If an
         invalid number of bits is specified, :py:exc:`ValueError`
+        Calling generate_key raises :exc:`DeprecationWarning`.
         """
         key = PKey()
 
@@ -714,6 +715,17 @@ class PKeyTests(TestCase):
             key.generate_key(TYPE_RSA, -1)
         with pytest.raises(ValueError):
             key.generate_key(TYPE_RSA, 0)
+
+        # ensure it generated a deprecation warning
+        with catch_warnings(record=True) as catcher:
+            simplefilter("always")
+            key.generate_key(TYPE_RSA, 512)
+            self.assertEqual(1, len(catcher))
+            self.assertEqual(
+                "OpenSSL.crypto.Pkey.generate_key() is deprecated as of 15.2.0.",
+                str(catcher[0].message)
+            )
+            self.assertIs(catcher[0].category, DeprecationWarning)
 
         # XXX RSA generation for small values of bits is fairly buggy in a wide
         # range of OpenSSL versions.  I need to figure out what the safe lower

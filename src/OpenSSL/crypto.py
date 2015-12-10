@@ -192,7 +192,9 @@ class PKey(object):
         """
 
         _warn("OpenSSL.crypto.Pkey.generate_key() is deprecated as of 15.2.0.",
-              DeprecationWarning)
+              category=DeprecationWarning,
+              stacklevel=2,
+        )
 
         if not isinstance(type, int):
             raise TypeError("type must be an integer")
