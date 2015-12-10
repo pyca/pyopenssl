@@ -34,6 +34,7 @@ if _lib.Cryptography_HAS_EC:
 else:
     TYPE_EC = None
 
+
 class Error(Exception):
     """
     An error occurred in an `OpenSSL.crypto` API.
@@ -191,9 +192,10 @@ class PKey(object):
         :return: :const:`None`
         """
 
-        _warn("OpenSSL.crypto.Pkey.generate_key() is deprecated as of 15.2.0.",
-              category=DeprecationWarning,
-              stacklevel=2,
+        _warn(
+            "OpenSSL.crypto.Pkey.generate_key() is deprecated as of 15.2.0.",
+            category=DeprecationWarning,
+            stacklevel=2,
         )
 
         if not isinstance(type, int):
@@ -257,8 +259,9 @@ class PKey(object):
 
         This generates a key "into" the this object.
 
-        :param bits: The number of bits. If bits is < 512 DSA_generate_parameters
-            will silently promote any value below 512 to 512.
+        :param bits: The number of bits. If bits is < 512
+            DSA_generate_parameters will silently promote any
+            value below 512 to 512.
         :type bits: :class:`int`
         :raises TypeError: If bits isn't of the appropriate type.
         :raises ValueError: If the number of bits isn't an integer of

@@ -722,7 +722,8 @@ class PKeyTests(TestCase):
             key.generate_key(TYPE_RSA, 512)
             self.assertEqual(1, len(catcher))
             self.assertEqual(
-                "OpenSSL.crypto.Pkey.generate_key() is deprecated as of 15.2.0.",
+                "OpenSSL.crypto.Pkey.generate_key() is deprecated "
+                "as of 15.2.0.",
                 str(catcher[0].message)
             )
             self.assertIs(catcher[0].category, DeprecationWarning)
