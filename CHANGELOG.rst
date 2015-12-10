@@ -36,6 +36,10 @@ Deprecations:
 
 In accordance with our backward compatibility policy :func:`OpenSSL.rand.egd` will be *removed* no sooner than a year from the release of 15.2.0
 
+- The :func:`OpenSSL.crypto.PKey.generate_key` has been replaced by
+  :func:`OpenSSL.crypto.PKey.generate_rsa_key`, :func:`OpenSSL.crypto.PKey.generate_dsa_key`
+  and :func:`OpenSSL.crypto.PKey.ec_key`.
+
 
 Changes:
 ^^^^^^^^
@@ -56,7 +60,7 @@ Changes:
   This will default us to the setting that actually works.
   To revert this you can call ``OpenSSL.crypto._lib.ASN1_STRING_set_default_mask_asc(b"default")``.
   [`#234 <https://github.com/pyca/pyopenssl/pull/234>`_]
-
+- Added support for EC key generation by adding :func:`OpenSSL.crypto.PKey.ec_key`
 
 
 Older Changelog Entries
