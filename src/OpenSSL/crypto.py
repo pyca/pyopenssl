@@ -469,7 +469,11 @@ class _EllipticCurve(object):
         The structure is automatically garbage collected when the Python object
         is garbage collected.
         """
-        key = self._lib.EC_KEY_new_by_curve_name(self._nid)
+        key = _lib.EC_KEY_new()
+        group = _lib.EC_GROUP_new_by_curve_name(self._nid)
+        _lib.EC_GROUP_set_asn1_flag(group, _lib.OPENSSL_EC_NAMED_CURVE)
+        _lib.EC_KEY_set_group(key, group)
+        _lib.EC_GROUP_free(group)
         return _ffi.gc(key, _lib.EC_KEY_free)
 
 
