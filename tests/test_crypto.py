@@ -421,6 +421,30 @@ RFEIPQsFZRLrtnCAiEhyT8bC2s/Njlu6ly9gtJZWSV46Q3ZjBL4q9sHKqZQ=
 -----END CERTIFICATE-----""")
 
 
+# certificate with subject's organizationName having BMPSTRING type
+bmpstringSubjectPEM = b("""-----BEGIN CERTIFICATE-----
+MIIDbTCCAlUCCQD86uomToqEgTANBgkqhkiG9w0BAQUFADCBgDELMAkGA1UEBhMC
+UlUxDTALBgNVBAgMBFNvbWUxDDAKBgNVBAcMA0FueTEMMAoGA1UECgwDT3JnMRAw
+DgYDVQQLDAdPcmdVbml0MRswGQYDVQQDDBJ4eHgueXl5LmRvbWFpbi5jb20xFzAV
+BgkqhkiG9w0BCQEWCG5vQGVtYWlsMB4XDTE1MTIxNzEwMTkwNloXDTI5MDgyNTEw
+MTkwNlowcDELMAkGA1UEBhMCUlUxGTAXBgNVBAMTEHNvbWUtY29tbW9uLW5hbWUx
+DDAKBgNVBAcTA0FueTEXMBUGA1UECh4OAE8AcgBnACAEHgRABDMxDTALBgNVBAgT
+BFNvbWUxEDAOBgNVBAsTB3NvbWUtb3UwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
+ggEKAoIBAQDUR0J6xlwGA1KFAA+AB99kzfpxq/8LFlp7ZFa0MzgYLa9U5WQsnRrZ
+O7R3D61LWwzPTjU+dI315s5wZJUV6jPrQbljbDiw40VapxoXizSkJOH4GfPo3QFl
+DD0Yb1OMMCzJr3XR2XJpK3VDnqnfULyXYFxmyFHb9OUJvApHXa9ZvV3yHKSOWz+i
+F6SlwyVrfNJMp5OSCjNJZDfq6K2flVCjM0aN88m9bVnMWlQjsv3Hyjhma9EP2hkU
+QXxO8vPfOmKVEZmg2C3rn4Y2gDlSu1hpRxtf7NcysdZ0mGK50PFfioTG3iZZQacS
+TzVkx+qs/CcrT6pAbbZShohRvB2XGyijAgMBAAEwDQYJKoZIhvcNAQEFBQADggEB
+AICNlCwRpWBodlkw47F2BrwBTR+oyDWjbgH0jSn48Z2AZFPqfJh8d5RTm3eLX6f/
+2J/c96KnCxPHEaAu8FJ6dTfs0DHlk615xSCtIgp5HkdkfsvAe/UvCfGvsW6g1epB
+aUkqoAG4PVcfvzWeBrZ5Is/vWx+c/EdG7JX6IHhEKeWF5VVZ8IxjdaVG1sam9BwH
+/mB/1lqEoPVsF67MZQ11mcIw7tJEMP1NurYQhwBjTm/FaNSf00yaBnXxg6JusHZa
+biKD6FCo8jM+dbGqXFtWICaJfAFjfyA/Tm+Y452EHxCP3apzBl0UsIlXLrZVfhas
+UAnfbx+pO0RDpyrjZ4X7OYs=
+-----END CERTIFICATE-----""")
+
+
 class X509ExtTests(TestCase):
     """
     Tests for :py:class:`OpenSSL.crypto.X509Extension`.
@@ -1031,6 +1055,21 @@ class X509NameTests(TestCase):
         name = self._x509name()
         # This value is too long
         self.assertRaises(Error, setattr, name, "O", b"x" * 512)
+
+    def test_subject_get_components_bmpstring(self):
+        cert = load_certificate(FILETYPE_PEM, bmpstringSubjectPEM)
+        subject = cert.get_subject()
+        self.assertEqual(
+            subject.get_components(),
+            [
+                (b('C'), b('RU')),
+                (b('CN'), b('some-common-name')),
+                (b('L'), b('Any')),
+                (b('O'), b('Org \xd0\x9e\xd1\x80\xd0\xb3')),
+                (b('ST'), b('Some')),
+                (b('OU'), b('some-ou')),
+            ]
+        )
 
 
 class _PKeyInteractionTestsMixin:

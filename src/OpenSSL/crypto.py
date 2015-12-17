@@ -156,6 +156,31 @@ def _get_asn1_time(timestamp):
             return string_result
 
 
+def _asn1_string_to_utf8(asn1_string):
+    """Convert ASN.1 string to utf-8 representation
+    """
+    result_buffer = _ffi.new("unsigned char**")
+    data_length = _lib.ASN1_STRING_to_UTF8(result_buffer, asn1_string)
+    if data_length < 0:
+        # TODO: This is untested.
+        _raise_current_error()
+
+    try:
+        result = _ffi.buffer(
+            result_buffer[0], data_length
+        )[:]
+    finally:
+        # XXX untested
+        _lib.OPENSSL_free(result_buffer[0])
+    return result
+
+
+def _decode_asn1_string(asn1_string):
+    """Convert ASN.1 string to unicode object
+    """
+    return _asn1_string_to_utf8(asn1_string).decode('utf-8')
+
+
 class PKey(object):
     """
     A class representing an DSA or RSA public key or key pair.
@@ -515,19 +540,7 @@ class X509Name(object):
         entry = _lib.X509_NAME_get_entry(self._name, entry_index)
         data = _lib.X509_NAME_ENTRY_get_data(entry)
 
-        result_buffer = _ffi.new("unsigned char**")
-        data_length = _lib.ASN1_STRING_to_UTF8(result_buffer, data)
-        if data_length < 0:
-            # TODO: This is untested.
-            _raise_current_error()
-
-        try:
-            result = _ffi.buffer(
-                result_buffer[0], data_length
-            )[:].decode('utf-8')
-        finally:
-            # XXX untested
-            _lib.OPENSSL_free(result_buffer[0])
+        result = _decode_asn1_string(data)
         return result
 
     def _cmp(op):
@@ -610,9 +623,7 @@ class X509Name(object):
 
             result.append((
                 _ffi.string(name),
-                _ffi.string(
-                    _lib.ASN1_STRING_data(fval),
-                    _lib.ASN1_STRING_length(fval))))
+                _asn1_string_to_utf8(fval)))
 
         return result
 
