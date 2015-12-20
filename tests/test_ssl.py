@@ -19,6 +19,10 @@ import pytest
 
 from six import PY3, text_type, u
 
+if PY3:
+    long = lambda x: x
+    buffer = lambda x: x
+
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
 from OpenSSL.crypto import PKey, X509, X509Extension, X509Store
 from OpenSSL.crypto import dump_privatekey, load_privatekey
