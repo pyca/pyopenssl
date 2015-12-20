@@ -3083,6 +3083,9 @@ class CRLTests(TestCase):
 
         # text format
         dumped_text = crl.export(self.cert, self.pkey, type=FILETYPE_TEXT)
+
+        # this test sometimes faile, since _lib.ASN1_TIME_new() sometimes
+        # return different times
         self.assertEqual(text, dumped_text)
 
     def test_export_custom_digest(self):

@@ -2036,11 +2036,14 @@ class CRL(object):
             # TODO: This is untested.
             _raise_current_error()
 
-        _lib.X509_gmtime_adj(sometime, 0)
-        _lib.X509_CRL_set_lastUpdate(self._crl, sometime)
+        try:
+            _lib.X509_gmtime_adj(sometime, 0)
+            _lib.X509_CRL_set_lastUpdate(self._crl, sometime)
 
-        _lib.X509_gmtime_adj(sometime, days * 24 * 60 * 60)
-        _lib.X509_CRL_set_nextUpdate(self._crl, sometime)
+            _lib.X509_gmtime_adj(sometime, days * 24 * 60 * 60)
+            _lib.X509_CRL_set_nextUpdate(self._crl, sometime)
+        finally:
+            _lib.ASN1_TIME_free(sometime)
 
         _lib.X509_CRL_set_issuer_name(
             self._crl, _lib.X509_get_subject_name(cert._x509)
