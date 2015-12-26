@@ -30,6 +30,8 @@ matrix:
     env: TOXENV=py35
   - python: "pypy"
     env: TOXENV=pypy
+  - python: "pypy3"
+    env: TOXENV=pypy3
 
   # Also run the tests against cryptography master.
   - python: "2.6"
@@ -44,6 +46,8 @@ matrix:
     env: TOXENV=py35-cryptographyMaster
   - python: "pypy"
     env: TOXENV=pypy-cryptographyMaster
+  - python: "pypy3"
+    env: TOXENV=pypy3-cryptographyMaster
 
   # Make sure we don't break Twisted
   - python: "2.7"
@@ -73,7 +77,7 @@ matrix:
   # - Also allow OS X and 0.9.8 to fail at the moment while we fix these new
   #   build configurations.
   # - Also allow lint to fail while we fix existing lint.
-  # - We alloy pypy to fail until Travis fixes their infrastructure to a pypy
+  # - We allow pypy to fail until Travis fixes their infrastructure to a pypy
   #   with a recent enought CFFI library to run cryptography 1.0+.
   allow_failures:
   - language: generic
@@ -85,7 +89,9 @@ matrix:
   - env: TOXENV=py34-cryptographyMaster
   - env: TOXENV=py35-cryptographyMaster
   - env: TOXENV=pypy-cryptographyMaster
+  - env: TOXENV=pypy3-cryptographyMaster
   - env: TOXENV=pypy
+  - env: TOXENV=pypy3
 
 install:
   - |
