@@ -945,11 +945,13 @@ class X509Req(object):
         """
         Return the subject of this certificate signing request.
 
-        This creates a new :py:class:`X509Name`: modifying it does not affect
-        this request.
+        This creates a new :class:`X509Name` that wraps the underlying subject
+        name field on the certificate signing request. Modifying it will modify
+        the underlying signing request, and will have the effect of modifying
+        any other :class:`X509Name` that refers to this subject.
 
         :return: The subject of this certificate signing request.
-        :rtype: :py:class:`X509Name`
+        :rtype: :class:`X509Name`
         """
         name = X509Name.__new__(X509Name)
         name._name = _lib.X509_REQ_get_subject_name(self._req)
@@ -1405,11 +1407,13 @@ class X509(object):
         """
         Return the issuer of this certificate.
 
-        This creates a new :py:class:`X509Name`: modifying it does not affect
-        this certificate.
+        This creates a new :class:`X509Name` that wraps the underlying issuer
+        name field on the certificate. Modifying it will modify the underlying
+        certificate, and will have the effect of modifying any other
+        :class:`X509Name` that refers to this issuer.
 
         :return: The issuer of this certificate.
-        :rtype: :py:class:`X509Name`
+        :rtype: :class:`X509Name`
         """
         return self._get_name(_lib.X509_get_issuer_name)
 
@@ -1428,11 +1432,13 @@ class X509(object):
         """
         Return the subject of this certificate.
 
-        This creates a new :py:class:`X509Name`: modifying it does not affect
-        this certificate.
+        This creates a new :class:`X509Name` that wraps the underlying subject
+        name field on the certificate. Modifying it will modify the underlying
+        certificate, and will have the effect of modifying any other
+        :class:`X509Name` that refers to this subject.
 
         :return: The subject of this certificate.
-        :rtype: :py:class:`X509Name`
+        :rtype: :class:`X509Name`
         """
         return self._get_name(_lib.X509_get_subject_name)
 
