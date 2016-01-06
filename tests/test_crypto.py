@@ -1368,9 +1368,17 @@ WpOdIpB8KksUTCzV591Nr1wd
         self.assertRaises(TypeError, certificate.set_serial_number, 1, 2)
         self.assertRaises(TypeError, certificate.set_serial_number, "1")
         self.assertRaises(TypeError, certificate.set_serial_number, 5.5)
+        self.assertRaises(ValueError, certificate.set_serial_number, -1)
+
+        # test that default serial number is 0
         self.assertEqual(certificate.get_serial_number(), 0)
+
         certificate.set_serial_number(1)
         self.assertEqual(certificate.get_serial_number(), 1)
+
+        certificate.set_serial_number(0)
+        self.assertEqual(certificate.get_serial_number(), 0)
+
         certificate.set_serial_number(2 ** 32 + 1)
         self.assertEqual(certificate.get_serial_number(), 2 ** 32 + 1)
         certificate.set_serial_number(2 ** 64 + 1)
@@ -3075,6 +3083,9 @@ class CRLTests(TestCase):
 
         # text format
         dumped_text = crl.export(self.cert, self.pkey, type=FILETYPE_TEXT)
+
+        # this test sometimes faile, since _lib.ASN1_TIME_new() sometimes
+        # return different times
         self.assertEqual(text, dumped_text)
 
     def test_export_custom_digest(self):

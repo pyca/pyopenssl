@@ -1127,34 +1127,36 @@ class X509(object):
         if not isinstance(serial, _integer_types):
             raise TypeError("serial must be an integer")
 
-        hex_serial = hex(serial)[2:]
-        if not isinstance(hex_serial, bytes):
-            hex_serial = hex_serial.encode('ascii')
+        if serial < 0:
+            raise ValueError('Serial number should not be negative')
 
-        bignum_serial = _ffi.new("BIGNUM**")
-
-        # BN_hex2bn stores the result in &bignum.  Unless it doesn't feel like
-        # it.  If bignum is still NULL after this call, then the return value
-        # is actually the result.  I hope.  -exarkun
-        small_serial = _lib.BN_hex2bn(bignum_serial, hex_serial)
-
-        if bignum_serial[0] == _ffi.NULL:
-            set_result = _lib.ASN1_INTEGER_set(
-                _lib.X509_get_serialNumber(self._x509), small_serial)
-            if set_result:
-                # TODO Not tested
-                _raise_current_error()
+        if _PY3:
+            # This is black magic of negative division. Actually, it round up
+            # to count of required bytes.
+            bytelen = serial.bit_length() // -8 * -1
+            data = serial.to_bytes(bytelen, 'big')
+            bignum_serial = _lib.BN_bin2bn(data, bytelen, _ffi.NULL)
+            assert bignum_serial != _ffi.NULL
         else:
-            asn1_serial = _lib.BN_to_ASN1_INTEGER(bignum_serial[0], _ffi.NULL)
-            _lib.BN_free(bignum_serial[0])
-            if asn1_serial == _ffi.NULL:
-                # TODO Not tested
-                _raise_current_error()
-            asn1_serial = _ffi.gc(asn1_serial, _lib.ASN1_INTEGER_free)
-            set_result = _lib.X509_set_serialNumber(self._x509, asn1_serial)
-            if not set_result:
-                # TODO Not tested
-                _raise_current_error()
+            bignum_serial = _ffi.new("BIGNUM**")
+            # strip "0x" at beginning and strip 'L' from the end (for Long
+            # integers)
+            hex_serial = hex(serial)[2:].rstrip('L')
+            recognized_hex_chars = _lib.BN_hex2bn(bignum_serial, hex_serial)
+            assert recognized_hex_chars == len(hex_serial)
+            bignum_serial = bignum_serial[0]
+
+        asn1_serial = _lib.BN_to_ASN1_INTEGER(bignum_serial, _ffi.NULL)
+        _lib.BN_free(bignum_serial)
+        if asn1_serial == _ffi.NULL:
+            # TODO Not tested
+            _raise_current_error()
+
+        asn1_serial = _ffi.gc(asn1_serial, _lib.ASN1_INTEGER_free)
+        set_result = _lib.X509_set_serialNumber(self._x509, asn1_serial)
+        if set_result == 0:
+            # TODO Not tested
+            _raise_current_error()
 
     def get_serial_number(self):
         """
@@ -1166,13 +1168,28 @@ class X509(object):
         asn1_serial = _lib.X509_get_serialNumber(self._x509)
         bignum_serial = _lib.ASN1_INTEGER_to_BN(asn1_serial, _ffi.NULL)
         try:
-            hex_serial = _lib.BN_bn2hex(bignum_serial)
-            try:
-                hexstring_serial = _ffi.string(hex_serial)
-                serial = int(hexstring_serial, 16)
-                return serial
-            finally:
-                _lib.OPENSSL_free(hex_serial)
+            if _PY3:
+                # Unfortunatelly BN_num_bytes() is not exported. So we
+                # calculate length in bytes from bits count.
+                bytelen = _lib.BN_num_bits(bignum_serial) // -8 * -1
+
+                # ffi.from_buffer(bytearray(bytelen)) does not work :(. So we
+                # allocate memory by ffi, instead of Python.
+                binbuff = _ffi.new("unsigned char[%d]" % bytelen)
+                res = _lib.BN_bn2bin(bignum_serial, binbuff)
+                assert res == bytelen
+
+                # according to docs, _ffi.buffer(binbuff) should be used, but
+                # works even without that...
+                serial = int.from_bytes(binbuff, 'big')
+            else:
+                hex_serial = _lib.BN_bn2hex(bignum_serial)
+                try:
+                    hexstring_serial = _ffi.string(hex_serial)
+                    serial = int(hexstring_serial, 16)
+                finally:
+                    _lib.OPENSSL_free(hex_serial)
+            return serial
         finally:
             _lib.BN_free(bignum_serial)
 
@@ -2019,11 +2036,14 @@ class CRL(object):
             # TODO: This is untested.
             _raise_current_error()
 
-        _lib.X509_gmtime_adj(sometime, 0)
-        _lib.X509_CRL_set_lastUpdate(self._crl, sometime)
+        try:
+            _lib.X509_gmtime_adj(sometime, 0)
+            _lib.X509_CRL_set_lastUpdate(self._crl, sometime)
 
-        _lib.X509_gmtime_adj(sometime, days * 24 * 60 * 60)
-        _lib.X509_CRL_set_nextUpdate(self._crl, sometime)
+            _lib.X509_gmtime_adj(sometime, days * 24 * 60 * 60)
+            _lib.X509_CRL_set_nextUpdate(self._crl, sometime)
+        finally:
+            _lib.ASN1_TIME_free(sometime)
 
         _lib.X509_CRL_set_issuer_name(
             self._crl, _lib.X509_get_subject_name(cert._x509)
