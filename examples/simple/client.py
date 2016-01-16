@@ -27,6 +27,8 @@ if dir == '':
 
 # Initialize context
 ctx = SSL.Context(SSL.SSLv23_METHOD)
+ctx.set_options(SSL.OP_NO_SSLv2)
+ctx.set_options(SSL.OP_NO_SSLv3)
 ctx.set_verify(SSL.VERIFY_PEER, verify_cb) # Demand a certificate
 ctx.use_privatekey_file (os.path.join(dir, 'client.pkey'))
 ctx.use_certificate_file(os.path.join(dir, 'client.cert'))
