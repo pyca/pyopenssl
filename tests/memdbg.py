@@ -1,11 +1,14 @@
 import sys
-sys.modules['ssl'] = None
-sys.modules['_hashlib'] = None
-
 
 import traceback
 
 from cffi import api as _api
+
+
+sys.modules['ssl'] = None
+sys.modules['_hashlib'] = None
+
+
 _ffi = _api.FFI()
 _ffi.cdef(
     """
