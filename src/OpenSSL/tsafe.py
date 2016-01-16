@@ -1,10 +1,6 @@
-from OpenSSL import SSL
-_ssl = SSL
-del SSL
+from threading import RLock as _RLock
 
-import threading
-_RLock = threading.RLock
-del threading
+from OpenSSL import SSL as _ssl
 
 
 class Connection:
