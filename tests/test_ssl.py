@@ -2540,7 +2540,6 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         ctx = Context(TLSv1_METHOD)
         ctx.use_privatekey(key)
         ctx.use_certificate(cert)
-        ctx.set_session_id("unity-test")
 
         def makeServer(socket):
             server = Connection(ctx, socket)
@@ -2580,7 +2579,6 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         ctx = Context(TLSv1_METHOD)
         ctx.use_privatekey(key)
         ctx.use_certificate(cert)
-        ctx.set_session_id("unity-test")
 
         def makeServer(socket):
             server = Connection(ctx, socket)
