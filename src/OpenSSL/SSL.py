@@ -696,6 +696,7 @@ class Context(object):
         :param cafile: The name of the certificates file
         :return: None
         """
+        raise NotImplementedError()
 
     def set_session_id(self, buf):
         """
@@ -705,6 +706,7 @@ class Context(object):
         :param buf: A Python object that can be safely converted to a string
         :returns: None
         """
+        raise NotImplementedError()
 
     def set_session_cache_mode(self, mode):
         """
@@ -1406,6 +1408,7 @@ class Connection(object):
 
         :return: True if the renegotiation can be started, false otherwise
         """
+        raise NotImplementedError()
 
     def do_handshake(self):
         """
@@ -1424,6 +1427,7 @@ class Connection(object):
 
         :return: Whether there's a renegotiation in progress
         """
+        raise NotImplementedError()
 
     def total_renegotiations(self):
         """
