@@ -2401,9 +2401,10 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         :py:obj:`Connection.get_app_data`.
         """
         conn = Connection(Context(TLSv1_METHOD), None)
+        assert None is conn.get_app_data()
         app_data = object()
         conn.set_app_data(app_data)
-        self.assertIdentical(conn.get_app_data(), app_data)
+        assert conn.get_app_data() is app_data
 
     def test_makefile(self):
         """
