@@ -118,7 +118,7 @@ def egd(path, bytes=_unspecified):
 
     Does *not* actually query the EGD.
 
-    .. deprecated:: 15.2.0
+    .. deprecated:: 16.0.0
         EGD was only necessary for some commercial UNIX systems that all
         reached their ends of life more than a decade ago.  See
         `pyca/cryptography#1636
@@ -129,7 +129,7 @@ def egd(path, bytes=_unspecified):
 
     :returns: ``len(bytes)`` or 255 if not specified.
     """
-    warnings.warn("OpenSSL.rand.egd() is deprecated as of 15.2.0.",
+    warnings.warn("OpenSSL.rand.egd() is deprecated as of 16.0.0.",
                   DeprecationWarning)
 
     if not isinstance(path, _builtin_bytes):
