@@ -35,7 +35,12 @@ Serialization and deserialization
 ---------------------------------
 
 The following serialization functions take one of these constants to
-determine the format:
+determine the format.
+
+:data:`FILETYPE_PEM` serializes data to a Base64-encoded encoded representation
+of the underlying ASN.1 data structure. :data:`FILETYPE_ASN1` serializes data
+to the underlying ASN.1 data structure. The format used by
+:data:`FILETYPE_ASN1` is also sometimes referred to as DER.
 
 .. py:data:: FILETYPE_PEM
              FILETYPE_ASN1
