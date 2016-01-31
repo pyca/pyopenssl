@@ -47,17 +47,17 @@ matrix:
 
   # And older cryptography versions.
   - python: "2.6"
-    env: TOXENV=py26-cryptographyLegacy
+    env: TOXENV=py26-cryptography1.1
   - python: "2.7"
-    env: TOXENV=py27-cryptographyLegacy
+    env: TOXENV=py27-cryptography1.1
   - python: "3.3"
-    env: TOXENV=py33-cryptographyLegacy
+    env: TOXENV=py33-cryptography1.1
   - python: "3.4"
-    env: TOXENV=py34-cryptographyLegacy
+    env: TOXENV=py34-cryptography1.1
   - python: "3.5"
-    env: TOXENV=py35-cryptographyLegacy
+    env: TOXENV=py35-cryptography1.1
   - python: "pypy"
-    env: TOXENV=pypy-cryptographyLegacy
+    env: TOXENV=pypy-cryptography1.1
 
 
   # Make sure we don't break Twisted
@@ -100,7 +100,7 @@ matrix:
   - env: TOXENV=py34-cryptographyMaster
   - env: TOXENV=py35-cryptographyMaster
   - env: TOXENV=pypy-cryptographyMaster
-  - env: TOXENV=pypy-cryptographyLegacy
+  - env: TOXENV=pypy-cryptography1.1
   - env: TOXENV=pypy
 
 install:
