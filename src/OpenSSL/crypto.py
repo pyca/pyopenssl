@@ -247,7 +247,7 @@ class PKey(object):
         if self._only_public:
             raise TypeError("public key only")
 
-        if _lib.EVP_PKEY_type(self._pkey.type) != _lib.EVP_PKEY_RSA:
+        if _lib.EVP_PKEY_type(self.type()) != _lib.EVP_PKEY_RSA:
             raise TypeError("key type unsupported")
 
         rsa = _lib.EVP_PKEY_get1_RSA(self._pkey)
@@ -263,7 +263,12 @@ class PKey(object):
 
         :return: The type of the key.
         """
-        return self._pkey.type
+        try:
+            # cryptography 1.2+
+            return _lib.Cryptography_EVP_PKEY_id(self._pkey)
+        except AttributeError:
+            # Older releases of cryptography.
+            return self._pkey.type
 
     def bits(self):
         """
