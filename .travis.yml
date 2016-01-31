@@ -100,6 +100,7 @@ matrix:
   - env: TOXENV=py34-cryptographyMaster
   - env: TOXENV=py35-cryptographyMaster
   - env: TOXENV=pypy-cryptographyMaster
+  - env: TOXENV=pypy-cryptographyLegacy
   - env: TOXENV=pypy
 
 install:
