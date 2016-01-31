@@ -2346,42 +2346,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         server = self._loopbackServerFactory(server)
         client = self._loopbackClientFactory(client)
 
-        self.assertEqual('before/accept initialization',
-                         server.state_string().decode())
-        self.assertEqual('before/connect initialization',
-                         client.state_string().decode())
-
-        for conn in [server, client]:
-            try:
-                conn.do_handshake()
-            except WantReadError:
-                pass
-
-        self.assertEqual('SSLv3 read client hello B',
-                         server.state_string().decode())
-        self.assertEqual('SSLv3 read server hello A',
-                         client.state_string().decode())
-
-        for conn in [server, client]:
-            try:
-                conn.do_handshake()
-            except WantReadError:
-                pass
-
-        assert server.state_string().decode() in (
-            "SSLv3 read client certificate A",
-            "SSLv3 read client key exchange A",  # 1.0.2d+
-        )
-        self.assertEqual('SSLv3 read server session ticket A',
-                         client.state_string().decode())
-
-        for conn in [server, client]:
-            conn.do_handshake()
-
-        self.assertEqual('SSL negotiation finished successfully',
-                         server.state_string().decode())
-        self.assertEqual('SSL negotiation finished successfully',
-                         client.state_string().decode())
+        assert b"before/accept initialization" == server.state_string()
+        assert b"before/connect initialization" == client.state_string()
 
     def test_app_data_wrong_args(self):
         """
