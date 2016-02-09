@@ -1293,8 +1293,15 @@ class ContextTests(TestCase, _LoopbackMixin):
             Error, context.use_certificate_chain_file, self.mktemp()
         )
 
-    # XXX load_client_ca
-    # XXX set_session_id
+    def test_load_client_ca(self):
+        context = Context(TLSv1_METHOD)
+        with pytest.raises(NotImplementedError):
+            context.load_client_ca(None)
+
+    def test_set_session_id(self):
+        context = Context(TLSv1_METHOD)
+        with pytest.raises(NotImplementedError):
+            context.set_session_id("session")
 
     def test_get_verify_mode_wrong_args(self):
         """
@@ -2507,7 +2514,6 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         ctx = Context(TLSv1_METHOD)
         ctx.use_privatekey(key)
         ctx.use_certificate(cert)
-        ctx.set_session_id("unity-test")
 
         def makeServer(socket):
             server = Connection(ctx, socket)
@@ -2547,7 +2553,6 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         ctx = Context(TLSv1_METHOD)
         ctx.use_privatekey(key)
         ctx.use_certificate(cert)
-        ctx.set_session_id("unity-test")
 
         def makeServer(socket):
             server = Connection(ctx, socket)
@@ -3128,6 +3133,16 @@ class ConnectionRenegotiateTests(TestCase, _LoopbackMixin):
         """
         connection = Connection(Context(TLSv1_METHOD), None)
         self.assertEquals(connection.total_renegotiations(), 0)
+
+    def test_renegotiate(self):
+        connection = Connection(Context(TLSv1_METHOD), None)
+        with pytest.raises(NotImplementedError):
+            connection.renegotiate()
+
+    def test_renegotiate_pending(self):
+        connection = Connection(Context(TLSv1_METHOD), None)
+        with pytest.raises(NotImplementedError):
+            connection.renegotiate_pending()
 
 #     def test_renegotiate(self):
 #         """
