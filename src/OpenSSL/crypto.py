@@ -2583,9 +2583,9 @@ def sign(pkey, data, digest):
     _lib.EVP_SignInit(md_ctx, digest_obj)
     _lib.EVP_SignUpdate(md_ctx, data, len(data))
 
-    signature_buffer = _ffi.new("unsigned char[]", 512)
+    pkey_length = (PKey.bits(pkey) + 7) // 8
+    signature_buffer = _ffi.new("unsigned char[]", pkey_length)
     signature_length = _ffi.new("unsigned int*")
-    signature_length[0] = len(signature_buffer)
     final_result = _lib.EVP_SignFinal(
         md_ctx, signature_buffer, signature_length, pkey._pkey)
 
