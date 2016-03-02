@@ -420,6 +420,60 @@ VHWBnbM9YaL32u3hxm8sYB/Yb8WSBavJCWJJqRStVRHM1koZlJmXNx2BX4vPo6iW
 RFEIPQsFZRLrtnCAiEhyT8bC2s/Njlu6ly9gtJZWSV46Q3ZjBL4q9sHKqZQ=
 -----END CERTIFICATE-----""")
 
+large_key_pem = b("""-----BEGIN RSA PRIVATE KEY-----
+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
+vYeU7Ab/
+-----END RSA PRIVATE KEY-----""")
+
 
 class X509ExtTests(TestCase):
     """
@@ -3483,6 +3537,20 @@ class SignVerifyTests(TestCase):
         good_cert = load_certificate(FILETYPE_PEM, root_cert_pem)
         sig = sign(priv_key, content, "sha1")
         verify(good_cert, sig, content, "sha1")
+
+    def test_sign_with_large_key(self):
+        """
+        :py:obj:`sign` produces a signature for a string when using a long key.
+        """
+        content = b(
+            "It was a bright cold day in April, and the clocks were striking "
+            "thirteen. Winston Smith, his chin nuzzled into his breast in an "
+            "effort to escape the vile wind, slipped quickly through the "
+            "glass doors of Victory Mansions, though not quickly enough to "
+            "prevent a swirl of gritty dust from entering along with him.")
+
+        priv_key = load_privatekey(FILETYPE_PEM, large_key_pem)
+        sign(priv_key, content, "sha1")
 
 
 class EllipticCurveTests(TestCase):
