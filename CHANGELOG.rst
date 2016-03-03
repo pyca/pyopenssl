@@ -40,6 +40,8 @@ In accordance with our backward compatibility policy :func:`OpenSSL.rand.egd` wi
 Changes:
 ^^^^^^^^
 
+- Fixed segmentation fault when using keys larger than 4096-bit to sign data.
+  [`#428 <https://github.com/pyca/pyopenssl/pull/428>`_]
 - Fixed ``AttributeError`` when :meth:`OpenSSL.SSL.Connection.get_app_data` was called before setting any app data.
   [`#304 <https://github.com/pyca/pyopenssl/pull/304>`_]
 - Added :func:`OpenSSL.crypto.dump_publickey` to dump :class:`OpenSSL.crypto.PKey` objects that represent public keys, and :func:`OpenSSL.crypto.load_publickey` to load such objects from serialized representations.
