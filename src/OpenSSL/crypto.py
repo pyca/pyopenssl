@@ -221,6 +221,8 @@ class PKey(object):
             if dsa == _ffi.NULL:
                 # TODO: This is untested.
                 _raise_current_error()
+
+            dsa = _ffi.gc(dsa, _lib.DSA_free)
             res = _lib.DSA_generate_parameters_ex(
                 dsa, bits, _ffi.NULL, 0, _ffi.NULL, _ffi.NULL, _ffi.NULL
             )
@@ -230,7 +232,7 @@ class PKey(object):
             if not _lib.DSA_generate_key(dsa):
                 # TODO: This is untested.
                 _raise_current_error()
-            if not _lib.EVP_PKEY_assign_DSA(self._pkey, dsa):
+            if not _lib.EVP_PKEY_set1_DSA(self._pkey, dsa):
                 # TODO: This is untested.
                 _raise_current_error()
         else:
