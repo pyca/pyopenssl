@@ -1912,7 +1912,7 @@ class CRL(object):
         revoked_stack = self._crl.crl.revoked
         for i in range(_lib.sk_X509_REVOKED_num(revoked_stack)):
             revoked = _lib.sk_X509_REVOKED_value(revoked_stack, i)
-            revoked_copy = _X509_REVOKED_dup(revoked)
+            revoked_copy = _lib.Cryptography_X509_REVOKED_dup(revoked)
             pyrev = Revoked.__new__(Revoked)
             pyrev._revoked = _ffi.gc(revoked_copy, _lib.X509_REVOKED_free)
             results.append(pyrev)
