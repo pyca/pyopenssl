@@ -22,7 +22,12 @@ def createKeyPair(type, bits):
     Returns:   The public/private key pair in a PKey object
     """
     pkey = crypto.PKey()
-    pkey.generate_key(type, bits)
+    if type == TYPE_RSA:
+        pkey.generate_rsa_key(bits)
+    elif type == TYPE_DSA:
+        pkey.generate_rsa_key(bits)
+    else:
+        raise TypeError("No such key type")
     return pkey
 
 def createCertRequest(pkey, digest="sha256", **name):

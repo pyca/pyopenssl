@@ -40,7 +40,7 @@ class Checker_X509_get_pubkey(BaseChecker):
         small = xrange(3)
         for i in xrange(self.iterations):
             key = PKey()
-            key.generate_key(TYPE_DSA, 256)
+            key.generate_dsa_key(256)
             for i in small:
                 cert = X509()
                 cert.set_pubkey(key)

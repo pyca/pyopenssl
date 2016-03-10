@@ -19,7 +19,7 @@ import pytest
 
 from six import PY3, text_type, u
 
-from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
+from OpenSSL.crypto import FILETYPE_PEM
 from OpenSSL.crypto import PKey, X509, X509Extension, X509Store
 from OpenSSL.crypto import dump_privatekey, load_privatekey
 from OpenSSL.crypto import dump_certificate, load_certificate
@@ -180,7 +180,7 @@ def _create_certificate_chain():
 
     # Step 1
     cakey = PKey()
-    cakey.generate_key(TYPE_RSA, 512)
+    cakey.generate_rsa_key(512)
     cacert = X509()
     cacert.get_subject().commonName = "Authority Certificate"
     cacert.set_issuer(cacert.get_subject())
@@ -193,7 +193,7 @@ def _create_certificate_chain():
 
     # Step 2
     ikey = PKey()
-    ikey.generate_key(TYPE_RSA, 512)
+    ikey.generate_rsa_key(512)
     icert = X509()
     icert.get_subject().commonName = "Intermediate Certificate"
     icert.set_issuer(cacert.get_subject())
@@ -206,7 +206,7 @@ def _create_certificate_chain():
 
     # Step 3
     skey = PKey()
-    skey.generate_key(TYPE_RSA, 512)
+    skey.generate_rsa_key(512)
     scert = X509()
     scert.get_subject().commonName = "Server Certificate"
     scert.set_issuer(icert.get_subject())
@@ -397,7 +397,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         instance.
         """
         key = PKey()
-        key.generate_key(TYPE_RSA, 128)
+        key.generate_rsa_key(128)
         ctx = Context(TLSv1_METHOD)
         ctx.use_privatekey(key)
         self.assertRaises(TypeError, ctx.use_privatekey, "")
@@ -417,7 +417,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         arguments does not raise an exception.
         """
         key = PKey()
-        key.generate_key(TYPE_RSA, 128)
+        key.generate_rsa_key(128)
 
         with open(pemfile, "wt") as pem:
             pem.write(
@@ -768,7 +768,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         passphrase.  Return the path to the new file.
         """
         key = PKey()
-        key.generate_key(TYPE_RSA, 128)
+        key.generate_rsa_key(128)
         pemFile = self.mktemp()
         fObj = open(pemFile, 'w')
         pem = dump_privatekey(FILETYPE_PEM, key, "blowfish", passphrase)

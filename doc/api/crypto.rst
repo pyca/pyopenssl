@@ -216,6 +216,7 @@ PKey objects
 
 .. py:data:: TYPE_RSA
              TYPE_DSA
+             TYPE_EC
 
     Key type constants.
 
