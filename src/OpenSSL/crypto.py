@@ -217,9 +217,14 @@ class PKey(object):
                 _raise_current_error()
 
         elif type == TYPE_DSA:
-            dsa = _lib.DSA_generate_parameters(
-                bits, _ffi.NULL, 0, _ffi.NULL, _ffi.NULL, _ffi.NULL, _ffi.NULL)
+            dsa = _lib.DSA_new()
             if dsa == _ffi.NULL:
+                # TODO: This is untested.
+                _raise_current_error()
+            res = _lib.DSA_generate_parameters_ex(
+                dsa, bits, _ffi.NULL, 0, _ffi.NULL, _ffi.NULL, _ffi.NULL
+            )
+            if not res == 1:
                 # TODO: This is untested.
                 _raise_current_error()
             if not _lib.DSA_generate_key(dsa):
