@@ -1707,32 +1707,6 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
     return _bio_to_string(bio)
 
 
-def _X509_REVOKED_dup(original):
-    copy = _lib.X509_REVOKED_new()
-    if copy == _ffi.NULL:
-        # TODO: This is untested.
-        _raise_current_error()
-
-    if original.serialNumber != _ffi.NULL:
-        _lib.ASN1_INTEGER_free(copy.serialNumber)
-        copy.serialNumber = _lib.ASN1_INTEGER_dup(original.serialNumber)
-
-    if original.revocationDate != _ffi.NULL:
-        _lib.ASN1_TIME_free(copy.revocationDate)
-        copy.revocationDate = _lib.M_ASN1_TIME_dup(original.revocationDate)
-
-    if original.extensions != _ffi.NULL:
-        extension_stack = _lib.sk_X509_EXTENSION_new_null()
-        for i in range(_lib.sk_X509_EXTENSION_num(original.extensions)):
-            original_ext = _lib.sk_X509_EXTENSION_value(original.extensions, i)
-            copy_ext = _lib.X509_EXTENSION_dup(original_ext)
-            _lib.sk_X509_EXTENSION_push(extension_stack, copy_ext)
-        copy.extensions = extension_stack
-
-    copy.sequence = original.sequence
-    return copy
-
-
 class Revoked(object):
     """
     A certificate revocation.
@@ -1958,7 +1932,7 @@ class CRL(object):
 
         :return: :py:const:`None`
         """
-        copy = _X509_REVOKED_dup(revoked._revoked)
+        copy = _lib.Cryptography_X509_REVOKED_dup(revoked._revoked)
         if copy == _ffi.NULL:
             # TODO: This is untested.
             _raise_current_error()
