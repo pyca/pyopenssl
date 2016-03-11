@@ -823,7 +823,7 @@ class Context(object):
             raise TypeError("cipher_list must be a byte string.")
 
         _openssl_assert(
-            _lib.SSL_CTX_set_cipher_list(self._context, cipher_list)
+            _lib.SSL_CTX_set_cipher_list(self._context, cipher_list) == 1
         )
 
     def set_client_ca_list(self, certificate_authorities):
