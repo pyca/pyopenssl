@@ -3044,8 +3044,8 @@ class RevokedTests(TestCase):
         """
         crl = load_crl(FILETYPE_PEM, crlDataUnsupportedExtension)
         revoked = crl.get_revoked()
-        reason = revoked[0].get_reason()
-        assert reason is None
+        reason = revoked[1].get_reason()
+        assert reason == 'Unspecified'
 
     def test_reason(self):
         """
