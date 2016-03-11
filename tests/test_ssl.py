@@ -362,9 +362,9 @@ class TestContext(object):
     ])
     def test_set_cipher_list(self, context, cipher_string):
         """
-        :meth:`Context.set_cipher_list` accepts both :py:obj:`bytes` naming the
-        ciphers which connections created with the context object will be able
-        to choose from.
+        :meth:`Context.set_cipher_list` accepts both byte and unicode strings
+        for naming the ciphers which connections created with the context
+        object will be able to choose from.
         """
         context.set_cipher_list(cipher_string)
         conn = Connection(context, None)

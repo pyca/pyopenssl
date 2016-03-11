@@ -820,7 +820,7 @@ class Context(object):
         cipher_list = _text_to_bytes_and_warn("cipher_list", cipher_list)
 
         if not isinstance(cipher_list, bytes):
-            raise TypeError("cipher_list must be a bytes string.")
+            raise TypeError("cipher_list must be a byte string.")
 
         _openssl_assert(
             _lib.SSL_CTX_set_cipher_list(self._context, cipher_list)
