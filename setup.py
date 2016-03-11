@@ -82,7 +82,7 @@ if __name__ == "__main__":
         packages=find_packages(where="src"),
         package_dir={"": "src"},
         install_requires=[
-            "cryptography>=0.7",
+            "cryptography>=1.2",
             "six>=1.5.2"
         ],
     )

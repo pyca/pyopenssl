@@ -3186,6 +3186,8 @@ class CRLTests(TestCase):
         """
         crl = CRL()
         revoked = Revoked()
+        revoked.set_serial(b"01")
+        revoked.set_rev_date(b"20160310020145Z")
         crl.add_revoked(revoked=revoked)
         self.assertTrue(isinstance(crl.get_revoked()[0], Revoked))
 
