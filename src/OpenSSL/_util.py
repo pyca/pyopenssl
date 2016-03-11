@@ -1,9 +1,11 @@
-from warnings import warn
 import sys
+import warnings
 
 from six import PY3, binary_type, text_type
 
 from cryptography.hazmat.bindings.openssl.binding import Binding
+
+
 binding = Binding()
 binding.init_static_locks()
 ffi = binding.ffi
@@ -45,6 +47,21 @@ def exception_from_error_queue(exception_type):
             text(lib.ERR_reason_error_string(error))))
 
     raise exception_type(errors)
+
+
+def make_assert(error):
+    """
+    Create an assert function that uses :func:`exception_from_error_queue` to
+    raise an exception wrapped by *error*.
+    """
+    def openssl_assert(ok):
+        """
+        If ok is not true-ish, retrieve the error from OpenSSL and raise it.
+        """
+        if not ok:
+            exception_from_error_queue(error)
+
+    return openssl_assert
 
 
 def native(s):
@@ -116,7 +133,7 @@ def text_to_bytes_and_warn(label, obj):
         returned.
     """
     if isinstance(obj, text_type):
-        warn(
+        warnings.warn(
             _TEXT_WARNING.format(label),
             category=DeprecationWarning,
             stacklevel=3

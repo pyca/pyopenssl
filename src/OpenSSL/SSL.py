@@ -5,7 +5,6 @@ from itertools import count, chain
 from weakref import WeakValueDictionary
 from errno import errorcode
 
-from six import text_type as _text_type
 from six import binary_type as _binary_type
 from six import integer_types as integer_types
 from six import int2byte, indexbytes
@@ -15,6 +14,7 @@ from OpenSSL._util import (
     lib as _lib,
     exception_from_error_queue as _exception_from_error_queue,
     native as _native,
+    make_assert as _make_assert,
     text_to_bytes_and_warn as _text_to_bytes_and_warn,
     path_string as _path_string,
     UNSPECIFIED as _UNSPECIFIED,
@@ -148,6 +148,7 @@ class Error(Exception):
 
 
 _raise_current_error = partial(_exception_from_error_queue, Error)
+_openssl_assert = _make_assert(Error)
 
 
 class WantReadError(Error):
@@ -441,7 +442,7 @@ class Session(object):
 
 class Context(object):
     """
-    :py:obj:`OpenSSL.SSL.Context` instances define the parameters for setting
+    :class:`OpenSSL.SSL.Context` instances define the parameters for setting
     up new SSL connections.
     """
     _methods = {
@@ -808,20 +809,22 @@ class Context(object):
 
     def set_cipher_list(self, cipher_list):
         """
-        Change the cipher list
+        Set the list of ciphers to be used in this context.
 
-        :param cipher_list: A cipher list, see ciphers(1)
+        See the OpenSSL manual for more information (e.g.
+        :manpage:`ciphers(1)`).
+
+        :param bytes cipher_list: An OpenSSL cipher string.
         :return: None
         """
-        if isinstance(cipher_list, _text_type):
-            cipher_list = cipher_list.encode("ascii")
+        cipher_list = _text_to_bytes_and_warn("cipher_list", cipher_list)
 
         if not isinstance(cipher_list, bytes):
-            raise TypeError("cipher_list must be bytes or unicode")
+            raise TypeError("cipher_list must be a bytes string.")
 
-        result = _lib.SSL_CTX_set_cipher_list(self._context, cipher_list)
-        if not result:
-            _raise_current_error()
+        _openssl_assert(
+            _lib.SSL_CTX_set_cipher_list(self._context, cipher_list)
+        )
 
     def set_client_ca_list(self, certificate_authorities):
         """
@@ -1498,9 +1501,9 @@ class Connection(object):
 
     def get_cipher_list(self):
         """
-        Get the session cipher list
+        Retrieve the list of ciphers used by the Connection object.
 
-        :return: A list of cipher strings
+        :return: A list of native cipher strings.
         """
         ciphers = []
         for i in count():
