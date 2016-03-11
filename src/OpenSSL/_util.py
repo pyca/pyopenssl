@@ -58,7 +58,7 @@ def make_assert(error):
         """
         If ok is not true-ish, retrieve the error from OpenSSL and raise it.
         """
-        if not ok:
+        if ok is not True:
             exception_from_error_queue(error)
 
     return openssl_assert
