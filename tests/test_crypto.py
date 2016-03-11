@@ -2972,9 +2972,34 @@ class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):
         self.assertTrue(isinstance(blob, binary_type))
 
 
+class TestRevoked(object):
+    """
+    Please add test cases for the Revoked class here if possible. This class
+    holds the new py.test style tests.
+    """
+    def test_ignores_unsupported_revoked_cert_extension_get_reason(self):
+        """
+        The get_reason method on the Revoked class checks to see if the
+        extension is NID_crl_reason and should skip it otherwise. This test
+        loads a CRL with extensions it should ignore.
+        """
+        crl = load_crl(FILETYPE_PEM, crlDataUnsupportedExtension)
+        revoked = crl.get_revoked()
+        reason = revoked[1].get_reason()
+        assert reason == b'Unspecified'
+
+    def test_ignores_unsupported_revoked_cert_extension_set_new_reason(self):
+        crl = load_crl(FILETYPE_PEM, crlDataUnsupportedExtension)
+        revoked = crl.get_revoked()
+        revoked[1].set_reason(None)
+        reason = revoked[1].get_reason()
+        assert reason is None
+
+
 class RevokedTests(TestCase):
     """
-    Tests for :py:obj:`OpenSSL.crypto.Revoked`
+    Tests for :py:obj:`OpenSSL.crypto.Revoked`. Please add test cases to
+    TestRevoked above if possible.
     """
 
     def test_construction(self):
@@ -3035,17 +3060,6 @@ class RevokedTests(TestCase):
         self.assertEqual(ret, None)
         date = revoked.get_rev_date()
         self.assertEqual(date, now)
-
-    def test_ignores_unsupported_revoked_cert_extension(self):
-        """
-        The get_reason method on the Revoked class checks to see if the
-        extension is NID_crl_reason and should skip it otherwise. This test
-        loads a CRL with extensions it should ignore.
-        """
-        crl = load_crl(FILETYPE_PEM, crlDataUnsupportedExtension)
-        revoked = crl.get_revoked()
-        reason = revoked[1].get_reason()
-        assert reason == b'Unspecified'
 
     def test_reason(self):
         """
