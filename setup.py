@@ -5,7 +5,7 @@
 #
 
 """
-Installation script for the OpenSSL module.
+Installation script for the OpenSSL package.
 """
 
 import codecs

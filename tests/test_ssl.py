@@ -2,7 +2,7 @@
 # See LICENSE for details.
 
 """
-Unit tests for :py:obj:`OpenSSL.SSL`.
+Unit tests for :mod:`OpenSSL.SSL`.
 """
 
 from gc import collect, get_referrers
@@ -17,7 +17,7 @@ from warnings import catch_warnings, simplefilter
 
 import pytest
 
-from six import PY3, text_type, u
+from six import PY3, text_type
 
 from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
 from OpenSSL.crypto import PKey, X509, X509Extension, X509Store
@@ -345,6 +345,44 @@ class VersionTests(TestCase):
             versions[version] = t
             self.assertTrue(isinstance(version, bytes))
         self.assertEqual(len(versions), 5)
+
+
+@pytest.fixture
+def context():
+    """
+    A simple TLS 1.0 context.
+    """
+    return Context(TLSv1_METHOD)
+
+
+class TestContext(object):
+    @pytest.mark.parametrize("cipher_string", [
+        b"hello world:AES128-SHA",
+        u"hello world:AES128-SHA",
+    ])
+    def test_set_cipher_list(self, context, cipher_string):
+        """
+        :meth:`Context.set_cipher_list` accepts both byte and unicode strings
+        for naming the ciphers which connections created with the context
+        object will be able to choose from.
+        """
+        context.set_cipher_list(cipher_string)
+        conn = Connection(context, None)
+
+        assert "AES128-SHA" in conn.get_cipher_list()
+
+    @pytest.mark.parametrize("cipher_list,error", [
+        (object(), TypeError),
+        ("imaginary-cipher", Error),
+    ])
+    def test_set_cipher_list_wrong_args(self, context, cipher_list, error):
+        """
+        :meth:`Context.set_cipher_list` raises :exc:`TypeError` when passed a
+        non-string argument and raises :exc:`OpenSSL.SSL.Error` when passed an
+        incorrect cipher list string.
+        """
+        with pytest.raises(error):
+            context.set_cipher_list(cipher_list)
 
 
 class ContextTests(TestCase, _LoopbackMixin):
@@ -1393,44 +1431,6 @@ class ContextTests(TestCase, _LoopbackMixin):
             # The only easily "assertable" thing is that it does not raise an
             # exception.
             context.set_tmp_ecdh(curve)
-
-    def test_set_cipher_list_bytes(self):
-        """
-        :py:obj:`Context.set_cipher_list` accepts a :py:obj:`bytes` naming the
-        ciphers which connections created with the context object will be able
-        to choose from.
-        """
-        context = Context(TLSv1_METHOD)
-        context.set_cipher_list(b"hello world:EXP-RC4-MD5")
-        conn = Connection(context, None)
-        self.assertEquals(conn.get_cipher_list(), ["EXP-RC4-MD5"])
-
-    def test_set_cipher_list_text(self):
-        """
-        :py:obj:`Context.set_cipher_list` accepts a :py:obj:`unicode` naming
-        the ciphers which connections created with the context object will be
-        able to choose from.
-        """
-        context = Context(TLSv1_METHOD)
-        context.set_cipher_list(u("hello world:EXP-RC4-MD5"))
-        conn = Connection(context, None)
-        self.assertEquals(conn.get_cipher_list(), ["EXP-RC4-MD5"])
-
-    def test_set_cipher_list_wrong_args(self):
-        """
-        :py:obj:`Context.set_cipher_list` raises :py:obj:`TypeError` when
-        passed zero arguments or more than one argument or when passed a
-        non-string single argument and raises :py:obj:`OpenSSL.SSL.Error` when
-        passed an incorrect cipher list string.
-        """
-        context = Context(TLSv1_METHOD)
-        self.assertRaises(TypeError, context.set_cipher_list)
-        self.assertRaises(TypeError, context.set_cipher_list, object())
-        self.assertRaises(
-            TypeError, context.set_cipher_list, b"EXP-RC4-MD5", object()
-        )
-
-        self.assertRaises(Error, context.set_cipher_list, "imaginary-cipher")
 
     def test_set_session_cache_mode_wrong_args(self):
         """
