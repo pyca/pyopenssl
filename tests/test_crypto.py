@@ -375,6 +375,45 @@ vrzEeLDRiiPl92dyyWmu
 -----END X509 CRL-----
 """)
 
+crlDataUnsupportedExtension = b("""\
+-----BEGIN X509 CRL-----
+MIIGRzCCBS8CAQIwDQYJKoZIhvcNAQELBQAwJzELMAkGA1UEBhMCVVMxGDAWBgNV
+BAMMD2NyeXB0b2dyYXBoeS5pbxgPMjAxNTAxMDEwMDAwMDBaGA8yMDE2MDEwMTAw
+MDAwMFowggTOMBQCAQAYDzIwMTUwMTAxMDAwMDAwWjByAgEBGA8yMDE1MDEwMTAw
+MDAwMFowXDAYBgNVHRgEERgPMjAxNTAxMDEwMDAwMDBaMDQGA1UdHQQtMCukKTAn
+MQswCQYDVQQGEwJVUzEYMBYGA1UEAwwPY3J5cHRvZ3JhcGh5LmlvMAoGA1UdFQQD
+CgEAMHICAQIYDzIwMTUwMTAxMDAwMDAwWjBcMBgGA1UdGAQRGA8yMDE1MDEwMTAw
+MDAwMFowNAYDVR0dBC0wK6QpMCcxCzAJBgNVBAYTAlVTMRgwFgYDVQQDDA9jcnlw
+dG9ncmFwaHkuaW8wCgYDVR0VBAMKAQEwcgIBAxgPMjAxNTAxMDEwMDAwMDBaMFww
+GAYDVR0YBBEYDzIwMTUwMTAxMDAwMDAwWjA0BgNVHR0ELTArpCkwJzELMAkGA1UE
+BhMCVVMxGDAWBgNVBAMMD2NyeXB0b2dyYXBoeS5pbzAKBgNVHRUEAwoBAjByAgEE
+GA8yMDE1MDEwMTAwMDAwMFowXDAYBgNVHRgEERgPMjAxNTAxMDEwMDAwMDBaMDQG
+A1UdHQQtMCukKTAnMQswCQYDVQQGEwJVUzEYMBYGA1UEAwwPY3J5cHRvZ3JhcGh5
+LmlvMAoGA1UdFQQDCgEDMHICAQUYDzIwMTUwMTAxMDAwMDAwWjBcMBgGA1UdGAQR
+GA8yMDE1MDEwMTAwMDAwMFowNAYDVR0dBC0wK6QpMCcxCzAJBgNVBAYTAlVTMRgw
+FgYDVQQDDA9jcnlwdG9ncmFwaHkuaW8wCgYDVR0VBAMKAQQwcgIBBhgPMjAxNTAx
+MDEwMDAwMDBaMFwwGAYDVR0YBBEYDzIwMTUwMTAxMDAwMDAwWjA0BgNVHR0ELTAr
+pCkwJzELMAkGA1UEBhMCVVMxGDAWBgNVBAMMD2NyeXB0b2dyYXBoeS5pbzAKBgNV
+HRUEAwoBBTByAgEHGA8yMDE1MDEwMTAwMDAwMFowXDAYBgNVHRgEERgPMjAxNTAx
+MDEwMDAwMDBaMDQGA1UdHQQtMCukKTAnMQswCQYDVQQGEwJVUzEYMBYGA1UEAwwP
+Y3J5cHRvZ3JhcGh5LmlvMAoGA1UdFQQDCgEGMHICAQgYDzIwMTUwMTAxMDAwMDAw
+WjBcMBgGA1UdGAQRGA8yMDE1MDEwMTAwMDAwMFowNAYDVR0dBC0wK6QpMCcxCzAJ
+BgNVBAYTAlVTMRgwFgYDVQQDDA9jcnlwdG9ncmFwaHkuaW8wCgYDVR0VBAMKAQgw
+cgIBCRgPMjAxNTAxMDEwMDAwMDBaMFwwGAYDVR0YBBEYDzIwMTUwMTAxMDAwMDAw
+WjA0BgNVHR0ELTArpCkwJzELMAkGA1UEBhMCVVMxGDAWBgNVBAMMD2NyeXB0b2dy
+YXBoeS5pbzAKBgNVHRUEAwoBCTByAgEKGA8yMDE1MDEwMTAwMDAwMFowXDAYBgNV
+HRgEERgPMjAxNTAxMDEwMDAwMDBaMDQGA1UdHQQtMCukKTAnMQswCQYDVQQGEwJV
+UzEYMBYGA1UEAwwPY3J5cHRvZ3JhcGh5LmlvMAoGA1UdFQQDCgEKMC4CAQsYDzIw
+MTUwMTAxMDAwMDAwWjAYMAoGA1UdFQQDCgEBMAoGAyoDBAQDCgEAMA0GCSqGSIb3
+DQEBCwUAA4IBAQBTaloHlPaCZzYee8LxkWej5meiqxQVNWFoVdjesroa+f1FRrH+
+drRU60Nq97KCKf7f9GNN/J3ZIlQmYhmuDqh12f+XLpotoj1ZRfBz2hjFCkJlv+2c
+oWWGNHgA70ndFoVtcmX088SYpX8E3ARATivS4q2h9WlwV6rO93mhg3HGIe3JpcK4
+7BcW6Poi/ut/zsDOkVbI00SqaujRpdmdCTht82MH3ztjyDkI9KYaD/YEweKSrWOz
+SdEILd164bfBeLuplVI+xpmTEMVNpXBlSXl7+xIw9Vk7p7Q1Pa3k/SvhOldYCm6y
+C1xAg/AAq6w78yzYt18j5Mj0s6eeHi1YpHKw
+-----END X509 CRL-----
+""")
+
 
 # A broken RSA private key which can be used to test the error path through
 # PKey.check.
@@ -2933,9 +2972,34 @@ class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):
         self.assertTrue(isinstance(blob, binary_type))
 
 
+class TestRevoked(object):
+    """
+    Please add test cases for the Revoked class here if possible. This class
+    holds the new py.test style tests.
+    """
+    def test_ignores_unsupported_revoked_cert_extension_get_reason(self):
+        """
+        The get_reason method on the Revoked class checks to see if the
+        extension is NID_crl_reason and should skip it otherwise. This test
+        loads a CRL with extensions it should ignore.
+        """
+        crl = load_crl(FILETYPE_PEM, crlDataUnsupportedExtension)
+        revoked = crl.get_revoked()
+        reason = revoked[1].get_reason()
+        assert reason == b'Unspecified'
+
+    def test_ignores_unsupported_revoked_cert_extension_set_new_reason(self):
+        crl = load_crl(FILETYPE_PEM, crlDataUnsupportedExtension)
+        revoked = crl.get_revoked()
+        revoked[1].set_reason(None)
+        reason = revoked[1].get_reason()
+        assert reason is None
+
+
 class RevokedTests(TestCase):
     """
-    Tests for :py:obj:`OpenSSL.crypto.Revoked`
+    Tests for :py:obj:`OpenSSL.crypto.Revoked`. Please add test cases to
+    TestRevoked above if possible.
     """
 
     def test_construction(self):

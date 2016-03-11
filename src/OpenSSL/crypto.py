@@ -697,7 +697,9 @@ class X509Extension(object):
 
     @property
     def _nid(self):
-        return _lib.OBJ_obj2nid(self._extension.object)
+        return _lib.OBJ_obj2nid(
+            _lib.X509_EXTENSION_get_object(self._extension)
+        )
 
     _prefixes = {
         _lib.GEN_EMAIL: "email",
@@ -710,8 +712,9 @@ class X509Extension(object):
         if method == _ffi.NULL:
             # TODO: This is untested.
             _raise_current_error()
-        payload = self._extension.value.data
-        length = self._extension.value.length
+        ext_data = _lib.X509_EXTENSION_get_data(self._extension)
+        payload = ext_data.data
+        length = ext_data.length
 
         payloadptr = _ffi.new("unsigned char**")
         payloadptr[0] = payload
@@ -1784,7 +1787,8 @@ class Revoked(object):
         stack = self._revoked.extensions
         for i in range(_lib.sk_X509_EXTENSION_num(stack)):
             ext = _lib.sk_X509_EXTENSION_value(stack, i)
-            if _lib.OBJ_obj2nid(ext.object) == _lib.NID_crl_reason:
+            obj = _lib.X509_EXTENSION_get_object(ext)
+            if _lib.OBJ_obj2nid(obj) == _lib.NID_crl_reason:
                 _lib.X509_EXTENSION_free(ext)
                 _lib.sk_X509_EXTENSION_delete(stack, i)
                 break
@@ -1847,13 +1851,14 @@ class Revoked(object):
         extensions = self._revoked.extensions
         for i in range(_lib.sk_X509_EXTENSION_num(extensions)):
             ext = _lib.sk_X509_EXTENSION_value(extensions, i)
-            if _lib.OBJ_obj2nid(ext.object) == _lib.NID_crl_reason:
+            obj = _lib.X509_EXTENSION_get_object(ext)
+            if _lib.OBJ_obj2nid(obj) == _lib.NID_crl_reason:
                 bio = _new_mem_buf()
 
                 print_result = _lib.X509V3_EXT_print(bio, ext, 0, 0)
                 if not print_result:
                     print_result = _lib.M_ASN1_OCTET_STRING_print(
-                        bio, ext.value
+                        bio, _lib.X509_EXTENSION_get_data(ext)
                     )
                     if print_result == 0:
                         # TODO: This is untested.
