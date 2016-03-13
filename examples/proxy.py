@@ -8,14 +8,19 @@
 #
 # $Id: proxy.py,v 1.2 2004/07/22 12:01:25 martin Exp $
 
-import sys, socket, string
+import sys
+import socket
+import string
+
 from OpenSSL import SSL
+
 
 def usage(exit_code=0):
     print "Usage: %s server[:port] proxy[:port]" % sys.argv[0]
     print "  Connects SSL to the specified server (port 443 by default)"
     print "    using the specified proxy (port 8080 by default)"
     sys.exit(exit_code)
+
 
 def main():
     # Command-line processing
@@ -26,12 +31,13 @@ def main():
 
     run(split_host(server, 443), split_host(proxy, 8080))
 
+
 def split_host(hostname, default_port=80):
     a = string.split(hostname, ':', 1)
     if len(a) == 1:
         a.append(default_port)
     return a[0], int(a[1])
-    
+
 
 # Connects to the server, through the proxy
 def run(server, proxy):
@@ -65,6 +71,7 @@ def run(server, proxy):
             break
 
         print buff,
+
 
 if __name__ == '__main__':
     main()

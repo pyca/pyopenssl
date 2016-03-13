@@ -8,8 +8,12 @@
 Simple SSL client, using blocking I/O
 """
 
+import os
+import socket
+import sys
+
 from OpenSSL import SSL, crypto
-import sys, os, select, socket
+
 
 def verify_cb(conn, cert, errnum, depth, ok):
     certsubject = crypto.X509Name(cert.get_subject())
@@ -17,20 +21,23 @@ def verify_cb(conn, cert, errnum, depth, ok):
     print('Got certificate: ' + commonname)
     return ok
 
+
 if len(sys.argv) < 3:
     print('Usage: python client.py HOST PORT')
     sys.exit(1)
+
 
 dir = os.path.dirname(sys.argv[0])
 if dir == '':
     dir = os.curdir
 
+
 # Initialize context
 ctx = SSL.Context(SSL.SSLv23_METHOD)
 ctx.set_options(SSL.OP_NO_SSLv2)
 ctx.set_options(SSL.OP_NO_SSLv3)
-ctx.set_verify(SSL.VERIFY_PEER, verify_cb) # Demand a certificate
-ctx.use_privatekey_file (os.path.join(dir, 'client.pkey'))
+ctx.set_verify(SSL.VERIFY_PEER, verify_cb)  # Demand a certificate
+ctx.use_privatekey_file(os.path.join(dir, 'client.pkey'))
 ctx.use_certificate_file(os.path.join(dir, 'client.cert'))
 ctx.load_verify_locations(os.path.join(dir, 'CA.cert'))
 

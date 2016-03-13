@@ -20,6 +20,8 @@ Contents:
    api
    internals
 
+There are also `examples in the pyOpenSSL repository <https://github.com/pyca/pyopenssl/tree/master/examples>`_ that may help you getting started.
+
 
 Meta
 ----

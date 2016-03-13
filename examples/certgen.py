@@ -13,6 +13,7 @@ from OpenSSL import crypto
 TYPE_RSA = crypto.TYPE_RSA
 TYPE_DSA = crypto.TYPE_DSA
 
+
 def createKeyPair(type, bits):
     """
     Create a public/private key pair.
@@ -24,6 +25,7 @@ def createKeyPair(type, bits):
     pkey = crypto.PKey()
     pkey.generate_key(type, bits)
     return pkey
+
 
 def createCertRequest(pkey, digest="sha256", **name):
     """
@@ -52,7 +54,9 @@ def createCertRequest(pkey, digest="sha256", **name):
     req.sign(pkey, digest)
     return req
 
-def createCertificate(req, issuerCertKey, serial, validityPeriod, digest="sha256"):
+
+def createCertificate(req, issuerCertKey, serial, validityPeriod,
+                      digest="sha256"):
     """
     Generate a certificate given a certificate request.
 
@@ -78,4 +82,3 @@ def createCertificate(req, issuerCertKey, serial, validityPeriod, digest="sha256
     cert.set_pubkey(req.get_pubkey())
     cert.sign(issuerKey, digest)
     return cert
-
