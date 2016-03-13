@@ -14,7 +14,7 @@ __all__ = [
 __version__ = "16.0.0.dev0"
 
 __title__ = "pyOpenSSL"
-__uri__ = "https://github.com/pyca/pyopenssl"
+__uri__ = "https://pyopenssl.readthedocs.org/"
 __summary__ = "Python wrapper module around the OpenSSL library"
 __author__ = "The pyOpenSSL developers"
 __email__ = "cryptography-dev@python.org"
