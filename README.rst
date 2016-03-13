@@ -1,5 +1,6 @@
+========================================================
 pyOpenSSL -- A Python wrapper around the OpenSSL library
---------------------------------------------------------
+========================================================
 
 .. image:: https://readthedocs.org/projects/pyopenssl/badge/?version=latest
    :target: https://pyopenssl.readthedocs.org/

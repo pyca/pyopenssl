@@ -66,7 +66,7 @@ When introducing new functionality, please remember to write documentation.
 
   .. code-block:: rst
 
-     - Added :func:`OpenSSL.crypto.some_func` to do something awesome.
+     - Added ``OpenSSL.crypto.some_func()`` to do something awesome.
        [`#1 <https://github.com/pyca/pyopenssl/pull/1>`_]
 
 

@@ -44,17 +44,29 @@ def find_meta(meta):
     raise RuntimeError("Unable to find __{meta}__ string.".format(meta=meta))
 
 
+URI = find_meta("uri")
+LONG = (
+    read_file("README.rst") + "\n\n" +
+    "Release Information\n" +
+    "===================\n\n" +
+    re.search("(\d{2}.\d.\d \(.*?\)\n.*?)\n\n\n----\n",
+              read_file("CHANGELOG.rst"), re.S).group(1) +
+    "\n\n`Full changelog " +
+    "<{uri}en/stable/changelog.html>`_.\n\n"
+).format(uri=URI)
+
+
 if __name__ == "__main__":
     setup(
         name=find_meta("title"),
         version=find_meta("version"),
         description=find_meta("summary"),
-        long_description=read_file("README.rst"),
+        long_description=LONG,
         author=find_meta("author"),
         author_email=find_meta("email"),
         maintainer="Hynek Schlawack",
         maintainer_email="hs@ox.cx",
-        url=find_meta("uri"),
+        url=URI,
         license=find_meta("license"),
         classifiers=[
             'Development Status :: 6 - Mature',

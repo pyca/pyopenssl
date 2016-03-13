@@ -1,7 +1,7 @@
 Changelog
 =========
 
-Versions are year-based with a strict :doc:`backward-compatibility` policy.
+Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
 
@@ -28,9 +28,9 @@ Deprecations:
 ^^^^^^^^^^^^^
 
 - The support for EGD has been removed.
-  The only affected function :func:`OpenSSL.rand.egd` now uses :func:`os.urandom` to seed the internal PRNG instead.
+  The only affected function ``OpenSSL.rand.egd()`` now uses ``os.urandom()`` to seed the internal PRNG instead.
   Please see `pyca/cryptography#1636 <https://github.com/pyca/cryptography/pull/1636>`_ for more background information on this decision.
-  In accordance with our backward compatibility policy :func:`OpenSSL.rand.egd` will be *removed* no sooner than a year from the release of 16.0.0.
+  In accordance with our backward compatibility policy ``OpenSSL.rand.egd()`` will be *removed* no sooner than a year from the release of 16.0.0.
 
   Please note that you should `use urandom <http://sockpuppet.org/blog/2014/02/25/safely-generate-random-numbers/>`_ for all your secure random number needs.
 - Python 2.6 support has been deprecated.
@@ -42,26 +42,28 @@ Changes:
 ^^^^^^^^
 
 - Fixed segmentation fault when using keys larger than 4096-bit to sign data.
-  [`#428 <https://github.com/pyca/pyopenssl/pull/428>`_]
-- Fixed ``AttributeError`` when :meth:`OpenSSL.SSL.Connection.get_app_data` was called before setting any app data.
-  [`#304 <https://github.com/pyca/pyopenssl/pull/304>`_]
-- Added :func:`OpenSSL.crypto.dump_publickey` to dump :class:`OpenSSL.crypto.PKey` objects that represent public keys, and :func:`OpenSSL.crypto.load_publickey` to load such objects from serialized representations.
-  [`#382 <https://github.com/pyca/pyopenssl/pull/382>`_]
-- Added :func:`OpenSSL.crypto.dump_crl` to dump a certificate revocation list out to a string buffer.
-  [`#368 <https://github.com/pyca/pyopenssl/pull/368>`_]
-- Added :meth:`OpenSSL.SSL.Connection.state_string` using the OpenSSL binding ``state_string_long``.
-  [`#358 <https://github.com/pyca/pyopenssl/pull/358>`_]
-- Added support for the ``socket.MSG_PEEK`` flag to :meth:`OpenSSL.SSL.Connection.recv` and :meth:`OpenSSL.SSL.Connection.recv_into`.
-  [`#294 <https://github.com/pyca/pyopenssl/pull/294>`_]
-- Added :meth:`OpenSSL.SSL.Connection.get_protocol_version` and :meth:`OpenSSL.SSL.Connection.get_protocol_version_name`.
-  [`#244 <https://github.com/pyca/pyopenssl/pull/244>`_]
-- Switched to utf8string mask by default.
-  OpenSSL formerly defaulted to a T61String if there were UTF-8 characters present.
-  This was changed to default to UTF8String in the config around 2005, but the actual code didn't change it until late last year.
+  `#428 <https://github.com/pyca/pyopenssl/pull/428>`_
+- Fixed ``AttributeError`` when ``OpenSSL.SSL.Connection.get_app_data()`` was called before setting any app data.
+  `#304 <https://github.com/pyca/pyopenssl/pull/304>`_
+- Added ``OpenSSL.crypto.dump_publickey()`` to dump ``OpenSSL.crypto.PKey`` objects that represent public keys, and ``OpenSSL.crypto.load_publickey()`` to load such objects from serialized representations.
+  `#382 <https://github.com/pyca/pyopenssl/pull/382>`_
+- Added ``OpenSSL.crypto.dump_crl()`` to dump a certificate revocation list out to a string buffer.
+  `#368 <https://github.com/pyca/pyopenssl/pull/368>`_
+- Added ``OpenSSL.SSL.Connection.state_string()`` using the OpenSSL binding ``state_string_long``.
+  `#358 <https://github.com/pyca/pyopenssl/pull/358>`_
+- Added support for the ``socket.MSG_PEEK`` flag to ``OpenSSL.SSL.Connection.recv()`` and ``OpenSSL.SSL.Connection.recv_into()``.
+  `#294 <https://github.com/pyca/pyopenssl/pull/294>`_
+- Added ``OpenSSL.SSL.Connection.get_protocol_version()`` and ``OpenSSL.SSL.Connection.get_protocol_version_name()``.
+  `#244 <https://github.com/pyca/pyopenssl/pull/244>`_
+- Switched to ``utf8string`` mask by default.
+  OpenSSL formerly defaulted to a ``T61String`` if there were UTF-8 characters present.
+  This was changed to default to ``UTF8String`` in the config around 2005, but the actual code didn't change it until late last year.
   This will default us to the setting that actually works.
   To revert this you can call ``OpenSSL.crypto._lib.ASN1_STRING_set_default_mask_asc(b"default")``.
-  [`#234 <https://github.com/pyca/pyopenssl/pull/234>`_]
+  `#234 <https://github.com/pyca/pyopenssl/pull/234>`_
 
+
+----
 
 
 Older Changelog Entries
