@@ -770,10 +770,7 @@ Connection objects have the following methods:
     BIO.
 
 
-.. py:method:: Connection.state_string()
-
-    Retrieve a verbose string detailing the state of the Connection.
-
+.. automethod:: Connection.get_state_string
 
 .. py:method:: Connection.client_random()
 

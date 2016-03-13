@@ -1590,11 +1590,12 @@ class Connection(object):
 
         _lib.SSL_set_shutdown(self._ssl, state)
 
-    def state_string(self):
+    def get_state_string(self):
         """
-        Get a verbose state description
+        Retrieve a verbose string detailing the state of the Connection.
 
         :return: A string representing the state
+        :rtype: bytes
         """
         return _ffi.string(_lib.SSL_state_string_long(self._ssl))
 
