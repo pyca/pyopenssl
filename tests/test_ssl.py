@@ -356,6 +356,11 @@ def context():
 
 
 class TestContext(object):
+    """
+    py.test-based tests for :class:`OpenSSL.SSL.Context`.
+
+    If possible, add new tests here.
+    """
     @pytest.mark.parametrize("cipher_string", [
         b"hello world:AES128-SHA",
         u"hello world:AES128-SHA",
@@ -387,7 +392,9 @@ class TestContext(object):
 
 class ContextTests(TestCase, _LoopbackMixin):
     """
-    Unit tests for :py:obj:`OpenSSL.SSL.Context`.
+    Unit tests for :class:`OpenSSL.SSL.Context`.
+
+    If possible, add new tests to :class:`TestContext` above.
     """
     def test_method(self):
         """
@@ -2016,7 +2023,7 @@ class SessionTests(TestCase):
 
 class ConnectionTests(TestCase, _LoopbackMixin):
     """
-    Unit tests for :py:obj:`OpenSSL.SSL.Connection`.
+    Unit tests for :class:`OpenSSL.SSL.Connection`.
     """
     # XXX get_peer_certificate -> None
     # XXX sock_shutdown
