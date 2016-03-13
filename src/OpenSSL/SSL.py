@@ -10,14 +10,14 @@ from six import integer_types as integer_types
 from six import int2byte, indexbytes
 
 from OpenSSL._util import (
+    UNSPECIFIED as _UNSPECIFIED,
+    exception_from_error_queue as _exception_from_error_queue,
     ffi as _ffi,
     lib as _lib,
-    exception_from_error_queue as _exception_from_error_queue,
-    native as _native,
     make_assert as _make_assert,
-    text_to_bytes_and_warn as _text_to_bytes_and_warn,
+    native as _native,
     path_string as _path_string,
-    UNSPECIFIED as _UNSPECIFIED,
+    text_to_bytes_and_warn as _text_to_bytes_and_warn,
 )
 
 from OpenSSL.crypto import (

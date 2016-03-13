@@ -34,7 +34,6 @@ def exception_from_error_queue(exception_type):
     associated with the current thread. The err library provides functions to
     obtain these error codes and textual error messages.
     """
-
     errors = []
 
     while True:
@@ -56,7 +55,7 @@ def make_assert(error):
     """
     def openssl_assert(ok):
         """
-        If ok is not true-ish, retrieve the error from OpenSSL and raise it.
+        If *ok* is not True, retrieve the error from OpenSSL and raise it.
         """
         if ok is not True:
             exception_from_error_queue(error)
