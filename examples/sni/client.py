@@ -1,14 +1,11 @@
 # Copyright (C) Jean-Paul Calderone
 # See LICENSE for details.
 
-if __name__ == '__main__':
-    import client
-    raise SystemExit(client.main())
-
 from sys import argv, stdout
 from socket import socket
 
 from OpenSSL.SSL import TLSv1_METHOD, Context, Connection
+
 
 def main():
     """
@@ -33,3 +30,7 @@ def main():
     print 'Server subject is', client_ssl.get_peer_certificate().get_subject()
     client_ssl.close()
 
+
+if __name__ == '__main__':
+    import client
+    raise SystemExit(client.main())

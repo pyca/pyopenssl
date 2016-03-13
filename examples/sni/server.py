@@ -1,15 +1,12 @@
 # Copyright (C) Jean-Paul Calderone
 # See LICENSE for details.
 
-if __name__ == '__main__':
-    import server
-    raise SystemExit(server.main())
-
 from sys import stdout
 from socket import SOL_SOCKET, SO_REUSEADDR, socket
 
 from OpenSSL.crypto import FILETYPE_PEM, load_privatekey, load_certificate
 from OpenSSL.SSL import TLSv1_METHOD, Context, Connection
+
 
 def load(domain):
     crt = open(domain + ".crt")
@@ -49,7 +46,7 @@ def main():
 certificates = {
     "example.invalid": load("example.invalid"),
     "another.invalid": load("another.invalid"),
-    }
+}
 
 
 def pick_certificate(connection):
@@ -62,3 +59,7 @@ def pick_certificate(connection):
         new_context.use_privatekey(key)
         new_context.use_certificate(cert)
         connection.set_context(new_context)
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
