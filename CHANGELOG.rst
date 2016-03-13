@@ -30,11 +30,12 @@ Deprecations:
 - The support for EGD has been removed.
   The only affected function :func:`OpenSSL.rand.egd` now uses :func:`os.urandom` to seed the internal PRNG instead.
   Please see `pyca/cryptography#1636 <https://github.com/pyca/cryptography/pull/1636>`_ for more background information on this decision.
+  In accordance with our backward compatibility policy :func:`OpenSSL.rand.egd` will be *removed* no sooner than a year from the release of 16.0.0.
 
   Please note that you should `use urandom <http://sockpuppet.org/blog/2014/02/25/safely-generate-random-numbers/>`_ for all your secure random number needs.
-
-
-In accordance with our backward compatibility policy :func:`OpenSSL.rand.egd` will be *removed* no sooner than a year from the release of 16.0.0.
+- Python 2.6 support has been deprecated.
+  Our main dependency ``cryptography`` deprecated 2.6 in version 0.9 (2015-05-14) with no time table for actually dropping it.
+  pyOpenSSL will drop Python 2.6 support once ``cryptography`` does.
 
 
 Changes:
