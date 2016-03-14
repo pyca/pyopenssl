@@ -1,4 +1,4 @@
-include             LICENSE MANIFEST.in *.rst tox.ini docs-requirements.txt .coveragerc
+include             LICENSE MANIFEST.in *.rst tox.ini docs-requirements.txt .coveragerc conftest.py
 exclude             leakcheck
 recursive-include   tests       *.py
 recursive-include   doc         *
