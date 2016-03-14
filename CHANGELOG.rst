@@ -49,7 +49,7 @@ Changes:
   `#382 <https://github.com/pyca/pyopenssl/pull/382>`_
 - Added ``OpenSSL.crypto.dump_crl()`` to dump a certificate revocation list out to a string buffer.
   `#368 <https://github.com/pyca/pyopenssl/pull/368>`_
-- Added ``OpenSSL.SSL.Connection.state_string()`` using the OpenSSL binding ``state_string_long``.
+- Added ``OpenSSL.SSL.Connection.get_state_string()`` using the OpenSSL binding ``state_string_long``.
   `#358 <https://github.com/pyca/pyopenssl/pull/358>`_
 - Added support for the ``socket.MSG_PEEK`` flag to ``OpenSSL.SSL.Connection.recv()`` and ``OpenSSL.SSL.Connection.recv_into()``.
   `#294 <https://github.com/pyca/pyopenssl/pull/294>`_
