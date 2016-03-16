@@ -41,9 +41,9 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-- Fixed :meth:`OpenSSL.SSL.Context.set_session_id`, :meth:`OpenSSL.SSL.Connection.renegotiate`, :meth:`OpenSSL.SSL.Connection.renegotiate_pending`, and :meth:`OpenSSL.SSL.Context.load_client_ca`.
+- Fixed ``OpenSSL.SSL.Context.set_session_id``, ``OpenSSL.SSL.Connection.renegotiate``, ``OpenSSL.SSL.Connection.renegotiate_pending``, and ``OpenSSL.SSL.Context.load_client_ca``.
   They were lacking an implementation since 0.14.
-  [`#422 <https://github.com/pyca/pyopenssl/pull/422>`_]
+  `#422 <https://github.com/pyca/pyopenssl/pull/422>`_
 - Fixed segmentation fault when using keys larger than 4096-bit to sign data.
   `#428 <https://github.com/pyca/pyopenssl/pull/428>`_
 - Fixed ``AttributeError`` when ``OpenSSL.SSL.Connection.get_app_data()`` was called before setting any app data.
