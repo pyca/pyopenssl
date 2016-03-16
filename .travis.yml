@@ -60,9 +60,11 @@ matrix:
     env: TOXENV=pypy-cryptography1.1
 
 
-  # Make sure we don't break Twisted
+  # Make sure we don't break Twisted or urllib3
   - python: "2.7"
     env: TOXENV=py27-twistedMaster
+  - python: "3.5"
+    env: TOXENV=py35-urllib3Master
 
 
   # Also run at least a little bit against an older version of OpenSSL.
