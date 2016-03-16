@@ -47,17 +47,17 @@ matrix:
 
   # And older cryptography versions.
   - python: "2.6"
-    env: TOXENV=py26-cryptography1.1
+    env: TOXENV=py26-cryptography1.2
   - python: "2.7"
-    env: TOXENV=py27-cryptography1.1
+    env: TOXENV=py27-cryptography1.2
   - python: "3.3"
-    env: TOXENV=py33-cryptography1.1
+    env: TOXENV=py33-cryptography1.2
   - python: "3.4"
-    env: TOXENV=py34-cryptography1.1
+    env: TOXENV=py34-cryptography1.2
   - python: "3.5"
-    env: TOXENV=py35-cryptography1.1
+    env: TOXENV=py35-cryptography1.2
   - python: "pypy"
-    env: TOXENV=pypy-cryptography1.1
+    env: TOXENV=pypy-cryptography1.2
 
 
   # Make sure we don't break Twisted or urllib3
