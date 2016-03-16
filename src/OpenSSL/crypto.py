@@ -270,12 +270,7 @@ class PKey(object):
 
         :return: The type of the key.
         """
-        try:
-            # cryptography 1.2+
-            return _lib.Cryptography_EVP_PKEY_id(self._pkey)
-        except AttributeError:
-            # Older releases of cryptography.
-            return self._pkey.type
+        return _lib.Cryptography_EVP_PKEY_id(self._pkey)
 
     def bits(self):
         """
