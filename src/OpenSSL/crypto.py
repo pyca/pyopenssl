@@ -2318,7 +2318,7 @@ class NetscapeSPKI(object):
         """
         encoded = _lib.NETSCAPE_SPKI_b64_encode(self._spki)
         result = _ffi.string(encoded)
-        _lib.CRYPTO_free(encoded)
+        _lib.OPENSSL_free(encoded)
         return result
 
     def get_pubkey(self):
