@@ -49,7 +49,7 @@ class TestCase(TestCase):
         # Clean up some long-lived allocations so they won't be reported as
         # memory leaks.
         lib.CRYPTO_cleanup_all_ex_data()
-        lib.ERR_remove_thread_state(ffi.NULL)
+        lib.ERR_clear_error()
         after = set(memdbg.heap)
 
         if not after - before:
@@ -64,7 +64,7 @@ class TestCase(TestCase):
             # Clean up some long-lived allocations so they won't be reported as
             # memory leaks.
             lib.CRYPTO_cleanup_all_ex_data()
-            lib.ERR_remove_thread_state(ffi.NULL)
+            lib.ERR_clear_error()
 
             after = set(memdbg.heap)
 
