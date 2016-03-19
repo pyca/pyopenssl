@@ -313,7 +313,7 @@ https://www.openssl.org/docs/manmaster/crypto/EVP_DigestInit.html
 Backwards compatible type names
 -------------------------------
 
-When PyOpenSSL was originally written, the most current version of Python was 2.1.
+When pyOpenSSL was originally written, the most current version of Python was 2.1.
 It made a distinction between classes and types.
 None of the versions of Python currently supported by pyOpenSSL still enforce that distinction:
 the type of an instance of an :class:`X509` object is now simply :class:`X509`.
