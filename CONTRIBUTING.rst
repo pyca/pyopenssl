@@ -107,7 +107,7 @@ Feel free to cross-check this information with Keybase_.
 
 
 .. _GitHub issue tracker: https://github.com/pyca/pyopenssl/issues
-.. _GPG: http://en.wikipedia.org/wiki/GNU_Privacy_Guard
+.. _GPG: https://en.wikipedia.org/wiki/GNU_Privacy_Guard
 .. _Keybase: https://keybase.io/hynek
 .. _pyca/pyopenssl: https://github.com/pyca/pyopenssl
 .. _PEP 8: https://www.python.org/dev/peps/pep-0008/
@@ -117,6 +117,6 @@ Feel free to cross-check this information with Keybase_.
 .. _mailing list: https://mail.python.org/mailman/listinfo/cryptography-dev
 .. _members of PyCA: https://github.com/orgs/pyca/people
 .. _semantic newlines: http://rhodesmill.org/brandon/2012/one-sentence-per-line/
-.. _reStructuredText: http://sphinx-doc.org/rest.htm
+.. _reStructuredText: http://sphinx-doc.org/rest.html
 .. _CHANGELOG.rst: https://github.com/pyca/pyopenssl/blob/master/CHANGELOG.rst
 .. _`Code of Conduct`: https://github.com/pyca/pyopenssl/blob/master/CODE_OF_CONDUCT.rst

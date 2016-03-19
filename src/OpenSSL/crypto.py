@@ -635,8 +635,7 @@ class X509Extension(object):
         """
         Initializes an X509 extension.
 
-        :param type_name: The name of the type of extension to create. See
-            http://openssl.org/docs/apps/x509v3_config.html#STANDARD_EXTENSIONS
+        :param type_name: The name of the type of extension_ to create.
         :type type_name: :py:data:`bytes`
 
         :param bool critical: A flag indicating whether this is a critical
@@ -650,6 +649,9 @@ class X509Extension(object):
 
         :param issuer: Optional X509 certificate to use as issuer.
         :type issuer: :py:class:`X509`
+
+        .. _extension: https://openssl.org/docs/manmaster/apps/
+            x509v3_config.html#STANDARD-EXTENSIONS
         """
         ctx = _ffi.new("X509V3_CTX*")
 
