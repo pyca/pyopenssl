@@ -406,50 +406,41 @@ def SSLeay_version(type):
     return _ffi.string(_lib.SSLeay_version(type))
 
 
-def _requires_npn(func):
+def _make_requires(flag, error):
     """
-    Wraps any function that requires NPN support in OpenSSL, ensuring that
-    NotImplementedError is raised if NPN is not present.
+    Builds a decorator that ensures that functions that rely on OpenSSL
+    functions that are not present in this build raise NotImplementedError,
+    rather than AttributeError coming out of cryptography.
+
+    :param flag: A cryptography flag that guards the functions, e.g.
+        ``Cryptography_HAS_NEXTPROTONEG``.
+    :param error: The string to be used in the exception if the flag is false.
     """
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if not _lib.Cryptography_HAS_NEXTPROTONEG:
-            raise NotImplementedError("NPN not available.")
+    def _requires_decorator(func):
+        if not flag:
+            @wraps(func)
+            def explode(*args, **kwargs):
+                raise NotImplementedError(error)
+            return explode
+        else:
+            return func
 
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
-def _requires_alpn(func):
-    """
-    Wraps any function that requires ALPN support in OpenSSL, ensuring that
-    NotImplementedError is raised if ALPN support is not present.
-    """
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if not _lib.Cryptography_HAS_ALPN:
-            raise NotImplementedError("ALPN not available.")
-
-        return func(*args, **kwargs)
-
-    return wrapper
+    return _requires_decorator
 
 
-def _requires_sni(func):
-    """
-    Wraps any function that requires SNI support in OpenSSL, ensuring that
-    NotImplementedError is raised if SNI support is not present. This applies
-    to OpenSSL versions older than 1.0.0.
-    """
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if not _lib.Cryptography_HAS_TLSEXT_HOSTNAME:
-            raise NotImplementedError("SNI not available: OpenSSL too old.")
+_requires_npn = _make_requires(
+    _lib.Cryptography_HAS_NEXTPROTONEG, "NPN not available"
+)
 
-        return func(*args, **kwargs)
 
-    return wrapper
+_requires_alpn = _make_requires(
+    _lib.Cryptography_HAS_ALPN, "ALPN not available"
+)
+
+
+_requires_sni = _make_requires(
+    _lib.Cryptography_HAS_TLSEXT_HOSTNAME, "SNI not available"
+)
 
 
 class Session(object):
