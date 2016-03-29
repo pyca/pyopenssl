@@ -436,6 +436,22 @@ def _requires_alpn(func):
     return wrapper
 
 
+def _requires_sni(func):
+    """
+    Wraps any function that requires SNI support in OpenSSL, ensuring that
+    NotImplementedError is raised if SNI support is not present. This applies
+    to OpenSSL versions older than 1.0.0.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if not _lib.Cryptography_HAS_TLSEXT_HOSTNAME:
+            raise NotImplementedError("SNI not available: OpenSSL too old.")
+
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
 class Session(object):
     pass
 
@@ -991,6 +1007,7 @@ class Context(object):
 
         return _lib.SSL_CTX_set_mode(self._context, mode)
 
+    @_requires_sni
     def set_tlsext_servername_callback(self, callback):
         """
         Specify a callback function to be called when clients specify a server
@@ -1209,6 +1226,7 @@ class Connection(object):
         _lib.SSL_set_SSL_CTX(self._ssl, context._context)
         self._context = context
 
+    @_requires_sni
     def get_servername(self):
         """
         Retrieve the servername extension value if provided in the client hello
@@ -1224,6 +1242,7 @@ class Connection(object):
 
         return _ffi.string(name)
 
+    @_requires_sni
     def set_tlsext_host_name(self, name):
         """
         Set the value of the servername extension to send in the client hello.
