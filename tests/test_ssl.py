@@ -3856,10 +3856,10 @@ class InfoConstantTests(TestCase):
             self.assertTrue(isinstance(const, int))
 
 
-class TestRequires(TestCase):
+class TestRequires(object):
     """
     Tests for the decorator factory used to conditionally raise
-    NotImplementedError when older OpenSSL's are used.
+    NotImplementedError when older OpenSSLs are used.
     """
     def test_available(self):
         """
@@ -3874,8 +3874,8 @@ class TestRequires(TestCase):
             results.append(True)
             return True
 
-        self.assertTrue(inner())
-        self.assertEqual(results, [True])
+        assert inner()
+        assert results == [True]
 
     def test_unavailable(self):
         """
@@ -3890,8 +3890,11 @@ class TestRequires(TestCase):
             results.append(True)
             return True
 
-        self.assertRaises(NotImplementedError, inner)
-        self.assertFalse(results)
+        with pytest.raises(NotImplementedError) as e:
+            inner()
+
+        assert "Error text" in str(e.value)
+        assert not results
 
 
 if __name__ == '__main__':
