@@ -3874,8 +3874,8 @@ class TestRequires(object):
             results.append(True)
             return True
 
-        assert inner()
-        assert results == [True]
+        assert inner() is True
+        assert [True] == results
 
     def test_unavailable(self):
         """
@@ -3894,7 +3894,7 @@ class TestRequires(object):
             inner()
 
         assert "Error text" in str(e.value)
-        assert not results
+        assert results == []
 
 
 if __name__ == '__main__':
