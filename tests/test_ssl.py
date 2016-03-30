@@ -55,6 +55,7 @@ from OpenSSL.SSL import (
     Error, SysCallError, WantReadError, WantWriteError, ZeroReturnError)
 from OpenSSL.SSL import (
     Context, ContextType, Session, Connection, ConnectionType, SSLeay_version)
+from OpenSSL.SSL import _make_requires
 
 from OpenSSL._util import lib as _lib
 
@@ -3853,6 +3854,44 @@ class InfoConstantTests(TestCase):
             SSL_CB_HANDSHAKE_START, SSL_CB_HANDSHAKE_DONE
         ]:
             self.assertTrue(isinstance(const, int))
+
+
+class TestRequires(TestCase):
+    """
+    Tests for the decorator factory used to conditionally raise
+    NotImplementedError when older OpenSSL's are used.
+    """
+    def test_available(self):
+        """
+        When the OpenSSL functionality is available the decorated functions
+        work appropriately.
+        """
+        feature_guard = _make_requires(True, "Error text")
+        results = []
+
+        @feature_guard
+        def inner():
+            results.append(True)
+            return True
+
+        self.assertTrue(inner())
+        self.assertEqual(results, [True])
+
+    def test_unavailable(self):
+        """
+        When the OpenSSL functionality is not available the decorated function
+        does not execute and NotImplementedError is raised.
+        """
+        feature_guard = _make_requires(False, "Error text")
+        results = []
+
+        @feature_guard
+        def inner():
+            results.append(True)
+            return True
+
+        self.assertRaises(NotImplementedError, inner)
+        self.assertFalse(results)
 
 
 if __name__ == '__main__':
