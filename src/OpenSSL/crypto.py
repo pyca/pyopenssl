@@ -1835,7 +1835,7 @@ class Revoked(object):
 
     def get_reason(self):
         """
-        Set the reason of this revocation.
+        Get the reason of this revocation.
 
         :return: The reason, or :py:const:`None` if there is none.
         :rtype: :py:class:`bytes` or :py:class:`NoneType`
