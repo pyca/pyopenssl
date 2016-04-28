@@ -3,7 +3,7 @@ pyOpenSSL -- A Python wrapper around the OpenSSL library
 ========================================================
 
 .. image:: https://readthedocs.org/projects/pyopenssl/badge/?version=stable
-   :target: https://pyopenssl.readthedocs.org/
+   :target: https://pyopenssl.readthedocs.io/
    :alt: Stable Docs
 
 .. image:: https://travis-ci.org/pyca/pyopenssl.svg?branch=master
@@ -37,7 +37,7 @@ We maintain a cryptography-dev_ mailing list for both user and development discu
 You can also join ``#cryptography-dev`` on Freenode to ask questions or get involved.
 
 
-.. _documentation: https://pyopenssl.readthedocs.org/
+.. _documentation: https://pyopenssl.readthedocs.io/
 .. _`issue tracker`: https://github.com/pyca/pyopenssl/issues
 .. _cryptography-dev: https://mail.python.org/mailman/listinfo/cryptography-dev
 .. _GitHub: https://github.com/pyca/pyopenssl
