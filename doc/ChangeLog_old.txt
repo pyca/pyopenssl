@@ -1,5 +1,5 @@
 This file only contains the changes up to release 0.15.1.  Newer changes can be
-found at <https://pyopenssl.readthedocs.org/en/latest/changelog.html>.
+found at <https://pyopenssl.readthedocs.io/en/latest/changelog.html>.
 
 ***
 
