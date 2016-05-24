@@ -222,27 +222,8 @@ PKey objects
 PKCS7 objects
 -------------
 
-PKCS7 objects have the following methods:
-
-.. py:method:: PKCS7.type_is_signed()
-
-    FIXME
-
-.. py:method:: PKCS7.type_is_enveloped()
-
-    FIXME
-
-.. py:method:: PKCS7.type_is_signedAndEnveloped()
-
-    FIXME
-
-.. py:method:: PKCS7.type_is_data()
-
-    FIXME
-
-.. py:method:: PKCS7.get_type_name()
-
-    Get the type name of the PKCS7.
+.. autoclass:: PKCS7
+               :members:
 
 .. _openssl-pkcs12:
 

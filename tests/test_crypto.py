@@ -30,7 +30,7 @@ from OpenSSL.crypto import load_publickey, dump_publickey
 from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT
 from OpenSSL.crypto import dump_certificate, load_certificate_request
 from OpenSSL.crypto import dump_certificate_request, dump_privatekey
-from OpenSSL.crypto import PKCS7Type, load_pkcs7_data
+from OpenSSL.crypto import PKCS7Type, load_pkcs7_data, PKCS7
 from OpenSSL.crypto import PKCS12, PKCS12Type, load_pkcs12
 from OpenSSL.crypto import CRL, Revoked, dump_crl, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
@@ -361,6 +361,17 @@ VwnW8YxGO8Sn6UJ4FeffZNcYZddSDKosw8LtPOeWoK3JINjAk5jiPQ2cww++7QGG
 /g5NDjxFZNDJP1dGiLAxPW6JXwov4v0FmdzfLOZ01jDcgQQZqEpYlgpuI5JEWUQ9
 Ho4EzbYCOaEAMQA=
 """)
+
+pkcs7EncryptedData = """-----BEGIN PKCS7-----
+MIIBVQYJKoZIhvcNAQcDoIIBRjCCAUICAQAxgf4wgfsCAQAwZDBYMQswCQYDVQQG
+EwJVUzELMAkGA1UECBMCSUwxEDAOBgNVBAcTB0NoaWNhZ28xEDAOBgNVBAoTB1Rl
+c3RpbmcxGDAWBgNVBAMTD1Rlc3RpbmcgUm9vdCBDQQIIPQzE4MbeufQwDQYJKoZI
+hvcNAQEBBQAEgYCsvPcbm50MJkGGcrgJjkg/ZMsZkvXukQKfcRvuc77NWqgQfMlF
+Q/WhfkaaNxqSqDi9ihc5i5YSLNyxkc5+10lh31va71KhItnpdyrvucAJuT3rD76N
+On9w4XOECVMdkBuC2L5byMVI3JKxkE7BQMJrVvRCKdSCn69Ow9C8/whcMDA8Bgkq
+hkiG9w0BBwEwFQYJKwYBBAGXVQECBAjLuLy9c9zo1oAYDz1mK2exRvZncoeQt/je
+m+OxTHimhvQu
+-----END PKCS7-----"""
 
 crlData = b("""\
 -----BEGIN X509 CRL-----
@@ -2824,6 +2835,8 @@ class PKCS7Tests(TestCase):
     """
     Tests for :py:obj:`PKCS7Type`.
     """
+    cert_obj = load_certificate(FILETYPE_PEM, root_cert_pem)
+    pkey_obj = load_privatekey(FILETYPE_PEM, root_key_pem)
 
     def test_type(self):
         """
@@ -2925,6 +2938,110 @@ class PKCS7Tests(TestCase):
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         self.assertRaises(AttributeError, getattr, pkcs7, "foo")
+
+    def test_pkcs7_certificate(self):
+        """
+        :py:obj:`PKCS7Type.set_certificate` and
+        :py:obj:`PKCS7Type.get_certificate` match self.cert_obj
+        """
+        pkcs7_obj = PKCS7()
+        pkcs7_obj.set_certificate(self.cert_obj)
+        assert pkcs7_obj.get_certificate() == self.cert_obj
+
+    def test_pkcs7_certificate_wrong(self):
+        """
+        :py:obj:`PKCS7Type.set_certificate` raises
+        :py:obj:`TypeError` if called with a wrong certificate format.
+        """
+        pkcs7_obj = PKCS7()
+        with pytest.raises(TypeError):
+            pkcs7_obj.set_certificate("raise")
+
+    def test_pkcs7_privatekey(self):
+        """
+        :py:obj:`PKCS7Type.set_privatekey` and
+        :py:obj:`PKCS7Type.get_privatekey` match self.pkey_obj
+        """
+        pkcs7_obj = PKCS7()
+        pkcs7_obj.set_privatekey(self.pkey_obj)
+        assert pkcs7_obj.get_privatekey() == self.pkey_obj
+
+    def test_pkcs7_privatekey_wrong(self):
+        """
+        :py:obj:`PKCS7Type.set_privatekey` raises
+        :py:obj:`TypeError` if called with a wrong private key format.
+        """
+        pkcs7_obj = PKCS7()
+        with pytest.raises(TypeError):
+            pkcs7_obj.set_privatekey("raise")
+
+    def test_pkcs7_decrypt(self):
+        """
+        :py:obj:`PKCS7Type.from_data` returns a PKCS7 object
+        and :py:obj:`PKCS7Type.decrypt` match defined value.
+        """
+        pkcs7_obj = PKCS7.from_data(FILETYPE_PEM, pkcs7EncryptedData)
+        pkcs7_obj.set_certificate(self.cert_obj)
+        pkcs7_obj.set_privatekey(self.pkey_obj)
+        assert isinstance(pkcs7_obj, PKCS7)
+        assert pkcs7_obj.decrypt() == b("PyOpenSSL is fun!")
+
+    def test_pkcs7_decrypt_nocert(self):
+        """
+        :py:obj:`PKCS7Type.decrypt` raises
+        :py:obj:`ValueError` if called without certificate.
+        """
+        pkcs7_obj = PKCS7.from_data(FILETYPE_PEM, pkcs7EncryptedData)
+        pkcs7_obj.set_privatekey(self.pkey_obj)
+        with pytest.raises(ValueError) as excinfo:
+            pkcs7_obj.decrypt()
+        assert 'Certificate must be set' in str(excinfo.value)
+
+    def test_pkcs7_decrypt_nopriv(self):
+        """
+        :py:obj:`PKCS7Type.decrypt` raises
+        :py:obj:`ValueError` if called without private key.
+        """
+        pkcs7_obj = PKCS7.from_data(FILETYPE_PEM, pkcs7EncryptedData)
+        pkcs7_obj.set_certificate(self.cert_obj)
+        with pytest.raises(ValueError) as excinfo:
+            pkcs7_obj.decrypt()
+        assert 'Private key must be set' in str(excinfo.value)
+
+    def test_pkcs7_decrypt_wrong(self):
+        """
+        :py:obj:`PKCS7Type.decrypt` raises
+        :py:obj:`Error` if called with wrong private key.
+        """
+        pkcs7_obj = PKCS7.from_data(FILETYPE_PEM, pkcs7EncryptedData)
+        wrong_private = load_privatekey(FILETYPE_PEM, server_key_pem)
+        pkcs7_obj.set_certificate(self.cert_obj)
+        pkcs7_obj.set_privatekey(wrong_private)
+        with pytest.raises(Error) as excinfo:
+            pkcs7_obj.decrypt()
+        assert 'private key does not match certificate' in str(excinfo.value)
+
+    def test_pkcs7_encrypt(self):
+        """
+        :py:obj:`PKCS7Type.encrypt` and
+        :py:obj:`PKCS7Type.get_encrypted_data` starts with valid string
+        and :py:obj:`PKCS7Type.decrypt` matches defined value
+        """
+        pkcs7_obj = PKCS7.encrypt(self.cert_obj, u'PyOpenSSL is fun!',
+                                  'blowfish')
+        encrypted_data = pkcs7_obj.get_encrypted_data()
+        assert encrypted_data is not None
+        assert encrypted_data.startswith('-----BEGIN PKCS7-----')
+        pkcs7_obj.set_privatekey(self.pkey_obj)
+        assert pkcs7_obj.decrypt() == b("PyOpenSSL is fun!")
+
+    def test_pkcs7_encrypt_wrong_cipher(self):
+        """
+        :py:obj:`PKCS7Type.encrypt` raises
+        :py:obj:`ValueError` if called with a wrong cipher.
+        """
+        with pytest.raises(ValueError):
+            PKCS7.encrypt(self.cert_obj, u"PyOpenSSL is fun!", 'raise')
 
 
 class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):

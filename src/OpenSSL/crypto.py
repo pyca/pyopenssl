@@ -1,9 +1,14 @@
 import datetime
 
-from base64 import b16encode
+from base64 import b16encode, b64encode
 from functools import partial
 from operator import __eq__, __ne__, __lt__, __le__, __gt__, __ge__
 from warnings import warn as _warn
+
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 from six import (
     integer_types as _integer_types,
@@ -2025,6 +2030,70 @@ CRLType = CRL
 
 
 class PKCS7(object):
+
+    def __init__(self, pkey=None, cert=None, cacerts=None, pkcs7=None):
+        self._pkey = pkey
+        self._cert = cert
+        self._cacerts = cacerts
+        self._pkcs7 = pkcs7
+
+    def get_certificate(self):
+        """
+        Get the certificate in the PKCS7 structure.
+
+        :return: The certificate, or :py:const:`None` if there is none.
+        :rtype: :py:class:`X509` or :py:const:`None`
+        """
+        return self._cert
+
+    def set_certificate(self, cert):
+        """
+        Set the certificate in the PKCS7 structure.
+
+        :param cert: The new certificate, or :py:const:`None` to unset it.
+        :type cert: :py:class:`X509` or :py:const:`None`
+
+        :return: :py:const:`None`
+        """
+        if not isinstance(cert, X509):
+            raise TypeError("cert must be an X509 instance")
+        self._cert = cert
+
+    def get_privatekey(self):
+        """
+        Get the private key in the PKCS7 structure.
+
+        :return: The private key, or :py:const:`None` if there is none.
+        :rtype: :py:class:`PKey`
+        """
+        return self._pkey
+
+    def set_privatekey(self, pkey):
+        """
+        Set the certificate portion of the PKCS7 structure.
+
+        :param pkey: The new private key, or :py:const:`None` to unset it.
+        :type pkey: :py:class:`PKey` or :py:const:`None`
+
+        :return: :py:const:`None`
+        """
+        if not isinstance(pkey, PKey):
+            raise TypeError("pkey must be a PKey instance")
+        self._pkey = pkey
+
+    @classmethod
+    def from_data(cls, type, buffer):
+        """
+        Classmethod to create a pkcs7 object from a buffer.
+        Use load_pkcs7_data()
+
+        :param type: The file type (one of FILETYPE_PEM or FILETYPE_ASN1)
+        :param buffer: The buffer with the pkcs7 data.
+
+        :return: The PKCS7 object
+        """
+        return cls(pkcs7=load_pkcs7_data(type, buffer)._pkcs7)
+
     def type_is_signed(self):
         """
         Check if this NID_pkcs7_signed object
@@ -2074,6 +2143,90 @@ class PKCS7(object):
         nid = _lib.OBJ_obj2nid(self._pkcs7.type)
         string_type = _lib.OBJ_nid2sn(nid)
         return _ffi.string(string_type)
+
+    def decrypt(self):
+        """
+        Decrypt the current loaded PKCS7 data and return it.
+
+        :return: A string with the decrypted data.
+        :rtype: :py:class:`str`
+        """
+        if not self._pkey:
+            raise ValueError('Private key must be set.')
+
+        if not self._cert:
+            raise ValueError('Certificate must be set.')
+
+        bio = _lib.BIO_new(_lib.BIO_s_mem())
+        result = _lib.PKCS7_decrypt(self._pkcs7, self._pkey._pkey,
+                                    self._cert._x509, bio, 0)
+        if result == 1:
+            return _bio_to_string(bio)
+        _raise_current_error()
+
+    @classmethod
+    def encrypt(cls, cert, buffer, cipher):
+        """
+        Classmethod to encrypt the buffer and return a PKCS7 object.
+
+        :param cert: Recipients certificate.
+        :param buffer: The buffer with the pkcs7 data.
+        :param cipher: Symmetric cipher to use.
+        :type cert: :py:data:`X509`
+        :type buffer: A Python string object, either unicode or bytestring.
+        :type cipher: symmetric cipher to use.
+
+        :return: The PKCS7 object
+        :rtype: :py:class:`PKCS7`
+        """
+        # convert to ascii and create a mem buffer
+        if isinstance(buffer, _text_type):
+            buffer = buffer.encode("ascii")
+        bio = _new_mem_buf(buffer)
+
+        # get cipher using the given name
+        cipher_obj = _lib.EVP_get_cipherbyname(_byte_string(cipher))
+        if cipher_obj == _ffi.NULL:
+            raise ValueError("Invalid cipher name")
+
+        # stack of x509
+        cacerts = _lib.sk_X509_new_null()
+        cacerts = _ffi.gc(cacerts, _lib.sk_X509_free)
+        _lib.sk_X509_push(cacerts, cert._x509)
+
+        # encrypt
+        pkcs7 = _lib.PKCS7_encrypt(cacerts, bio, cipher_obj, 0)
+
+        # create a new object
+        pypkcs7 = cls(cert=cert, cacerts=cacerts)
+        pypkcs7._pkcs7 = _ffi.gc(pkcs7, _lib.PKCS7_free)
+
+        return pypkcs7
+
+    def get_encrypted_data(self, chunk_length=64, decorated=True):
+        """
+        Returns the crypted data from within the PKCS7 structure.
+
+        :param chunk_length: Chunk the string by bloc (default 64).
+                             0 will not chunk.
+        :param decorated: Decorate with -----BEGIN PKCS7----- (default True).
+        :type chunk_length: :py:data:`int`
+        :type decorated: :py:data:`bool`
+
+        :return: The encrypted data string.
+        :rtype: :py:data:`str`
+        """
+        bio = _new_mem_buf()
+        _lib.i2d_PKCS7_bio(bio, self._pkcs7)
+        data = b64encode(_bio_to_string(bio))
+        if chunk_length and chunk_length > 0:
+            partial_strings = partial(StringIO(_text_type(data)).read,
+                                      chunk_length)
+            data = "\n".join([l for l in iter(partial_strings, '')])
+        if decorated:
+            data = "-----BEGIN PKCS7-----\n"\
+                   "{0}\n-----END PKCS7-----".format(data)
+        return data
 
 PKCS7Type = PKCS7
 
