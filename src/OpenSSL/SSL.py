@@ -1314,9 +1314,7 @@ class Connection(object):
 
     def recv(self, bufsiz, flags=None):
         """
-        Receive data on the connection. NOTE: If you get one of the WantRead,
-        WantWrite or WantX509Lookup exceptions on this, you have to call the
-        method again with the SAME buffer.
+        Receive data on the connection.
 
         :param bufsiz: The maximum number of bytes to read
         :param flags: (optional) The only supported flag is ``MSG_PEEK``,
