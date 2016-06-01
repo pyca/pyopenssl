@@ -29,6 +29,8 @@ Changes:
   `#483 <https://github.com/pyca/pyopenssl/pull/483>`_
 - ``OpenSSL.crypto.PKey`` can now be constructed from ``cryptography`` objects and also exported as such.
   `#439 <https://github.com/pyca/pyopenssl/pull/439>`_
+- Added ``OpenSSL.crypto.X09StoreContext.set_chain()``, and a ``chain`` parameter to ``OpenSSL.crypto.X509StoreContext.__init__``, for callers to specify untrusted chain certificates to use during verification.
+  `#473 <https://github.com/pyca/pyopenssl/pull/473>`_
 
 
 ----

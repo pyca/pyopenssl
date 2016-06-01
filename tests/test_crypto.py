@@ -43,7 +43,7 @@ from OpenSSL.crypto import CRL, Revoked, dump_crl, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.crypto import (
     sign, verify, get_elliptic_curve, get_elliptic_curves)
-from OpenSSL._util import native, lib
+from OpenSSL._util import native, lib, ffi
 
 from .util import (
     EqualityTestsMixin, TestCase, WARNING_TYPE_EXPECTED
@@ -3652,6 +3652,18 @@ class X509StoreContextTests(TestCase):
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
         self.assertEqual(store_ctx.verify_certificate(), None)
 
+    def test_valid_chain(self):
+        """
+        :py:obj:`verify_certificate` returns ``None`` when called with
+        a certificate and valid chain when the intermediate cert is
+        considered 'untrusted'
+        """
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        store_ctx.set_chain([self.intermediate_cert])
+        assert store_ctx.verify_certificate() is None
+
     def test_reuse(self):
         """
         :py:obj:`verify_certificate` can be called multiple times with the same
@@ -3659,10 +3671,10 @@ class X509StoreContextTests(TestCase):
         """
         store = X509Store()
         store.add_cert(self.root_cert)
-        store.add_cert(self.intermediate_cert)
-        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        self.assertEqual(store_ctx.verify_certificate(), None)
-        self.assertEqual(store_ctx.verify_certificate(), None)
+        store_ctx = X509StoreContext(
+            store, self.intermediate_server_cert, [self.intermediate_cert])
+        assert store_ctx.verify_certificate() is None
+        assert store_ctx.verify_certificate() is None
 
     def test_trusted_self_signed(self):
         """
@@ -3674,13 +3686,27 @@ class X509StoreContextTests(TestCase):
         store_ctx = X509StoreContext(store, self.root_cert)
         self.assertEqual(store_ctx.verify_certificate(), None)
 
-    def test_untrusted_self_signed(self):
+    def test_missing_self_signed(self):
         """
         :py:obj:`verify_certificate` raises error when a self-signed
         certificate is verified without itself in the chain.
         """
         store = X509Store()
         store_ctx = X509StoreContext(store, self.root_cert)
+        with pytest.raises(X509StoreContextError) as exc:
+            store_ctx.verify_certificate()
+
+        assert exc.value.args[0][2] == 'self signed certificate'
+        assert exc.value.certificate.get_subject().CN == 'Testing Root CA'
+
+    def test_untrusted_self_signed(self):
+        """
+        :py:obj:`verify_certificate` raises error when a self-signed
+        certificate is verified when it is in the chain, but untrusted.
+        """
+        store = X509Store()
+        store_ctx = X509StoreContext(
+            store, self.root_cert, [self.root_cert])
         with pytest.raises(X509StoreContextError) as exc:
             store_ctx.verify_certificate()
 
@@ -3701,6 +3727,38 @@ class X509StoreContextTests(TestCase):
 
         assert exc.value.args[0][2] == 'unable to get issuer certificate'
         assert exc.value.certificate.get_subject().CN == 'intermediate'
+
+    def test_untrusted_intermediate_no_root(self):
+        """
+        :py:obj:`verify_certificate` raises error when a root
+        certificate is missing from the chain.
+        """
+        store = X509Store()
+        store_ctx = X509StoreContext(
+            store, self.intermediate_server_cert, [self.intermediate_cert])
+
+        with pytest.raises(X509StoreContextError) as exc:
+            store_ctx.verify_certificate()
+
+        assert exc.value.args[0][2] == 'unable to get local issuer certificate'
+        assert exc.value.certificate.get_subject().CN == 'intermediate'
+
+    def test_untrusted_root(self):
+        """
+        :py:obj:`verify_certificate` raises error when a root
+        certificate is present but untrusted.
+        """
+        store = X509Store()
+        chain = [self.intermediate_cert, self.root_cert]
+        store_ctx = X509StoreContext(
+            store, self.intermediate_server_cert, chain)
+
+        with pytest.raises(X509StoreContextError) as exc:
+            store_ctx.verify_certificate()
+
+        assert exc.value.args[0][2] == (
+            'self signed certificate in certificate chain')
+        assert exc.value.certificate.get_subject().CN == 'Testing Root CA'
 
     def test_invalid_chain_no_intermediate(self):
         """
@@ -3737,6 +3795,33 @@ class X509StoreContextTests(TestCase):
 
         store_ctx.set_store(store_good)
         self.assertEqual(store_ctx.verify_certificate(), None)
+
+    def test_wrong_chain_type(self):
+        """
+        :py:obj:`set_chain` raises ValueError when provided with
+        something other than an iterable of X509 objects
+        """
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        with pytest.raises(TypeError):
+            store_ctx.set_chain(["I am not an X509"])
+
+    def test_null_chain_cert(self):
+        """
+        :py:obj:`verify_certificate` raises if X509_dup() call fails
+        (in this case, because of an X509 instance with a NULL pointer!)
+        """
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        bad_x509 = X509()
+        bad_x509._x509 = ffi.NULL
+        store_ctx.set_chain([bad_x509])
+
+        # OpenSSL lib doesn't set a specific error for this case
+        with pytest.raises(Error):
+            store_ctx.verify_certificate()
 
 
 class SignVerifyTests(TestCase):

@@ -1535,16 +1535,23 @@ class X509StoreContext(object):
         collected.
     :ivar _store: See the ``store`` ``__init__`` parameter.
     :ivar _cert: See the ``certificate`` ``__init__`` parameter.
+    :ivar _chain: See the ``chain`` ``__init__`` parameter.
+
     :param X509Store store: The certificates which will be trusted for the
         purposes of any verifications.
     :param X509 certificate: The certificate to be verified.
+    :param chain: Untrusted certificates that may be used to build a
+        chain during verification.
+    :type chain: An iterable of :py:class:`X509` or :py:const:`None`
     """
 
-    def __init__(self, store, certificate):
+    def __init__(self, store, certificate, chain=None):
         store_ctx = _lib.X509_STORE_CTX_new()
         self._store_ctx = _ffi.gc(store_ctx, _lib.X509_STORE_CTX_free)
         self._store = store
         self._cert = certificate
+        self.set_chain(chain)
+        self._chain_stack = _ffi.NULL
         # Make the store context available for use after instantiating this
         # class by initializing it now. Per testing, subsequent calls to
         # :meth:`_init` have no adverse affect.
@@ -1554,11 +1561,44 @@ class X509StoreContext(object):
         """
         Set up the store context for a subsequent verification operation.
         """
+        self._cleanup()
+
+        # build OpenSSL STACK_OF(X509 *) structure containing the
+        # untrusted chain certs
+        chain_stack = _ffi.NULL
+        if self._chain:
+            chain_stack = _lib.sk_X509_new_null()
+            _openssl_assert(chain_stack != _ffi.NULL)
+
+            def cleanup(s):
+                # Equivalent to sk_X509_pop_free, but we don't
+                # currently have a CFFI binding for that available
+                for i in range(_lib.sk_X509_num(s)):
+                    x = _lib.sk_X509_value(s, i)
+                    _lib.X509_free(x)
+                _lib.sk_X509_free(s)
+            chain_stack = _ffi.gc(chain_stack, cleanup)
+
+            for cert in self._chain:
+                copy = _lib.X509_dup(cert._x509)
+                _openssl_assert(copy != _ffi.NULL)
+
+                push_result = _lib.sk_X509_push(chain_stack, copy)
+                if not push_result:
+                    _lib.X509_free(copy)
+                    _raise_current_error()
+
         ret = _lib.X509_STORE_CTX_init(
-            self._store_ctx, self._store._store, self._cert._x509, _ffi.NULL
+            self._store_ctx, self._store._store, self._cert._x509, chain_stack
         )
-        if ret <= 0:
-            _raise_current_error()
+
+        # Only after the new chain_stack has been assigned to the
+        # context can we allow the previous one to be
+        # garbage-collected! (This assignment will have happened even
+        # if X509_STORE_CTX_init returned an error)
+        self._chain_stack = chain_stack
+
+        _openssl_assert(ret > 0)
 
     def _cleanup(self):
         """
@@ -1600,6 +1640,23 @@ class X509StoreContext(object):
             the purposes of any *future* verifications.
         """
         self._store = store
+
+    def set_chain(self, chain):
+        """
+        Set the chain certificates for the context
+
+        :param chain: Untrusted certificates that may be used to build a chain
+            during verification.
+        :type chain: An iterable of :py:class:`X509` or :py:const:`None`
+        """
+        if chain is not None:
+            chain = list(chain)
+            for cert in chain:
+                if not isinstance(cert, X509):
+                    raise TypeError(
+                        "iterable must only contain X509 instances"
+                        )
+        self._chain = chain
 
     def verify_certificate(self):
         """
