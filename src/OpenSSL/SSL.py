@@ -1637,11 +1637,14 @@ class Connection(object):
 
         :return: A string representing the state
         """
-        if self._ssl.session == _ffi.NULL:
+        session = _lib.SSL_get_session(self._ssl)
+        if session == _ffi.NULL:
             return None
-        return _ffi.buffer(
-            self._ssl.s3.server_random,
-            _lib.SSL3_RANDOM_SIZE)[:]
+        length = _lib.SSL_get_server_random(self._ssl, _ffi.NULL, 0)
+        assert length > 0
+        outp = _ffi.new("char[]", length)
+        _lib.SSL_get_server_random(self._ssl, outp, length)
+        return _ffi.buffer(outp, length)[:]
 
     def client_random(self):
         """
@@ -1649,11 +1652,15 @@ class Connection(object):
 
         :return: A string representing the state
         """
-        if self._ssl.session == _ffi.NULL:
+        session = _lib.SSL_get_session(self._ssl)
+        if session == _ffi.NULL:
             return None
-        return _ffi.buffer(
-            self._ssl.s3.client_random,
-            _lib.SSL3_RANDOM_SIZE)[:]
+
+        length = _lib.SSL_get_client_random(self._ssl, _ffi.NULL, 0)
+        assert length > 0
+        outp = _ffi.new("char[]", length)
+        _lib.SSL_get_client_random(self._ssl, outp, length)
+        return _ffi.buffer(outp, length)[:]
 
     def master_key(self):
         """
@@ -1661,11 +1668,15 @@ class Connection(object):
 
         :return: A string representing the state
         """
-        if self._ssl.session == _ffi.NULL:
+        session = _lib.SSL_get_session(self._ssl)
+        if session == _ffi.NULL:
             return None
-        return _ffi.buffer(
-            self._ssl.session.master_key,
-            self._ssl.session.master_key_length)[:]
+
+        length = _lib.SSL_SESSION_get_master_key(session, _ffi.NULL, 0)
+        assert length > 0
+        outp = _ffi.new("char[]", length)
+        _lib.SSL_SESSION_get_master_key(session, outp, length)
+        return _ffi.buffer(outp, length)[:]
 
     def sock_shutdown(self, *args, **kwargs):
         """
