@@ -1787,7 +1787,7 @@ class Revoked(object):
             obj = _lib.X509_EXTENSION_get_object(ext)
             if _lib.OBJ_obj2nid(obj) == _lib.NID_crl_reason:
                 _lib.X509_EXTENSION_free(ext)
-                _lib.sk_X509_EXTENSION_delete(stack, i)
+                _lib.sk_X509_EXTENSION_delete(self._revoked.extensions, i)
                 break
 
     def set_reason(self, reason):
