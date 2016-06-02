@@ -18,6 +18,7 @@ from OpenSSL._util import (
     native as _native,
     UNSPECIFIED as _UNSPECIFIED,
     text_to_bytes_and_warn as _text_to_bytes_and_warn,
+    make_assert as _make_assert,
 )
 
 FILETYPE_PEM = _lib.SSL_FILETYPE_PEM
@@ -37,6 +38,7 @@ class Error(Exception):
 
 
 _raise_current_error = partial(_exception_from_error_queue, Error)
+_openssl_assert = _make_assert(Error)
 
 
 def _untested_error(where):
@@ -1773,17 +1775,15 @@ class Revoked(object):
         """
         bio = _new_mem_buf()
 
-        result = _lib.i2a_ASN1_INTEGER(bio, self._revoked.serialNumber)
-        if result < 0:
-            # TODO: This is untested.
-            _raise_current_error()
-
+        asn1_int = _lib.X509_REVOKED_get0_serialNumber(self._revoked)
+        _openssl_assert(asn1_int != _ffi.NULL)
+        result = _lib.i2a_ASN1_INTEGER(bio, asn1_int)
+        _openssl_assert(result >= 0)
         return _bio_to_string(bio)
 
     def _delete_reason(self):
-        stack = self._revoked.extensions
-        for i in range(_lib.sk_X509_EXTENSION_num(stack)):
-            ext = _lib.sk_X509_EXTENSION_value(stack, i)
+        for i in range(_lib.X509_REVOKED_get_ext_count(self._revoked)):
+            ext = _lib.X509_REVOKED_get_ext(self._revoked, i)
             obj = _lib.X509_EXTENSION_get_object(ext)
             if _lib.OBJ_obj2nid(obj) == _lib.NID_crl_reason:
                 _lib.X509_EXTENSION_free(ext)
@@ -1845,9 +1845,8 @@ class Revoked(object):
             :py:meth:`all_reasons`, which gives you a list of all supported
             reasons this method might return.
         """
-        extensions = self._revoked.extensions
-        for i in range(_lib.sk_X509_EXTENSION_num(extensions)):
-            ext = _lib.sk_X509_EXTENSION_value(extensions, i)
+        for i in range(_lib.X509_REVOKED_get_ext_count(self._revoked)):
+            ext = _lib.X509_REVOKED_get_ext(self._revoked, i)
             obj = _lib.X509_EXTENSION_get_object(ext)
             if _lib.OBJ_obj2nid(obj) == _lib.NID_crl_reason:
                 bio = _new_mem_buf()
@@ -1883,7 +1882,8 @@ class Revoked(object):
         :type when: :py:class:`bytes`
         :return: :py:const:`None`
         """
-        return _set_asn1_time(self._revoked.revocationDate, when)
+        dt = _lib.X509_REVOKED_get0_revocationDate(self._revoked)
+        return _set_asn1_time(dt, when)
 
     def get_rev_date(self):
         """
@@ -1892,7 +1892,8 @@ class Revoked(object):
         :return: The timestamp of the revocation, as ASN.1 GENERALIZEDTIME.
         :rtype: :py:class:`bytes`
         """
-        return _get_asn1_time(self._revoked.revocationDate)
+        dt = _lib.X509_REVOKED_get0_revocationDate(self._revoked)
+        return _get_asn1_time(dt)
 
 
 class CRL(object):
@@ -1918,7 +1919,7 @@ class CRL(object):
         :rtype: :py:class:`tuple` of :py:class:`Revocation`
         """
         results = []
-        revoked_stack = self._crl.crl.revoked
+        revoked_stack = _lib.X509_CRL_get_REVOKED(self._crl)
         for i in range(_lib.sk_X509_REVOKED_num(revoked_stack)):
             revoked = _lib.sk_X509_REVOKED_value(revoked_stack, i)
             revoked_copy = _lib.Cryptography_X509_REVOKED_dup(revoked)
@@ -2560,7 +2561,7 @@ def sign(pkey, data, digest):
     if digest_obj == _ffi.NULL:
         raise ValueError("No such digest method")
 
-    md_ctx = _ffi.new("EVP_MD_CTX*")
+    md_ctx = _lib.Cryptography_EVP_MD_CTX_new()
     md_ctx = _ffi.gc(md_ctx, _lib.EVP_MD_CTX_cleanup)
 
     _lib.EVP_SignInit(md_ctx, digest_obj)
@@ -2602,7 +2603,7 @@ def verify(cert, signature, data, digest):
         _raise_current_error()
     pkey = _ffi.gc(pkey, _lib.EVP_PKEY_free)
 
-    md_ctx = _ffi.new("EVP_MD_CTX*")
+    md_ctx = _lib.Cryptography_EVP_MD_CTX_new()
     md_ctx = _ffi.gc(md_ctx, _lib.EVP_MD_CTX_cleanup)
 
     _lib.EVP_VerifyInit(md_ctx, digest_obj)
