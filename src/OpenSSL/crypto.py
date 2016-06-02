@@ -2562,7 +2562,7 @@ def sign(pkey, data, digest):
         raise ValueError("No such digest method")
 
     md_ctx = _lib.Cryptography_EVP_MD_CTX_new()
-    md_ctx = _ffi.gc(md_ctx, _lib.EVP_MD_CTX_cleanup)
+    md_ctx = _ffi.gc(md_ctx, _lib.Cryptography_EVP_MD_CTX_free)
 
     _lib.EVP_SignInit(md_ctx, digest_obj)
     _lib.EVP_SignUpdate(md_ctx, data, len(data))
@@ -2604,7 +2604,7 @@ def verify(cert, signature, data, digest):
     pkey = _ffi.gc(pkey, _lib.EVP_PKEY_free)
 
     md_ctx = _lib.Cryptography_EVP_MD_CTX_new()
-    md_ctx = _ffi.gc(md_ctx, _lib.EVP_MD_CTX_cleanup)
+    md_ctx = _ffi.gc(md_ctx, _lib.Cryptography_EVP_MD_CTX_free)
 
     _lib.EVP_VerifyInit(md_ctx, digest_obj)
     _lib.EVP_VerifyUpdate(md_ctx, data, len(data))
