@@ -116,6 +116,7 @@ def _set_asn1_time(boundary, when):
         else:
             _untested_error()
 
+
 def _get_asn1_time(timestamp):
     """
     Retrieve the time value of an ASN1 time object.
