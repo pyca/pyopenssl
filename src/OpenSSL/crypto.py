@@ -1081,8 +1081,8 @@ class X509(object):
 
         .. versionadded:: 0.13
         """
-        alg = self._x509.cert_info.signature.algorithm
-        nid = _lib.OBJ_obj2nid(alg)
+        algor = _lib.X509_get0_tbs_sigalg(self._x509)
+        nid = _lib.OBJ_obj2nid(algor.algorithm)
         if nid == _lib.NID_undef:
             raise ValueError("Undefined signature algorithm")
         return _ffi.string(_lib.OBJ_nid2ln(nid))
