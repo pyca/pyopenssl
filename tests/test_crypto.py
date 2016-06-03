@@ -2433,7 +2433,8 @@ class TestFunctions(object):
 
     If possible, add new tests here.
     """
-    def test_load_publickey(self):
+    def test_load_publickey_sets_only_public(self):
+        """_only_public should be set on PKeys loaded with load_publickey"""
         key = load_publickey(FILETYPE_PEM, cleartextPublicKeyPEM)
         assert key._only_public is True
 
