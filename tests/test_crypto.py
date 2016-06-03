@@ -2427,23 +2427,50 @@ def _runopenssl(pem, *args):
     return output
 
 
-class TestFunctions(object):
+class TestLoadPublicKey(object):
     """
-    py.test-based tests for the free functions in the crypto module.
-
-    If possible, add new tests here.
+    Tests for :func:`load_publickey`.
     """
-    def test_load_publickey_sets_only_public(self):
+    def test_loading_works(self):
         """
-        _only_public should be set on PKeys loaded with load_publickey.
+        load_publickey loads public keys and sets correct attributes.
         """
         key = load_publickey(FILETYPE_PEM, cleartextPublicKeyPEM)
-        assert key._only_public is True
+
+        assert True is key._only_public
+        assert 2048 == key.bits()
+        assert TYPE_RSA == key.type()
+
+    def test_invalid_type(self):
+        """
+        load_publickey doesn't support FILETYPE_TEXT.
+        """
+        with pytest.raises(ValueError):
+            load_publickey(FILETYPE_TEXT, cleartextPublicKeyPEM)
+
+    def test_invalid_key_format(self):
+        """
+        load_publickey explodes on incorrect keys.
+        """
+        with pytest.raises(Error):
+            load_publickey(FILETYPE_ASN1, cleartextPublicKeyPEM)
+
+    def test_tolerates_unicode_strings(self):
+        """
+        load_publickey works with text strings, not just bytes.
+        """
+        serialized = cleartextPublicKeyPEM.decode('ascii')
+        key = load_publickey(FILETYPE_PEM, serialized)
+        dumped_pem = dump_publickey(FILETYPE_PEM, key)
+
+        assert dumped_pem == cleartextPublicKeyPEM
 
 
 class FunctionTests(TestCase):
     """
     Tests for free-functions in the :py:obj:`OpenSSL.crypto` module.
+
+    Add new tests to `TestFunctions` above.
     """
 
     def test_load_privatekey_invalid_format(self):
@@ -2708,29 +2735,6 @@ class FunctionTests(TestCase):
 
         with pytest.raises(ValueError):
             dump_publickey(FILETYPE_TEXT, key)
-
-    def test_load_publickey_invalid_type(self):
-        """
-        load_publickey doesn't support FILETYPE_TEXT.
-        """
-        with pytest.raises(ValueError):
-            load_publickey(FILETYPE_TEXT, cleartextPublicKeyPEM)
-
-    def test_load_publickey_invalid_key_format(self):
-        """
-        load_publickey explodes on incorrect keys.
-        """
-        with pytest.raises(Error):
-            load_publickey(FILETYPE_ASN1, cleartextPublicKeyPEM)
-
-    def test_load_publickey_tolerates_unicode_strings(self):
-        """
-        load_publickey works with text strings, not just bytes.
-        """
-        serialized = cleartextPublicKeyPEM.decode('ascii')
-        key = load_publickey(FILETYPE_PEM, serialized)
-        dumped_pem = dump_publickey(FILETYPE_PEM, key)
-        assert dumped_pem == cleartextPublicKeyPEM
 
     def test_dump_certificate_request(self):
         """
