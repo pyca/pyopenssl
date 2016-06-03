@@ -2427,6 +2427,20 @@ def _runopenssl(pem, *args):
     return output
 
 
+class TestFunctions(object):
+    """
+    py.test-based tests for the free functions in the crypto module.
+
+    If possible, add new tests here.
+    """
+    def test_load_publickey_sets_only_public(self):
+        """
+        _only_public should be set on PKeys loaded with load_publickey.
+        """
+        key = load_publickey(FILETYPE_PEM, cleartextPublicKeyPEM)
+        assert key._only_public is True
+
+
 class FunctionTests(TestCase):
     """
     Tests for free-functions in the :py:obj:`OpenSSL.crypto` module.

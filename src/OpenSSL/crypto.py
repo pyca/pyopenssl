@@ -2450,6 +2450,7 @@ def load_publickey(type, buffer):
 
     pkey = PKey.__new__(PKey)
     pkey._pkey = _ffi.gc(evp_pkey, _lib.EVP_PKEY_free)
+    pkey._only_public = True
     return pkey
 
 
