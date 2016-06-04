@@ -1436,7 +1436,7 @@ class X509Store(object):
 
     An X.509 store, being only a description, cannot be used by itself to
     verify a certificate. To carry out the actual verification process, see
-    :py:class:`X509StoreContext`.
+    :class:`X509StoreContext`.
     """
 
     CRL_CHECK = _lib.X509_V_FLAG_CRL_CHECK
@@ -1466,16 +1466,14 @@ class X509Store(object):
         *trusted* certificate.
 
         :param X509 cert: The certificate to add to this store.
-        :raises TypeError: If the certificate is not an :py:class:`X509`.
+        :raises TypeError: If the certificate is not an :class:`X509`.
         :raises Error: If OpenSSL was unhappy with your certificate.
-        :return: :py:data:`None` if the certificate was added successfully.
+        :return: ``None`` if the certificate was added successfully.
         """
         if not isinstance(cert, X509):
             raise TypeError()
 
-        result = _lib.X509_STORE_add_cert(self._store, cert._x509)
-        if not result:
-            _raise_current_error()
+        _openssl_assert(_lib.X509_STORE_add_cert(self._store, cert._x509) != 0)
 
     def add_crl(self, crl):
         """
@@ -1485,10 +1483,10 @@ class X509Store(object):
         the associated flags are configured to check certificate revocation
         lists.
 
-        .. versionadded:: 0.17
+        .. versionadded:: 16.1.0
 
         :param CRL crl: The certificate revocation list to add to this store.
-        :return: :py:data:`None` if the certificate revocation list was added
+        :return: ``None`` if the certificate revocation list was added
             successfully.
         """
         _openssl_assert(_lib.X509_STORE_add_crl(self._store, crl._crl) != 0)
@@ -1509,10 +1507,10 @@ class X509Store(object):
           suitable CRL must be added to the store otherwise an error will be
           raised.
 
-        .. versionadded:: 0.17
+        .. versionadded:: 16.1.0
 
         :param int flags: The verification flags to set on this store.
-        :return: :py:data:`None` if the verification flags were
+        :return: ``None`` if the verification flags were
             successfully set.
         """
         _openssl_assert(_lib.X509_STORE_set_flags(self._store, flags) != 0)
@@ -1541,7 +1539,7 @@ class X509StoreContext(object):
 
     An X.509 store context is used to carry out the actual verification process
     of a certificate in a described context. For describing such a context, see
-    :py:class:`X509Store`.
+    :class:`X509Store`.
 
     :ivar _store_ctx: The underlying X509_STORE_CTX structure used by this
         instance.  It is dynamically allocated and automatically garbage
@@ -1561,7 +1559,7 @@ class X509StoreContext(object):
         self._cert = certificate
         # Make the store context available for use after instantiating this
         # class by initializing it now. Per testing, subsequent calls to
-        # :py:meth:`_init` have no adverse affect.
+        # :meth:`_init` have no adverse affect.
         self._init()
 
     def _init(self):
@@ -1578,8 +1576,7 @@ class X509StoreContext(object):
         """
         Internally cleans up the store context.
 
-        The store context can then be reused with a new call to
-        :py:meth:`_init`.
+        The store context can then be reused with a new call to :meth:`_init`.
         """
         _lib.X509_STORE_CTX_cleanup(self._store_ctx)
 
@@ -1627,7 +1624,7 @@ class X509StoreContext(object):
           indicate which certificate caused the error.
         """
         # Always re-initialize the store context in case
-        # :py:meth:`verify_certificate` is called multiple times.
+        # :meth:`verify_certificate` is called multiple times.
         self._init()
         ret = _lib.X509_verify_cert(self._store_ctx)
         self._cleanup()
@@ -1642,7 +1639,7 @@ def load_certificate(type, buffer):
     :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)
 
     :param buffer: The buffer the certificate is stored in
-    :type buffer: :py:class:`bytes`
+    :type buffer: :class:`bytes`
 
     :return: The X509 object
     """
@@ -1731,7 +1728,7 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
                        the passphrase to use, or a callback for providing the
                        passphrase.
     :return: The buffer with the dumped key in
-    :rtype: :py:data:`bytes`
+    :rtype: :data:`bytes`
     """
     bio = _new_mem_buf()
 
@@ -1800,9 +1797,9 @@ class Revoked(object):
         ASCII.
 
         :param hex_str: The new serial number.
-        :type hex_str: :py:class:`bytes`
+        :type hex_str: :class:`bytes`
 
-        :return: :py:const:`None`
+        :return: :const:`None`
         """
         bignum_serial = _ffi.gc(_lib.BN_new(), _lib.BN_free)
         bignum_ptr = _ffi.new("BIGNUM**")
@@ -1824,7 +1821,7 @@ class Revoked(object):
         ASCII.
 
         :return: The serial number.
-        :rtype: :py:class:`bytes`
+        :rtype: :class:`bytes`
         """
         bio = _new_mem_buf()
 
@@ -1847,16 +1844,16 @@ class Revoked(object):
         """
         Set the reason of this revocation.
 
-        If :py:data:`reason` is :py:const:`None`, delete the reason instead.
+        If :data:`reason` is :const:`None`, delete the reason instead.
 
         :param reason: The reason string.
-        :type reason: :py:class:`bytes` or :py:class:`NoneType`
+        :type reason: :class:`bytes` or :class:`NoneType`
 
-        :return: :py:const:`None`
+        :return: :const:`None`
 
         .. seealso::
 
-            :py:meth:`all_reasons`, which gives you a list of all supported
+            :meth:`all_reasons`, which gives you a list of all supported
             reasons which you might pass to this method.
         """
         if reason is None:
@@ -1890,12 +1887,12 @@ class Revoked(object):
         """
         Get the reason of this revocation.
 
-        :return: The reason, or :py:const:`None` if there is none.
-        :rtype: :py:class:`bytes` or :py:class:`NoneType`
+        :return: The reason, or :const:`None` if there is none.
+        :rtype: :class:`bytes` or :class:`NoneType`
 
         .. seealso::
 
-            :py:meth:`all_reasons`, which gives you a list of all supported
+            :meth:`all_reasons`, which gives you a list of all supported
             reasons this method might return.
         """
         for i in range(_lib.X509_REVOKED_get_ext_count(self._revoked)):
@@ -1923,7 +1920,7 @@ class Revoked(object):
         strings.
 
         :return: A list of reason strings.
-        :rtype: :py:class:`list` of :py:class:`bytes`
+        :rtype: :class:`list` of :class:`bytes`
         """
         return self._crl_reasons[:]
 
@@ -1932,8 +1929,8 @@ class Revoked(object):
         Set the revocation timestamp.
 
         :param when: The timestamp of the revocation, as ASN.1 GENERALIZEDTIME.
-        :type when: :py:class:`bytes`
-        :return: :py:const:`None`
+        :type when: :class:`bytes`
+        :return: :const:`None`
         """
         dt = _lib.X509_REVOKED_get0_revocationDate(self._revoked)
         return _set_asn1_time(dt, when)
@@ -1943,7 +1940,7 @@ class Revoked(object):
         Get the revocation timestamp.
 
         :return: The timestamp of the revocation, as ASN.1 GENERALIZEDTIME.
-        :rtype: :py:class:`bytes`
+        :rtype: :class:`bytes`
         """
         dt = _lib.X509_REVOKED_get0_revocationDate(self._revoked)
         return _get_asn1_time(dt)
@@ -1955,6 +1952,9 @@ class CRL(object):
     """
 
     def __init__(self):
+        """
+        Create a new empty certificate revocation list.
+        """
         crl = _lib.X509_CRL_new()
         self._crl = _ffi.gc(crl, _lib.X509_CRL_free)
 
@@ -1966,7 +1966,7 @@ class CRL(object):
         That means it's okay to mutate them: it won't affect this CRL.
 
         :return: The revocations in this CRL.
-        :rtype: :py:class:`tuple` of :py:class:`Revocation`
+        :rtype: :class:`tuple` of :class:`Revocation`
         """
         results = []
         revoked_stack = _lib.X509_CRL_get_REVOKED(self._crl)
@@ -1988,7 +1988,7 @@ class CRL(object):
         this CRL.
 
         :param Revoked revoked: The new revocation.
-        :return: :py:const:`None`
+        :return: :const:`None`
         """
         copy = _lib.Cryptography_X509_REVOKED_dup(revoked._revoked)
         if copy == _ffi.NULL:
@@ -2004,9 +2004,9 @@ class CRL(object):
         """
         Get the CRL's issuer.
 
-        .. versionadded:: 0.17
+        .. versionadded:: 16.1.0
 
-        :return: :py:class:`X509Name`
+        :return: :class:`X509Name`
         """
         _issuer = _lib.X509_NAME_dup(_lib.X509_CRL_get_issuer(self._crl))
         _openssl_assert(_issuer != _ffi.NULL)
@@ -2019,10 +2019,10 @@ class CRL(object):
         """
         Set the CRL version.
 
-        .. versionadded:: 0.17
+        .. versionadded:: 16.1.0
 
         :param int version: The version of the CRL.
-        :return: :py:const:`None`
+        :return: ``None``
         """
         _openssl_assert(_lib.X509_CRL_set_version(self._crl, version) != 0)
 
@@ -2039,10 +2039,10 @@ class CRL(object):
             YYYYMMDDhhmmss+hhmm
             YYYYMMDDhhmmss-hhmm
 
-        .. versionadded:: 0.17
+        .. versionadded:: 16.1.0
 
         :param bytes when: A timestamp string.
-        :return: :py:const:`None`
+        :return: ``None`
         """
         return self._set_boundary_time(_lib.X509_CRL_get_lastUpdate, when)
 
@@ -2056,10 +2056,10 @@ class CRL(object):
             YYYYMMDDhhmmss+hhmm
             YYYYMMDDhhmmss-hhmm
 
-        .. versionadded:: 0.17
+        .. versionadded:: 16.1.0
 
         :param bytes when: A timestamp string.
-        :return: :py:const:`None`
+        :return: ``None``
         """
         return self._set_boundary_time(_lib.X509_CRL_get_nextUpdate, when)
 
@@ -2074,7 +2074,7 @@ class CRL(object):
         This method implicitly sets the issuer's name based on the issuer
         certificate and private key used to sign the CRL.
 
-        .. versionadded:: 0.17
+        .. versionadded:: 16.1.0
 
         :param X509 issuer_cert: The issuer's certificate.
         :param PKey issuer_key: The issuer's private key.
@@ -2095,15 +2095,15 @@ class CRL(object):
 
         :param X509 cert: The certificate used to sign the CRL.
         :param PKey key: The key used to sign the CRL.
-        :param int type: The export format, either :py:data:`FILETYPE_PEM`,
-            :py:data:`FILETYPE_ASN1`, or :py:data:`FILETYPE_TEXT`.
+        :param int type: The export format, either :data:`FILETYPE_PEM`,
+            :data:`FILETYPE_ASN1`, or :data:`FILETYPE_TEXT`.
         :param int days: The number of days until the next update of this CRL.
         :param bytes digest: The name of the message digest to use (eg
             ``b"sha1"``).
-        :return: :py:data:`bytes`
+        :rtype: bytes
         """
 
-        # TODO: fix this function to use functionality added in version 0.16.
+        # TODO: fix this function to use functionality added in version 16.1.0
         # Doing this without changing the public API is tricky. Checking if
         # lastUpdate, nextUpdate, issuer or signing has happened is hard to do
         # without generating a segmentation fault.

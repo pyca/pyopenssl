@@ -3400,7 +3400,8 @@ class CRLTests(TestCase):
 
     def test_get_issuer(self):
         """
-        Load a known CRL and inspect its issuer's common name.
+        Load a known CRL and assert its issuer's common name is
+        what we expect from the encoded crlData string.
         """
         crl = load_crl(FILETYPE_PEM, crlData)
         self.assertTrue(isinstance(crl.get_issuer(), X509Name))
@@ -3419,7 +3420,7 @@ class CRLTests(TestCase):
         Create a CRL.
 
         :param list[X509] certs: A list of certificates to revoke.
-        :return: :py:class:`CRL`
+        :rtype: CRL
         """
         crl = CRL()
         for cert in certs:
@@ -3440,7 +3441,7 @@ class CRLTests(TestCase):
 
     def test_verify_with_revoked(self):
         """
-        :py:obj:`verify_certificate` raises error when an intermediate
+        :func:`verify_certificate` raises error when an intermediate
         certificate is revoked.
         """
         store = X509Store()
@@ -3460,7 +3461,7 @@ class CRLTests(TestCase):
 
     def test_verify_with_missing_crl(self):
         """
-        :py:obj:`verify_certificate` raises error when an intermediate
+        :func:`verify_certificate` raises error when an intermediate
         certificate's CRL is missing.
         """
         store = X509Store()
@@ -3483,13 +3484,9 @@ class X509StoreContextTests(TestCase):
     Tests for :py:obj:`OpenSSL.crypto.X509StoreContext`.
     """
     root_cert = load_certificate(FILETYPE_PEM, root_cert_pem)
-    root_key = load_privatekey(FILETYPE_PEM, root_key_pem)
     intermediate_cert = load_certificate(FILETYPE_PEM, intermediate_cert_pem)
-    intermediate_key = load_privatekey(FILETYPE_PEM, intermediate_key_pem)
     intermediate_server_cert = load_certificate(
         FILETYPE_PEM, intermediate_server_cert_pem)
-    intermediate_server_key = load_privatekey(
-        FILETYPE_PEM, intermediate_server_key_pem)
 
     def test_valid(self):
         """
