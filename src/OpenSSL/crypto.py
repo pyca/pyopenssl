@@ -12,9 +12,6 @@ from six import (
 
 from cryptography.hazmat.backends.openssl.backend import backend
 from cryptography.hazmat.primitives.asymmetric import dsa, rsa
-from cryptography.hazmat.backends.openssl.x509 import (
-    _Certificate, _CertificateSigningRequest
-)
 
 from OpenSSL._util import (
     ffi as _ffi,
