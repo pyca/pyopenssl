@@ -14,10 +14,7 @@ matrix:
   include:
   - language: generic
     os: osx
-    env: TOXENV=py27 OSX_OPENSSL=homebrew
-  - language: generic
-    os: osx
-    env: TOXENV=py27 OSX_OPENSSL=system
+    env: TOXENV=py27
   - python: "2.6" # these are just to make travis's UI a bit prettier
     env: TOXENV=py26
   - python: "2.7"
@@ -67,11 +64,6 @@ matrix:
     env: TOXENV=py35-urllib3Master
 
 
-  # Also run at least a little bit against an older version of OpenSSL.
-  - python: "2.7"
-    env:
-      OPENSSL=0.9.8 TOXENV=py27
-
   # Meta
   - python: "2.7"
     env: TOXENV=check-manifest
@@ -120,7 +112,7 @@ install:
 
 script:
   - |
-    if [[ "$(uname -s)" == 'Darwin' && $OSX_OPENSSL == 'homebrew' ]]; then
+    if [[ "$(uname -s)" == 'Darwin' ]]; then
       # set our flags to use homebrew openssl
       export ARCHFLAGS="-arch x86_64"
       export LDFLAGS="-L/usr/local/opt/openssl/lib"
@@ -132,26 +124,6 @@ script:
         PYENV_ROOT="$HOME/.pyenv"
         PATH="$PYENV_ROOT/bin:$PATH"
         eval "$(pyenv init -)"
-    fi
-    # This section potentially downloads, compiles and installs openssl 0.9.8zg
-    if [[ "${OPENSSL}" == "0.9.8" ]]; then
-      # download, compile, and install if it's not already present via travis cache
-      if [[ ! -f "$HOME/ossl-098/bin/openssl" ]]; then
-        curl -O https://www.openssl.org/source/openssl-0.9.8zg.tar.gz
-        tar zxvf openssl-0.9.8zg.tar.gz
-        cd openssl-0.9.8zg
-        echo "OPENSSL_0.9.8ZG_CUSTOM {
-            global:
-              *;
-        };" > openssl.ld
-        ./config -Wl,--version-script=openssl.ld -Wl,-Bsymbolic-functions -fPIC shared --prefix=$HOME/ossl-098 --openssldir=/etc/ssl
-        make install
-        tree $HOME/ossl-098
-      fi
-      export PATH="$HOME/ossl-098/bin:$PATH"
-      export CFLAGS="-I$HOME/ossl-098/include"
-      export LDFLAGS="-L$HOME/ossl-098/lib"
-      export LD_LIBRARY_PATH="$HOME/ossl-098/lib"
     fi
     openssl version
     ~/.venv/bin/tox -v
