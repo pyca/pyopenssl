@@ -1439,10 +1439,6 @@ class X509Store(object):
     :class:`X509StoreContext`.
     """
 
-    # I found that some of these flags were added in different versions
-    # of OpenSSL. How to conditionally add them if they're present?
-    # Do you have any suggestions on conditionally adding the flag if
-    # it is available in the underlying OpenSSL?
     CRL_CHECK = _lib.X509_V_FLAG_CRL_CHECK
     CRL_CHECK_ALL = _lib.X509_V_FLAG_CRL_CHECK_ALL
     IGNORE_CRITICAL = _lib.X509_V_FLAG_IGNORE_CRITICAL
@@ -1450,13 +1446,10 @@ class X509Store(object):
     ALLOW_PROXY_CERTS = _lib.X509_V_FLAG_ALLOW_PROXY_CERTS
     POLICY_CHECK = _lib.X509_V_FLAG_POLICY_CHECK
     EXPLICIT_POLICY = _lib.X509_V_FLAG_EXPLICIT_POLICY
-    # FLAG_INHIBIT_ANY = _lib.X509_V_FLAG_FLAG_INHIBIT_ANY
     INHIBIT_MAP = _lib.X509_V_FLAG_INHIBIT_MAP
     NOTIFY_POLICY = _lib.X509_V_FLAG_NOTIFY_POLICY
-    # USE_DELTAS = _lib.X509_V_FLAG_USE_DELTAS
     CHECK_SS_SIGNATURE = _lib.X509_V_FLAG_CHECK_SS_SIGNATURE
     CB_ISSUER_CHECK = _lib.X509_V_FLAG_CB_ISSUER_CHECK
-    # NO_ALT_CHAINS = _lib.X509_V_FLAG_NO_ALT_CHAINS
 
     def __init__(self):
         store = _lib.X509_STORE_new()
