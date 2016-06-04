@@ -21,7 +21,11 @@ from six import u, b, binary_type
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
 from OpenSSL.crypto import (
-    X509Store, X509StoreType, X509StoreContext, X509StoreContextError
+    X509Store,
+    X509StoreFlags,
+    X509StoreType,
+    X509StoreContext,
+    X509StoreContextError
 )
 from OpenSSL.crypto import X509Req, X509ReqType
 from OpenSSL.crypto import X509Extension, X509ExtensionType
@@ -3453,7 +3457,9 @@ class CRLTests(TestCase):
             self.intermediate_cert, self.intermediate_key, certs=[])
         store.add_crl(root_crl)
         store.add_crl(intermediate_crl)
-        store.set_flags(store.CRL_CHECK | store.CRL_CHECK_ALL)
+        store.set_flags(
+            X509StoreFlags.CRL_CHECK.value |
+            X509StoreFlags.CRL_CHECK_ALL.value)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
         e = self.assertRaises(
             X509StoreContextError, store_ctx.verify_certificate)
@@ -3470,7 +3476,9 @@ class CRLTests(TestCase):
         root_crl = self._make_test_crl(
             self.root_cert, self.root_key, certs=[self.intermediate_cert])
         store.add_crl(root_crl)
-        store.set_flags(store.CRL_CHECK | store.CRL_CHECK_ALL)
+        store.set_flags(
+            X509StoreFlags.CRL_CHECK.value |
+            X509StoreFlags.CRL_CHECK_ALL.value)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
         e = self.assertRaises(
             X509StoreContextError, store_ctx.verify_certificate)

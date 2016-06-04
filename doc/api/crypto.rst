@@ -206,6 +206,14 @@ X509StoreContext objects
 
 .. _openssl-pkey:
 
+X509StoreFlags enums
+-----------------
+
+.. autoclass:: X509StoreFlags
+               :members:
+
+.. _openssl-x509storeflags:
+
 PKey objects
 ------------
 

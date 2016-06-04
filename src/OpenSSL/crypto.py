@@ -9,6 +9,7 @@ from six import (
     integer_types as _integer_types,
     text_type as _text_type,
     PY3 as _PY3)
+from enum import Enum
 
 from OpenSSL._util import (
     ffi as _ffi,
@@ -1425,6 +1426,23 @@ class X509(object):
 X509Type = X509
 
 
+class X509StoreFlags(Enum):
+    """ Flags for X509 verification
+    https://www.openssl.org/docs/manmaster/crypto/X509_VERIFY_PARAM_set_flags.html
+    """
+    CRL_CHECK = _lib.X509_V_FLAG_CRL_CHECK
+    CRL_CHECK_ALL = _lib.X509_V_FLAG_CRL_CHECK_ALL
+    IGNORE_CRITICAL = _lib.X509_V_FLAG_IGNORE_CRITICAL
+    X509_STRICT = _lib.X509_V_FLAG_X509_STRICT
+    ALLOW_PROXY_CERTS = _lib.X509_V_FLAG_ALLOW_PROXY_CERTS
+    POLICY_CHECK = _lib.X509_V_FLAG_POLICY_CHECK
+    EXPLICIT_POLICY = _lib.X509_V_FLAG_EXPLICIT_POLICY
+    INHIBIT_MAP = _lib.X509_V_FLAG_INHIBIT_MAP
+    NOTIFY_POLICY = _lib.X509_V_FLAG_NOTIFY_POLICY
+    CHECK_SS_SIGNATURE = _lib.X509_V_FLAG_CHECK_SS_SIGNATURE
+    CB_ISSUER_CHECK = _lib.X509_V_FLAG_CB_ISSUER_CHECK
+
+
 class X509Store(object):
     """
     An X.509 store.
@@ -1438,18 +1456,6 @@ class X509Store(object):
     verify a certificate. To carry out the actual verification process, see
     :class:`X509StoreContext`.
     """
-
-    CRL_CHECK = _lib.X509_V_FLAG_CRL_CHECK
-    CRL_CHECK_ALL = _lib.X509_V_FLAG_CRL_CHECK_ALL
-    IGNORE_CRITICAL = _lib.X509_V_FLAG_IGNORE_CRITICAL
-    X509_STRICT = _lib.X509_V_FLAG_X509_STRICT
-    ALLOW_PROXY_CERTS = _lib.X509_V_FLAG_ALLOW_PROXY_CERTS
-    POLICY_CHECK = _lib.X509_V_FLAG_POLICY_CHECK
-    EXPLICIT_POLICY = _lib.X509_V_FLAG_EXPLICIT_POLICY
-    INHIBIT_MAP = _lib.X509_V_FLAG_INHIBIT_MAP
-    NOTIFY_POLICY = _lib.X509_V_FLAG_NOTIFY_POLICY
-    CHECK_SS_SIGNATURE = _lib.X509_V_FLAG_CHECK_SS_SIGNATURE
-    CB_ISSUER_CHECK = _lib.X509_V_FLAG_CB_ISSUER_CHECK
 
     def __init__(self):
         store = _lib.X509_STORE_new()
@@ -1924,7 +1930,8 @@ class Revoked(object):
         """
         Set the revocation timestamp.
 
-        :param bytes when: The timestamp of the revocation, as ASN.1 GENERALIZEDTIME.
+        :param bytes when: The timestamp of the revocation,
+        as ASN.1 GENERALIZEDTIME.
         :return: :const:`None`
         """
         dt = _lib.X509_REVOKED_get0_revocationDate(self._revoked)
