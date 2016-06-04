@@ -1427,8 +1427,14 @@ X509Type = X509
 
 
 class X509StoreFlags(Enum):
-    """ Flags for X509 verification
-    https://www.openssl.org/docs/manmaster/crypto/X509_VERIFY_PARAM_set_flags.html
+    """
+    Flags for X509 verification, used to change the behavior of
+    :class:`X509Store`.
+
+    See `OpenSSL Verification Flags`_ for details.
+
+    .. _OpenSSL Verification Flags:
+        https://www.openssl.org/docs/manmaster/crypto/X509_VERIFY_PARAM_set_flags.html
     """
     CRL_CHECK = _lib.X509_V_FLAG_CRL_CHECK
     CRL_CHECK_ALL = _lib.X509_V_FLAG_CRL_CHECK_ALL
