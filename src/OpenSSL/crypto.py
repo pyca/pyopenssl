@@ -2043,7 +2043,7 @@ class CRL(object):
         .. versionadded:: 16.1.0
 
         :param bytes when: A timestamp string.
-        :return: ``None`
+        :return: ``None``
         """
         return self._set_boundary_time(_lib.X509_CRL_get_lastUpdate, when)
 
