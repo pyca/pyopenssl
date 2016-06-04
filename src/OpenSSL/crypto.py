@@ -1931,7 +1931,7 @@ class Revoked(object):
         Set the revocation timestamp.
 
         :param bytes when: The timestamp of the revocation,
-        as ASN.1 GENERALIZEDTIME.
+            as ASN.1 GENERALIZEDTIME.
         :return: :const:`None`
         """
         dt = _lib.X509_REVOKED_get0_revocationDate(self._revoked)
