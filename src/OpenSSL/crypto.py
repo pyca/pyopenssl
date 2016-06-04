@@ -1439,6 +1439,10 @@ class X509Store(object):
     :class:`X509StoreContext`.
     """
 
+    # I found that some of these flags were added in different versions
+    # of OpenSSL. How to conditionally add them if they're present?
+    # Do you have any suggestions on conditionally adding the flag if
+    # it is available in the underlying OpenSSL?
     CRL_CHECK = _lib.X509_V_FLAG_CRL_CHECK
     CRL_CHECK_ALL = _lib.X509_V_FLAG_CRL_CHECK_ALL
     IGNORE_CRITICAL = _lib.X509_V_FLAG_IGNORE_CRITICAL
@@ -1952,9 +1956,6 @@ class CRL(object):
     """
 
     def __init__(self):
-        """
-        Create a new empty certificate revocation list.
-        """
         crl = _lib.X509_CRL_new()
         self._crl = _ffi.gc(crl, _lib.X509_CRL_free)
 
@@ -2063,7 +2064,7 @@ class CRL(object):
         """
         return self._set_boundary_time(_lib.X509_CRL_get_nextUpdate, when)
 
-    def sign(self, issuer_cert, issuer_key, digest='sha1'):
+    def sign(self, issuer_cert, issuer_key, digest):
         """
         Sign the CRL.
 
