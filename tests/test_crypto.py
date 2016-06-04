@@ -3115,7 +3115,8 @@ class CRLTests(TestCase):
     intermediate_key = load_privatekey(FILETYPE_PEM, intermediate_key_pem)
     intermediate_server_cert = load_certificate(
         FILETYPE_PEM, intermediate_server_cert_pem)
-    intermediate_server_key = load_privatekey(FILETYPE_PEM, intermediate_server_key_pem)
+    intermediate_server_key = load_privatekey(
+        FILETYPE_PEM, intermediate_server_key_pem)
 
     def test_construction(self):
         """
@@ -3423,8 +3424,8 @@ class CRLTests(TestCase):
         crl = CRL()
         for cert in certs:
             revoked = Revoked()
-            # FIXME: This string splicing is an unfortunate implementation detail
-            # that has been reported in
+            # FIXME: This string splicing is an unfortunate implementation
+            # detail that has been reported in
             # https://github.com/pyca/pyopenssl/issues/258
             serial = hex(cert.get_serial_number())[2:].encode('utf-8')
             revoked.set_serial(serial)
@@ -3445,13 +3446,16 @@ class CRLTests(TestCase):
         store = X509Store()
         store.add_cert(self.root_cert)
         store.add_cert(self.intermediate_cert)
-        root_crl = self._make_test_crl(self.root_cert, self.root_key, certs=[self.intermediate_cert])
-        intermediate_crl = self._make_test_crl(self.intermediate_cert, self.intermediate_key, certs=[])
+        root_crl = self._make_test_crl(
+            self.root_cert, self.root_key, certs=[self.intermediate_cert])
+        intermediate_crl = self._make_test_crl(
+            self.intermediate_cert, self.intermediate_key, certs=[])
         store.add_crl(root_crl)
         store.add_crl(intermediate_crl)
         store.set_flags(store.CRL_CHECK | store.CRL_CHECK_ALL)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        e = self.assertRaises(X509StoreContextError, store_ctx.verify_certificate)
+        e = self.assertRaises(
+            X509StoreContextError, store_ctx.verify_certificate)
         self.assertEqual(e.args[0][2], 'certificate revoked')
 
     def test_verify_with_missing_crl(self):
@@ -3462,13 +3466,16 @@ class CRLTests(TestCase):
         store = X509Store()
         store.add_cert(self.root_cert)
         store.add_cert(self.intermediate_cert)
-        root_crl = self._make_test_crl(self.root_cert, self.root_key, certs=[self.intermediate_cert])
+        root_crl = self._make_test_crl(
+            self.root_cert, self.root_key, certs=[self.intermediate_cert])
         store.add_crl(root_crl)
         store.set_flags(store.CRL_CHECK | store.CRL_CHECK_ALL)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        e = self.assertRaises(X509StoreContextError, store_ctx.verify_certificate)
+        e = self.assertRaises(
+            X509StoreContextError, store_ctx.verify_certificate)
         self.assertEqual(e.args[0][2], 'unable to get certificate CRL')
-        self.assertEqual(e.certificate.get_subject().CN, 'intermediate-service')
+        self.assertEqual(
+            e.certificate.get_subject().CN, 'intermediate-service')
 
 
 class X509StoreContextTests(TestCase):
@@ -3481,7 +3488,8 @@ class X509StoreContextTests(TestCase):
     intermediate_key = load_privatekey(FILETYPE_PEM, intermediate_key_pem)
     intermediate_server_cert = load_certificate(
         FILETYPE_PEM, intermediate_server_cert_pem)
-    intermediate_server_key = load_privatekey(FILETYPE_PEM, intermediate_server_key_pem)
+    intermediate_server_key = load_privatekey(
+        FILETYPE_PEM, intermediate_server_key_pem)
 
     def test_valid(self):
         """

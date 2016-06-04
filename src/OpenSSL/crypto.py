@@ -1434,8 +1434,8 @@ class X509Store(object):
     to trust, a set of certificate revocation lists, verification flags and
     more.
 
-    An X.509 store, being only a description, cannot be used by itself to verify
-    a certificate. To carry out the actual verification process, see
+    An X.509 store, being only a description, cannot be used by itself to
+    verify a certificate. To carry out the actual verification process, see
     :py:class:`X509StoreContext`.
     """
 
@@ -1488,7 +1488,8 @@ class X509Store(object):
         .. versionadded:: 0.17
 
         :param CRL crl: The certificate revocation list to add to this store.
-        :return: :py:data:`None` if the certificate revocation list was added successfully.
+        :return: :py:data:`None` if the certificate revocation list was added
+            successfully.
         """
         _openssl_assert(_lib.X509_STORE_add_crl(self._store, crl._crl) != 0)
 
@@ -1511,7 +1512,8 @@ class X509Store(object):
         .. versionadded:: 0.17
 
         :param int flags: The verification flags to set on this store.
-        :return: :py:data:`None` if the verification flags were successfully set.
+        :return: :py:data:`None` if the verification flags were
+            successfully set.
         """
         _openssl_assert(_lib.X509_STORE_set_flags(self._store, flags) != 0)
 
@@ -2080,10 +2082,11 @@ class CRL(object):
         """
         digest_obj = _lib.EVP_get_digestbyname(digest)
         _openssl_assert(digest_obj != _ffi.NULL)
-        _lib.X509_CRL_set_issuer_name(self._crl, _lib.X509_get_subject_name(issuer_cert._x509))
+        _lib.X509_CRL_set_issuer_name(
+            self._crl, _lib.X509_get_subject_name(issuer_cert._x509))
         _lib.X509_CRL_sort(self._crl)
-        sign_result = _lib.X509_CRL_sign(self._crl, issuer_key._pkey, digest_obj)
-        _openssl_assert(sign_result != 0)
+        result = _lib.X509_CRL_sign(self._crl, issuer_key._pkey, digest_obj)
+        _openssl_assert(result != 0)
 
     def export(self, cert, key, type=FILETYPE_PEM, days=100,
                digest=_UNSPECIFIED):
