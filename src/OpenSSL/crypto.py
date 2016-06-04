@@ -1636,7 +1636,7 @@ def load_certificate(type, buffer):
     :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)
 
     :param buffer: The buffer the certificate is stored in
-    :type buffer: :class:`bytes`
+    :type buffer: bytes
 
     :return: The X509 object
     """
@@ -1725,7 +1725,7 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
                        the passphrase to use, or a callback for providing the
                        passphrase.
     :return: The buffer with the dumped key in
-    :rtype: :data:`bytes`
+    :rtype: bytes
     """
     bio = _new_mem_buf()
 
@@ -1793,10 +1793,9 @@ class Revoked(object):
         The serial number is formatted as a hexadecimal number encoded in
         ASCII.
 
-        :param hex_str: The new serial number.
-        :type hex_str: :class:`bytes`
+        :param bytes hex_str: The new serial number.
 
-        :return: :const:`None`
+        :return: ``None``
         """
         bignum_serial = _ffi.gc(_lib.BN_new(), _lib.BN_free)
         bignum_ptr = _ffi.new("BIGNUM**")
@@ -1925,8 +1924,7 @@ class Revoked(object):
         """
         Set the revocation timestamp.
 
-        :param when: The timestamp of the revocation, as ASN.1 GENERALIZEDTIME.
-        :type when: :class:`bytes`
+        :param bytes when: The timestamp of the revocation, as ASN.1 GENERALIZEDTIME.
         :return: :const:`None`
         """
         dt = _lib.X509_REVOKED_get0_revocationDate(self._revoked)
@@ -2000,7 +1998,7 @@ class CRL(object):
 
         .. versionadded:: 16.1.0
 
-        :return: :class:`X509Name`
+        :rtype: X509Name
         """
         _issuer = _lib.X509_NAME_dup(_lib.X509_CRL_get_issuer(self._crl))
         _openssl_assert(_issuer != _ffi.NULL)
@@ -2754,7 +2752,7 @@ def dump_crl(type, crl):
     :param CRL crl: The CRL to dump.
 
     :return: The buffer with the CRL.
-    :rtype: :data:`bytes`
+    :rtype: bytes
     """
     bio = _new_mem_buf()
 

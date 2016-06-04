@@ -23,7 +23,8 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-*none*
+- Enable use of CRL (and more) in verify context.
+  `#483 <https://github.com/pyca/pyopenssl/pull/483>`_
 
 
 ----
