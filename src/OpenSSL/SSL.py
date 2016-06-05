@@ -473,14 +473,10 @@ class Context(object):
             raise ValueError("No such protocol")
 
         method_obj = method_func()
-        if method_obj == _ffi.NULL:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(method_obj != _ffi.NULL)
 
         context = _lib.SSL_CTX_new(method_obj)
-        if context == _ffi.NULL:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(context != _ffi.NULL)
         context = _ffi.gc(context, _lib.SSL_CTX_free)
 
         self._context = context
@@ -855,9 +851,7 @@ class Context(object):
         :return: None
         """
         name_stack = _lib.sk_X509_NAME_new_null()
-        if name_stack == _ffi.NULL:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(name_stack != _ffi.NULL)
 
         try:
             for ca_name in certificate_authorities:
@@ -869,9 +863,7 @@ class Context(object):
                         )
                     )
                 copy = _lib.X509_NAME_dup(ca_name._name)
-                if copy == _ffi.NULL:
-                    # TODO: This is untested.
-                    _raise_current_error()
+                _openssl_assert(copy != _ffi.NULL)
                 push_result = _lib.sk_X509_NAME_push(name_stack, copy)
                 if not push_result:
                     _lib.X509_NAME_free(copy)
@@ -1125,11 +1117,10 @@ class Connection(object):
             self._socket = None
             # Don't set up any gc for these, SSL_free will take care of them.
             self._into_ssl = _lib.BIO_new(_lib.BIO_s_mem())
-            self._from_ssl = _lib.BIO_new(_lib.BIO_s_mem())
+            _openssl_assert(self._into_ssl != _ffi.NULL)
 
-            if self._into_ssl == _ffi.NULL or self._from_ssl == _ffi.NULL:
-                # TODO: This is untested.
-                _raise_current_error()
+            self._from_ssl = _lib.BIO_new(_lib.BIO_s_mem())
+            _openssl_assert(self._from_ssl != _ffi.NULL)
 
             _lib.SSL_set_bio(self._ssl, self._into_ssl, self._from_ssl)
         else:
@@ -1559,9 +1550,7 @@ class Connection(object):
         for i in range(_lib.sk_X509_NAME_num(ca_names)):
             name = _lib.sk_X509_NAME_value(ca_names, i)
             copy = _lib.X509_NAME_dup(name)
-            if copy == _ffi.NULL:
-                # TODO: This is untested.
-                _raise_current_error()
+            _openssl_assert(copy != _ffi.NULL)
 
             pyname = X509Name.__new__(X509Name)
             pyname._name = _ffi.gc(copy, _lib.X509_NAME_free)
