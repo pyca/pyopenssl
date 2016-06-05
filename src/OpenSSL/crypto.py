@@ -1280,9 +1280,7 @@ class X509(object):
     def _get_name(self, which):
         name = X509Name.__new__(X509Name)
         name._name = which(self._x509)
-        if name._name == _ffi.NULL:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(name._name != _ffi.NULL)
 
         # The name is owned by the X509 structure.  As long as the X509Name
         # Python object is alive, keep the X509 Python object alive.
@@ -1847,15 +1845,11 @@ class Revoked(object):
             reason_code = [r.lower() for r in self._crl_reasons].index(reason)
 
             new_reason_ext = _lib.ASN1_ENUMERATED_new()
-            if new_reason_ext == _ffi.NULL:
-                # TODO: This is untested.
-                _raise_current_error()
+            _openssl_assert(new_reason_ext != _ffi.NULL)
             new_reason_ext = _ffi.gc(new_reason_ext, _lib.ASN1_ENUMERATED_free)
 
             set_result = _lib.ASN1_ENUMERATED_set(new_reason_ext, reason_code)
-            if set_result == _ffi.NULL:
-                # TODO: This is untested.
-                _raise_current_error()
+            _openssl_assert(set_result != _ffi.NULL)
 
             self._delete_reason()
             add_result = _lib.X509_REVOKED_add1_ext_i2d(
@@ -1970,9 +1964,7 @@ class CRL(object):
         :return: ``None``
         """
         copy = _lib.Cryptography_X509_REVOKED_dup(revoked._revoked)
-        if copy == _ffi.NULL:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(copy != _ffi.NULL)
 
         add_result = _lib.X509_CRL_add0_revoked(self._crl, copy)
         if add_result == 0:
@@ -2103,16 +2095,12 @@ class CRL(object):
             raise ValueError("No such digest method")
 
         bio = _lib.BIO_new(_lib.BIO_s_mem())
-        if bio == _ffi.NULL:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(bio != _ffi.NULL)
 
         # A scratch time object to give different values to different CRL
         # fields
         sometime = _lib.ASN1_TIME_new()
-        if sometime == _ffi.NULL:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(sometime != _ffi.NULL)
 
         _lib.X509_gmtime_adj(sometime, 0)
         _lib.X509_CRL_set_lastUpdate(self._crl, sometime)
@@ -2442,9 +2430,7 @@ class NetscapeSPKI(object):
         """
         pkey = PKey.__new__(PKey)
         pkey._pkey = _lib.NETSCAPE_SPKI_get_pubkey(self._spki)
-        if pkey._pkey == _ffi.NULL:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(pkey._pkey != _ffi.NULL)
         pkey._pkey = _ffi.gc(pkey._pkey, _lib.EVP_PKEY_free)
         pkey._only_public = True
         return pkey
@@ -2647,9 +2633,7 @@ def load_certificate_request(type, buffer):
     else:
         raise ValueError("type argument must be FILETYPE_PEM or FILETYPE_ASN1")
 
-    if req == _ffi.NULL:
-        # TODO: This is untested.
-        _raise_current_error()
+    _openssl_assert(req != _ffi.NULL)
 
     x509req = X509Req.__new__(X509Req)
     x509req._req = _ffi.gc(req, _lib.X509_REQ_free)
@@ -2707,9 +2691,7 @@ def verify(cert, signature, data, digest):
         raise ValueError("No such digest method")
 
     pkey = _lib.X509_get_pubkey(cert._x509)
-    if pkey == _ffi.NULL:
-        # TODO: This is untested.
-        _raise_current_error()
+    _openssl_assert(pkey != _ffi.NULL)
     pkey = _ffi.gc(pkey, _lib.EVP_PKEY_free)
 
     md_ctx = _lib.Cryptography_EVP_MD_CTX_new()
