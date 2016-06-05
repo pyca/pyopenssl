@@ -1647,8 +1647,7 @@ def load_certificate(type, buffer):
 
     :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)
 
-    :param buffer: The buffer the certificate is stored in
-    :type buffer: bytes
+    :param bytes buffer: The buffer the certificate is stored in
 
     :return: The X509 object
     """
@@ -1829,7 +1828,7 @@ class Revoked(object):
         ASCII.
 
         :return: The serial number.
-        :rtype: :class:`bytes`
+        :rtype: bytes
         """
         bio = _new_mem_buf()
 
