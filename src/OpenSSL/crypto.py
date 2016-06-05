@@ -2099,11 +2099,6 @@ class CRL(object):
         :rtype: bytes
         """
 
-        # TODO: fix this function to use functionality added in version 16.1.0
-        # Doing this without changing the public API is tricky. Checking if
-        # lastUpdate, nextUpdate, issuer or signing has happened is hard to do
-        # without generating a segmentation fault.
-
         if not isinstance(cert, X509):
             raise TypeError("cert must be an X509 instance")
         if not isinstance(key, PKey):
