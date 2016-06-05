@@ -70,9 +70,7 @@ def _new_mem_buf(buffer=None):
         def free(bio, ref=data):
             return _lib.BIO_free(bio)
 
-    if bio == _ffi.NULL:
-        # TODO: This is untested.
-        _raise_current_error()
+    _openssl_assert(bio != _ffi.NULL)
 
     bio = _ffi.gc(bio, free)
     return bio
@@ -220,17 +218,13 @@ class PKey(object):
 
         elif type == TYPE_DSA:
             dsa = _lib.DSA_new()
-            if dsa == _ffi.NULL:
-                # TODO: This is untested.
-                _raise_current_error()
+            _openssl_assert(dsa != _ffi.NULL)
 
             dsa = _ffi.gc(dsa, _lib.DSA_free)
             res = _lib.DSA_generate_parameters_ex(
                 dsa, bits, _ffi.NULL, 0, _ffi.NULL, _ffi.NULL, _ffi.NULL
             )
-            if not res == 1:
-                # TODO: This is untested.
-                _raise_current_error()
+            _openssl_assert(res == 1)
             if not _lib.DSA_generate_key(dsa):
                 # TODO: This is untested.
                 _raise_current_error()
@@ -562,10 +556,7 @@ class X509Name(object):
         result_buffer = _ffi.new("char[]", 512)
         format_result = _lib.X509_NAME_oneline(
             self._name, result_buffer, len(result_buffer))
-
-        if format_result == _ffi.NULL:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(format_result != _ffi.NULL)
 
         return "<X509Name object '%s'>" % (
             _native(_ffi.string(result_buffer)),)
@@ -708,9 +699,7 @@ class X509Extension(object):
 
     def _subjectAltNameString(self):
         method = _lib.X509V3_EXT_get(self._extension)
-        if method == _ffi.NULL:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(method != _ffi.NULL)
         ext_data = _lib.X509_EXTENSION_get_data(self._extension)
         payload = ext_data.data
         length = ext_data.length
@@ -832,9 +821,7 @@ class X509Req(object):
         """
         pkey = PKey.__new__(PKey)
         pkey._pkey = _lib.X509_REQ_get_pubkey(self._req)
-        if pkey._pkey == _ffi.NULL:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(pkey._pkey != _ffi.NULL)
         pkey._pkey = _ffi.gc(pkey._pkey, _lib.EVP_PKEY_free)
         pkey._only_public = True
         return pkey
@@ -875,9 +862,7 @@ class X509Req(object):
         """
         name = X509Name.__new__(X509Name)
         name._name = _lib.X509_REQ_get_subject_name(self._req)
-        if name._name == _ffi.NULL:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(name._name != _ffi.NULL)
 
         # The name is owned by the X509Req structure.  As long as the X509Name
         # Python object is alive, keep the X509Req Python object alive.
@@ -894,9 +879,7 @@ class X509Req(object):
         :return: ``None``
         """
         stack = _lib.sk_X509_EXTENSION_new_null()
-        if stack == _ffi.NULL:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(stack != _ffi.NULL)
 
         stack = _ffi.gc(stack, _lib.sk_X509_EXTENSION_free)
 
