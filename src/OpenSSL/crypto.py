@@ -1946,7 +1946,7 @@ class Revoked(object):
         Get the revocation timestamp.
 
         :return: The timestamp of the revocation, as ASN.1 GENERALIZEDTIME.
-        :rtype: :class:`bytes`
+        :rtype: bytes
         """
         dt = _lib.X509_REVOKED_get0_revocationDate(self._revoked)
         return _get_asn1_time(dt)
