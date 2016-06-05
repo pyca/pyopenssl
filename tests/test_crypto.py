@@ -762,7 +762,7 @@ class TestPKey(object):
 
     def test_convert_from_cryptography_private_key(self):
         """
-        Convert from a cryptography private key to a pyOpenSSL PKey.
+        PKey.from_cryptography_key creates a proper private PKey.
         """
         key = serialization.load_pem_private_key(
             intermediate_key_pem, None, backend
@@ -776,7 +776,7 @@ class TestPKey(object):
 
     def test_convert_from_cryptography_public_key(self):
         """
-        Convert from a cryptography public key to a pyOpenSSL PKey.
+        PKey.from_cryptography_key creates a proper public PKey.
         """
         key = serialization.load_pem_public_key(cleartextPublicKeyPEM, backend)
         pkey = PKey.from_cryptography_key(key)
@@ -788,7 +788,7 @@ class TestPKey(object):
 
     def test_convert_public_pkey_to_cryptography_key(self):
         """
-        Convert from a pyOpenSSL PKey to a cryptography public key.
+        PKey.to_cryptography_key creates a proper cryptography public key.
         """
         pkey = load_publickey(FILETYPE_PEM, cleartextPublicKeyPEM)
         key = pkey.to_cryptography_key()
@@ -798,7 +798,7 @@ class TestPKey(object):
 
     def test_convert_private_pkey_to_cryptography_key(self):
         """
-        Convert from a pyOpenSSL PKey to a cryptography private key.
+        PKey.to_cryptography_key creates a proper cryptography private key.
         """
         pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         key = pkey.to_cryptography_key()

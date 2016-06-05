@@ -25,6 +25,8 @@ Changes:
 
 - Enable use of CRL (and more) in verify context.
   `#483 <https://github.com/pyca/pyopenssl/pull/483>`_
+- ``OpenSSL.crypto.PKey`` can now be constructed from ``cryptography`` objects and also exported as such.
+  `#439 <https://github.com/pyca/pyopenssl/pull/439>`_
 
 
 ----

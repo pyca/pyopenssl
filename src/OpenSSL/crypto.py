@@ -171,6 +171,16 @@ class PKey(object):
         self._initialized = False
 
     def to_cryptography_key(self):
+        """
+        Export as a ``cryptography`` key.
+
+        :rtype: One of ``cryptography``'s `key interfaces`_.
+
+        .. _key interfaces: https://cryptography.io/en/latest/hazmat/\
+            primitives/asymmetric/rsa/#key-interfaces
+
+        .. versionadded:: 16.1.0
+        """
         if self._only_public:
             return backend._evp_pkey_to_public_key(self._pkey)
         else:
@@ -178,6 +188,16 @@ class PKey(object):
 
     @classmethod
     def from_cryptography_key(cls, crypto_key):
+        """
+        Construct based on a ``cryptography`` *crypto_key*.
+
+        :param crypto_key: A ``cryptography`` key.
+        :type crypto_key: One of ``cryptography``'s `key interfaces`_.
+
+        :rtype: PKey
+
+        .. versionadded:: 16.1.0
+        """
         pkey = cls()
         pkey._pkey = crypto_key._evp_pkey
         if isinstance(crypto_key, (rsa.RSAPublicKey, dsa.DSAPublicKey)):
