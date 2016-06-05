@@ -206,6 +206,25 @@ X509StoreContext objects
 
 .. _openssl-pkey:
 
+X509StoreFlags constants
+------------------------
+
+.. autoclass:: X509StoreFlags
+
+    .. data:: CRL_CHECK
+    .. data:: CRL_CHECK_ALL
+    .. data:: IGNORE_CRITICAL
+    .. data:: X509_STRICT
+    .. data:: ALLOW_PROXY_CERTS
+    .. data:: POLICY_CHECK
+    .. data:: EXPLICIT_POLICY
+    .. data:: INHIBIT_MAP
+    .. data:: NOTIFY_POLICY
+    .. data:: CHECK_SS_SIGNATURE
+    .. data:: CB_ISSUER_CHECK
+
+.. _openssl-x509storeflags:
+
 PKey objects
 ------------
 

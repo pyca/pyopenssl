@@ -21,7 +21,11 @@ from six import u, b, binary_type
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
 from OpenSSL.crypto import (
-    X509Store, X509StoreType, X509StoreContext, X509StoreContextError
+    X509Store,
+    X509StoreFlags,
+    X509StoreType,
+    X509StoreContext,
+    X509StoreContextError
 )
 from OpenSSL.crypto import X509Req, X509ReqType
 from OpenSSL.crypto import X509Extension, X509ExtensionType
@@ -3127,6 +3131,15 @@ class CRLTests(TestCase):
     cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
     pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
 
+    root_cert = load_certificate(FILETYPE_PEM, root_cert_pem)
+    root_key = load_privatekey(FILETYPE_PEM, root_key_pem)
+    intermediate_cert = load_certificate(FILETYPE_PEM, intermediate_cert_pem)
+    intermediate_key = load_privatekey(FILETYPE_PEM, intermediate_key_pem)
+    intermediate_server_cert = load_certificate(
+        FILETYPE_PEM, intermediate_server_cert_pem)
+    intermediate_server_key = load_privatekey(
+        FILETYPE_PEM, intermediate_server_key_pem)
+
     def test_construction(self):
         """
         Confirm we can create :py:obj:`OpenSSL.crypto.CRL`.  Check
@@ -3407,6 +3420,15 @@ class CRLTests(TestCase):
         """
         self.assertRaises(Error, load_crl, FILETYPE_PEM, b"hello, world")
 
+    def test_get_issuer(self):
+        """
+        Load a known CRL and assert its issuer's common name is
+        what we expect from the encoded crlData string.
+        """
+        crl = load_crl(FILETYPE_PEM, crlData)
+        self.assertTrue(isinstance(crl.get_issuer(), X509Name))
+        self.assertEqual(crl.get_issuer().CN, 'Testing Root CA')
+
     def test_dump_crl(self):
         """
         The dumped CRL matches the original input.
@@ -3414,6 +3436,71 @@ class CRLTests(TestCase):
         crl = load_crl(FILETYPE_PEM, crlData)
         buf = dump_crl(FILETYPE_PEM, crl)
         assert buf == crlData
+
+    def _make_test_crl(self, issuer_cert, issuer_key, certs=()):
+        """
+        Create a CRL.
+
+        :param list[X509] certs: A list of certificates to revoke.
+        :rtype: CRL
+        """
+        crl = CRL()
+        for cert in certs:
+            revoked = Revoked()
+            # FIXME: This string splicing is an unfortunate implementation
+            # detail that has been reported in
+            # https://github.com/pyca/pyopenssl/issues/258
+            serial = hex(cert.get_serial_number())[2:].encode('utf-8')
+            revoked.set_serial(serial)
+            revoked.set_reason(b'unspecified')
+            revoked.set_rev_date(b'20140601000000Z')
+            crl.add_revoked(revoked)
+        crl.set_version(1)
+        crl.set_lastUpdate(b'20140601000000Z')
+        crl.set_nextUpdate(b'20180601000000Z')
+        crl.sign(issuer_cert, issuer_key, digest=b'sha512')
+        return crl
+
+    def test_verify_with_revoked(self):
+        """
+        :func:`verify_certificate` raises error when an intermediate
+        certificate is revoked.
+        """
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        store.add_cert(self.intermediate_cert)
+        root_crl = self._make_test_crl(
+            self.root_cert, self.root_key, certs=[self.intermediate_cert])
+        intermediate_crl = self._make_test_crl(
+            self.intermediate_cert, self.intermediate_key, certs=[])
+        store.add_crl(root_crl)
+        store.add_crl(intermediate_crl)
+        store.set_flags(
+            X509StoreFlags.CRL_CHECK | X509StoreFlags.CRL_CHECK_ALL)
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        e = self.assertRaises(
+            X509StoreContextError, store_ctx.verify_certificate)
+        self.assertEqual(e.args[0][2], 'certificate revoked')
+
+    def test_verify_with_missing_crl(self):
+        """
+        :func:`verify_certificate` raises error when an intermediate
+        certificate's CRL is missing.
+        """
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        store.add_cert(self.intermediate_cert)
+        root_crl = self._make_test_crl(
+            self.root_cert, self.root_key, certs=[self.intermediate_cert])
+        store.add_crl(root_crl)
+        store.set_flags(
+            X509StoreFlags.CRL_CHECK | X509StoreFlags.CRL_CHECK_ALL)
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        e = self.assertRaises(
+            X509StoreContextError, store_ctx.verify_certificate)
+        self.assertEqual(e.args[0][2], 'unable to get certificate CRL')
+        self.assertEqual(
+            e.certificate.get_subject().CN, 'intermediate-service')
 
 
 class X509StoreContextTests(TestCase):
