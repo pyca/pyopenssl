@@ -206,8 +206,8 @@ X509StoreContext objects
 
 .. _openssl-pkey:
 
-X509StoreFlags enums
---------------------
+X509StoreFlags constants
+------------------------
 
 .. autoclass:: X509StoreFlags
 

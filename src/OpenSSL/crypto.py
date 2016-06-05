@@ -9,7 +9,6 @@ from six import (
     integer_types as _integer_types,
     text_type as _text_type,
     PY3 as _PY3)
-from enum import Enum
 
 from OpenSSL._util import (
     ffi as _ffi,
@@ -1426,7 +1425,7 @@ class X509(object):
 X509Type = X509
 
 
-class X509StoreFlags(Enum):
+class X509StoreFlags(object):
     """
     Flags for X509 verification, used to change the behavior of
     :class:`X509Store`.

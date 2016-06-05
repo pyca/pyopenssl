@@ -3458,8 +3458,7 @@ class CRLTests(TestCase):
         store.add_crl(root_crl)
         store.add_crl(intermediate_crl)
         store.set_flags(
-            X509StoreFlags.CRL_CHECK.value |
-            X509StoreFlags.CRL_CHECK_ALL.value)
+            X509StoreFlags.CRL_CHECK | X509StoreFlags.CRL_CHECK_ALL)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
         e = self.assertRaises(
             X509StoreContextError, store_ctx.verify_certificate)
@@ -3477,8 +3476,7 @@ class CRLTests(TestCase):
             self.root_cert, self.root_key, certs=[self.intermediate_cert])
         store.add_crl(root_crl)
         store.set_flags(
-            X509StoreFlags.CRL_CHECK.value |
-            X509StoreFlags.CRL_CHECK_ALL.value)
+            X509StoreFlags.CRL_CHECK | X509StoreFlags.CRL_CHECK_ALL)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
         e = self.assertRaises(
             X509StoreContextError, store_ctx.verify_certificate)
