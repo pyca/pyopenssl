@@ -2074,7 +2074,7 @@ class CRL(object):
 
         :param X509 issuer_cert: The issuer's certificate.
         :param PKey issuer_key: The issuer's private key.
-        :param str digest: The digest method to sign the CRL with.
+        :param bytes digest: The digest method to sign the CRL with.
         """
         digest_obj = _lib.EVP_get_digestbyname(digest)
         _openssl_assert(digest_obj != _ffi.NULL)
