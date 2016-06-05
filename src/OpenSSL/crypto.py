@@ -1512,8 +1512,8 @@ class X509Store(object):
         .. versionadded:: 16.1.0
 
         :param int flags: The verification flags to set on this store.
-        :return: ``None`` if the verification flags were
-            successfully set.
+            See :class:`X509StoreFlags` for available constants.
+        :return: ``None`` if the verification flags were successfully set.
         """
         _openssl_assert(_lib.X509_STORE_set_flags(self._store, flags) != 0)
 
@@ -1551,7 +1551,6 @@ class X509StoreContext(object):
     :param X509Store store: The certificates which will be trusted for the
         purposes of any verifications.
     :param X509 certificate: The certificate to be verified.
-
     """
 
     def __init__(self, store, certificate):
