@@ -561,9 +561,7 @@ class Context(object):
         :return: None
         """
         set_result = _lib.SSL_CTX_set_default_verify_paths(self._context)
-        if not set_result:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(set_result == 1)
 
     def use_certificate_chain_file(self, certfile):
         """
@@ -890,9 +888,7 @@ class Context(object):
 
         add_result = _lib.SSL_CTX_add_client_CA(
             self._context, certificate_authority._x509)
-        if not add_result:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(add_result == 1)
 
     def set_timeout(self, timeout):
         """
@@ -1129,9 +1125,7 @@ class Connection(object):
             self._socket = socket
             set_result = _lib.SSL_set_fd(
                 self._ssl, _asFileDescriptor(self._socket))
-            if not set_result:
-                # TODO: This is untested.
-                _raise_current_error()
+            _openssl_assert(set_result == 1)
 
     def __getattr__(self, name):
         """
