@@ -201,20 +201,10 @@ class PKey(object):
             rsa = _lib.RSA_new()
 
             result = _lib.RSA_generate_key_ex(rsa, bits, exponent, _ffi.NULL)
-            if result == 0:
-                # TODO: The test for this case is commented out.  Different
-                # builds of OpenSSL appear to have different failure modes that
-                # make it hard to test.  Visual inspection of the OpenSSL
-                # source reveals that a return value of 0 signals an error.
-                # Manual testing on a particular build of OpenSSL suggests that
-                # this is probably the appropriate way to handle those errors.
-                _raise_current_error()
+            _openssl_assert(result == 1)
 
             result = _lib.EVP_PKEY_assign_RSA(self._pkey, rsa)
-            if not result:
-                # TODO: It appears as though this can fail if an engine is in
-                # use which does not support RSA.
-                _raise_current_error()
+            _openssl_assert(result == 1)
 
         elif type == TYPE_DSA:
             dsa = _lib.DSA_new()
@@ -824,8 +814,7 @@ class X509Req(object):
         :return: ``None``
         """
         set_result = _lib.X509_REQ_set_version(self._req, version)
-        if not set_result:
-            _raise_current_error()
+        _openssl_assert(set_result == 1)
 
     def get_version(self):
         """
@@ -1037,8 +1026,7 @@ class X509(object):
             raise ValueError("No such digest method")
 
         sign_result = _lib.X509_sign(self._x509, pkey._pkey, evp_md)
-        if not sign_result:
-            _raise_current_error()
+        _openssl_assert(sign_result > 0)
 
     def get_signature_algorithm(self):
         """
