@@ -971,6 +971,9 @@ class X509NameTests(TestCase):
         self.assertEqual(name.commonName, "quux")
         self.assertEqual(name.CN, "quux")
 
+        with pytest.raises(AttributeError):
+            name.foobar
+
     def test_copy(self):
         """
         :py:class:`X509Name` creates a new :py:class:`X509NameType` instance
@@ -1047,6 +1050,8 @@ class X509NameTests(TestCase):
         # Instances with different NIDs should not compare equal to each other.
         assertNotEqual(self._x509name(CN="foo"),
                        self._x509name(OU="foo"))
+
+        assertNotEqual(self._x509name(), object())
 
         def _inequality(a, b, assertTrue, assertFalse):
             assertTrue(a < b)
@@ -1847,6 +1852,15 @@ WpOdIpB8KksUTCzV591Nr1wd
         """
         cert = X509()
         self.assertRaises(Error, cert.get_pubkey)
+
+    def test_set_pubkey_wrong_type(self):
+        """
+        :obj:`X509.set_pubkey` raises :obj:`TypeError` when given an object of
+        the wrong type.
+        """
+        cert = X509()
+        with pytest.raises(TypeError):
+            cert.set_pubkey(object())
 
     def test_subject_name_hash_wrong_args(self):
         """
@@ -2850,7 +2864,10 @@ class LoadCertificateTests(TestCase):
         neither :py:obj:`FILETYPE_PEM` nor :py:obj:`FILETYPE_ASN1` then
         :py:class:`ValueError` is raised.
         """
-        self.assertRaises(ValueError, load_certificate_request, object(), b"")
+        with pytest.raises(ValueError):
+            load_certificate_request(object(), b"")
+        with pytest.raises(ValueError):
+            load_certificate(object(), b"")
 
 
 class PKCS7Tests(TestCase):

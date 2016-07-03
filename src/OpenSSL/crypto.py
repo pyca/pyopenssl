@@ -997,8 +997,7 @@ class X509(object):
             raise TypeError("pkey must be a PKey instance")
 
         set_result = _lib.X509_set_pubkey(self._x509, pkey._pkey)
-        if not set_result:
-            _raise_current_error()
+        _openssl_assert(set_result == 1)
 
     def sign(self, pkey, digest):
         """
