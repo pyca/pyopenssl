@@ -2829,7 +2829,7 @@ class FunctionTests(TestCase):
 
     def test_load_pkcs7_type_invalid(self):
         """
-        If the type paased to :obj:`load_pkcs7_data`, :obj:`ValueError` is
+        If the type passed to :obj:`load_pkcs7_data`, :obj:`ValueError` is
         raised.
         """
         self.assertRaises(ValueError, load_pkcs7_data, object(), b"foo")
