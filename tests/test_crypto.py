@@ -802,6 +802,9 @@ class PKeyTests(TestCase):
         self.assertRaises(ValueError, key.generate_key, TYPE_RSA, -1)
         self.assertRaises(ValueError, key.generate_key, TYPE_RSA, 0)
 
+        with pytest.raises(TypeError):
+            key.generate_key(TYPE_RSA, object())
+
         # XXX RSA generation for small values of bits is fairly buggy in a wide
         # range of OpenSSL versions.  I need to figure out what the safe lower
         # bound for a reasonable number of OpenSSL versions is and explicitly
