@@ -926,7 +926,7 @@ class X509Req(object):
             raise ValueError("No such digest method")
 
         sign_result = _lib.X509_REQ_sign(self._req, pkey._pkey, digest_obj)
-        _openssl_assert(sign_result == 1)
+        _openssl_assert(sign_result > 0)
 
     def verify(self, pkey):
         """
