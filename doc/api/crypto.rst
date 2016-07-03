@@ -73,14 +73,7 @@ Certificate signing requests
 Private keys
 ~~~~~~~~~~~~
 
-.. py:function:: dump_privatekey(type, pkey[, cipher, passphrase])
-
-    Dump the private key *pkey* into a buffer string encoded with the type
-    *type*, optionally (if *type* is :py:const:`FILETYPE_PEM`) encrypting it
-    using *cipher* and *passphrase*.
-
-    *passphrase* must be either a string or a callback for providing the
-    pass phrase.
+.. autofunction:: dump_privatekey
 
 .. py:function:: load_privatekey(type, buffer[, passphrase])
 
