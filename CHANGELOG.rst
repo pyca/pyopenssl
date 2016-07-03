@@ -24,6 +24,7 @@ Changes:
 ^^^^^^^^
 
 - Fix memory leak in ``OpenSSL.crypto.dump_privatekey()`` with ``FILETYPE_TEXT``.
+  `#496 <https://github.com/pyca/pyopenssl/pull/496>`_
 - Enable use of CRL (and more) in verify context.
   `#483 <https://github.com/pyca/pyopenssl/pull/483>`_
 
