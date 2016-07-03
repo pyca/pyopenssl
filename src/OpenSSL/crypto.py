@@ -739,7 +739,7 @@ class X509Extension(object):
 
         bio = _new_mem_buf()
         print_result = _lib.X509V3_EXT_print(bio, self._extension, 0, 0)
-        _openssl_assert(print_result)
+        _openssl_assert(print_result != 0)
 
         return _native(_bio_to_string(bio))
 
@@ -804,7 +804,7 @@ class X509Req(object):
         :return: ``None``
         """
         set_result = _lib.X509_REQ_set_pubkey(self._req, pkey._pkey)
-        _openssl_assert(set_result)
+        _openssl_assert(set_result == 1)
 
     def get_pubkey(self):
         """
@@ -885,7 +885,7 @@ class X509Req(object):
             _lib.sk_X509_EXTENSION_push(stack, ext._extension)
 
         add_result = _lib.X509_REQ_add_extensions(self._req, stack)
-        _openssl_assert(add_result)
+        _openssl_assert(add_result == 1)
 
     def get_extensions(self):
         """
@@ -926,7 +926,7 @@ class X509Req(object):
             raise ValueError("No such digest method")
 
         sign_result = _lib.X509_REQ_sign(self._req, pkey._pkey, digest_obj)
-        _openssl_assert(sign_result)
+        _openssl_assert(sign_result == 1)
 
     def verify(self, pkey):
         """
@@ -1083,7 +1083,7 @@ class X509(object):
 
         digest_result = _lib.X509_digest(
             self._x509, digest, result_buffer, result_length)
-        _openssl_assert(digest_result)
+        _openssl_assert(digest_result == 1)
 
         return b":".join([
             b16encode(ch).upper() for ch
@@ -1279,7 +1279,7 @@ class X509(object):
         if not isinstance(name, X509Name):
             raise TypeError("name must be an X509Name")
         set_result = which(self._x509, name._name)
-        _openssl_assert(set_result)
+        _openssl_assert(set_result == 1)
 
     def get_issuer(self):
         """
@@ -1841,7 +1841,7 @@ class Revoked(object):
             self._delete_reason()
             add_result = _lib.X509_REVOKED_add1_ext_i2d(
                 self._revoked, _lib.NID_crl_reason, new_reason_ext, 0, 0)
-            _openssl_assert(add_result)
+            _openssl_assert(add_result == 1)
 
     def get_reason(self):
         """
@@ -2369,7 +2369,7 @@ class NetscapeSPKI(object):
         sign_result = _lib.NETSCAPE_SPKI_sign(
             self._spki, pkey._pkey, digest_obj
         )
-        _openssl_assert(sign_result)
+        _openssl_assert(sign_result > 0)
 
     def verify(self, key):
         """
@@ -2423,7 +2423,7 @@ class NetscapeSPKI(object):
         :return: ``None``
         """
         set_result = _lib.NETSCAPE_SPKI_set_pubkey(self._spki, pkey._pkey)
-        _openssl_assert(set_result)
+        _openssl_assert(set_result == 1)
 
 
 NetscapeSPKIType = NetscapeSPKI
