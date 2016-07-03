@@ -1734,9 +1734,11 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
     elif type == FILETYPE_ASN1:
         result_code = _lib.i2d_PrivateKey_bio(bio, pkey._pkey)
     elif type == FILETYPE_TEXT:
-        rsa = _lib.EVP_PKEY_get1_RSA(pkey._pkey)
+        rsa = _ffi.gc(
+            _lib.EVP_PKEY_get1_RSA(pkey._pkey),
+            _lib.RSA_free
+        )
         result_code = _lib.RSA_print(bio, rsa, 0)
-        _ffi.gc(rsa, _lib.RSA_free)
     else:
         raise ValueError(
             "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or "
