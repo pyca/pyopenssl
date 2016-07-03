@@ -582,9 +582,7 @@ class X509Name(object):
         """
         result_buffer = _ffi.new('unsigned char**')
         encode_result = _lib.i2d_X509_NAME(self._name, result_buffer)
-        if encode_result < 0:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(encode_result >= 0)
 
         string_result = _ffi.buffer(result_buffer[0], encode_result)[:]
         _lib.OPENSSL_free(result_buffer[0])
@@ -741,9 +739,7 @@ class X509Extension(object):
 
         bio = _new_mem_buf()
         print_result = _lib.X509V3_EXT_print(bio, self._extension, 0, 0)
-        if not print_result:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(print_result)
 
         return _native(_bio_to_string(bio))
 
@@ -808,9 +804,7 @@ class X509Req(object):
         :return: ``None``
         """
         set_result = _lib.X509_REQ_set_pubkey(self._req, pkey._pkey)
-        if not set_result:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(set_result)
 
     def get_pubkey(self):
         """
@@ -891,9 +885,7 @@ class X509Req(object):
             _lib.sk_X509_EXTENSION_push(stack, ext._extension)
 
         add_result = _lib.X509_REQ_add_extensions(self._req, stack)
-        if not add_result:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(add_result)
 
     def get_extensions(self):
         """
@@ -934,9 +926,7 @@ class X509Req(object):
             raise ValueError("No such digest method")
 
         sign_result = _lib.X509_REQ_sign(self._req, pkey._pkey, digest_obj)
-        if not sign_result:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(sign_result)
 
     def verify(self, pkey):
         """
@@ -1093,10 +1083,7 @@ class X509(object):
 
         digest_result = _lib.X509_digest(
             self._x509, digest, result_buffer, result_length)
-
-        if not digest_result:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(digest_result)
 
         return b":".join([
             b16encode(ch).upper() for ch
@@ -1292,9 +1279,7 @@ class X509(object):
         if not isinstance(name, X509Name):
             raise TypeError("name must be an X509Name")
         set_result = which(self._x509, name._name)
-        if not set_result:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(set_result)
 
     def get_issuer(self):
         """
@@ -1856,10 +1841,7 @@ class Revoked(object):
             self._delete_reason()
             add_result = _lib.X509_REVOKED_add1_ext_i2d(
                 self._revoked, _lib.NID_crl_reason, new_reason_ext, 0, 0)
-
-            if not add_result:
-                # TODO: This is untested.
-                _raise_current_error()
+            _openssl_assert(add_result)
 
     def get_reason(self):
         """
@@ -1969,9 +1951,7 @@ class CRL(object):
         _openssl_assert(copy != _ffi.NULL)
 
         add_result = _lib.X509_CRL_add0_revoked(self._crl, copy)
-        if add_result == 0:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(add_result != 0)
 
     def get_issuer(self):
         """
@@ -2389,9 +2369,7 @@ class NetscapeSPKI(object):
         sign_result = _lib.NETSCAPE_SPKI_sign(
             self._spki, pkey._pkey, digest_obj
         )
-        if not sign_result:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(sign_result)
 
     def verify(self, key):
         """
@@ -2445,9 +2423,7 @@ class NetscapeSPKI(object):
         :return: ``None``
         """
         set_result = _lib.NETSCAPE_SPKI_set_pubkey(self._spki, pkey._pkey)
-        if not set_result:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(set_result)
 
 
 NetscapeSPKIType = NetscapeSPKI
@@ -2608,9 +2584,7 @@ def dump_certificate_request(type, req):
             "FILETYPE_TEXT"
         )
 
-    if result_code == 0:
-        # TODO: This is untested.
-        _raise_current_error()
+    _openssl_assert(result_code != 0)
 
     return _bio_to_string(bio)
 
