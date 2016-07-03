@@ -1698,16 +1698,17 @@ def dump_publickey(type, pkey):
 
 def dump_privatekey(type, pkey, cipher=None, passphrase=None):
     """
-    Dump a private key to a buffer
+    Dump the private key *pkey* into a buffer string encoded with the type
+    *type*.  Optionally (if *type* is :const:`FILETYPE_PEM`) encrypting it
+    using *cipher* and *passphrase*.
 
-    :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1, or
-        FILETYPE_TEXT)
-    :param pkey: The PKey to dump
-    :param cipher: (optional) if encrypted PEM format, the cipher to
-                   use
+    :param type: The file type (one of :const:`FILETYPE_PEM`,
+        :const:`FILETYPE_ASN1`, or :const:`FILETYPE_TEXT`)
+    :param PKey pkey: The PKey to dump
+    :param cipher: (optional) if encrypted PEM format, the cipher to use
     :param passphrase: (optional) if encrypted PEM format, this can be either
-                       the passphrase to use, or a callback for providing the
-                       passphrase.
+        the passphrase to use, or a callback for providing the passphrase.
+
     :return: The buffer with the dumped key in
     :rtype: bytes
     """
@@ -1735,14 +1736,13 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
     elif type == FILETYPE_TEXT:
         rsa = _lib.EVP_PKEY_get1_RSA(pkey._pkey)
         result_code = _lib.RSA_print(bio, rsa, 0)
-        # TODO RSA_free(rsa)?
+        _ffi.gc(rsa, _lib.RSA_free)
     else:
         raise ValueError(
             "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or "
             "FILETYPE_TEXT")
 
-    if result_code == 0:
-        _raise_current_error()
+    _openssl_assert(result_code != 0)
 
     return _bio_to_string(bio)
 
