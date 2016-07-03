@@ -225,12 +225,9 @@ class PKey(object):
                 dsa, bits, _ffi.NULL, 0, _ffi.NULL, _ffi.NULL, _ffi.NULL
             )
             _openssl_assert(res == 1)
-            if not _lib.DSA_generate_key(dsa):
-                # TODO: This is untested.
-                _raise_current_error()
-            if not _lib.EVP_PKEY_set1_DSA(self._pkey, dsa):
-                # TODO: This is untested.
-                _raise_current_error()
+
+            _openssl_assert(_lib.DSA_generate_key(dsa) == 1)
+            _openssl_assert(_lib.EVP_PKEY_set1_DSA(self._pkey, dsa) == 1)
         else:
             raise Error("No such key type")
 
@@ -519,9 +516,7 @@ class X509Name(object):
 
         result_buffer = _ffi.new("unsigned char**")
         data_length = _lib.ASN1_STRING_to_UTF8(result_buffer, data)
-        if data_length < 0:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(data_length >= 0)
 
         try:
             result = _ffi.buffer(
@@ -1866,9 +1861,7 @@ class Revoked(object):
                     print_result = _lib.M_ASN1_OCTET_STRING_print(
                         bio, _lib.X509_EXTENSION_get_data(ext)
                     )
-                    if print_result == 0:
-                        # TODO: This is untested.
-                        _raise_current_error()
+                    _openssl_assert(print_result != 0)
 
                 return _bio_to_string(bio)
 
@@ -2642,10 +2635,7 @@ def sign(pkey, data, digest):
     signature_length = _ffi.new("unsigned int*")
     final_result = _lib.EVP_SignFinal(
         md_ctx, signature_buffer, signature_length, pkey._pkey)
-
-    if final_result != 1:
-        # TODO: This is untested.
-        _raise_current_error()
+    _openssl_assert(final_result == 1)
 
     return _ffi.buffer(signature_buffer, signature_length[0])[:]
 
@@ -2758,8 +2748,6 @@ def load_pkcs7_data(type, buffer):
     elif type == FILETYPE_ASN1:
         pkcs7 = _lib.d2i_PKCS7_bio(bio, _ffi.NULL)
     else:
-        # TODO: This is untested.
-        _raise_current_error()
         raise ValueError("type argument must be FILETYPE_PEM or FILETYPE_ASN1")
 
     if pkcs7 == _ffi.NULL:
