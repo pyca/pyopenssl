@@ -2827,6 +2827,14 @@ class FunctionTests(TestCase):
         """
         self.assertRaises(Error, load_pkcs7_data, FILETYPE_PEM, b"foo")
 
+    def test_load_pkcs7_type_invalid(self):
+        """
+        If the type passed to :obj:`load_pkcs7_data`, :obj:`ValueError` is
+        raised.
+        """
+        with pytest.raises(ValueError):
+            load_pkcs7_data(object(), b"foo")
+
 
 class LoadCertificateTests(TestCase):
     """

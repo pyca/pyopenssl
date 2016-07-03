@@ -225,12 +225,9 @@ class PKey(object):
                 dsa, bits, _ffi.NULL, 0, _ffi.NULL, _ffi.NULL, _ffi.NULL
             )
             _openssl_assert(res == 1)
-            if not _lib.DSA_generate_key(dsa):
-                # TODO: This is untested.
-                _raise_current_error()
-            if not _lib.EVP_PKEY_set1_DSA(self._pkey, dsa):
-                # TODO: This is untested.
-                _raise_current_error()
+
+            _openssl_assert(_lib.DSA_generate_key(dsa) == 1)
+            _openssl_assert(_lib.EVP_PKEY_set1_DSA(self._pkey, dsa) == 1)
         else:
             raise Error("No such key type")
 
@@ -519,9 +516,7 @@ class X509Name(object):
 
         result_buffer = _ffi.new("unsigned char**")
         data_length = _lib.ASN1_STRING_to_UTF8(result_buffer, data)
-        if data_length < 0:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(data_length >= 0)
 
         try:
             result = _ffi.buffer(
@@ -582,9 +577,7 @@ class X509Name(object):
         """
         result_buffer = _ffi.new('unsigned char**')
         encode_result = _lib.i2d_X509_NAME(self._name, result_buffer)
-        if encode_result < 0:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(encode_result >= 0)
 
         string_result = _ffi.buffer(result_buffer[0], encode_result)[:]
         _lib.OPENSSL_free(result_buffer[0])
@@ -741,9 +734,7 @@ class X509Extension(object):
 
         bio = _new_mem_buf()
         print_result = _lib.X509V3_EXT_print(bio, self._extension, 0, 0)
-        if not print_result:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(print_result != 0)
 
         return _native(_bio_to_string(bio))
 
@@ -808,9 +799,7 @@ class X509Req(object):
         :return: ``None``
         """
         set_result = _lib.X509_REQ_set_pubkey(self._req, pkey._pkey)
-        if not set_result:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(set_result == 1)
 
     def get_pubkey(self):
         """
@@ -891,9 +880,7 @@ class X509Req(object):
             _lib.sk_X509_EXTENSION_push(stack, ext._extension)
 
         add_result = _lib.X509_REQ_add_extensions(self._req, stack)
-        if not add_result:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(add_result == 1)
 
     def get_extensions(self):
         """
@@ -934,9 +921,7 @@ class X509Req(object):
             raise ValueError("No such digest method")
 
         sign_result = _lib.X509_REQ_sign(self._req, pkey._pkey, digest_obj)
-        if not sign_result:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(sign_result > 0)
 
     def verify(self, pkey):
         """
@@ -1093,10 +1078,7 @@ class X509(object):
 
         digest_result = _lib.X509_digest(
             self._x509, digest, result_buffer, result_length)
-
-        if not digest_result:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(digest_result == 1)
 
         return b":".join([
             b16encode(ch).upper() for ch
@@ -1292,9 +1274,7 @@ class X509(object):
         if not isinstance(name, X509Name):
             raise TypeError("name must be an X509Name")
         set_result = which(self._x509, name._name)
-        if not set_result:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(set_result == 1)
 
     def get_issuer(self):
         """
@@ -1856,10 +1836,7 @@ class Revoked(object):
             self._delete_reason()
             add_result = _lib.X509_REVOKED_add1_ext_i2d(
                 self._revoked, _lib.NID_crl_reason, new_reason_ext, 0, 0)
-
-            if not add_result:
-                # TODO: This is untested.
-                _raise_current_error()
+            _openssl_assert(add_result == 1)
 
     def get_reason(self):
         """
@@ -1884,9 +1861,7 @@ class Revoked(object):
                     print_result = _lib.M_ASN1_OCTET_STRING_print(
                         bio, _lib.X509_EXTENSION_get_data(ext)
                     )
-                    if print_result == 0:
-                        # TODO: This is untested.
-                        _raise_current_error()
+                    _openssl_assert(print_result != 0)
 
                 return _bio_to_string(bio)
 
@@ -1969,9 +1944,7 @@ class CRL(object):
         _openssl_assert(copy != _ffi.NULL)
 
         add_result = _lib.X509_CRL_add0_revoked(self._crl, copy)
-        if add_result == 0:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(add_result != 0)
 
     def get_issuer(self):
         """
@@ -2389,9 +2362,7 @@ class NetscapeSPKI(object):
         sign_result = _lib.NETSCAPE_SPKI_sign(
             self._spki, pkey._pkey, digest_obj
         )
-        if not sign_result:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(sign_result > 0)
 
     def verify(self, key):
         """
@@ -2445,9 +2416,7 @@ class NetscapeSPKI(object):
         :return: ``None``
         """
         set_result = _lib.NETSCAPE_SPKI_set_pubkey(self._spki, pkey._pkey)
-        if not set_result:
-            # TODO: This is untested.
-            _raise_current_error()
+        _openssl_assert(set_result == 1)
 
 
 NetscapeSPKIType = NetscapeSPKI
@@ -2608,9 +2577,7 @@ def dump_certificate_request(type, req):
             "FILETYPE_TEXT"
         )
 
-    if result_code == 0:
-        # TODO: This is untested.
-        _raise_current_error()
+    _openssl_assert(result_code != 0)
 
     return _bio_to_string(bio)
 
@@ -2668,10 +2635,7 @@ def sign(pkey, data, digest):
     signature_length = _ffi.new("unsigned int*")
     final_result = _lib.EVP_SignFinal(
         md_ctx, signature_buffer, signature_length, pkey._pkey)
-
-    if final_result != 1:
-        # TODO: This is untested.
-        _raise_current_error()
+    _openssl_assert(final_result == 1)
 
     return _ffi.buffer(signature_buffer, signature_length[0])[:]
 
@@ -2784,8 +2748,6 @@ def load_pkcs7_data(type, buffer):
     elif type == FILETYPE_ASN1:
         pkcs7 = _lib.d2i_PKCS7_bio(bio, _ffi.NULL)
     else:
-        # TODO: This is untested.
-        _raise_current_error()
         raise ValueError("type argument must be FILETYPE_PEM or FILETYPE_ASN1")
 
     if pkcs7 == _ffi.NULL:
