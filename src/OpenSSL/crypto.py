@@ -1117,9 +1117,7 @@ class X509(object):
                 _raise_current_error()
             asn1_serial = _ffi.gc(asn1_serial, _lib.ASN1_INTEGER_free)
             set_result = _lib.X509_set_serialNumber(self._x509, asn1_serial)
-            if not set_result:
-                # TODO Not tested
-                _raise_current_error()
+            _openssl_assert(set_result == 1)
 
     def get_serial_number(self):
         """
