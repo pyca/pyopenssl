@@ -959,17 +959,20 @@ class X509NameTests(TestCase):
         """
         name = self._x509name()
         name.commonName = "foo"
-        self.assertEqual(name.commonName, "foo")
-        self.assertEqual(name.CN, "foo")
+        assert name.commonName == "foo"
+        assert name.CN == "foo"
+
         name.CN = "baz"
-        self.assertEqual(name.commonName, "baz")
-        self.assertEqual(name.CN, "baz")
+        assert name.commonName == "baz"
+        assert name.CN == "baz"
+
         name.commonName = "bar"
-        self.assertEqual(name.commonName, "bar")
-        self.assertEqual(name.CN, "bar")
+        assert name.commonName == "bar"
+        assert name.CN == "bar"
+
         name.CN = "quux"
-        self.assertEqual(name.commonName, "quux")
-        self.assertEqual(name.CN, "quux")
+        assert name.commonName == "quux"
+        assert name.CN == "quux"
 
         assert name.OU is None
 
