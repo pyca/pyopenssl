@@ -959,17 +959,22 @@ class X509NameTests(TestCase):
         """
         name = self._x509name()
         name.commonName = "foo"
-        self.assertEqual(name.commonName, "foo")
-        self.assertEqual(name.CN, "foo")
+        assert name.commonName == "foo"
+        assert name.CN == "foo"
+
         name.CN = "baz"
-        self.assertEqual(name.commonName, "baz")
-        self.assertEqual(name.CN, "baz")
+        assert name.commonName == "baz"
+        assert name.CN == "baz"
+
         name.commonName = "bar"
-        self.assertEqual(name.commonName, "bar")
-        self.assertEqual(name.CN, "bar")
+        assert name.commonName == "bar"
+        assert name.CN == "bar"
+
         name.CN = "quux"
-        self.assertEqual(name.commonName, "quux")
-        self.assertEqual(name.CN, "quux")
+        assert name.commonName == "quux"
+        assert name.CN == "quux"
+
+        assert name.OU is None
 
         with pytest.raises(AttributeError):
             name.foobar
@@ -1922,6 +1927,15 @@ tgI5
         cert = load_certificate(FILETYPE_PEM, certPEM)
         self.assertRaises(ValueError, cert.get_signature_algorithm)
 
+    def test_sign_bad_pubkey_type(self):
+        """
+        :obj:`X509.sign` raises :obj:`TypeError` when called with the wrong
+        type.
+        """
+        cert = X509()
+        with pytest.raises(TypeError):
+            cert.sign(object(), b"sha256")
+
 
 class X509StoreTests(TestCase):
     """
@@ -2695,6 +2709,15 @@ class FunctionTests(TestCase):
         good_text = _runopenssl(dumped_pem, b"x509", b"-noout", b"-text")
         self.assertEqual(dumped_text, good_text)
 
+    def test_dump_certificate_bad_type(self):
+        """
+        :obj:`dump_certificate` raises a :obj:`ValueError` if it's called with
+        a bad type.
+        """
+        cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+        with pytest.raises(ValueError):
+            dump_certificate(object(), cert)
+
     def test_dump_privatekey_pem(self):
         """
         :py:obj:`dump_privatekey` writes a PEM
@@ -2868,6 +2891,14 @@ class LoadCertificateTests(TestCase):
             load_certificate_request(object(), b"")
         with pytest.raises(ValueError):
             load_certificate(object(), b"")
+
+    def test_bad_certificate(self):
+        """
+        If the bytes passed to :obj:`load_certificate` are not a valid
+        certificate, an exception is raised.
+        """
+        with pytest.raises(Error):
+            load_certificate(FILETYPE_ASN1, b"lol")
 
 
 class PKCS7Tests(TestCase):
