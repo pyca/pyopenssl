@@ -199,6 +199,10 @@ class PKey(object):
         .. versionadded:: 16.1.0
         """
         pkey = cls()
+        if not isinstance(crypto_key, (rsa.RSAPublicKey, rsa.RSAPrivateKey,
+                                       dsa.DSAPublicKey, dsa.DSAPrivateKey)):
+            raise TypeError("Unsupported key type")
+
         pkey._pkey = crypto_key._evp_pkey
         if isinstance(crypto_key, (rsa.RSAPublicKey, dsa.DSAPublicKey)):
             pkey._only_public = True

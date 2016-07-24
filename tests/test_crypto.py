@@ -521,6 +521,13 @@ AYU/QVM4wGt8XGT2KwDFJaxYGKsGDMWmXY04dS+WPuetCbouWUusyFwRb9SzFave
 vYeU7Ab/
 -----END RSA PRIVATE KEY-----""")
 
+ec_private_key_pem = b"""-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgYirTZSx+5O8Y6tlG
+cka6W6btJiocdrdolfcukSoTEk+hRANCAAQkvPNu7Pa1GcsWU4v7ptNfqCJVq8Cx
+zo0MUVPQgwJ3aJtNM1QMOQUayCrRwfklg+D/rFSUwEUqtZh7fJDiFqz3
+-----END PRIVATE KEY-----
+"""
+
 
 class X509ExtTests(TestCase):
     """
@@ -785,6 +792,16 @@ class TestPKey(object):
         assert pkey.bits() == key.key_size
         assert pkey._only_public is True
         assert pkey._initialized is True
+
+    def test_convert_from_cryptography_unsupported_type(self):
+        """
+        PKey.from_cryptography_key raises TypeError with an unsupported type.
+        """
+        key = serialization.load_pem_private_key(
+            ec_private_key_pem, None, backend
+        )
+        with pytest.raises(TypeError):
+            PKey.from_cryptography_key(key)
 
     def test_convert_public_pkey_to_cryptography_key(self):
         """
