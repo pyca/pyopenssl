@@ -10,6 +10,9 @@ from six import (
     text_type as _text_type,
     PY3 as _PY3)
 
+from cryptography.hazmat.backends.openssl.backend import backend
+from cryptography.hazmat.primitives.asymmetric import dsa, rsa
+
 from OpenSSL._util import (
     ffi as _ffi,
     lib as _lib,
@@ -166,6 +169,45 @@ class PKey(object):
         pkey = _lib.EVP_PKEY_new()
         self._pkey = _ffi.gc(pkey, _lib.EVP_PKEY_free)
         self._initialized = False
+
+    def to_cryptography_key(self):
+        """
+        Export as a ``cryptography`` key.
+
+        :rtype: One of ``cryptography``'s `key interfaces`_.
+
+        .. _key interfaces: https://cryptography.io/en/latest/hazmat/\
+            primitives/asymmetric/rsa/#key-interfaces
+
+        .. versionadded:: 16.1.0
+        """
+        if self._only_public:
+            return backend._evp_pkey_to_public_key(self._pkey)
+        else:
+            return backend._evp_pkey_to_private_key(self._pkey)
+
+    @classmethod
+    def from_cryptography_key(cls, crypto_key):
+        """
+        Construct based on a ``cryptography`` *crypto_key*.
+
+        :param crypto_key: A ``cryptography`` key.
+        :type crypto_key: One of ``cryptography``'s `key interfaces`_.
+
+        :rtype: PKey
+
+        .. versionadded:: 16.1.0
+        """
+        pkey = cls()
+        if not isinstance(crypto_key, (rsa.RSAPublicKey, rsa.RSAPrivateKey,
+                                       dsa.DSAPublicKey, dsa.DSAPrivateKey)):
+            raise TypeError("Unsupported key type")
+
+        pkey._pkey = crypto_key._evp_pkey
+        if isinstance(crypto_key, (rsa.RSAPublicKey, dsa.DSAPublicKey)):
+            pkey._only_public = True
+        pkey._initialized = True
+        return pkey
 
     def generate_key(self, type, bits):
         """

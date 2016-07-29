@@ -18,6 +18,10 @@ import pytest
 
 from six import u, b, binary_type
 
+from cryptography.hazmat.backends.openssl.backend import backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
 from OpenSSL.crypto import (
@@ -517,6 +521,13 @@ AYU/QVM4wGt8XGT2KwDFJaxYGKsGDMWmXY04dS+WPuetCbouWUusyFwRb9SzFave
 vYeU7Ab/
 -----END RSA PRIVATE KEY-----""")
 
+ec_private_key_pem = b"""-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgYirTZSx+5O8Y6tlG
+cka6W6btJiocdrdolfcukSoTEk+hRANCAAQkvPNu7Pa1GcsWU4v7ptNfqCJVq8Cx
+zo0MUVPQgwJ3aJtNM1QMOQUayCrRwfklg+D/rFSUwEUqtZh7fJDiFqz3
+-----END PRIVATE KEY-----
+"""
+
 
 class X509ExtTests(TestCase):
     """
@@ -747,6 +758,70 @@ class X509ExtTests(TestCase):
                 X509Extension,
                 'authorityKeyIdentifier', False, 'keyid:always,issuer:always',
                 issuer=badObj)
+
+
+class TestPKey(object):
+    """
+    py.test-based tests for :class:`OpenSSL.crypto.PKey`.
+
+    If possible, add new tests here.
+    """
+
+    def test_convert_from_cryptography_private_key(self):
+        """
+        PKey.from_cryptography_key creates a proper private PKey.
+        """
+        key = serialization.load_pem_private_key(
+            intermediate_key_pem, None, backend
+        )
+        pkey = PKey.from_cryptography_key(key)
+
+        assert isinstance(pkey, PKey)
+        assert pkey.bits() == key.key_size
+        assert pkey._only_public is False
+        assert pkey._initialized is True
+
+    def test_convert_from_cryptography_public_key(self):
+        """
+        PKey.from_cryptography_key creates a proper public PKey.
+        """
+        key = serialization.load_pem_public_key(cleartextPublicKeyPEM, backend)
+        pkey = PKey.from_cryptography_key(key)
+
+        assert isinstance(pkey, PKey)
+        assert pkey.bits() == key.key_size
+        assert pkey._only_public is True
+        assert pkey._initialized is True
+
+    def test_convert_from_cryptography_unsupported_type(self):
+        """
+        PKey.from_cryptography_key raises TypeError with an unsupported type.
+        """
+        key = serialization.load_pem_private_key(
+            ec_private_key_pem, None, backend
+        )
+        with pytest.raises(TypeError):
+            PKey.from_cryptography_key(key)
+
+    def test_convert_public_pkey_to_cryptography_key(self):
+        """
+        PKey.to_cryptography_key creates a proper cryptography public key.
+        """
+        pkey = load_publickey(FILETYPE_PEM, cleartextPublicKeyPEM)
+        key = pkey.to_cryptography_key()
+
+        assert isinstance(key, rsa.RSAPublicKey)
+        assert pkey.bits() == key.key_size
+
+    def test_convert_private_pkey_to_cryptography_key(self):
+        """
+        PKey.to_cryptography_key creates a proper cryptography private key.
+        """
+        pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        key = pkey.to_cryptography_key()
+
+        assert isinstance(key, rsa.RSAPrivateKey)
+        assert pkey.bits() == key.key_size
 
 
 class PKeyTests(TestCase):
