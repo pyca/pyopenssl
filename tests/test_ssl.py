@@ -14,7 +14,6 @@ from sys import platform, getfilesystemencoding, version_info
 from socket import MSG_PEEK, SHUT_RDWR, error, socket
 from os import makedirs
 from os.path import join
-from unittest import main
 from weakref import ref
 from warnings import catch_warnings, simplefilter
 
@@ -3895,7 +3894,3 @@ class TestRequires(object):
 
         assert "Error text" in str(e.value)
         assert results == []
-
-
-if __name__ == '__main__':
-    main()
