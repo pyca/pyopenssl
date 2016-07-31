@@ -5,7 +5,6 @@
 Unit tests for :py:mod:`OpenSSL.crypto`.
 """
 
-from unittest import main
 from warnings import catch_warnings, simplefilter
 
 import base64
@@ -3995,4 +3994,3 @@ class EllipticCurveHashTests(TestCase):
             get_elliptic_curve(self.curve_factory.another_curve_name)
         ])
         self.assertNotIn(curve, curves)
-
