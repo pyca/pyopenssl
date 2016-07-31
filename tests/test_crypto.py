@@ -50,10 +50,6 @@ from .util import (
 )
 
 
-def normalize_certificate_pem(pem):
-    return dump_certificate(FILETYPE_PEM, load_certificate(FILETYPE_PEM, pem))
-
-
 def normalize_privatekey_pem(pem):
     return dump_privatekey(FILETYPE_PEM, load_privatekey(FILETYPE_PEM, pem))
 

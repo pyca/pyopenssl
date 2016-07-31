@@ -58,28 +58,9 @@ from OpenSSL.SSL import _make_requires
 
 from OpenSSL._util import lib as _lib
 
-try:
-    from OpenSSL.SSL import OP_NO_QUERY_MTU
-except ImportError:
-    OP_NO_QUERY_MTU = None
-try:
-    from OpenSSL.SSL import OP_COOKIE_EXCHANGE
-except ImportError:
-    OP_COOKIE_EXCHANGE = None
-try:
-    from OpenSSL.SSL import OP_NO_TICKET
-except ImportError:
-    OP_NO_TICKET = None
-
-try:
-    from OpenSSL.SSL import OP_NO_COMPRESSION
-except ImportError:
-    OP_NO_COMPRESSION = None
-
-try:
-    from OpenSSL.SSL import MODE_RELEASE_BUFFERS
-except ImportError:
-    MODE_RELEASE_BUFFERS = None
+from OpenSSL.SSL import (
+    OP_NO_QUERY_MTU, OP_COOKIE_EXCHANGE, OP_NO_TICKET, OP_NO_COMPRESSION,
+    MODE_RELEASE_BUFFERS)
 
 try:
     from OpenSSL.SSL import OP_NO_TLSv1, OP_NO_TLSv1_1, OP_NO_TLSv1_2
@@ -816,27 +797,24 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, context.set_mode, None)
         self.assertRaises(TypeError, context.set_mode, 1, None)
 
-    if MODE_RELEASE_BUFFERS is not None:
-        def test_set_mode(self):
-            """
-            :py:obj:`Context.set_mode` accepts a mode bitvector and returns the
-            newly set mode.
-            """
-            context = Context(TLSv1_METHOD)
-            self.assertTrue(
-                MODE_RELEASE_BUFFERS & context.set_mode(MODE_RELEASE_BUFFERS))
+    def test_set_mode(self):
+        """
+        :py:obj:`Context.set_mode` accepts a mode bitvector and returns the
+        newly set mode.
+        """
+        context = Context(TLSv1_METHOD)
+        self.assertTrue(
+            MODE_RELEASE_BUFFERS & context.set_mode(MODE_RELEASE_BUFFERS))
 
-        @skip_if_py3
-        def test_set_mode_long(self):
-            """
-            On Python 2 :py:obj:`Context.set_mode` accepts values of type
-            :py:obj:`long` as well as :py:obj:`int`.
-            """
-            context = Context(TLSv1_METHOD)
-            mode = context.set_mode(long(MODE_RELEASE_BUFFERS))
-            self.assertTrue(MODE_RELEASE_BUFFERS & mode)
-    else:
-        "MODE_RELEASE_BUFFERS unavailable - OpenSSL version may be too old"
+    @skip_if_py3
+    def test_set_mode_long(self):
+        """
+        On Python 2 :py:obj:`Context.set_mode` accepts values of type
+        :py:obj:`long` as well as :py:obj:`int`.
+        """
+        context = Context(TLSv1_METHOD)
+        mode = context.set_mode(long(MODE_RELEASE_BUFFERS))
+        self.assertTrue(MODE_RELEASE_BUFFERS & mode)
 
     def test_set_timeout_wrong_args(self):
         """
