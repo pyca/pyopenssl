@@ -7,3 +7,4 @@ recursive-include   rpm         *
 recursive-exclude   leakcheck   *.py *.pem
 prune               doc/_build
 prune               .travis
+prune               .mention-bot
