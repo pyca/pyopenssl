@@ -58,28 +58,9 @@ from OpenSSL.SSL import _make_requires
 
 from OpenSSL._util import lib as _lib
 
-try:
-    from OpenSSL.SSL import OP_NO_QUERY_MTU
-except ImportError:
-    OP_NO_QUERY_MTU = None
-try:
-    from OpenSSL.SSL import OP_COOKIE_EXCHANGE
-except ImportError:
-    OP_COOKIE_EXCHANGE = None
-try:
-    from OpenSSL.SSL import OP_NO_TICKET
-except ImportError:
-    OP_NO_TICKET = None
-
-try:
-    from OpenSSL.SSL import OP_NO_COMPRESSION
-except ImportError:
-    OP_NO_COMPRESSION = None
-
-try:
-    from OpenSSL.SSL import MODE_RELEASE_BUFFERS
-except ImportError:
-    MODE_RELEASE_BUFFERS = None
+from OpenSSL.SSL import (
+    OP_NO_QUERY_MTU, OP_COOKIE_EXCHANGE, OP_NO_TICKET, OP_NO_COMPRESSION,
+    MODE_RELEASE_BUFFERS)
 
 try:
     from OpenSSL.SSL import OP_NO_TLSv1, OP_NO_TLSv1_1, OP_NO_TLSv1_2
