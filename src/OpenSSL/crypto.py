@@ -2130,9 +2130,7 @@ class PKCS7(object):
 
         :return: True if the PKCS7 is of type signed
         """
-        if _lib.PKCS7_type_is_signed(self._pkcs7):
-            return True
-        return False
+        return bool(_lib.PKCS7_type_is_signed(self._pkcs7))
 
     def type_is_enveloped(self):
         """
@@ -2140,9 +2138,7 @@ class PKCS7(object):
 
         :returns: True if the PKCS7 is of type enveloped
         """
-        if _lib.PKCS7_type_is_enveloped(self._pkcs7):
-            return True
-        return False
+        return bool(_lib.PKCS7_type_is_enveloped(self._pkcs7))
 
     def type_is_signedAndEnveloped(self):
         """
@@ -2150,9 +2146,7 @@ class PKCS7(object):
 
         :returns: True if the PKCS7 is of type signedAndEnveloped
         """
-        if _lib.PKCS7_type_is_signedAndEnveloped(self._pkcs7):
-            return True
-        return False
+        return bool(_lib.PKCS7_type_is_signedAndEnveloped(self._pkcs7))
 
     def type_is_data(self):
         """
@@ -2160,9 +2154,7 @@ class PKCS7(object):
 
         :return: True if the PKCS7 is of type data
         """
-        if _lib.PKCS7_type_is_data(self._pkcs7):
-            return True
-        return False
+        return bool(_lib.PKCS7_type_is_data(self._pkcs7))
 
     def get_type_name(self):
         """

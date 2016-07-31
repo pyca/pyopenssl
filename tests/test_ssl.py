@@ -3020,22 +3020,6 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         """
         self._doesnt_overfill_test(bytearray)
 
-    def _really_doesnt_overfill_test(self, factory):
-        """
-        Assert that if the value given by ``nbytes`` is greater than the actual
-        size of the output buffer passed to :py:obj:`Connection.recv_into`, the
-        behavior is as if no value was given for ``nbytes`` at all.
-        """
-        output_buffer = factory(5)
-
-        server, client = self._loopback()
-        server.send(b('abcdefghij'))
-
-        self.assertEqual(client.recv_into(output_buffer, 50), 5)
-        self.assertEqual(output_buffer, bytearray(b('abcde')))
-        rest = client.recv(5)
-        self.assertEqual(b('fghij'), rest)
-
     def test_bytearray_really_doesnt_overfill(self):
         """
         When called with a ``bytearray`` instance and an ``nbytes`` value that
