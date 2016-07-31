@@ -3996,6 +3996,3 @@ class EllipticCurveHashTests(TestCase):
         ])
         self.assertNotIn(curve, curves)
 
-
-if __name__ == '__main__':
-    main()

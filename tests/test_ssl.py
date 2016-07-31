@@ -3896,6 +3896,3 @@ class TestRequires(object):
         assert "Error text" in str(e.value)
         assert results == []
 
-
-if __name__ == '__main__':
-    main()
