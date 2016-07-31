@@ -982,10 +982,9 @@ class X509(object):
     """
     An X.509 certificate.
     """
-
     def __init__(self):
-        # TODO Allocation failure?  And why not __new__ instead of __init__?
         x509 = _lib.X509_new()
+        _openssl_assert(x509 != _ffi.NULL)
         self._x509 = _ffi.gc(x509, _lib.X509_free)
 
     def set_version(self, version):
