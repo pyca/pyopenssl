@@ -37,7 +37,7 @@ from OpenSSL.crypto import load_publickey, dump_publickey
 from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT
 from OpenSSL.crypto import dump_certificate, load_certificate_request
 from OpenSSL.crypto import dump_certificate_request, dump_privatekey
-from OpenSSL.crypto import PKCS7Type, load_pkcs7_data
+from OpenSSL.crypto import PKCS7Type, dump_pkcs7_data, load_pkcs7_data
 from OpenSSL.crypto import PKCS12, PKCS12Type, load_pkcs12
 from OpenSSL.crypto import CRL, Revoked, dump_crl, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
@@ -2913,6 +2913,43 @@ class FunctionTests(TestCase):
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         with pytest.raises(ValueError):
             dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, cb)
+
+    def test_dump_pkcs7_data_pem(self):
+        """
+        :py:obj:`dump_pkcs7_data` accepts an instance of :py:obj:`PKCS7Type`
+        and returns a PKCS#7 string.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        buf = dump_pkcs7_data(FILETYPE_PEM, pkcs7)
+        self.assertEqual(buf, pkcs7Data)
+
+    def test_dump_pkcs7_data_asn1(self):
+        """
+        :py:obj:`dump_pkcs7_data` accepts an instance of :py:obj:`PKCS7Type`
+        and returns a bytes containing ASN1 data representing PKCS#7.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_ASN1, pkcs7DataASN1)
+        buf = dump_pkcs7_data(FILETYPE_ASN1, pkcs7)
+        self.assertEqual(buf, pkcs7DataASN1)
+
+    def test_dump_pkcs7_object_invalid(self):
+        """
+        If the PKCS7 object passed to :py:obj:`dump_pkcs7_data` is invalid,
+        :py:obj:`Error` is raised.
+        :param self:
+        :return:
+        """
+        pkcs7 = object()
+        pkcs7._pkcs7 = object()
+        self.assertRaises(Error, dump_pkcs7_data, FILETYPE_PEM, pkcs7)
+
+    def test_dump_pkcs7_type_invalid(self):
+        """
+        If the type passed to :py:obj:`dump_pkcs7_data` is invalid,
+        :py:obj:`ValueError` is raised.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        self.assertRaises(ValueError, dump_pkcs7_data, object(), pkcs7)
 
     def test_load_pkcs7_data_pem(self):
         """
