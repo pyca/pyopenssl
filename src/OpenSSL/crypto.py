@@ -1580,6 +1580,9 @@ class X509StoreContext(object):
             chain_stack = _ffi.gc(chain_stack, cleanup)
 
             for cert in self._chain:
+                # We'd prefer to use X509_up_ref() or something
+                # similar, but cryptography does not appear to expose
+                # a binding for it
                 copy = _lib.X509_dup(cert._x509)
                 _openssl_assert(copy != _ffi.NULL)
 
@@ -1644,6 +1647,8 @@ class X509StoreContext(object):
     def set_chain(self, chain):
         """
         Set the chain certificates for the context
+
+        .. versionadded:: 16.1.0
 
         :param chain: Untrusted certificates that may be used to build a chain
             during verification.
