@@ -2939,7 +2939,7 @@ class FunctionTests(TestCase):
         :param self:
         :return:
         """
-        pkcs7 = object()
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         pkcs7._pkcs7 = object()
         self.assertRaises(Error, dump_pkcs7_data, FILETYPE_PEM, pkcs7)
 
