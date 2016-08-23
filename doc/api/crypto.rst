@@ -103,6 +103,12 @@ Certificate revocation lists
     :py:const:`FILETYPE_PEM` or :py:const:`FILETYPE_ASN1`).
 
 
+.. py:function:: dump_pkcs7_data(type, pkcs7)
+    Return a string containing data from the PKCS7 object *pkcs7*
+    decoded from the type *type*. The type *type* must be either
+    :py:const:`FILETYPE_PEM` or :py:const:`FILETYPE_ASN1`.
+
+
 .. py:function:: load_pkcs7_data(type, buffer)
 
     Load pkcs7 data from the string *buffer* encoded with the type
