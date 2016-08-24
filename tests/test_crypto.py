@@ -43,7 +43,7 @@ from OpenSSL.crypto import CRL, Revoked, dump_crl, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.crypto import (
     sign, verify, get_elliptic_curve, get_elliptic_curves)
-from OpenSSL._util import native, lib
+from OpenSSL._util import native, lib, ffi
 
 from .util import (
     EqualityTestsMixin, TestCase, WARNING_TYPE_EXPECTED
@@ -2940,7 +2940,7 @@ class FunctionTests(TestCase):
         :return:
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        pkcs7._pkcs7 = object()
+        pkcs7._pkcs7 = ffi.NULL
         self.assertRaises(Error, dump_pkcs7_data, FILETYPE_PEM, pkcs7)
 
     def test_dump_pkcs7_type_invalid(self):
