@@ -5,7 +5,7 @@ Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
 
-16.1.0 (UNRELEASED)
+16.1.0 (2016-08-26)
 -------------------
 
 Backward-incompatible changes:
@@ -29,6 +29,7 @@ Changes:
   `#483 <https://github.com/pyca/pyopenssl/pull/483>`_
 - ``OpenSSL.crypto.PKey`` can now be constructed from ``cryptography`` objects and also exported as such.
   `#439 <https://github.com/pyca/pyopenssl/pull/439>`_
+- Support newer versions of ``cryptography`` which use opaque structs for OpenSSL 1.1.0 compatibility.
 
 
 ----
