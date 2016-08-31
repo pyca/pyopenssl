@@ -40,7 +40,7 @@ Backward-incompatible changes:
 Deprecations:
 ^^^^^^^^^^^^^
 
-*none*
+- Dropped support for OpenSSL 0.9.8.
 
 
 Changes:
