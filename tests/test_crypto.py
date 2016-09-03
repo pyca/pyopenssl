@@ -131,6 +131,18 @@ NbRHn2UmYlwQBa+L5lg9phewNe8aEwpPyPLoV85U8Q==
 -----END RSA PRIVATE KEY-----
 """)
 
+server_csr_pem = b("""-----BEGIN CERTIFICATE REQUEST-----
+MIIBVzCBwQIBADAYMRYwFAYDVQQDDA1sb3ZlbHkgc2VydmVyMIGfMA0GCSqGSIb3
+DQEBAQUAA4GNADCBiQKBgQC+pvhuud1dLaQQvzipdtlcTotgr5SuE2LvSx0gz/bg
+1U3u1eQ+U5eqsxaEUceaX5p5Kk+QflvW8qdjVNxQuYS5uc0gK2+OZnlIYxCf4n5G
+YGzVIx3QSBj/TAEFB2WuVinZBiCbxgL7PFM1Kpa+EwVkCAduPpSflJJPwkYGrK2M
+HQIDAQABoAAwDQYJKoZIhvcNAQEEBQADgYEAMRbqLdsXDEb4yR9KbuUqg9k90w0+
+8xPYgrNcTIrF2zTSZQKDfio6B7LBeD51fQabBNJo83+3M849Np8wN/h7ZFALiln6
+2ElkKCTQwmt/TbR3snakotqYUFw9//3PQCIq5cZfc32wim2IEyKOGBRvHqejpwbI
+yT4P3uVSsYc35vY=
+-----END CERTIFICATE REQUEST-----
+""")
+
 server_cert_pem = b("""-----BEGIN CERTIFICATE-----
 MIICKDCCAZGgAwIBAgIJAJn/HpR21r/8MA0GCSqGSIb3DQEBBQUAMFgxCzAJBgNV
 BAYTAlVTMQswCQYDVQQIEwJJTDEQMA4GA1UEBxMHQ2hpY2FnbzEQMA4GA1UEChMH
@@ -1443,6 +1455,20 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
         pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         request.sign(pkey, GOOD_DIGEST)
         self.assertEqual(True, request.verify(pkey))
+
+    def test_digest(self):
+        """
+        :py:obj:`X509Req.digest` returns a string giving ":"-separated
+        hex-encoded words of the digest of the certificate request.
+        """
+        csr = load_certificate_request(FILETYPE_PEM, server_csr_pem)
+
+        self.assertEqual(
+            # This is MD5 instead of GOOD_DIGEST because the digest algorithm
+            # actually matters to the assertion (ie, another arbitrary, good
+            # digest will not produce the same digest).
+            csr.digest("MD5"),
+            b("FB:D9:74:AB:24:A9:80:64:96:92:C0:1B:82:3C:36:C9"))
 
 
 class X509Tests(TestCase, _PKeyInteractionTestsMixin):

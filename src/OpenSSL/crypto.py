@@ -974,6 +974,33 @@ class X509Req(object):
 
         return result
 
+    def digest(self, digest_name):
+        """
+        Return the digest of the X509Req object.
+
+        :param digest_name: The name of the digest algorithm to use.
+        :type digest_name: :py:class:`bytes`
+
+        :return: The digest of the object
+        """
+        digest = _lib.EVP_get_digestbyname(_byte_string(digest_name))
+        if digest == _ffi.NULL:
+            raise ValueError("No such digest method")
+
+        result_buffer = _ffi.new("char[]", _lib.EVP_MAX_MD_SIZE)
+        result_length = _ffi.new("unsigned int[]", len(result_buffer))
+
+        digest_result = _lib.X509_REQ_digest(
+            self._req, digest, result_buffer, result_length)
+
+        if not digest_result:
+            # TODO: This is untested.
+            _raise_current_error()
+
+        return b":".join([
+            b16encode(ch).upper() for ch
+            in _ffi.buffer(result_buffer, result_length[0])])
+
 
 X509ReqType = X509Req
 
