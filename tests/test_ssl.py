@@ -3490,7 +3490,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         :py:obj:`OpenSSL.SSL.bio_write` don't work on
         :py:obj:`OpenSSL.SSL.Connection`() that use sockets.
         """
-        context = Context(SSLv3_METHOD)
+        context = Context(TLSv1_METHOD)
         client = socket()
         clientSSL = Connection(context, client)
         self.assertRaises(TypeError, clientSSL.bio_read, 100)
