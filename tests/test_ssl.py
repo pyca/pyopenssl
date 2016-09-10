@@ -174,7 +174,7 @@ def _create_certificate_chain():
 
     # Step 1
     cakey = PKey()
-    cakey.generate_key(TYPE_RSA, 512)
+    cakey.generate_key(TYPE_RSA, 1024)
     cacert = X509()
     cacert.get_subject().commonName = "Authority Certificate"
     cacert.set_issuer(cacert.get_subject())
@@ -187,7 +187,7 @@ def _create_certificate_chain():
 
     # Step 2
     ikey = PKey()
-    ikey.generate_key(TYPE_RSA, 512)
+    ikey.generate_key(TYPE_RSA, 1024)
     icert = X509()
     icert.get_subject().commonName = "Intermediate Certificate"
     icert.set_issuer(cacert.get_subject())
@@ -200,7 +200,7 @@ def _create_certificate_chain():
 
     # Step 3
     skey = PKey()
-    skey.generate_key(TYPE_RSA, 512)
+    skey.generate_key(TYPE_RSA, 1024)
     scert = X509()
     scert.get_subject().commonName = "Server Certificate"
     scert.set_issuer(icert.get_subject())
