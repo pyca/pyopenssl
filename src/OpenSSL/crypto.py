@@ -820,6 +820,8 @@ class X509Req(object):
     def __init__(self):
         req = _lib.X509_REQ_new()
         self._req = _ffi.gc(req, _lib.X509_REQ_free)
+        # Default to version 0.
+        self.set_version(0)
 
     def set_pubkey(self, pkey):
         """
