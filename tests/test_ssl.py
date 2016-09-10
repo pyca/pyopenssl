@@ -82,11 +82,13 @@ from .test_crypto import (
     root_cert_pem)
 
 
-# openssl dhparam 128 -out dh-128.pem (note that 128 is a small number of bits
-# to use)
+# openssl dhparam 1024 -out dh-1024.pem (note that 1024 is a small number of
+# bits to use)
 dhparam = """\
 -----BEGIN DH PARAMETERS-----
-MBYCEQCobsg29c9WZP/54oAPcwiDAgEC
+MIGHAoGBALdUMvn+C9MM+y5BWZs11mSeH6HHoEq0UVbzVq7UojC1hbsZUuGukQ3a
+Qh2/pwqb18BZFykrWB0zv/OkLa0kx4cuUgNrUVq1EFheBiX6YqryJ7t2sO09NQiO
+V7H54LmltOT/hEh6QWsJqb6BQgH65bswvV/XkYGja8/T0GzvbaVzAgEC
 -----END DH PARAMETERS-----
 """
 
