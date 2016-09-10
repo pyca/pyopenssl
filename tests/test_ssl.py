@@ -3557,7 +3557,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         e = self.assertRaises(Error, server.recv, 1024)
         # We don't want WantReadError or ZeroReturnError or anything - it's a
         # handshake failure.
-        self.assertEquals(e.__class__, Error)
+        assert type(e) in [Error, SysCallError]
 
     def test_unexpectedEndOfFile(self):
         """
