@@ -2443,8 +2443,12 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         server = self._loopbackServerFactory(server)
         client = self._loopbackClientFactory(client)
 
-        assert b"before/accept initialization" == server.get_state_string()
-        assert b"before/connect initialization" == client.get_state_string()
+        assert server.get_state_string() in [
+            b"before/accept initialization", b"before SSL initialization"
+        ]
+        assert client.get_state_string() in [
+            b"before/connect initialization", b"before SSL initialization"
+        ]
 
     def test_app_data_wrong_args(self):
         """
