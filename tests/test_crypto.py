@@ -2776,7 +2776,8 @@ class FunctionTests(TestCase):
         dumped_pem2 = dump_certificate(FILETYPE_PEM, cert2)
         self.assertEqual(dumped_pem2, cleartextCertificatePEM)
         dumped_text = dump_certificate(FILETYPE_TEXT, cert)
-        good_text = _runopenssl(dumped_pem, b"x509", b"-noout", b"-text", b"-nameopt", b"")
+        good_text = _runopenssl(
+            dumped_pem, b"x509", b"-noout", b"-text", b"-nameopt", b"")
         self.assertEqual(dumped_text, good_text)
 
     def test_dump_certificate_bad_type(self):
@@ -2865,7 +2866,8 @@ class FunctionTests(TestCase):
         dumped_pem2 = dump_certificate_request(FILETYPE_PEM, req2)
         self.assertEqual(dumped_pem2, cleartextCertificateRequestPEM)
         dumped_text = dump_certificate_request(FILETYPE_TEXT, req)
-        good_text = _runopenssl(dumped_pem, b"req", b"-noout", b"-text", b"-nameopt", b"")
+        good_text = _runopenssl(
+            dumped_pem, b"req", b"-noout", b"-text", b"-nameopt", b"")
         self.assertEqual(dumped_text, good_text)
         self.assertRaises(ValueError, dump_certificate_request, 100, req)
 
