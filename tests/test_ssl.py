@@ -2638,9 +2638,18 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         the :py:obj:`Connection` is using, a :py:class:`OpenSSL.SSL.Error` is
         raised.
         """
+        # Make this work on both OpenSSL 1.0.0, which doesn't support TLSv1.1
+        # and also on OpenSSL 1.1.0 which doesn't support SSLv3.
+        if TLSv1_1_METHOD is not None:
+            v1 = TLSv1_METHOD
+            v2 = TLSv1_1_METHOD
+        else:
+            v1 = TLSv1_METHOD
+            v2 = SSLv3_METHOD
+
         key = load_privatekey(FILETYPE_PEM, server_key_pem)
         cert = load_certificate(FILETYPE_PEM, server_cert_pem)
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(v1)
         ctx.use_privatekey(key)
         ctx.use_certificate(cert)
         ctx.set_session_id("unity-test")
@@ -2656,7 +2665,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
         def makeClient(socket):
             # Intentionally use a different, incompatible method here.
-            client = Connection(Context(SSLv3_METHOD), socket)
+            client = Connection(Context(v2), socket)
             client.set_connect_state()
             client.set_session(originalSession)
             return client
