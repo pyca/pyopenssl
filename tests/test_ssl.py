@@ -499,12 +499,11 @@ class ContextTests(TestCase, _LoopbackMixin):
         :py:obj:`SSLv23_METHOD`, :py:obj:`TLSv1_METHOD`,
         :py:obj:`TLSv1_1_METHOD`, or :py:obj:`TLSv1_2_METHOD`.
         """
-        methods = [
-            SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD]
+        methods = [SSLv23_METHOD, TLSv1_METHOD]
         for meth in methods:
             Context(meth)
 
-        maybe = [SSLv2_METHOD, TLSv1_1_METHOD, TLSv1_2_METHOD]
+        maybe = [SSLv2_METHOD, SSLv3_METHOD, TLSv1_1_METHOD, TLSv1_2_METHOD]
         for meth in maybe:
             try:
                 Context(meth)
