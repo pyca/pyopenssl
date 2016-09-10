@@ -3833,14 +3833,19 @@ class InfoConstantTests(TestCase):
         info callback matches up with the constant exposed by OpenSSL.SSL.
         """
         for const in [
-            SSL_ST_CONNECT, SSL_ST_ACCEPT, SSL_ST_MASK, SSL_ST_INIT,
-            SSL_ST_BEFORE, SSL_ST_OK, SSL_ST_RENEGOTIATE,
+            SSL_ST_CONNECT, SSL_ST_ACCEPT, SSL_ST_MASK,
             SSL_CB_LOOP, SSL_CB_EXIT, SSL_CB_READ, SSL_CB_WRITE, SSL_CB_ALERT,
             SSL_CB_READ_ALERT, SSL_CB_WRITE_ALERT, SSL_CB_ACCEPT_LOOP,
             SSL_CB_ACCEPT_EXIT, SSL_CB_CONNECT_LOOP, SSL_CB_CONNECT_EXIT,
             SSL_CB_HANDSHAKE_START, SSL_CB_HANDSHAKE_DONE
         ]:
-            self.assertTrue(isinstance(const, int))
+            assert isinstance(const, int)
+
+        # These constants don't exist on OpenSSL 1.1.0
+        for const in [
+            SSL_ST_INIT, SSL_ST_BEFORE, SSL_ST_OK, SSL_ST_RENEGOTIATE
+        ]:
+            assert const is None or isinstance(const, int)
 
 
 class TestRequires(object):
