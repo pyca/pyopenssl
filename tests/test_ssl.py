@@ -777,7 +777,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         context = Context(TLSv1_METHOD)
         options = context.set_options(OP_NO_SSLv2)
-        self.assertTrue(OP_NO_SSLv2 & options)
+        assert options & OP_NO_SSLv2 == OP_NO_SSLv2
 
     @skip_if_py3
     def test_set_options_long(self):
@@ -787,7 +787,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         context = Context(TLSv1_METHOD)
         options = context.set_options(long(OP_NO_SSLv2))
-        self.assertTrue(OP_NO_SSLv2 & options)
+        assert options & OP_NO_SSLv2 == OP_NO_SSLv2
 
     def test_set_mode_wrong_args(self):
         """
