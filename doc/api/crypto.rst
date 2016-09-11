@@ -315,7 +315,7 @@ Digest names
 
 Several of the functions and methods in this module take a digest name.
 These must be strings describing a digest algorithm supported by OpenSSL (by ``EVP_get_digestbyname``, specifically).
-For example, :const:`b"md5"` or :const:`b"sha1"`.
+For example, :const:`b"sha256"` or :const:`b"sha384"`.
 
 More information and a list of these digest names can be found in the ``EVP_DigestInit(3)`` man page of your OpenSSL installation.
 This page can be found online for the latest version of OpenSSL:
