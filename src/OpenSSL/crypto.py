@@ -937,7 +937,7 @@ class X509Req(object):
         :param pkey: The key pair to sign with.
         :type pkey: :py:class:`PKey`
         :param digest: The name of the message digest to use for the signature,
-            e.g. :py:data:`b"sha1"`.
+            e.g. :py:data:`b"sha256"`.
         :type digest: :py:class:`bytes`
         :return: ``None``
         """
@@ -2071,7 +2071,7 @@ class CRL(object):
             :data:`FILETYPE_ASN1`, or :data:`FILETYPE_TEXT`.
         :param int days: The number of days until the next update of this CRL.
         :param bytes digest: The name of the message digest to use (eg
-            ``b"sha1"``).
+            ``b"sha2566"``).
         :rtype: bytes
         """
 
