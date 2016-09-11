@@ -13,7 +13,7 @@ import pytest
 
 from OpenSSL import rand
 
-from .util import NON_ASCII, TestCase, b
+from .util import NON_ASCII, TestCase
 
 
 class RandTests(TestCase):
@@ -55,15 +55,15 @@ class RandTests(TestCase):
         raises :py:obj:`TypeError`.
         """
         self.assertRaises(TypeError, rand.add)
-        self.assertRaises(TypeError, rand.add, b("foo"), None)
+        self.assertRaises(TypeError, rand.add, b"foo", None)
         self.assertRaises(TypeError, rand.add, None, 3)
-        self.assertRaises(TypeError, rand.add, b("foo"), 3, None)
+        self.assertRaises(TypeError, rand.add, b"foo", 3, None)
 
     def test_add(self):
         """
         :py:obj:`OpenSSL.rand.add` adds entropy to the PRNG.
         """
-        rand.add(b('hamburger'), 3)
+        rand.add(b'hamburger', 3)
 
     def test_seed_wrong_args(self):
         """
@@ -73,13 +73,13 @@ class RandTests(TestCase):
         """
         self.assertRaises(TypeError, rand.seed)
         self.assertRaises(TypeError, rand.seed, None)
-        self.assertRaises(TypeError, rand.seed, b("foo"), None)
+        self.assertRaises(TypeError, rand.seed, b"foo", None)
 
     def test_seed(self):
         """
         :py:obj:`OpenSSL.rand.seed` adds entropy to the PRNG.
         """
-        rand.seed(b('milk shake'))
+        rand.seed(b'milk shake')
 
     def test_status_wrong_args(self):
         """

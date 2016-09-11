@@ -24,11 +24,11 @@ from OpenSSL.crypto import Error
 
 from . import memdbg
 
-from OpenSSL._util import ffi, lib, byte_string as b
+from OpenSSL._util import ffi, lib
 
 
 # This is the UTF-8 encoding of the SNOWMAN unicode code point.
-NON_ASCII = b("\xe2\x98\x83").decode("utf-8")
+NON_ASCII = b"\xe2\x98\x83".decode("utf-8")
 
 
 class TestCase(TestCase):
