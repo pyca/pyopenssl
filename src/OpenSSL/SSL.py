@@ -1613,7 +1613,7 @@ class Connection(object):
             return None
         length = _lib.SSL_get_server_random(self._ssl, _ffi.NULL, 0)
         assert length > 0
-        outp = _ffi.new("char[]", length)
+        outp = _ffi.new("unsigned char[]", length)
         _lib.SSL_get_server_random(self._ssl, outp, length)
         return _ffi.buffer(outp, length)[:]
 
@@ -1629,7 +1629,7 @@ class Connection(object):
 
         length = _lib.SSL_get_client_random(self._ssl, _ffi.NULL, 0)
         assert length > 0
-        outp = _ffi.new("char[]", length)
+        outp = _ffi.new("unsigned char[]", length)
         _lib.SSL_get_client_random(self._ssl, outp, length)
         return _ffi.buffer(outp, length)[:]
 
@@ -1645,7 +1645,7 @@ class Connection(object):
 
         length = _lib.SSL_SESSION_get_master_key(session, _ffi.NULL, 0)
         assert length > 0
-        outp = _ffi.new("char[]", length)
+        outp = _ffi.new("unsigned char[]", length)
         _lib.SSL_SESSION_get_master_key(session, outp, length)
         return _ffi.buffer(outp, length)[:]
 

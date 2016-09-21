@@ -1100,7 +1100,7 @@ class X509(object):
         if digest == _ffi.NULL:
             raise ValueError("No such digest method")
 
-        result_buffer = _ffi.new("char[]", _lib.EVP_MAX_MD_SIZE)
+        result_buffer = _ffi.new("unsigned char[]", _lib.EVP_MAX_MD_SIZE)
         result_length = _ffi.new("unsigned int[]", 1)
         result_length[0] = len(result_buffer)
 
