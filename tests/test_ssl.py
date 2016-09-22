@@ -3055,7 +3055,6 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         self._doesnt_overfill_test(bytearray)
 
     def test_peek(self):
-        pytest.skip("Hangs on OpenSSL 1.1.0")
         server, client = self._loopback()
         server.send(b'xy')
 
