@@ -939,7 +939,7 @@ class X509Req(object):
         :param pkey: The key pair to sign with.
         :type pkey: :py:class:`PKey`
         :param digest: The name of the message digest to use for the signature,
-            e.g. :py:data:`b"sha1"`.
+            e.g. :py:data:`b"sha256"`.
         :type digest: :py:class:`bytes`
         :return: ``None``
         """
@@ -1102,7 +1102,7 @@ class X509(object):
         if digest == _ffi.NULL:
             raise ValueError("No such digest method")
 
-        result_buffer = _ffi.new("char[]", _lib.EVP_MAX_MD_SIZE)
+        result_buffer = _ffi.new("unsigned char[]", _lib.EVP_MAX_MD_SIZE)
         result_length = _ffi.new("unsigned int[]", 1)
         result_length[0] = len(result_buffer)
 
@@ -2073,7 +2073,7 @@ class CRL(object):
             :data:`FILETYPE_ASN1`, or :data:`FILETYPE_TEXT`.
         :param int days: The number of days until the next update of this CRL.
         :param bytes digest: The name of the message digest to use (eg
-            ``b"sha1"``).
+            ``b"sha2566"``).
         :rtype: bytes
         """
 

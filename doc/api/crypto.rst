@@ -127,7 +127,7 @@ Signing and verifying signatures
 
     *key* is a :py:class:`PKey` instance.  *data* is a ``str`` instance.
     *digest* is a ``str`` naming a supported message digest type, for example
-    :py:const:`sha1`.
+    :py:const:`b"sha256"`.
 
     .. versionadded:: 0.11
 
@@ -140,7 +140,7 @@ Signing and verifying signatures
     key which generated the signature.  *signature* is a *str* instance giving
     the signature itself.  *data* is a *str* instance giving the data to which
     the signature applies.  *digest* is a *str* instance naming the message
-    digest type of the signature, for example :py:const:`sha1`.
+    digest type of the signature, for example :py:const:`b"sha256"`.
 
     .. versionadded:: 0.11
 
@@ -315,7 +315,7 @@ Digest names
 
 Several of the functions and methods in this module take a digest name.
 These must be strings describing a digest algorithm supported by OpenSSL (by ``EVP_get_digestbyname``, specifically).
-For example, :const:`b"md5"` or :const:`b"sha1"`.
+For example, :const:`b"sha256"` or :const:`b"sha384"`.
 
 More information and a list of these digest names can be found in the ``EVP_DigestInit(3)`` man page of your OpenSSL installation.
 This page can be found online for the latest version of OpenSSL:
