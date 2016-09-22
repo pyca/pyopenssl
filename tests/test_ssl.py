@@ -2238,7 +2238,6 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         :py:obj:`Connection.recv` peeks into the connection if
         :py:obj:`socket.MSG_PEEK` is passed.
         """
-        pytest.skip("Currently hangs on OpenSSL 1.1.0")
         server, client = self._loopback()
         server.send(b'xy')
         self.assertEqual(client.recv(2, MSG_PEEK), b'xy')

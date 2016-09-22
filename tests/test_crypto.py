@@ -924,9 +924,6 @@ class PKeyTests(TestCase):
         :py:meth:`PKeyType.generate_key` can be called multiple times on the
         same key to generate new keys.
         """
-        # TODO: only skip this on OpenSSL 1.1.0; the bug is fixed in what will
-        # become OpenSSL 1.1.0a
-        pytest.skip("Currently broken on OpenSSL 1.1.0")
         key = PKey()
         for type, bits in [(TYPE_RSA, 512), (TYPE_DSA, 576)]:
             key.generate_key(type, bits)
