@@ -2642,9 +2642,10 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         the :py:obj:`Connection` is using, a :py:class:`OpenSSL.SSL.Error` is
         raised.
         """
-        # Make this work on both OpenSSL 1.0.0, which doesn't support TLSv1.1
-        # and also on OpenSSL 1.1.0 which doesn't support SSLv3.
-        if SSLv3_METHOD is not None:
+        # Make this work on both OpenSSL 1.0.0, which doesn't support TLSv1.2
+        # and also on OpenSSL 1.1.0 which doesn't support SSLv3. (SSL_ST_INIT
+        # is a way to check for 1.1.0)
+        if SSL_ST_INIT is not None:
             v1 = TLSv1_METHOD
             v2 = SSLv3_METHOD
         else:
