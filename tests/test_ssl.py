@@ -2644,12 +2644,12 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         # Make this work on both OpenSSL 1.0.0, which doesn't support TLSv1.1
         # and also on OpenSSL 1.1.0 which doesn't support SSLv3.
-        if TLSv1_2_METHOD is not None:
-            v1 = TLSv1_2_METHOD
-            v2 = TLSv1_METHOD
-        else:
+        if SSLv3_METHOD is not None:
             v1 = TLSv1_METHOD
             v2 = SSLv3_METHOD
+        else:
+            v1 = TLSv1_2_METHOD
+            v2 = TLSv1_METHOD
 
         key = load_privatekey(FILETYPE_PEM, server_key_pem)
         cert = load_certificate(FILETYPE_PEM, server_cert_pem)
