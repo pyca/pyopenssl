@@ -22,8 +22,7 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-*none*
-
+- Fixed compatibility errors with OpenSSL 1.1.0.
 
 ----
 
