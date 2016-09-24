@@ -14,6 +14,9 @@ matrix:
   - language: generic
     os: osx
     env: TOXENV=py27
+  - language: generic
+    os: osx
+    env: TOXENV=py27 OPENSSL=1.1.0
   - python: "2.6" # these are just to make travis's UI a bit prettier
     env: TOXENV=py26
   - python: "2.7"
@@ -90,7 +93,11 @@ install:
   - |
     if [[ "$(uname -s)" == 'Darwin' ]]; then
       brew update
-      brew upgrade openssl
+      if [[ "${OPENSSL}" == "1.1.0" ]]; then
+        brew install openssl@1.1
+      else
+        brew upgrade openssl
+      fi
       curl -O https://bootstrap.pypa.io/get-pip.py
       python get-pip.py --user
       pip install --user virtualenv
@@ -114,9 +121,15 @@ script:
     if [[ "$(uname -s)" == 'Darwin' ]]; then
       # set our flags to use homebrew openssl
       export ARCHFLAGS="-arch x86_64"
-      export LDFLAGS="-L/usr/local/opt/openssl/lib"
-      export CFLAGS="-I/usr/local/opt/openssl/include"
-      export PATH="/usr/local/opt/openssl/bin:$PATH"
+      if [[ "${OPENSSL}"  == "1.1.0" ]]; then
+        export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
+        export CFLAGS="-I/usr/local/opt/openssl@1.1/include"
+        export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
+      else
+        export LDFLAGS="-L/usr/local/opt/openssl/lib"
+        export CFLAGS="-I/usr/local/opt/openssl/include"
+        export PATH="/usr/local/opt/openssl/bin:$PATH"
+      fi
     fi
     # activate the pypy env we installed via our custom pyenv in the install stage
     if [[ "${TOXENV}" == "pypy" ]]; then

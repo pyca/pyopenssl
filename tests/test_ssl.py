@@ -68,12 +68,18 @@ except ImportError:
     OP_NO_TLSv1 = OP_NO_TLSv1_1 = OP_NO_TLSv1_2 = None
 
 from OpenSSL.SSL import (
-    SSL_ST_CONNECT, SSL_ST_ACCEPT, SSL_ST_MASK, SSL_ST_INIT, SSL_ST_BEFORE,
-    SSL_ST_OK, SSL_ST_RENEGOTIATE,
+    SSL_ST_CONNECT, SSL_ST_ACCEPT, SSL_ST_MASK,
     SSL_CB_LOOP, SSL_CB_EXIT, SSL_CB_READ, SSL_CB_WRITE, SSL_CB_ALERT,
     SSL_CB_READ_ALERT, SSL_CB_WRITE_ALERT, SSL_CB_ACCEPT_LOOP,
     SSL_CB_ACCEPT_EXIT, SSL_CB_CONNECT_LOOP, SSL_CB_CONNECT_EXIT,
     SSL_CB_HANDSHAKE_START, SSL_CB_HANDSHAKE_DONE)
+
+try:
+    from OpenSSL.SSL import (
+        SSL_ST_INIT, SSL_ST_BEFORE, SSL_ST_OK, SSL_ST_RENEGOTIATE
+    )
+except ImportError:
+    SSL_ST_INIT = SSL_ST_BEFORE = SSL_ST_OK = SSL_ST_RENEGOTIATE = None
 
 from .util import WARNING_TYPE_EXPECTED, NON_ASCII, TestCase
 from .test_crypto import (
@@ -493,12 +499,11 @@ class ContextTests(TestCase, _LoopbackMixin):
         :py:obj:`SSLv23_METHOD`, :py:obj:`TLSv1_METHOD`,
         :py:obj:`TLSv1_1_METHOD`, or :py:obj:`TLSv1_2_METHOD`.
         """
-        methods = [
-            SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD]
+        methods = [SSLv23_METHOD, TLSv1_METHOD]
         for meth in methods:
             Context(meth)
 
-        maybe = [SSLv2_METHOD, TLSv1_1_METHOD, TLSv1_2_METHOD]
+        maybe = [SSLv2_METHOD, SSLv3_METHOD, TLSv1_1_METHOD, TLSv1_2_METHOD]
         for meth in maybe:
             try:
                 Context(meth)
@@ -2437,8 +2442,12 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         server = self._loopbackServerFactory(server)
         client = self._loopbackClientFactory(client)
 
-        assert b"before/accept initialization" == server.get_state_string()
-        assert b"before/connect initialization" == client.get_state_string()
+        assert server.get_state_string() in [
+            b"before/accept initialization", b"before SSL initialization"
+        ]
+        assert client.get_state_string() in [
+            b"before/connect initialization", b"before SSL initialization"
+        ]
 
     def test_app_data_wrong_args(self):
         """
@@ -2633,9 +2642,19 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         the :py:obj:`Connection` is using, a :py:class:`OpenSSL.SSL.Error` is
         raised.
         """
+        # Make this work on both OpenSSL 1.0.0, which doesn't support TLSv1.2
+        # and also on OpenSSL 1.1.0 which doesn't support SSLv3. (SSL_ST_INIT
+        # is a way to check for 1.1.0)
+        if SSL_ST_INIT is not None:
+            v1 = TLSv1_METHOD
+            v2 = SSLv3_METHOD
+        else:
+            v1 = TLSv1_2_METHOD
+            v2 = TLSv1_METHOD
+
         key = load_privatekey(FILETYPE_PEM, server_key_pem)
         cert = load_certificate(FILETYPE_PEM, server_cert_pem)
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(v1)
         ctx.use_privatekey(key)
         ctx.use_certificate(cert)
         ctx.set_session_id("unity-test")
@@ -2645,13 +2664,18 @@ class ConnectionTests(TestCase, _LoopbackMixin):
             server.set_accept_state()
             return server
 
+        def makeOriginalClient(socket):
+            client = Connection(Context(v1), socket)
+            client.set_connect_state()
+            return client
+
         originalServer, originalClient = self._loopback(
-            serverFactory=makeServer)
+            serverFactory=makeServer, clientFactory=makeOriginalClient)
         originalSession = originalClient.get_session()
 
         def makeClient(socket):
             # Intentionally use a different, incompatible method here.
-            client = Connection(Context(SSLv3_METHOD), socket)
+            client = Connection(Context(v2), socket)
             client.set_connect_state()
             client.set_session(originalSession)
             return client
@@ -3032,7 +3056,6 @@ class ConnectionRecvIntoTests(TestCase, _LoopbackMixin):
         self._doesnt_overfill_test(bytearray)
 
     def test_peek(self):
-
         server, client = self._loopback()
         server.send(b'xy')
 
@@ -3533,7 +3556,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         e = self.assertRaises(Error, server.recv, 1024)
         # We don't want WantReadError or ZeroReturnError or anything - it's a
         # handshake failure.
-        self.assertEquals(e.__class__, Error)
+        assert type(e) in [Error, SysCallError]
 
     def test_unexpectedEndOfFile(self):
         """
@@ -3809,14 +3832,19 @@ class InfoConstantTests(TestCase):
         info callback matches up with the constant exposed by OpenSSL.SSL.
         """
         for const in [
-            SSL_ST_CONNECT, SSL_ST_ACCEPT, SSL_ST_MASK, SSL_ST_INIT,
-            SSL_ST_BEFORE, SSL_ST_OK, SSL_ST_RENEGOTIATE,
+            SSL_ST_CONNECT, SSL_ST_ACCEPT, SSL_ST_MASK,
             SSL_CB_LOOP, SSL_CB_EXIT, SSL_CB_READ, SSL_CB_WRITE, SSL_CB_ALERT,
             SSL_CB_READ_ALERT, SSL_CB_WRITE_ALERT, SSL_CB_ACCEPT_LOOP,
             SSL_CB_ACCEPT_EXIT, SSL_CB_CONNECT_LOOP, SSL_CB_CONNECT_EXIT,
             SSL_CB_HANDSHAKE_START, SSL_CB_HANDSHAKE_DONE
         ]:
-            self.assertTrue(isinstance(const, int))
+            assert isinstance(const, int)
+
+        # These constants don't exist on OpenSSL 1.1.0
+        for const in [
+            SSL_ST_INIT, SSL_ST_BEFORE, SSL_ST_OK, SSL_ST_RENEGOTIATE
+        ]:
+            assert const is None or isinstance(const, int)
 
 
 class TestRequires(object):
