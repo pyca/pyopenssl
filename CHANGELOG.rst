@@ -23,6 +23,8 @@ Changes:
 ^^^^^^^^
 
 - Fixed compatibility errors with OpenSSL 1.1.0.
+- Fixed an issue that caused failures with subinterpreters and embedded Pythons.
+  `#552 <https://github.com/pyca/pyopenssl/pull/552>`_
 
 ----
 
