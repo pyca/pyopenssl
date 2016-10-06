@@ -10,7 +10,6 @@ from six import (
     text_type as _text_type,
     PY3 as _PY3)
 
-from cryptography.hazmat.backends.openssl.backend import backend
 from cryptography.hazmat.primitives.asymmetric import dsa, rsa
 
 from OpenSSL._util import (
@@ -42,6 +41,18 @@ class Error(Exception):
 
 _raise_current_error = partial(_exception_from_error_queue, Error)
 _openssl_assert = _make_assert(Error)
+
+
+def _get_backend():
+    """
+    Importing the backend from cryptography has the side effect of activating
+    the osrandom engine. This mutates the global state of OpenSSL in the
+    process and causes issues for various programs that use subinterpreters or
+    embed Python. By putting the import in this function we can avoid
+    triggering this side effect unless _get_backend is called.
+    """
+    from cryptography.hazmat.backends.openssl.backend import backend
+    return backend
 
 
 def _untested_error(where):
@@ -181,6 +192,7 @@ class PKey(object):
 
         .. versionadded:: 16.1.0
         """
+        backend = _get_backend()
         if self._only_public:
             return backend._evp_pkey_to_public_key(self._pkey)
         else:
