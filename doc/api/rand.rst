@@ -5,7 +5,7 @@
 
 .. warning::
    Functions from this module shouldn't be used.
-   `Use urandom <http://sockpuppet.org/blog/2014/02/25/safely-generate-random-numbers/>`_ instead.
+   `Use urandom <https://sockpuppet.org/blog/2014/02/25/safely-generate-random-numbers/>`_ instead.
 
 
 .. py:module:: OpenSSL.rand

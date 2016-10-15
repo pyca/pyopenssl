@@ -66,7 +66,7 @@ Changes:
 This is the first release under full stewardship of PyCA.
 We have made *many* changes to make local development more pleasing.
 The test suite now passes both on Linux and OS X with OpenSSL 0.9.8, 1.0.1, and 1.0.2.
-It has been moved to `py.test <https://pytest.org/>`_, all CI test runs are part of `tox <https://testrun.org/tox/>`_ and the source code has been made fully `flake8 <https://flake8.readthedocs.io/>`_ compliant.
+It has been moved to `pytest <https://pytest.org/>`_, all CI test runs are part of `tox <https://testrun.org/tox/>`_ and the source code has been made fully `flake8 <https://flake8.readthedocs.io/>`_ compliant.
 
 We hope to have lowered the barrier for contributions significantly but are open to hear about any remaining frustrations.
 
@@ -87,7 +87,7 @@ Deprecations:
   Please see `pyca/cryptography#1636 <https://github.com/pyca/cryptography/pull/1636>`_ for more background information on this decision.
   In accordance with our backward compatibility policy ``OpenSSL.rand.egd()`` will be *removed* no sooner than a year from the release of 16.0.0.
 
-  Please note that you should `use urandom <http://sockpuppet.org/blog/2014/02/25/safely-generate-random-numbers/>`_ for all your secure random number needs.
+  Please note that you should `use urandom <https://sockpuppet.org/blog/2014/02/25/safely-generate-random-numbers/>`_ for all your secure random number needs.
 - Python 2.6 support has been deprecated.
   Our main dependency ``cryptography`` deprecated 2.6 in version 0.9 (2015-05-14) with no time table for actually dropping it.
   pyOpenSSL will drop Python 2.6 support once ``cryptography`` does.

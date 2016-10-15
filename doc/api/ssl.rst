@@ -465,7 +465,7 @@ Context objects have the following methods:
 
     Specify a callback function that will be called when offering `Next
     Protocol Negotiation
-    <https://technotes.googlecode.com/git/nextprotoneg.html>`_ as a server.
+    <https://tools.ietf.org/html/draft-agl-tls-nextprotoneg-03>`_ as a server.
 
     *callback* should be the callback function.  It will be invoked with one
     argument, the :py:class:`Connection` instance.  It should return a list of
