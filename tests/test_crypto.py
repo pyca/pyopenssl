@@ -1165,7 +1165,7 @@ class X509NameTests(TestCase):
         b = self._x509name(CN="foo")
         self.assertEqual(a.hash(), b.hash())
         a.CN = "bar"
-        self.assertNotEqual(a.hash(), b.hash())
+        assert a.hash() != b.hash()
 
     def test_der(self):
         """

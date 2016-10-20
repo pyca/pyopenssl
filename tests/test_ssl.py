@@ -2745,7 +2745,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
         server, client = self._loopback()
 
-        self.assertNotEqual(server.get_finished(), None)
+        assert server.get_finished() is not None
         self.assertTrue(len(server.get_finished()) > 0)
 
     def test_get_peer_finished(self):
@@ -2756,7 +2756,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
 
-        self.assertNotEqual(server.get_peer_finished(), None)
+        assert server.get_peer_finished() is not None
         self.assertTrue(len(server.get_peer_finished()) > 0)
 
     def test_tls_finished_message_symmetry(self):
@@ -3466,10 +3466,8 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
             server_conn.client_random(), client_conn.client_random())
         self.assertEquals(
             server_conn.server_random(), client_conn.server_random())
-        self.assertNotEquals(
-            server_conn.client_random(), server_conn.server_random())
-        self.assertNotEquals(
-            client_conn.client_random(), client_conn.server_random())
+        assert server_conn.client_random() != server_conn.server_random()
+        assert client_conn.client_random() != client_conn.server_random()
 
         # Here are the bytes we'll try to send.
         important_message = b'One if by land, two if by sea.'

@@ -42,7 +42,7 @@ class RandTests(TestCase):
         b1 = rand.bytes(50)
         self.assertEqual(len(b1), 50)
         b2 = rand.bytes(num_bytes=50)  # parameter by name
-        self.assertNotEqual(b1, b2)  # Hip, Hip, Horay! FIPS complaince
+        assert b1 != b2  # Hip, Hip, Horay! FIPS complaince
         b3 = rand.bytes(num_bytes=0)
         self.assertEqual(len(b3), 0)
         exc = self.assertRaises(ValueError, rand.bytes, -1)
