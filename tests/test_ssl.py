@@ -2370,7 +2370,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         shutdown.
         """
         server, client = self._loopback()
-        self.assertFalse(server.shutdown())
+        assert not server.shutdown()
         self.assertEquals(server.get_shutdown(), SENT_SHUTDOWN)
         self.assertRaises(ZeroReturnError, client.recv, 1024)
         self.assertEquals(client.get_shutdown(), RECEIVED_SHUTDOWN)

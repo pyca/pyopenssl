@@ -626,7 +626,7 @@ class X509ExtTests(TestCase):
         ext = X509Extension(b'basicConstraints', True, b'CA:true')
         self.assertTrue(ext.get_critical())
         ext = X509Extension(b'basicConstraints', False, b'CA:true')
-        self.assertFalse(ext.get_critical())
+        assert not ext.get_critical()
 
     def test_get_short_name(self):
         """
@@ -1090,8 +1090,14 @@ class X509NameTests(TestCase):
             assertTrue(b == a)
             assertFalse(b != a)
 
+        def assertTrue(condition, message="assertTrue failed"):
+            assert condition, message
+
+        def assertFalse(condition, message="assertFalse failed"):
+            assert not condition, message
+
         def assertEqual(a, b):
-            _equality(a, b, self.assertTrue, self.assertFalse)
+            _equality(a, b, assertTrue, assertFalse)
 
         # Instances compare equal to themselves.
         name = self._x509name()
@@ -1115,7 +1121,7 @@ class X509NameTests(TestCase):
                     self._x509name(commonName="foo", OU="bar"))
 
         def assertNotEqual(a, b):
-            _equality(a, b, self.assertFalse, self.assertTrue)
+            _equality(a, b, assertFalse, assertTrue)
 
         # Instances with different values for the same NID should not compare
         # equal to each other.
@@ -1139,7 +1145,7 @@ class X509NameTests(TestCase):
             assertFalse(b <= a)
 
         def assertLessThan(a, b):
-            _inequality(a, b, self.assertTrue, self.assertFalse)
+            _inequality(a, b, assertTrue, assertFalse)
 
         # An X509Name with a NID with a value which sorts less than the value
         # of the same NID on another X509Name compares less than the other
@@ -1148,7 +1154,7 @@ class X509NameTests(TestCase):
                        self._x509name(CN="def"))
 
         def assertGreaterThan(a, b):
-            _inequality(a, b, self.assertFalse, self.assertTrue)
+            _inequality(a, b, assertFalse, assertTrue)
 
         # An X509Name with a NID with a value which sorts greater than the
         # value of the same NID on another X509Name compares greater than the
@@ -1709,7 +1715,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         """
         cert = X509()
         cert.gmtime_adj_notAfter(2)
-        self.assertFalse(cert.has_expired())
+        assert not cert.has_expired()
 
     def test_root_has_not_expired(self):
         """
@@ -1717,7 +1723,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         certificate's not-after time is in the future.
         """
         cert = load_certificate(FILETYPE_PEM, root_cert_pem)
-        self.assertFalse(cert.has_expired())
+        assert not cert.has_expired()
 
     def test_digest(self):
         """
@@ -1796,7 +1802,7 @@ WpOdIpB8KksUTCzV591Nr1wd
 
         ext = cert.get_extension(2)
         self.assertTrue(isinstance(ext, X509Extension))
-        self.assertFalse(ext.get_critical())
+        assert not ext.get_critical()
         self.assertEqual(ext.get_short_name(), b'subjectAltName')
 
         self.assertRaises(IndexError, cert.get_extension, -1)
@@ -3019,7 +3025,7 @@ class PKCS7Tests(TestCase):
         PKCS7 object is not of the type *enveloped*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertFalse(pkcs7.type_is_enveloped())
+        assert not pkcs7.type_is_enveloped()
 
     def test_type_is_signedAndEnveloped_wrong_args(self):
         """
@@ -3035,7 +3041,7 @@ class PKCS7Tests(TestCase):
         if the PKCS7 object is not of the type *signed and enveloped*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertFalse(pkcs7.type_is_signedAndEnveloped())
+        assert not pkcs7.type_is_signedAndEnveloped()
 
     def test_type_is_data(self):
         """
@@ -3043,7 +3049,7 @@ class PKCS7Tests(TestCase):
         object is not of the type data.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertFalse(pkcs7.type_is_data())
+        assert not pkcs7.type_is_data()
 
     def test_type_is_data_wrong_args(self):
         """
@@ -3879,7 +3885,7 @@ class EllipticCurveTests(TestCase):
         if lib.Cryptography_HAS_EC:
             self.assertTrue(curves)
         else:
-            self.assertFalse(curves)
+            assert not curves
 
     def test_a_curve(self):
         """
