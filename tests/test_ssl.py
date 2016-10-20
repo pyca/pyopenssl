@@ -849,7 +849,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         context = Context(TLSv1_METHOD)
         context.set_timeout(1234)
-        self.assertEquals(context.get_timeout(), 1234)
+        assert context.get_timeout() == 1234
 
     @skip_if_py3
     def test_timeout_long(self):
@@ -859,7 +859,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         context = Context(TLSv1_METHOD)
         context.set_timeout(long(1234))
-        self.assertEquals(context.get_timeout(), 1234)
+        assert context.get_timeout() == 1234
 
     def test_set_verify_depth_wrong_args(self):
         """
@@ -887,7 +887,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         context = Context(TLSv1_METHOD)
         context.set_verify_depth(11)
-        self.assertEquals(context.get_verify_depth(), 11)
+        assert context.get_verify_depth() == 11
 
     @skip_if_py3
     def test_verify_depth_long(self):
@@ -897,7 +897,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         context = Context(TLSv1_METHOD)
         context.set_verify_depth(long(11))
-        self.assertEquals(context.get_verify_depth(), 11)
+        assert context.get_verify_depth() == 11
 
     def _write_encrypted_pem(self, passphrase):
         """
@@ -1446,11 +1446,10 @@ class ContextTests(TestCase, _LoopbackMixin):
         previously passed to :py:obj:`Context.set_verify`.
         """
         context = Context(TLSv1_METHOD)
-        self.assertEquals(context.get_verify_mode(), 0)
+        assert context.get_verify_mode() == 0
         context.set_verify(
             VERIFY_PEER | VERIFY_CLIENT_ONCE, lambda *args: None)
-        self.assertEquals(
-            context.get_verify_mode(), VERIFY_PEER | VERIFY_CLIENT_ONCE)
+        assert context.get_verify_mode() == VERIFY_PEER | VERIFY_CLIENT_ONCE
 
     @skip_if_py3
     def test_set_verify_mode_long(self):
@@ -1459,12 +1458,11 @@ class ContextTests(TestCase, _LoopbackMixin):
         type :py:obj:`long` as well as :py:obj:`int`.
         """
         context = Context(TLSv1_METHOD)
-        self.assertEquals(context.get_verify_mode(), 0)
+        assert context.get_verify_mode() == 0
         context.set_verify(
             long(VERIFY_PEER | VERIFY_CLIENT_ONCE), lambda *args: None
         )  # pragma: nocover
-        self.assertEquals(
-            context.get_verify_mode(), VERIFY_PEER | VERIFY_CLIENT_ONCE)
+        assert context.get_verify_mode() == VERIFY_PEER | VERIFY_CLIENT_ONCE
 
     def test_load_tmp_dh_wrong_args(self):
         """
@@ -2224,7 +2222,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         immediate read.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
-        self.assertEquals(connection.pending(), 0)
+        assert connection.pending() == 0
 
     def test_pending_wrong_args(self):
         """
@@ -2349,7 +2347,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
         assert isinstance(serverSSL, Connection)
         assert serverSSL.get_context() is ctx
-        self.assertEquals(address, clientSSL.getsockname())
+        assert address == clientSSL.getsockname()
 
     def test_shutdown_wrong_args(self):
         """
@@ -2370,17 +2368,14 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
         assert not server.shutdown()
-        self.assertEquals(server.get_shutdown(), SENT_SHUTDOWN)
+        assert server.get_shutdown() == SENT_SHUTDOWN
         self.assertRaises(ZeroReturnError, client.recv, 1024)
-        self.assertEquals(client.get_shutdown(), RECEIVED_SHUTDOWN)
+        assert client.get_shutdown() == RECEIVED_SHUTDOWN
         client.shutdown()
-        self.assertEquals(
-            client.get_shutdown(), SENT_SHUTDOWN | RECEIVED_SHUTDOWN
-        )
+        assert client.get_shutdown() == SENT_SHUTDOWN | RECEIVED_SHUTDOWN
+
         self.assertRaises(ZeroReturnError, server.recv, 1024)
-        self.assertEquals(
-            server.get_shutdown(), SENT_SHUTDOWN | RECEIVED_SHUTDOWN
-        )
+        assert server.get_shutdown() == SENT_SHUTDOWN | RECEIVED_SHUTDOWN
 
     def test_shutdown_closed(self):
         """
@@ -2421,7 +2416,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         connection = Connection(Context(TLSv1_METHOD), socket())
         connection.set_shutdown(RECEIVED_SHUTDOWN)
-        self.assertEquals(connection.get_shutdown(), RECEIVED_SHUTDOWN)
+        assert connection.get_shutdown() == RECEIVED_SHUTDOWN
 
     @skip_if_py3
     def test_set_shutdown_long(self):
@@ -2431,7 +2426,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         connection = Connection(Context(TLSv1_METHOD), socket())
         connection.set_shutdown(long(RECEIVED_SHUTDOWN))
-        self.assertEquals(connection.get_shutdown(), RECEIVED_SHUTDOWN)
+        assert connection.get_shutdown() == RECEIVED_SHUTDOWN
 
     def test_state_string(self):
         """
@@ -2916,8 +2911,8 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
         count = server.send(b'xy')
-        self.assertEquals(count, 2)
-        self.assertEquals(client.recv(2), b'xy')
+        assert count == 2
+        assert client.recv(2) == b'xy'
 
     def test_text(self):
         """
@@ -2935,8 +2930,8 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
                 str(w[-1].message)
             )
             assert w[-1].category is DeprecationWarning
-        self.assertEquals(count, 2)
-        self.assertEquals(client.recv(2), b"xy")
+        assert count == 2
+        assert client.recv(2) == b"xy"
 
     @skip_if_py26
     def test_short_memoryview(self):
@@ -2947,8 +2942,8 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
         count = server.send(memoryview(b'xy'))
-        self.assertEquals(count, 2)
-        self.assertEquals(client.recv(2), b'xy')
+        assert count == 2
+        assert client.recv(2) == b'xy'
 
     @skip_if_py3
     def test_short_buffer(self):
@@ -2959,8 +2954,8 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
         count = server.send(buffer(b'xy'))
-        self.assertEquals(count, 2)
-        self.assertEquals(client.recv(2), b'xy')
+        assert count == 2
+        assert client.recv(2) == b'xy'
 
 
 def _make_memoryview(size):
@@ -3124,7 +3119,7 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
         server.sendall(b'x')
-        self.assertEquals(client.recv(1), b'x')
+        assert client.recv(1) == b'x'
 
     def test_text(self):
         """
@@ -3142,7 +3137,7 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
                 str(w[-1].message)
             )
             assert w[-1].category is DeprecationWarning
-        self.assertEquals(client.recv(1), b"x")
+        assert client.recv(1) == b"x"
 
     @skip_if_py26
     def test_short_memoryview(self):
@@ -3152,7 +3147,7 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
         server.sendall(memoryview(b'x'))
-        self.assertEquals(client.recv(1), b'x')
+        assert client.recv(1) == b'x'
 
     @skip_if_py3
     def test_short_buffers(self):
@@ -3162,7 +3157,7 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
         server.sendall(buffer(b'x'))
-        self.assertEquals(client.recv(1), b'x')
+        assert client.recv(1) == b'x'
 
     def test_long(self):
         """
@@ -3182,7 +3177,7 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
             data = client.recv(1024)
             accum.append(data)
             received += len(data)
-        self.assertEquals(message, b''.join(accum))
+        assert message == b''.join(accum)
 
     def test_closed(self):
         """
@@ -3224,7 +3219,7 @@ class ConnectionRenegotiateTests(TestCase, _LoopbackMixin):
         any renegotiations have happened.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
-        self.assertEquals(connection.total_renegotiations(), 0)
+        assert connection.total_renegotiations() == 0
 
     def test_renegotiate(self):
         """
@@ -3460,10 +3455,8 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         assert server_conn.master_key() is not None
         assert server_conn.client_random() is not None
         assert server_conn.server_random() is not None
-        self.assertEquals(
-            server_conn.client_random(), client_conn.client_random())
-        self.assertEquals(
-            server_conn.server_random(), client_conn.server_random())
+        assert server_conn.client_random() == client_conn.client_random()
+        assert server_conn.server_random() == client_conn.server_random()
         assert server_conn.client_random() != server_conn.server_random()
         assert client_conn.client_random() != client_conn.server_random()
 
@@ -3471,14 +3464,12 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         important_message = b'One if by land, two if by sea.'
 
         server_conn.write(important_message)
-        self.assertEquals(
-            self._interactInMemory(client_conn, server_conn),
-            (client_conn, important_message))
+        assert self._interactInMemory(client_conn, server_conn) == \
+            (client_conn, important_message)
 
         client_conn.write(important_message[::-1])
-        self.assertEquals(
-            self._interactInMemory(client_conn, server_conn),
-            (server_conn, important_message[::-1]))
+        assert self._interactInMemory(client_conn, server_conn) == \
+            (server_conn, important_message[::-1])
 
     def test_socketConnect(self):
         """
@@ -3540,7 +3531,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
 
         # We can rely on all of these bytes being received at once because
         # _loopback passes 2 ** 16 to recv - more than 2 ** 15.
-        self.assertEquals(len(received), sent)
+        assert len(received) == sent
 
     def test_shutdown(self):
         """

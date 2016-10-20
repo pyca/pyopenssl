@@ -567,9 +567,8 @@ class X509ExtTests(TestCase):
         """
         # This isn't necessarily the best string representation.  Perhaps it
         # will be changed/improved in the future.
-        self.assertEquals(
-            str(X509Extension(b'basicConstraints', True, b'CA:false')),
-            'CA:FALSE')
+        assert str(X509Extension(b'basicConstraints', True, b'CA:false')) == \
+            'CA:FALSE'
 
     def test_type(self):
         """
@@ -1528,7 +1527,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         """
         cert = X509()
         cert.set_version(1234)
-        self.assertEquals(cert.get_version(), 1234)
+        assert cert.get_version() == 1234
 
     def test_get_serial_number_wrong_args(self):
         """
@@ -1844,10 +1843,9 @@ WpOdIpB8KksUTCzV591Nr1wd
         cert = load_certificate(FILETYPE_PEM, self.pemData)
         subj = cert.get_subject()
         assert isinstance(subj, X509Name)
-        self.assertEquals(
-            subj.get_components(),
+        assert subj.get_components() == \
             [(b'C', b'US'), (b'ST', b'IL'), (b'L', b'Chicago'),
-             (b'O', b'Testing'), (b'CN', b'Testing Root CA')])
+             (b'O', b'Testing'), (b'CN', b'Testing Root CA')]
 
     def test_set_subject_wrong_args(self):
         """
@@ -1871,9 +1869,8 @@ WpOdIpB8KksUTCzV591Nr1wd
         name.C = 'AU'
         name.O = 'Unit Tests'
         cert.set_subject(name)
-        self.assertEquals(
-            cert.get_subject().get_components(),
-            [(b'C', b'AU'), (b'O', b'Unit Tests')])
+        assert cert.get_subject().get_components() == \
+            [(b'C', b'AU'), (b'O', b'Unit Tests')]
 
     def test_get_issuer_wrong_args(self):
         """
@@ -1891,10 +1888,9 @@ WpOdIpB8KksUTCzV591Nr1wd
         subj = cert.get_issuer()
         assert isinstance(subj, X509Name)
         comp = subj.get_components()
-        self.assertEquals(
-            comp,
+        assert comp == \
             [(b'C', b'US'), (b'ST', b'IL'), (b'L', b'Chicago'),
-             (b'O', b'Testing'), (b'CN', b'Testing Root CA')])
+             (b'O', b'Testing'), (b'CN', b'Testing Root CA')]
 
     def test_set_issuer_wrong_args(self):
         """
@@ -1917,9 +1913,8 @@ WpOdIpB8KksUTCzV591Nr1wd
         name.C = 'AU'
         name.O = 'Unit Tests'
         cert.set_issuer(name)
-        self.assertEquals(
-            cert.get_issuer().get_components(),
-            [(b'C', b'AU'), (b'O', b'Unit Tests')])
+        assert cert.get_issuer().get_components() == \
+            [(b'C', b'AU'), (b'O', b'Unit Tests')]
 
     def test_get_pubkey_uninitialized(self):
         """
@@ -3068,7 +3063,7 @@ class PKCS7Tests(TestCase):
         type name.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertEquals(pkcs7.get_type_name(), b'pkcs7-signedData')
+        assert pkcs7.get_type_name() == b'pkcs7-signedData'
 
     def test_attribute(self):
         """
@@ -3162,10 +3157,10 @@ class RevokedTests(TestCase):
         """
         revoked = Revoked()
         assert isinstance(revoked, Revoked)
-        self.assertEquals(type(revoked), Revoked)
-        self.assertEquals(revoked.get_serial(), b'00')
-        self.assertEquals(revoked.get_rev_date(), None)
-        self.assertEquals(revoked.get_reason(), None)
+        assert type(revoked) == Revoked
+        assert revoked.get_serial() == b'00'
+        assert revoked.get_rev_date() is None
+        assert revoked.get_reason() is None
 
     def test_construction_wrong_args(self):
         """
@@ -3184,13 +3179,13 @@ class RevokedTests(TestCase):
         """
         revoked = Revoked()
         ret = revoked.set_serial(b'10b')
-        self.assertEquals(ret, None)
+        assert ret is None
         ser = revoked.get_serial()
-        self.assertEquals(ser, b'010B')
+        assert ser == b'010B'
 
         revoked.set_serial(b'31ppp')  # a type error would be nice
         ser = revoked.get_serial()
-        self.assertEquals(ser, b'31')
+        assert ser == b'31'
 
         self.assertRaises(ValueError, revoked.set_serial, b'pqrst')
         self.assertRaises(TypeError, revoked.set_serial, 100)
@@ -3206,7 +3201,7 @@ class RevokedTests(TestCase):
         """
         revoked = Revoked()
         date = revoked.get_rev_date()
-        self.assertEquals(date, None)
+        assert date is None
 
         now = datetime.now().strftime("%Y%m%d%H%M%SZ").encode("ascii")
         ret = revoked.set_rev_date(now)
@@ -3224,11 +3219,10 @@ class RevokedTests(TestCase):
         for r in revoked.all_reasons():
             for x in range(2):
                 ret = revoked.set_reason(r)
-                self.assertEquals(ret, None)
+                assert ret is None
                 reason = revoked.get_reason()
-                self.assertEquals(
-                    reason.lower().replace(b' ', b''),
-                    r.lower().replace(b' ', b''))
+                assert reason.lower().replace(b' ', b'') == \
+                    r.lower().replace(b' ', b'')
                 r = reason  # again with the resp of get
 
         revoked.set_reason(None)
