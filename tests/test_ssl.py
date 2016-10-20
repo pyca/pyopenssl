@@ -332,7 +332,7 @@ class VersionTests(TestCase):
         byte and the patch, fix, minor, and major versions in the
         nibbles above that.
         """
-        self.assertTrue(isinstance(OPENSSL_VERSION_NUMBER, int))
+        assert isinstance(OPENSSL_VERSION_NUMBER, int)
 
     def test_SSLeay_version(self):
         """
@@ -344,7 +344,7 @@ class VersionTests(TestCase):
                   SSLEAY_PLATFORM, SSLEAY_DIR]:
             version = SSLeay_version(t)
             versions[version] = t
-            self.assertTrue(isinstance(version, bytes))
+            assert isinstance(version, bytes)
         self.assertEqual(len(versions), 5)
 
 
@@ -811,8 +811,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         newly set mode.
         """
         context = Context(TLSv1_METHOD)
-        self.assertTrue(
-            MODE_RELEASE_BUFFERS & context.set_mode(MODE_RELEASE_BUFFERS))
+        assert MODE_RELEASE_BUFFERS & context.set_mode(MODE_RELEASE_BUFFERS)
 
     @skip_if_py3
     def test_set_mode_long(self):
@@ -822,7 +821,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         context = Context(TLSv1_METHOD)
         mode = context.set_mode(long(MODE_RELEASE_BUFFERS))
-        self.assertTrue(MODE_RELEASE_BUFFERS & mode)
+        assert MODE_RELEASE_BUFFERS & mode
 
     def test_set_timeout_wrong_args(self):
         """
@@ -941,9 +940,10 @@ class ContextTests(TestCase, _LoopbackMixin):
         context = Context(TLSv1_METHOD)
         context.set_passwd_cb(passphraseCallback)
         context.use_privatekey_file(pemFile)
-        self.assertTrue(len(calledWith), 1)
-        self.assertTrue(isinstance(calledWith[0][0], int))
-        self.assertTrue(isinstance(calledWith[0][1], int))
+        # @@AWLC: The original check here looked a bit odd, so I'm guessing
+        assert len(calledWith) == 1
+        assert isinstance(calledWith[0][0], int)
+        assert isinstance(calledWith[0][1], int)
         self.assertEqual(calledWith[0][2], None)
 
     def test_passwd_callback_exception(self):
@@ -1211,7 +1211,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         clientSSL.set_connect_state()
         clientSSL.do_handshake()
         clientSSL.send(b"GET / HTTP/1.0\r\n\r\n")
-        self.assertTrue(clientSSL.recv(1024))
+        assert clientSSL.recv(1024)
 
     def test_set_default_verify_paths_signature(self):
         """
@@ -2100,7 +2100,7 @@ class SessionTests(TestCase):
         a new instance of that type.
         """
         new_session = Session()
-        self.assertTrue(isinstance(new_session, Session))
+        assert isinstance(new_session, Session)
 
     def test_construction_wrong_args(self):
         """
@@ -2315,8 +2315,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         clientSSL.setblocking(False)
         result = clientSSL.connect_ex(port.getsockname())
         expected = (EINPROGRESS, EWOULDBLOCK)
-        self.assertTrue(
-            result in expected, "%r not in %r" % (result, expected))
+        assert result in expected, "%r not in %r" % (result, expected)
 
     def test_accept_wrong_args(self):
         """
@@ -2348,7 +2347,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
 
         serverSSL, address = portSSL.accept()
 
-        self.assertTrue(isinstance(serverSSL, Connection))
+        assert isinstance(serverSSL, Connection)
         assert serverSSL.get_context() is ctx
         self.assertEquals(address, clientSSL.getsockname())
 
@@ -2742,11 +2741,10 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         message send from client, or server. Finished messages are send during
         TLS handshake.
         """
-
         server, client = self._loopback()
 
         assert server.get_finished() is not None
-        self.assertTrue(len(server.get_finished()) > 0)
+        assert len(server.get_finished()) > 0
 
     def test_get_peer_finished(self):
         """
@@ -2757,7 +2755,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         server, client = self._loopback()
 
         assert server.get_peer_finished() is not None
-        self.assertTrue(len(server.get_peer_finished()) > 0)
+        assert len(server.get_peer_finished()) > 0
 
     def test_tls_finished_message_symmetry(self):
         """
@@ -2891,9 +2889,9 @@ class ConnectionGetCipherListTests(TestCase):
         """
         connection = Connection(Context(TLSv1_METHOD), None)
         ciphers = connection.get_cipher_list()
-        self.assertTrue(isinstance(ciphers, list))
+        assert isinstance(ciphers, list)
         for cipher in ciphers:
-            self.assertTrue(isinstance(cipher, str))
+            assert isinstance(cipher, str)
 
 
 class ConnectionSendTests(TestCase, _LoopbackMixin):
@@ -3264,7 +3262,7 @@ class ErrorTests(TestCase):
         """
         :py:obj:`Error` is an exception type.
         """
-        self.assertTrue(issubclass(Error, Exception))
+        assert issubclass(Error, Exception)
         self.assertEqual(Error.__name__, 'Error')
 
 
@@ -3535,7 +3533,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         # Sanity check.  We're trying to test what happens when the entire
         # input can't be sent.  If the entire input was sent, this test is
         # meaningless.
-        self.assertTrue(sent < size)
+        assert sent < size
 
         receiver, received = self._interactInMemory(client, server)
         assert receiver is server

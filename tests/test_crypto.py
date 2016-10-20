@@ -588,17 +588,15 @@ class X509ExtTests(TestCase):
         :py:class:`X509ExtensionType` instance.
         """
         basic = X509Extension(b'basicConstraints', True, b'CA:true')
-        self.assertTrue(
-            isinstance(basic, X509ExtensionType),
+        assert isinstance(basic, X509ExtensionType), \
             "%r is of type %r, should be %r" % (
-                basic, type(basic), X509ExtensionType))
+                basic, type(basic), X509ExtensionType)
 
         comment = X509Extension(
             b'nsComment', False, b'pyOpenSSL unit test')
-        self.assertTrue(
-            isinstance(comment, X509ExtensionType),
+        assert isinstance(comment, X509ExtensionType), \
             "%r is of type %r, should be %r" % (
-                comment, type(comment), X509ExtensionType))
+                comment, type(comment), X509ExtensionType)
 
     def test_invalid_extension(self):
         """
@@ -624,7 +622,7 @@ class X509ExtTests(TestCase):
         extension's critical flag.
         """
         ext = X509Extension(b'basicConstraints', True, b'CA:true')
-        self.assertTrue(ext.get_critical())
+        assert ext.get_critical()
         ext = X509Extension(b'basicConstraints', False, b'CA:true')
         assert not ext.get_critical()
 
@@ -669,8 +667,8 @@ class X509ExtTests(TestCase):
         self.x509.sign(self.pkey, 'sha1')
         # This is a little lame.  Can we think of a better way?
         text = dump_certificate(FILETYPE_TEXT, self.x509)
-        self.assertTrue(b'X509v3 Basic Constraints:' in text)
-        self.assertTrue(b'CA:TRUE' in text)
+        assert b'X509v3 Basic Constraints:' in text
+        assert b'CA:TRUE' in text
 
     def test_subject(self):
         """
@@ -682,7 +680,7 @@ class X509ExtTests(TestCase):
         self.x509.add_extensions([ext3])
         self.x509.sign(self.pkey, 'sha1')
         text = dump_certificate(FILETYPE_TEXT, self.x509)
-        self.assertTrue(b'X509v3 Subject Key Identifier:' in text)
+        assert b'X509v3 Subject Key Identifier:' in text
 
     def test_missing_subject(self):
         """
@@ -714,8 +712,8 @@ class X509ExtTests(TestCase):
         self.x509.add_extensions([ext1])
         self.x509.sign(self.pkey, 'sha1')
         text = dump_certificate(FILETYPE_TEXT, self.x509)
-        self.assertTrue(b'X509v3 Basic Constraints:' in text)
-        self.assertTrue(b'CA:TRUE' in text)
+        assert b'X509v3 Basic Constraints:' in text
+        assert b'CA:TRUE' in text
 
     def test_issuer(self):
         """
@@ -728,8 +726,8 @@ class X509ExtTests(TestCase):
         self.x509.add_extensions([ext2])
         self.x509.sign(self.pkey, 'sha1')
         text = dump_certificate(FILETYPE_TEXT, self.x509)
-        self.assertTrue(b'X509v3 Authority Key Identifier:' in text)
-        self.assertTrue(b'DirName:/CN=Yoda root CA' in text)
+        assert b'X509v3 Authority Key Identifier:' in text
+        assert b'DirName:/CN=Yoda root CA' in text
 
     def test_missing_issuer(self):
         """
@@ -839,9 +837,8 @@ class PKeyTests(TestCase):
         """
         self.assertRaises(TypeError, PKey, None)
         key = PKey()
-        self.assertTrue(
-            isinstance(key, PKeyType),
-            "%r is of type %r, should be %r" % (key, type(key), PKeyType))
+        assert isinstance(key, PKeyType), \
+            "%r is of type %r, should be %r" % (key, type(key), PKeyType)
 
     def test_pregeneration(self):
         """
@@ -902,7 +899,7 @@ class PKeyTests(TestCase):
         key.generate_key(TYPE_RSA, bits)
         self.assertEqual(key.type(), TYPE_RSA)
         self.assertEqual(key.bits(), bits)
-        self.assertTrue(key.check())
+        assert key.check()
 
     def test_dsaGeneration(self):
         """
@@ -985,13 +982,12 @@ class X509NameTests(TestCase):
         """
         assert X509Name is X509NameType
         self.assertEqual(X509NameType.__name__, 'X509Name')
-        self.assertTrue(isinstance(X509NameType, type))
+        assert isinstance(X509NameType, type)
 
         name = self._x509name()
-        self.assertTrue(
-            isinstance(name, X509NameType),
+        assert isinstance(name, X509NameType), \
             "%r is of type %r, should be %r" % (
-                name, type(name), X509NameType))
+                name, type(name), X509NameType)
 
     def test_onlyStringAttributes(self):
         """
@@ -1276,7 +1272,7 @@ class _PKeyInteractionTestsMixin:
         # If the type has a verify method, cover that too.
         if getattr(request, 'verify', None) is not None:
             pub = request.get_pubkey()
-            self.assertTrue(request.verify(pub))
+            assert request.verify(pub)
             # Make another key that won't verify.
             key = PKey()
             key.generate_key(TYPE_RSA, 512)
@@ -1498,11 +1494,10 @@ WpOdIpB8KksUTCzV591Nr1wd
         :py:obj:`X509Type`.
         """
         certificate = X509()
-        self.assertTrue(
-            isinstance(certificate, X509Type),
+        assert isinstance(certificate, X509Type), \
             "%r is of type %r, should be %r" % (certificate,
                                                 type(certificate),
-                                                X509Type))
+                                                X509Type)
         self.assertEqual(type(X509Type).__name__, 'type')
         self.assertEqual(type(certificate).__name__, 'X509')
         self.assertEqual(type(certificate), X509Type)
@@ -1662,7 +1657,7 @@ WpOdIpB8KksUTCzV591Nr1wd
             cert.get_notBefore().decode(), "%Y%m%d%H%M%SZ"
         )
         not_before_max = datetime.utcnow() + timedelta(seconds=100)
-        self.assertTrue(not_before_min <= not_before <= not_before_max)
+        assert not_before_min <= not_before <= not_before_max
 
     def test_gmtime_adj_notAfter_wrong_args(self):
         """
@@ -1689,7 +1684,7 @@ WpOdIpB8KksUTCzV591Nr1wd
             cert.get_notAfter().decode(), "%Y%m%d%H%M%SZ"
         )
         not_after_max = datetime.utcnow() + timedelta(seconds=100)
-        self.assertTrue(not_after_min <= not_after <= not_after_max)
+        assert not_after_min <= not_after <= not_after_max
 
     def test_has_expired_wrong_args(self):
         """
@@ -1706,7 +1701,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         """
         cert = X509()
         cert.gmtime_adj_notAfter(-1)
-        self.assertTrue(cert.has_expired())
+        assert cert.has_expired()
 
     def test_has_not_expired(self):
         """
@@ -1791,17 +1786,17 @@ WpOdIpB8KksUTCzV591Nr1wd
         cert = self._extcert(pkey, [ca, key, subjectAltName])
 
         ext = cert.get_extension(0)
-        self.assertTrue(isinstance(ext, X509Extension))
-        self.assertTrue(ext.get_critical())
+        assert isinstance(ext, X509Extension)
+        assert ext.get_critical()
         self.assertEqual(ext.get_short_name(), b'basicConstraints')
 
         ext = cert.get_extension(1)
-        self.assertTrue(isinstance(ext, X509Extension))
-        self.assertTrue(ext.get_critical())
+        assert isinstance(ext, X509Extension)
+        assert ext.get_critical()
         self.assertEqual(ext.get_short_name(), b'keyUsage')
 
         ext = cert.get_extension(2)
-        self.assertTrue(isinstance(ext, X509Extension))
+        assert isinstance(ext, X509Extension)
         assert not ext.get_critical()
         self.assertEqual(ext.get_short_name(), b'subjectAltName')
 
@@ -1848,7 +1843,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
         subj = cert.get_subject()
-        self.assertTrue(isinstance(subj, X509Name))
+        assert isinstance(subj, X509Name)
         self.assertEquals(
             subj.get_components(),
             [(b'C', b'US'), (b'ST', b'IL'), (b'L', b'Chicago'),
@@ -1894,7 +1889,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
         subj = cert.get_issuer()
-        self.assertTrue(isinstance(subj, X509Name))
+        assert isinstance(subj, X509Name)
         comp = subj.get_components()
         self.assertEquals(
             comp,
@@ -2121,7 +2116,7 @@ class PKCS12Tests(TestCase):
 
         # OpenSSL fails to bring the key back to us.  So sad.  Perhaps in the
         # future this will be improved.
-        self.assertTrue(isinstance(p12.get_privatekey(), (PKey, type(None))))
+        assert isinstance(p12.get_privatekey(), (PKey, type(None)))
 
     def test_cert_only(self):
         """
@@ -2145,7 +2140,7 @@ class PKCS12Tests(TestCase):
         self.assertEqual(None, p12.get_privatekey())
 
         # OpenSSL fails to bring the cert back to us.  Groany mcgroan.
-        self.assertTrue(isinstance(p12.get_certificate(), (X509, type(None))))
+        assert isinstance(p12.get_certificate(), (X509, type(None)))
 
         # Oh ho.  It puts the certificate into the ca certificates list, in
         # fact.  Totally bogus, I would think.  Nevertheless, let's exploit
@@ -2417,7 +2412,7 @@ class PKCS12Tests(TestCase):
             # whether a PCKS12 had a MAC that was verified.
             # Anyway, libopenssl chooses to allow it, so the
             # pyopenssl binding does as well.
-            self.assertTrue(isinstance(recovered_p12, PKCS12))
+            assert isinstance(recovered_p12, PKCS12)
         except Error:
             # Failing here with an exception is preferred as some openssl
             # versions do.
@@ -2635,7 +2630,7 @@ class FunctionTests(TestCase):
         key = load_privatekey(
             FILETYPE_PEM, encryptedPrivateKeyPEM,
             encryptedPrivateKeyPEMPassphrase)
-        self.assertTrue(isinstance(key, PKeyType))
+        assert isinstance(key, PKeyType)
 
     def test_load_privatekey_passphrase_exception(self):
         """
@@ -2662,7 +2657,7 @@ class FunctionTests(TestCase):
         self.assertRaises(
             Error,
             load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
-        self.assertTrue(called)
+        assert called
 
     def test_load_privatekey_passphraseCallback(self):
         """
@@ -2676,7 +2671,7 @@ class FunctionTests(TestCase):
             called.append(writing)
             return encryptedPrivateKeyPEMPassphrase
         key = load_privatekey(FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
-        self.assertTrue(isinstance(key, PKeyType))
+        assert isinstance(key, PKeyType)
         self.assertEqual(called, [False])
 
     def test_load_privatekey_passphrase_wrong_return_type(self):
@@ -2750,9 +2745,9 @@ class FunctionTests(TestCase):
         passphrase = b"foo"
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         pem = dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, passphrase)
-        self.assertTrue(isinstance(pem, binary_type))
+        assert isinstance(pem, binary_type)
         loadedKey = load_privatekey(FILETYPE_PEM, pem, passphrase)
-        self.assertTrue(isinstance(loadedKey, PKeyType))
+        assert isinstance(loadedKey, PKeyType)
         self.assertEqual(loadedKey.type(), key.type())
         self.assertEqual(loadedKey.bits(), key.bits())
 
@@ -2799,7 +2794,7 @@ class FunctionTests(TestCase):
         :py:obj:`dump_privatekey` writes a PEM
         """
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
-        self.assertTrue(key.check())
+        assert key.check()
         dumped_pem = dump_privatekey(FILETYPE_PEM, key)
         self.assertEqual(dumped_pem, cleartextPrivateKeyPEM)
 
@@ -2889,10 +2884,10 @@ class FunctionTests(TestCase):
             return passphrase
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         pem = dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, cb)
-        self.assertTrue(isinstance(pem, binary_type))
+        assert isinstance(pem, binary_type)
         self.assertEqual(called, [True])
         loadedKey = load_privatekey(FILETYPE_PEM, pem, passphrase)
-        self.assertTrue(isinstance(loadedKey, PKeyType))
+        assert isinstance(loadedKey, PKeyType)
         self.assertEqual(loadedKey.type(), key.type())
         self.assertEqual(loadedKey.bits(), key.bits())
 
@@ -2927,7 +2922,7 @@ class FunctionTests(TestCase):
         instance of :py:obj:`PKCS7Type`.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertTrue(isinstance(pkcs7, PKCS7Type))
+        assert isinstance(pkcs7, PKCS7Type)
 
     def test_load_pkcs7_data_asn1(self):
         """
@@ -2935,7 +2930,7 @@ class FunctionTests(TestCase):
         representing PKCS#7 and returns an instance of :py:obj`PKCS7Type`.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_ASN1, pkcs7DataASN1)
-        self.assertTrue(isinstance(pkcs7, PKCS7Type))
+        assert isinstance(pkcs7, PKCS7Type)
 
     def test_load_pkcs7_data_invalid(self):
         """
@@ -2987,7 +2982,7 @@ class PKCS7Tests(TestCase):
         """
         :py:obj:`PKCS7Type` is a type object.
         """
-        self.assertTrue(isinstance(PKCS7Type, type))
+        assert isinstance(PKCS7Type, type)
         self.assertEqual(PKCS7Type.__name__, 'PKCS7')
 
         # XXX This doesn't currently work.
@@ -3009,7 +3004,7 @@ class PKCS7Tests(TestCase):
         object is of the type *signed*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertTrue(pkcs7.type_is_signed())
+        assert pkcs7.type_is_signed()
 
     def test_type_is_enveloped_wrong_args(self):
         """
@@ -3110,7 +3105,7 @@ class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):
         :py:obj:`NetscapeSPKIType`.
         """
         nspki = NetscapeSPKI()
-        self.assertTrue(isinstance(nspki, NetscapeSPKIType))
+        assert isinstance(nspki, NetscapeSPKIType)
 
     def test_invalid_attribute(self):
         """
@@ -3127,7 +3122,7 @@ class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):
         """
         nspki = NetscapeSPKI()
         blob = nspki.b64_encode()
-        self.assertTrue(isinstance(blob, binary_type))
+        assert isinstance(blob, binary_type)
 
 
 class TestRevoked(object):
@@ -3166,7 +3161,7 @@ class RevokedTests(TestCase):
         that it is empty.
         """
         revoked = Revoked()
-        self.assertTrue(isinstance(revoked, Revoked))
+        assert isinstance(revoked, Revoked)
         self.assertEquals(type(revoked), Revoked)
         self.assertEquals(revoked.get_serial(), b'00')
         self.assertEquals(revoked.get_rev_date(), None)
@@ -3282,7 +3277,7 @@ class CRLTests(TestCase):
         that it is empty
         """
         crl = CRL()
-        self.assertTrue(isinstance(crl, CRL))
+        assert isinstance(crl, CRL)
         self.assertEqual(crl.get_revoked(), None)
 
     def test_construction_wrong_args(self):
@@ -3420,7 +3415,7 @@ class CRLTests(TestCase):
         revoked.set_serial(b"01")
         revoked.set_rev_date(b"20160310020145Z")
         crl.add_revoked(revoked=revoked)
-        self.assertTrue(isinstance(crl.get_revoked()[0], Revoked))
+        assert isinstance(crl.get_revoked()[0], Revoked)
 
     def test_export_wrong_args(self):
         """
@@ -3562,7 +3557,7 @@ class CRLTests(TestCase):
         what we expect from the encoded crlData string.
         """
         crl = load_crl(FILETYPE_PEM, crlData)
-        self.assertTrue(isinstance(crl.get_issuer(), X509Name))
+        assert isinstance(crl.get_issuer(), X509Name)
         self.assertEqual(crl.get_issuer().CN, 'Testing Root CA')
 
     def test_dump_crl(self):
@@ -3883,7 +3878,7 @@ class EllipticCurveTests(TestCase):
         """
         curves = get_elliptic_curves()
         if lib.Cryptography_HAS_EC:
-            self.assertTrue(curves)
+            assert curves
         else:
             assert not curves
 

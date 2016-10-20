@@ -96,7 +96,7 @@ class RandTests(TestCase):
         # It's hard to know what it is actually going to return.  Different
         # OpenSSL random engines decide differently whether they have enough
         # entropy or not.
-        self.assertTrue(rand.status() in (1, 2))
+        assert rand.status() in (1, 2)
 
     def test_egd_warning(self):
         """
