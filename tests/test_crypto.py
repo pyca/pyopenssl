@@ -576,7 +576,7 @@ class X509ExtTests(TestCase):
         :py:class:`X509Extension` and :py:class:`X509ExtensionType` refer to
         the same type object and can be used to create instances of that type.
         """
-        self.assertIdentical(X509Extension, X509ExtensionType)
+        assert X509Extension is X509ExtensionType
         self.assertConsistentType(
             X509Extension,
             'X509Extension', b'basicConstraints', True, b'CA:true')
@@ -829,7 +829,7 @@ class PKeyTests(TestCase):
         :py:class:`PKey` and :py:class:`PKeyType` refer to the same type object
         and can be used to create instances of that type.
         """
-        self.assertIdentical(PKey, PKeyType)
+        assert PKey is PKeyType
         self.assertConsistentType(PKey, 'PKey')
 
     def test_construction(self):
@@ -983,7 +983,7 @@ class X509NameTests(TestCase):
         """
         The type of X509Name objects is :py:class:`X509NameType`.
         """
-        self.assertIdentical(X509Name, X509NameType)
+        assert X509Name is X509NameType
         self.assertEqual(X509NameType.__name__, 'X509Name')
         self.assertTrue(isinstance(X509NameType, type))
 
@@ -1293,7 +1293,7 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
         :py:obj:`X509Req` and :py:obj:`X509ReqType` refer to the same type
         object and can be used to create instances of that type.
         """
-        self.assertIdentical(X509Req, X509ReqType)
+        assert X509Req is X509ReqType
         self.assertConsistentType(X509Req, 'X509Req')
 
     def test_construction(self):
@@ -1483,7 +1483,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         :py:obj:`X509` and :py:obj:`X509Type` refer to the same type object and
         can be used to create instances of that type.
         """
-        self.assertIdentical(X509, X509Type)
+        assert X509 is X509Type
         self.assertConsistentType(X509, 'X509')
 
     def test_construction(self):
@@ -2016,7 +2016,7 @@ class X509StoreTests(TestCase):
         """
         :py:obj:`X509StoreType` is a type object.
         """
-        self.assertIdentical(X509Store, X509StoreType)
+        assert X509Store is X509StoreType
         self.assertConsistentType(X509Store, 'X509Store')
 
     def test_add_cert_wrong_args(self):
@@ -2057,7 +2057,7 @@ class PKCS12Tests(TestCase):
         """
         :py:obj:`PKCS12Type` is a type object.
         """
-        self.assertIdentical(PKCS12, PKCS12Type)
+        assert PKCS12 is PKCS12Type
         self.assertConsistentType(PKCS12, 'PKCS12')
 
     def test_empty_construction(self):
@@ -2249,7 +2249,7 @@ class PKCS12Tests(TestCase):
                 ),
                 str(w[-1].message)
             )
-            self.assertIs(w[-1].category, DeprecationWarning)
+            assert w[-1].category is DeprecationWarning
 
         self.verify_pkcs12_container(p12)
 
@@ -2455,7 +2455,7 @@ class PKCS12Tests(TestCase):
                 ),
                 str(w[-1].message)
             )
-            self.assertIs(w[-1].category, DeprecationWarning)
+            assert w[-1].category is DeprecationWarning
         self.check_recovery(
             dumped_p12,
             key=server_key_pem,
@@ -2986,7 +2986,7 @@ class PKCS7Tests(TestCase):
         self.assertEqual(PKCS7Type.__name__, 'PKCS7')
 
         # XXX This doesn't currently work.
-        # self.assertIdentical(PKCS7, PKCS7Type)
+        # assert PKCS7 is PKCS7Type
 
     # XXX Opposite results for all these following methods
 
@@ -3096,7 +3096,7 @@ class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):
         :py:obj:`NetscapeSPKI` and :py:obj:`NetscapeSPKIType` refer to the same
         type object and can be used to create instances of that type.
         """
-        self.assertIdentical(NetscapeSPKI, NetscapeSPKIType)
+        assert NetscapeSPKI is NetscapeSPKIType
         self.assertConsistentType(NetscapeSPKI, 'NetscapeSPKI')
 
     def test_construction(self):
@@ -3816,7 +3816,7 @@ class SignVerifyTests(TestCase):
                     ),
                     str(w[-1].message)
                 )
-                self.assertIs(w[-1].category, DeprecationWarning)
+                assert w[-1].category is DeprecationWarning
 
             with catch_warnings(record=True) as w:
                 simplefilter("always")
@@ -3828,7 +3828,7 @@ class SignVerifyTests(TestCase):
                     ),
                     str(w[-1].message)
                 )
-                self.assertIs(w[-1].category, DeprecationWarning)
+                assert w[-1].category is DeprecationWarning
 
     def test_sign_nulls(self):
         """

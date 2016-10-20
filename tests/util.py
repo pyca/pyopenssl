@@ -240,30 +240,6 @@ class TestCase(TestCase):
         assert containee not in container
     failIfIn = assertNotIn
 
-    def assertIs(self, first, second, msg=None):
-        """
-        Fail the test if :py:data:`first` is not :py:data:`second`.  This is an
-        obect-identity-equality test, not an object equality
-        (i.e. :py:func:`__eq__`) test.
-
-        :param msg: if msg is None, then the failure message will be
-        '%r is not %r' % (first, second)
-        """
-        assert first is second
-    assertIdentical = failUnlessIdentical = assertIs
-
-    def assertIsNot(self, first, second, msg=None):
-        """
-        Fail the test if :py:data:`first` is :py:data:`second`.  This is an
-        obect-identity-equality test, not an object equality
-        (i.e. :py:func:`__eq__`) test.
-
-        :param msg: if msg is None, then the failure message will be
-        '%r is %r' % (first, second)
-        """
-        assert first is not second
-    assertNotIdentical = failIfIdentical = assertIsNot
-
     def failUnlessRaises(self, exception, f, *args, **kwargs):
         """
         Fail the test unless calling the function :py:data:`f` with the given
@@ -308,7 +284,7 @@ class TestCase(TestCase):
         self.assertEqual(theType.__name__, name)
         self.assertTrue(isinstance(theType, type))
         instance = theType(*constructionArgs)
-        self.assertIdentical(type(instance), theType)
+        assert type(instance) is theType
 
 
 class EqualityTestsMixin(object):

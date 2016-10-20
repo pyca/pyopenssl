@@ -528,7 +528,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         :py:obj:`Context` and :py:obj:`ContextType` refer to the same type
         object and can be used to create instances of that type.
         """
-        self.assertIdentical(Context, ContextType)
+        assert Context is ContextType
         self.assertConsistentType(Context, 'Context', TLSv1_METHOD)
 
     def test_use_privatekey(self):
@@ -716,7 +716,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         context = Context(TLSv1_METHOD)
         context.use_privatekey(key)
         context.use_certificate(cert)
-        self.assertIs(None, context.check_privatekey())
+        assert None is context.check_privatekey()
 
     def test_check_privatekey_invalid(self):
         """
@@ -764,7 +764,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         app_data = object()
         context = Context(TLSv1_METHOD)
         context.set_app_data(app_data)
-        self.assertIdentical(context.get_app_data(), app_data)
+        assert context.get_app_data() is app_data
 
     def test_set_options_wrong_args(self):
         """
@@ -1282,7 +1282,7 @@ class ContextTests(TestCase, _LoopbackMixin):
 
         self._handshakeInMemory(clientConnection, serverConnection)
 
-        self.assertIdentical(verify.connection, clientConnection)
+        assert verify.connection is clientConnection
 
     def test_set_verify_callback_exception(self):
         """
@@ -2134,7 +2134,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         :py:obj:`Connection` and :py:obj:`ConnectionType` refer to the same
         type object and can be used to create instances of that type.
         """
-        self.assertIdentical(Connection, ConnectionType)
+        assert Connection is ConnectionType
         ctx = Context(TLSv1_METHOD)
         self.assertConsistentType(Connection, 'Connection', ctx, None)
 
@@ -2145,7 +2145,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         context = Context(TLSv1_METHOD)
         connection = Connection(context, None)
-        self.assertIdentical(connection.get_context(), context)
+        assert connection.get_context() is context
 
     def test_get_context_wrong_args(self):
         """
@@ -2170,7 +2170,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         self.assertRaises(TypeError, connection.set_context, 1, 2)
         self.assertRaises(
             TypeError, connection.set_context, Context(TLSv1_METHOD), 2)
-        self.assertIdentical(ctx, connection.get_context())
+        assert ctx is connection.get_context()
 
     def test_set_context(self):
         """
@@ -2181,7 +2181,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         replacement = Context(TLSv1_METHOD)
         connection = Connection(original, None)
         connection.set_context(replacement)
-        self.assertIdentical(replacement, connection.get_context())
+        assert replacement is connection.get_context()
         # Lose our references to the contexts, just in case the Connection
         # isn't properly managing its own contributions to their reference
         # counts.
@@ -2348,7 +2348,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         serverSSL, address = portSSL.accept()
 
         self.assertTrue(isinstance(serverSSL, Connection))
-        self.assertIdentical(serverSSL.get_context(), ctx)
+        assert serverSSL.get_context() is ctx
         self.assertEquals(address, clientSSL.getsockname())
 
     def test_shutdown_wrong_args(self):
@@ -2537,7 +2537,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         client = Connection(Context(TLSv1_METHOD), None)
         client.set_connect_state()
         self._interactInMemory(client, server)
-        self.assertIdentical(None, server.get_peer_cert_chain())
+        assert None is server.get_peer_cert_chain()
 
     def test_get_session_wrong_args(self):
         """
@@ -2558,7 +2558,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         ctx = Context(TLSv1_METHOD)
         server = Connection(ctx, None)
         session = server.get_session()
-        self.assertIdentical(None, session)
+        assert None is session
 
     def test_server_get_session(self):
         """
@@ -2778,7 +2778,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         ctx = Context(TLSv1_METHOD)
         conn = Connection(ctx, None)
-        self.assertIdentical(conn.get_cipher_name(), None)
+        assert conn.get_cipher_name() is None
 
     def test_get_cipher_name(self):
         """
@@ -2801,7 +2801,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         ctx = Context(TLSv1_METHOD)
         conn = Connection(ctx, None)
-        self.assertIdentical(conn.get_cipher_version(), None)
+        assert conn.get_cipher_version() is None
 
     def test_get_cipher_version(self):
         """
@@ -2824,7 +2824,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         ctx = Context(TLSv1_METHOD)
         conn = Connection(ctx, None)
-        self.assertIdentical(conn.get_cipher_bits(), None)
+        assert conn.get_cipher_bits() is None
 
     def test_get_cipher_bits(self):
         """
@@ -2935,7 +2935,7 @@ class ConnectionSendTests(TestCase, _LoopbackMixin):
                 ),
                 str(w[-1].message)
             )
-            self.assertIs(w[-1].category, DeprecationWarning)
+            assert w[-1].category is DeprecationWarning
         self.assertEquals(count, 2)
         self.assertEquals(client.recv(2), b"xy")
 
@@ -3142,7 +3142,7 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
                 ),
                 str(w[-1].message)
             )
-            self.assertIs(w[-1].category, DeprecationWarning)
+            assert w[-1].category is DeprecationWarning
         self.assertEquals(client.recv(1), b"x")
 
     @skip_if_py26
@@ -3448,20 +3448,19 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         client_conn = self._client(None)
 
         # There should be no key or nonces yet.
-        self.assertIdentical(server_conn.master_key(), None)
-        self.assertIdentical(server_conn.client_random(), None)
-        self.assertIdentical(server_conn.server_random(), None)
+        assert server_conn.master_key() is None
+        assert server_conn.client_random() is None
+        assert server_conn.server_random() is None
 
         # First, the handshake needs to happen.  We'll deliver bytes back and
         # forth between the client and server until neither of them feels like
         # speaking any more.
-        self.assertIdentical(
-            self._interactInMemory(client_conn, server_conn), None)
+        assert self._interactInMemory(client_conn, server_conn) is None
 
         # Now that the handshake is done, there should be a key and nonces.
-        self.assertNotIdentical(server_conn.master_key(), None)
-        self.assertNotIdentical(server_conn.client_random(), None)
-        self.assertNotIdentical(server_conn.server_random(), None)
+        assert server_conn.master_key() is not None
+        assert server_conn.client_random() is not None
+        assert server_conn.server_random() is not None
         self.assertEquals(
             server_conn.client_random(), client_conn.client_random())
         self.assertEquals(
@@ -3540,7 +3539,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         self.assertTrue(sent < size)
 
         receiver, received = self._interactInMemory(client, server)
-        self.assertIdentical(receiver, server)
+        assert receiver is server
 
         # We can rely on all of these bytes being received at once because
         # _loopback passes 2 ** 16 to recv - more than 2 ** 15.
@@ -3602,7 +3601,7 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         ctx = Context(TLSv1_METHOD)
         self.assertRaises(TypeError, ctx.set_client_ca_list, "spam")
         self.assertRaises(TypeError, ctx.set_client_ca_list, ["spam"])
-        self.assertIdentical(ctx.set_client_ca_list([]), None)
+        assert ctx.set_client_ca_list([]) is None
 
     def test_set_empty_ca_list(self):
         """

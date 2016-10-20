@@ -131,7 +131,7 @@ class RandTests(TestCase):
         :py:obj:`OpenSSL.rand.cleanup` releases the memory used by the PRNG and
         returns :py:obj:`None`.
         """
-        self.assertIdentical(rand.cleanup(), None)
+        assert rand.cleanup() is None
 
     def test_load_file_wrong_args(self):
         """
