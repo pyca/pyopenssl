@@ -81,7 +81,8 @@ try:
 except ImportError:
     SSL_ST_INIT = SSL_ST_BEFORE = SSL_ST_OK = SSL_ST_RENEGOTIATE = None
 
-from .util import WARNING_TYPE_EXPECTED, NON_ASCII, TestCase
+from .util import (
+    WARNING_TYPE_EXPECTED, NON_ASCII, TestCase, is_consistent_type)
 from .test_crypto import (
     cleartextCertificatePEM, cleartextPrivateKeyPEM,
     client_cert_pem, client_key_pem, server_cert_pem, server_key_pem,
@@ -529,7 +530,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         object and can be used to create instances of that type.
         """
         assert Context is ContextType
-        self.assertConsistentType(Context, 'Context', TLSv1_METHOD)
+        assert is_consistent_type(Context, 'Context', TLSv1_METHOD)
 
     def test_use_privatekey(self):
         """
@@ -2136,7 +2137,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         assert Connection is ConnectionType
         ctx = Context(TLSv1_METHOD)
-        self.assertConsistentType(Connection, 'Connection', ctx, None)
+        assert is_consistent_type(Connection, 'Connection', ctx, None)
 
     def test_get_context(self):
         """

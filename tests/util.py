@@ -224,23 +224,24 @@ class TestCase(TestCase):
         """
         return mktemp(dir=self.tmpdir).encode("utf-8")
 
-    # Other stuff
-    def assertConsistentType(self, theType, name, *constructionArgs):
-        """
-        Perform various assertions about :py:data:`theType` to ensure that it
-        is a well-defined type.  This is useful for extension types, where it's
-        pretty easy to do something wacky.  If something about the type is
-        unusual, an exception will be raised.
 
-        :param theType: The type object about which to make assertions.
-        :param name: A string giving the name of the type.
-        :param constructionArgs: Positional arguments to use with
-            :py:data:`theType` to create an instance of it.
-        """
-        self.assertEqual(theType.__name__, name)
-        self.assertTrue(isinstance(theType, type))
-        instance = theType(*constructionArgs)
-        assert type(instance) is theType
+def is_consistent_type(theType, name, *constructionArgs):
+    """
+    Perform various assertions about :py:data:`theType` to ensure that it
+    is a well-defined type.  This is useful for extension types, where it's
+    pretty easy to do something wacky.  If something about the type is
+    unusual, an exception will be raised.
+
+    :param theType: The type object about which to make assertions.
+    :param name: A string giving the name of the type.
+    :param constructionArgs: Positional arguments to use with
+        :py:data:`theType` to create an instance of it.
+    """
+    assert theType.__name__ == name
+    assert isinstance(theType, type)
+    instance = theType(*constructionArgs)
+    assert type(instance) is theType
+    return True
 
 
 class EqualityTestsMixin(object):

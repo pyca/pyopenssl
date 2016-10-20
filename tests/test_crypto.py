@@ -46,7 +46,7 @@ from OpenSSL.crypto import (
 from OpenSSL._util import native, lib
 
 from .util import (
-    EqualityTestsMixin, TestCase, WARNING_TYPE_EXPECTED
+    EqualityTestsMixin, TestCase, WARNING_TYPE_EXPECTED, is_consistent_type
 )
 
 
@@ -577,7 +577,7 @@ class X509ExtTests(TestCase):
         the same type object and can be used to create instances of that type.
         """
         assert X509Extension is X509ExtensionType
-        self.assertConsistentType(
+        assert is_consistent_type(
             X509Extension,
             'X509Extension', b'basicConstraints', True, b'CA:true')
 
@@ -830,7 +830,7 @@ class PKeyTests(TestCase):
         and can be used to create instances of that type.
         """
         assert PKey is PKeyType
-        self.assertConsistentType(PKey, 'PKey')
+        assert is_consistent_type(PKey, 'PKey')
 
     def test_construction(self):
         """
@@ -1294,7 +1294,7 @@ class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
         object and can be used to create instances of that type.
         """
         assert X509Req is X509ReqType
-        self.assertConsistentType(X509Req, 'X509Req')
+        assert is_consistent_type(X509Req, 'X509Req')
 
     def test_construction(self):
         """
@@ -1484,7 +1484,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         can be used to create instances of that type.
         """
         assert X509 is X509Type
-        self.assertConsistentType(X509, 'X509')
+        assert is_consistent_type(X509, 'X509')
 
     def test_construction(self):
         """
@@ -2016,7 +2016,7 @@ class X509StoreTests(TestCase):
         :py:obj:`X509StoreType` is a type object.
         """
         assert X509Store is X509StoreType
-        self.assertConsistentType(X509Store, 'X509Store')
+        assert is_consistent_type(X509Store, 'X509Store')
 
     def test_add_cert_wrong_args(self):
         store = X509Store()
@@ -2057,7 +2057,7 @@ class PKCS12Tests(TestCase):
         :py:obj:`PKCS12Type` is a type object.
         """
         assert PKCS12 is PKCS12Type
-        self.assertConsistentType(PKCS12, 'PKCS12')
+        assert is_consistent_type(PKCS12, 'PKCS12')
 
     def test_empty_construction(self):
         """
@@ -3096,7 +3096,7 @@ class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):
         type object and can be used to create instances of that type.
         """
         assert NetscapeSPKI is NetscapeSPKIType
-        self.assertConsistentType(NetscapeSPKI, 'NetscapeSPKI')
+        assert is_consistent_type(NetscapeSPKI, 'NetscapeSPKI')
 
     def test_construction(self):
         """
