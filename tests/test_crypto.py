@@ -1951,11 +1951,10 @@ WpOdIpB8KksUTCzV591Nr1wd
         subject name.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        self.assertIn(
-            cert.subject_name_hash(),
-            [3350047874,  # OpenSSL 0.9.8, MD5
-             3278919224,  # OpenSSL 1.0.0, SHA1
-             ])
+        assert cert.subject_name_hash() in [
+            3350047874,  # OpenSSL 0.9.8, MD5
+            3278919224,  # OpenSSL 1.0.0, SHA1
+        ]
 
     def test_get_signature_algorithm(self):
         """
@@ -3980,7 +3979,7 @@ class EllipticCurveHashTests(TestCase):
         """
         curve = get_elliptic_curve(self.curve_factory.curve_name)
         curves = set([curve])
-        self.assertIn(curve, curves)
+        assert curve in curves
 
     def test_does_not_contain(self):
         """
@@ -3991,4 +3990,4 @@ class EllipticCurveHashTests(TestCase):
         curves = set([
             get_elliptic_curve(self.curve_factory.another_curve_name)
         ])
-        self.assertNotIn(curve, curves)
+        assert curve not in curves

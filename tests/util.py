@@ -213,33 +213,6 @@ class TestCase(TestCase):
         """
         assert isinstance(instance, classOrTuple)
 
-    def failUnlessIn(self, containee, container, msg=None):
-        """
-        Fail the test if :py:data:`containee` is not found in
-        :py:data:`container`.
-
-        :param containee: the value that should be in :py:class:`container`
-        :param container: a sequence type, or in the case of a mapping type,
-                          will follow semantics of 'if key in dict.keys()'
-        :param msg: if msg is None, then the failure message will be
-                    '%r not in %r' % (first, second)
-        """
-        assert containee in container
-    assertIn = failUnlessIn
-
-    def assertNotIn(self, containee, container, msg=None):
-        """
-        Fail the test if C{containee} is found in C{container}.
-
-        @param containee: the value that should not be in C{container}
-        @param container: a sequence type, or in the case of a mapping type,
-                          will follow semantics of 'if key in dict.keys()'
-        @param msg: if msg is None, then the failure message will be
-                    '%r in %r' % (first, second)
-        """
-        assert containee not in container
-    failIfIn = assertNotIn
-
     def failUnlessRaises(self, exception, f, *args, **kwargs):
         """
         Fail the test unless calling the function :py:data:`f` with the given
