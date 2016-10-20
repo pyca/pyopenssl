@@ -3864,7 +3864,7 @@ class EllipticCurveTests(TestCase):
         """
         :py:obj:`get_elliptic_curves` returns a :py:obj:`set`.
         """
-        self.assertIsInstance(get_elliptic_curves(), set)
+        assert isinstance(get_elliptic_curves(), set)
 
     def test_some_curves(self):
         """

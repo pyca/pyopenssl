@@ -1576,7 +1576,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         """
         context = Context(TLSv1_METHOD)
         store = context.get_cert_store()
-        self.assertIsInstance(store, X509Store)
+        assert isinstance(store, X509Store)
 
 
 class ServerNameCallbackTests(TestCase, _LoopbackMixin):
@@ -2568,7 +2568,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
         session = server.get_session()
-        self.assertIsInstance(session, Session)
+        assert isinstance(session, Session)
 
     def test_client_get_session(self):
         """
@@ -2578,7 +2578,7 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         """
         server, client = self._loopback()
         session = client.get_session()
-        self.assertIsInstance(session, Session)
+        assert isinstance(session, Session)
 
     def test_set_session_wrong_args(self):
         """
@@ -2789,8 +2789,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         server_cipher_name, client_cipher_name = \
             server.get_cipher_name(), client.get_cipher_name()
 
-        self.assertIsInstance(server_cipher_name, text_type)
-        self.assertIsInstance(client_cipher_name, text_type)
+        assert isinstance(server_cipher_name, text_type)
+        assert isinstance(client_cipher_name, text_type)
 
         self.assertEqual(server_cipher_name, client_cipher_name)
 
@@ -2812,8 +2812,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         server_cipher_version, client_cipher_version = \
             server.get_cipher_version(), client.get_cipher_version()
 
-        self.assertIsInstance(server_cipher_version, text_type)
-        self.assertIsInstance(client_cipher_version, text_type)
+        assert isinstance(server_cipher_version, text_type)
+        assert isinstance(client_cipher_version, text_type)
 
         self.assertEqual(server_cipher_version, client_cipher_version)
 
@@ -2835,8 +2835,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         server_cipher_bits, client_cipher_bits = \
             server.get_cipher_bits(), client.get_cipher_bits()
 
-        self.assertIsInstance(server_cipher_bits, int)
-        self.assertIsInstance(client_cipher_bits, int)
+        assert isinstance(server_cipher_bits, int)
+        assert isinstance(client_cipher_bits, int)
 
         self.assertEqual(server_cipher_bits, client_cipher_bits)
 
@@ -2849,8 +2849,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         client_protocol_version_name = client.get_protocol_version_name()
         server_protocol_version_name = server.get_protocol_version_name()
 
-        self.assertIsInstance(server_protocol_version_name, text_type)
-        self.assertIsInstance(client_protocol_version_name, text_type)
+        assert isinstance(server_protocol_version_name, text_type)
+        assert isinstance(client_protocol_version_name, text_type)
 
         self.assertEqual(
             server_protocol_version_name, client_protocol_version_name
@@ -2865,8 +2865,8 @@ class ConnectionTests(TestCase, _LoopbackMixin):
         client_protocol_version = client.get_protocol_version()
         server_protocol_version = server.get_protocol_version()
 
-        self.assertIsInstance(server_protocol_version, int)
-        self.assertIsInstance(client_protocol_version, int)
+        assert isinstance(server_protocol_version, int)
+        assert isinstance(client_protocol_version, int)
 
         self.assertEqual(server_protocol_version, client_protocol_version)
 

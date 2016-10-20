@@ -196,23 +196,6 @@ class TestCase(TestCase):
                     "Left over errors in OpenSSL error queue: " + repr(e)
                 )
 
-    def assertIsInstance(self, instance, classOrTuple, message=None):
-        """
-        Fail if C{instance} is not an instance of the given class or of
-        one of the given classes.
-
-        @param instance: the object to test the type (first argument of the
-            C{isinstance} call).
-        @type instance: any.
-        @param classOrTuple: the class or classes to test against (second
-            argument of the C{isinstance} call).
-        @type classOrTuple: class, type, or tuple.
-
-        @param message: Custom text to include in the exception text if the
-            assertion fails.
-        """
-        assert isinstance(instance, classOrTuple)
-
     def failUnlessRaises(self, exception, f, *args, **kwargs):
         """
         Fail the test unless calling the function :py:data:`f` with the given
