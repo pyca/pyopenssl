@@ -40,13 +40,13 @@ class RandTests(TestCase):
         of rand_bytes() for bad values.
         """
         b1 = rand.bytes(50)
-        self.assertEqual(len(b1), 50)
+        assert len(b1) == 50
         b2 = rand.bytes(num_bytes=50)  # parameter by name
         assert b1 != b2  # Hip, Hip, Horay! FIPS complaince
         b3 = rand.bytes(num_bytes=0)
-        self.assertEqual(len(b3), 0)
+        assert len(b3) == 0
         exc = self.assertRaises(ValueError, rand.bytes, -1)
-        self.assertEqual(str(exc), "num_bytes must not be negative")
+        assert str(exc) == "num_bytes must not be negative"
 
     def test_add_wrong_args(self):
         """
@@ -168,7 +168,7 @@ class RandTests(TestCase):
 
             # Verify length of written file
             size = os.stat(path)[stat.ST_SIZE]
-            self.assertEqual(1024, size)
+            assert size == 1024
 
             # Read random bytes from file
             rand.load_file(path)
