@@ -196,74 +196,6 @@ class TestCase(TestCase):
                     "Left over errors in OpenSSL error queue: " + repr(e)
                 )
 
-    def assertIsInstance(self, instance, classOrTuple, message=None):
-        """
-        Fail if C{instance} is not an instance of the given class or of
-        one of the given classes.
-
-        @param instance: the object to test the type (first argument of the
-            C{isinstance} call).
-        @type instance: any.
-        @param classOrTuple: the class or classes to test against (second
-            argument of the C{isinstance} call).
-        @type classOrTuple: class, type, or tuple.
-
-        @param message: Custom text to include in the exception text if the
-            assertion fails.
-        """
-        assert isinstance(instance, classOrTuple)
-
-    def failUnlessIn(self, containee, container, msg=None):
-        """
-        Fail the test if :py:data:`containee` is not found in
-        :py:data:`container`.
-
-        :param containee: the value that should be in :py:class:`container`
-        :param container: a sequence type, or in the case of a mapping type,
-                          will follow semantics of 'if key in dict.keys()'
-        :param msg: if msg is None, then the failure message will be
-                    '%r not in %r' % (first, second)
-        """
-        assert containee in container
-    assertIn = failUnlessIn
-
-    def assertNotIn(self, containee, container, msg=None):
-        """
-        Fail the test if C{containee} is found in C{container}.
-
-        @param containee: the value that should not be in C{container}
-        @param container: a sequence type, or in the case of a mapping type,
-                          will follow semantics of 'if key in dict.keys()'
-        @param msg: if msg is None, then the failure message will be
-                    '%r in %r' % (first, second)
-        """
-        assert containee not in container
-    failIfIn = assertNotIn
-
-    def assertIs(self, first, second, msg=None):
-        """
-        Fail the test if :py:data:`first` is not :py:data:`second`.  This is an
-        obect-identity-equality test, not an object equality
-        (i.e. :py:func:`__eq__`) test.
-
-        :param msg: if msg is None, then the failure message will be
-        '%r is not %r' % (first, second)
-        """
-        assert first is second
-    assertIdentical = failUnlessIdentical = assertIs
-
-    def assertIsNot(self, first, second, msg=None):
-        """
-        Fail the test if :py:data:`first` is :py:data:`second`.  This is an
-        obect-identity-equality test, not an object equality
-        (i.e. :py:func:`__eq__`) test.
-
-        :param msg: if msg is None, then the failure message will be
-        '%r is %r' % (first, second)
-        """
-        assert first is not second
-    assertNotIdentical = failIfIdentical = assertIsNot
-
     def failUnlessRaises(self, exception, f, *args, **kwargs):
         """
         Fail the test unless calling the function :py:data:`f` with the given
@@ -292,23 +224,24 @@ class TestCase(TestCase):
         """
         return mktemp(dir=self.tmpdir).encode("utf-8")
 
-    # Other stuff
-    def assertConsistentType(self, theType, name, *constructionArgs):
-        """
-        Perform various assertions about :py:data:`theType` to ensure that it
-        is a well-defined type.  This is useful for extension types, where it's
-        pretty easy to do something wacky.  If something about the type is
-        unusual, an exception will be raised.
 
-        :param theType: The type object about which to make assertions.
-        :param name: A string giving the name of the type.
-        :param constructionArgs: Positional arguments to use with
-            :py:data:`theType` to create an instance of it.
-        """
-        self.assertEqual(theType.__name__, name)
-        self.assertTrue(isinstance(theType, type))
-        instance = theType(*constructionArgs)
-        self.assertIdentical(type(instance), theType)
+def is_consistent_type(theType, name, *constructionArgs):
+    """
+    Perform various assertions about :py:data:`theType` to ensure that it
+    is a well-defined type.  This is useful for extension types, where it's
+    pretty easy to do something wacky.  If something about the type is
+    unusual, an exception will be raised.
+
+    :param theType: The type object about which to make assertions.
+    :param name: A string giving the name of the type.
+    :param constructionArgs: Positional arguments to use with
+        :py:data:`theType` to create an instance of it.
+    """
+    assert theType.__name__ == name
+    assert isinstance(theType, type)
+    instance = theType(*constructionArgs)
+    assert type(instance) is theType
+    return True
 
 
 class EqualityTestsMixin(object):
@@ -338,14 +271,14 @@ class EqualityTestsMixin(object):
         An object compares equal to itself using the C{==} operator.
         """
         o = self.anInstance()
-        self.assertTrue(o == o)
+        assert o == o
 
     def test_identicalNe(self):
         """
         An object doesn't compare not equal to itself using the C{!=} operator.
         """
         o = self.anInstance()
-        self.assertFalse(o != o)
+        assert not (o != o)
 
     def test_sameEq(self):
         """
@@ -354,7 +287,7 @@ class EqualityTestsMixin(object):
         """
         a = self.anInstance()
         b = self.anInstance()
-        self.assertTrue(a == b)
+        assert a == b
 
     def test_sameNe(self):
         """
@@ -363,7 +296,7 @@ class EqualityTestsMixin(object):
         """
         a = self.anInstance()
         b = self.anInstance()
-        self.assertFalse(a != b)
+        assert not (a != b)
 
     def test_differentEq(self):
         """
@@ -372,7 +305,7 @@ class EqualityTestsMixin(object):
         """
         a = self.anInstance()
         b = self.anotherInstance()
-        self.assertFalse(a == b)
+        assert not (a == b)
 
     def test_differentNe(self):
         """
@@ -381,7 +314,7 @@ class EqualityTestsMixin(object):
         """
         a = self.anInstance()
         b = self.anotherInstance()
-        self.assertTrue(a != b)
+        assert a != b
 
     def test_anotherTypeEq(self):
         """
@@ -390,7 +323,7 @@ class EqualityTestsMixin(object):
         """
         a = self.anInstance()
         b = object()
-        self.assertFalse(a == b)
+        assert not (a == b)
 
     def test_anotherTypeNe(self):
         """
@@ -399,7 +332,7 @@ class EqualityTestsMixin(object):
         """
         a = self.anInstance()
         b = object()
-        self.assertTrue(a != b)
+        assert a != b
 
     def test_delegatedEq(self):
         """
@@ -413,7 +346,7 @@ class EqualityTestsMixin(object):
 
         a = self.anInstance()
         b = Delegate()
-        self.assertEqual(a == b, [b])
+        assert (a == b) == [b]
 
     def test_delegateNe(self):
         """
@@ -427,7 +360,7 @@ class EqualityTestsMixin(object):
 
         a = self.anInstance()
         b = Delegate()
-        self.assertEqual(a != b, [b])
+        assert (a != b) == [b]
 
 
 # The type name expected in warnings about using the wrong string type.
