@@ -270,14 +270,14 @@ class EqualityTestsMixin(object):
         An object compares equal to itself using the C{==} operator.
         """
         o = self.anInstance()
-        self.assertTrue(o == o)
+        assert o == o
 
     def test_identicalNe(self):
         """
         An object doesn't compare not equal to itself using the C{!=} operator.
         """
         o = self.anInstance()
-        self.assertFalse(o != o)
+        assert not (o != o)
 
     def test_sameEq(self):
         """
@@ -286,7 +286,7 @@ class EqualityTestsMixin(object):
         """
         a = self.anInstance()
         b = self.anInstance()
-        self.assertTrue(a == b)
+        assert a == b
 
     def test_sameNe(self):
         """
@@ -295,7 +295,7 @@ class EqualityTestsMixin(object):
         """
         a = self.anInstance()
         b = self.anInstance()
-        self.assertFalse(a != b)
+        assert not (a != b)
 
     def test_differentEq(self):
         """
@@ -304,7 +304,7 @@ class EqualityTestsMixin(object):
         """
         a = self.anInstance()
         b = self.anotherInstance()
-        self.assertFalse(a == b)
+        assert not (a == b)
 
     def test_differentNe(self):
         """
@@ -313,7 +313,7 @@ class EqualityTestsMixin(object):
         """
         a = self.anInstance()
         b = self.anotherInstance()
-        self.assertTrue(a != b)
+        assert a != b
 
     def test_anotherTypeEq(self):
         """
@@ -322,7 +322,7 @@ class EqualityTestsMixin(object):
         """
         a = self.anInstance()
         b = object()
-        self.assertFalse(a == b)
+        assert not (a == b)
 
     def test_anotherTypeNe(self):
         """
@@ -331,7 +331,7 @@ class EqualityTestsMixin(object):
         """
         a = self.anInstance()
         b = object()
-        self.assertTrue(a != b)
+        assert a != b
 
     def test_delegatedEq(self):
         """
@@ -345,7 +345,7 @@ class EqualityTestsMixin(object):
 
         a = self.anInstance()
         b = Delegate()
-        self.assertEqual(a == b, [b])
+        assert (a == b) == [b]
 
     def test_delegateNe(self):
         """
@@ -359,7 +359,7 @@ class EqualityTestsMixin(object):
 
         a = self.anInstance()
         b = Delegate()
-        self.assertEqual(a != b, [b])
+        assert (a != b) == [b]
 
 
 # The type name expected in warnings about using the wrong string type.
