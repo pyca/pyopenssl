@@ -545,7 +545,6 @@ def x509_data():
     yield pkey, x509
 
 
-
 class TestX509Ext(object):
     """
     Tests for :py:class:`OpenSSL.crypto.X509Extension`.
