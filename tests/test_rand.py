@@ -13,7 +13,7 @@ import pytest
 
 from OpenSSL import rand
 
-from .util import NON_ASCII
+from .util import NON_ASCII, tmpfile
 
 
 class TestRand(object):
