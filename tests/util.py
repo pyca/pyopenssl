@@ -31,6 +31,16 @@ from OpenSSL._util import ffi, lib
 NON_ASCII = b"\xe2\x98\x83".decode("utf-8")
 
 
+@pytest.fixture
+def tmpfile(tmpdir):
+    """
+    Return UTF-8-encoded bytes of a path to a tmp file.
+
+    The file will be cleaned up after the test run.
+    """
+    return mktemp(dir=tmpdir.dirname).encode("utf-8")
+
+
 class TestCase(TestCase):
     """
     :py:class:`TestCase` adds useful testing functionality beyond what is
