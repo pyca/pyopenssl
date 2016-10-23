@@ -46,7 +46,7 @@ from OpenSSL.crypto import (
 from OpenSSL._util import native, lib
 
 from .util import (
-    EqualityTestsMixin, TestCase, WARNING_TYPE_EXPECTED
+    EqualityTestsMixin, is_consistent_type, TestCase, WARNING_TYPE_EXPECTED
 )
 
 
@@ -524,41 +524,32 @@ zo0MUVPQgwJ3aJtNM1QMOQUayCrRwfklg+D/rFSUwEUqtZh7fJDiFqz3
 """
 
 
-class X509ExtTests(TestCase):
+@pytest.fixture
+def x509_data():
+    # Basic setup stuff to generate a certificate
+    pkey = PKey()
+    pkey.generate_key(TYPE_RSA, 384)
+    req = X509Req()
+    req.set_pubkey(pkey)
+    # Authority good you have.
+    req.get_subject().commonName = "Yoda root CA"
+    x509 = X509()
+    subject = x509.get_subject()
+    subject.commonName = req.get_subject().commonName
+    x509.set_issuer(subject)
+    x509.set_pubkey(pkey)
+    now = datetime.now()
+    expire = datetime.now() + timedelta(days=100)
+    x509.set_notBefore(now.strftime("%Y%m%d%H%M%SZ").encode())
+    x509.set_notAfter(expire.strftime("%Y%m%d%H%M%SZ").encode())
+    yield pkey, x509
+
+
+
+class TestX509Ext(object):
     """
     Tests for :py:class:`OpenSSL.crypto.X509Extension`.
     """
-
-    def setUp(self):
-        """
-        Create a new private key and start a certificate request (for a test
-        method to finish in one way or another).
-        """
-        super(X509ExtTests, self).setUp()
-        # Basic setup stuff to generate a certificate
-        self.pkey = PKey()
-        self.pkey.generate_key(TYPE_RSA, 384)
-        self.req = X509Req()
-        self.req.set_pubkey(self.pkey)
-        # Authority good you have.
-        self.req.get_subject().commonName = "Yoda root CA"
-        self.x509 = X509()
-        self.subject = self.x509.get_subject()
-        self.subject.commonName = self.req.get_subject().commonName
-        self.x509.set_issuer(self.subject)
-        self.x509.set_pubkey(self.pkey)
-        now = datetime.now()
-        expire = datetime.now() + timedelta(days=100)
-        self.x509.set_notBefore(now.strftime("%Y%m%d%H%M%SZ").encode())
-        self.x509.set_notAfter(expire.strftime("%Y%m%d%H%M%SZ").encode())
-
-    def tearDown(self):
-        """
-        Forget all of the pyOpenSSL objects so they can be garbage collected,
-        their memory released, and not interfere with the leak detection code.
-        """
-        self.pkey = self.req = self.x509 = self.subject = None
-        super(X509ExtTests, self).tearDown()
 
     def test_str(self):
         """
@@ -567,17 +558,16 @@ class X509ExtTests(TestCase):
         """
         # This isn't necessarily the best string representation.  Perhaps it
         # will be changed/improved in the future.
-        self.assertEquals(
-            str(X509Extension(b'basicConstraints', True, b'CA:false')),
-            'CA:FALSE')
+        assert str(X509Extension(b'basicConstraints', True, b'CA:false')) == \
+            'CA:FALSE'
 
     def test_type(self):
         """
         :py:class:`X509Extension` and :py:class:`X509ExtensionType` refer to
         the same type object and can be used to create instances of that type.
         """
-        self.assertIdentical(X509Extension, X509ExtensionType)
-        self.assertConsistentType(
+        assert X509Extension is X509ExtensionType
+        assert is_consistent_type(
             X509Extension,
             'X509Extension', b'basicConstraints', True, b'CA:true')
 
@@ -588,55 +578,50 @@ class X509ExtTests(TestCase):
         :py:class:`X509ExtensionType` instance.
         """
         basic = X509Extension(b'basicConstraints', True, b'CA:true')
-        self.assertTrue(
-            isinstance(basic, X509ExtensionType),
-            "%r is of type %r, should be %r" % (
-                basic, type(basic), X509ExtensionType))
+        assert isinstance(basic, X509ExtensionType)
 
-        comment = X509Extension(
-            b'nsComment', False, b'pyOpenSSL unit test')
-        self.assertTrue(
-            isinstance(comment, X509ExtensionType),
-            "%r is of type %r, should be %r" % (
-                comment, type(comment), X509ExtensionType))
+        comment = X509Extension(b'nsComment', False, b'pyOpenSSL unit test')
+        assert isinstance(comment, X509ExtensionType)
 
-    def test_invalid_extension(self):
-        """
-        :py:class:`X509Extension` raises something if it is passed a bad
-        extension name or value.
-        """
-        self.assertRaises(
-            Error, X509Extension, b'thisIsMadeUp', False, b'hi')
-        self.assertRaises(
-            Error, X509Extension, b'basicConstraints', False, b'blah blah')
+    @pytest.mark.parametrize('type_name, critical, value', [
+        (b'thisIsMadeUp', False, b'hi'),
+        (b'basicConstraints', False, b'blah blah'),
 
         # Exercise a weird one (an extension which uses the r2i method).  This
         # exercises the codepath that requires a non-NULL ctx to be passed to
         # X509V3_EXT_nconf.  It can't work now because we provide no
         # configuration database.  It might be made to work in the future.
-        self.assertRaises(
-            Error, X509Extension, b'proxyCertInfo', True,
-            b'language:id-ppl-anyLanguage,pathlen:1,policy:text:AB')
+        (b'proxyCertInfo', True,
+         b'language:id-ppl-anyLanguage,pathlen:1,policy:text:AB')
+    ])
+    def test_invalid_extension(self, type_name, critical, value):
+        """
+        :py:class:`X509Extension` raises something if it is passed a bad
+        extension name or value.
+        """
+        with pytest.raises(Error):
+            X509Extension(type_name, critical, value)
 
-    def test_get_critical(self):
+    @pytest.mark.parametrize('critical_flag', [True, False])
+    def test_get_critical(self, critical_flag):
         """
         :py:meth:`X509ExtensionType.get_critical` returns the value of the
         extension's critical flag.
         """
-        ext = X509Extension(b'basicConstraints', True, b'CA:true')
-        self.assertTrue(ext.get_critical())
-        ext = X509Extension(b'basicConstraints', False, b'CA:true')
-        self.assertFalse(ext.get_critical())
+        ext = X509Extension(b'basicConstraints', critical_flag, b'CA:true')
+        assert ext.get_critical() == critical_flag
 
-    def test_get_short_name(self):
+    @pytest.mark.parametrize('short_name, value', [
+        (b'basicConstraints', b'CA:true'),
+        (b'nsComment', b'foo bar'),
+    ])
+    def test_get_short_name(self, short_name, value):
         """
         :py:meth:`X509ExtensionType.get_short_name` returns a string giving the
         short type name of the extension.
         """
-        ext = X509Extension(b'basicConstraints', True, b'CA:true')
-        self.assertEqual(ext.get_short_name(), b'basicConstraints')
-        ext = X509Extension(b'nsComment', True, b'foo bar')
-        self.assertEqual(ext.get_short_name(), b'nsComment')
+        ext = X509Extension(short_name, True, value)
+        assert ext.get_short_name() == short_name
 
     def test_get_data(self):
         """
@@ -645,114 +630,129 @@ class X509ExtTests(TestCase):
         """
         ext = X509Extension(b'basicConstraints', True, b'CA:true')
         # Expect to get back the DER encoded form of CA:true.
-        self.assertEqual(ext.get_data(), b'0\x03\x01\x01\xff')
+        assert ext.get_data() == b'0\x03\x01\x01\xff'
 
-    def test_get_data_wrong_args(self):
+    @pytest.mark.parametrize('args', [
+        (None,),
+        ("foo",),
+        (7,)
+    ])
+    def test_get_data_wrong_args(self, args):
         """
         :py:meth:`X509Extension.get_data` raises :py:exc:`TypeError` if passed
         any arguments.
         """
         ext = X509Extension(b'basicConstraints', True, b'CA:true')
-        self.assertRaises(TypeError, ext.get_data, None)
-        self.assertRaises(TypeError, ext.get_data, "foo")
-        self.assertRaises(TypeError, ext.get_data, 7)
+        with pytest.raises(TypeError):
+            ext.get_data(*args)
 
-    def test_unused_subject(self):
+    def test_unused_subject(self, x509_data):
         """
         The :py:data:`subject` parameter to :py:class:`X509Extension` may be
         provided for an extension which does not use it and is ignored in this
         case.
         """
+        pkey, x509 = x509_data
         ext1 = X509Extension(
-            b'basicConstraints', False, b'CA:TRUE', subject=self.x509)
-        self.x509.add_extensions([ext1])
-        self.x509.sign(self.pkey, 'sha1')
+            b'basicConstraints', False, b'CA:TRUE', subject=x509)
+        x509.add_extensions([ext1])
+        x509.sign(pkey, 'sha1')
         # This is a little lame.  Can we think of a better way?
-        text = dump_certificate(FILETYPE_TEXT, self.x509)
-        self.assertTrue(b'X509v3 Basic Constraints:' in text)
-        self.assertTrue(b'CA:TRUE' in text)
+        text = dump_certificate(FILETYPE_TEXT, x509)
+        assert b'X509v3 Basic Constraints:' in text
+        assert b'CA:TRUE' in text
 
-    def test_subject(self):
+    def test_subject(self, x509_data):
         """
         If an extension requires a subject, the :py:data:`subject` parameter to
         :py:class:`X509Extension` provides its value.
         """
+        pkey, x509 = x509_data
         ext3 = X509Extension(
-            b'subjectKeyIdentifier', False, b'hash', subject=self.x509)
-        self.x509.add_extensions([ext3])
-        self.x509.sign(self.pkey, 'sha1')
-        text = dump_certificate(FILETYPE_TEXT, self.x509)
-        self.assertTrue(b'X509v3 Subject Key Identifier:' in text)
+            b'subjectKeyIdentifier', False, b'hash', subject=x509)
+        x509.add_extensions([ext3])
+        x509.sign(pkey, 'sha1')
+        text = dump_certificate(FILETYPE_TEXT, x509)
+        assert b'X509v3 Subject Key Identifier:' in text
 
     def test_missing_subject(self):
         """
         If an extension requires a subject and the :py:data:`subject` parameter
         is given no value, something happens.
         """
-        self.assertRaises(
-            Error, X509Extension, b'subjectKeyIdentifier', False, b'hash')
+        with pytest.raises(Error):
+            X509Extension(b'subjectKeyIdentifier', False, b'hash')
 
-    def test_invalid_subject(self):
+    @pytest.mark.parametrize('bad_obj', [
+        True,
+        object(),
+        "hello",
+        [],
+    ])
+    def test_invalid_subject(self, bad_obj):
         """
         If the :py:data:`subject` parameter is given a value which is not an
         :py:class:`X509` instance, :py:exc:`TypeError` is raised.
         """
-        for badObj in [True, object(), "hello", [], self]:
-            self.assertRaises(
-                TypeError,
-                X509Extension,
-                'basicConstraints', False, 'CA:TRUE', subject=badObj)
+        with pytest.raises(TypeError):
+            X509Extension(
+                'basicConstraints', False, 'CA:TRUE', subject=bad_obj)
 
-    def test_unused_issuer(self):
+    def test_unused_issuer(self, x509_data):
         """
         The :py:data:`issuer` parameter to :py:class:`X509Extension` may be
         provided for an extension which does not use it and is ignored in this
         case.
         """
+        pkey, x509 = x509_data
         ext1 = X509Extension(
-            b'basicConstraints', False, b'CA:TRUE', issuer=self.x509)
-        self.x509.add_extensions([ext1])
-        self.x509.sign(self.pkey, 'sha1')
-        text = dump_certificate(FILETYPE_TEXT, self.x509)
-        self.assertTrue(b'X509v3 Basic Constraints:' in text)
-        self.assertTrue(b'CA:TRUE' in text)
+            b'basicConstraints', False, b'CA:TRUE', issuer=x509)
+        x509.add_extensions([ext1])
+        x509.sign(pkey, 'sha1')
+        text = dump_certificate(FILETYPE_TEXT, x509)
+        assert b'X509v3 Basic Constraints:' in text
+        assert b'CA:TRUE' in text
 
-    def test_issuer(self):
+    def test_issuer(self, x509_data):
         """
         If an extension requires an issuer, the :py:data:`issuer` parameter to
         :py:class:`X509Extension` provides its value.
         """
+        pkey, x509 = x509_data
         ext2 = X509Extension(
             b'authorityKeyIdentifier', False, b'issuer:always',
-            issuer=self.x509)
-        self.x509.add_extensions([ext2])
-        self.x509.sign(self.pkey, 'sha1')
-        text = dump_certificate(FILETYPE_TEXT, self.x509)
-        self.assertTrue(b'X509v3 Authority Key Identifier:' in text)
-        self.assertTrue(b'DirName:/CN=Yoda root CA' in text)
+            issuer=x509)
+        x509.add_extensions([ext2])
+        x509.sign(pkey, 'sha1')
+        text = dump_certificate(FILETYPE_TEXT, x509)
+        assert b'X509v3 Authority Key Identifier:' in text
+        assert b'DirName:/CN=Yoda root CA' in text
 
     def test_missing_issuer(self):
         """
         If an extension requires an issue and the :py:data:`issuer` parameter
         is given no value, something happens.
         """
-        self.assertRaises(
-            Error,
-            X509Extension,
-            b'authorityKeyIdentifier', False,
-            b'keyid:always,issuer:always')
+        with pytest.raises(Error):
+            X509Extension(
+                b'authorityKeyIdentifier',
+                False, b'keyid:always,issuer:always')
 
-    def test_invalid_issuer(self):
+    @pytest.mark.parametrize('bad_obj', [
+        True,
+        object(),
+        "hello",
+        [],
+    ])
+    def test_invalid_issuer(self, bad_obj):
         """
         If the :py:data:`issuer` parameter is given a value which is not an
         :py:class:`X509` instance, :py:exc:`TypeError` is raised.
         """
-        for badObj in [True, object(), "hello", [], self]:
-            self.assertRaises(
-                TypeError,
-                X509Extension,
-                'authorityKeyIdentifier', False, 'keyid:always,issuer:always',
-                issuer=badObj)
+        with pytest.raises(TypeError):
+            X509Extension(
+                'basicConstraints', False, 'keyid:always,issuer:always',
+                issuer=bad_obj)
 
 
 class TestPKey(object):
