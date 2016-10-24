@@ -1518,6 +1518,18 @@ class X509Store(object):
         """
         _openssl_assert(_lib.X509_STORE_set_flags(self._store, flags) != 0)
 
+    def set_time(self, vfy_time):
+        """Set verification time to this store.
+
+        .. versionadded: 16.3.0
+
+        :param datetime vfy_time: The verification time to set on this store.
+        :return: ``None`` if the verification time were successfully set.
+        """
+        vfy_param = _lib.X509_VERIFY_PARAM_new()
+        _lib.X509_VERIFY_PARAM_set_time(vfy_param, int(vfy_time.strftime('%s')))
+        _openssl_assert(_lib.X509_STORE_set1_param(self._store, vfy_param) != 0)
+
 
 X509StoreType = X509Store
 

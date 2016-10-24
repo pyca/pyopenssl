@@ -3740,6 +3740,23 @@ class X509StoreContextTests(TestCase):
         store_ctx.set_store(store_good)
         self.assertEqual(store_ctx.verify_certificate(), None)
 
+    def test_verify_with_time(self):
+        """
+        :func:`verify_certificate` raises error when the verification time is set at notAfter.
+        """
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        store.add_cert(self.intermediate_cert)
+
+        expire_time = self.intermediate_server_cert.get_notAfter().decode('utf-8')
+        expire_datetime = datetime.strptime(expire_time, '%Y%m%d%H%M%SZ')
+        store.set_time(expire_datetime)
+
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        with pytest.raises(X509StoreContextError) as e:
+            store_ctx.verify_certificate()
+            assert e.args[0][2] == 'certificate has expired'
+
 
 class SignVerifyTests(TestCase):
     """
