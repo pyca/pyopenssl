@@ -107,7 +107,7 @@ def status():
     """
     Check whether the PRNG has been seeded with enough data.
 
-    :return: :obj:`1` if the PRNG is seeded enough, :obj:`0` otherwise.
+    :return: 1 if the PRNG is seeded enough, 0 otherwise.
     """
     return _lib.RAND_status()
 
