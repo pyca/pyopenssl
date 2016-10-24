@@ -2,7 +2,7 @@
 # See LICENSE for details.
 
 """
-Unit tests for :py:obj:`OpenSSL.rand`.
+Unit tests for `OpenSSL.rand`.
 """
 
 import os
@@ -25,15 +25,15 @@ class TestRand(object):
     ])
     def test_bytes_wrong_args(self, args):
         """
-        :py:obj:`OpenSSL.rand.bytes` raises :py:obj:`TypeError` if called with
-        the wrong number of arguments or with a non-:py:obj:`int` argument.
+        `OpenSSL.rand.bytes` raises `TypeError` if called with
+        the wrong number of arguments or with a non-`int` argument.
         """
         with pytest.raises(TypeError):
             rand.bytes(*args)
 
     def test_insufficient_memory(self):
         """
-        :py:obj:`OpenSSL.rand.bytes` raises :py:obj:`MemoryError` if more bytes
+        `OpenSSL.rand.bytes` raises `MemoryError` if more bytes
         are requested than will fit in memory.
         """
         with pytest.raises(MemoryError):
@@ -64,15 +64,15 @@ class TestRand(object):
     def test_add_wrong_args(self, args):
         """
         When called with the wrong number of arguments, or with arguments not
-        of type :py:obj:`str` and :py:obj:`int`, :py:obj:`OpenSSL.rand.add`
-        raises :py:obj:`TypeError`.
+        of type `str` and `int`, `OpenSSL.rand.add`
+        raises `TypeError`.
         """
         with pytest.raises(TypeError):
             rand.add(*args)
 
     def test_add(self):
         """
-        :py:obj:`OpenSSL.rand.add` adds entropy to the PRNG.
+        `OpenSSL.rand.add` adds entropy to the PRNG.
         """
         rand.add(b'hamburger', 3)
 
@@ -84,21 +84,21 @@ class TestRand(object):
     def test_seed_wrong_args(self, args):
         """
         When called with the wrong number of arguments, or with
-        a non-:py:obj:`str` argument, :py:obj:`OpenSSL.rand.seed` raises
-        :py:obj:`TypeError`.
+        a non-`str` argument, `OpenSSL.rand.seed` raises
+        `TypeError`.
         """
         with pytest.raises(TypeError):
             rand.seed(*args)
 
     def test_seed(self):
         """
-        :py:obj:`OpenSSL.rand.seed` adds entropy to the PRNG.
+        `OpenSSL.rand.seed` adds entropy to the PRNG.
         """
         rand.seed(b'milk shake')
 
     def test_status_wrong_args(self):
         """
-        :py:obj:`OpenSSL.rand.status` raises :py:obj:`TypeError` when called
+        `OpenSSL.rand.status` raises `TypeError` when called
         with any arguments.
         """
         with pytest.raises(TypeError):
@@ -106,8 +106,8 @@ class TestRand(object):
 
     def test_status(self):
         """
-        :py:obj:`OpenSSL.rand.status` returns :py:obj:`True` if the PRNG has
-        sufficient entropy, :py:obj:`False` otherwise.
+        `OpenSSL.rand.status` returns `True` if the PRNG has
+        sufficient entropy, `False` otherwise.
         """
         # It's hard to know what it is actually going to return.  Different
         # OpenSSL random engines decide differently whether they have enough
@@ -142,7 +142,7 @@ class TestRand(object):
 
     def test_cleanup_wrong_args(self):
         """
-        :py:obj:`OpenSSL.rand.cleanup` raises :py:obj:`TypeError` when called
+        `OpenSSL.rand.cleanup` raises `TypeError` when called
         with any arguments.
         """
         with pytest.raises(TypeError):
@@ -150,8 +150,8 @@ class TestRand(object):
 
     def test_cleanup(self):
         """
-        :py:obj:`OpenSSL.rand.cleanup` releases the memory used by the PRNG and
-        returns :py:obj:`None`.
+        `OpenSSL.rand.cleanup` releases the memory used by the PRNG and
+        returns `None`.
         """
         assert rand.cleanup() is None
 
@@ -163,9 +163,9 @@ class TestRand(object):
     ])
     def test_load_file_wrong_args(self, args):
         """
-        :py:obj:`OpenSSL.rand.load_file` raises :py:obj:`TypeError` when called
-        the wrong number of arguments or arguments not of type :py:obj:`str`
-        and :py:obj:`int`.
+        `OpenSSL.rand.load_file` raises `TypeError` when called
+        the wrong number of arguments or arguments not of type `str`
+        and `int`.
         """
         with pytest.raises(TypeError):
             rand.load_file(*args)
@@ -177,8 +177,8 @@ class TestRand(object):
     ])
     def test_write_file_wrong_args(self, args):
         """
-        :py:obj:`OpenSSL.rand.write_file` raises :py:obj:`TypeError` when
-        called with the wrong number of arguments or a non-:py:obj:`str`
+        `OpenSSL.rand.write_file` raises `TypeError` when
+        called with the wrong number of arguments or a non-`str`
         argument.
         """
         with pytest.raises(TypeError):
