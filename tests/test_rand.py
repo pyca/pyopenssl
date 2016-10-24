@@ -19,14 +19,13 @@ from .util import NON_ASCII
 class TestRand(object):
 
     @pytest.mark.parametrize('args', [
-        (),
         (None),
-        (3, None)
+        (b"foo"),
     ])
     def test_bytes_wrong_args(self, args):
         """
         `OpenSSL.rand.bytes` raises `TypeError` if called with
-        the wrong number of arguments or with a non-`int` argument.
+        a non-`int` argument.
         """
         with pytest.raises(TypeError):
             rand.bytes(*args)
@@ -56,16 +55,13 @@ class TestRand(object):
         assert str(exc.value) == "num_bytes must not be negative"
 
     @pytest.mark.parametrize('args', [
-        (),
         (b"foo", None),
         (None, 3),
-        (b"foo", 3, None),
     ])
     def test_add_wrong_args(self, args):
         """
-        When called with the wrong number of arguments, or with arguments not
-        of type `str` and `int`, `OpenSSL.rand.add`
-        raises `TypeError`.
+        `OpenSSL.rand.add` raises `TypeError` if called with arguments
+        not of type `str` and `int`.
         """
         with pytest.raises(TypeError):
             rand.add(*args)
@@ -77,15 +73,13 @@ class TestRand(object):
         rand.add(b'hamburger', 3)
 
     @pytest.mark.parametrize('args', [
-        (),
         (None),
-        (b"foo", None),
+        (42),
     ])
     def test_seed_wrong_args(self, args):
         """
-        When called with the wrong number of arguments, or with
-        a non-`str` argument, `OpenSSL.rand.seed` raises
-        `TypeError`.
+        `OpenSSL.rand.seed` raises `TypeError` if called with
+        a non-`str` argument.
         """
         with pytest.raises(TypeError):
             rand.seed(*args)
@@ -95,14 +89,6 @@ class TestRand(object):
         `OpenSSL.rand.seed` adds entropy to the PRNG.
         """
         rand.seed(b'milk shake')
-
-    def test_status_wrong_args(self):
-        """
-        `OpenSSL.rand.status` raises `TypeError` when called
-        with any arguments.
-        """
-        with pytest.raises(TypeError):
-            rand.status(None)
 
     def test_status(self):
         """
@@ -124,30 +110,6 @@ class TestRand(object):
         """
         pytest.deprecated_call(rand.egd, *args)
 
-    @pytest.mark.parametrize('args', [
-        (),
-        (None,),
-        ("foo", None),
-        (None, 3),
-        ("foo", 3, None),
-    ])
-    def test_egd_wrong_args(self, args):
-        """
-        :meth:`OpenSSL.rand.egd` raises :exc:`TypeError` when called with the
-        wrong number of arguments or with arguments not of type :obj:`str` and
-        :obj:`int`.
-        """
-        with pytest.raises(TypeError):
-            rand.egd(*args)
-
-    def test_cleanup_wrong_args(self):
-        """
-        `OpenSSL.rand.cleanup` raises `TypeError` when called
-        with any arguments.
-        """
-        with pytest.raises(TypeError):
-            rand.cleanup(None)
-
     def test_cleanup(self):
         """
         `OpenSSL.rand.cleanup` releases the memory used by the PRNG and
@@ -156,30 +118,25 @@ class TestRand(object):
         assert rand.cleanup() is None
 
     @pytest.mark.parametrize('args', [
-        (),
         ("foo", None),
         (None, 1),
-        ("foo", 1, None),
     ])
     def test_load_file_wrong_args(self, args):
         """
-        `OpenSSL.rand.load_file` raises `TypeError` when called
-        the wrong number of arguments or arguments not of type `str`
-        and `int`.
+        `OpenSSL.rand.load_file` raises `TypeError` when with arguments
+        not of type `str` and `int`.
         """
         with pytest.raises(TypeError):
             rand.load_file(*args)
 
     @pytest.mark.parametrize('args', [
-        (),
-        (None),
-        ("foo", None),
+        None,
+        1,
     ])
     def test_write_file_wrong_args(self, args):
         """
-        `OpenSSL.rand.write_file` raises `TypeError` when
-        called with the wrong number of arguments or a non-`str`
-        argument.
+        `OpenSSL.rand.write_file` raises `TypeError` when called with
+        a non-`str` argument.
         """
         with pytest.raises(TypeError):
             rand.write_file(*args)
