@@ -106,13 +106,13 @@ class TestRand(object):
 
     def test_status(self):
         """
-        `OpenSSL.rand.status` returns `True` if the PRNG has
-        sufficient entropy, `False` otherwise.
+        `OpenSSL.rand.status` returns `1` if the PRNG has
+        sufficient entropy, `0` otherwise.
         """
         # It's hard to know what it is actually going to return.  Different
         # OpenSSL random engines decide differently whether they have enough
         # entropy or not.
-        assert rand.status() in (True, False)
+        assert rand.status() in (0, 1)
 
     @pytest.mark.parametrize('args', [
         (b"foo", 255),
