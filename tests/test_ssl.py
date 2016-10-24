@@ -221,7 +221,7 @@ def _create_certificate_chain():
     return [(cakey, cacert), (ikey, icert), (skey, scert)]
 
 
-class _LoopbackMixin:
+class _LoopbackMixin(object):
     """
     Helper mixin which defines methods for creating a connected socket pair and
     for forcing two connected SSL sockets to talk to each other via memory
@@ -1579,24 +1579,14 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertIsInstance(store, X509Store)
 
 
-class ServerNameCallbackTests(TestCase, _LoopbackMixin):
+class TestServerNameCallback(_LoopbackMixin):
     """
-    Tests for :py:obj:`Context.set_tlsext_servername_callback` and its
-    interaction with :py:obj:`Connection`.
+    Tests for `Context.set_tlsext_servername_callback` and its
+    interaction with `Connection`.
     """
-    def test_wrong_args(self):
-        """
-        :py:obj:`Context.set_tlsext_servername_callback` raises
-        :py:obj:`TypeError` if called with other than one argument.
-        """
-        context = Context(TLSv1_METHOD)
-        self.assertRaises(TypeError, context.set_tlsext_servername_callback)
-        self.assertRaises(
-            TypeError, context.set_tlsext_servername_callback, 1, 2)
-
     def test_old_callback_forgotten(self):
         """
-        If :py:obj:`Context.set_tlsext_servername_callback` is used to specify
+        If `Context.set_tlsext_servername_callback` is used to specify
         a new callback, the one it replaces is dereferenced.
         """
         def callback(connection):
@@ -1629,8 +1619,8 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
     def test_no_servername(self):
         """
         When a client specifies no server name, the callback passed to
-        :py:obj:`Context.set_tlsext_servername_callback` is invoked and the
-        result of :py:obj:`Connection.get_servername` is :py:obj:`None`.
+        `Context.set_tlsext_servername_callback` is invoked and the
+        result of `Connection.get_servername` is :py:obj:`None`.
         """
         args = []
 
@@ -1658,13 +1648,13 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
 
         self._interactInMemory(server, client)
 
-        self.assertEqual([(server, None)], args)
+        assert args == [(server, None)]
 
     def test_servername(self):
         """
         When a client specifies a server name in its hello message, the
-        callback passed to :py:obj:`Contexts.set_tlsext_servername_callback` is
-        invoked and the result of :py:obj:`Connection.get_servername` is that
+        callback passed to `Contexts.set_tlsext_servername_callback` is
+        invoked and the result of `Connection.get_servername` is that
         server name.
         """
         args = []
@@ -1689,7 +1679,7 @@ class ServerNameCallbackTests(TestCase, _LoopbackMixin):
 
         self._interactInMemory(server, client)
 
-        self.assertEqual([(server, b"foo1.example.com")], args)
+        assert args == [(server, b"foo1.example.com")]
 
 
 class NextProtoNegotiationTests(TestCase, _LoopbackMixin):
