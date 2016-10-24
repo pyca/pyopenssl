@@ -24,25 +24,25 @@ class TestRand(object):
     ])
     def test_bytes_wrong_args(self, args):
         """
-        `OpenSSL.rand.bytes` raises `TypeError` if called with
-        a non-`int` argument.
+        `OpenSSL.rand.bytes` raises `TypeError` if called with a non-`int`
+        argument.
         """
         with pytest.raises(TypeError):
             rand.bytes(*args)
 
     def test_insufficient_memory(self):
         """
-        `OpenSSL.rand.bytes` raises `MemoryError` if more bytes
-        are requested than will fit in memory.
+        `OpenSSL.rand.bytes` raises `MemoryError` if more bytes are requested
+        than will fit in memory.
         """
         with pytest.raises(MemoryError):
             rand.bytes(sys.maxsize)
 
     def test_bytes(self):
         """
-        Verify that we can obtain bytes from rand_bytes() and
-        that they are different each time.  Test the parameter
-        of rand_bytes() for bad values.
+        Verify that we can obtain bytes from rand_bytes() and that they are
+        different each time.  Test the parameter of rand_bytes() for
+        bad values.
         """
         b1 = rand.bytes(50)
         assert len(b1) == 50
@@ -60,8 +60,8 @@ class TestRand(object):
     ])
     def test_add_wrong_args(self, args):
         """
-        `OpenSSL.rand.add` raises `TypeError` if called with arguments
-        not of type `str` and `int`.
+        `OpenSSL.rand.add` raises `TypeError` if called with arguments not of
+        type `str` and `int`.
         """
         with pytest.raises(TypeError):
             rand.add(*args)
@@ -92,8 +92,8 @@ class TestRand(object):
 
     def test_status(self):
         """
-        `OpenSSL.rand.status` returns `1` if the PRNG has
-        sufficient entropy, `0` otherwise.
+        `OpenSSL.rand.status` returns `1` if the PRNG has sufficient entropy,
+        `0` otherwise.
         """
         # It's hard to know what it is actually going to return.  Different
         # OpenSSL random engines decide differently whether they have enough
