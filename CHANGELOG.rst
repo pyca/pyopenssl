@@ -24,7 +24,7 @@ Changes:
 ^^^^^^^^
 
 - Added ``OpenSSL.X509Store.set_time()`` to set a custom verification time.
-  `#XXX <https://github.com/pyca/pyopenssl/pull/XXX>`_
+  `#567 <https://github.com/pyca/pyopenssl/pull/567>`_
 
 
 ----
