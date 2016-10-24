@@ -1620,7 +1620,7 @@ class TestServerNameCallback(_LoopbackMixin):
         """
         When a client specifies no server name, the callback passed to
         `Context.set_tlsext_servername_callback` is invoked and the
-        result of `Connection.get_servername` is :py:obj:`None`.
+        result of `Connection.get_servername` is `None`.
         """
         args = []
 
