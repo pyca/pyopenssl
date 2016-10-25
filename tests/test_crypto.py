@@ -3759,7 +3759,7 @@ class X509StoreContextTests(TestCase):
         with pytest.raises(X509StoreContextError) as exc:
             store_ctx.verify_certificate()
 
-        assert exc.args[0][2] == 'certificate has expired'
+        assert exc.value.args[0][2] == 'certificate has expired'
 
 
 class SignVerifyTests(TestCase):
