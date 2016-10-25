@@ -3756,9 +3756,10 @@ class X509StoreContextTests(TestCase):
         store.set_time(expire_datetime)
 
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        with pytest.raises(X509StoreContextError) as e:
+        with pytest.raises(X509StoreContextError) as exc:
             store_ctx.verify_certificate()
-            assert e.args[0][2] == 'certificate has expired'
+
+        assert exc.args[0][2] == 'certificate has expired'
 
 
 class SignVerifyTests(TestCase):
