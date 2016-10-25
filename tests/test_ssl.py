@@ -257,50 +257,7 @@ class _LoopbackMixin(object):
         return server, client
 
     def _interactInMemory(self, client_conn, server_conn):
-        """
-        Try to read application bytes from each of the two :py:obj:`Connection`
-        objects.  Copy bytes back and forth between their send/receive buffers
-        for as long as there is anything to copy.  When there is nothing more
-        to copy, return :py:obj:`None`.  If one of them actually manages to
-        deliver some application bytes, return a two-tuple of the connection
-        from which the bytes were read and the bytes themselves.
-        """
-        wrote = True
-        while wrote:
-            # Loop until neither side has anything to say
-            wrote = False
-
-            # Copy stuff from each side's send buffer to the other side's
-            # receive buffer.
-            for (read, write) in [(client_conn, server_conn),
-                                  (server_conn, client_conn)]:
-
-                # Give the side a chance to generate some more bytes, or
-                # succeed.
-                try:
-                    data = read.recv(2 ** 16)
-                except WantReadError:
-                    # It didn't succeed, so we'll hope it generated some
-                    # output.
-                    pass
-                else:
-                    # It did succeed, so we'll stop now and let the caller deal
-                    # with it.
-                    return (read, data)
-
-                while True:
-                    # Keep copying as long as there's more stuff there.
-                    try:
-                        dirty = read.bio_read(4096)
-                    except WantReadError:
-                        # Okay, nothing more waiting to be sent.  Stop
-                        # processing this send buffer.
-                        break
-                    else:
-                        # Keep track of the fact that someone generated some
-                        # output.
-                        wrote = True
-                        write.bio_write(dirty)
+        return interact_in_memory(client_conn, server_conn)
 
     def _handshakeInMemory(self, client_conn, server_conn):
         """
@@ -317,6 +274,53 @@ class _LoopbackMixin(object):
                 pass
 
         self._interactInMemory(client_conn, server_conn)
+
+
+def interact_in_memory(client_conn, server_conn):
+    """
+    Try to read application bytes from each of the two `Connection` objects.
+    Copy bytes back and forth between their send/receive buffers for as long
+    as there is anything to copy.  When there is nothing more to copy,
+    return `None`.  If one of them actually manages to deliver some application
+    bytes, return a two-tuple of the connection from which the bytes were read\
+    and the bytes themselves.
+    """
+    wrote = True
+    while wrote:
+        # Loop until neither side has anything to say
+        wrote = False
+
+        # Copy stuff from each side's send buffer to the other side's
+        # receive buffer.
+        for (read, write) in [(client_conn, server_conn),
+                              (server_conn, client_conn)]:
+
+            # Give the side a chance to generate some more bytes, or
+            # succeed.
+            try:
+                data = read.recv(2 ** 16)
+            except WantReadError:
+                # It didn't succeed, so we'll hope it generated some
+                # output.
+                pass
+            else:
+                # It did succeed, so we'll stop now and let the caller deal
+                # with it.
+                return (read, data)
+
+            while True:
+                # Keep copying as long as there's more stuff there.
+                try:
+                    dirty = read.bio_read(4096)
+                except WantReadError:
+                    # Okay, nothing more waiting to be sent.  Stop
+                    # processing this send buffer.
+                    break
+                else:
+                    # Keep track of the fact that someone generated some
+                    # output.
+                    wrote = True
+                    write.bio_write(dirty)
 
 
 class VersionTests(TestCase):
@@ -1579,7 +1583,7 @@ class ContextTests(TestCase, _LoopbackMixin):
         self.assertIsInstance(store, X509Store)
 
 
-class TestServerNameCallback(_LoopbackMixin):
+class TestServerNameCallback(object):
     """
     Tests for `Context.set_tlsext_servername_callback` and its
     interaction with `Connection`.
@@ -1646,7 +1650,7 @@ class TestServerNameCallback(_LoopbackMixin):
         client = Connection(Context(TLSv1_METHOD), None)
         client.set_connect_state()
 
-        self._interactInMemory(server, client)
+        interact_in_memory(server, client)
 
         assert args == [(server, None)]
 
@@ -1677,7 +1681,7 @@ class TestServerNameCallback(_LoopbackMixin):
         client.set_connect_state()
         client.set_tlsext_host_name(b"foo1.example.com")
 
-        self._interactInMemory(server, client)
+        interact_in_memory(server, client)
 
         assert args == [(server, b"foo1.example.com")]
 
