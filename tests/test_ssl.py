@@ -282,7 +282,7 @@ def interact_in_memory(client_conn, server_conn):
     Copy bytes back and forth between their send/receive buffers for as long
     as there is anything to copy.  When there is nothing more to copy,
     return `None`.  If one of them actually manages to deliver some application
-    bytes, return a two-tuple of the connection from which the bytes were read\
+    bytes, return a two-tuple of the connection from which the bytes were read
     and the bytes themselves.
     """
     wrote = True
@@ -295,13 +295,11 @@ def interact_in_memory(client_conn, server_conn):
         for (read, write) in [(client_conn, server_conn),
                               (server_conn, client_conn)]:
 
-            # Give the side a chance to generate some more bytes, or
-            # succeed.
+            # Give the side a chance to generate some more bytes, or succeed.
             try:
                 data = read.recv(2 ** 16)
             except WantReadError:
-                # It didn't succeed, so we'll hope it generated some
-                # output.
+                # It didn't succeed, so we'll hope it generated some output.
                 pass
             else:
                 # It did succeed, so we'll stop now and let the caller deal
