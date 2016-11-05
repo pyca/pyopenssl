@@ -1684,7 +1684,7 @@ class TestServerNameCallback(object):
         assert args == [(server, b"foo1.example.com")]
 
 
-class TestNextProtoNegotiation():
+class TestNextProtoNegotiation(object):
     """
     Test for Next Protocol Negotiation in PyOpenSSL.
     """
