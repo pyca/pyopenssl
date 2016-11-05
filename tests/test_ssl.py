@@ -1684,7 +1684,7 @@ class TestServerNameCallback(object):
         assert args == [(server, b"foo1.example.com")]
 
 
-class NextProtoNegotiationTests(TestCase, _LoopbackMixin):
+class TestNextProtoNegotiation():
     """
     Test for Next Protocol Negotiation in PyOpenSSL.
     """
@@ -1725,13 +1725,13 @@ class NextProtoNegotiationTests(TestCase, _LoopbackMixin):
             client = Connection(client_context, None)
             client.set_connect_state()
 
-            self._interactInMemory(server, client)
+            interact_in_memory(server, client)
 
-            self.assertEqual([(server,)], advertise_args)
-            self.assertEqual([(client, [b'http/1.1', b'spdy/2'])], select_args)
+            assert advertise_args == [(server,)]
+            assert select_args == [(client, [b'http/1.1', b'spdy/2'])]
 
-            self.assertEqual(server.get_next_proto_negotiated(), b'spdy/2')
-            self.assertEqual(client.get_next_proto_negotiated(), b'spdy/2')
+            assert server.get_next_proto_negotiated() == b'spdy/2'
+            assert client.get_next_proto_negotiated() == b'spdy/2'
 
         def test_npn_client_fail(self):
             """
@@ -1769,10 +1769,11 @@ class NextProtoNegotiationTests(TestCase, _LoopbackMixin):
             client.set_connect_state()
 
             # If the client doesn't return anything, the connection will fail.
-            self.assertRaises(Error, self._interactInMemory, server, client)
+            with pytest.raises(Error):
+                interact_in_memory(server, client)
 
-            self.assertEqual([(server,)], advertise_args)
-            self.assertEqual([(client, [b'http/1.1', b'spdy/2'])], select_args)
+            assert advertise_args == [(server,)]
+            assert select_args == [(client, [b'http/1.1', b'spdy/2'])]
 
         def test_npn_select_error(self):
             """
@@ -1808,10 +1809,9 @@ class NextProtoNegotiationTests(TestCase, _LoopbackMixin):
             client.set_connect_state()
 
             # If the callback throws an exception it should be raised here.
-            self.assertRaises(
-                TypeError, self._interactInMemory, server, client
-            )
-            self.assertEqual([(server,)], advertise_args)
+            with pytest.raises(TypeError):
+                interact_in_memory(server, client)
+            assert advertise_args == [(server,),]
 
         def test_npn_advertise_error(self):
             """
@@ -1850,10 +1850,9 @@ class NextProtoNegotiationTests(TestCase, _LoopbackMixin):
             client.set_connect_state()
 
             # If the client doesn't return anything, the connection will fail.
-            self.assertRaises(
-                TypeError, self._interactInMemory, server, client
-            )
-            self.assertEqual([], select_args)
+            with pytest.raises(TypeError):
+                interact_in_memory(server, client)
+            assert select_args == []
 
     else:
         # No NPN.
@@ -1865,9 +1864,8 @@ class NextProtoNegotiationTests(TestCase, _LoopbackMixin):
                 context.set_npn_select_callback,
             ]
             for method in fail_methods:
-                self.assertRaises(
-                    NotImplementedError, method, None
-                )
+                with pytest.raises(NotImplementedError):
+                    method(None)
 
             # Now test a connection.
             conn = Connection(context)
@@ -1875,7 +1873,8 @@ class NextProtoNegotiationTests(TestCase, _LoopbackMixin):
                 conn.get_next_proto_negotiated,
             ]
             for method in fail_methods:
-                self.assertRaises(NotImplementedError, method)
+                with pytest.raises(NotImplementedError):
+                    method()
 
 
 class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
