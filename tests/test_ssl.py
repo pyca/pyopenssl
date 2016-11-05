@@ -1811,7 +1811,7 @@ class TestNextProtoNegotiation():
             # If the callback throws an exception it should be raised here.
             with pytest.raises(TypeError):
                 interact_in_memory(server, client)
-            assert advertise_args == [(server,),]
+            assert advertise_args == [(server,), ]
 
         def test_npn_advertise_error(self):
             """
