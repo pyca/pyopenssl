@@ -1854,7 +1854,7 @@ class TestNextProtoNegotiation(object):
         assert select_args == []
 
 
-class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
+class TestApplicationLayerProtoNegotiation(object):
     """
     Tests for ALPN in PyOpenSSL.
     """
@@ -1892,12 +1892,12 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
             client = Connection(client_context, None)
             client.set_connect_state()
 
-            self._interactInMemory(server, client)
+            interact_in_memory(server, client)
 
-            self.assertEqual([(server, [b'http/1.1', b'spdy/2'])], select_args)
+            assert select_args == [(server, [b'http/1.1', b'spdy/2'])]
 
-            self.assertEqual(server.get_alpn_proto_negotiated(), b'spdy/2')
-            self.assertEqual(client.get_alpn_proto_negotiated(), b'spdy/2')
+            assert server.get_alpn_proto_negotiated() == b'spdy/2'
+            assert client.get_alpn_proto_negotiated() == b'spdy/2'
 
         def test_alpn_set_on_connection(self):
             """
@@ -1931,12 +1931,12 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
             client.set_alpn_protos([b'http/1.1', b'spdy/2'])
             client.set_connect_state()
 
-            self._interactInMemory(server, client)
+            interact_in_memory(server, client)
 
-            self.assertEqual([(server, [b'http/1.1', b'spdy/2'])], select_args)
+            assert select_args == [(server, [b'http/1.1', b'spdy/2'])]
 
-            self.assertEqual(server.get_alpn_proto_negotiated(), b'spdy/2')
-            self.assertEqual(client.get_alpn_proto_negotiated(), b'spdy/2')
+            assert server.get_alpn_proto_negotiated() == b'spdy/2'
+            assert client.get_alpn_proto_negotiated() == b'spdy/2'
 
         def test_alpn_server_fail(self):
             """
@@ -1969,9 +1969,10 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
             client.set_connect_state()
 
             # If the client doesn't return anything, the connection will fail.
-            self.assertRaises(Error, self._interactInMemory, server, client)
+            with pytest.raises(Error):
+                interact_in_memory(server, client)
 
-            self.assertEqual([(server, [b'http/1.1', b'spdy/2'])], select_args)
+            assert select_args == [(server, [b'http/1.1', b'spdy/2'])]
 
         def test_alpn_no_server(self):
             """
@@ -1997,9 +1998,9 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
             client.set_connect_state()
 
             # Do the dance.
-            self._interactInMemory(server, client)
+            interact_in_memory(server, client)
 
-            self.assertEqual(client.get_alpn_proto_negotiated(), b'')
+            assert client.get_alpn_proto_negotiated() == b''
 
         def test_alpn_callback_exception(self):
             """
@@ -2030,10 +2031,9 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
             client = Connection(client_context, None)
             client.set_connect_state()
 
-            self.assertRaises(
-                TypeError, self._interactInMemory, server, client
-            )
-            self.assertEqual([(server, [b'http/1.1', b'spdy/2'])], select_args)
+            with pytest.raises(TypeError):
+                interact_in_memory(server, client)
+            assert select_args == [(server, [b'http/1.1', b'spdy/2'])]
 
     else:
         # No ALPN.
@@ -2043,18 +2043,15 @@ class ApplicationLayerProtoNegotiationTests(TestCase, _LoopbackMixin):
             """
             # Test the context methods first.
             context = Context(TLSv1_METHOD)
-            self.assertRaises(
-                NotImplementedError, context.set_alpn_protos, None
-            )
-            self.assertRaises(
-                NotImplementedError, context.set_alpn_select_callback, None
-            )
+            with pytest.raises(NotImplementedError):
+                context.set_alpn_protos(None)
+            with pytest.raises(NotImplementedError):
+                context.set_alpn_select_callback(None)
 
             # Now test a connection.
             conn = Connection(context)
-            self.assertRaises(
-                NotImplementedError, conn.set_alpn_protos, None
-            )
+            with pytest.raises(NotImplementedError):
+                conn.set_alpn_protos(None)
 
 
 class SessionTests(TestCase):
