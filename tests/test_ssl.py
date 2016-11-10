@@ -2054,7 +2054,7 @@ class TestApplicationLayerProtoNegotiation(object):
                 conn.set_alpn_protos(None)
 
 
-class SessionTests(TestCase):
+class TestSession(object):
     """
     Unit tests for :py:obj:`OpenSSL.SSL.Session`.
     """
@@ -2064,16 +2064,7 @@ class SessionTests(TestCase):
         a new instance of that type.
         """
         new_session = Session()
-        self.assertTrue(isinstance(new_session, Session))
-
-    def test_construction_wrong_args(self):
-        """
-        If any arguments are passed to :py:class:`Session`, :py:obj:`TypeError`
-        is raised.
-        """
-        self.assertRaises(TypeError, Session, 123)
-        self.assertRaises(TypeError, Session, "hello")
-        self.assertRaises(TypeError, Session, object())
+        assert isinstance(new_session, Session)
 
 
 class ConnectionTests(TestCase, _LoopbackMixin):
