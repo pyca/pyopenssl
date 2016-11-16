@@ -526,6 +526,10 @@ zo0MUVPQgwJ3aJtNM1QMOQUayCrRwfklg+D/rFSUwEUqtZh7fJDiFqz3
 
 @pytest.fixture
 def x509_data():
+    """
+    Create a new private key and start a certificate request (for a test
+    to finish in one way or another).
+    """
     # Basic setup stuff to generate a certificate
     pkey = PKey()
     pkey.generate_key(TYPE_RSA, 384)
@@ -547,23 +551,25 @@ def x509_data():
 
 class TestX509Ext(object):
     """
-    Tests for :py:class:`OpenSSL.crypto.X509Extension`.
+    Tests for `OpenSSL.crypto.X509Extension`.
     """
 
     def test_str(self):
         """
-        The string representation of :py:class:`X509Extension` instances as
-        returned by :py:data:`str` includes stuff.
+        The string representation of `X509Extension` instances as
+        returned by `str` includes stuff.
         """
         # This isn't necessarily the best string representation.  Perhaps it
         # will be changed/improved in the future.
-        assert str(X509Extension(b'basicConstraints', True, b'CA:false')) == \
+        assert (
+            str(X509Extension(b'basicConstraints', True, b'CA:false')) ==
             'CA:FALSE'
+        )
 
     def test_type(self):
         """
-        :py:class:`X509Extension` and :py:class:`X509ExtensionType` refer to
-        the same type object and can be used to create instances of that type.
+        `X509Extension` and `X509ExtensionType` refer to the same type object
+        and can be used to create instances of that type.
         """
         assert X509Extension is X509ExtensionType
         assert is_consistent_type(
@@ -572,9 +578,8 @@ class TestX509Ext(object):
 
     def test_construction(self):
         """
-        :py:class:`X509Extension` accepts an extension type name, a critical
-        flag, and an extension value and returns an
-        :py:class:`X509ExtensionType` instance.
+        `X509Extension` accepts an extension type name, a critical flag,
+        and an extension value and returns an `X509ExtensionType` instance.
         """
         basic = X509Extension(b'basicConstraints', True, b'CA:true')
         assert isinstance(basic, X509ExtensionType)
@@ -595,7 +600,7 @@ class TestX509Ext(object):
     ])
     def test_invalid_extension(self, type_name, critical, value):
         """
-        :py:class:`X509Extension` raises something if it is passed a bad
+        `X509Extension` raises something if it is passed a bad
         extension name or value.
         """
         with pytest.raises(Error):
@@ -604,7 +609,7 @@ class TestX509Ext(object):
     @pytest.mark.parametrize('critical_flag', [True, False])
     def test_get_critical(self, critical_flag):
         """
-        :py:meth:`X509ExtensionType.get_critical` returns the value of the
+        `X509ExtensionType.get_critical` returns the value of the
         extension's critical flag.
         """
         ext = X509Extension(b'basicConstraints', critical_flag, b'CA:true')
@@ -616,7 +621,7 @@ class TestX509Ext(object):
     ])
     def test_get_short_name(self, short_name, value):
         """
-        :py:meth:`X509ExtensionType.get_short_name` returns a string giving the
+        `X509ExtensionType.get_short_name` returns a string giving the
         short type name of the extension.
         """
         ext = X509Extension(short_name, True, value)
@@ -624,32 +629,17 @@ class TestX509Ext(object):
 
     def test_get_data(self):
         """
-        :py:meth:`X509Extension.get_data` returns a string giving the data of
+        `X509Extension.get_data` returns a string giving the data of
         the extension.
         """
         ext = X509Extension(b'basicConstraints', True, b'CA:true')
         # Expect to get back the DER encoded form of CA:true.
         assert ext.get_data() == b'0\x03\x01\x01\xff'
 
-    @pytest.mark.parametrize('args', [
-        (None,),
-        ("foo",),
-        (7,)
-    ])
-    def test_get_data_wrong_args(self, args):
-        """
-        :py:meth:`X509Extension.get_data` raises :py:exc:`TypeError` if passed
-        any arguments.
-        """
-        ext = X509Extension(b'basicConstraints', True, b'CA:true')
-        with pytest.raises(TypeError):
-            ext.get_data(*args)
-
     def test_unused_subject(self, x509_data):
         """
-        The :py:data:`subject` parameter to :py:class:`X509Extension` may be
-        provided for an extension which does not use it and is ignored in this
-        case.
+        The `subject` parameter to `X509Extension` may be provided for an
+        extension which does not use it and is ignored in this case.
         """
         pkey, x509 = x509_data
         ext1 = X509Extension(
@@ -663,8 +653,8 @@ class TestX509Ext(object):
 
     def test_subject(self, x509_data):
         """
-        If an extension requires a subject, the :py:data:`subject` parameter to
-        :py:class:`X509Extension` provides its value.
+        If an extension requires a subject, the `subject` parameter to
+        `X509Extension` provides its value.
         """
         pkey, x509 = x509_data
         ext3 = X509Extension(
@@ -676,7 +666,7 @@ class TestX509Ext(object):
 
     def test_missing_subject(self):
         """
-        If an extension requires a subject and the :py:data:`subject` parameter
+        If an extension requires a subject and the `subject` parameter
         is given no value, something happens.
         """
         with pytest.raises(Error):
@@ -690,8 +680,8 @@ class TestX509Ext(object):
     ])
     def test_invalid_subject(self, bad_obj):
         """
-        If the :py:data:`subject` parameter is given a value which is not an
-        :py:class:`X509` instance, :py:exc:`TypeError` is raised.
+        If the `subject` parameter is given a value which is not an
+        `X509` instance, `TypeError` is raised.
         """
         with pytest.raises(TypeError):
             X509Extension(
@@ -699,9 +689,8 @@ class TestX509Ext(object):
 
     def test_unused_issuer(self, x509_data):
         """
-        The :py:data:`issuer` parameter to :py:class:`X509Extension` may be
-        provided for an extension which does not use it and is ignored in this
-        case.
+        The `issuer` parameter to `X509Extension` may be provided for an
+        extension which does not use it and is ignored in this case.
         """
         pkey, x509 = x509_data
         ext1 = X509Extension(
@@ -714,8 +703,8 @@ class TestX509Ext(object):
 
     def test_issuer(self, x509_data):
         """
-        If an extension requires an issuer, the :py:data:`issuer` parameter to
-        :py:class:`X509Extension` provides its value.
+        If an extension requires an issuer, the `issuer` parameter to
+        `X509Extension` provides its value.
         """
         pkey, x509 = x509_data
         ext2 = X509Extension(
@@ -745,8 +734,8 @@ class TestX509Ext(object):
     ])
     def test_invalid_issuer(self, bad_obj):
         """
-        If the :py:data:`issuer` parameter is given a value which is not an
-        :py:class:`X509` instance, :py:exc:`TypeError` is raised.
+        If the `issuer` parameter is given a value which is not an
+        `X509` instance, `TypeError` is raised.
         """
         with pytest.raises(TypeError):
             X509Extension(
