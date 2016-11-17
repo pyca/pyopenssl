@@ -310,7 +310,7 @@ class TestCase(TestCase):
 
 def is_consistent_type(theType, name, *constructionArgs):
     """
-    Perform various assertions about `theType` to ensure that it is a
+    Perform various assertions about *theType* to ensure that it is a
     well-defined type.  This is useful for extension types, where it's
     pretty easy to do something wacky.  If something about the type is
     unusual, an exception will be raised.

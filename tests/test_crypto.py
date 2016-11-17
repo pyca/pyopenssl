@@ -718,8 +718,8 @@ class TestX509Ext(object):
 
     def test_missing_issuer(self):
         """
-        If an extension requires an issue and the :py:data:`issuer` parameter
-        is given no value, something happens.
+        If an extension requires an issue and the `issuer` parameter is
+        given no value, something happens.
         """
         with pytest.raises(Error):
             X509Extension(
