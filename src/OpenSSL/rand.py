@@ -31,6 +31,7 @@ class Error(Exception):
     See :manpage:`err(3)` for more information.
     """
 
+
 _raise_current_error = partial(_exception_from_error_queue, Error)
 
 _unspecified = object()
@@ -201,6 +202,7 @@ def screen():
     :return: None
     """
     _lib.RAND_screen()
+
 
 if getattr(_lib, 'RAND_screen', None) is None:
     del screen
