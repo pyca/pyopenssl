@@ -318,7 +318,7 @@ def is_consistent_type(theType, name, *constructionArgs):
     :param theType: The type object about which to make assertions.
     :param name: A string giving the name of the type.
     :param constructionArgs: Positional arguments to use with
-        `theType` to create an instance of it.
+        *theType* to create an instance of it.
     """
     assert theType.__name__ == name
     assert isinstance(theType, type)
