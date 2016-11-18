@@ -2477,7 +2477,9 @@ class _PassphraseHelper(object):
         elif callable(self._passphrase):
             return _ffi.callback("pem_password_cb", self._read_passphrase)
         else:
-            raise TypeError("Last argument must be string or callable")
+            raise TypeError(
+                "Last argument must be a byte string or a callable."
+            )
 
     @property
     def callback_args(self):
@@ -2488,7 +2490,9 @@ class _PassphraseHelper(object):
         elif callable(self._passphrase):
             return _ffi.NULL
         else:
-            raise TypeError("Last argument must be string or callable")
+            raise TypeError(
+                "Last argument must be a byte string or a callable."
+            )
 
     def raise_if_problem(self, exceptionType=Error):
         try:
