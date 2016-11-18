@@ -316,6 +316,8 @@ class PKey(object):
         :return: The number of bits of the key.
         """
         return _lib.EVP_PKEY_bits(self._pkey)
+
+
 PKeyType = PKey
 
 
@@ -2179,6 +2181,7 @@ class PKCS7(object):
         nid = _lib.OBJ_obj2nid(self._pkcs7.type)
         string_type = _lib.OBJ_nid2sn(nid)
         return _ffi.string(string_type)
+
 
 PKCS7Type = PKCS7
 

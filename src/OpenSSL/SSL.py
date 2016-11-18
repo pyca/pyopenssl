@@ -1065,6 +1065,7 @@ class Context(object):
         _lib.SSL_CTX_set_alpn_select_cb(
             self._context, self._alpn_select_callback, _ffi.NULL)
 
+
 ContextType = Context
 
 

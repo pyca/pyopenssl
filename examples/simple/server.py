@@ -67,6 +67,7 @@ def dropClient(cli, errors=None):
         cli.shutdown()
     cli.close()
 
+
 while 1:
     try:
         r, w, _ = select.select(
