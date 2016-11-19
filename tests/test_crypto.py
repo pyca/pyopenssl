@@ -37,7 +37,7 @@ from OpenSSL.crypto import load_publickey, dump_publickey
 from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT
 from OpenSSL.crypto import dump_certificate, load_certificate_request
 from OpenSSL.crypto import dump_certificate_request, dump_privatekey
-from OpenSSL.crypto import PKCS7Type, load_pkcs7_data
+from OpenSSL.crypto import PKCS7, PKCS7Type, load_pkcs7_data
 from OpenSSL.crypto import PKCS12, PKCS12Type, load_pkcs12
 from OpenSSL.crypto import CRL, Revoked, dump_crl, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
@@ -2961,111 +2961,68 @@ class LoadCertificateTests(TestCase):
             load_certificate(FILETYPE_ASN1, b"lol")
 
 
-class PKCS7Tests(TestCase):
+class TestPKCS7(object):
     """
-    Tests for :py:obj:`PKCS7Type`.
+    Tests for `PKCS7Type`.
     """
 
     def test_type(self):
         """
-        :py:obj:`PKCS7Type` is a type object.
+        `PKCS7Type` is a type object.
         """
-        self.assertTrue(isinstance(PKCS7Type, type))
-        self.assertEqual(PKCS7Type.__name__, 'PKCS7')
-
-        # XXX This doesn't currently work.
-        # self.assertIdentical(PKCS7, PKCS7Type)
+        assert isinstance(PKCS7Type, type)
+        assert PKCS7Type.__name__ == 'PKCS7'
+        assert PKCS7 is PKCS7Type
 
     # XXX Opposite results for all these following methods
 
-    def test_type_is_signed_wrong_args(self):
-        """
-        :py:obj:`PKCS7Type.type_is_signed` raises :py:obj:`TypeError` if called
-        with any arguments.
-        """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertRaises(TypeError, pkcs7.type_is_signed, None)
-
     def test_type_is_signed(self):
         """
-        :py:obj:`PKCS7Type.type_is_signed` returns :py:obj:`True` if the PKCS7
-        object is of the type *signed*.
+        `PKCS7Type.type_is_signed` returns `True` if the PKCS7 object is
+        of the type *signed*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertTrue(pkcs7.type_is_signed())
-
-    def test_type_is_enveloped_wrong_args(self):
-        """
-        :py:obj:`PKCS7Type.type_is_enveloped` raises :py:obj:`TypeError` if
-        called with any arguments.
-        """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertRaises(TypeError, pkcs7.type_is_enveloped, None)
+        assert pkcs7.type_is_signed() is True
 
     def test_type_is_enveloped(self):
         """
-        :py:obj:`PKCS7Type.type_is_enveloped` returns :py:obj:`False` if the
-        PKCS7 object is not of the type *enveloped*.
+        `PKCS7Type.type_is_enveloped` returns `False` if the PKCS7 object
+        is not of the type *enveloped*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertFalse(pkcs7.type_is_enveloped())
-
-    def test_type_is_signedAndEnveloped_wrong_args(self):
-        """
-        :py:obj:`PKCS7Type.type_is_signedAndEnveloped` raises
-        :py:obj:`TypeError` if called with any arguments.
-        """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertRaises(TypeError, pkcs7.type_is_signedAndEnveloped, None)
+        assert pkcs7.type_is_enveloped() is False
 
     def test_type_is_signedAndEnveloped(self):
         """
-        :py:obj:`PKCS7Type.type_is_signedAndEnveloped` returns :py:obj:`False`
-        if the PKCS7 object is not of the type *signed and enveloped*.
+        `PKCS7Type.type_is_signedAndEnveloped` returns `False` if the
+        PKCS7 object is not of the type *signed and enveloped*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertFalse(pkcs7.type_is_signedAndEnveloped())
+        assert pkcs7.type_is_signedAndEnveloped() is False
 
     def test_type_is_data(self):
         """
-        :py:obj:`PKCS7Type.type_is_data` returns :py:obj:`False` if the PKCS7
-        object is not of the type data.
+        `PKCS7Type.type_is_data` returns `False` if the PKCS7 object is
+        not of the type data.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertFalse(pkcs7.type_is_data())
-
-    def test_type_is_data_wrong_args(self):
-        """
-        :py:obj:`PKCS7Type.type_is_data` raises :py:obj:`TypeError` if called
-        with any arguments.
-        """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertRaises(TypeError, pkcs7.type_is_data, None)
-
-    def test_get_type_name_wrong_args(self):
-        """
-        :py:obj:`PKCS7Type.get_type_name` raises :py:obj:`TypeError` if called
-        with any arguments.
-        """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertRaises(TypeError, pkcs7.get_type_name, None)
+        assert pkcs7.type_is_data() is False
 
     def test_get_type_name(self):
         """
-        :py:obj:`PKCS7Type.get_type_name` returns a :py:obj:`str` giving the
-        type name.
+        `PKCS7Type.get_type_name` returns a `str` giving the type name.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertEquals(pkcs7.get_type_name(), b'pkcs7-signedData')
+        assert pkcs7.get_type_name() == b'pkcs7-signedData'
 
     def test_attribute(self):
         """
         If an attribute other than one of the methods tested here is accessed
-        on an instance of :py:obj:`PKCS7Type`, :py:obj:`AttributeError` is
-        raised.
+        on an instance of `PKCS7Type`, `AttributeError` is raised.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertRaises(AttributeError, getattr, pkcs7, "foo")
+        with pytest.raises(AttributeError):
+            getattr(pkcs7, "foo")
 
 
 class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):
