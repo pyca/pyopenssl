@@ -1526,7 +1526,8 @@ class X509Store(object):
 
         .. note::
 
-          For example, you can determine if a certificate was valid at a given time.
+          For example, you can determine if a certificate was valid at a given
+          time.
 
         .. versionadded:: 16.3.0
 
