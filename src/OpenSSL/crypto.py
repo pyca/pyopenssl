@@ -1520,9 +1520,15 @@ class X509Store(object):
 
     def set_time(self, vfy_time):
         """
-        Set verification time to this store.
+        Set the time against which the certificates are verified.
 
-        .. versionadded: 16.3.0
+        Normally the current time is used.
+
+        .. note::
+
+          For example, you can determine if a certificate was valid at a given time.
+
+        .. versionadded:: 16.3.0
 
         :param datetime vfy_time: The verification time to set on this store.
         :return: ``None`` if the verification time was successfully set.
