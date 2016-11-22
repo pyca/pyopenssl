@@ -475,6 +475,15 @@ class Context(object):
         _openssl_assert(context != _ffi.NULL)
         context = _ffi.gc(context, _lib.SSL_CTX_free)
 
+        # If SSL_CTX_set_ecdh_auto is available then set it so the ECDH curve
+        # will be auto-selected. This function was added in 1.0.2 and made a
+        # noop in 1.1.0+ (where it is set automatically).
+        try:
+            res = _lib.SSL_CTX_set_ecdh_auto(context, 1)
+            _openssl_assert(res == 1)
+        except AttributeError:
+            pass
+
         self._context = context
         self._passphrase_helper = None
         self._passphrase_callback = None

@@ -29,6 +29,8 @@ Changes:
   This reduces CPU usage and memory allocation time by an amount proportional to the size of the allocation.
   For applications that process a lot of TLS data or that use very lage allocations this can provide considerable performance improvements.
   `#578 <https://github.com/pyca/pyopenssl/pull/578>`_
+- Automatically set `SSL_CTX_set_ecdh_auto()` on ``OpenSSL.SSL.Context``.
+  `#575 <https://github.com/pyca/pyopenssl/pull/575>`_
 
 
 ----
