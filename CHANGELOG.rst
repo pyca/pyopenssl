@@ -23,7 +23,8 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-*none*
+- Added ``OpenSSL.X509Store.set_time()`` to set a custom verification time when verifying certificate chains.
+  `#567 <https://github.com/pyca/pyopenssl/pull/567>`_
 
 
 ----

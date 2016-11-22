@@ -1520,6 +1520,28 @@ class X509Store(object):
         """
         _openssl_assert(_lib.X509_STORE_set_flags(self._store, flags) != 0)
 
+    def set_time(self, vfy_time):
+        """
+        Set the time against which the certificates are verified.
+
+        Normally the current time is used.
+
+        .. note::
+
+          For example, you can determine if a certificate was valid at a given
+          time.
+
+        .. versionadded:: 16.3.0
+
+        :param datetime vfy_time: The verification time to set on this store.
+        :return: ``None`` if the verification time was successfully set.
+        """
+        param = _lib.X509_VERIFY_PARAM_new()
+        param = _ffi.gc(param, _lib.X509_VERIFY_PARAM_free)
+
+        _lib.X509_VERIFY_PARAM_set_time(param, int(vfy_time.strftime('%s')))
+        _openssl_assert(_lib.X509_STORE_set1_param(self._store, param) != 0)
+
 
 X509StoreType = X509Store
 
