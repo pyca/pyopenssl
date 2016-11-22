@@ -1514,6 +1514,7 @@ class X509Store(object):
 
         :param int flags: The verification flags to set on this store.
             See :class:`X509StoreFlags` for available constants.
+        :return: ``None`` if the verification flags were successfully set.
         """
         _openssl_assert(_lib.X509_STORE_set_flags(self._store, flags) != 0)
 
