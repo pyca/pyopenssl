@@ -3742,7 +3742,7 @@ class X509StoreContextTests(TestCase):
 
     def test_verify_with_time(self):
         """
-        :func:`verify_certificate` raises error when the verification time is
+        `verify_certificate` raises error when the verification time is
         set at notAfter.
         """
         store = X509Store()
