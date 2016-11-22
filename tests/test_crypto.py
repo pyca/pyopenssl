@@ -2963,12 +2963,12 @@ class LoadCertificateTests(TestCase):
 
 class TestPKCS7(object):
     """
-    Tests for `PKCS7Type`.
+    Tests for `PKCS7`.
     """
 
     def test_type(self):
         """
-        `PKCS7Type` is a type object.
+        `PKCS7` is a type object.
         """
         assert isinstance(PKCS7Type, type)
         assert PKCS7Type.__name__ == 'PKCS7'
@@ -2978,39 +2978,39 @@ class TestPKCS7(object):
 
     def test_type_is_signed(self):
         """
-        `PKCS7Type.type_is_signed` returns `True` if the PKCS7 object is
-        of the type *signed*.
+        `PKCS7.type_is_signed` returns `True` if the PKCS7 object is of the
+        type *signed*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         assert pkcs7.type_is_signed() is True
 
     def test_type_is_enveloped(self):
         """
-        `PKCS7Type.type_is_enveloped` returns `False` if the PKCS7 object
-        is not of the type *enveloped*.
+        `PKCS7.type_is_enveloped` returns `False` if the PKCS7 object is not
+        of the type *enveloped*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         assert pkcs7.type_is_enveloped() is False
 
     def test_type_is_signedAndEnveloped(self):
         """
-        `PKCS7Type.type_is_signedAndEnveloped` returns `False` if the
-        PKCS7 object is not of the type *signed and enveloped*.
+        `PKCS7.type_is_signedAndEnveloped` returns `False` if the PKCS7
+        object is not of the type *signed and enveloped*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         assert pkcs7.type_is_signedAndEnveloped() is False
 
     def test_type_is_data(self):
         """
-        `PKCS7Type.type_is_data` returns `False` if the PKCS7 object is
-        not of the type data.
+        `PKCS7.type_is_data` returns `False` if the PKCS7 object is not of
+        the type *data*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         assert pkcs7.type_is_data() is False
 
     def test_get_type_name(self):
         """
-        `PKCS7Type.get_type_name` returns a `str` giving the type name.
+        `PKCS7.get_type_name` returns a `str` giving the type name.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         assert pkcs7.get_type_name() == b'pkcs7-signedData'
@@ -3018,7 +3018,7 @@ class TestPKCS7(object):
     def test_attribute(self):
         """
         If an attribute other than one of the methods tested here is accessed
-        on an instance of `PKCS7Type`, `AttributeError` is raised.
+        on an instance of `PKCS7`, `AttributeError` is raised.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
         with pytest.raises(AttributeError):
