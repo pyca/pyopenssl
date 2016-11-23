@@ -3115,9 +3115,12 @@ class TestRevoked(object):
         with pytest.raises(ValueError):
             revoked.set_serial(b'pqrst')
 
-        for bad_serial in [100, 1, None, ""]:
+        with pytest.raises(TypeError):
+            revoked.set_serial(100)
+
+        for bad_serial in [1, None, ""]:
             with pytest.raises(TypeError):
-                revoked.set_serial(bad_serial)
+                revoked.get_serial(bad_serial)
 
     def test_date(self):
         """
