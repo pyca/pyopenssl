@@ -3864,52 +3864,52 @@ class SignVerifyTests(TestCase):
         sign(priv_key, content, "sha1")
 
 
-class EllipticCurveTests(TestCase):
+class TestEllipticCurve(object):
     """
-    Tests for :py:class:`_EllipticCurve`, :py:obj:`get_elliptic_curve`, and
-    :py:obj:`get_elliptic_curves`.
+    Tests for `_EllipticCurve`, `get_elliptic_curve`, and
+    `get_elliptic_curves`.
     """
 
     def test_set(self):
         """
-        :py:obj:`get_elliptic_curves` returns a :py:obj:`set`.
+        `get_elliptic_curves` returns a `set`.
         """
-        self.assertIsInstance(get_elliptic_curves(), set)
+        assert isinstance(get_elliptic_curves(), set)
 
     def test_some_curves(self):
         """
-        If :py:mod:`cryptography` has elliptic curve support then the set
-        returned by :py:obj:`get_elliptic_curves` has some elliptic curves in
-        it.
+        If `cryptography` has elliptic curve support then the set returned by
+        `get_elliptic_curves` has some elliptic curves in it.
 
         There could be an OpenSSL that violates this assumption.  If so, this
         test will fail and we'll find out.
         """
         curves = get_elliptic_curves()
         if lib.Cryptography_HAS_EC:
-            self.assertTrue(curves)
+            assert curves
         else:
-            self.assertFalse(curves)
+            assert not curves
 
     def test_a_curve(self):
         """
-        :py:obj:`get_elliptic_curve` can be used to retrieve a particular
-        supported curve.
+        `get_elliptic_curve` can be used to retrieve a particular supported
+        curve.
         """
         curves = get_elliptic_curves()
         if curves:
             curve = next(iter(curves))
-            self.assertEqual(curve.name, get_elliptic_curve(curve.name).name)
+            assert curve.name == get_elliptic_curve(curve.name).name
         else:
-            self.assertRaises(ValueError, get_elliptic_curve, u"prime256v1")
+            with pytest.raises(ValueError):
+                get_elliptic_curve(u"prime256v1")
 
     def test_not_a_curve(self):
         """
-        :py:obj:`get_elliptic_curve` raises :py:class:`ValueError` if called
-        with a name which does not identify a supported curve.
+        `get_elliptic_curve` raises `ValueError` if called with a name which
+        does not identify a supported curve.
         """
-        self.assertRaises(
-            ValueError, get_elliptic_curve, u"this curve was just invented")
+        with pytest.raises(ValueError):
+            get_elliptic_curve(u"this curve was just invented")
 
     def test_repr(self):
         """
@@ -3919,12 +3919,12 @@ class EllipticCurveTests(TestCase):
         curves = get_elliptic_curves()
         if curves:
             curve = next(iter(curves))
-            self.assertEqual("<Curve %r>" % (curve.name,), repr(curve))
+            assert "<Curve %r>" % (curve.name,) == repr(curve)
 
     def test_to_EC_KEY(self):
         """
         The curve object can export a version of itself as an EC_KEY* via the
-        private :py:meth:`_EllipticCurve._to_EC_KEY`.
+        private `_EllipticCurve._to_EC_KEY`.
         """
         curves = get_elliptic_curves()
         if curves:
@@ -3949,9 +3949,9 @@ class EllipticCurveFactory(object):
             self.curve_name = self.another_curve_name = None
 
 
-class EllipticCurveEqualityTests(TestCase, EqualityTestsMixin):
+class TestEllipticCurveEquality(EqualityTestsMixin):
     """
-    Tests :py:type:`_EllipticCurve`\ 's implementation of ``==`` and ``!=``.
+    Tests `_EllipticCurve`\ 's implementation of ``==`` and ``!=``.
     """
     curve_factory = EllipticCurveFactory()
 
@@ -3972,10 +3972,10 @@ class EllipticCurveEqualityTests(TestCase, EqualityTestsMixin):
         return get_elliptic_curve(self.curve_factory.another_curve_name)
 
 
-class EllipticCurveHashTests(TestCase):
+class TestEllipticCurveHash(object):
     """
-    Tests for :py:type:`_EllipticCurve`\ 's implementation of hashing (thus use
-    as an item in a :py:type:`dict` or :py:type:`set`).
+    Tests for `_EllipticCurve`'s implementation of hashing (thus use as
+    an item in a `dict` or `set`).
     """
     curve_factory = EllipticCurveFactory()
 
@@ -3984,20 +3984,20 @@ class EllipticCurveHashTests(TestCase):
 
     def test_contains(self):
         """
-        The ``in`` operator reports that a :py:type:`set` containing a curve
-        does contain that curve.
+        The ``in`` operator reports that a `set` containing a curve does
+        contain that curve.
         """
         curve = get_elliptic_curve(self.curve_factory.curve_name)
         curves = set([curve])
-        self.assertIn(curve, curves)
+        assert curve in curves
 
     def test_does_not_contain(self):
         """
-        The ``in`` operator reports that a :py:type:`set` not containing a
-        curve does not contain that curve.
+        The ``in`` operator reports that a `set` not containing a curve
+        does not contain that curve.
         """
         curve = get_elliptic_curve(self.curve_factory.curve_name)
         curves = set([
             get_elliptic_curve(self.curve_factory.another_curve_name)
         ])
-        self.assertNotIn(curve, curves)
+        assert curve not in curves
