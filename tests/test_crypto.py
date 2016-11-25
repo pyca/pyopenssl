@@ -651,18 +651,18 @@ class TestX509Ext(object):
         assert b'X509v3 Basic Constraints:' in text
         assert b'CA:TRUE' in text
 
-    # def test_subject(self, x509_data):
-    #     """
-    #     If an extension requires a subject, the `subject` parameter to
-    #     `X509Extension` provides its value.
-    #     """
-    #     pkey, x509 = x509_data
-    #     ext3 = X509Extension(
-    #         b'subjectKeyIdentifier', False, b'hash', subject=x509)
-    #     x509.add_extensions([ext3])
-    #     x509.sign(pkey, 'sha1')
-    #     text = dump_certificate(FILETYPE_TEXT, x509)
-    #     assert b'X509v3 Subject Key Identifier:' in text
+    def test_subject(self, x509_data):
+        """
+        If an extension requires a subject, the `subject` parameter to
+        `X509Extension` provides its value.
+        """
+        pkey, x509 = x509_data
+        ext3 = X509Extension(
+            b'subjectKeyIdentifier', False, b'hash', subject=x509)
+        x509.add_extensions([ext3])
+        x509.sign(pkey, 'sha1')
+        text = dump_certificate(FILETYPE_TEXT, x509)
+        assert b'X509v3 Subject Key Identifier:' in text
 
     def test_missing_subject(self):
         """
