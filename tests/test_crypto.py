@@ -668,7 +668,7 @@ class TestX509Ext(object):
         text = dump_certificate(FILETYPE_TEXT, x509)
         # assert False, 'point 5'
         assert b'X509v3 Subject Key Identifier:' in text
-        assert False, 'point 6'
+        # assert False, 'point 6'
 
     def test_missing_subject(self):
         """
