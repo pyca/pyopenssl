@@ -660,7 +660,7 @@ class TestX509Ext(object):
         # assert False, 'point 1'
         ext3 = X509Extension(
             b'subjectKeyIdentifier', False, b'hash', subject=x509)
-        assert False, 'point 2'
+        # assert False, 'point 2'
         x509.add_extensions([ext3])
         assert False, 'point 3'
         x509.sign(pkey, 'sha1')
