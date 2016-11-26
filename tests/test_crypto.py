@@ -657,7 +657,7 @@ class TestX509Ext(object):
         `X509Extension` provides its value.
         """
         pkey, x509 = x509_data
-        assert False, 'point 1'
+        # assert False, 'point 1'
         ext3 = X509Extension(
             b'subjectKeyIdentifier', False, b'hash', subject=x509)
         assert False, 'point 2'
