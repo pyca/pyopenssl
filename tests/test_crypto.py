@@ -664,7 +664,7 @@ class TestX509Ext(object):
         x509.add_extensions([ext3])
         # assert False, 'point 3'
         x509.sign(pkey, 'sha1')
-        assert False, 'point 4'
+        # assert False, 'point 4'
         text = dump_certificate(FILETYPE_TEXT, x509)
         assert False, 'point 5'
         assert b'X509v3 Subject Key Identifier:' in text
