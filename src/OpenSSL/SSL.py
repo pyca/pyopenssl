@@ -18,6 +18,7 @@ from OpenSSL._util import (
     native as _native,
     path_string as _path_string,
     text_to_bytes_and_warn as _text_to_bytes_and_warn,
+    no_zero_allocator as _no_zero_allocator,
 )
 
 from OpenSSL.crypto import (
@@ -1297,7 +1298,7 @@ class Connection(object):
             all other flags are ignored.
         :return: The string read from the Connection
         """
-        buf = _ffi.new("char[]", bufsiz)
+        buf = _no_zero_allocator("char[]", bufsiz)
         if flags is not None and flags & socket.MSG_PEEK:
             result = _lib.SSL_peek(self._ssl, buf, bufsiz)
         else:
@@ -1328,7 +1329,7 @@ class Connection(object):
         # We need to create a temporary buffer. This is annoying, it would be
         # better if we could pass memoryviews straight into the SSL_read call,
         # but right now we can't. Revisit this if CFFI gets that ability.
-        buf = _ffi.new("char[]", nbytes)
+        buf = _no_zero_allocator("char[]", nbytes)
         if flags is not None and flags & socket.MSG_PEEK:
             result = _lib.SSL_peek(self._ssl, buf, nbytes)
         else:
@@ -1379,7 +1380,7 @@ class Connection(object):
         if not isinstance(bufsiz, integer_types):
             raise TypeError("bufsiz must be an integer")
 
-        buf = _ffi.new("char[]", bufsiz)
+        buf = _no_zero_allocator("char[]", bufsiz)
         result = _lib.BIO_read(self._from_ssl, buf, bufsiz)
         if result <= 0:
             self._handle_bio_errors(self._from_ssl, result)
@@ -1616,7 +1617,7 @@ class Connection(object):
             return None
         length = _lib.SSL_get_server_random(self._ssl, _ffi.NULL, 0)
         assert length > 0
-        outp = _ffi.new("unsigned char[]", length)
+        outp = _no_zero_allocator("unsigned char[]", length)
         _lib.SSL_get_server_random(self._ssl, outp, length)
         return _ffi.buffer(outp, length)[:]
 
@@ -1632,7 +1633,7 @@ class Connection(object):
 
         length = _lib.SSL_get_client_random(self._ssl, _ffi.NULL, 0)
         assert length > 0
-        outp = _ffi.new("unsigned char[]", length)
+        outp = _no_zero_allocator("unsigned char[]", length)
         _lib.SSL_get_client_random(self._ssl, outp, length)
         return _ffi.buffer(outp, length)[:]
 
@@ -1648,7 +1649,7 @@ class Connection(object):
 
         length = _lib.SSL_SESSION_get_master_key(session, _ffi.NULL, 0)
         assert length > 0
-        outp = _ffi.new("unsigned char[]", length)
+        outp = _no_zero_allocator("unsigned char[]", length)
         _lib.SSL_SESSION_get_master_key(session, outp, length)
         return _ffi.buffer(outp, length)[:]
 
@@ -1788,7 +1789,7 @@ class Connection(object):
             # No Finished message so far.
             return None
 
-        buf = _ffi.new("char[]", size)
+        buf = _no_zero_allocator("char[]", size)
         function(self._ssl, buf, size)
         return _ffi.buffer(buf, size)[:]
 
