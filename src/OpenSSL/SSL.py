@@ -545,6 +545,9 @@ class Context(object):
         self._npn_select_callback = None
         self._alpn_select_helper = None
         self._alpn_select_callback = None
+        self._ocsp_helper = None
+        self._ocsp_callback = None
+        self._ocsp_data = None
 
         # SSL_CTX_set_app_data(self->ctx, self);
         # SSL_CTX_set_mode(self->ctx, SSL_MODE_ENABLE_PARTIAL_WRITE |
@@ -1120,6 +1123,33 @@ class Context(object):
         self._alpn_select_callback = self._alpn_select_helper.callback
         _lib.SSL_CTX_set_alpn_select_cb(
             self._context, self._alpn_select_callback, _ffi.NULL)
+
+
+    def set_ocsp_status_callback(self, callback, data=None):
+        """
+        Set a callback to provide OCSP data to be stapled to the TLS handshake.
+
+        :param callback: The callback function. It will be invoked with two
+            arguments: the Connection, and the optional arbitrary data you have
+            provided.
+        :param data: Some opaque data that will be passed into the callback
+            function when called. This can be used to avoid needing to do
+            complex data lookups or to keep track of what context is being
+            used. This parameter is optional.
+        """
+        self._ocsp_helper = _OCSPCallbackHelper(callback)
+        self._ocsp_callback = None
+        if data is None:
+            self._ocsp_data = _ffi.NULL
+        else:
+            self._ocsp_data = _ffi.new_handle(data)
+
+        rc = _lib.SSL_CTX_set_tlsext_status_cb(
+            self._context, self._ocsp_helper.callback
+        )
+        _openssl_assert(rc == 1)
+        rc = _lib.SSL_CTX_set_tlsext_status_arg(self._context, self._ocsp_data)
+        _openssl_assert(rc == 1)
 
 
 ContextType = Context
