@@ -25,7 +25,7 @@ Changes:
 
 - Added ``OpenSSL.X509Store.set_time()`` to set a custom verification time when verifying certificate chains.
   `#567 <https://github.com/pyca/pyopenssl/pull/567>`_
-- Changed the ``SSL`` module's memory allocation policy to avoid zeroing memory it allocates.
+- Changed the ``SSL`` module's memory allocation policy to avoid zeroing memory it allocates when unnecessary. This reduces CPU usage and memory allocation time by an amount proportional to the size of the allocation. For applications that process a lot of TLS data or that use very lage allocations this can provide considerable performance improvements.
   `#578 <https://github.com/pyca/pyopenssl/pull/578>`_
 
 
