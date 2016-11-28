@@ -368,6 +368,61 @@ class _ALPNSelectHelper(_CallbackExceptionHelper):
         )
 
 
+class _OCSPCallbackHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as an OCSP callback.
+    """
+
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ssl, cdata):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+
+                # Extract the data if any was provided.
+                if cdata != _ffi.NULL:
+                    data = _ffi.from_handle(cdata)
+                else:
+                    data = None
+
+                # Call the callback.
+                ocsp_data = callback(conn, data)
+
+                if not isinstance(ocsp_data, _binary_type):
+                    raise TypeError("OCSP callback must return a bytestring.")
+
+                # If the OCSP data was provided, we will pass it to OpenSSL.
+                # However, we have an early exit here: if no OCSP data was
+                # provided we will just exit out and tell OpenSSL that there
+                # is nothing to do.
+                if not ocsp_data:
+                    return 3  # SSL_TLSEXT_ERR_NOACK
+
+                # Pass the data to OpenSSL. Insanely, OpenSSL doesn't make a
+                # private copy of this data, so we need to keep it alive, but
+                # it *does* want to free it itself if it gets replaced. This
+                # somewhat bonkers behaviour means we need to use
+                # OPENSSL_malloc directly, which is a pain in the butt to work
+                # with. It's ok for us to "leak" the memory here because
+                # OpenSSL now owns it and will free it.
+                ocsp_data_length = len(ocsp_data)
+                data_ptr = _lib.OPENSSL_malloc(ocsp_data_length)
+                _ffi.buffer(data_ptr, ocsp_data_length)[:] = ocsp_data
+
+                _lib.SSL_set_tlsext_status_ocsp_resp(
+                    ssl, data_ptr, ocsp_data_length
+                )
+
+                return 0
+            except Exception as e:
+                self._problems.append(e)
+                return 2  # SSL_TLSEXT_ERR_ALERT_FATAL
+
+        self.callback = _ffi.callback("int (*)(SSL *, void *", wrapper)
+
+
 def _asFileDescriptor(obj):
     fd = None
     if not isinstance(obj, integer_types):
