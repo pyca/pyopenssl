@@ -25,6 +25,10 @@ Changes:
 
 - Added ``OpenSSL.X509Store.set_time()`` to set a custom verification time when verifying certificate chains.
   `#567 <https://github.com/pyca/pyopenssl/pull/567>`_
+- Added a collection of functions for working with OCSP stapling.
+  None of these functions make it possible to validate OCSP assertions, only to staple them into the handshake and to retrieve the stapled assertion if provided.
+  Users will need to write their own code to handle OCSP assertions.
+  We specifically added: ``Context.set_ocsp_server_callback``, ``Context.set_ocsp_client_callback``, and ``Connection.request_ocsp``.
 - Changed the ``SSL`` module's memory allocation policy to avoid zeroing memory it allocates when unnecessary.
   This reduces CPU usage and memory allocation time by an amount proportional to the size of the allocation.
   For applications that process a lot of TLS data or that use very lage allocations this can provide considerable performance improvements.
