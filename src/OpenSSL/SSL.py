@@ -1337,6 +1337,8 @@ class Connection(object):
             self._context._npn_select_helper.raise_if_problem()
         if self._context._alpn_select_helper is not None:
             self._context._alpn_select_helper.raise_if_problem()
+        if self._context._ocsp_helper is not None:
+            self._context._ocsp_helper.raise_if_problem()
 
         error = _lib.SSL_get_error(ssl, result)
         if error == _lib.SSL_ERROR_WANT_READ:
