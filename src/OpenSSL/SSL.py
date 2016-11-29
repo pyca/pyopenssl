@@ -368,9 +368,24 @@ class _ALPNSelectHelper(_CallbackExceptionHelper):
         )
 
 
-class _OCSPCallbackHelper(_CallbackExceptionHelper):
+class _OCSPServerCallbackHelper(_CallbackExceptionHelper):
     """
-    Wrap a callback such that it can be used as an OCSP callback.
+    Wrap a callback such that it can be used as an OCSP callback for the server
+    side.
+
+    Annoyingly, OpenSSL defines one OCSP callback but uses it in two different
+    ways. For servers, that callback is expected to retrieve some OCSP data and
+    hand it to OpenSSL, and may return only SSL_TLSEXT_ERR_OK,
+    SSL_TLSEXT_ERR_FATAL, and SSL_TLSEXT_ERR_NOACK. For clients, that callback
+    is expected to check the OCSP data, and returns a negative value on error,
+    0 if the response is not acceptable, or positive if it is. These are
+    mutually exclusive return code behaviours, and they mean that we need two
+    helpers so that we always return an appropriate error code if the user's
+    code throws an exception.
+
+    Given that we have to have two helpers anyway, these helpers are a bit more
+    helpery than most: specifically, they hide a few more of the OpenSSL
+    functions so that the user has an easier time writing these callbacks.
     """
 
     def __init__(self, callback):
@@ -545,7 +560,7 @@ class Context(object):
         self._npn_select_callback = None
         self._alpn_select_helper = None
         self._alpn_select_callback = None
-        self._ocsp_helper = None
+        self._ocsp_server_helper = None
         self._ocsp_callback = None
         self._ocsp_data = None
 
@@ -1125,9 +1140,10 @@ class Context(object):
             self._context, self._alpn_select_callback, _ffi.NULL)
 
 
-    def set_ocsp_status_callback(self, callback, data=None):
+    def set_ocsp_server_callback(self, callback, data=None):
         """
-        Set a callback to provide OCSP data to be stapled to the TLS handshake.
+        Set a callback to provide OCSP data to be stapled to the TLS handshake
+        on the server side.
 
         :param callback: The callback function. It will be invoked with two
             arguments: the Connection, and the optional arbitrary data you have
@@ -1137,15 +1153,15 @@ class Context(object):
             complex data lookups or to keep track of what context is being
             used. This parameter is optional.
         """
-        self._ocsp_helper = _OCSPCallbackHelper(callback)
-        self._ocsp_callback = None
+        self._ocsp_server_helper = _OCSPCallbackHelper(callback)
+        self._ocsp_callback = self._ocsp_server_helper.callback
         if data is None:
             self._ocsp_data = _ffi.NULL
         else:
             self._ocsp_data = _ffi.new_handle(data)
 
         rc = _lib.SSL_CTX_set_tlsext_status_cb(
-            self._context, self._ocsp_helper.callback
+            self._context, self._ocsp_callback
         )
         _openssl_assert(rc == 1)
         rc = _lib.SSL_CTX_set_tlsext_status_arg(self._context, self._ocsp_data)
