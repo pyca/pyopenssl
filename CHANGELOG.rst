@@ -36,6 +36,8 @@ Changes:
   `#578 <https://github.com/pyca/pyopenssl/pull/578>`_
 - Automatically set ``SSL_CTX_set_ecdh_auto()`` on ``OpenSSL.SSL.Context``.
   `#575 <https://github.com/pyca/pyopenssl/pull/575>`_
+- Fix empty exceptions from ``OpenSSL.crypto.load_privatekey()``.
+  `#581 <https://github.com/pyca/pyopenssl/pull/581>`_
 
 
 ----
