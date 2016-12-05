@@ -627,14 +627,14 @@ class TestX509Ext(object):
         ext = X509Extension(short_name, True, value)
         assert ext.get_short_name() == short_name
 
-    # def test_get_data(self):
-    #     """
-    #     `X509Extension.get_data` returns a string giving the data of
-    #     the extension.
-    #     """
-    #     ext = X509Extension(b'basicConstraints', True, b'CA:true')
-    #     # Expect to get back the DER encoded form of CA:true.
-    #     assert ext.get_data() == b'0\x03\x01\x01\xff'
+    def test_get_data(self):
+        """
+        `X509Extension.get_data` returns a string giving the data of
+        the extension.
+        """
+        ext = X509Extension(b'basicConstraints', True, b'CA:true')
+        # Expect to get back the DER encoded form of CA:true.
+        assert ext.get_data() == b'0\x03\x01\x01\xff'
 
     def test_unused_subject(self, x509_data):
         """
