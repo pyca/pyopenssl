@@ -662,7 +662,6 @@ class TestX509Ext(object):
         x509.add_extensions([ext3])
         x509.sign(pkey, 'sha1')
         text = dump_certificate(FILETYPE_TEXT, x509)
-        assert isinstance(text, str)
         assert b'X509v3 Subject Key Identifier:' in text
 
     def test_missing_subject(self):
