@@ -657,21 +657,12 @@ class TestX509Ext(object):
         `X509Extension` provides its value.
         """
         pkey, x509 = x509_data
-        # assert False, 'point 1'
         ext3 = X509Extension(
             b'subjectKeyIdentifier', False, b'hash', subject=x509)
-        # assert False, 'point 2'
         x509.add_extensions([ext3])
-        # assert False, 'point 3'
         x509.sign(pkey, 'sha1')
-        # assert False, 'point 4'
         text = dump_certificate(FILETYPE_TEXT, x509)
-        # assert False, 'point 5'
-        print(type(text), text)
-        assert isinstance(text, str)
         assert b'X509v3 Subject Key Identifier:' in text
-        assert False
-        # assert False, 'point 6'
 
     def test_missing_subject(self):
         """
