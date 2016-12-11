@@ -29,7 +29,11 @@ Currently that means:
 - 1.0.2
 - 1.1.0
 
-The last release to support OpenSSL 1.0.0 was `16.2.0 <https://pypi.org/project/pyOpenSSL/16.2.0/>`_, the last to support OpenSSL 0.9.8 was `16.0.0 <https://pypi.org/project/pyOpenSSL/16.0.0/>`_.
+
+If you need support for older releases, the following pinned versions will work:
+
+- **OpenSSL 0.9.8**: ``'pyOpenSSL<16.3' 'cryptography<1.4'``
+- **OpenSSL 1.0.0**: ``'pyOpenSSL<17.0' 'cryptography<1.7'``
 
 
 Documentation
