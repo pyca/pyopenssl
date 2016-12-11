@@ -19,6 +19,23 @@ If you are installing in order to *develop* on pyOpenSSL, move to the root direc
    The most likely culprit being `cryptography <https://cryptography.io/>`_ that contains OpenSSL's library bindings.
 
 
+Supported OpenSSL Versions
+--------------------------
+
+pyOpenSSL supports the same platforms and releases as the upstream cryptography project `does <https://cryptography.io/en/latest/installation/#supported-platforms>`_.
+Currently that means:
+
+- 1.0.1
+- 1.0.2
+- 1.1.0
+
+
+If you need support for older releases, the following pinned versions will work:
+
+- **OpenSSL 0.9.8**: ``'pyOpenSSL<16.3' 'cryptography<1.4'``
+- **OpenSSL 1.0.0**: ``'pyOpenSSL<17.0' 'cryptography<1.7'``
+
+
 Documentation
 -------------
 
