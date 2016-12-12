@@ -43,7 +43,7 @@ from OpenSSL.crypto import CRL, Revoked, dump_crl, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.crypto import (
     sign, verify, get_elliptic_curve, get_elliptic_curves)
-from OpenSSL._util import native, lib
+from OpenSSL._util import native
 
 from .util import (
     EqualityTestsMixin, is_consistent_type, TestCase, WARNING_TYPE_EXPECTED
