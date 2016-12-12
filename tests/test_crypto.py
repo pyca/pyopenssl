@@ -3876,32 +3876,14 @@ class TestEllipticCurve(object):
         """
         assert isinstance(get_elliptic_curves(), set)
 
-    def test_some_curves(self):
-        """
-        If `cryptography` has elliptic curve support then the set returned by
-        `get_elliptic_curves` has some elliptic curves in it.
-
-        There could be an OpenSSL that violates this assumption.  If so, this
-        test will fail and we'll find out.
-        """
-        curves = get_elliptic_curves()
-        if lib.Cryptography_HAS_EC:
-            assert curves
-        else:
-            assert not curves
-
     def test_a_curve(self):
         """
         `get_elliptic_curve` can be used to retrieve a particular supported
         curve.
         """
         curves = get_elliptic_curves()
-        if curves:
-            curve = next(iter(curves))
-            assert curve.name == get_elliptic_curve(curve.name).name
-        else:
-            with pytest.raises(ValueError):
-                get_elliptic_curve(u"prime256v1")
+        curve = next(iter(curves))
+        assert curve.name == get_elliptic_curve(curve.name).name
 
     def test_not_a_curve(self):
         """
@@ -3917,9 +3899,8 @@ class TestEllipticCurve(object):
         object is a curve and what its name is.
         """
         curves = get_elliptic_curves()
-        if curves:
-            curve = next(iter(curves))
-            assert "<Curve %r>" % (curve.name,) == repr(curve)
+        curve = next(iter(curves))
+        assert "<Curve %r>" % (curve.name,) == repr(curve)
 
     def test_to_EC_KEY(self):
         """
@@ -3927,12 +3908,11 @@ class TestEllipticCurve(object):
         private `_EllipticCurve._to_EC_KEY`.
         """
         curves = get_elliptic_curves()
-        if curves:
-            curve = next(iter(curves))
-            # It's not easy to assert anything about this object.  However, see
-            # leakcheck/crypto.py for a test that demonstrates it at least does
-            # not leak memory.
-            curve._to_EC_KEY()
+        curve = next(iter(curves))
+        # It's not easy to assert anything about this object.  However, see
+        # leakcheck/crypto.py for a test that demonstrates it at least does
+        # not leak memory.
+        curve._to_EC_KEY()
 
 
 class EllipticCurveFactory(object):
@@ -3942,11 +3922,8 @@ class EllipticCurveFactory(object):
 
     def __init__(self):
         curves = iter(get_elliptic_curves())
-        try:
-            self.curve_name = next(curves).name
-            self.another_curve_name = next(curves).name
-        except StopIteration:
-            self.curve_name = self.another_curve_name = None
+        self.curve_name = next(curves).name
+        self.another_curve_name = next(curves).name
 
 
 class TestEllipticCurveEquality(EqualityTestsMixin):
