@@ -52,9 +52,12 @@ sys.path.insert(0, os.path.abspath(os.path.join(DOC_DIR, "..")))
 # If your documentation needs a minimal Sphinx version, state it here.
 needs_sphinx = '1.0'
 
-# Add any Sphinx extension module names here, as strings. They can be extensions
-# coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ["sphinx.ext.autodoc"]
+# Add any Sphinx extension module names here, as strings. They can be
+# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
+extensions = [
+    "sphinx.ext.autodoc",
+    'sphinx.ext.intersphinx',
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -71,7 +74,7 @@ master_doc = 'index'
 # General information about the project.
 project = u'pyOpenSSL'
 authors = u"The pyOpenSSL developers"
-copyright = u"2001-{0}, {1}".format(datetime.date.today().year, authors)
+copyright = u"2001 " + authors
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -249,3 +252,8 @@ man_pages = [
     ('index', 'pyopenssl', u'pyOpenSSL Documentation',
      [authors], 1)
 ]
+
+intersphinx_mapping = {
+    "https://docs.python.org/3": None,
+    "https://cryptography.io/en/latest/": None,
+}

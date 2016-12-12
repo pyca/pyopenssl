@@ -283,8 +283,10 @@ class PKey(object):
 
         This is the Python equivalent of OpenSSL's ``RSA_check_key``.
 
-        :return: True if key is consistent.
-        :raise Error: if the key is inconsistent.
+        :return: ``True`` if key is consistent.
+
+        :raise OpenSSL.crypto.Error: if the key is inconsistent.
+
         :raise TypeError: if the key is of a type which cannot be checked.
             Only RSA keys can currently be checked.
         """
@@ -974,11 +976,12 @@ class X509Req(object):
         """
         Verifies the signature on this certificate signing request.
 
-        :param key: A public key.
-        :type key: :py:class:`PKey`
-        :return: :py:data:`True` if the signature is correct.
-        :rtype: :py:class:`bool`
-        :raises Error: If the signature is invalid or there is a
+        :param PKey key: A public key.
+
+        :return: ``True`` if the signature is correct.
+        :rtype: bool
+
+        :raises OpenSSL.crypto.Error: If the signature is invalid or there is a
             problem verifying the signature.
         """
         if not isinstance(pkey, PKey):
@@ -1471,8 +1474,12 @@ class X509Store(object):
         *trusted* certificate.
 
         :param X509 cert: The certificate to add to this store.
+
         :raises TypeError: If the certificate is not an :class:`X509`.
-        :raises Error: If OpenSSL was unhappy with your certificate.
+
+        :raises OpenSSL.crypto.Error: If OpenSSL was unhappy with your
+            certificate.
+
         :return: ``None`` if the certificate was added successfully.
         """
         if not isinstance(cert, X509):
@@ -2425,14 +2432,13 @@ class NetscapeSPKI(object):
         """
         Verifies a signature on a certificate request.
 
-        :param key: The public key that signature is supposedly from.
-        :type pkey: :py:class:`PKey`
+        :param PKey key: The public key that signature is supposedly from.
 
-        :return: :py:const:`True` if the signature is correct.
-        :rtype: :py:class:`bool`
+        :return: ``True`` if the signature is correct.
+        :rtype: bool
 
-        :raises Error: If the signature is invalid, or there was a problem
-            verifying the signature.
+        :raises OpenSSL.crypto.Error: If the signature is invalid, or there was
+            a problem verifying the signature.
         """
         answer = _lib.NETSCAPE_SPKI_verify(self._spki, key._pkey)
         if answer <= 0:
