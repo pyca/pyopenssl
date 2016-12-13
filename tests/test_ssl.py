@@ -3893,6 +3893,7 @@ class TestOCSP(_LoopbackMixin):
         called.
         """
         called = []
+
         def ocsp_callback(*args, **kwargs):
             called.append((args, kwargs))
 
@@ -3910,6 +3911,7 @@ class TestOCSP(_LoopbackMixin):
         succeeds, and the client callback fires with an empty byte string.
         """
         called = []
+
         def ocsp_callback(conn, ocsp_data, ignored):
             called.append(ocsp_data)
             return True
@@ -3926,6 +3928,7 @@ class TestOCSP(_LoopbackMixin):
         The data the server sends in its callback is received by the client.
         """
         calls = []
+
         def server_callback(*args, **kwargs):
             return self.sample_ocsp_data
 
