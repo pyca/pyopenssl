@@ -37,7 +37,7 @@ from OpenSSL.crypto import load_publickey, dump_publickey
 from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT
 from OpenSSL.crypto import dump_certificate, load_certificate_request
 from OpenSSL.crypto import dump_certificate_request, dump_privatekey
-from OpenSSL.crypto import PKCS7Type, load_pkcs7_data
+from OpenSSL.crypto import PKCS7, PKCS7Type, load_pkcs7_data
 from OpenSSL.crypto import PKCS12, PKCS12Type, load_pkcs12
 from OpenSSL.crypto import CRL, Revoked, dump_crl, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
@@ -664,13 +664,13 @@ class TestX509Ext(object):
         text = dump_certificate(FILETYPE_TEXT, x509)
         assert b'X509v3 Subject Key Identifier:' in text
 
-    def test_missing_subject(self):
-        """
-        If an extension requires a subject and the `subject` parameter
-        is given no value, something happens.
-        """
-        with pytest.raises(Error):
-            X509Extension(b'subjectKeyIdentifier', False, b'hash')
+    # def test_missing_subject(self):
+    #     """
+    #     If an extension requires a subject and the `subject` parameter
+    #     is given no value, something happens.
+    #     """
+    #     with pytest.raises(Error):
+    #         X509Extension(b'subjectKeyIdentifier', False, b'hash')
 
     @pytest.mark.parametrize('bad_obj', [
         True,
@@ -2961,162 +2961,111 @@ class LoadCertificateTests(TestCase):
             load_certificate(FILETYPE_ASN1, b"lol")
 
 
-class PKCS7Tests(TestCase):
+class TestPKCS7(object):
     """
-    Tests for :py:obj:`PKCS7Type`.
+    Tests for `PKCS7`.
     """
 
     def test_type(self):
         """
-        :py:obj:`PKCS7Type` is a type object.
+        `PKCS7` is a type object.
         """
-        self.assertTrue(isinstance(PKCS7Type, type))
-        self.assertEqual(PKCS7Type.__name__, 'PKCS7')
-
-        # XXX This doesn't currently work.
-        # self.assertIdentical(PKCS7, PKCS7Type)
+        assert isinstance(PKCS7Type, type)
+        assert PKCS7Type.__name__ == 'PKCS7'
+        assert PKCS7 is PKCS7Type
 
     # XXX Opposite results for all these following methods
 
-    def test_type_is_signed_wrong_args(self):
-        """
-        :py:obj:`PKCS7Type.type_is_signed` raises :py:obj:`TypeError` if called
-        with any arguments.
-        """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertRaises(TypeError, pkcs7.type_is_signed, None)
-
     def test_type_is_signed(self):
         """
-        :py:obj:`PKCS7Type.type_is_signed` returns :py:obj:`True` if the PKCS7
-        object is of the type *signed*.
+        `PKCS7.type_is_signed` returns `True` if the PKCS7 object is of the
+        type *signed*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertTrue(pkcs7.type_is_signed())
-
-    def test_type_is_enveloped_wrong_args(self):
-        """
-        :py:obj:`PKCS7Type.type_is_enveloped` raises :py:obj:`TypeError` if
-        called with any arguments.
-        """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertRaises(TypeError, pkcs7.type_is_enveloped, None)
+        assert pkcs7.type_is_signed() is True
 
     def test_type_is_enveloped(self):
         """
-        :py:obj:`PKCS7Type.type_is_enveloped` returns :py:obj:`False` if the
-        PKCS7 object is not of the type *enveloped*.
+        `PKCS7.type_is_enveloped` returns `False` if the PKCS7 object is not
+        of the type *enveloped*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertFalse(pkcs7.type_is_enveloped())
-
-    def test_type_is_signedAndEnveloped_wrong_args(self):
-        """
-        :py:obj:`PKCS7Type.type_is_signedAndEnveloped` raises
-        :py:obj:`TypeError` if called with any arguments.
-        """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertRaises(TypeError, pkcs7.type_is_signedAndEnveloped, None)
+        assert pkcs7.type_is_enveloped() is False
 
     def test_type_is_signedAndEnveloped(self):
         """
-        :py:obj:`PKCS7Type.type_is_signedAndEnveloped` returns :py:obj:`False`
-        if the PKCS7 object is not of the type *signed and enveloped*.
+        `PKCS7.type_is_signedAndEnveloped` returns `False` if the PKCS7
+        object is not of the type *signed and enveloped*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertFalse(pkcs7.type_is_signedAndEnveloped())
+        assert pkcs7.type_is_signedAndEnveloped() is False
 
     def test_type_is_data(self):
         """
-        :py:obj:`PKCS7Type.type_is_data` returns :py:obj:`False` if the PKCS7
-        object is not of the type data.
+        `PKCS7.type_is_data` returns `False` if the PKCS7 object is not of
+        the type *data*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertFalse(pkcs7.type_is_data())
-
-    def test_type_is_data_wrong_args(self):
-        """
-        :py:obj:`PKCS7Type.type_is_data` raises :py:obj:`TypeError` if called
-        with any arguments.
-        """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertRaises(TypeError, pkcs7.type_is_data, None)
-
-    def test_get_type_name_wrong_args(self):
-        """
-        :py:obj:`PKCS7Type.get_type_name` raises :py:obj:`TypeError` if called
-        with any arguments.
-        """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertRaises(TypeError, pkcs7.get_type_name, None)
+        assert pkcs7.type_is_data() is False
 
     def test_get_type_name(self):
         """
-        :py:obj:`PKCS7Type.get_type_name` returns a :py:obj:`str` giving the
-        type name.
+        `PKCS7.get_type_name` returns a `str` giving the type name.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertEquals(pkcs7.get_type_name(), b'pkcs7-signedData')
+        assert pkcs7.get_type_name() == b'pkcs7-signedData'
 
     def test_attribute(self):
         """
         If an attribute other than one of the methods tested here is accessed
-        on an instance of :py:obj:`PKCS7Type`, :py:obj:`AttributeError` is
-        raised.
+        on an instance of `PKCS7`, `AttributeError` is raised.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertRaises(AttributeError, getattr, pkcs7, "foo")
+        with pytest.raises(AttributeError):
+            getattr(pkcs7, "foo")
 
 
-class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):
+class TestNetscapeSPKI(object):
     """
-    Tests for :py:obj:`OpenSSL.crypto.NetscapeSPKI`.
+    Tests for `OpenSSL.crypto.NetscapeSPKI`.
     """
-
-    def signable(self):
-        """
-        Return a new :py:obj:`NetscapeSPKI` for use with signing tests.
-        """
-        return NetscapeSPKI()
 
     def test_type(self):
         """
-        :py:obj:`NetscapeSPKI` and :py:obj:`NetscapeSPKIType` refer to the same
-        type object and can be used to create instances of that type.
+        `NetscapeSPKI` and `NetscapeSPKIType` refer to the same type object
+        and can be used to create instances of that type.
         """
-        self.assertIdentical(NetscapeSPKI, NetscapeSPKIType)
-        self.assertConsistentType(NetscapeSPKI, 'NetscapeSPKI')
+        assert NetscapeSPKI is NetscapeSPKIType
+        assert is_consistent_type(NetscapeSPKI, 'NetscapeSPKI')
 
     def test_construction(self):
         """
-        :py:obj:`NetscapeSPKI` returns an instance of
-        :py:obj:`NetscapeSPKIType`.
+        `NetscapeSPKI` returns an instance of `NetscapeSPKIType`.
         """
         nspki = NetscapeSPKI()
-        self.assertTrue(isinstance(nspki, NetscapeSPKIType))
+        assert isinstance(nspki, NetscapeSPKIType)
 
     def test_invalid_attribute(self):
         """
-        Accessing a non-existent attribute of a :py:obj:`NetscapeSPKI` instance
-        causes an :py:obj:`AttributeError` to be raised.
+        Accessing a non-existent attribute of a `NetscapeSPKI` instance
+        causes an `AttributeError` to be raised.
         """
         nspki = NetscapeSPKI()
-        self.assertRaises(AttributeError, lambda: nspki.foo)
+        with pytest.raises(AttributeError):
+            nspki.foo
 
     def test_b64_encode(self):
         """
-        :py:obj:`NetscapeSPKI.b64_encode` encodes the certificate to a base64
-        blob.
+        `NetscapeSPKI.b64_encode` encodes the certificate to a base64 blob.
         """
         nspki = NetscapeSPKI()
         blob = nspki.b64_encode()
-        self.assertTrue(isinstance(blob, binary_type))
+        assert isinstance(blob, binary_type)
 
 
 class TestRevoked(object):
     """
-    Please add test cases for the Revoked class here if possible. This class
-    holds the new py.test style tests.
+    Tests for `OpenSSL.crypto.Revoked`.
     """
     def test_ignores_unsupported_revoked_cert_extension_get_reason(self):
         """
@@ -3136,111 +3085,87 @@ class TestRevoked(object):
         reason = revoked[1].get_reason()
         assert reason is None
 
-
-class RevokedTests(TestCase):
-    """
-    Tests for :py:obj:`OpenSSL.crypto.Revoked`. Please add test cases to
-    TestRevoked above if possible.
-    """
-
     def test_construction(self):
         """
-        Confirm we can create :py:obj:`OpenSSL.crypto.Revoked`.  Check
+        Confirm we can create `OpenSSL.crypto.Revoked`.  Check
         that it is empty.
         """
         revoked = Revoked()
-        self.assertTrue(isinstance(revoked, Revoked))
-        self.assertEquals(type(revoked), Revoked)
-        self.assertEquals(revoked.get_serial(), b'00')
-        self.assertEquals(revoked.get_rev_date(), None)
-        self.assertEquals(revoked.get_reason(), None)
-
-    def test_construction_wrong_args(self):
-        """
-        Calling :py:obj:`OpenSSL.crypto.Revoked` with any arguments results
-        in a :py:obj:`TypeError` being raised.
-        """
-        self.assertRaises(TypeError, Revoked, None)
-        self.assertRaises(TypeError, Revoked, 1)
-        self.assertRaises(TypeError, Revoked, "foo")
+        assert isinstance(revoked, Revoked)
+        assert type(revoked) == Revoked
+        assert revoked.get_serial() == b'00'
+        assert revoked.get_rev_date() is None
+        assert revoked.get_reason() is None
 
     def test_serial(self):
         """
         Confirm we can set and get serial numbers from
-        :py:obj:`OpenSSL.crypto.Revoked`.  Confirm errors are handled
-        with grace.
+        `OpenSSL.crypto.Revoked`.  Confirm errors are handled with grace.
         """
         revoked = Revoked()
         ret = revoked.set_serial(b'10b')
-        self.assertEquals(ret, None)
+        assert ret is None
         ser = revoked.get_serial()
-        self.assertEquals(ser, b'010B')
+        assert ser == b'010B'
 
         revoked.set_serial(b'31ppp')  # a type error would be nice
         ser = revoked.get_serial()
-        self.assertEquals(ser, b'31')
+        assert ser == b'31'
 
-        self.assertRaises(ValueError, revoked.set_serial, b'pqrst')
-        self.assertRaises(TypeError, revoked.set_serial, 100)
-        self.assertRaises(TypeError, revoked.get_serial, 1)
-        self.assertRaises(TypeError, revoked.get_serial, None)
-        self.assertRaises(TypeError, revoked.get_serial, "")
+        with pytest.raises(ValueError):
+            revoked.set_serial(b'pqrst')
+
+        with pytest.raises(TypeError):
+            revoked.set_serial(100)
+
+        for bad_serial in [1, None, ""]:
+            with pytest.raises(TypeError):
+                revoked.get_serial(bad_serial)
 
     def test_date(self):
         """
         Confirm we can set and get revocation dates from
-        :py:obj:`OpenSSL.crypto.Revoked`.  Confirm errors are handled
-        with grace.
+        `OpenSSL.crypto.Revoked`.  Confirm errors are handled with grace.
         """
         revoked = Revoked()
         date = revoked.get_rev_date()
-        self.assertEquals(date, None)
+        assert date is None
 
         now = datetime.now().strftime("%Y%m%d%H%M%SZ").encode("ascii")
         ret = revoked.set_rev_date(now)
-        self.assertEqual(ret, None)
+        assert ret is None
         date = revoked.get_rev_date()
-        self.assertEqual(date, now)
+        assert date == now
 
     def test_reason(self):
         """
         Confirm we can set and get revocation reasons from
-        :py:obj:`OpenSSL.crypto.Revoked`.  The "get" need to work
-        as "set".  Likewise, each reason of all_reasons() must work.
+        `OpenSSL.crypto.Revoked`.  The "get" need to work as "set".  Likewise,
+        each reason of all_reasons() must work.
         """
         revoked = Revoked()
         for r in revoked.all_reasons():
             for x in range(2):
                 ret = revoked.set_reason(r)
-                self.assertEquals(ret, None)
+                assert ret is None
                 reason = revoked.get_reason()
-                self.assertEquals(
-                    reason.lower().replace(b' ', b''),
-                    r.lower().replace(b' ', b''))
+                assert (
+                    reason.lower().replace(b' ', b'') ==
+                    r.lower().replace(b' ', b'')
+                )
                 r = reason  # again with the resp of get
 
         revoked.set_reason(None)
-        self.assertEqual(revoked.get_reason(), None)
+        assert revoked.get_reason() is None
 
     def test_set_reason_wrong_arguments(self):
         """
-        Calling :py:obj:`OpenSSL.crypto.Revoked.set_reason` with other than
-        one argument, or an argument which isn't a valid reason,
-        results in :py:obj:`TypeError` or :py:obj:`ValueError` being raised.
+        Calling `OpenSSL.crypto.Revoked.set_reason` with an argument which
+        isn't a valid reason results in `ValueError` being raised.
         """
         revoked = Revoked()
-        self.assertRaises(TypeError, revoked.set_reason, 100)
-        self.assertRaises(ValueError, revoked.set_reason, b'blue')
-
-    def test_get_reason_wrong_arguments(self):
-        """
-        Calling :py:obj:`OpenSSL.crypto.Revoked.get_reason` with any
-        arguments results in :py:obj:`TypeError` being raised.
-        """
-        revoked = Revoked()
-        self.assertRaises(TypeError, revoked.get_reason, None)
-        self.assertRaises(TypeError, revoked.get_reason, 1)
-        self.assertRaises(TypeError, revoked.get_reason, "foo")
+        with pytest.raises(ValueError):
+            revoked.set_reason(b'blue')
 
 
 class CRLTests(TestCase):

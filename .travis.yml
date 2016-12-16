@@ -1,85 +1,14 @@
 sudo: false
 language: python
 
-cache:
-  directories:
-    - $HOME/.cache/pip
-
 env:
   global:
     - LC_ALL=en_US.UTF-8
 
 matrix:
   include:
-  - language: generic
-    os: osx
-    osx_image: xcode8
-    env: TOXENV=py27
-  - language: generic
-    os: osx
-    osx_image: xcode8
-    env: TOXENV=py27 OPENSSL=1.1.0
-  - python: "2.6" # these are just to make travis's UI a bit prettier
-    env: TOXENV=py26
   - python: "2.7"
     env: TOXENV=py27
-  - python: "3.3"
-    env: TOXENV=py33
-  - python: "3.4"
-    env: TOXENV=py34
-  - python: "3.5"
-    env: TOXENV=py35
-  - python: "pypy"
-    env: TOXENV=pypy
-
-  # Also run the tests against cryptography master.
-  - python: "2.6"
-    env: TOXENV=py26-cryptographyMaster
-  - python: "2.7"
-    env: TOXENV=py27-cryptographyMaster
-  - python: "3.3"
-    env: TOXENV=py33-cryptographyMaster
-  - python: "3.4"
-    env: TOXENV=py34-cryptographyMaster
-  - python: "3.5"
-    env: TOXENV=py35-cryptographyMaster
-  - python: "pypy"
-    env: TOXENV=pypy-cryptographyMaster
-
-  # And current minimum cryptography version.
-  - python: "2.6"
-    env: TOXENV=py26-cryptographyMinimum
-  - python: "2.7"
-    env: TOXENV=py27-cryptographyMinimum
-  - python: "3.3"
-    env: TOXENV=py33-cryptographyMinimum
-  - python: "3.4"
-    env: TOXENV=py34-cryptographyMinimum
-  - python: "3.5"
-    env: TOXENV=py35-cryptographyMinimum
-  - python: "pypy"
-    env: TOXENV=pypy-cryptographyMinimum
-
-
-  # Make sure we don't break Twisted or urllib3
-  - python: "2.7"
-    env: TOXENV=py27-twistedMaster
-  - python: "3.5"
-    env: TOXENV=py35-urllib3Master
-
-
-  # Meta
-  - python: "2.7"
-    env: TOXENV=check-manifest
-
-  - python: "2.7"
-    env: TOXENV=pypi-readme
-
-  - python: "2.7"
-    env: TOXENV=flake8
-
-  - python: "2.7"
-    env: TOXENV=docs
 
   # Let the cryptography master builds fail because they might be caused by
   # cryptography changes that are beyond our control.
