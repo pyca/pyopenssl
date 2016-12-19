@@ -3115,8 +3115,7 @@ class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):
 
 class TestRevoked(object):
     """
-    Please add test cases for the Revoked class here if possible. This class
-    holds the new py.test style tests.
+    Tests for `OpenSSL.crypto.Revoked`.
     """
     def test_ignores_unsupported_revoked_cert_extension_get_reason(self):
         """
@@ -3136,111 +3135,81 @@ class TestRevoked(object):
         reason = revoked[1].get_reason()
         assert reason is None
 
-
-class RevokedTests(TestCase):
-    """
-    Tests for :py:obj:`OpenSSL.crypto.Revoked`. Please add test cases to
-    TestRevoked above if possible.
-    """
-
     def test_construction(self):
         """
-        Confirm we can create :py:obj:`OpenSSL.crypto.Revoked`.  Check
-        that it is empty.
+        Confirm we can create `OpenSSL.crypto.Revoked`.  Check that it is
+        empty.
         """
         revoked = Revoked()
-        self.assertTrue(isinstance(revoked, Revoked))
-        self.assertEquals(type(revoked), Revoked)
-        self.assertEquals(revoked.get_serial(), b'00')
-        self.assertEquals(revoked.get_rev_date(), None)
-        self.assertEquals(revoked.get_reason(), None)
-
-    def test_construction_wrong_args(self):
-        """
-        Calling :py:obj:`OpenSSL.crypto.Revoked` with any arguments results
-        in a :py:obj:`TypeError` being raised.
-        """
-        self.assertRaises(TypeError, Revoked, None)
-        self.assertRaises(TypeError, Revoked, 1)
-        self.assertRaises(TypeError, Revoked, "foo")
+        assert isinstance(revoked, Revoked)
+        assert type(revoked) == Revoked
+        assert revoked.get_serial() == b'00'
+        assert revoked.get_rev_date() is None
+        assert revoked.get_reason() is None
 
     def test_serial(self):
         """
         Confirm we can set and get serial numbers from
-        :py:obj:`OpenSSL.crypto.Revoked`.  Confirm errors are handled
-        with grace.
+        `OpenSSL.crypto.Revoked`.  Confirm errors are handled with grace.
         """
         revoked = Revoked()
         ret = revoked.set_serial(b'10b')
-        self.assertEquals(ret, None)
+        assert ret is None
         ser = revoked.get_serial()
-        self.assertEquals(ser, b'010B')
+        assert ser == b'010B'
 
         revoked.set_serial(b'31ppp')  # a type error would be nice
         ser = revoked.get_serial()
-        self.assertEquals(ser, b'31')
+        assert ser == b'31'
 
-        self.assertRaises(ValueError, revoked.set_serial, b'pqrst')
-        self.assertRaises(TypeError, revoked.set_serial, 100)
-        self.assertRaises(TypeError, revoked.get_serial, 1)
-        self.assertRaises(TypeError, revoked.get_serial, None)
-        self.assertRaises(TypeError, revoked.get_serial, "")
+        with pytest.raises(ValueError):
+            revoked.set_serial(b'pqrst')
+        with pytest.raises(TypeError):
+            revoked.set_serial(100)
 
     def test_date(self):
         """
         Confirm we can set and get revocation dates from
-        :py:obj:`OpenSSL.crypto.Revoked`.  Confirm errors are handled
-        with grace.
+        `OpenSSL.crypto.Revoked`.  Confirm errors are handled with grace.
         """
         revoked = Revoked()
         date = revoked.get_rev_date()
-        self.assertEquals(date, None)
+        assert date is None
 
         now = datetime.now().strftime("%Y%m%d%H%M%SZ").encode("ascii")
         ret = revoked.set_rev_date(now)
-        self.assertEqual(ret, None)
+        assert ret is None
         date = revoked.get_rev_date()
-        self.assertEqual(date, now)
+        assert date == now
 
     def test_reason(self):
         """
         Confirm we can set and get revocation reasons from
-        :py:obj:`OpenSSL.crypto.Revoked`.  The "get" need to work
-        as "set".  Likewise, each reason of all_reasons() must work.
+        `OpenSSL.crypto.Revoked`.  The "get" need to work as "set".
+        Likewise, each reason of all_reasons() must work.
         """
         revoked = Revoked()
         for r in revoked.all_reasons():
             for x in range(2):
                 ret = revoked.set_reason(r)
-                self.assertEquals(ret, None)
+                assert ret is None
                 reason = revoked.get_reason()
-                self.assertEquals(
-                    reason.lower().replace(b' ', b''),
+                assert (
+                    reason.lower().replace(b' ', b'') ==
                     r.lower().replace(b' ', b''))
                 r = reason  # again with the resp of get
 
         revoked.set_reason(None)
-        self.assertEqual(revoked.get_reason(), None)
+        assert revoked.get_reason() is None
 
-    def test_set_reason_wrong_arguments(self):
+    def test_set_reason_invalid_reason(self):
         """
-        Calling :py:obj:`OpenSSL.crypto.Revoked.set_reason` with other than
-        one argument, or an argument which isn't a valid reason,
-        results in :py:obj:`TypeError` or :py:obj:`ValueError` being raised.
+        Calling `OpenSSL.crypto.Revoked.set_reason` with an argument which
+        isn't a valid reason results in `ValueError` being raised.
         """
         revoked = Revoked()
-        self.assertRaises(TypeError, revoked.set_reason, 100)
-        self.assertRaises(ValueError, revoked.set_reason, b'blue')
-
-    def test_get_reason_wrong_arguments(self):
-        """
-        Calling :py:obj:`OpenSSL.crypto.Revoked.get_reason` with any
-        arguments results in :py:obj:`TypeError` being raised.
-        """
-        revoked = Revoked()
-        self.assertRaises(TypeError, revoked.get_reason, None)
-        self.assertRaises(TypeError, revoked.get_reason, 1)
-        self.assertRaises(TypeError, revoked.get_reason, "foo")
+        with pytest.raises(ValueError):
+            revoked.set_reason(b'blue')
 
 
 class CRLTests(TestCase):
