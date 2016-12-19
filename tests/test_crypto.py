@@ -3719,16 +3719,14 @@ class X509StoreContextTests(TestCase):
         assert exc.value.args[0][2] == 'certificate has expired'
 
 
-class SignVerifyTests(TestCase):
+class TestSignVerify(object):
     """
-    Tests for :py:obj:`OpenSSL.crypto.sign` and
-    :py:obj:`OpenSSL.crypto.verify`.
+    Tests for `OpenSSL.crypto.sign` and `OpenSSL.crypto.verify`.
     """
 
     def test_sign_verify(self):
         """
-        :py:obj:`sign` generates a cryptographic signature which
-        :py:obj:`verify` can check.
+        `sign` generates a cryptographic signature which `verify` can check.
         """
         content = (
             b"It was a bright cold day in April, and the clocks were striking "
@@ -3753,24 +3751,24 @@ class SignVerifyTests(TestCase):
 
             # This should fail because the certificate doesn't match the
             # private key that was used to sign the content.
-            self.assertRaises(Error, verify, bad_cert, sig, content, digest)
+            with pytest.raises(Error):
+                verify(bad_cert, sig, content, digest)
 
             # This should fail because we've "tainted" the content after
             # signing it.
-            self.assertRaises(
-                Error, verify,
-                good_cert, sig, content + b"tainted", digest)
+            with pytest.raises(Error):
+                verify(good_cert, sig, content + b"tainted", digest)
 
         # test that unknown digest types fail
-        self.assertRaises(
-            ValueError, sign, priv_key, content, "strange-digest")
-        self.assertRaises(
-            ValueError, verify, good_cert, sig, content, "strange-digest")
+        with pytest.raises(ValueError):
+            sign(priv_key, content, "strange-digest")
+        with pytest.raises(ValueError):
+            verify(good_cert, sig, content, "strange-digest")
 
     def test_sign_verify_with_text(self):
         """
-        :py:obj:`sign` generates a cryptographic signature which
-        :py:obj:`verify` can check. Deprecation warnings raised because using
+        `sign` generates a cryptographic signature which
+        `verify` can check. Deprecation warnings raised because using
         text instead of bytes as content
         """
         content = (
@@ -3784,33 +3782,25 @@ class SignVerifyTests(TestCase):
         priv_key = load_privatekey(FILETYPE_PEM, root_key_pem)
         cert = load_certificate(FILETYPE_PEM, root_cert_pem)
         for digest in ['md5', 'sha1']:
-            with catch_warnings(record=True) as w:
+            with pytest.warns(DeprecationWarning) as w:
                 simplefilter("always")
                 sig = sign(priv_key, content, digest)
+            assert (
+                "{0} for data is no longer accepted, use bytes".format(
+                    WARNING_TYPE_EXPECTED
+                ) == str(w[-1].message))
 
-                self.assertEqual(
-                    "{0} for data is no longer accepted, use bytes".format(
-                        WARNING_TYPE_EXPECTED
-                    ),
-                    str(w[-1].message)
-                )
-                self.assertIs(w[-1].category, DeprecationWarning)
-
-            with catch_warnings(record=True) as w:
+            with pytest.warns(DeprecationWarning) as w:
                 simplefilter("always")
                 verify(cert, sig, content, digest)
-
-                self.assertEqual(
-                    "{0} for data is no longer accepted, use bytes".format(
-                        WARNING_TYPE_EXPECTED
-                    ),
-                    str(w[-1].message)
-                )
-                self.assertIs(w[-1].category, DeprecationWarning)
+            assert (
+                "{0} for data is no longer accepted, use bytes".format(
+                    WARNING_TYPE_EXPECTED
+                ) == str(w[-1].message))
 
     def test_sign_nulls(self):
         """
-        :py:obj:`sign` produces a signature for a string with embedded nulls.
+        `sign` produces a signature for a string with embedded nulls.
         """
         content = b"Watch out!  \0  Did you see it?"
         priv_key = load_privatekey(FILETYPE_PEM, root_key_pem)
@@ -3820,7 +3810,7 @@ class SignVerifyTests(TestCase):
 
     def test_sign_with_large_key(self):
         """
-        :py:obj:`sign` produces a signature for a string when using a long key.
+        `sign` produces a signature for a string when using a long key.
         """
         content = (
             b"It was a bright cold day in April, and the clocks were striking "
