@@ -3729,24 +3729,24 @@ class MemoryBIOTests(TestCase, _LoopbackMixin):
         self._check_client_ca_list(set_replaces_add_ca)
 
 
-class ConnectionBIOTests(TestCase):
+class TestConnection(object):
     """
-    Tests for :py:obj:`Connection.bio_read` and :py:obj:`Connection.bio_write`.
+    Tests for `Connection.bio_read` and `Connection.bio_write`.
     """
     def test_wantReadError(self):
         """
-        :py:obj:`Connection.bio_read` raises
-        :py:obj:`OpenSSL.SSL.WantReadError` if there are no bytes available to
-        be read from the BIO.
+        `Connection.bio_read` raises `OpenSSL.SSL.WantReadError` if there are
+        no bytes available to be read from the BIO.
         """
         ctx = Context(TLSv1_METHOD)
         conn = Connection(ctx, None)
-        self.assertRaises(WantReadError, conn.bio_read, 1024)
+        with pytest.raises(WantReadError):
+            conn.bio_read(1024)
 
     def test_buffer_size(self):
         """
-        :py:obj:`Connection.bio_read` accepts an integer giving the maximum
-        number of bytes to read and return.
+        `Connection.bio_read` accepts an integer giving the maximum number
+        of bytes to read and return.
         """
         ctx = Context(TLSv1_METHOD)
         conn = Connection(ctx, None)
@@ -3756,13 +3756,13 @@ class ConnectionBIOTests(TestCase):
         except WantReadError:
             pass
         data = conn.bio_read(2)
-        self.assertEqual(2, len(data))
+        assert 2 == len(data)
 
     @skip_if_py3
     def test_buffer_size_long(self):
         """
-        On Python 2 :py:obj:`Connection.bio_read` accepts values of type
-        :py:obj:`long` as well as :py:obj:`int`.
+        On Python 2 `Connection.bio_read` accepts values of type `long` as
+        well as `int`.
         """
         ctx = Context(TLSv1_METHOD)
         conn = Connection(ctx, None)
@@ -3772,7 +3772,7 @@ class ConnectionBIOTests(TestCase):
         except WantReadError:
             pass
         data = conn.bio_read(long(2))
-        self.assertEqual(2, len(data))
+        assert 2 == len(data)
 
 
 class InfoConstantTests(TestCase):
