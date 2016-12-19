@@ -3591,9 +3591,9 @@ class CRLTests(TestCase):
             e.certificate.get_subject().CN, 'intermediate-service')
 
 
-class X509StoreContextTests(TestCase):
+class TestX509StoreContext(object):
     """
-    Tests for :py:obj:`OpenSSL.crypto.X509StoreContext`.
+    Tests for `OpenSSL.crypto.X509StoreContext`.
     """
     root_cert = load_certificate(FILETYPE_PEM, root_cert_pem)
     intermediate_cert = load_certificate(FILETYPE_PEM, intermediate_cert_pem)
@@ -3602,41 +3602,41 @@ class X509StoreContextTests(TestCase):
 
     def test_valid(self):
         """
-        :py:obj:`verify_certificate` returns ``None`` when called with a
-        certificate and valid chain.
+        `verify_certificate` returns ``None`` when called with a certificate
+        and valid chain.
         """
         store = X509Store()
         store.add_cert(self.root_cert)
         store.add_cert(self.intermediate_cert)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        self.assertEqual(store_ctx.verify_certificate(), None)
+        assert store_ctx.verify_certificate() is None
 
     def test_reuse(self):
         """
-        :py:obj:`verify_certificate` can be called multiple times with the same
+        `verify_certificate` can be called multiple times with the same
         ``X509StoreContext`` instance to produce the same result.
         """
         store = X509Store()
         store.add_cert(self.root_cert)
         store.add_cert(self.intermediate_cert)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        self.assertEqual(store_ctx.verify_certificate(), None)
-        self.assertEqual(store_ctx.verify_certificate(), None)
+        assert store_ctx.verify_certificate() is None
+        assert store_ctx.verify_certificate() is None
 
     def test_trusted_self_signed(self):
         """
-        :py:obj:`verify_certificate` returns ``None`` when called with a
-        self-signed certificate and itself in the chain.
+        `verify_certificate` returns ``None`` when called with a self-signed
+        certificate and itself in the chain.
         """
         store = X509Store()
         store.add_cert(self.root_cert)
         store_ctx = X509StoreContext(store, self.root_cert)
-        self.assertEqual(store_ctx.verify_certificate(), None)
+        assert store_ctx.verify_certificate() is None
 
     def test_untrusted_self_signed(self):
         """
-        :py:obj:`verify_certificate` raises error when a self-signed
-        certificate is verified without itself in the chain.
+        `verify_certificate` raises error when a self-signed certificate is
+        verified without itself in the chain.
         """
         store = X509Store()
         store_ctx = X509StoreContext(store, self.root_cert)
@@ -3648,8 +3648,8 @@ class X509StoreContextTests(TestCase):
 
     def test_invalid_chain_no_root(self):
         """
-        :py:obj:`verify_certificate` raises error when a root certificate is
-        missing from the chain.
+        `verify_certificate` raises error when a root certificate is missing
+        from the chain.
         """
         store = X509Store()
         store.add_cert(self.intermediate_cert)
@@ -3663,8 +3663,8 @@ class X509StoreContextTests(TestCase):
 
     def test_invalid_chain_no_intermediate(self):
         """
-        :py:obj:`verify_certificate` raises error when an intermediate
-        certificate is missing from the chain.
+        `verify_certificate` raises error when an intermediate certificate is
+        missing from the chain.
         """
         store = X509Store()
         store.add_cert(self.root_cert)
@@ -3678,7 +3678,7 @@ class X509StoreContextTests(TestCase):
 
     def test_modification_pre_verify(self):
         """
-        :py:obj:`verify_certificate` can use a store context modified after
+        `verify_certificate` can use a store context modified after
         instantiation.
         """
         store_bad = X509Store()
@@ -3695,7 +3695,7 @@ class X509StoreContextTests(TestCase):
         assert exc.value.certificate.get_subject().CN == 'intermediate'
 
         store_ctx.set_store(store_good)
-        self.assertEqual(store_ctx.verify_certificate(), None)
+        assert store_ctx.verify_certificate() is None
 
     def test_verify_with_time(self):
         """
