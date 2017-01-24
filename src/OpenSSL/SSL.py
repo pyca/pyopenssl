@@ -368,6 +368,137 @@ class _ALPNSelectHelper(_CallbackExceptionHelper):
         )
 
 
+class _OCSPServerCallbackHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as an OCSP callback for the server
+    side.
+
+    Annoyingly, OpenSSL defines one OCSP callback but uses it in two different
+    ways. For servers, that callback is expected to retrieve some OCSP data and
+    hand it to OpenSSL, and may return only SSL_TLSEXT_ERR_OK,
+    SSL_TLSEXT_ERR_FATAL, and SSL_TLSEXT_ERR_NOACK. For clients, that callback
+    is expected to check the OCSP data, and returns a negative value on error,
+    0 if the response is not acceptable, or positive if it is. These are
+    mutually exclusive return code behaviours, and they mean that we need two
+    helpers so that we always return an appropriate error code if the user's
+    code throws an exception.
+
+    Given that we have to have two helpers anyway, these helpers are a bit more
+    helpery than most: specifically, they hide a few more of the OpenSSL
+    functions so that the user has an easier time writing these callbacks.
+
+    This helper implements the server side.
+    """
+
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ssl, cdata):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+
+                # Extract the data if any was provided.
+                if cdata != _ffi.NULL:
+                    data = _ffi.from_handle(cdata)
+                else:
+                    data = None
+
+                # Call the callback.
+                ocsp_data = callback(conn, data)
+
+                if not isinstance(ocsp_data, _binary_type):
+                    raise TypeError("OCSP callback must return a bytestring.")
+
+                # If the OCSP data was provided, we will pass it to OpenSSL.
+                # However, we have an early exit here: if no OCSP data was
+                # provided we will just exit out and tell OpenSSL that there
+                # is nothing to do.
+                if not ocsp_data:
+                    return 3  # SSL_TLSEXT_ERR_NOACK
+
+                # Pass the data to OpenSSL. Insanely, OpenSSL doesn't make a
+                # private copy of this data, so we need to keep it alive, but
+                # it *does* want to free it itself if it gets replaced. This
+                # somewhat bonkers behaviour means we need to use
+                # OPENSSL_malloc directly, which is a pain in the butt to work
+                # with. It's ok for us to "leak" the memory here because
+                # OpenSSL now owns it and will free it.
+                ocsp_data_length = len(ocsp_data)
+                data_ptr = _lib.OPENSSL_malloc(ocsp_data_length)
+                _ffi.buffer(data_ptr, ocsp_data_length)[:] = ocsp_data
+
+                _lib.SSL_set_tlsext_status_ocsp_resp(
+                    ssl, data_ptr, ocsp_data_length
+                )
+
+                return 0
+            except Exception as e:
+                self._problems.append(e)
+                return 2  # SSL_TLSEXT_ERR_ALERT_FATAL
+
+        self.callback = _ffi.callback("int (*)(SSL *, void *)", wrapper)
+
+
+class _OCSPClientCallbackHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as an OCSP callback for the client
+    side.
+
+    Annoyingly, OpenSSL defines one OCSP callback but uses it in two different
+    ways. For servers, that callback is expected to retrieve some OCSP data and
+    hand it to OpenSSL, and may return only SSL_TLSEXT_ERR_OK,
+    SSL_TLSEXT_ERR_FATAL, and SSL_TLSEXT_ERR_NOACK. For clients, that callback
+    is expected to check the OCSP data, and returns a negative value on error,
+    0 if the response is not acceptable, or positive if it is. These are
+    mutually exclusive return code behaviours, and they mean that we need two
+    helpers so that we always return an appropriate error code if the user's
+    code throws an exception.
+
+    Given that we have to have two helpers anyway, these helpers are a bit more
+    helpery than most: specifically, they hide a few more of the OpenSSL
+    functions so that the user has an easier time writing these callbacks.
+
+    This helper implements the client side.
+    """
+
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ssl, cdata):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+
+                # Extract the data if any was provided.
+                if cdata != _ffi.NULL:
+                    data = _ffi.from_handle(cdata)
+                else:
+                    data = None
+
+                # Get the OCSP data.
+                ocsp_ptr = _ffi.new("unsigned char **")
+                ocsp_len = _lib.SSL_get_tlsext_status_ocsp_resp(ssl, ocsp_ptr)
+                if ocsp_len < 0:
+                    # No OCSP data.
+                    ocsp_data = b''
+                else:
+                    # Copy the OCSP data, then pass it to the callback.
+                    ocsp_data = _ffi.buffer(ocsp_ptr[0], ocsp_len)[:]
+
+                valid = callback(conn, ocsp_data, data)
+
+                # Return 1 on success or 0 on error.
+                return int(bool(valid))
+
+            except Exception as e:
+                self._problems.append(e)
+                # Return negative value if an exception is hit.
+                return -1
+
+        self.callback = _ffi.callback("int (*)(SSL *, void *)", wrapper)
+
+
 def _asFileDescriptor(obj):
     fd = None
     if not isinstance(obj, integer_types):
@@ -499,6 +630,9 @@ class Context(object):
         self._npn_select_callback = None
         self._alpn_select_helper = None
         self._alpn_select_callback = None
+        self._ocsp_helper = None
+        self._ocsp_callback = None
+        self._ocsp_data = None
 
         # SSL_CTX_set_app_data(self->ctx, self);
         # SSL_CTX_set_mode(self->ctx, SSL_MODE_ENABLE_PARTIAL_WRITE |
@@ -1075,6 +1209,64 @@ class Context(object):
         _lib.SSL_CTX_set_alpn_select_cb(
             self._context, self._alpn_select_callback, _ffi.NULL)
 
+    def _set_ocsp_callback(self, helper, data):
+        """
+        This internal helper does the common work for
+        ``set_ocsp_server_callback`` and ``set_ocsp_client_callback``, which is
+        almost all of it.
+        """
+        self._ocsp_helper = helper
+        self._ocsp_callback = helper.callback
+        if data is None:
+            self._ocsp_data = _ffi.NULL
+        else:
+            self._ocsp_data = _ffi.new_handle(data)
+
+        rc = _lib.SSL_CTX_set_tlsext_status_cb(
+            self._context, self._ocsp_callback
+        )
+        _openssl_assert(rc == 1)
+        rc = _lib.SSL_CTX_set_tlsext_status_arg(self._context, self._ocsp_data)
+        _openssl_assert(rc == 1)
+
+    def set_ocsp_server_callback(self, callback, data=None):
+        """
+        Set a callback to provide OCSP data to be stapled to the TLS handshake
+        on the server side.
+
+        :param callback: The callback function. It will be invoked with two
+            arguments: the Connection, and the optional arbitrary data you have
+            provided. The callback must return a bytestring that contains the
+            OCSP data to staple to the handshake. If no OCSP data is available
+            for this connection, return the empty bytestring.
+        :param data: Some opaque data that will be passed into the callback
+            function when called. This can be used to avoid needing to do
+            complex data lookups or to keep track of what context is being
+            used. This parameter is optional.
+        """
+        helper = _OCSPServerCallbackHelper(callback)
+        self._set_ocsp_callback(helper, data)
+
+    def set_ocsp_client_callback(self, callback, data=None):
+        """
+        Set a callback to validate OCSP data stapled to the TLS handshake on
+        the client side.
+
+        :param callback: The callback function. It will be invoked with three
+            arguments: the Connection, a bytestring containing the stapled OCSP
+            assertion, and the optional arbitrary data you have provided. The
+            callback must return a boolean that indicates the result of
+            validating the OCSP data: ``True`` if the OCSP data is valid and
+            the certificate can be trusted, or ``False`` if either the OCSP
+            data is invalid or the certificate has been revoked.
+        :param data: Some opaque data that will be passed into the callback
+            function when called. This can be used to avoid needing to do
+            complex data lookups or to keep track of what context is being
+            used. This parameter is optional.
+        """
+        helper = _OCSPClientCallbackHelper(callback)
+        self._set_ocsp_callback(helper, data)
+
 
 ContextType = Context
 
@@ -1154,6 +1346,8 @@ class Connection(object):
             self._context._npn_select_helper.raise_if_problem()
         if self._context._alpn_select_helper is not None:
             self._context._alpn_select_helper.raise_if_problem()
+        if self._context._ocsp_helper is not None:
+            self._context._ocsp_helper.raise_if_problem()
 
         error = _lib.SSL_get_error(ssl, result)
         if error == _lib.SSL_ERROR_WANT_READ:
@@ -1938,6 +2132,18 @@ class Connection(object):
             return b''
 
         return _ffi.buffer(data[0], data_len[0])[:]
+
+    def request_ocsp(self):
+        """
+        Called to request that the server sends stapled OCSP data, if
+        available. If this is not called on the client side then the server
+        will not send OCSP data. Should be used in conjunction with
+        :meth:`Context.set_ocsp_client_callback`.
+        """
+        rc = _lib.SSL_set_tlsext_status_type(
+            self._ssl, _lib.TLSEXT_STATUSTYPE_ocsp
+        )
+        _openssl_assert(rc == 1)
 
 
 ConnectionType = Connection
