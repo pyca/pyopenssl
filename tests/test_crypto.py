@@ -3212,9 +3212,9 @@ class TestRevoked(object):
             revoked.set_reason(b'blue')
 
 
-class CRLTests(TestCase):
+class TestCRL(object):
     """
-    Tests for :py:obj:`OpenSSL.crypto.CRL`
+    Tests for `OpenSSL.crypto.CRL`.
     """
     cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
     pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
@@ -3230,21 +3230,12 @@ class CRLTests(TestCase):
 
     def test_construction(self):
         """
-        Confirm we can create :py:obj:`OpenSSL.crypto.CRL`.  Check
+        Confirm we can create `OpenSSL.crypto.CRL`.  Check
         that it is empty
         """
         crl = CRL()
-        self.assertTrue(isinstance(crl, CRL))
-        self.assertEqual(crl.get_revoked(), None)
-
-    def test_construction_wrong_args(self):
-        """
-        Calling :py:obj:`OpenSSL.crypto.CRL` with any number of arguments
-        results in a :py:obj:`TypeError` being raised.
-        """
-        self.assertRaises(TypeError, CRL, 1)
-        self.assertRaises(TypeError, CRL, "")
-        self.assertRaises(TypeError, CRL, None)
+        assert isinstance(crl, CRL)
+        assert crl.get_revoked() is None
 
     def _get_crl(self):
         """
@@ -3312,7 +3303,7 @@ class CRLTests(TestCase):
 
         # text format
         dumped_text = crl.export(self.cert, self.pkey, type=FILETYPE_TEXT)
-        self.assertEqual(text, dumped_text)
+        assert text == dumped_text
 
     def test_export_custom_digest(self):
         """
@@ -3330,9 +3321,9 @@ class CRLTests(TestCase):
         not emit a deprecation warning.
         """
         crl = self._get_crl()
-        with catch_warnings(record=True) as catcher:
+        with pytest.warns(None) as catcher:
             simplefilter("always")
-            self.assertEqual(0, len(catcher))
+        assert 0 == len(catcher)
         dumped_crl = crl.export(self.cert, self.pkey, digest=b"md5")
         text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
         text.index(b'Signature Algorithm: md5')
@@ -3343,28 +3334,29 @@ class CRLTests(TestCase):
         signature algorithm based on MD5 and emits a deprecation warning.
         """
         crl = self._get_crl()
-        with catch_warnings(record=True) as catcher:
+        with pytest.warns(None) as catcher:
             simplefilter("always")
             dumped_crl = crl.export(self.cert, self.pkey)
-            self.assertEqual(
-                "The default message digest (md5) is deprecated.  "
-                "Pass the name of a message digest explicitly.",
-                str(catcher[0].message),
-            )
+        assert (
+            "The default message digest (md5) is deprecated.  "
+            "Pass the name of a message digest explicitly." ==
+            str(catcher[0].message)
+        )
         text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
         text.index(b'Signature Algorithm: md5')
 
     def test_export_invalid(self):
         """
-        If :py:obj:`CRL.export` is used with an uninitialized :py:obj:`X509`
-        instance, :py:obj:`OpenSSL.crypto.Error` is raised.
+        If `CRL.export` is used with an uninitialized `X509` instance,
+        `OpenSSL.crypto.Error` is raised.
         """
         crl = CRL()
-        self.assertRaises(Error, crl.export, X509(), PKey())
+        with pytest.raises(Error):
+            crl.export(X509(), PKey())
 
     def test_add_revoked_keyword(self):
         """
-        :py:obj:`OpenSSL.CRL.add_revoked` accepts its single argument as the
+        `OpenSSL.CRL.add_revoked` accepts its single argument as the
         ``revoked`` keyword argument.
         """
         crl = CRL()
@@ -3372,33 +3364,29 @@ class CRLTests(TestCase):
         revoked.set_serial(b"01")
         revoked.set_rev_date(b"20160310020145Z")
         crl.add_revoked(revoked=revoked)
-        self.assertTrue(isinstance(crl.get_revoked()[0], Revoked))
+        assert isinstance(crl.get_revoked()[0], Revoked)
 
     def test_export_wrong_args(self):
         """
-        Calling :py:obj:`OpenSSL.CRL.export` with fewer than two or more than
-        four arguments, or with arguments other than the certificate,
+        Calling `OpenSSL.CRL.export` with arguments other than the certificate,
         private key, integer file type, and integer number of days it
-        expects, results in a :py:obj:`TypeError` being raised.
+        expects, results in a `TypeError` being raised.
         """
         crl = CRL()
-        self.assertRaises(TypeError, crl.export)
-        self.assertRaises(TypeError, crl.export, self.cert)
-        with pytest.raises(TypeError):
-            crl.export(self.cert, self.pkey, FILETYPE_PEM, 10, "md5", "foo")
         with pytest.raises(TypeError):
             crl.export(None, self.pkey, FILETYPE_PEM, 10)
         with pytest.raises(TypeError):
             crl.export(self.cert, None, FILETYPE_PEM, 10)
         with pytest.raises(TypeError):
             crl.export(self.cert, self.pkey, None, 10)
-        self.assertRaises(TypeError, crl.export, self.cert, FILETYPE_PEM, None)
+        with pytest.raises(TypeError):
+            crl.export(self.cert, FILETYPE_PEM, None)
 
     def test_export_unknown_filetype(self):
         """
-        Calling :py:obj:`OpenSSL.CRL.export` with a file type other than
-        :py:obj:`FILETYPE_PEM`, :py:obj:`FILETYPE_ASN1`, or
-        :py:obj:`FILETYPE_TEXT` results in a :py:obj:`ValueError` being raised.
+        Calling `OpenSSL.CRL.export` with a file type other than
+        `FILETYPE_PEM`, `FILETYPE_ASN1`, or
+        `FILETYPE_TEXT` results in a `ValueError` being raised.
         """
         crl = CRL()
         with pytest.raises(ValueError):
@@ -3406,21 +3394,18 @@ class CRLTests(TestCase):
 
     def test_export_unknown_digest(self):
         """
-        Calling :py:obj:`OpenSSL.CRL.export` with an unsupported digest results
-        in a :py:obj:`ValueError` being raised.
+        Calling `OpenSSL.CRL.export` with an unsupported digest results
+        in a `ValueError` being raised.
         """
         crl = CRL()
-        self.assertRaises(
-            ValueError,
-            crl.export,
-            self.cert, self.pkey, FILETYPE_PEM, 10, b"strange-digest"
-        )
+        with pytest.raises(ValueError):
+            crl.export(
+                self.cert, self.pkey, FILETYPE_PEM, 10, b"strange-digest")
 
     def test_get_revoked(self):
         """
-        Use python to create a simple CRL with two revocations.
-        Get back the :py:obj:`Revoked` using :py:obj:`OpenSSL.CRL.get_revoked`
-        and verify them.
+        Use python to create a simple CRL with two revocations. Get back the
+        `Revoked` using `OpenSSL.CRL.get_revoked` and verify them.
         """
         crl = CRL()
 
@@ -3434,88 +3419,60 @@ class CRLTests(TestCase):
         crl.add_revoked(revoked)
 
         revs = crl.get_revoked()
-        self.assertEqual(len(revs), 2)
-        self.assertEqual(type(revs[0]), Revoked)
-        self.assertEqual(type(revs[1]), Revoked)
-        self.assertEqual(revs[0].get_serial(), b'03AB')
-        self.assertEqual(revs[1].get_serial(), b'0100')
-        self.assertEqual(revs[0].get_rev_date(), now)
-        self.assertEqual(revs[1].get_rev_date(), now)
-
-    def test_get_revoked_wrong_args(self):
-        """
-        Calling :py:obj:`OpenSSL.CRL.get_revoked` with any arguments results
-        in a :py:obj:`TypeError` being raised.
-        """
-        crl = CRL()
-        self.assertRaises(TypeError, crl.get_revoked, None)
-        self.assertRaises(TypeError, crl.get_revoked, 1)
-        self.assertRaises(TypeError, crl.get_revoked, "")
-        self.assertRaises(TypeError, crl.get_revoked, "", 1, None)
-
-    def test_add_revoked_wrong_args(self):
-        """
-        Calling :py:obj:`OpenSSL.CRL.add_revoked` with other than one
-        argument results in a :py:obj:`TypeError` being raised.
-        """
-        crl = CRL()
-        self.assertRaises(TypeError, crl.add_revoked)
-        self.assertRaises(TypeError, crl.add_revoked, 1, 2)
-        self.assertRaises(TypeError, crl.add_revoked, "foo", "bar")
+        assert len(revs) == 2
+        assert type(revs[0]) == Revoked
+        assert type(revs[1]) == Revoked
+        assert revs[0].get_serial() == b'03AB'
+        assert revs[1].get_serial() == b'0100'
+        assert revs[0].get_rev_date() == now
+        assert revs[1].get_rev_date() == now
 
     def test_load_crl(self):
         """
-        Load a known CRL and inspect its revocations.  Both
-        PEM and DER formats are loaded.
+        Load a known CRL and inspect its revocations.  Both EM and DER formats
+        are loaded.
         """
         crl = load_crl(FILETYPE_PEM, crlData)
         revs = crl.get_revoked()
-        self.assertEqual(len(revs), 2)
-        self.assertEqual(revs[0].get_serial(), b'03AB')
-        self.assertEqual(revs[0].get_reason(), None)
-        self.assertEqual(revs[1].get_serial(), b'0100')
-        self.assertEqual(revs[1].get_reason(), b'Superseded')
+        assert len(revs) == 2
+        assert revs[0].get_serial() == b'03AB'
+        assert revs[0].get_reason() is None
+        assert revs[1].get_serial() == b'0100'
+        assert revs[1].get_reason() == b'Superseded'
 
         der = _runopenssl(crlData, b"crl", b"-outform", b"DER")
         crl = load_crl(FILETYPE_ASN1, der)
         revs = crl.get_revoked()
-        self.assertEqual(len(revs), 2)
-        self.assertEqual(revs[0].get_serial(), b'03AB')
-        self.assertEqual(revs[0].get_reason(), None)
-        self.assertEqual(revs[1].get_serial(), b'0100')
-        self.assertEqual(revs[1].get_reason(), b'Superseded')
-
-    def test_load_crl_wrong_args(self):
-        """
-        Calling :py:obj:`OpenSSL.crypto.load_crl` with other than two
-        arguments results in a :py:obj:`TypeError` being raised.
-        """
-        self.assertRaises(TypeError, load_crl)
-        self.assertRaises(TypeError, load_crl, FILETYPE_PEM)
-        self.assertRaises(TypeError, load_crl, FILETYPE_PEM, crlData, None)
+        assert len(revs) == 2
+        assert revs[0].get_serial() == b'03AB'
+        assert revs[0].get_reason() is None
+        assert revs[1].get_serial() == b'0100'
+        assert revs[1].get_reason() == b'Superseded'
 
     def test_load_crl_bad_filetype(self):
         """
-        Calling :py:obj:`OpenSSL.crypto.load_crl` with an unknown file type
-        raises a :py:obj:`ValueError`.
+        Calling `OpenSSL.crypto.load_crl` with an unknown file type raises a
+        `ValueError`.
         """
-        self.assertRaises(ValueError, load_crl, 100, crlData)
+        with pytest.raises(ValueError):
+            load_crl(100, crlData)
 
     def test_load_crl_bad_data(self):
         """
-        Calling :py:obj:`OpenSSL.crypto.load_crl` with file data which can't
-        be loaded raises a :py:obj:`OpenSSL.crypto.Error`.
+        Calling `OpenSSL.crypto.load_crl` with file data which can't be loaded
+        raises a `OpenSSL.crypto.Error`.
         """
-        self.assertRaises(Error, load_crl, FILETYPE_PEM, b"hello, world")
+        with pytest.raises(Error):
+            load_crl(FILETYPE_PEM, b"hello, world")
 
     def test_get_issuer(self):
         """
-        Load a known CRL and assert its issuer's common name is
-        what we expect from the encoded crlData string.
+        Load a known CRL and assert its issuer's common name is what we expect
+        from the encoded crlData string.
         """
         crl = load_crl(FILETYPE_PEM, crlData)
-        self.assertTrue(isinstance(crl.get_issuer(), X509Name))
-        self.assertEqual(crl.get_issuer().CN, 'Testing Root CA')
+        assert isinstance(crl.get_issuer(), X509Name)
+        assert crl.get_issuer().CN == 'Testing Root CA'
 
     def test_dump_crl(self):
         """
@@ -3551,8 +3508,8 @@ class CRLTests(TestCase):
 
     def test_verify_with_revoked(self):
         """
-        :func:`verify_certificate` raises error when an intermediate
-        certificate is revoked.
+        `verify_certificate` raises error when an intermediate certificate is
+        revoked.
         """
         store = X509Store()
         store.add_cert(self.root_cert)
@@ -3566,14 +3523,14 @@ class CRLTests(TestCase):
         store.set_flags(
             X509StoreFlags.CRL_CHECK | X509StoreFlags.CRL_CHECK_ALL)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        e = self.assertRaises(
-            X509StoreContextError, store_ctx.verify_certificate)
-        self.assertEqual(e.args[0][2], 'certificate revoked')
+        with pytest.raises(X509StoreContextError) as err:
+            store_ctx.verify_certificate()
+        assert err.value.args[0][2] == 'certificate revoked'
 
     def test_verify_with_missing_crl(self):
         """
-        :func:`verify_certificate` raises error when an intermediate
-        certificate's CRL is missing.
+        `verify_certificate` raises error when an intermediate certificate's
+        CRL is missing.
         """
         store = X509Store()
         store.add_cert(self.root_cert)
@@ -3584,16 +3541,15 @@ class CRLTests(TestCase):
         store.set_flags(
             X509StoreFlags.CRL_CHECK | X509StoreFlags.CRL_CHECK_ALL)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        e = self.assertRaises(
-            X509StoreContextError, store_ctx.verify_certificate)
-        self.assertEqual(e.args[0][2], 'unable to get certificate CRL')
-        self.assertEqual(
-            e.certificate.get_subject().CN, 'intermediate-service')
+        with pytest.raises(X509StoreContextError) as err:
+            store_ctx.verify_certificate()
+        assert err.value.args[0][2] == 'unable to get certificate CRL'
+        assert err.value.certificate.get_subject().CN == 'intermediate-service'
 
 
-class X509StoreContextTests(TestCase):
+class TestX509StoreContext(object):
     """
-    Tests for :py:obj:`OpenSSL.crypto.X509StoreContext`.
+    Tests for `OpenSSL.crypto.X509StoreContext`.
     """
     root_cert = load_certificate(FILETYPE_PEM, root_cert_pem)
     intermediate_cert = load_certificate(FILETYPE_PEM, intermediate_cert_pem)
@@ -3602,41 +3558,41 @@ class X509StoreContextTests(TestCase):
 
     def test_valid(self):
         """
-        :py:obj:`verify_certificate` returns ``None`` when called with a
-        certificate and valid chain.
+        `verify_certificate` returns ``None`` when called with a certificate
+        and valid chain.
         """
         store = X509Store()
         store.add_cert(self.root_cert)
         store.add_cert(self.intermediate_cert)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        self.assertEqual(store_ctx.verify_certificate(), None)
+        assert store_ctx.verify_certificate() is None
 
     def test_reuse(self):
         """
-        :py:obj:`verify_certificate` can be called multiple times with the same
+        `verify_certificate` can be called multiple times with the same
         ``X509StoreContext`` instance to produce the same result.
         """
         store = X509Store()
         store.add_cert(self.root_cert)
         store.add_cert(self.intermediate_cert)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        self.assertEqual(store_ctx.verify_certificate(), None)
-        self.assertEqual(store_ctx.verify_certificate(), None)
+        assert store_ctx.verify_certificate() is None
+        assert store_ctx.verify_certificate() is None
 
     def test_trusted_self_signed(self):
         """
-        :py:obj:`verify_certificate` returns ``None`` when called with a
-        self-signed certificate and itself in the chain.
+        `verify_certificate` returns ``None`` when called with a self-signed
+        certificate and itself in the chain.
         """
         store = X509Store()
         store.add_cert(self.root_cert)
         store_ctx = X509StoreContext(store, self.root_cert)
-        self.assertEqual(store_ctx.verify_certificate(), None)
+        assert store_ctx.verify_certificate() is None
 
     def test_untrusted_self_signed(self):
         """
-        :py:obj:`verify_certificate` raises error when a self-signed
-        certificate is verified without itself in the chain.
+        `verify_certificate` raises error when a self-signed certificate is
+        verified without itself in the chain.
         """
         store = X509Store()
         store_ctx = X509StoreContext(store, self.root_cert)
@@ -3648,8 +3604,8 @@ class X509StoreContextTests(TestCase):
 
     def test_invalid_chain_no_root(self):
         """
-        :py:obj:`verify_certificate` raises error when a root certificate is
-        missing from the chain.
+        `verify_certificate` raises error when a root certificate is missing
+        from the chain.
         """
         store = X509Store()
         store.add_cert(self.intermediate_cert)
@@ -3663,8 +3619,8 @@ class X509StoreContextTests(TestCase):
 
     def test_invalid_chain_no_intermediate(self):
         """
-        :py:obj:`verify_certificate` raises error when an intermediate
-        certificate is missing from the chain.
+        `verify_certificate` raises error when an intermediate certificate is
+        missing from the chain.
         """
         store = X509Store()
         store.add_cert(self.root_cert)
@@ -3678,7 +3634,7 @@ class X509StoreContextTests(TestCase):
 
     def test_modification_pre_verify(self):
         """
-        :py:obj:`verify_certificate` can use a store context modified after
+        `verify_certificate` can use a store context modified after
         instantiation.
         """
         store_bad = X509Store()
@@ -3695,7 +3651,7 @@ class X509StoreContextTests(TestCase):
         assert exc.value.certificate.get_subject().CN == 'intermediate'
 
         store_ctx.set_store(store_good)
-        self.assertEqual(store_ctx.verify_certificate(), None)
+        assert store_ctx.verify_certificate() is None
 
     def test_verify_with_time(self):
         """
@@ -3719,16 +3675,14 @@ class X509StoreContextTests(TestCase):
         assert exc.value.args[0][2] == 'certificate has expired'
 
 
-class SignVerifyTests(TestCase):
+class TestSignVerify(object):
     """
-    Tests for :py:obj:`OpenSSL.crypto.sign` and
-    :py:obj:`OpenSSL.crypto.verify`.
+    Tests for `OpenSSL.crypto.sign` and `OpenSSL.crypto.verify`.
     """
 
     def test_sign_verify(self):
         """
-        :py:obj:`sign` generates a cryptographic signature which
-        :py:obj:`verify` can check.
+        `sign` generates a cryptographic signature which `verify` can check.
         """
         content = (
             b"It was a bright cold day in April, and the clocks were striking "
@@ -3753,24 +3707,24 @@ class SignVerifyTests(TestCase):
 
             # This should fail because the certificate doesn't match the
             # private key that was used to sign the content.
-            self.assertRaises(Error, verify, bad_cert, sig, content, digest)
+            with pytest.raises(Error):
+                verify(bad_cert, sig, content, digest)
 
             # This should fail because we've "tainted" the content after
             # signing it.
-            self.assertRaises(
-                Error, verify,
-                good_cert, sig, content + b"tainted", digest)
+            with pytest.raises(Error):
+                verify(good_cert, sig, content + b"tainted", digest)
 
         # test that unknown digest types fail
-        self.assertRaises(
-            ValueError, sign, priv_key, content, "strange-digest")
-        self.assertRaises(
-            ValueError, verify, good_cert, sig, content, "strange-digest")
+        with pytest.raises(ValueError):
+            sign(priv_key, content, "strange-digest")
+        with pytest.raises(ValueError):
+            verify(good_cert, sig, content, "strange-digest")
 
     def test_sign_verify_with_text(self):
         """
-        :py:obj:`sign` generates a cryptographic signature which
-        :py:obj:`verify` can check. Deprecation warnings raised because using
+        `sign` generates a cryptographic signature which
+        `verify` can check. Deprecation warnings raised because using
         text instead of bytes as content
         """
         content = (
@@ -3784,33 +3738,25 @@ class SignVerifyTests(TestCase):
         priv_key = load_privatekey(FILETYPE_PEM, root_key_pem)
         cert = load_certificate(FILETYPE_PEM, root_cert_pem)
         for digest in ['md5', 'sha1']:
-            with catch_warnings(record=True) as w:
+            with pytest.warns(DeprecationWarning) as w:
                 simplefilter("always")
                 sig = sign(priv_key, content, digest)
+            assert (
+                "{0} for data is no longer accepted, use bytes".format(
+                    WARNING_TYPE_EXPECTED
+                ) == str(w[-1].message))
 
-                self.assertEqual(
-                    "{0} for data is no longer accepted, use bytes".format(
-                        WARNING_TYPE_EXPECTED
-                    ),
-                    str(w[-1].message)
-                )
-                self.assertIs(w[-1].category, DeprecationWarning)
-
-            with catch_warnings(record=True) as w:
+            with pytest.warns(DeprecationWarning) as w:
                 simplefilter("always")
                 verify(cert, sig, content, digest)
-
-                self.assertEqual(
-                    "{0} for data is no longer accepted, use bytes".format(
-                        WARNING_TYPE_EXPECTED
-                    ),
-                    str(w[-1].message)
-                )
-                self.assertIs(w[-1].category, DeprecationWarning)
+            assert (
+                "{0} for data is no longer accepted, use bytes".format(
+                    WARNING_TYPE_EXPECTED
+                ) == str(w[-1].message))
 
     def test_sign_nulls(self):
         """
-        :py:obj:`sign` produces a signature for a string with embedded nulls.
+        `sign` produces a signature for a string with embedded nulls.
         """
         content = b"Watch out!  \0  Did you see it?"
         priv_key = load_privatekey(FILETYPE_PEM, root_key_pem)
@@ -3820,7 +3766,7 @@ class SignVerifyTests(TestCase):
 
     def test_sign_with_large_key(self):
         """
-        :py:obj:`sign` produces a signature for a string when using a long key.
+        `sign` produces a signature for a string when using a long key.
         """
         content = (
             b"It was a bright cold day in April, and the clocks were striking "
