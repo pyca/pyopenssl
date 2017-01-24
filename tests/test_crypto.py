@@ -2595,9 +2595,10 @@ class FunctionTests(TestCase):
         :py:obj:`load_privatekey` raises :py:obj:`OpenSSL.crypto.Error` when it
         is passed an encrypted PEM and an incorrect passphrase.
         """
-        self.assertRaises(
+        exc = self.assertRaises(
             Error,
             load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, b"quack")
+        self.assertNotEqual(exc.args[0], [])
 
     def test_load_privatekey_passphraseWrongType(self):
         """
@@ -2642,10 +2643,11 @@ class FunctionTests(TestCase):
         def cb(*a):
             called.append(None)
             return b"quack"
-        self.assertRaises(
+        exc = self.assertRaises(
             Error,
             load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
         self.assertTrue(called)
+        self.assertNotEqual(exc.args[0], [])
 
     def test_load_privatekey_passphraseCallback(self):
         """

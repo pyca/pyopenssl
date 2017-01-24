@@ -771,11 +771,10 @@ class Context(object):
             _raise_current_error()
 
     def _raise_passphrase_exception(self):
-        if self._passphrase_helper is None:
-            _raise_current_error()
-        exception = self._passphrase_helper.raise_if_problem(Error)
-        if exception is not None:
-            raise exception
+        if self._passphrase_helper is not None:
+            self._passphrase_helper.raise_if_problem(Error)
+
+        _raise_current_error()
 
     def use_privatekey_file(self, keyfile, filetype=_UNSPECIFIED):
         """
