@@ -681,12 +681,12 @@ class TestContext(object):
         self._use_certificate_file_test(filename)
 
     @skip_if_py3
-    def test_use_certificate_file_long(self):
+    def test_use_certificate_file_long(self, tmpfile):
         """
         On Python 2 `Context.use_certificate_file` accepts a
         filetype of type `long` as well as `int`.
         """
-        pem_filename = self.mktemp()
+        pem_filename = tmpfile
         with open(pem_filename, "wb") as pem_file:
             pem_file.write(cleartextCertificatePEM)
 
