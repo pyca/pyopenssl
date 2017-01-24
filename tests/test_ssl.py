@@ -1338,6 +1338,7 @@ class TestContext(object):
         passed a bad chain file name (for example, the name of a file which
         does not exist).
         """
+        context = Context(TLSv1_METHOD)
         with pytest.raises(Error):
             context.use_certificate_chain_file(tmpfile)
 
