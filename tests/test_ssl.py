@@ -1323,17 +1323,21 @@ class TestContext(object):
             tmpfile.decode(getfilesystemencoding()) + NON_ASCII
         )
 
-    def test_use_certificate_chain_file_wrong_args(self, tmpfile):
+    def test_use_certificate_chain_file_wrong_args(self):
         """
-        `Context.use_certificate_chain_file` raises `TypeError`
-        if passed a non-byte string single argument.  It also raises
-        `OpenSSL.SSL.Error` when passed a bad chain file name (for example,
-        the name of a file which does not exist).
+        `Context.use_certificate_chain_file` raises `TypeError` if passed a
+        non-byte string single argument.
         """
         context = Context(TLSv1_METHOD)
         with pytest.raises(TypeError):
             context.use_certificate_chain_file(object())
 
+    def test_use_certificate_chain_file_missing_file(self, tmpfile):
+        """
+        `Context.use_certificate_chain_file` raises `OpenSSL.SSL.Error` when
+        passed a bad chain file name (for example, the name of a file which
+        does not exist).
+        """
         with pytest.raises(Error):
             context.use_certificate_chain_file(tmpfile)
 
