@@ -3889,7 +3889,7 @@ class TestOCSP(_LoopbackMixin):
     def test_callbacks_arent_called_by_default(self):
         """
         If both the client and the server have registered OCSP callbacks, but
-        the client does not sent the OCSP request, neither callback gets
+        the client does not send the OCSP request, neither callback gets
         called.
         """
         called = []
