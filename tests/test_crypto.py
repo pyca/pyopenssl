@@ -806,59 +806,50 @@ class TestPKey(object):
         assert isinstance(key, rsa.RSAPrivateKey)
         assert pkey.bits() == key.key_size
 
-
-class PKeyTests(TestCase):
-    """
-    Unit tests for :py:class:`OpenSSL.crypto.PKey`.
-    """
-
     def test_type(self):
         """
-        :py:class:`PKey` and :py:class:`PKeyType` refer to the same type object
-        and can be used to create instances of that type.
+        `PKey` and `PKeyType` refer to the same type object and can be used to
+        create instances of that type.
         """
-        self.assertIdentical(PKey, PKeyType)
-        self.assertConsistentType(PKey, 'PKey')
+        assert PKey is PKeyType
+        assert is_consistent_type(PKey, 'PKey')
 
     def test_construction(self):
         """
-        :py:class:`PKey` takes no arguments and returns a new :py:class:`PKey`
-        instance.
+        `PKey` takes no arguments and returns a new `PKey` instance.
         """
-        self.assertRaises(TypeError, PKey, None)
         key = PKey()
-        self.assertTrue(
-            isinstance(key, PKeyType),
-            "%r is of type %r, should be %r" % (key, type(key), PKeyType))
+        assert isinstance(key, PKey)
 
     def test_pregeneration(self):
         """
-        :py:attr:`PKeyType.bits` and :py:attr:`PKeyType.type` return
-        :py:data:`0` before the key is generated.  :py:attr:`PKeyType.check`
-        raises :py:exc:`TypeError` before the key is generated.
+        `PKey.bits` and `PKey.type` return `0` before the key is generated.
+        `PKey.check` raises `TypeError` before the key is generated.
         """
         key = PKey()
-        self.assertEqual(key.type(), 0)
-        self.assertEqual(key.bits(), 0)
-        self.assertRaises(TypeError, key.check)
+        assert key.type() == 0
+        assert key.bits() == 0
+        with pytest.raises(TypeError):
+            key.check()
 
-    def test_failedGeneration(self):
+    def test_failed_generation(self):
         """
-        :py:meth:`PKeyType.generate_key` takes two arguments, the first giving
-        the key type as one of :py:data:`TYPE_RSA` or :py:data:`TYPE_DSA` and
-        the second giving the number of bits to generate.  If an invalid type
-        is specified or generation fails, :py:exc:`Error` is raised.  If an
-        invalid number of bits is specified, :py:exc:`ValueError` or
-        :py:exc:`Error` is raised.
+        `PKey.generate_key` takes two arguments, the first giving the key type
+        as one of `TYPE_RSA` or `TYPE_DSA` and the second giving the number of
+        bits to generate.  If an invalid type is specified or generation fails,
+        `Error` is raised.  If an invalid number of bits is specified,
+        `ValueError` or `Error` is raised.
         """
         key = PKey()
-        self.assertRaises(TypeError, key.generate_key)
-        self.assertRaises(TypeError, key.generate_key, 1, 2, 3)
-        self.assertRaises(TypeError, key.generate_key, "foo", "bar")
-        self.assertRaises(Error, key.generate_key, -1, 0)
+        with pytest.raises(TypeError):
+            key.generate_key("foo", "bar")
+        with pytest.raises(Error):
+            key.generate_key(-1, 0)
 
-        self.assertRaises(ValueError, key.generate_key, TYPE_RSA, -1)
-        self.assertRaises(ValueError, key.generate_key, TYPE_RSA, 0)
+        with pytest.raises(ValueError):
+            key.generate_key(TYPE_RSA, -1)
+        with pytest.raises(ValueError):
+            key.generate_key(TYPE_RSA, 0)
 
         with pytest.raises(TypeError):
             key.generate_key(TYPE_RSA, object())
@@ -869,7 +860,8 @@ class PKeyTests(TestCase):
         # check for that in the wrapper.  The failure behavior is typically an
         # infinite loop inside OpenSSL.
 
-        # self.assertRaises(Error, key.generate_key, TYPE_RSA, 2)
+        # with pytest.raises(Error):
+        #     key.generate_key(TYPE_RSA, 2)
 
         # XXX DSA generation seems happy with any number of bits.  The DSS
         # says bits must be between 512 and 1024 inclusive.  OpenSSL's DSA
@@ -878,24 +870,25 @@ class PKeyTests(TestCase):
         # So, it doesn't seem possible to make generate_key fail for
         # TYPE_DSA with a bits argument which is at least an int.
 
-        # self.assertRaises(Error, key.generate_key, TYPE_DSA, -7)
+        # with pytest.raises(Error):
+        #     key.generate_key(TYPE_DSA, -7)
 
-    def test_rsaGeneration(self):
+    def test_rsa_generation(self):
         """
-        :py:meth:`PKeyType.generate_key` generates an RSA key when passed
-        :py:data:`TYPE_RSA` as a type and a reasonable number of bits.
+        `PKey.generate_key` generates an RSA key when passed `TYPE_RSA` as a
+        type and a reasonable number of bits.
         """
         bits = 128
         key = PKey()
         key.generate_key(TYPE_RSA, bits)
-        self.assertEqual(key.type(), TYPE_RSA)
-        self.assertEqual(key.bits(), bits)
-        self.assertTrue(key.check())
+        assert key.type() == TYPE_RSA
+        assert key.bits() == bits
+        assert key.check()
 
-    def test_dsaGeneration(self):
+    def test_dsa_generation(self):
         """
-        :py:meth:`PKeyType.generate_key` generates a DSA key when passed
-        :py:data:`TYPE_DSA` as a type and a reasonable number of bits.
+        `PKey.generate_key` generates a DSA key when passed `TYPE_DSA` as a
+        type and a reasonable number of bits.
         """
         # 512 is a magic number.  The DSS (Digital Signature Standard)
         # allows a minimum of 512 bits for DSA.  DSA_generate_parameters
@@ -903,42 +896,34 @@ class PKeyTests(TestCase):
         bits = 512
         key = PKey()
         key.generate_key(TYPE_DSA, bits)
-        # self.assertEqual(key.type(), TYPE_DSA)
-        # self.assertEqual(key.bits(), bits)
-        # self.assertRaises(TypeError, key.check)
+        assert key.type() == TYPE_DSA
+        assert key.bits() == bits
+        with pytest.raises(TypeError):
+            key.check()
 
     def test_regeneration(self):
         """
-        :py:meth:`PKeyType.generate_key` can be called multiple times on the
-        same key to generate new keys.
+        `PKey.generate_key` can be called multiple times on the same key to
+        generate new keys.
         """
         key = PKey()
         for type, bits in [(TYPE_RSA, 512), (TYPE_DSA, 576)]:
             key.generate_key(type, bits)
-            self.assertEqual(key.type(), type)
-            self.assertEqual(key.bits(), bits)
+            assert key.type() == type
+            assert key.bits() == bits
 
-    def test_inconsistentKey(self):
+    def test_inconsistent_key(self):
         """
-        :py:`PKeyType.check` returns :py:exc:`Error` if the key is not
-        consistent.
+        `PKey.check` returns `Error` if the key is not consistent.
         """
         key = load_privatekey(FILETYPE_PEM, inconsistentPrivateKeyPEM)
-        self.assertRaises(Error, key.check)
-
-    def test_check_wrong_args(self):
-        """
-        :py:meth:`PKeyType.check` raises :py:exc:`TypeError` if called with any
-        arguments.
-        """
-        self.assertRaises(TypeError, PKey().check, None)
-        self.assertRaises(TypeError, PKey().check, object())
-        self.assertRaises(TypeError, PKey().check, 1)
+        with pytest.raises(Error):
+            key.check()
 
     def test_check_public_key(self):
         """
-        :py:meth:`PKeyType.check` raises :py:exc:`TypeError` if only the public
-        part of the key is available.
+        `PKey.check` raises `TypeError` if only the public part of the key
+        is available.
         """
         # A trick to get a public-only key
         key = PKey()
@@ -946,48 +931,49 @@ class PKeyTests(TestCase):
         cert = X509()
         cert.set_pubkey(key)
         pub = cert.get_pubkey()
-        self.assertRaises(TypeError, pub.check)
+        with pytest.raises(TypeError):
+            pub.check()
 
 
-class X509NameTests(TestCase):
+def x509_name(**attrs):
     """
-    Unit tests for :py:class:`OpenSSL.crypto.X509Name`.
+    Return a new X509Name with the given attributes.
     """
+    # XXX There's no other way to get a new X509Name yet.
+    name = X509().get_subject()
+    attrs = list(attrs.items())
 
-    def _x509name(self, **attrs):
-        # XXX There's no other way to get a new X509Name yet.
-        name = X509().get_subject()
-        attrs = list(attrs.items())
+    # Make the order stable - order matters!
+    def key(attr):
+        return attr[1]
+    attrs.sort(key=key)
+    for k, v in attrs:
+        setattr(name, k, v)
+    return name
 
-        # Make the order stable - order matters!
-        def key(attr):
-            return attr[1]
-        attrs.sort(key=key)
-        for k, v in attrs:
-            setattr(name, k, v)
-        return name
+
+class TestX509Name(object):
+    """
+    Unit tests for `OpenSSL.crypto.X509Name`.
+    """
 
     def test_type(self):
         """
-        The type of X509Name objects is :py:class:`X509NameType`.
+        The type of X509Name objects is `X509NameType`.
         """
-        self.assertIdentical(X509Name, X509NameType)
-        self.assertEqual(X509NameType.__name__, 'X509Name')
-        self.assertTrue(isinstance(X509NameType, type))
+        assert X509Name is X509NameType
+        assert X509NameType.__name__ == 'X509Name'
+        assert isinstance(X509NameType, type)
 
-        name = self._x509name()
-        self.assertTrue(
-            isinstance(name, X509NameType),
-            "%r is of type %r, should be %r" % (
-                name, type(name), X509NameType))
+        name = x509_name()
+        assert isinstance(name, X509NameType)
 
-    def test_onlyStringAttributes(self):
+    def test_only_string_attributes(self):
         """
-        Attempting to set a non-:py:data:`str` attribute name on an
-        :py:class:`X509NameType` instance causes :py:exc:`TypeError` to be
-        raised.
+        Attempting to set a non-`str` attribute name on an `X509Name` instance
+        causes `TypeError` to be raised.
         """
-        name = self._x509name()
+        name = x509_name()
         # Beyond these cases, you may also think that unicode should be
         # rejected.  Sorry, you're wrong.  unicode is automatically converted
         # to str outside of the control of X509Name, so there's no way to
@@ -998,24 +984,27 @@ class X509NameTests(TestCase):
         # PyPy automatically converts str subclasses to str when they are
         # passed to setattr, so we can't test it on PyPy.  Apparently CPython
         # does this sometimes as well.
-        self.assertRaises(TypeError, setattr, name, None, "hello")
-        self.assertRaises(TypeError, setattr, name, 30, "hello")
+        with pytest.raises(TypeError):
+            setattr(name, None, "hello")
+        with pytest.raises(TypeError):
+            setattr(name, 30, "hello")
 
-    def test_setInvalidAttribute(self):
+    def test_set_invalid_attribute(self):
         """
-        Attempting to set any attribute name on an :py:class:`X509NameType`
-        instance for which no corresponding NID is defined causes
-        :py:exc:`AttributeError` to be raised.
+        Attempting to set any attribute name on an `X509Name` instance for
+        which no corresponding NID is defined causes `AttributeError` to be
+        raised.
         """
-        name = self._x509name()
-        self.assertRaises(AttributeError, setattr, name, "no such thing", None)
+        name = x509_name()
+        with pytest.raises(AttributeError):
+            setattr(name, "no such thing", None)
 
     def test_attributes(self):
         """
-        :py:class:`X509NameType` instances have attributes for each standard
-        (?) X509Name field.
+        `X509Name` instances have attributes for each standard (?)
+        X509Name field.
         """
-        name = self._x509name()
+        name = x509_name()
         name.commonName = "foo"
         assert name.commonName == "foo"
         assert name.CN == "foo"
@@ -1039,166 +1028,162 @@ class X509NameTests(TestCase):
 
     def test_copy(self):
         """
-        :py:class:`X509Name` creates a new :py:class:`X509NameType` instance
-        with all the same attributes as an existing :py:class:`X509NameType`
-        instance when called with one.
+        `X509Name` creates a new `X509Name` instance with all the same
+        attributes as an existing `X509Name` instance when called with one.
         """
-        name = self._x509name(commonName="foo", emailAddress="bar@example.com")
+        name = x509_name(commonName="foo", emailAddress="bar@example.com")
 
         copy = X509Name(name)
-        self.assertEqual(copy.commonName, "foo")
-        self.assertEqual(copy.emailAddress, "bar@example.com")
+        assert copy.commonName == "foo"
+        assert copy.emailAddress == "bar@example.com"
 
         # Mutate the copy and ensure the original is unmodified.
         copy.commonName = "baz"
-        self.assertEqual(name.commonName, "foo")
+        assert name.commonName == "foo"
 
         # Mutate the original and ensure the copy is unmodified.
         name.emailAddress = "quux@example.com"
-        self.assertEqual(copy.emailAddress, "bar@example.com")
+        assert copy.emailAddress == "bar@example.com"
 
     def test_repr(self):
         """
-        :py:func:`repr` passed an :py:class:`X509NameType` instance should
-        return a string containing a description of the type and the NIDs which
-        have been set on it.
+        `repr` passed an `X509Name` instance should return a string containing
+        a description of the type and the NIDs which have been set on it.
         """
-        name = self._x509name(commonName="foo", emailAddress="bar")
-        self.assertEqual(
-            repr(name),
-            "<X509Name object '/emailAddress=bar/CN=foo'>")
+        name = x509_name(commonName="foo", emailAddress="bar")
+        assert repr(name) == "<X509Name object '/emailAddress=bar/CN=foo'>"
 
     def test_comparison(self):
         """
-        :py:class:`X509NameType` instances should compare based on their NIDs.
+        `X509Name` instances should compare based on their NIDs.
         """
-        def _equality(a, b, assertTrue, assertFalse):
-            assertTrue(a == b, "(%r == %r) --> False" % (a, b))
-            assertFalse(a != b)
-            assertTrue(b == a)
-            assertFalse(b != a)
+        def _equality(a, b, assert_true, assert_false):
+            assert_true(a == b)
+            assert_false(a != b)
+            assert_true(b == a)
+            assert_false(b != a)
 
-        def assertEqual(a, b):
-            _equality(a, b, self.assertTrue, self.assertFalse)
+        def assert_true(x):
+            assert x
+
+        def assert_false(x):
+            assert not x
+
+        def assert_equal(a, b):
+            _equality(a, b, assert_true, assert_false)
 
         # Instances compare equal to themselves.
-        name = self._x509name()
-        assertEqual(name, name)
+        name = x509_name()
+        assert_equal(name, name)
 
         # Empty instances should compare equal to each other.
-        assertEqual(self._x509name(), self._x509name())
+        assert_equal(x509_name(), x509_name())
 
         # Instances with equal NIDs should compare equal to each other.
-        assertEqual(self._x509name(commonName="foo"),
-                    self._x509name(commonName="foo"))
+        assert_equal(x509_name(commonName="foo"),
+                     x509_name(commonName="foo"))
 
         # Instance with equal NIDs set using different aliases should compare
         # equal to each other.
-        assertEqual(self._x509name(commonName="foo"),
-                    self._x509name(CN="foo"))
+        assert_equal(x509_name(commonName="foo"),
+                     x509_name(CN="foo"))
 
         # Instances with more than one NID with the same values should compare
         # equal to each other.
-        assertEqual(self._x509name(CN="foo", organizationalUnitName="bar"),
-                    self._x509name(commonName="foo", OU="bar"))
+        assert_equal(x509_name(CN="foo", organizationalUnitName="bar"),
+                     x509_name(commonName="foo", OU="bar"))
 
-        def assertNotEqual(a, b):
-            _equality(a, b, self.assertFalse, self.assertTrue)
+        def assert_not_equal(a, b):
+            _equality(a, b, assert_false, assert_true)
 
         # Instances with different values for the same NID should not compare
         # equal to each other.
-        assertNotEqual(self._x509name(CN="foo"),
-                       self._x509name(CN="bar"))
+        assert_not_equal(x509_name(CN="foo"),
+                         x509_name(CN="bar"))
 
         # Instances with different NIDs should not compare equal to each other.
-        assertNotEqual(self._x509name(CN="foo"),
-                       self._x509name(OU="foo"))
+        assert_not_equal(x509_name(CN="foo"),
+                         x509_name(OU="foo"))
 
-        assertNotEqual(self._x509name(), object())
+        assert_not_equal(x509_name(), object())
 
-        def _inequality(a, b, assertTrue, assertFalse):
-            assertTrue(a < b)
-            assertTrue(a <= b)
-            assertTrue(b > a)
-            assertTrue(b >= a)
-            assertFalse(a > b)
-            assertFalse(a >= b)
-            assertFalse(b < a)
-            assertFalse(b <= a)
+        def _inequality(a, b, assert_true, assert_false):
+            assert_true(a < b)
+            assert_true(a <= b)
+            assert_true(b > a)
+            assert_true(b >= a)
+            assert_false(a > b)
+            assert_false(a >= b)
+            assert_false(b < a)
+            assert_false(b <= a)
 
-        def assertLessThan(a, b):
-            _inequality(a, b, self.assertTrue, self.assertFalse)
+        def assert_less_than(a, b):
+            _inequality(a, b, assert_true, assert_false)
 
         # An X509Name with a NID with a value which sorts less than the value
         # of the same NID on another X509Name compares less than the other
         # X509Name.
-        assertLessThan(self._x509name(CN="abc"),
-                       self._x509name(CN="def"))
+        assert_less_than(x509_name(CN="abc"),
+                         x509_name(CN="def"))
 
-        def assertGreaterThan(a, b):
-            _inequality(a, b, self.assertFalse, self.assertTrue)
+        def assert_greater_than(a, b):
+            _inequality(a, b, assert_false, assert_true)
 
         # An X509Name with a NID with a value which sorts greater than the
         # value of the same NID on another X509Name compares greater than the
         # other X509Name.
-        assertGreaterThan(self._x509name(CN="def"),
-                          self._x509name(CN="abc"))
+        assert_greater_than(x509_name(CN="def"),
+                            x509_name(CN="abc"))
 
     def test_hash(self):
         """
-        :py:meth:`X509Name.hash` returns an integer hash based on the value of
-        the name.
+        `X509Name.hash` returns an integer hash based on the value of the name.
         """
-        a = self._x509name(CN="foo")
-        b = self._x509name(CN="foo")
-        self.assertEqual(a.hash(), b.hash())
+        a = x509_name(CN="foo")
+        b = x509_name(CN="foo")
+        assert a.hash() == b.hash()
         a.CN = "bar"
-        self.assertNotEqual(a.hash(), b.hash())
+        assert a.hash() != b.hash()
 
     def test_der(self):
         """
-        :py:meth:`X509Name.der` returns the DER encoded form of the name.
+        `X509Name.der` returns the DER encoded form of the name.
         """
-        a = self._x509name(CN="foo", C="US")
-        self.assertEqual(
-            a.der(),
-            b'0\x1b1\x0b0\t\x06\x03U\x04\x06\x13\x02US'
-            b'1\x0c0\n\x06\x03U\x04\x03\x0c\x03foo')
+        a = x509_name(CN="foo", C="US")
+        assert (a.der() ==
+                b'0\x1b1\x0b0\t\x06\x03U\x04\x06\x13\x02US'
+                b'1\x0c0\n\x06\x03U\x04\x03\x0c\x03foo')
 
     def test_get_components(self):
         """
-        :py:meth:`X509Name.get_components` returns a :py:data:`list` of
-        two-tuples of :py:data:`str`
+        `X509Name.get_components` returns a `list` of two-tuples of `str`
         giving the NIDs and associated values which make up the name.
         """
-        a = self._x509name()
-        self.assertEqual(a.get_components(), [])
+        a = x509_name()
+        assert a.get_components() == []
         a.CN = "foo"
-        self.assertEqual(a.get_components(), [(b"CN", b"foo")])
+        assert a.get_components() == [(b"CN", b"foo")]
         a.organizationalUnitName = "bar"
-        self.assertEqual(
-            a.get_components(),
-            [(b"CN", b"foo"), (b"OU", b"bar")])
+        assert a.get_components() == [(b"CN", b"foo"), (b"OU", b"bar")]
 
     def test_load_nul_byte_attribute(self):
         """
-        An :py:class:`OpenSSL.crypto.X509Name` from an
-        :py:class:`OpenSSL.crypto.X509` instance loaded from a file can have a
+        An `X509Name` from an `X509` instance loaded from a file can have a
         NUL byte in the value of one of its attributes.
         """
         cert = load_certificate(FILETYPE_PEM, nulbyteSubjectAltNamePEM)
         subject = cert.get_subject()
-        self.assertEqual(
-            "null.python.org\x00example.org", subject.commonName)
+        assert "null.python.org\x00example.org" == subject.commonName
 
-    def test_setAttributeFailure(self):
+    def test_set_attribute_failure(self):
         """
         If the value of an attribute cannot be set for some reason then
-        :py:class:`OpenSSL.crypto.Error` is raised.
+        `Error` is raised.
         """
-        name = self._x509name()
+        name = x509_name()
         # This value is too long
-        self.assertRaises(Error, setattr, name, "O", b"x" * 512)
+        with pytest.raises(Error):
+            setattr(name, "O", b"x" * 512)
 
 
 class _PKeyInteractionTestsMixin:
@@ -1995,28 +1980,21 @@ tgI5
             cert.sign(object(), b"sha256")
 
 
-class X509StoreTests(TestCase):
+class TestX509Store(object):
     """
-    Test for :py:obj:`OpenSSL.crypto.X509Store`.
+    Test for `OpenSSL.crypto.X509Store`.
     """
 
     def test_type(self):
         """
-        :py:obj:`X509StoreType` is a type object.
+        `X509Store` is a type object.
         """
-        self.assertIdentical(X509Store, X509StoreType)
-        self.assertConsistentType(X509Store, 'X509Store')
-
-    def test_add_cert_wrong_args(self):
-        store = X509Store()
-        self.assertRaises(TypeError, store.add_cert)
-        self.assertRaises(TypeError, store.add_cert, object())
-        self.assertRaises(TypeError, store.add_cert, X509(), object())
+        assert X509Store is X509StoreType
+        assert is_consistent_type(X509Store, 'X509Store')
 
     def test_add_cert(self):
         """
-        :py:obj:`X509Store.add_cert` adds a :py:obj:`X509` instance to the
-        certificate store.
+        `X509Store.add_cert` adds a `X509` instance to the certificate store.
         """
         cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
         store = X509Store()
@@ -2024,14 +2002,14 @@ class X509StoreTests(TestCase):
 
     def test_add_cert_rejects_duplicate(self):
         """
-        :py:obj:`X509Store.add_cert` raises :py:obj:`OpenSSL.crypto.Error` if
-        an attempt is made to add the same certificate to the store more than
-        once.
+        `X509Store.add_cert` raises `OpenSSL.crypto.Error` if an attempt is
+        made to add the same certificate to the store more than once.
         """
         cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
         store = X509Store()
         store.add_cert(cert)
-        self.assertRaises(Error, store.add_cert, cert)
+        with pytest.raises(Error):
+            store.add_cert(cert)
 
 
 class PKCS12Tests(TestCase):
@@ -2938,16 +2916,15 @@ class FunctionTests(TestCase):
             load_pkcs7_data(object(), b"foo")
 
 
-class LoadCertificateTests(TestCase):
+class TestLoadCertificate(object):
     """
-    Tests for :py:obj:`load_certificate_request`.
+    Tests for `load_certificate_request`.
     """
 
-    def test_badFileType(self):
+    def test_bad_file_type(self):
         """
-        If the file type passed to :py:obj:`load_certificate_request` is
-        neither :py:obj:`FILETYPE_PEM` nor :py:obj:`FILETYPE_ASN1` then
-        :py:class:`ValueError` is raised.
+        If the file type passed to `load_certificate_request` is neither
+        `FILETYPE_PEM` nor `FILETYPE_ASN1` then `ValueError` is raised.
         """
         with pytest.raises(ValueError):
             load_certificate_request(object(), b"")
@@ -2956,8 +2933,8 @@ class LoadCertificateTests(TestCase):
 
     def test_bad_certificate(self):
         """
-        If the bytes passed to :obj:`load_certificate` are not a valid
-        certificate, an exception is raised.
+        If the bytes passed to `load_certificate` are not a valid certificate,
+        an exception is raised.
         """
         with pytest.raises(Error):
             load_certificate(FILETYPE_ASN1, b"lol")
