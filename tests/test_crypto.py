@@ -1405,9 +1405,9 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         assert True == request.verify(pkey)
 
 
-class X509Tests(TestCase, _PKeyInteractionTestsMixin):
+class TestX509(_PKeyInteractionTestsMixin):
     """
-    Tests for :py:obj:`OpenSSL.crypto.X509`.
+    Tests for `OpenSSL.crypto.X509`.
     """
     pemData = cleartextCertificatePEM + cleartextPrivateKeyPEM
 
@@ -1434,93 +1434,69 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def signable(self):
         """
-        Create and return a new :py:obj:`X509`.
+        Create and return a new `X509`.
         """
         return X509()
 
     def test_type(self):
         """
-        :py:obj:`X509` and :py:obj:`X509Type` refer to the same type object and
-        can be used to create instances of that type.
+        `X509` and `X509Type` refer to the same type object and can be used to
+        create instances of that type.
         """
-        self.assertIdentical(X509, X509Type)
-        self.assertConsistentType(X509, 'X509')
+        assert X509 is X509Type
+        assert is_consistent_type(X509, 'X509')
 
     def test_construction(self):
         """
-        :py:obj:`X509` takes no arguments and returns an instance of
-        :py:obj:`X509Type`.
+        `X509` takes no arguments and returns an instance of `X509Type`.
         """
         certificate = X509()
-        self.assertTrue(
-            isinstance(certificate, X509Type),
-            "%r is of type %r, should be %r" % (certificate,
-                                                type(certificate),
-                                                X509Type))
-        self.assertEqual(type(X509Type).__name__, 'type')
-        self.assertEqual(type(certificate).__name__, 'X509')
-        self.assertEqual(type(certificate), X509Type)
-        self.assertEqual(type(certificate), X509)
-
-    def test_get_version_wrong_args(self):
-        """
-        :py:obj:`X509.get_version` raises :py:obj:`TypeError` if invoked with
-        any arguments.
-        """
-        cert = X509()
-        self.assertRaises(TypeError, cert.get_version, None)
+        assert isinstance(certificate, X509Type)
+        assert type(X509Type).__name__ == 'type'
+        assert type(certificate).__name__ == 'X509'
+        assert type(certificate) == X509Type
+        assert type(certificate) == X509
 
     def test_set_version_wrong_args(self):
         """
-        :py:obj:`X509.set_version` raises :py:obj:`TypeError` if invoked with
-        the wrong number of arguments or an argument not of type :py:obj:`int`.
+        `X509.set_version` raises `TypeError` if invoked with an argument
+        not of type `int`.
         """
         cert = X509()
-        self.assertRaises(TypeError, cert.set_version)
-        self.assertRaises(TypeError, cert.set_version, None)
-        self.assertRaises(TypeError, cert.set_version, 1, None)
+        with pytest.raises(TypeError):
+            cert.set_version(None)
 
     def test_version(self):
         """
-        :py:obj:`X509.set_version` sets the certificate version number.
-        :py:obj:`X509.get_version` retrieves it.
+        `X509.set_version` sets the certificate version number.
+        `X509.get_version` retrieves it.
         """
         cert = X509()
         cert.set_version(1234)
-        self.assertEquals(cert.get_version(), 1234)
-
-    def test_get_serial_number_wrong_args(self):
-        """
-        :py:obj:`X509.get_serial_number` raises :py:obj:`TypeError` if invoked
-        with any arguments.
-        """
-        cert = X509()
-        self.assertRaises(TypeError, cert.get_serial_number, None)
+        assert cert.get_version() == 1234
 
     def test_serial_number(self):
         """
-        The serial number of an :py:obj:`X509Type` can be retrieved and
-        modified with :py:obj:`X509Type.get_serial_number` and
-        :py:obj:`X509Type.set_serial_number`.
+        The serial number of an `X509` can be retrieved and
+        modified with `X509.get_serial_number` and
+        `X509.set_serial_number`.
         """
         certificate = X509()
-        self.assertRaises(TypeError, certificate.set_serial_number)
-        self.assertRaises(TypeError, certificate.set_serial_number, 1, 2)
-        self.assertRaises(TypeError, certificate.set_serial_number, "1")
-        self.assertRaises(TypeError, certificate.set_serial_number, 5.5)
-        self.assertEqual(certificate.get_serial_number(), 0)
+        with pytest.raises(TypeError):
+            certificate.set_serial_number("1")
+        assert certificate.get_serial_number() == 0
         certificate.set_serial_number(1)
-        self.assertEqual(certificate.get_serial_number(), 1)
+        assert certificate.get_serial_number() == 1
         certificate.set_serial_number(2 ** 32 + 1)
-        self.assertEqual(certificate.get_serial_number(), 2 ** 32 + 1)
+        assert certificate.get_serial_number() == 2 ** 32 + 1
         certificate.set_serial_number(2 ** 64 + 1)
-        self.assertEqual(certificate.get_serial_number(), 2 ** 64 + 1)
+        assert certificate.get_serial_number() == 2 ** 64 + 1
         certificate.set_serial_number(2 ** 128 + 1)
-        self.assertEqual(certificate.get_serial_number(), 2 ** 128 + 1)
+        assert certificate.get_serial_number() == 2 ** 128 + 1
 
     def _setBoundTest(self, which):
         """
-        :py:obj:`X509Type.set_notBefore` takes a string in the format of an
+        `X509.set_notBefore` takes a string in the format of an
         ASN1 GENERALIZEDTIME and sets the beginning of the certificate's
         validity period to it.
         """
@@ -1529,37 +1505,40 @@ WpOdIpB8KksUTCzV591Nr1wd
         get = getattr(certificate, 'get_not' + which)
 
         # Starts with no value.
-        self.assertEqual(get(), None)
+        assert get() is None
 
         # GMT (Or is it UTC?) -exarkun
         when = b"20040203040506Z"
         set(when)
-        self.assertEqual(get(), when)
+        assert get() == when
 
         # A plus two hours and thirty minutes offset
         when = b"20040203040506+0530"
         set(when)
-        self.assertEqual(get(), when)
+        assert get() == when
 
         # A minus one hour fifteen minutes offset
         when = b"20040203040506-0115"
         set(when)
-        self.assertEqual(get(), when)
+        assert get() == when
 
         # An invalid string results in a ValueError
-        self.assertRaises(ValueError, set, b"foo bar")
+        with pytest.raises(ValueError):
+            set(b"foo bar")
 
         # The wrong number of arguments results in a TypeError.
-        self.assertRaises(TypeError, set)
+        with pytest.raises(TypeError):
+            set()
         with pytest.raises(TypeError):
             set(b"20040203040506Z", b"20040203040506Z")
-        self.assertRaises(TypeError, get, b"foo bar")
+        with pytest.raises(TypeError):
+            get(b"foo bar")
 
     # XXX ASN1_TIME (not GENERALIZEDTIME)
 
     def test_set_notBefore(self):
         """
-        :py:obj:`X509Type.set_notBefore` takes a string in the format of an
+        `X509.set_notBefore` takes a string in the format of an
         ASN1 GENERALIZEDTIME and sets the beginning of the certificate's
         validity period to it.
         """
@@ -1567,7 +1546,7 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_set_notAfter(self):
         """
-        :py:obj:`X509Type.set_notAfter` takes a string in the format of an ASN1
+        `X509.set_notAfter` takes a string in the format of an ASN1
         GENERALIZEDTIME and sets the end of the certificate's validity period
         to it.
         """
@@ -1575,37 +1554,35 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_get_notBefore(self):
         """
-        :py:obj:`X509Type.get_notBefore` returns a string in the format of an
+        `X509.get_notBefore` returns a string in the format of an
         ASN1 GENERALIZEDTIME even for certificates which store it as UTCTIME
         internally.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        self.assertEqual(cert.get_notBefore(), b"20090325123658Z")
+        assert cert.get_notBefore() == b"20090325123658Z"
 
     def test_get_notAfter(self):
         """
-        :py:obj:`X509Type.get_notAfter` returns a string in the format of an
+        `X509.get_notAfter` returns a string in the format of an
         ASN1 GENERALIZEDTIME even for certificates which store it as UTCTIME
         internally.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        self.assertEqual(cert.get_notAfter(), b"20170611123658Z")
+        assert cert.get_notAfter() == b"20170611123658Z"
 
     def test_gmtime_adj_notBefore_wrong_args(self):
         """
-        :py:obj:`X509Type.gmtime_adj_notBefore` raises :py:obj:`TypeError` if
-        called with the wrong number of arguments or a non-:py:obj:`int`
-        argument.
+        `X509.gmtime_adj_notBefore` raises `TypeError` if called with a
+        non-`int` argument.
         """
         cert = X509()
-        self.assertRaises(TypeError, cert.gmtime_adj_notBefore)
-        self.assertRaises(TypeError, cert.gmtime_adj_notBefore, None)
-        self.assertRaises(TypeError, cert.gmtime_adj_notBefore, 123, None)
+        with pytest.raises(TypeError):
+            cert.gmtime_adj_notBefore(None)
 
     def test_gmtime_adj_notBefore(self):
         """
-        :py:obj:`X509Type.gmtime_adj_notBefore` changes the not-before
-        timestamp to be the current time plus the number of seconds passed in.
+        `X509.gmtime_adj_notBefore` changes the not-before timestamp to be the
+        current time plus the number of seconds passed in.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
         not_before_min = (
@@ -1616,22 +1593,20 @@ WpOdIpB8KksUTCzV591Nr1wd
             cert.get_notBefore().decode(), "%Y%m%d%H%M%SZ"
         )
         not_before_max = datetime.utcnow() + timedelta(seconds=100)
-        self.assertTrue(not_before_min <= not_before <= not_before_max)
+        assert not_before_min <= not_before <= not_before_max
 
     def test_gmtime_adj_notAfter_wrong_args(self):
         """
-        :py:obj:`X509Type.gmtime_adj_notAfter` raises :py:obj:`TypeError` if
-        called with the wrong number of arguments or a non-:py:obj:`int`
-        argument.
+        `X509.gmtime_adj_notAfter` raises `TypeError` if called with a
+        non-`int` argument.
         """
         cert = X509()
-        self.assertRaises(TypeError, cert.gmtime_adj_notAfter)
-        self.assertRaises(TypeError, cert.gmtime_adj_notAfter, None)
-        self.assertRaises(TypeError, cert.gmtime_adj_notAfter, 123, None)
+        with pytest.raises(TypeError):
+            cert.gmtime_adj_notAfter(None)
 
     def test_gmtime_adj_notAfter(self):
         """
-        :py:obj:`X509Type.gmtime_adj_notAfter` changes the not-after timestamp
+        `X509.gmtime_adj_notAfter` changes the not-after timestamp
         to be the current time plus the number of seconds passed in.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
@@ -1643,55 +1618,47 @@ WpOdIpB8KksUTCzV591Nr1wd
             cert.get_notAfter().decode(), "%Y%m%d%H%M%SZ"
         )
         not_after_max = datetime.utcnow() + timedelta(seconds=100)
-        self.assertTrue(not_after_min <= not_after <= not_after_max)
-
-    def test_has_expired_wrong_args(self):
-        """
-        :py:obj:`X509Type.has_expired` raises :py:obj:`TypeError` if called
-        with any arguments.
-        """
-        cert = X509()
-        self.assertRaises(TypeError, cert.has_expired, None)
+        assert not_after_min <= not_after <= not_after_max
 
     def test_has_expired(self):
         """
-        :py:obj:`X509Type.has_expired` returns :py:obj:`True` if the
-        certificate's not-after time is in the past.
+        `X509.has_expired` returns `True` if the certificate's not-after time
+        is in the past.
         """
         cert = X509()
         cert.gmtime_adj_notAfter(-1)
-        self.assertTrue(cert.has_expired())
+        assert True == cert.has_expired()
 
     def test_has_not_expired(self):
         """
-        :py:obj:`X509Type.has_expired` returns :py:obj:`False` if the
-        certificate's not-after time is in the future.
+        `X509.has_expired` returns `False` if the certificate's not-after time
+        is in the future.
         """
         cert = X509()
         cert.gmtime_adj_notAfter(2)
-        self.assertFalse(cert.has_expired())
+        assert False == cert.has_expired()
 
     def test_root_has_not_expired(self):
         """
-        :py:obj:`X509Type.has_expired` returns :py:obj:`False` if the
-        certificate's not-after time is in the future.
+        `X509.has_expired` returns `False` if the certificate's not-after time
+        is in the future.
         """
         cert = load_certificate(FILETYPE_PEM, root_cert_pem)
-        self.assertFalse(cert.has_expired())
+        assert False == cert.has_expired()
 
     def test_digest(self):
         """
-        :py:obj:`X509.digest` returns a string giving ":"-separated hex-encoded
+        `X509.digest` returns a string giving ":"-separated hex-encoded
         words of the digest of the certificate.
         """
         cert = load_certificate(FILETYPE_PEM, root_cert_pem)
-        self.assertEqual(
+        assert (
             # This is MD5 instead of GOOD_DIGEST because the digest algorithm
             # actually matters to the assertion (ie, another arbitrary, good
             # digest will not product the same digest).
             # Digest verified with the command:
             # openssl x509 -in root_cert.pem -noout -fingerprint -md5
-            cert.digest("MD5"),
+            cert.digest("MD5") ==
             b"19:B3:05:26:2B:F8:F2:FF:0B:8F:21:07:A8:28:B8:75")
 
     def _extcert(self, pkey, extensions):
@@ -1710,7 +1677,7 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_extension_count(self):
         """
-        :py:obj:`X509.get_extension_count` returns the number of extensions
+        `X509.get_extension_count` returns the number of extensions
         that are present in the certificate.
         """
         pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
@@ -1721,20 +1688,20 @@ WpOdIpB8KksUTCzV591Nr1wd
 
         # Try a certificate with no extensions at all.
         c = self._extcert(pkey, [])
-        self.assertEqual(c.get_extension_count(), 0)
+        assert c.get_extension_count() == 0
 
         # And a certificate with one
         c = self._extcert(pkey, [ca])
-        self.assertEqual(c.get_extension_count(), 1)
+        assert c.get_extension_count() == 1
 
         # And a certificate with several
         c = self._extcert(pkey, [ca, key, subjectAltName])
-        self.assertEqual(c.get_extension_count(), 3)
+        assert c.get_extension_count() == 3
 
     def test_get_extension(self):
         """
-        :py:obj:`X509.get_extension` takes an integer and returns an
-        :py:obj:`X509Extension` corresponding to the extension at that index.
+        `X509.get_extension` takes an integer and returns an
+        `X509Extension` corresponding to the extension at that index.
         """
         pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
         ca = X509Extension(b'basicConstraints', True, b'CA:FALSE')
@@ -1745,23 +1712,26 @@ WpOdIpB8KksUTCzV591Nr1wd
         cert = self._extcert(pkey, [ca, key, subjectAltName])
 
         ext = cert.get_extension(0)
-        self.assertTrue(isinstance(ext, X509Extension))
-        self.assertTrue(ext.get_critical())
-        self.assertEqual(ext.get_short_name(), b'basicConstraints')
+        assert isinstance(ext, X509Extension)
+        assert ext.get_critical()
+        assert ext.get_short_name() == b'basicConstraints'
 
         ext = cert.get_extension(1)
-        self.assertTrue(isinstance(ext, X509Extension))
-        self.assertTrue(ext.get_critical())
-        self.assertEqual(ext.get_short_name(), b'keyUsage')
+        assert isinstance(ext, X509Extension)
+        assert ext.get_critical()
+        assert ext.get_short_name() == b'keyUsage'
 
         ext = cert.get_extension(2)
-        self.assertTrue(isinstance(ext, X509Extension))
-        self.assertFalse(ext.get_critical())
-        self.assertEqual(ext.get_short_name(), b'subjectAltName')
+        assert isinstance(ext, X509Extension)
+        assert not ext.get_critical()
+        assert ext.get_short_name() == b'subjectAltName'
 
-        self.assertRaises(IndexError, cert.get_extension, -1)
-        self.assertRaises(IndexError, cert.get_extension, 4)
-        self.assertRaises(TypeError, cert.get_extension, "hello")
+        with pytest.raises(IndexError):
+            cert.get_extension(-1)
+        with pytest.raises(IndexError):
+            cert.get_extension(4)
+        with pytest.raises(TypeError):
+            cert.get_extension("hello")
 
     def test_nullbyte_subjectAltName(self):
         """
@@ -1772,103 +1742,83 @@ WpOdIpB8KksUTCzV591Nr1wd
         cert = load_certificate(FILETYPE_PEM, nulbyteSubjectAltNamePEM)
 
         ext = cert.get_extension(3)
-        self.assertEqual(ext.get_short_name(), b'subjectAltName')
-        self.assertEqual(
+        assert ext.get_short_name() == b'subjectAltName'
+        assert (
             b"DNS:altnull.python.org\x00example.com, "
             b"email:null@python.org\x00user@example.org, "
             b"URI:http://null.python.org\x00http://example.org, "
-            b"IP Address:192.0.2.1, IP Address:2001:DB8:0:0:0:0:0:1\n",
+            b"IP Address:192.0.2.1, IP Address:2001:DB8:0:0:0:0:0:1\n" ==
             str(ext).encode("ascii"))
 
     def test_invalid_digest_algorithm(self):
         """
-        :py:obj:`X509.digest` raises :py:obj:`ValueError` if called with an
-        unrecognized hash algorithm.
+        `X509.digest` raises `ValueError` if called with an unrecognized hash
+        algorithm.
         """
         cert = X509()
-        self.assertRaises(ValueError, cert.digest, BAD_DIGEST)
-
-    def test_get_subject_wrong_args(self):
-        """
-        :py:obj:`X509.get_subject` raises :py:obj:`TypeError` if called with
-        any arguments.
-        """
-        cert = X509()
-        self.assertRaises(TypeError, cert.get_subject, None)
+        with pytest.raises(ValueError):
+            cert.digest(BAD_DIGEST)
 
     def test_get_subject(self):
         """
-        :py:obj:`X509.get_subject` returns an :py:obj:`X509Name` instance.
+        `X509.get_subject` returns an `X509Name` instance.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
         subj = cert.get_subject()
-        self.assertTrue(isinstance(subj, X509Name))
-        self.assertEquals(
-            subj.get_components(),
+        assert isinstance(subj, X509Name)
+        assert (
+            subj.get_components() ==
             [(b'C', b'US'), (b'ST', b'IL'), (b'L', b'Chicago'),
              (b'O', b'Testing'), (b'CN', b'Testing Root CA')])
 
     def test_set_subject_wrong_args(self):
         """
-        :py:obj:`X509.set_subject` raises a :py:obj:`TypeError` if called with
-        the wrong number of arguments or an argument not of type
-        :py:obj:`X509Name`.
+        `X509.set_subject` raises a `TypeError` if called with an argument not
+        of type `X509Name`.
         """
         cert = X509()
-        self.assertRaises(TypeError, cert.set_subject)
-        self.assertRaises(TypeError, cert.set_subject, None)
         with pytest.raises(TypeError):
-            cert.set_subject(cert.get_subject(), None)
+            cert.set_subject(None)
 
     def test_set_subject(self):
         """
-        :py:obj:`X509.set_subject` changes the subject of the certificate to
-        the one passed in.
+        `X509.set_subject` changes the subject of the certificate to the one
+        passed in.
         """
         cert = X509()
         name = cert.get_subject()
         name.C = 'AU'
         name.O = 'Unit Tests'
         cert.set_subject(name)
-        self.assertEquals(
-            cert.get_subject().get_components(),
+        assert (
+            cert.get_subject().get_components() ==
             [(b'C', b'AU'), (b'O', b'Unit Tests')])
-
-    def test_get_issuer_wrong_args(self):
-        """
-        :py:obj:`X509.get_issuer` raises :py:obj:`TypeError` if called with any
-        arguments.
-        """
-        cert = X509()
-        self.assertRaises(TypeError, cert.get_issuer, None)
 
     def test_get_issuer(self):
         """
-        :py:obj:`X509.get_issuer` returns an :py:obj:`X509Name` instance.
+        `X509.get_issuer` returns an `X509Name` instance.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
         subj = cert.get_issuer()
-        self.assertTrue(isinstance(subj, X509Name))
+        assert isinstance(subj, X509Name)
         comp = subj.get_components()
-        self.assertEquals(
-            comp,
+        assert (
+            comp ==
             [(b'C', b'US'), (b'ST', b'IL'), (b'L', b'Chicago'),
              (b'O', b'Testing'), (b'CN', b'Testing Root CA')])
 
     def test_set_issuer_wrong_args(self):
         """
-        :py:obj:`X509.set_issuer` raises a :py:obj:`TypeError` if called with
-        the wrong number of arguments or an argument not of type
-        :py:obj:`X509Name`.
+        `X509.set_issuer` raises a `TypeError` if called with an argument not
+        of type `X509Name`.
         """
         cert = X509()
-        self.assertRaises(TypeError, cert.set_issuer)
-        self.assertRaises(TypeError, cert.set_issuer, None)
-        self.assertRaises(TypeError, cert.set_issuer, cert.get_issuer(), None)
+        with pytest.raises(TypeError):
+            cert.set_issuer(None)
 
     def test_set_issuer(self):
         """
-        :py:obj:`X509.set_issuer` changes the issuer of the certificate to the
+        `X509.set_issuer` changes the issuer of the certificate to the
         one passed in.
         """
         cert = X509()
@@ -1876,60 +1826,51 @@ WpOdIpB8KksUTCzV591Nr1wd
         name.C = 'AU'
         name.O = 'Unit Tests'
         cert.set_issuer(name)
-        self.assertEquals(
-            cert.get_issuer().get_components(),
+        assert (
+            cert.get_issuer().get_components() ==
             [(b'C', b'AU'), (b'O', b'Unit Tests')])
 
     def test_get_pubkey_uninitialized(self):
         """
-        When called on a certificate with no public key,
-        :py:obj:`X509.get_pubkey` raises :py:obj:`OpenSSL.crypto.Error`.
+        When called on a certificate with no public key, `X509.get_pubkey`
+        raises `OpenSSL.crypto.Error`.
         """
         cert = X509()
-        self.assertRaises(Error, cert.get_pubkey)
+        with pytest.raises(Error):
+            cert.get_pubkey()
 
     def test_set_pubkey_wrong_type(self):
         """
-        :obj:`X509.set_pubkey` raises :obj:`TypeError` when given an object of
-        the wrong type.
+        `X509.set_pubkey` raises `TypeError` when given an object of the
+        wrong type.
         """
         cert = X509()
         with pytest.raises(TypeError):
             cert.set_pubkey(object())
 
-    def test_subject_name_hash_wrong_args(self):
-        """
-        :py:obj:`X509.subject_name_hash` raises :py:obj:`TypeError` if called
-        with any arguments.
-        """
-        cert = X509()
-        self.assertRaises(TypeError, cert.subject_name_hash, None)
-
     def test_subject_name_hash(self):
         """
-        :py:obj:`X509.subject_name_hash` returns the hash of the certificate's
+        `X509.subject_name_hash` returns the hash of the certificate's
         subject name.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        self.assertIn(
-            cert.subject_name_hash(),
-            [3350047874,  # OpenSSL 0.9.8, MD5
-             3278919224,  # OpenSSL 1.0.0, SHA1
-             ])
+        assert cert.subject_name_hash() in [
+            3350047874,  # OpenSSL 0.9.8, MD5
+            3278919224,  # OpenSSL 1.0.0, SHA1
+        ]
 
     def test_get_signature_algorithm(self):
         """
-        :py:obj:`X509Type.get_signature_algorithm` returns a string which means
+        `X509.get_signature_algorithm` returns a string which means
         the algorithm used to sign the certificate.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        self.assertEqual(
-            b"sha1WithRSAEncryption", cert.get_signature_algorithm())
+        assert b"sha1WithRSAEncryption" == cert.get_signature_algorithm()
 
     def test_get_undefined_signature_algorithm(self):
         """
-        :py:obj:`X509Type.get_signature_algorithm` raises :py:obj:`ValueError`
-        if the signature algorithm is undefined or unknown.
+        `X509.get_signature_algorithm` raises `ValueError` if the signature
+        algorithm is undefined or unknown.
         """
         # This certificate has been modified to indicate a bogus OID in the
         # signature algorithm field so that OpenSSL does not recognize it.
@@ -1955,12 +1896,12 @@ tgI5
 -----END CERTIFICATE-----
 """
         cert = load_certificate(FILETYPE_PEM, certPEM)
-        self.assertRaises(ValueError, cert.get_signature_algorithm)
+        with pytest.raises(ValueError):
+            cert.get_signature_algorithm()
 
     def test_sign_bad_pubkey_type(self):
         """
-        :obj:`X509.sign` raises :obj:`TypeError` when called with the wrong
-        type.
+        `X509.sign` raises `TypeError` when called with the wrong type.
         """
         cert = X509()
         with pytest.raises(TypeError):
