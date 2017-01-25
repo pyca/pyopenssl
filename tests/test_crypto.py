@@ -37,7 +37,7 @@ from OpenSSL.crypto import load_publickey, dump_publickey
 from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT
 from OpenSSL.crypto import dump_certificate, load_certificate_request
 from OpenSSL.crypto import dump_certificate_request, dump_privatekey
-from OpenSSL.crypto import PKCS7Type, load_pkcs7_data
+from OpenSSL.crypto import PKCS7, PKCS7Type, load_pkcs7_data
 from OpenSSL.crypto import PKCS12, PKCS12Type, load_pkcs12
 from OpenSSL.crypto import CRL, Revoked, dump_crl, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
@@ -2455,72 +2455,61 @@ class TestLoadPublicKey(object):
         assert dumped_pem == cleartextPublicKeyPEM
 
 
-class FunctionTests(TestCase):
+class TestFunction(object):
     """
-    Tests for free-functions in the :py:obj:`OpenSSL.crypto` module.
-
-    Add new tests to `TestFunctions` above.
+    Tests for free-functions in the `OpenSSL.crypto` module.
     """
 
     def test_load_privatekey_invalid_format(self):
         """
-        :py:obj:`load_privatekey` raises :py:obj:`ValueError` if passed an
-        unknown filetype.
+        `load_privatekey` raises `ValueError` if passed an unknown filetype.
         """
-        self.assertRaises(ValueError, load_privatekey, 100, root_key_pem)
+        with pytest.raises(ValueError):
+            load_privatekey(100, root_key_pem)
 
     def test_load_privatekey_invalid_passphrase_type(self):
         """
-        :py:obj:`load_privatekey` raises :py:obj:`TypeError` if passed a
-        passphrase that is neither a :py:obj:`str` nor a callable.
+        `load_privatekey` raises `TypeError` if passed a passphrase that is
+        neither a `str` nor a callable.
         """
-        self.assertRaises(
-            TypeError,
-            load_privatekey,
-            FILETYPE_PEM, encryptedPrivateKeyPEMPassphrase, object())
-
-    def test_load_privatekey_wrong_args(self):
-        """
-        :py:obj:`load_privatekey` raises :py:obj:`TypeError` if called with the
-        wrong number of arguments.
-        """
-        self.assertRaises(TypeError, load_privatekey)
+        with pytest.raises(TypeError):
+            load_privatekey(
+                FILETYPE_PEM, encryptedPrivateKeyPEMPassphrase, object())
 
     def test_load_privatekey_wrongPassphrase(self):
         """
-        :py:obj:`load_privatekey` raises :py:obj:`OpenSSL.crypto.Error` when it
-        is passed an encrypted PEM and an incorrect passphrase.
+        `load_privatekey` raises `OpenSSL.crypto.Error` when it is passed an
+        encrypted PEM and an incorrect passphrase.
         """
-        exc = self.assertRaises(
-            Error,
-            load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, b"quack")
-        self.assertNotEqual(exc.args[0], [])
+        with pytest.raises(Error) as err:
+            load_privatekey(FILETYPE_PEM, encryptedPrivateKeyPEM, b"quack")
+        assert err.value.args[0] != []
 
     def test_load_privatekey_passphraseWrongType(self):
         """
-        :py:obj:`load_privatekey` raises :py:obj:`ValueError` when it is passed
-        a passphrase with a private key encoded in a format, that doesn't
-        support encryption.
+        `load_privatekey` raises `ValueError` when it is passeda passphrase
+        with a private key encoded in a format, that doesn't support
+        encryption.
         """
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         blob = dump_privatekey(FILETYPE_ASN1, key)
-        self.assertRaises(ValueError,
-                          load_privatekey, FILETYPE_ASN1, blob, "secret")
+        with pytest.raises(ValueError):
+            load_privatekey(FILETYPE_ASN1, blob, "secret")
 
     def test_load_privatekey_passphrase(self):
         """
-        :py:obj:`load_privatekey` can create a :py:obj:`PKey` object from an
-        encrypted PEM string if given the passphrase.
+        `load_privatekey` can create a `PKey` object from an encrypted PEM
+        string if given the passphrase.
         """
         key = load_privatekey(
             FILETYPE_PEM, encryptedPrivateKeyPEM,
             encryptedPrivateKeyPEMPassphrase)
-        self.assertTrue(isinstance(key, PKeyType))
+        assert isinstance(key, PKeyType)
 
     def test_load_privatekey_passphrase_exception(self):
         """
         If the passphrase callback raises an exception, that exception is
-        raised by :py:obj:`load_privatekey`.
+        raised by `load_privatekey`.
         """
         def cb(ignored):
             raise ArithmeticError
@@ -2530,7 +2519,7 @@ class FunctionTests(TestCase):
 
     def test_load_privatekey_wrongPassphraseCallback(self):
         """
-        :py:obj:`load_privatekey` raises :py:obj:`OpenSSL.crypto.Error` when it
+        `load_privatekey` raises `OpenSSL.crypto.Error` when it
         is passed an encrypted PEM and a passphrase callback which returns an
         incorrect passphrase.
         """
@@ -2539,17 +2528,16 @@ class FunctionTests(TestCase):
         def cb(*a):
             called.append(None)
             return b"quack"
-        exc = self.assertRaises(
-            Error,
-            load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
-        self.assertTrue(called)
-        self.assertNotEqual(exc.args[0], [])
+        with pytest.raises(Error) as err:
+            load_privatekey(FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
+        assert called
+        assert err.value.args[0] != []
 
     def test_load_privatekey_passphraseCallback(self):
         """
-        :py:obj:`load_privatekey` can create a :py:obj:`PKey` object from an
-        encrypted PEM string if given a passphrase callback which returns the
-        correct password.
+        `load_privatekey` can create a `PKey` object from an encrypted PEM
+        string if given a passphrase callback which returns the correct
+        password.
         """
         called = []
 
@@ -2557,65 +2545,52 @@ class FunctionTests(TestCase):
             called.append(writing)
             return encryptedPrivateKeyPEMPassphrase
         key = load_privatekey(FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
-        self.assertTrue(isinstance(key, PKeyType))
-        self.assertEqual(called, [False])
+        assert isinstance(key, PKeyType)
+        assert called == [False]
 
     def test_load_privatekey_passphrase_wrong_return_type(self):
         """
-        :py:obj:`load_privatekey` raises :py:obj:`ValueError` if the passphrase
-        callback returns something other than a byte string.
+        `load_privatekey` raises `ValueError` if the passphrase callback
+        returns something other than a byte string.
         """
-        self.assertRaises(
-            ValueError,
-            load_privatekey,
-            FILETYPE_PEM, encryptedPrivateKeyPEM, lambda *args: 3)
-
-    def test_dump_privatekey_wrong_args(self):
-        """
-        :py:obj:`dump_privatekey` raises :py:obj:`TypeError` if called with the
-        wrong number of arguments.
-        """
-        self.assertRaises(TypeError, dump_privatekey)
-        # If cipher name is given, password is required.
-        self.assertRaises(
-            TypeError, dump_privatekey, FILETYPE_PEM, PKey(), GOOD_CIPHER)
+        with pytest.raises(ValueError):
+            load_privatekey(
+                FILETYPE_PEM, encryptedPrivateKeyPEM, lambda *args: 3)
 
     def test_dump_privatekey_unknown_cipher(self):
         """
-        :py:obj:`dump_privatekey` raises :py:obj:`ValueError` if called with an
-        unrecognized cipher name.
+        `dump_privatekey` raises `ValueError` if called with an unrecognized
+        cipher name.
         """
         key = PKey()
         key.generate_key(TYPE_RSA, 512)
-        self.assertRaises(
-            ValueError, dump_privatekey,
-            FILETYPE_PEM, key, BAD_CIPHER, "passphrase")
+        with pytest.raises(ValueError):
+            dump_privatekey(FILETYPE_PEM, key, BAD_CIPHER, "passphrase")
 
     def test_dump_privatekey_invalid_passphrase_type(self):
         """
-        :py:obj:`dump_privatekey` raises :py:obj:`TypeError` if called with a
-        passphrase which is neither a :py:obj:`str` nor a callable.
+        `dump_privatekey` raises `TypeError` if called with a passphrase which
+        is neither a `str` nor a callable.
         """
         key = PKey()
         key.generate_key(TYPE_RSA, 512)
-        self.assertRaises(
-            TypeError,
-            dump_privatekey, FILETYPE_PEM, key, GOOD_CIPHER, object())
+        with pytest.raises(TypeError):
+            dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, object())
 
     def test_dump_privatekey_invalid_filetype(self):
         """
-        :py:obj:`dump_privatekey` raises :py:obj:`ValueError` if called with an
-        unrecognized filetype.
+        `dump_privatekey` raises `ValueError` if called with an unrecognized
+        filetype.
         """
         key = PKey()
         key.generate_key(TYPE_RSA, 512)
-        self.assertRaises(ValueError, dump_privatekey, 100, key)
+        with pytest.raises(ValueError):
+            dump_privatekey(100, key)
 
-    def test_load_privatekey_passphraseCallbackLength(self):
+    def test_load_privatekey_passphrase_callback_length(self):
         """
-        :py:obj:`crypto.load_privatekey` should raise an error when the
-        passphrase provided by the callback is too long, not silently truncate
-        it.
+        `crypto.load_privatekey` should raise an error when the passphrase
+        provided by the callback is too long, not silently truncate it.
         """
         def cb(ignored):
             return "a" * 1025
@@ -2625,23 +2600,22 @@ class FunctionTests(TestCase):
 
     def test_dump_privatekey_passphrase(self):
         """
-        :py:obj:`dump_privatekey` writes an encrypted PEM when given a
-        passphrase.
+        `dump_privatekey` writes an encrypted PEM when given a passphrase.
         """
         passphrase = b"foo"
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         pem = dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, passphrase)
-        self.assertTrue(isinstance(pem, binary_type))
+        assert isinstance(pem, binary_type)
         loadedKey = load_privatekey(FILETYPE_PEM, pem, passphrase)
-        self.assertTrue(isinstance(loadedKey, PKeyType))
-        self.assertEqual(loadedKey.type(), key.type())
-        self.assertEqual(loadedKey.bits(), key.bits())
+        assert isinstance(loadedKey, PKeyType)
+        assert loadedKey.type() == key.type()
+        assert loadedKey.bits() == key.bits()
 
-    def test_dump_privatekey_passphraseWrongType(self):
+    def test_dump_privatekey_passphrase_wrong_type(self):
         """
-        :py:obj:`dump_privatekey` raises :py:obj:`ValueError` when it is passed
-        a passphrase with a private key encoded in a format, that doesn't
-        support encryption.
+        `dump_privatekey` raises `ValueError` when it is passed a passphrase
+        with a private key encoded in a format, that doesn't support
+        encryption.
         """
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         with pytest.raises(ValueError):
@@ -2649,26 +2623,26 @@ class FunctionTests(TestCase):
 
     def test_dump_certificate(self):
         """
-        :py:obj:`dump_certificate` writes PEM, DER, and text.
+        `dump_certificate` writes PEM, DER, and text.
         """
         pemData = cleartextCertificatePEM + cleartextPrivateKeyPEM
         cert = load_certificate(FILETYPE_PEM, pemData)
         dumped_pem = dump_certificate(FILETYPE_PEM, cert)
-        self.assertEqual(dumped_pem, cleartextCertificatePEM)
+        assert dumped_pem == cleartextCertificatePEM
         dumped_der = dump_certificate(FILETYPE_ASN1, cert)
         good_der = _runopenssl(dumped_pem, b"x509", b"-outform", b"DER")
-        self.assertEqual(dumped_der, good_der)
+        assert dumped_der == good_der
         cert2 = load_certificate(FILETYPE_ASN1, dumped_der)
         dumped_pem2 = dump_certificate(FILETYPE_PEM, cert2)
-        self.assertEqual(dumped_pem2, cleartextCertificatePEM)
+        assert dumped_pem2 == cleartextCertificatePEM
         dumped_text = dump_certificate(FILETYPE_TEXT, cert)
         good_text = _runopenssl(
             dumped_pem, b"x509", b"-noout", b"-text", b"-nameopt", b"")
-        self.assertEqual(dumped_text, good_text)
+        assert dumped_text == good_text
 
     def test_dump_certificate_bad_type(self):
         """
-        :obj:`dump_certificate` raises a :obj:`ValueError` if it's called with
+        `dump_certificate` raises a `ValueError` if it's called with
         a bad type.
         """
         cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
@@ -2677,16 +2651,16 @@ class FunctionTests(TestCase):
 
     def test_dump_privatekey_pem(self):
         """
-        :py:obj:`dump_privatekey` writes a PEM
+        `dump_privatekey` writes a PEM
         """
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
-        self.assertTrue(key.check())
+        assert key.check()
         dumped_pem = dump_privatekey(FILETYPE_PEM, key)
-        self.assertEqual(dumped_pem, cleartextPrivateKeyPEM)
+        assert dumped_pem == cleartextPrivateKeyPEM
 
     def test_dump_privatekey_asn1(self):
         """
-        :py:obj:`dump_privatekey` writes a DER
+        `dump_privatekey` writes a DER
         """
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         dumped_pem = dump_privatekey(FILETYPE_PEM, key)
@@ -2694,21 +2668,21 @@ class FunctionTests(TestCase):
         dumped_der = dump_privatekey(FILETYPE_ASN1, key)
         # XXX This OpenSSL call writes "writing RSA key" to standard out.  Sad.
         good_der = _runopenssl(dumped_pem, b"rsa", b"-outform", b"DER")
-        self.assertEqual(dumped_der, good_der)
+        assert dumped_der == good_der
         key2 = load_privatekey(FILETYPE_ASN1, dumped_der)
         dumped_pem2 = dump_privatekey(FILETYPE_PEM, key2)
-        self.assertEqual(dumped_pem2, cleartextPrivateKeyPEM)
+        assert dumped_pem2 == cleartextPrivateKeyPEM
 
     def test_dump_privatekey_text(self):
         """
-        :py:obj:`dump_privatekey` writes a text
+        `dump_privatekey` writes a text
         """
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         dumped_pem = dump_privatekey(FILETYPE_PEM, key)
 
         dumped_text = dump_privatekey(FILETYPE_TEXT, key)
         good_text = _runopenssl(dumped_pem, b"rsa", b"-noout", b"-text")
-        self.assertEqual(dumped_text, good_text)
+        assert dumped_text == good_text
 
     def test_dump_publickey_pem(self):
         """
@@ -2739,27 +2713,28 @@ class FunctionTests(TestCase):
 
     def test_dump_certificate_request(self):
         """
-        :py:obj:`dump_certificate_request` writes a PEM, DER, and text.
+        `dump_certificate_request` writes a PEM, DER, and text.
         """
         req = load_certificate_request(
             FILETYPE_PEM, cleartextCertificateRequestPEM)
         dumped_pem = dump_certificate_request(FILETYPE_PEM, req)
-        self.assertEqual(dumped_pem, cleartextCertificateRequestPEM)
+        assert dumped_pem == cleartextCertificateRequestPEM
         dumped_der = dump_certificate_request(FILETYPE_ASN1, req)
         good_der = _runopenssl(dumped_pem, b"req", b"-outform", b"DER")
-        self.assertEqual(dumped_der, good_der)
+        assert dumped_der == good_der
         req2 = load_certificate_request(FILETYPE_ASN1, dumped_der)
         dumped_pem2 = dump_certificate_request(FILETYPE_PEM, req2)
-        self.assertEqual(dumped_pem2, cleartextCertificateRequestPEM)
+        assert dumped_pem2 == cleartextCertificateRequestPEM
         dumped_text = dump_certificate_request(FILETYPE_TEXT, req)
         good_text = _runopenssl(
             dumped_pem, b"req", b"-noout", b"-text", b"-nameopt", b"")
-        self.assertEqual(dumped_text, good_text)
-        self.assertRaises(ValueError, dump_certificate_request, 100, req)
+        assert dumped_text == good_text
+        with pytest.raises(ValueError):
+            dump_certificate_request(100, req)
 
-    def test_dump_privatekey_passphraseCallback(self):
+    def test_dump_privatekey_passphrase_callback(self):
         """
-        :py:obj:`dump_privatekey` writes an encrypted PEM when given a callback
+        `dump_privatekey` writes an encrypted PEM when given a callback
         which returns the correct passphrase.
         """
         passphrase = b"foo"
@@ -2770,16 +2745,16 @@ class FunctionTests(TestCase):
             return passphrase
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         pem = dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, cb)
-        self.assertTrue(isinstance(pem, binary_type))
-        self.assertEqual(called, [True])
+        assert isinstance(pem, binary_type)
+        assert called == [True]
         loadedKey = load_privatekey(FILETYPE_PEM, pem, passphrase)
-        self.assertTrue(isinstance(loadedKey, PKeyType))
-        self.assertEqual(loadedKey.type(), key.type())
-        self.assertEqual(loadedKey.bits(), key.bits())
+        assert isinstance(loadedKey, PKeyType)
+        assert loadedKey.type() == key.type()
+        assert loadedKey.bits() == key.bits()
 
     def test_dump_privatekey_passphrase_exception(self):
         """
-        :py:obj:`dump_privatekey` should not overwrite the exception raised
+        `dump_privatekey` should not overwrite the exception raised
         by the passphrase callback.
         """
         def cb(ignored):
@@ -2791,9 +2766,8 @@ class FunctionTests(TestCase):
 
     def test_dump_privatekey_passphraseCallbackLength(self):
         """
-        :py:obj:`crypto.dump_privatekey` should raise an error when the
-        passphrase provided by the callback is too long, not silently truncate
-        it.
+        `crypto.dump_privatekey` should raise an error when the passphrase
+        provided by the callback is too long, not silently truncate it.
         """
         def cb(ignored):
             return "a" * 1025
@@ -2804,31 +2778,30 @@ class FunctionTests(TestCase):
 
     def test_load_pkcs7_data_pem(self):
         """
-        :py:obj:`load_pkcs7_data` accepts a PKCS#7 string and returns an
-        instance of :py:obj:`PKCS7Type`.
+        `load_pkcs7_data` accepts a PKCS#7 string and returns an instance of
+        `PKCS`.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertTrue(isinstance(pkcs7, PKCS7Type))
+        assert isinstance(pkcs7, PKCS7)
 
     def test_load_pkcs7_data_asn1(self):
         """
-        :py:obj:`load_pkcs7_data` accepts a bytes containing ASN1 data
-        representing PKCS#7 and returns an instance of :py:obj`PKCS7Type`.
+        `load_pkcs7_data` accepts a bytes containing ASN1 data representing
+        PKCS#7 and returns an instance of `PKCS7`.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_ASN1, pkcs7DataASN1)
-        self.assertTrue(isinstance(pkcs7, PKCS7Type))
+        assert isinstance(pkcs7, PKCS7)
 
     def test_load_pkcs7_data_invalid(self):
         """
-        If the data passed to :py:obj:`load_pkcs7_data` is invalid,
-        :py:obj:`Error` is raised.
+        If the data passed to `load_pkcs7_data` is invalid, `Error` is raised.
         """
-        self.assertRaises(Error, load_pkcs7_data, FILETYPE_PEM, b"foo")
+        with pytest.raises(Error):
+            load_pkcs7_data(FILETYPE_PEM, b"foo")
 
     def test_load_pkcs7_type_invalid(self):
         """
-        If the type passed to :obj:`load_pkcs7_data`, :obj:`ValueError` is
-        raised.
+        If the type passed to `load_pkcs7_data`, `ValueError` is raised.
         """
         with pytest.raises(ValueError):
             load_pkcs7_data(object(), b"foo")
