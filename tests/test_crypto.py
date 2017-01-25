@@ -1193,46 +1193,48 @@ class _PKeyInteractionTestsMixin:
 
     def signable(self):
         """
-        Return something with a :py:meth:`set_pubkey`, :py:meth:`set_pubkey`,
-        and :py:meth:`sign` method.
+        Return something with a `set_pubkey`, `set_pubkey`,
+        and `sign` method.
         """
         raise NotImplementedError()
 
-    def test_signWithUngenerated(self):
+    def test_sign_with_ungenerated(self):
         """
-        :py:meth:`X509Req.sign` raises :py:exc:`ValueError` when pass a
-        :py:class:`PKey` with no parts.
+        `X509Req.sign` raises `ValueError` when passed a `PKey` with no parts.
         """
         request = self.signable()
         key = PKey()
-        self.assertRaises(ValueError, request.sign, key, GOOD_DIGEST)
+        with pytest.raises(ValueError):
+            request.sign(key, GOOD_DIGEST)
 
-    def test_signWithPublicKey(self):
+    def test_sign_with_public_key(self):
         """
-        :py:meth:`X509Req.sign` raises :py:exc:`ValueError` when pass a
-        :py:class:`PKey` with no private part as the signing key.
+        `X509Req.sign` raises `ValueError` when passed a `PKey` with no private
+        part as the signing key.
         """
         request = self.signable()
         key = PKey()
         key.generate_key(TYPE_RSA, 512)
         request.set_pubkey(key)
         pub = request.get_pubkey()
-        self.assertRaises(ValueError, request.sign, pub, GOOD_DIGEST)
+        with pytest.raises(ValueError):
+            request.sign(pub, GOOD_DIGEST)
 
-    def test_signWithUnknownDigest(self):
+    def test_sign_with_unknown_digest(self):
         """
-        :py:meth:`X509Req.sign` raises :py:exc:`ValueError` when passed a
-        digest name which is not known.
+        `X509Req.sign` raises `ValueError` when passed a digest name which is
+        not known.
         """
         request = self.signable()
         key = PKey()
         key.generate_key(TYPE_RSA, 512)
-        self.assertRaises(ValueError, request.sign, key, BAD_DIGEST)
+        with pytest.raises(ValueError):
+            request.sign(key, BAD_DIGEST)
 
     def test_sign(self):
         """
-        :py:meth:`X509Req.sign` succeeds when passed a private key object and a
-        valid digest function. :py:meth:`X509Req.verify` can be used to check
+        `X509Req.sign` succeeds when passed a private key object and a
+        valid digest function. `X509Req.verify` can be used to check
         the signature.
         """
         request = self.signable()
@@ -1243,179 +1245,164 @@ class _PKeyInteractionTestsMixin:
         # If the type has a verify method, cover that too.
         if getattr(request, 'verify', None) is not None:
             pub = request.get_pubkey()
-            self.assertTrue(request.verify(pub))
+            assert request.verify(pub)
             # Make another key that won't verify.
             key = PKey()
             key.generate_key(TYPE_RSA, 512)
-            self.assertRaises(Error, request.verify, key)
+            with pytest.raises(Error):
+                request.verify(key)
 
 
-class X509ReqTests(TestCase, _PKeyInteractionTestsMixin):
+class TestX509Req(_PKeyInteractionTestsMixin):
     """
-    Tests for :py:class:`OpenSSL.crypto.X509Req`.
+    Tests for `OpenSSL.crypto.X509Req`.
     """
 
     def signable(self):
         """
-        Create and return a new :py:class:`X509Req`.
+        Create and return a new `X509Req`.
         """
         return X509Req()
 
     def test_type(self):
         """
-        :py:obj:`X509Req` and :py:obj:`X509ReqType` refer to the same type
-        object and can be used to create instances of that type.
+        `X509Req` and `X509ReqType` refer to the same type object and can be
+        used to create instances of that type.
         """
-        self.assertIdentical(X509Req, X509ReqType)
-        self.assertConsistentType(X509Req, 'X509Req')
+        assert X509Req is X509ReqType
+        assert is_consistent_type(X509Req, 'X509Req')
 
     def test_construction(self):
         """
-        :py:obj:`X509Req` takes no arguments and returns an
-        :py:obj:`X509ReqType` instance.
+        `X509Req` takes no arguments and returns an `X509ReqType` instance.
         """
         request = X509Req()
         assert isinstance(request, X509ReqType)
 
     def test_version(self):
         """
-        :py:obj:`X509ReqType.set_version` sets the X.509 version of the
-        certificate request. :py:obj:`X509ReqType.get_version` returns the
-        X.509 version of the certificate request. The initial value of the
-        version is 0.
+        `X509Req.set_version` sets the X.509 version of the certificate
+        request. `X509Req.get_version` returns the X.509 version of the
+        certificate request. The initial value of the version is 0.
         """
         request = X509Req()
-        self.assertEqual(request.get_version(), 0)
+        assert request.get_version() == 0
         request.set_version(1)
-        self.assertEqual(request.get_version(), 1)
+        assert request.get_version() == 1
         request.set_version(3)
-        self.assertEqual(request.get_version(), 3)
+        assert request.get_version() == 3
 
     def test_version_wrong_args(self):
         """
-        :py:obj:`X509ReqType.set_version` raises :py:obj:`TypeError` if called
-        with the wrong number of arguments or with a non-:py:obj:`int`
-        argument. :py:obj:`X509ReqType.get_version` raises :py:obj:`TypeError`
-        if called with any arguments.
+        `X509Req.set_version` raises `TypeError` if called with a non-`int`
+        argument.
         """
         request = X509Req()
-        self.assertRaises(TypeError, request.set_version)
-        self.assertRaises(TypeError, request.set_version, "foo")
-        self.assertRaises(TypeError, request.set_version, 1, 2)
-        self.assertRaises(TypeError, request.get_version, None)
+        with pytest.raises(TypeError):
+            request.set_version("foo")
 
     def test_get_subject(self):
         """
-        :py:obj:`X509ReqType.get_subject` returns an :py:obj:`X509Name` for the
-        subject of the request and which is valid even after the request object
-        is otherwise dead.
+        `X509Req.get_subject` returns an `X509Name` for the subject of the
+        request and which is valid even after the request object is
+        otherwise dead.
         """
         request = X509Req()
         subject = request.get_subject()
         assert isinstance(subject, X509NameType)
         subject.commonName = "foo"
-        self.assertEqual(request.get_subject().commonName, "foo")
+        assert request.get_subject().commonName == "foo"
         del request
         subject.commonName = "bar"
-        self.assertEqual(subject.commonName, "bar")
-
-    def test_get_subject_wrong_args(self):
-        """
-        :py:obj:`X509ReqType.get_subject` raises :py:obj:`TypeError` if called
-        with any arguments.
-        """
-        request = X509Req()
-        self.assertRaises(TypeError, request.get_subject, None)
+        assert subject.commonName == "bar"
 
     def test_add_extensions(self):
         """
-        :py:obj:`X509Req.add_extensions` accepts a :py:obj:`list` of
-        :py:obj:`X509Extension` instances and adds them to the X509 request.
+        `X509Req.add_extensions` accepts a `list` of `X509Extension` instances
+        and adds them to the X509 request.
         """
         request = X509Req()
         request.add_extensions([
             X509Extension(b'basicConstraints', True, b'CA:false')])
         exts = request.get_extensions()
-        self.assertEqual(len(exts), 1)
-        self.assertEqual(exts[0].get_short_name(), b'basicConstraints')
-        self.assertEqual(exts[0].get_critical(), 1)
-        self.assertEqual(exts[0].get_data(), b'0\x00')
+        assert len(exts) == 1
+        assert exts[0].get_short_name() == b'basicConstraints'
+        assert exts[0].get_critical() == 1
+        assert exts[0].get_data() == b'0\x00'
 
     def test_get_extensions(self):
         """
-        :py:obj:`X509Req.get_extensions` returns a :py:obj:`list` of
-        extensions added to this X509 request.
+        `X509Req.get_extensions` returns a `list` of extensions added to this
+        X509 request.
         """
         request = X509Req()
         exts = request.get_extensions()
-        self.assertEqual(exts, [])
+        assert exts == []
         request.add_extensions([
             X509Extension(b'basicConstraints', True, b'CA:true'),
             X509Extension(b'keyUsage', False, b'digitalSignature')])
         exts = request.get_extensions()
-        self.assertEqual(len(exts), 2)
-        self.assertEqual(exts[0].get_short_name(), b'basicConstraints')
-        self.assertEqual(exts[0].get_critical(), 1)
-        self.assertEqual(exts[0].get_data(), b'0\x03\x01\x01\xff')
-        self.assertEqual(exts[1].get_short_name(), b'keyUsage')
-        self.assertEqual(exts[1].get_critical(), 0)
-        self.assertEqual(exts[1].get_data(), b'\x03\x02\x07\x80')
+        assert len(exts) == 2
+        assert exts[0].get_short_name() == b'basicConstraints'
+        assert exts[0].get_critical() == 1
+        assert exts[0].get_data() == b'0\x03\x01\x01\xff'
+        assert exts[1].get_short_name() == b'keyUsage'
+        assert exts[1].get_critical() == 0
+        assert exts[1].get_data() == b'\x03\x02\x07\x80'
 
     def test_add_extensions_wrong_args(self):
         """
-        :py:obj:`X509Req.add_extensions` raises :py:obj:`TypeError` if called
-        with the wrong number of arguments or with a non-:py:obj:`list`.  Or it
-        raises :py:obj:`ValueError` if called with a :py:obj:`list` containing
-        objects other than :py:obj:`X509Extension` instances.
+        `X509Req.add_extensions` raises `TypeError` if called with a
+        non-`list`.  Or it raises `ValueError` if called with a `list`
+        containing objects other than `X509Extension` instances.
         """
         request = X509Req()
-        self.assertRaises(TypeError, request.add_extensions)
-        self.assertRaises(TypeError, request.add_extensions, object())
-        self.assertRaises(ValueError, request.add_extensions, [object()])
-        self.assertRaises(TypeError, request.add_extensions, [], None)
+        with pytest.raises(TypeError):
+            request.add_extensions(object())
+        with pytest.raises(ValueError):
+            request.add_extensions([object()])
 
     def test_verify_wrong_args(self):
         """
-        :py:obj:`X509Req.verify` raises :py:obj:`TypeError` if called with zero
-        arguments or more than one argument or if passed anything other than a
-        :py:obj:`PKey` instance as its single argument.
+        `X509Req.verify` raises `TypeError` if passed anything other than a
+        `PKey` instance as its single argument.
         """
         request = X509Req()
-        self.assertRaises(TypeError, request.verify)
-        self.assertRaises(TypeError, request.verify, object())
-        self.assertRaises(TypeError, request.verify, PKey(), object())
+        with pytest.raises(TypeError):
+            request.verify(object())
 
     def test_verify_uninitialized_key(self):
         """
-        :py:obj:`X509Req.verify` raises :py:obj:`OpenSSL.crypto.Error` if
-        called with a :py:obj:`OpenSSL.crypto.PKey` which contains no key data.
+        `X509Req.verify` raises `OpenSSL.crypto.Error` if called with a
+        `OpenSSL.crypto.PKey` which contains no key data.
         """
         request = X509Req()
         pkey = PKey()
-        self.assertRaises(Error, request.verify, pkey)
+        with pytest.raises(Error):
+            request.verify(pkey)
 
     def test_verify_wrong_key(self):
         """
-        :py:obj:`X509Req.verify` raises :py:obj:`OpenSSL.crypto.Error` if
-        called with a :py:obj:`OpenSSL.crypto.PKey` which does not represent
-        the public part of the key which signed the request.
-        """
-        request = X509Req()
-        pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
-        request.sign(pkey, GOOD_DIGEST)
-        another_pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
-        self.assertRaises(Error, request.verify, another_pkey)
-
-    def test_verify_success(self):
-        """
-        :py:obj:`X509Req.verify` returns :py:obj:`True` if called with a
-        :py:obj:`OpenSSL.crypto.PKey` which represents the public part of the
+        `X509Req.verify` raises `OpenSSL.crypto.Error` if called with a
+        `OpenSSL.crypto.PKey` which does not represent the public part of the
         key which signed the request.
         """
         request = X509Req()
         pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         request.sign(pkey, GOOD_DIGEST)
-        self.assertEqual(True, request.verify(pkey))
+        another_pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
+        with pytest.raises(Error):
+            request.verify(another_pkey)
+
+    def test_verify_success(self):
+        """
+        `X509Req.verify` returns `True` if called with a `OpenSSL.crypto.PKey`
+        which represents the public part of the key which signed the request.
+        """
+        request = X509Req()
+        pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        request.sign(pkey, GOOD_DIGEST)
+        assert True == request.verify(pkey)
 
 
 class X509Tests(TestCase, _PKeyInteractionTestsMixin):
