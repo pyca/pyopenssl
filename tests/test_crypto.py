@@ -1978,28 +1978,21 @@ tgI5
             cert.sign(object(), b"sha256")
 
 
-class X509StoreTests(TestCase):
+class TestX509Store(object):
     """
-    Test for :py:obj:`OpenSSL.crypto.X509Store`.
+    Test for `OpenSSL.crypto.X509Store`.
     """
 
     def test_type(self):
         """
-        :py:obj:`X509StoreType` is a type object.
+        `X509Store` is a type object.
         """
-        self.assertIdentical(X509Store, X509StoreType)
-        self.assertConsistentType(X509Store, 'X509Store')
-
-    def test_add_cert_wrong_args(self):
-        store = X509Store()
-        self.assertRaises(TypeError, store.add_cert)
-        self.assertRaises(TypeError, store.add_cert, object())
-        self.assertRaises(TypeError, store.add_cert, X509(), object())
+        assert X509Store is X509StoreType
+        assert is_consistent_type(X509Store, 'X509Store')
 
     def test_add_cert(self):
         """
-        :py:obj:`X509Store.add_cert` adds a :py:obj:`X509` instance to the
-        certificate store.
+        `X509Store.add_cert` adds a `X509` instance to the certificate store.
         """
         cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
         store = X509Store()
@@ -2007,14 +2000,14 @@ class X509StoreTests(TestCase):
 
     def test_add_cert_rejects_duplicate(self):
         """
-        :py:obj:`X509Store.add_cert` raises :py:obj:`OpenSSL.crypto.Error` if
-        an attempt is made to add the same certificate to the store more than
-        once.
+        `X509Store.add_cert` raises `OpenSSL.crypto.Error` if an attempt is
+        made to add the same certificate to the store more than once.
         """
         cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
         store = X509Store()
         store.add_cert(cert)
-        self.assertRaises(Error, store.add_cert, cert)
+        with pytest.raises(Error):
+            store.add_cert(cert)
 
 
 class PKCS12Tests(TestCase):
