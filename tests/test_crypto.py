@@ -2938,49 +2938,48 @@ class PKCS7Tests(TestCase):
         self.assertRaises(AttributeError, getattr, pkcs7, "foo")
 
 
-class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):
+class TestNetscapeSPKI(_PKeyInteractionTestsMixin):
     """
-    Tests for :py:obj:`OpenSSL.crypto.NetscapeSPKI`.
+    Tests for `OpenSSL.crypto.NetscapeSPKI`.
     """
 
     def signable(self):
         """
-        Return a new :py:obj:`NetscapeSPKI` for use with signing tests.
+        Return a new `NetscapeSPKI` for use with signing tests.
         """
         return NetscapeSPKI()
 
     def test_type(self):
         """
-        :py:obj:`NetscapeSPKI` and :py:obj:`NetscapeSPKIType` refer to the same
-        type object and can be used to create instances of that type.
+        `NetscapeSPKI` and `NetscapeSPKIType` refer to the same type object
+        and can be used to create instances of that type.
         """
-        self.assertIdentical(NetscapeSPKI, NetscapeSPKIType)
-        self.assertConsistentType(NetscapeSPKI, 'NetscapeSPKI')
+        assert NetscapeSPKI is NetscapeSPKIType
+        assert is_consistent_type(NetscapeSPKI, 'NetscapeSPKI')
 
     def test_construction(self):
         """
-        :py:obj:`NetscapeSPKI` returns an instance of
-        :py:obj:`NetscapeSPKIType`.
+        `NetscapeSPKI` returns an instance of `NetscapeSPKIType`.
         """
         nspki = NetscapeSPKI()
-        self.assertTrue(isinstance(nspki, NetscapeSPKIType))
+        assert isinstance(nspki, NetscapeSPKIType)
 
     def test_invalid_attribute(self):
         """
-        Accessing a non-existent attribute of a :py:obj:`NetscapeSPKI` instance
-        causes an :py:obj:`AttributeError` to be raised.
+        Accessing a non-existent attribute of a `NetscapeSPKI` instance
+        causes an `AttributeError` to be raised.
         """
         nspki = NetscapeSPKI()
-        self.assertRaises(AttributeError, lambda: nspki.foo)
+        with pytest.raises(AttributeError):
+            nspki.foo
 
     def test_b64_encode(self):
         """
-        :py:obj:`NetscapeSPKI.b64_encode` encodes the certificate to a base64
-        blob.
+        `NetscapeSPKI.b64_encode` encodes the certificate to a base64 blob.
         """
         nspki = NetscapeSPKI()
         blob = nspki.b64_encode()
-        self.assertTrue(isinstance(blob, binary_type))
+        assert isinstance(blob, binary_type)
 
 
 class TestRevoked(object):
