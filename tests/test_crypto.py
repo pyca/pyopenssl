@@ -832,7 +832,7 @@ class TestPKey(object):
         with pytest.raises(TypeError):
             key.check()
 
-    def test_failedGeneration(self):
+    def test_failed_generation(self):
         """
         `PKey.generate_key` takes two arguments, the first giving the key type
         as one of `TYPE_RSA` or `TYPE_DSA` and the second giving the number of
@@ -873,7 +873,7 @@ class TestPKey(object):
         # with pytest.raises(Error):
         #     key.generate_key(TYPE_DSA, -7)
 
-    def test_rsaGeneration(self):
+    def test_rsa_generation(self):
         """
         `PKey.generate_key` generates an RSA key when passed `TYPE_RSA` as a
         type and a reasonable number of bits.
@@ -885,7 +885,7 @@ class TestPKey(object):
         assert key.bits() == bits
         assert key.check()
 
-    def test_dsaGeneration(self):
+    def test_dsa_generation(self):
         """
         `PKey.generate_key` generates a DSA key when passed `TYPE_DSA` as a
         type and a reasonable number of bits.
@@ -912,7 +912,7 @@ class TestPKey(object):
             assert key.type() == type
             assert key.bits() == bits
 
-    def test_inconsistentKey(self):
+    def test_inconsistent_key(self):
         """
         `PKey.check` returns `Error` if the key is not consistent.
         """
@@ -936,7 +936,9 @@ class TestPKey(object):
 
 
 def x509_name(**attrs):
-    """Return a new X509Name with the given attributes."""
+    """
+    Return a new X509Name with the given attributes.
+    """
     # XXX There's no other way to get a new X509Name yet.
     name = X509().get_subject()
     attrs = list(attrs.items())
@@ -1055,83 +1057,83 @@ class TestX509Name(object):
         """
         `X509Name` instances should compare based on their NIDs.
         """
-        def _equality(a, b, assertTrue, assertFalse):
-            assertTrue(a == b)
-            assertFalse(a != b)
-            assertTrue(b == a)
-            assertFalse(b != a)
+        def _equality(a, b, assert_true, assert_false):
+            assert_true(a == b)
+            assert_false(a != b)
+            assert_true(b == a)
+            assert_false(b != a)
 
-        def assertTrue(x):
+        def assert_true(x):
             assert x
 
-        def assertFalse(x):
+        def assert_false(x):
             assert not x
 
-        def assertEqual(a, b):
-            _equality(a, b, assertTrue, assertFalse)
+        def assert_equal(a, b):
+            _equality(a, b, assert_true, assert_false)
 
         # Instances compare equal to themselves.
         name = x509_name()
-        assertEqual(name, name)
+        assert_equal(name, name)
 
         # Empty instances should compare equal to each other.
-        assertEqual(x509_name(), x509_name())
+        assert_equal(x509_name(), x509_name())
 
         # Instances with equal NIDs should compare equal to each other.
-        assertEqual(x509_name(commonName="foo"),
-                    x509_name(commonName="foo"))
+        assert_equal(x509_name(commonName="foo"),
+                     x509_name(commonName="foo"))
 
         # Instance with equal NIDs set using different aliases should compare
         # equal to each other.
-        assertEqual(x509_name(commonName="foo"),
-                    x509_name(CN="foo"))
+        assert_equal(x509_name(commonName="foo"),
+                     x509_name(CN="foo"))
 
         # Instances with more than one NID with the same values should compare
         # equal to each other.
-        assertEqual(x509_name(CN="foo", organizationalUnitName="bar"),
-                    x509_name(commonName="foo", OU="bar"))
+        assert_equal(x509_name(CN="foo", organizationalUnitName="bar"),
+                     x509_name(commonName="foo", OU="bar"))
 
-        def assertNotEqual(a, b):
-            _equality(a, b, assertFalse, assertTrue)
+        def assert_not_equal(a, b):
+            _equality(a, b, assert_false, assert_true)
 
         # Instances with different values for the same NID should not compare
         # equal to each other.
-        assertNotEqual(x509_name(CN="foo"),
-                       x509_name(CN="bar"))
+        assert_not_equal(x509_name(CN="foo"),
+                         x509_name(CN="bar"))
 
         # Instances with different NIDs should not compare equal to each other.
-        assertNotEqual(x509_name(CN="foo"),
-                       x509_name(OU="foo"))
+        assert_not_equal(x509_name(CN="foo"),
+                         x509_name(OU="foo"))
 
-        assertNotEqual(x509_name(), object())
+        assert_not_equal(x509_name(), object())
 
-        def _inequality(a, b, assertTrue, assertFalse):
-            assertTrue(a < b)
-            assertTrue(a <= b)
-            assertTrue(b > a)
-            assertTrue(b >= a)
-            assertFalse(a > b)
-            assertFalse(a >= b)
-            assertFalse(b < a)
-            assertFalse(b <= a)
+        def _inequality(a, b, assert_true, assert_false):
+            assert_true(a < b)
+            assert_true(a <= b)
+            assert_true(b > a)
+            assert_true(b >= a)
+            assert_false(a > b)
+            assert_false(a >= b)
+            assert_false(b < a)
+            assert_false(b <= a)
 
-        def assertLessThan(a, b):
-            _inequality(a, b, assertTrue, assertFalse)
+        def assert_less_than(a, b):
+            _inequality(a, b, assert_true, assert_false)
 
         # An X509Name with a NID with a value which sorts less than the value
         # of the same NID on another X509Name compares less than the other
         # X509Name.
-        assertLessThan(x509_name(CN="abc"),
-                       x509_name(CN="def"))
+        assert_less_than(x509_name(CN="abc"),
+                         x509_name(CN="def"))
 
-        def assertGreaterThan(a, b):
-            _inequality(a, b, assertFalse, assertTrue)
+        def assert_greater_than(a, b):
+            _inequality(a, b, assert_false, assert_true)
 
         # An X509Name with a NID with a value which sorts greater than the
         # value of the same NID on another X509Name compares greater than the
         # other X509Name.
-        assertGreaterThan(x509_name(CN="def"),
-                          x509_name(CN="abc"))
+        assert_greater_than(x509_name(CN="def"),
+                            x509_name(CN="abc"))
 
     def test_hash(self):
         """
@@ -1173,7 +1175,7 @@ class TestX509Name(object):
         subject = cert.get_subject()
         assert "null.python.org\x00example.org" == subject.commonName
 
-    def test_setAttributeFailure(self):
+    def test_set_attribute_failure(self):
         """
         If the value of an attribute cannot be set for some reason then
         `Error` is raised.
