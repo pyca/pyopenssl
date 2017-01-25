@@ -935,45 +935,43 @@ class TestPKey(object):
             pub.check()
 
 
-class X509NameTests(TestCase):
-    """
-    Unit tests for :py:class:`OpenSSL.crypto.X509Name`.
-    """
+def x509_name(**attrs):
+    """Return a new X509Name with the given attributes."""
+    # XXX There's no other way to get a new X509Name yet.
+    name = X509().get_subject()
+    attrs = list(attrs.items())
 
-    def _x509name(self, **attrs):
-        # XXX There's no other way to get a new X509Name yet.
-        name = X509().get_subject()
-        attrs = list(attrs.items())
+    # Make the order stable - order matters!
+    def key(attr):
+        return attr[1]
+    attrs.sort(key=key)
+    for k, v in attrs:
+        setattr(name, k, v)
+    return name
 
-        # Make the order stable - order matters!
-        def key(attr):
-            return attr[1]
-        attrs.sort(key=key)
-        for k, v in attrs:
-            setattr(name, k, v)
-        return name
+
+class TestX509Name(object):
+    """
+    Unit tests for `OpenSSL.crypto.X509Name`.
+    """
 
     def test_type(self):
         """
-        The type of X509Name objects is :py:class:`X509NameType`.
+        The type of X509Name objects is `X509NameType`.
         """
-        self.assertIdentical(X509Name, X509NameType)
-        self.assertEqual(X509NameType.__name__, 'X509Name')
-        self.assertTrue(isinstance(X509NameType, type))
+        assert X509Name is X509NameType
+        assert X509NameType.__name__ == 'X509Name'
+        assert isinstance(X509NameType, type)
 
-        name = self._x509name()
-        self.assertTrue(
-            isinstance(name, X509NameType),
-            "%r is of type %r, should be %r" % (
-                name, type(name), X509NameType))
+        name = x509_name()
+        assert isinstance(name, X509NameType)
 
-    def test_onlyStringAttributes(self):
+    def test_only_string_attributes(self):
         """
-        Attempting to set a non-:py:data:`str` attribute name on an
-        :py:class:`X509NameType` instance causes :py:exc:`TypeError` to be
-        raised.
+        Attempting to set a non-`str` attribute name on an `X509Name` instance
+        causes `TypeError` to be raised.
         """
-        name = self._x509name()
+        name = x509_name()
         # Beyond these cases, you may also think that unicode should be
         # rejected.  Sorry, you're wrong.  unicode is automatically converted
         # to str outside of the control of X509Name, so there's no way to
@@ -984,24 +982,27 @@ class X509NameTests(TestCase):
         # PyPy automatically converts str subclasses to str when they are
         # passed to setattr, so we can't test it on PyPy.  Apparently CPython
         # does this sometimes as well.
-        self.assertRaises(TypeError, setattr, name, None, "hello")
-        self.assertRaises(TypeError, setattr, name, 30, "hello")
+        with pytest.raises(TypeError):
+            setattr(name, None, "hello")
+        with pytest.raises(TypeError):
+            setattr(name, 30, "hello")
 
-    def test_setInvalidAttribute(self):
+    def test_set_invalid_attribute(self):
         """
-        Attempting to set any attribute name on an :py:class:`X509NameType`
-        instance for which no corresponding NID is defined causes
-        :py:exc:`AttributeError` to be raised.
+        Attempting to set any attribute name on an `X509Name` instance for
+        which no corresponding NID is defined causes `AttributeError` to be
+        raised.
         """
-        name = self._x509name()
-        self.assertRaises(AttributeError, setattr, name, "no such thing", None)
+        name = x509_name()
+        with pytest.raises(AttributeError):
+            setattr(name, "no such thing", None)
 
     def test_attributes(self):
         """
-        :py:class:`X509NameType` instances have attributes for each standard
-        (?) X509Name field.
+        `X509Name` instances have attributes for each standard (?)
+        X509Name field.
         """
-        name = self._x509name()
+        name = x509_name()
         name.commonName = "foo"
         assert name.commonName == "foo"
         assert name.CN == "foo"
@@ -1025,82 +1026,84 @@ class X509NameTests(TestCase):
 
     def test_copy(self):
         """
-        :py:class:`X509Name` creates a new :py:class:`X509NameType` instance
-        with all the same attributes as an existing :py:class:`X509NameType`
-        instance when called with one.
+        `X509Name` creates a new `X509Name` instance with all the same
+        attributes as an existing `X509Name` instance when called with one.
         """
-        name = self._x509name(commonName="foo", emailAddress="bar@example.com")
+        name = x509_name(commonName="foo", emailAddress="bar@example.com")
 
         copy = X509Name(name)
-        self.assertEqual(copy.commonName, "foo")
-        self.assertEqual(copy.emailAddress, "bar@example.com")
+        assert copy.commonName == "foo"
+        assert copy.emailAddress == "bar@example.com"
 
         # Mutate the copy and ensure the original is unmodified.
         copy.commonName = "baz"
-        self.assertEqual(name.commonName, "foo")
+        assert name.commonName == "foo"
 
         # Mutate the original and ensure the copy is unmodified.
         name.emailAddress = "quux@example.com"
-        self.assertEqual(copy.emailAddress, "bar@example.com")
+        assert copy.emailAddress == "bar@example.com"
 
     def test_repr(self):
         """
-        :py:func:`repr` passed an :py:class:`X509NameType` instance should
-        return a string containing a description of the type and the NIDs which
-        have been set on it.
+        `repr` passed an `X509Name` instance should return a string containing
+        a description of the type and the NIDs which have been set on it.
         """
-        name = self._x509name(commonName="foo", emailAddress="bar")
-        self.assertEqual(
-            repr(name),
-            "<X509Name object '/emailAddress=bar/CN=foo'>")
+        name = x509_name(commonName="foo", emailAddress="bar")
+        assert repr(name) == "<X509Name object '/emailAddress=bar/CN=foo'>"
 
     def test_comparison(self):
         """
-        :py:class:`X509NameType` instances should compare based on their NIDs.
+        `X509Name` instances should compare based on their NIDs.
         """
         def _equality(a, b, assertTrue, assertFalse):
-            assertTrue(a == b, "(%r == %r) --> False" % (a, b))
+            assertTrue(a == b)
             assertFalse(a != b)
             assertTrue(b == a)
             assertFalse(b != a)
 
+        def assertTrue(x):
+            assert x
+        
+        def assertFalse(x):
+            assert not x
+
         def assertEqual(a, b):
-            _equality(a, b, self.assertTrue, self.assertFalse)
+            _equality(a, b, assertTrue, assertFalse)
 
         # Instances compare equal to themselves.
-        name = self._x509name()
+        name = x509_name()
         assertEqual(name, name)
 
         # Empty instances should compare equal to each other.
-        assertEqual(self._x509name(), self._x509name())
+        assertEqual(x509_name(), x509_name())
 
         # Instances with equal NIDs should compare equal to each other.
-        assertEqual(self._x509name(commonName="foo"),
-                    self._x509name(commonName="foo"))
+        assertEqual(x509_name(commonName="foo"),
+                    x509_name(commonName="foo"))
 
         # Instance with equal NIDs set using different aliases should compare
         # equal to each other.
-        assertEqual(self._x509name(commonName="foo"),
-                    self._x509name(CN="foo"))
+        assertEqual(x509_name(commonName="foo"),
+                    x509_name(CN="foo"))
 
         # Instances with more than one NID with the same values should compare
         # equal to each other.
-        assertEqual(self._x509name(CN="foo", organizationalUnitName="bar"),
-                    self._x509name(commonName="foo", OU="bar"))
+        assertEqual(x509_name(CN="foo", organizationalUnitName="bar"),
+                    x509_name(commonName="foo", OU="bar"))
 
         def assertNotEqual(a, b):
-            _equality(a, b, self.assertFalse, self.assertTrue)
+            _equality(a, b, assertFalse, assertTrue)
 
         # Instances with different values for the same NID should not compare
         # equal to each other.
-        assertNotEqual(self._x509name(CN="foo"),
-                       self._x509name(CN="bar"))
+        assertNotEqual(x509_name(CN="foo"),
+                       x509_name(CN="bar"))
 
         # Instances with different NIDs should not compare equal to each other.
-        assertNotEqual(self._x509name(CN="foo"),
-                       self._x509name(OU="foo"))
+        assertNotEqual(x509_name(CN="foo"),
+                       x509_name(OU="foo"))
 
-        assertNotEqual(self._x509name(), object())
+        assertNotEqual(x509_name(), object())
 
         def _inequality(a, b, assertTrue, assertFalse):
             assertTrue(a < b)
@@ -1113,78 +1116,72 @@ class X509NameTests(TestCase):
             assertFalse(b <= a)
 
         def assertLessThan(a, b):
-            _inequality(a, b, self.assertTrue, self.assertFalse)
+            _inequality(a, b, assertTrue, assertFalse)
 
         # An X509Name with a NID with a value which sorts less than the value
         # of the same NID on another X509Name compares less than the other
         # X509Name.
-        assertLessThan(self._x509name(CN="abc"),
-                       self._x509name(CN="def"))
+        assertLessThan(x509_name(CN="abc"),
+                       x509_name(CN="def"))
 
         def assertGreaterThan(a, b):
-            _inequality(a, b, self.assertFalse, self.assertTrue)
+            _inequality(a, b, assertFalse, assertTrue)
 
         # An X509Name with a NID with a value which sorts greater than the
         # value of the same NID on another X509Name compares greater than the
         # other X509Name.
-        assertGreaterThan(self._x509name(CN="def"),
-                          self._x509name(CN="abc"))
+        assertGreaterThan(x509_name(CN="def"),
+                          x509_name(CN="abc"))
 
     def test_hash(self):
         """
-        :py:meth:`X509Name.hash` returns an integer hash based on the value of
-        the name.
+        `X509Name.hash` returns an integer hash based on the value of the name.
         """
-        a = self._x509name(CN="foo")
-        b = self._x509name(CN="foo")
-        self.assertEqual(a.hash(), b.hash())
+        a = x509_name(CN="foo")
+        b = x509_name(CN="foo")
+        assert a.hash() == b.hash()
         a.CN = "bar"
-        self.assertNotEqual(a.hash(), b.hash())
+        assert a.hash() != b.hash()
 
     def test_der(self):
         """
-        :py:meth:`X509Name.der` returns the DER encoded form of the name.
+        `X509Name.der` returns the DER encoded form of the name.
         """
-        a = self._x509name(CN="foo", C="US")
-        self.assertEqual(
-            a.der(),
+        a = x509_name(CN="foo", C="US")
+        assert (a.der() ==
             b'0\x1b1\x0b0\t\x06\x03U\x04\x06\x13\x02US'
             b'1\x0c0\n\x06\x03U\x04\x03\x0c\x03foo')
 
     def test_get_components(self):
         """
-        :py:meth:`X509Name.get_components` returns a :py:data:`list` of
-        two-tuples of :py:data:`str`
+        `X509Name.get_components` returns a `list` of two-tuples of `str`
         giving the NIDs and associated values which make up the name.
         """
-        a = self._x509name()
-        self.assertEqual(a.get_components(), [])
+        a = x509_name()
+        assert a.get_components() == []
         a.CN = "foo"
-        self.assertEqual(a.get_components(), [(b"CN", b"foo")])
+        assert a.get_components() == [(b"CN", b"foo")]
         a.organizationalUnitName = "bar"
-        self.assertEqual(
-            a.get_components(),
-            [(b"CN", b"foo"), (b"OU", b"bar")])
+        assert a.get_components() == [(b"CN", b"foo"), (b"OU", b"bar")]
 
     def test_load_nul_byte_attribute(self):
         """
-        An :py:class:`OpenSSL.crypto.X509Name` from an
-        :py:class:`OpenSSL.crypto.X509` instance loaded from a file can have a
+        An `X509Name` from an `X509` instance loaded from a file can have a
         NUL byte in the value of one of its attributes.
         """
         cert = load_certificate(FILETYPE_PEM, nulbyteSubjectAltNamePEM)
         subject = cert.get_subject()
-        self.assertEqual(
-            "null.python.org\x00example.org", subject.commonName)
+        assert "null.python.org\x00example.org" == subject.commonName
 
     def test_setAttributeFailure(self):
         """
         If the value of an attribute cannot be set for some reason then
-        :py:class:`OpenSSL.crypto.Error` is raised.
+        `Error` is raised.
         """
-        name = self._x509name()
+        name = x509_name()
         # This value is too long
-        self.assertRaises(Error, setattr, name, "O", b"x" * 512)
+        with pytest.raises(Error):
+            setattr(name, "O", b"x" * 512)
 
 
 class _PKeyInteractionTestsMixin:
