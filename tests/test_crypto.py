@@ -2914,16 +2914,15 @@ class FunctionTests(TestCase):
             load_pkcs7_data(object(), b"foo")
 
 
-class LoadCertificateTests(TestCase):
+class TestLoadCertificate(object):
     """
-    Tests for :py:obj:`load_certificate_request`.
+    Tests for `load_certificate_request`.
     """
 
-    def test_badFileType(self):
+    def test_bad_file_type(self):
         """
-        If the file type passed to :py:obj:`load_certificate_request` is
-        neither :py:obj:`FILETYPE_PEM` nor :py:obj:`FILETYPE_ASN1` then
-        :py:class:`ValueError` is raised.
+        If the file type passed to `load_certificate_request` is neither
+        `FILETYPE_PEM` nor `FILETYPE_ASN1` then `ValueError` is raised.
         """
         with pytest.raises(ValueError):
             load_certificate_request(object(), b"")
@@ -2932,8 +2931,8 @@ class LoadCertificateTests(TestCase):
 
     def test_bad_certificate(self):
         """
-        If the bytes passed to :obj:`load_certificate` are not a valid
-        certificate, an exception is raised.
+        If the bytes passed to `load_certificate` are not a valid certificate,
+        an exception is raised.
         """
         with pytest.raises(Error):
             load_certificate(FILETYPE_ASN1, b"lol")
