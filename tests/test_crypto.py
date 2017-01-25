@@ -5,7 +5,7 @@
 Unit tests for :py:mod:`OpenSSL.crypto`.
 """
 
-from warnings import catch_warnings, simplefilter
+from warnings import simplefilter
 
 import base64
 import os
@@ -45,9 +45,7 @@ from OpenSSL.crypto import (
     sign, verify, get_elliptic_curve, get_elliptic_curves)
 from OpenSSL._util import native
 
-from .util import (
-    EqualityTestsMixin, is_consistent_type, TestCase, WARNING_TYPE_EXPECTED
-)
+from .util import EqualityTestsMixin, is_consistent_type, WARNING_TYPE_EXPECTED
 
 
 def normalize_privatekey_pem(pem):
@@ -1402,7 +1400,7 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         request = X509Req()
         pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         request.sign(pkey, GOOD_DIGEST)
-        assert True == request.verify(pkey)
+        assert request.verify(pkey)
 
 
 class TestX509(_PKeyInteractionTestsMixin):
@@ -1627,7 +1625,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         """
         cert = X509()
         cert.gmtime_adj_notAfter(-1)
-        assert True == cert.has_expired()
+        assert cert.has_expired()
 
     def test_has_not_expired(self):
         """
@@ -1636,7 +1634,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         """
         cert = X509()
         cert.gmtime_adj_notAfter(2)
-        assert False == cert.has_expired()
+        assert not cert.has_expired()
 
     def test_root_has_not_expired(self):
         """
@@ -1644,7 +1642,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         is in the future.
         """
         cert = load_certificate(FILETYPE_PEM, root_cert_pem)
-        assert False == cert.has_expired()
+        assert not cert.has_expired()
 
     def test_digest(self):
         """
@@ -2850,7 +2848,7 @@ class TestPKCS7(object):
         the type *signed*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        assert True == pkcs7.type_is_signed()
+        assert pkcs7.type_is_signed()
 
     def test_type_is_enveloped(self):
         """
@@ -2858,7 +2856,7 @@ class TestPKCS7(object):
         of the type *enveloped*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        assert False == pkcs7.type_is_enveloped()
+        assert not pkcs7.type_is_enveloped()
 
     def test_type_is_signed_and_enveloped(self):
         """
@@ -2866,7 +2864,7 @@ class TestPKCS7(object):
         if the PKCS7 object is not of the type *signed and enveloped*.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        assert False == pkcs7.type_is_signedAndEnveloped()
+        assert not pkcs7.type_is_signedAndEnveloped()
 
     def test_type_is_data(self):
         """
@@ -2874,7 +2872,7 @@ class TestPKCS7(object):
         the type data.
         """
         pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        assert False == pkcs7.type_is_data()
+        assert not pkcs7.type_is_data()
 
     def test_get_type_name(self):
         """
