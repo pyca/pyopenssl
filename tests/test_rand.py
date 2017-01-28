@@ -112,7 +112,7 @@ class TestRand(object):
 
     @pytest.mark.parametrize('args', [
         (None, 255),
-        (b"foo",None),
+        (b"foo", None),
     ])
     def test_egd_wrong_args(self, args):
         """
