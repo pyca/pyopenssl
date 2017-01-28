@@ -19,8 +19,8 @@ from .util import NON_ASCII
 class TestRand(object):
 
     @pytest.mark.parametrize('args', [
-        (None),
-        (b"foo"),
+        (None,),
+        (b"foo",),
     ])
     def test_bytes_wrong_args(self, args):
         """
@@ -73,8 +73,8 @@ class TestRand(object):
         rand.add(b'hamburger', 3)
 
     @pytest.mark.parametrize('args', [
-        (None),
-        (42),
+        (None,),
+        (42,),
     ])
     def test_seed_wrong_args(self, args):
         """
@@ -102,6 +102,8 @@ class TestRand(object):
 
     @pytest.mark.parametrize('args', [
         (b"foo", 255),
+        (None, 255),
+        (b"foo", None),
         (b"foo",),
     ])
     def test_egd_warning(self, args):
