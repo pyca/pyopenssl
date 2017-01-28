@@ -102,8 +102,6 @@ class TestRand(object):
 
     @pytest.mark.parametrize('args', [
         (b"foo", 255),
-        (None, 255),
-        (b"foo", None),
         (b"foo",),
     ])
     def test_egd_warning(self, args):
