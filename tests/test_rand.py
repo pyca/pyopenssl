@@ -110,6 +110,18 @@ class TestRand(object):
         """
         pytest.deprecated_call(rand.egd, *args)
 
+    @pytest.mark.parametrize('args', [
+        (None, 255),
+        (b"foo",None),
+    ])
+    def test_egd_wrong_args(self, args):
+        """
+        `OpenSSL.rand.egd` raises `TypeError` if called with a non-`int`
+        or non-`str` argument.
+        """
+        with pytest.raises(TypeError):
+            rand.egd(*args)
+
     def test_cleanup(self):
         """
         `OpenSSL.rand.cleanup` releases the memory used by the PRNG and
