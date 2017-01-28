@@ -73,8 +73,7 @@ class TestRand(object):
         rand.add(b'hamburger', 3)
 
     @pytest.mark.parametrize('args', [
-        (None),
-        (42),
+        (None, 42)
     ])
     def test_seed_wrong_args(self, args):
         """
