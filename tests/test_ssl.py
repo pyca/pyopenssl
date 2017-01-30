@@ -3014,16 +3014,16 @@ class TestConnectionRenegotiate(object):
             pass
 
 
-class ErrorTests(TestCase):
+class TestError(object):
     """
-    Unit tests for :py:obj:`OpenSSL.SSL.Error`.
+    Unit tests for `OpenSSL.SSL.Error`.
     """
     def test_type(self):
         """
-        :py:obj:`Error` is an exception type.
+        `Error` is an exception type.
         """
-        self.assertTrue(issubclass(Error, Exception))
-        self.assertEqual(Error.__name__, 'Error')
+        assert issubclass(Error, Exception)
+        assert Error.__name__ == 'Error'
 
 
 class ConstantsTests(TestCase):
