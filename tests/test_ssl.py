@@ -2685,73 +2685,68 @@ class TestConnectionGetCipherList(TestCase):
             assert isinstance(cipher, str)
 
 
-class ConnectionSendTests(TestCase, _LoopbackMixin):
+class TestConnectionSend(object):
     """
-    Tests for :py:obj:`Connection.send`
+    Tests for `Connection.send`.
     """
     def test_wrong_args(self):
         """
         When called with arguments other than string argument for its first
-        parameter or more than two arguments, :py:obj:`Connection.send` raises
-        :py:obj:`TypeError`.
+        parameter, `Connection.send` raises `TypeError`.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
-        self.assertRaises(TypeError, connection.send)
-        self.assertRaises(TypeError, connection.send, object())
-        self.assertRaises(TypeError, connection.send, "foo", object(), "bar")
+        with pytest.raises(TypeError):
+            connection.send(object())
 
     def test_short_bytes(self):
         """
-        When passed a short byte string, :py:obj:`Connection.send` transmits
-        all of it and returns the number of bytes sent.
+        When passed a short byte string, `Connection.send` transmits all of it
+        and returns the number of bytes sent.
         """
-        server, client = self._loopback()
+        server, client = loopback()
         count = server.send(b'xy')
-        self.assertEquals(count, 2)
-        self.assertEquals(client.recv(2), b'xy')
+        assert count == 2
+        assert client.recv(2) == b'xy'
 
     def test_text(self):
         """
-        When passed a text, :py:obj:`Connection.send` transmits all of it and
+        When passed a text, `Connection.send` transmits all of it and
         returns the number of bytes sent. It also raises a DeprecationWarning.
         """
-        server, client = self._loopback()
-        with catch_warnings(record=True) as w:
+        server, client = loopback()
+        with pytest.warns(DeprecationWarning) as w:
             simplefilter("always")
             count = server.send(b"xy".decode("ascii"))
-            self.assertEqual(
+            assert (
                 "{0} for buf is no longer accepted, use bytes".format(
                     WARNING_TYPE_EXPECTED
-                ),
-                str(w[-1].message)
-            )
-            self.assertIs(w[-1].category, DeprecationWarning)
-        self.assertEquals(count, 2)
-        self.assertEquals(client.recv(2), b"xy")
+                ) == str(w[-1].message))
+        assert count == 2
+        assert client.recv(2) == b'xy'
 
     @skip_if_py26
     def test_short_memoryview(self):
         """
         When passed a memoryview onto a small number of bytes,
-        :py:obj:`Connection.send` transmits all of them and returns the number
+        `Connection.send` transmits all of them and returns the number
         of bytes sent.
         """
-        server, client = self._loopback()
+        server, client = loopback()
         count = server.send(memoryview(b'xy'))
-        self.assertEquals(count, 2)
-        self.assertEquals(client.recv(2), b'xy')
+        assert count == 2
+        assert client.recv(2) == b'xy'
 
     @skip_if_py3
     def test_short_buffer(self):
         """
         When passed a buffer containing a small number of bytes,
-        :py:obj:`Connection.send` transmits all of them and returns the number
+        `Connection.send` transmits all of them and returns the number
         of bytes sent.
         """
-        server, client = self._loopback()
+        server, client = loopback()
         count = server.send(buffer(b'xy'))
-        self.assertEquals(count, 2)
-        self.assertEquals(client.recv(2), b'xy')
+        assert count == 2
+        assert client.recv(2) == b'xy'
 
 
 def _make_memoryview(size):
