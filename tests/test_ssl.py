@@ -221,28 +221,6 @@ def _create_certificate_chain():
     return [(cakey, cacert), (ikey, icert), (skey, scert)]
 
 
-class _LoopbackMixin(object):
-    """
-    Helper mixin which defines methods for creating a connected socket pair and
-    for forcing two connected SSL sockets to talk to each other via memory
-    BIOs.
-    """
-    def _loopbackClientFactory(self, socket):
-        return loopback_client_factory(socket)
-
-    def _loopbackServerFactory(self, socket):
-        return loopback_server_factory(socket)
-
-    def _loopback(self, serverFactory=None, clientFactory=None):
-        return loopback(serverFactory, clientFactory)
-
-    def _interactInMemory(self, client_conn, server_conn):
-        return interact_in_memory(client_conn, server_conn)
-
-    def _handshakeInMemory(self, client_conn, server_conn):
-        return handshake_in_memory(client_conn, server_conn)
-
-
 def loopback_client_factory(socket):
     client = Connection(Context(TLSv1_METHOD), socket)
     client.set_connect_state()
