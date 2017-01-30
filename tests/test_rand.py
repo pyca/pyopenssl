@@ -19,8 +19,8 @@ from .util import NON_ASCII
 class TestRand(object):
 
     @pytest.mark.parametrize('args', [
-        (None),
-        (b"foo"),
+        (None,),
+        (b"foo",),
     ])
     def test_bytes_wrong_args(self, args):
         """
@@ -73,8 +73,8 @@ class TestRand(object):
         rand.add(b'hamburger', 3)
 
     @pytest.mark.parametrize('args', [
-        (None),
-        (42),
+        (None,),
+        (42,),
     ])
     def test_seed_wrong_args(self, args):
         """
@@ -109,6 +109,18 @@ class TestRand(object):
         Calling egd raises :exc:`DeprecationWarning`.
         """
         pytest.deprecated_call(rand.egd, *args)
+
+    @pytest.mark.parametrize('args', [
+        (None, 255),
+        (b"foo", None),
+    ])
+    def test_egd_wrong_args(self, args):
+        """
+        `OpenSSL.rand.egd` raises `TypeError` if called with a non-`int`
+        or non-`str` argument.
+        """
+        with pytest.raises(TypeError):
+            rand.egd(*args)
 
     def test_cleanup(self):
         """
