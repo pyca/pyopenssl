@@ -2974,39 +2974,23 @@ class TestConnectionSendall(object):
             assert err.value.args[0] == EPIPE
 
 
-class ConnectionRenegotiateTests(TestCase, _LoopbackMixin):
+class TestConnectionRenegotiate(object):
     """
     Tests for SSL renegotiation APIs.
     """
-    def test_renegotiate_wrong_args(self):
-        """
-        :py:obj:`Connection.renegotiate` raises :py:obj:`TypeError` if called
-        with any arguments.
-        """
-        connection = Connection(Context(TLSv1_METHOD), None)
-        self.assertRaises(TypeError, connection.renegotiate, None)
-
-    def test_total_renegotiations_wrong_args(self):
-        """
-        :py:obj:`Connection.total_renegotiations` raises :py:obj:`TypeError` if
-        called with any arguments.
-        """
-        connection = Connection(Context(TLSv1_METHOD), None)
-        self.assertRaises(TypeError, connection.total_renegotiations, None)
-
     def test_total_renegotiations(self):
         """
-        :py:obj:`Connection.total_renegotiations` returns :py:obj:`0` before
-        any renegotiations have happened.
+        `Connection.total_renegotiations` returns `0` before any renegotiations
+        have happened.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
-        self.assertEquals(connection.total_renegotiations(), 0)
+        assert connection.total_renegotiations() == 0
 
     def test_renegotiate(self):
         """
         Go through a complete renegotiation cycle.
         """
-        server, client = self._loopback()
+        server, client = loopback()
 
         server.send(b"hello world")
 
