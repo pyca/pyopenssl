@@ -2883,76 +2883,69 @@ class TestConnectionRecvInto(object):
         self._doesnt_overfill_test(_make_memoryview)
 
 
-class ConnectionSendallTests(TestCase, _LoopbackMixin):
+class TestConnectionSendall(object):
     """
-    Tests for :py:obj:`Connection.sendall`.
+    Tests for `Connection.sendall`.
     """
     def test_wrong_args(self):
         """
         When called with arguments other than a string argument for its first
-        parameter or with more than two arguments, :py:obj:`Connection.sendall`
-        raises :py:obj:`TypeError`.
+        parameter, `Connection.sendall` raises `TypeError`.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
-        self.assertRaises(TypeError, connection.sendall)
-        self.assertRaises(TypeError, connection.sendall, object())
-        self.assertRaises(
-            TypeError, connection.sendall, "foo", object(), "bar")
+        with pytest.raises(TypeError):
+            connection.sendall(object())
 
     def test_short(self):
         """
-        :py:obj:`Connection.sendall` transmits all of the bytes in the string
+        `Connection.sendall` transmits all of the bytes in the string
         passed to it.
         """
-        server, client = self._loopback()
+        server, client = loopback()
         server.sendall(b'x')
-        self.assertEquals(client.recv(1), b'x')
+        assert client.recv(1) == b'x'
 
     def test_text(self):
         """
-        :py:obj:`Connection.sendall` transmits all the content in the string
-        passed to it raising a DeprecationWarning in case of this being a text.
+        `Connection.sendall` transmits all the content in the string passed
+        to it, raising a DeprecationWarning in case of this being a text.
         """
-        server, client = self._loopback()
-        with catch_warnings(record=True) as w:
+        server, client = loopback()
+        with pytest.warns(DeprecationWarning) as w:
             simplefilter("always")
             server.sendall(b"x".decode("ascii"))
-            self.assertEqual(
+            assert (
                 "{0} for buf is no longer accepted, use bytes".format(
                     WARNING_TYPE_EXPECTED
-                ),
-                str(w[-1].message)
-            )
-            self.assertIs(w[-1].category, DeprecationWarning)
-        self.assertEquals(client.recv(1), b"x")
+                ) == str(w[-1].message))
+        assert client.recv(1) == b"x"
 
     @skip_if_py26
     def test_short_memoryview(self):
         """
         When passed a memoryview onto a small number of bytes,
-        :py:obj:`Connection.sendall` transmits all of them.
+        `Connection.sendall` transmits all of them.
         """
-        server, client = self._loopback()
+        server, client = loopback()
         server.sendall(memoryview(b'x'))
-        self.assertEquals(client.recv(1), b'x')
+        assert client.recv(1) == b'x'
 
     @skip_if_py3
     def test_short_buffers(self):
         """
         When passed a buffer containing a small number of bytes,
-        :py:obj:`Connection.sendall` transmits all of them.
+        `Connection.sendall` transmits all of them.
         """
-        server, client = self._loopback()
+        server, client = loopback()
         server.sendall(buffer(b'x'))
-        self.assertEquals(client.recv(1), b'x')
+        assert client.recv(1) == b'x'
 
     def test_long(self):
         """
-        :py:obj:`Connection.sendall` transmits all of the bytes in the string
-        passed to it even if this requires multiple calls of an underlying
-        write function.
+        `Connection.sendall` transmits all the bytes in the string passed to it
+        even if this requires multiple calls of an underlying write function.
         """
-        server, client = self._loopback()
+        server, client = loopback()
         # Should be enough, underlying SSL_write should only do 16k at a time.
         # On Windows, after 32k of bytes the write will block (forever
         # - because no one is yet reading).
@@ -2964,20 +2957,21 @@ class ConnectionSendallTests(TestCase, _LoopbackMixin):
             data = client.recv(1024)
             accum.append(data)
             received += len(data)
-        self.assertEquals(message, b''.join(accum))
+        assert message == b''.join(accum)
 
     def test_closed(self):
         """
-        If the underlying socket is closed, :py:obj:`Connection.sendall`
-        propagates the write error from the low level write call.
+        If the underlying socket is closed, `Connection.sendall` propagates the
+        write error from the low level write call.
         """
-        server, client = self._loopback()
+        server, client = loopback()
         server.sock_shutdown(2)
-        exc = self.assertRaises(SysCallError, server.sendall, b"hello, world")
+        with pytest.raises(SysCallError) as err:
+            server.sendall(b"hello, world")
         if platform == "win32":
-            self.assertEqual(exc.args[0], ESHUTDOWN)
+            assert err.value.args[0] == ESHUTDOWN
         else:
-            self.assertEqual(exc.args[0], EPIPE)
+            assert err.value.args[0] == EPIPE
 
 
 class ConnectionRenegotiateTests(TestCase, _LoopbackMixin):
