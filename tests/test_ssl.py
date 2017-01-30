@@ -15,7 +15,7 @@ from socket import MSG_PEEK, SHUT_RDWR, error, socket
 from os import makedirs
 from os.path import join
 from weakref import ref
-from warnings import catch_warnings, simplefilter
+from warnings import simplefilter
 
 import pytest
 
@@ -81,8 +81,7 @@ try:
 except ImportError:
     SSL_ST_INIT = SSL_ST_BEFORE = SSL_ST_OK = SSL_ST_RENEGOTIATE = None
 
-from .util import (
-    WARNING_TYPE_EXPECTED, NON_ASCII, TestCase, is_consistent_type)
+from .util import WARNING_TYPE_EXPECTED, NON_ASCII, is_consistent_type
 from .test_crypto import (
     cleartextCertificatePEM, cleartextPrivateKeyPEM,
     client_cert_pem, client_key_pem, server_cert_pem, server_key_pem,
@@ -3451,7 +3450,6 @@ class TestMemoryBIO(object):
         a non-X509 object.
         """
         ctx = Context(TLSv1_METHOD)
-        cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
         with pytest.raises(TypeError):
             ctx.add_client_ca("spam")
 
@@ -3735,8 +3733,12 @@ class TestOCSP(object):
 
         sentinel = object()
 
-        client = self._client_connection(callback=client_callback, data=sentinel)
-        server = self._server_connection(callback=server_callback, data=sentinel)
+        client = self._client_connection(
+            callback=client_callback, data=sentinel
+        )
+        server = self._server_connection(
+            callback=server_callback, data=sentinel
+        )
         handshake_in_memory(client, server)
 
         assert len(calls) == 2
