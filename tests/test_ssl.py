@@ -3026,9 +3026,9 @@ class TestError(object):
         assert Error.__name__ == 'Error'
 
 
-class ConstantsTests(TestCase):
+class TestConstants(object):
     """
-    Tests for the values of constants exposed in :py:obj:`OpenSSL.SSL`.
+    Tests for the values of constants exposed in `OpenSSL.SSL`.
 
     These are values defined by OpenSSL intended only to be used as flags to
     OpenSSL APIs.  The only assertions it seems can be made about them is
@@ -3040,10 +3040,10 @@ class ConstantsTests(TestCase):
     )
     def test_op_no_query_mtu(self):
         """
-        The value of :py:obj:`OpenSSL.SSL.OP_NO_QUERY_MTU` is 0x1000, the value
-        of :py:const:`SSL_OP_NO_QUERY_MTU` defined by :file:`openssl/ssl.h`.
+        The value of `OpenSSL.SSL.OP_NO_QUERY_MTU` is 0x1000, the value
+        of `SSL_OP_NO_QUERY_MTU` defined by `openssl/ssl.h`.
         """
-        self.assertEqual(OP_NO_QUERY_MTU, 0x1000)
+        assert OP_NO_QUERY_MTU == 0x1000
 
     @pytest.mark.skipif(
         OP_COOKIE_EXCHANGE is None,
@@ -3052,11 +3052,10 @@ class ConstantsTests(TestCase):
     )
     def test_op_cookie_exchange(self):
         """
-        The value of :py:obj:`OpenSSL.SSL.OP_COOKIE_EXCHANGE` is 0x2000, the
-        value of :py:const:`SSL_OP_COOKIE_EXCHANGE` defined by
-        :file:`openssl/ssl.h`.
+        The value of `OpenSSL.SSL.OP_COOKIE_EXCHANGE` is 0x2000, the
+        value of `SSL_OP_COOKIE_EXCHANGE` defined by `openssl/ssl.h`.
         """
-        self.assertEqual(OP_COOKIE_EXCHANGE, 0x2000)
+        assert OP_COOKIE_EXCHANGE == 0x2000
 
     @pytest.mark.skipif(
         OP_NO_TICKET is None,
@@ -3064,10 +3063,10 @@ class ConstantsTests(TestCase):
     )
     def test_op_no_ticket(self):
         """
-        The value of :py:obj:`OpenSSL.SSL.OP_NO_TICKET` is 0x4000, the value of
-        :py:const:`SSL_OP_NO_TICKET` defined by :file:`openssl/ssl.h`.
+        The value of `OpenSSL.SSL.OP_NO_TICKET` is 0x4000, the value of
+        `SSL_OP_NO_TICKET` defined by `openssl/ssl.h`.
         """
-        self.assertEqual(OP_NO_TICKET, 0x4000)
+        assert OP_NO_TICKET == 0x4000
 
     @pytest.mark.skipif(
         OP_NO_COMPRESSION is None,
@@ -3075,71 +3074,70 @@ class ConstantsTests(TestCase):
     )
     def test_op_no_compression(self):
         """
-        The value of :py:obj:`OpenSSL.SSL.OP_NO_COMPRESSION` is 0x20000, the
-        value of :py:const:`SSL_OP_NO_COMPRESSION` defined by
-        :file:`openssl/ssl.h`.
+        The value of `OpenSSL.SSL.OP_NO_COMPRESSION` is 0x20000, the
+        value of `SSL_OP_NO_COMPRESSION` defined by `openssl/ssl.h`.
         """
-        self.assertEqual(OP_NO_COMPRESSION, 0x20000)
+        assert OP_NO_COMPRESSION == 0x20000
 
     def test_sess_cache_off(self):
         """
-        The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_OFF` 0x0, the value of
-        :py:obj:`SSL_SESS_CACHE_OFF` defined by ``openssl/ssl.h``.
+        The value of `OpenSSL.SSL.SESS_CACHE_OFF` 0x0, the value of
+        `SSL_SESS_CACHE_OFF` defined by `openssl/ssl.h`.
         """
-        self.assertEqual(0x0, SESS_CACHE_OFF)
+        assert 0x0 == SESS_CACHE_OFF
 
     def test_sess_cache_client(self):
         """
-        The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_CLIENT` 0x1, the value of
-        :py:obj:`SSL_SESS_CACHE_CLIENT` defined by ``openssl/ssl.h``.
+        The value of `OpenSSL.SSL.SESS_CACHE_CLIENT` 0x1, the value of
+        `SSL_SESS_CACHE_CLIENT` defined by `openssl/ssl.h`.
         """
-        self.assertEqual(0x1, SESS_CACHE_CLIENT)
+        assert 0x1 == SESS_CACHE_CLIENT
 
     def test_sess_cache_server(self):
         """
-        The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_SERVER` 0x2, the value of
-        :py:obj:`SSL_SESS_CACHE_SERVER` defined by ``openssl/ssl.h``.
+        The value of `OpenSSL.SSL.SESS_CACHE_SERVER` 0x2, the value of
+        `SSL_SESS_CACHE_SERVER` defined by `openssl/ssl.h`.
         """
-        self.assertEqual(0x2, SESS_CACHE_SERVER)
+        assert 0x2 == SESS_CACHE_SERVER
 
     def test_sess_cache_both(self):
         """
-        The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_BOTH` 0x3, the value of
-        :py:obj:`SSL_SESS_CACHE_BOTH` defined by ``openssl/ssl.h``.
+        The value of `OpenSSL.SSL.SESS_CACHE_BOTH` 0x3, the value of
+        `SSL_SESS_CACHE_BOTH` defined by `openssl/ssl.h`.
         """
-        self.assertEqual(0x3, SESS_CACHE_BOTH)
+        assert 0x3 == SESS_CACHE_BOTH
 
     def test_sess_cache_no_auto_clear(self):
         """
-        The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_NO_AUTO_CLEAR` 0x80, the
-        value of :py:obj:`SSL_SESS_CACHE_NO_AUTO_CLEAR` defined by
-        ``openssl/ssl.h``.
+        The value of `OpenSSL.SSL.SESS_CACHE_NO_AUTO_CLEAR` 0x80, the
+        value of `SSL_SESS_CACHE_NO_AUTO_CLEAR` defined by
+        `openssl/ssl.h`.
         """
-        self.assertEqual(0x80, SESS_CACHE_NO_AUTO_CLEAR)
+        assert 0x80 == SESS_CACHE_NO_AUTO_CLEAR
 
     def test_sess_cache_no_internal_lookup(self):
         """
-        The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_NO_INTERNAL_LOOKUP` 0x100,
-        the value of :py:obj:`SSL_SESS_CACHE_NO_INTERNAL_LOOKUP` defined by
-        ``openssl/ssl.h``.
+        The value of `OpenSSL.SSL.SESS_CACHE_NO_INTERNAL_LOOKUP` 0x100,
+        the value of `SSL_SESS_CACHE_NO_INTERNAL_LOOKUP` defined by
+        `openssl/ssl.h`.
         """
-        self.assertEqual(0x100, SESS_CACHE_NO_INTERNAL_LOOKUP)
+        assert 0x100 == SESS_CACHE_NO_INTERNAL_LOOKUP
 
     def test_sess_cache_no_internal_store(self):
         """
-        The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_NO_INTERNAL_STORE` 0x200,
-        the value of :py:obj:`SSL_SESS_CACHE_NO_INTERNAL_STORE` defined by
-        ``openssl/ssl.h``.
+        The value of `OpenSSL.SSL.SESS_CACHE_NO_INTERNAL_STORE` 0x200,
+        the value of `SSL_SESS_CACHE_NO_INTERNAL_STORE` defined by
+        `openssl/ssl.h`.
         """
-        self.assertEqual(0x200, SESS_CACHE_NO_INTERNAL_STORE)
+        assert 0x200 == SESS_CACHE_NO_INTERNAL_STORE
 
     def test_sess_cache_no_internal(self):
         """
-        The value of :py:obj:`OpenSSL.SSL.SESS_CACHE_NO_INTERNAL` 0x300, the
-        value of :py:obj:`SSL_SESS_CACHE_NO_INTERNAL` defined by
-        ``openssl/ssl.h``.
+        The value of `OpenSSL.SSL.SESS_CACHE_NO_INTERNAL` 0x300, the
+        value of `SSL_SESS_CACHE_NO_INTERNAL` defined by
+        `openssl/ssl.h`.
         """
-        self.assertEqual(0x300, SESS_CACHE_NO_INTERNAL)
+        assert 0x300 == SESS_CACHE_NO_INTERNAL
 
 
 class MemoryBIOTests(TestCase, _LoopbackMixin):
