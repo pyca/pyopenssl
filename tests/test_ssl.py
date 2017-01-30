@@ -2669,7 +2669,7 @@ class TestConnection(object):
         assert 2 == len(data)
 
 
-class TestConnectionGetCipherList(TestCase):
+class TestConnectionGetCipherList(object):
     """
     Tests for `Connection.get_cipher_list`.
     """
