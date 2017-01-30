@@ -342,32 +342,30 @@ def handshake_in_memory(client_conn, server_conn):
     interact_in_memory(client_conn, server_conn)
 
 
-class VersionTests(TestCase):
+class TestVersion(object):
     """
-    Tests for version information exposed by
-    :py:obj:`OpenSSL.SSL.SSLeay_version` and
-    :py:obj:`OpenSSL.SSL.OPENSSL_VERSION_NUMBER`.
+    Tests for version information exposed by `OpenSSL.SSL.SSLeay_version` and
+    `OpenSSL.SSL.OPENSSL_VERSION_NUMBER`.
     """
     def test_OPENSSL_VERSION_NUMBER(self):
         """
-        :py:obj:`OPENSSL_VERSION_NUMBER` is an integer with status in the low
-        byte and the patch, fix, minor, and major versions in the
-        nibbles above that.
+        `OPENSSL_VERSION_NUMBER` is an integer with status in the low byte and
+        the patch, fix, minor, and major versions in the nibbles above that.
         """
-        self.assertTrue(isinstance(OPENSSL_VERSION_NUMBER, int))
+        assert isinstance(OPENSSL_VERSION_NUMBER, int)
 
     def test_SSLeay_version(self):
         """
-        :py:obj:`SSLeay_version` takes a version type indicator and returns
-        one of a number of version strings based on that indicator.
+        `SSLeay_version` takes a version type indicator and returns one of a
+        number of version strings based on that indicator.
         """
         versions = {}
         for t in [SSLEAY_VERSION, SSLEAY_CFLAGS, SSLEAY_BUILT_ON,
                   SSLEAY_PLATFORM, SSLEAY_DIR]:
             version = SSLeay_version(t)
             versions[version] = t
-            self.assertTrue(isinstance(version, bytes))
-        self.assertEqual(len(versions), 5)
+            assert isinstance(version, bytes)
+        assert len(versions) == 5
 
 
 @pytest.fixture
