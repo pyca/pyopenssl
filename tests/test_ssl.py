@@ -3526,7 +3526,7 @@ class TestMemoryBIO(object):
         self._check_client_ca_list(set_replaces_add_ca)
 
 
-class InfoConstantTests(TestCase):
+class TestInfoConstants(object):
     """
     Tests for assorted constants exposed for use in info callbacks.
     """
