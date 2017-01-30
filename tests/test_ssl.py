@@ -2669,28 +2669,20 @@ class TestConnection(object):
         assert 2 == len(data)
 
 
-class ConnectionGetCipherListTests(TestCase):
+class TestConnectionGetCipherList(TestCase):
     """
-    Tests for :py:obj:`Connection.get_cipher_list`.
+    Tests for `Connection.get_cipher_list`.
     """
-    def test_wrong_args(self):
-        """
-        :py:obj:`Connection.get_cipher_list` raises :py:obj:`TypeError` if
-        called with any arguments.
-        """
-        connection = Connection(Context(TLSv1_METHOD), None)
-        self.assertRaises(TypeError, connection.get_cipher_list, None)
-
     def test_result(self):
         """
-        :py:obj:`Connection.get_cipher_list` returns a :py:obj:`list` of
-        :py:obj:`bytes` giving the names of the ciphers which might be used.
+        `Connection.get_cipher_list` returns a list of `bytes` giving the
+        names of the ciphers which might be used.
         """
         connection = Connection(Context(TLSv1_METHOD), None)
         ciphers = connection.get_cipher_list()
-        self.assertTrue(isinstance(ciphers, list))
+        assert isinstance(ciphers, list)
         for cipher in ciphers:
-            self.assertTrue(isinstance(cipher, str))
+            assert isinstance(cipher, str)
 
 
 class ConnectionSendTests(TestCase, _LoopbackMixin):
