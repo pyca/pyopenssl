@@ -2040,8 +2040,8 @@ class TestConnection(object):
 
     def test_peek(self):
         """
-        `Connection.recv` peeks into the connection if `socket.MSG_PEEK`
-        is passed.
+        `Connection.recv` peeks into the connection if `socket.MSG_PEEK` is
+        passed.
         """
         server, client = loopback()
         server.send(b'xy')
@@ -2051,8 +2051,8 @@ class TestConnection(object):
 
     def test_connect_wrong_args(self):
         """
-        `Connection.connect` raises `TypeError` if called with
-        a non-address argument.
+        `Connection.connect` raises `TypeError` if called with a non-address
+        argument.
         """
         connection = Connection(Context(TLSv1_METHOD), socket())
         with pytest.raises(TypeError):

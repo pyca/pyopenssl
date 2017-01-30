@@ -743,9 +743,7 @@ class TestX509Ext(object):
 
 class TestPKey(object):
     """
-    py.test-based tests for :class:`OpenSSL.crypto.PKey`.
-
-    If possible, add new tests here.
+    Tests for `OpenSSL.crypto.PKey`.
     """
 
     def test_convert_from_cryptography_private_key(self):
