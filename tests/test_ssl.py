@@ -3595,7 +3595,7 @@ class TestRequires(object):
         assert results == []
 
 
-class TestOCSP(_LoopbackMixin):
+class TestOCSP(object):
     """
     Tests for PyOpenSSL's OCSP stapling support.
     """
@@ -3652,7 +3652,7 @@ class TestOCSP(_LoopbackMixin):
             callback=ocsp_callback, data=None, request_ocsp=False
         )
         server = self._server_connection(callback=ocsp_callback, data=None)
-        self._handshakeInMemory(client, server)
+        handshake_in_memory(client, server)
 
         assert not called
 
@@ -3668,8 +3668,8 @@ class TestOCSP(_LoopbackMixin):
             return True
 
         client = self._client_connection(callback=ocsp_callback, data=None)
-        server = self._loopbackServerFactory(socket=None)
-        self._handshakeInMemory(client, server)
+        server = loopback_server_factory(socket=None)
+        handshake_in_memory(client, server)
 
         assert len(called) == 1
         assert called[0] == b''
@@ -3689,7 +3689,7 @@ class TestOCSP(_LoopbackMixin):
 
         client = self._client_connection(callback=client_callback, data=None)
         server = self._server_connection(callback=server_callback, data=None)
-        self._handshakeInMemory(client, server)
+        handshake_in_memory(client, server)
 
         assert len(calls) == 1
         assert calls[0] == self.sample_ocsp_data
@@ -3711,7 +3711,7 @@ class TestOCSP(_LoopbackMixin):
 
         client = self._client_connection(callback=client_callback, data=None)
         server = self._server_connection(callback=server_callback, data=None)
-        self._handshakeInMemory(client, server)
+        handshake_in_memory(client, server)
 
         assert len(client_calls) == 1
         assert len(server_calls) == 1
@@ -3735,13 +3735,9 @@ class TestOCSP(_LoopbackMixin):
 
         sentinel = object()
 
-        client = self._client_connection(
-            callback=client_callback, data=sentinel
-        )
-        server = self._server_connection(
-            callback=server_callback, data=sentinel
-        )
-        self._handshakeInMemory(client, server)
+        client = self._client_connection(callback=client_callback, data=sentinel)
+        server = self._server_connection(callback=server_callback, data=sentinel)
+        handshake_in_memory(client, server)
 
         assert len(calls) == 2
         assert calls[0][-1] is sentinel
@@ -3763,7 +3759,7 @@ class TestOCSP(_LoopbackMixin):
 
         client = self._client_connection(callback=client_callback, data=None)
         server = self._server_connection(callback=server_callback, data=None)
-        self._handshakeInMemory(client, server)
+        handshake_in_memory(client, server)
 
         assert len(client_calls) == 1
         assert client_calls[0] == b''
@@ -3782,7 +3778,7 @@ class TestOCSP(_LoopbackMixin):
         server = self._server_connection(callback=server_callback, data=None)
 
         with pytest.raises(Error):
-            self._handshakeInMemory(client, server)
+            handshake_in_memory(client, server)
 
     def test_exceptions_in_client_bubble_up(self):
         """
@@ -3801,7 +3797,7 @@ class TestOCSP(_LoopbackMixin):
         server = self._server_connection(callback=server_callback, data=None)
 
         with pytest.raises(SentinelException):
-            self._handshakeInMemory(client, server)
+            handshake_in_memory(client, server)
 
     def test_exceptions_in_server_bubble_up(self):
         """
@@ -3820,7 +3816,7 @@ class TestOCSP(_LoopbackMixin):
         server = self._server_connection(callback=server_callback, data=None)
 
         with pytest.raises(SentinelException):
-            self._handshakeInMemory(client, server)
+            handshake_in_memory(client, server)
 
     def test_server_must_return_bytes(self):
         """
@@ -3836,4 +3832,4 @@ class TestOCSP(_LoopbackMixin):
         server = self._server_connection(callback=server_callback, data=None)
 
         with pytest.raises(TypeError):
-            self._handshakeInMemory(client, server)
+            handshake_in_memory(client, server)
