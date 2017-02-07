@@ -657,7 +657,10 @@ class X509Name(object):
         return result
 
 
-X509NameType = X509Name
+def X509NameType(*args, **kwargs):
+    _warn('The `X509NameType` class is deprecated; use `X509Name` instead.',
+          category=DeprecationWarning)
+    return X509Name(*args, **kwargs)
 
 
 class X509Extension(object):

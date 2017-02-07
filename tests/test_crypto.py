@@ -957,14 +957,20 @@ class TestX509Name(object):
 
     def test_type(self):
         """
-        The type of X509Name objects is `X509NameType`.
+        The type of X509Name objects is `X509Name`.
         """
-        assert X509Name is X509NameType
-        assert X509NameType.__name__ == 'X509Name'
-        assert isinstance(X509NameType, type)
+        assert X509Name.__name__ == 'X509Name'
+        assert isinstance(X509Name, type)
 
         name = x509_name()
-        assert isinstance(name, X509NameType)
+        assert isinstance(name, X509Name)
+
+    def test_deprecated_constructor(self):
+        """
+        Using `X509NameType` raises a DeprecationWarning.
+        """
+        with pytest.warns(DeprecationWarning):
+            X509NameType('foo')
 
     def test_only_string_attributes(self):
         """
@@ -1307,7 +1313,7 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         """
         request = X509Req()
         subject = request.get_subject()
-        assert isinstance(subject, X509NameType)
+        assert isinstance(subject, X509Name)
         subject.commonName = "foo"
         assert request.get_subject().commonName == "foo"
         del request
