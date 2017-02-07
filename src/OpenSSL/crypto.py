@@ -1422,7 +1422,10 @@ class X509(object):
         return ext
 
 
-X509Type = X509
+def X509Type(*args, **kwargs):
+    _warn('The `X509Type` class is deprecated; use `X509` instead.',
+          category=DeprecationWarning)
+    return X509(*args, **kwargs)
 
 
 class X509StoreFlags(object):
