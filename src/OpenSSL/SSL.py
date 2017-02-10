@@ -1455,6 +1455,8 @@ class Connection(object):
             buf = str(buf)
         if not isinstance(buf, bytes):
             raise TypeError("data must be a memoryview, buffer or byte string")
+        if len(buf) > 2147483647:
+            raise ValueError("Cannot send more than 2**31-1 bytes at once.")
 
         result = _lib.SSL_write(self._ssl, buf, len(buf))
         self._raise_ssl_error(self._ssl, result)
@@ -1486,7 +1488,13 @@ class Connection(object):
         data = _ffi.new("char[]", buf)
 
         while left_to_send:
-            result = _lib.SSL_write(self._ssl, data + total_sent, left_to_send)
+            # SSL_write's num arg is an int,
+            # so we cannot send more than 2**31-1 bytes at once.
+            result = _lib.SSL_write(
+                self._ssl,
+                data + total_sent,
+                min(left_to_send, 2147483647)
+            )
             self._raise_ssl_error(self._ssl, result)
             total_sent += result
             left_to_send -= result
