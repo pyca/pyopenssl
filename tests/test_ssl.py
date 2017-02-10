@@ -6,6 +6,7 @@ Unit tests for :mod:`OpenSSL.SSL`.
 """
 
 import datetime
+import sys
 import uuid
 
 from gc import collect, get_referrers
@@ -2662,6 +2663,14 @@ class TestConnectionGetCipherList(object):
             assert isinstance(cipher, str)
 
 
+class VeryLarge(bytes):
+    """
+    Mock object so that we don't have to allocate 2**31 bytes
+    """
+    def __len__(self):
+        return 2**31
+
+
 class TestConnectionSend(object):
     """
     Tests for `Connection.send`.
@@ -2724,6 +2733,21 @@ class TestConnectionSend(object):
         count = server.send(buffer(b'xy'))
         assert count == 2
         assert client.recv(2) == b'xy'
+
+    @pytest.mark.skipif(
+        sys.maxsize < 2**31,
+        reason="sys.maxsize < 2**31 - test requires 64 bit"
+    )
+    def test_buf_too_large(self):
+        """
+        When passed a buffer containing >= 2**31 bytes,
+        `Connection.send` bails out as SSL_write only
+        accepts an int for the buffer length.
+        """
+        connection = Connection(Context(TLSv1_METHOD), None)
+        with pytest.raises(ValueError) as exc_info:
+            connection.send(VeryLarge())
+        exc_info.match(r"Cannot send more than .+ bytes at once")
 
 
 def _make_memoryview(size):
