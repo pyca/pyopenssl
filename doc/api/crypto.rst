@@ -319,7 +319,7 @@ For example, :const:`b"sha256"` or :const:`b"sha384"`.
 
 More information and a list of these digest names can be found in the ``EVP_DigestInit(3)`` man page of your OpenSSL installation.
 This page can be found online for the latest version of OpenSSL:
-https://www.openssl.org/docs/manmaster/crypto/EVP_DigestInit.html
+https://www.openssl.org/docs/manmaster/man3/EVP_DigestInit.html
 
 
 Backwards compatible type names
