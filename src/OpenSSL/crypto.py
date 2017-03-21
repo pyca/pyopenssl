@@ -684,7 +684,7 @@ class X509Extension(object):
         :param issuer: Optional X509 certificate to use as issuer.
         :type issuer: :py:class:`X509`
 
-        .. _extension: https://www.openssl.org/docs/manmaster/apps/
+        .. _extension: https://www.openssl.org/docs/manmaster/man5/
             x509v3_config.html#STANDARD-EXTENSIONS
         """
         ctx = _ffi.new("X509V3_CTX*")
@@ -1433,7 +1433,7 @@ class X509StoreFlags(object):
     See `OpenSSL Verification Flags`_ for details.
 
     .. _OpenSSL Verification Flags:
-        https://www.openssl.org/docs/manmaster/crypto/X509_VERIFY_PARAM_set_flags.html
+        https://www.openssl.org/docs/manmaster/man3/X509_VERIFY_PARAM_set_flags.html
     """
     CRL_CHECK = _lib.X509_V_FLAG_CRL_CHECK
     CRL_CHECK_ALL = _lib.X509_V_FLAG_CRL_CHECK_ALL
