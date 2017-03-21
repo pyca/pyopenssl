@@ -684,7 +684,7 @@ class X509Extension(object):
         :param issuer: Optional X509 certificate to use as issuer.
         :type issuer: :py:class:`X509`
 
-        .. _extension: https://www.openssl.org/docs/manmaster/apps/
+        .. _extension: https://www.openssl.org/docs/manmaster/man5/
             x509v3_config.html#STANDARD-EXTENSIONS
         """
         ctx = _ffi.new("X509V3_CTX*")
