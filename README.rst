@@ -10,7 +10,7 @@ pyOpenSSL -- A Python wrapper around the OpenSSL library
    :target: https://travis-ci.org/pyca/pyopenssl
    :alt: Build status
 
-.. image:: https://codecov.io/github/pyca/pyopenssl/coverage.svg?branch=master
+.. image:: https://codecov.io/github/pyca/pyopenssl/branch/master/graph/badge.svg
    :target: https://codecov.io/github/pyca/pyopenssl
    :alt: Test coverage
 
