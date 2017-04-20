@@ -2205,10 +2205,10 @@ class TestConnection(object):
         server.sock_shutdown(2)
         with pytest.raises(SysCallError) as exc:
             server.shutdown()
-            if platform == "win32":
-                assert exc.value.args[0] == ESHUTDOWN
-            else:
-                assert exc.value.args[0] == EPIPE
+        if platform == "win32":
+            assert exc.value.args[0] == ESHUTDOWN
+        else:
+            assert exc.value.args[0] == EPIPE
 
     def test_shutdown_truncated(self):
         """
