@@ -32,8 +32,8 @@ Currently that means:
 
 If you need support for older releases, the following pinned versions will work:
 
-- **OpenSSL 0.9.8**: ``'pyOpenSSL<16.3' 'cryptography<1.4'``
-- **OpenSSL 1.0.0**: ``'pyOpenSSL<17.0' 'cryptography<1.7'``
+- **OpenSSL 0.9.8**: ``'pyOpenSSL<17.0' 'cryptography<1.4'``
+- **OpenSSL 1.0.0**: ``'pyOpenSSL<17.1' 'cryptography<1.7'``
 
 
 Documentation

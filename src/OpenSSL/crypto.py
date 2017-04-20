@@ -1538,7 +1538,7 @@ class X509Store(object):
           For example, you can determine if a certificate was valid at a given
           time.
 
-        .. versionadded:: 16.3.0
+        .. versionadded:: 17.0.0
 
         :param datetime vfy_time: The verification time to set on this store.
         :return: ``None`` if the verification time was successfully set.
