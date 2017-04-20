@@ -1189,8 +1189,7 @@ class _PKeyInteractionTestsMixin:
 
     def signable(self):
         """
-        Return something with a `set_pubkey`, `set_pubkey`,
-        and `sign` method.
+        Return something with a `set_pubkey`, `set_pubkey`, and `sign` method.
         """
         raise NotImplementedError()
 
@@ -1924,6 +1923,16 @@ class TestX509Store(object):
         store = X509Store()
         store.add_cert(cert)
 
+    @pytest.mark.parametrize('cert', [None, 1.0, 'cert', object()])
+    def test_add_cert_wrong_args(self, cert):
+        """
+        `X509Store.add_cert` raises `TypeError` if passed a non-X509 object
+        as its first argument.
+        """
+        store = X509Store()
+        with pytest.raises(TypeError):
+            store.add_cert(cert)
+
     def test_add_cert_rejects_duplicate(self):
         """
         `X509Store.add_cert` raises `OpenSSL.crypto.Error` if an attempt is
@@ -2553,6 +2562,16 @@ class TestFunction(object):
             load_privatekey(
                 FILETYPE_PEM, encryptedPrivateKeyPEM, lambda *args: 3)
 
+    def test_dump_privatekey_wrong_args(self):
+        """
+        `dump_privatekey` raises `TypeError` if called with a `cipher`
+        argument but no `passphrase` argument.
+        """
+        key = PKey()
+        key.generate_key(TYPE_RSA, 512)
+        with pytest.raises(TypeError):
+            dump_privatekey(FILETYPE_PEM, key, cipher=GOOD_CIPHER)
+
     def test_dump_privatekey_unknown_cipher(self):
         """
         `dump_privatekey` raises `ValueError` if called with an unrecognized
@@ -3022,6 +3041,16 @@ class TestRevoked(object):
 
         revoked.set_reason(None)
         assert revoked.get_reason() is None
+
+    @pytest.mark.parametrize('reason', [object(), 1.0, u'foo'])
+    def test_set_reason_wrong_args(self, reason):
+        """
+        `Revoked.set_reason` raises `TypeError` if called with an argument
+        which is neither `None` nor a byte string.
+        """
+        revoked = Revoked()
+        with pytest.raises(TypeError):
+            revoked.set_reason(reason)
 
     def test_set_reason_invalid_reason(self):
         """

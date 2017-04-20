@@ -556,6 +556,16 @@ class TestContext(object):
         ctx = Context(TLSv1_METHOD)
         ctx.use_privatekey_file(pemfile, filetype)
 
+    @pytest.mark.parametrize('filetype', [object(), "", None, 1.0])
+    def test_wrong_privatekey_file_wrong_args(self, tmpfile, filetype):
+        """
+        `Context.use_privatekey_file` raises `TypeError` when called with
+        a `filetype` which is not a valid file encoding.
+        """
+        ctx = Context(TLSv1_METHOD)
+        with pytest.raises(TypeError):
+            ctx.use_privatekey_file(tmpfile, filetype)
+
     def test_use_privatekey_file_bytes(self, tmpfile):
         """
         A private key can be specified from a file by passing a ``bytes``
@@ -1358,6 +1368,26 @@ class TestContext(object):
         )  # pragma: nocover
         assert context.get_verify_mode() == (VERIFY_PEER | VERIFY_CLIENT_ONCE)
 
+    @pytest.mark.parametrize('mode', [None, 1.0, object(), 'mode'])
+    def test_set_verify_wrong_mode_arg(self, mode):
+        """
+        `Context.set_verify` raises `TypeError` if the first argument is
+        not an integer.
+        """
+        context = Context(TLSv1_METHOD)
+        with pytest.raises(TypeError):
+            context.set_verify(mode=mode, callback=lambda *args: None)
+
+    @pytest.mark.parametrize('callback', [None, 1.0, 'mode', ('foo', 'bar')])
+    def test_set_verify_wrong_callable_arg(self, callback):
+        """
+        `Context.set_verify` raises `TypeError` if the the second argument
+        is not callable.
+        """
+        context = Context(TLSv1_METHOD)
+        with pytest.raises(TypeError):
+            context.set_verify(mode=VERIFY_PEER, callback=callback)
+
     def test_load_tmp_dh_wrong_args(self):
         """
         `Context.load_tmp_dh` raises `TypeError` if called with a
@@ -1472,10 +1502,10 @@ class TestServerNameCallback(object):
         If `Context.set_tlsext_servername_callback` is used to specify
         a new callback, the one it replaces is dereferenced.
         """
-        def callback(connection):
+        def callback(connection):  # pragma: no cover
             pass
 
-        def replacement(connection):
+        def replacement(connection):  # pragma: no cover
             pass
 
         context = Context(TLSv1_METHOD)
@@ -1496,8 +1526,8 @@ class TestServerNameCallback(object):
         callback = tracker()
         if callback is not None:
             referrers = get_referrers(callback)
-            if len(referrers) > 1:
-                self.fail("Some references remain: %r" % (referrers,))
+            if len(referrers) > 1:  # pragma: nocover
+                pytest.fail("Some references remain: %r" % (referrers,))
 
     def test_no_servername(self):
         """
@@ -1975,6 +2005,15 @@ class TestConnection(object):
         ctx = Context(TLSv1_METHOD)
         assert is_consistent_type(Connection, 'Connection', ctx, None)
 
+    @pytest.mark.parametrize('bad_context', [object(), 'context', None, 1])
+    def test_wrong_args(self, bad_context):
+        """
+        `Connection.__init__` raises `TypeError` if called with a non-`Context`
+        instance argument.
+        """
+        with pytest.raises(TypeError):
+            Connection(bad_context)
+
     def test_get_context(self):
         """
         `Connection.get_context` returns the `Context` instance used to
@@ -1987,7 +2026,7 @@ class TestConnection(object):
     def test_set_context_wrong_args(self):
         """
         `Connection.set_context` raises `TypeError` if called with a
-        non-`Context` instance argument,
+        non-`Context` instance argument.
         """
         ctx = Context(TLSv1_METHOD)
         connection = Connection(ctx, None)
@@ -2166,10 +2205,10 @@ class TestConnection(object):
         server.sock_shutdown(2)
         with pytest.raises(SysCallError) as exc:
             server.shutdown()
-            if platform == "win32":
-                assert exc.value.args[0] == ESHUTDOWN
-            else:
-                assert exc.value.args[0] == EPIPE
+        if platform == "win32":
+            assert exc.value.args[0] == ESHUTDOWN
+        else:
+            assert exc.value.args[0] == EPIPE
 
     def test_shutdown_truncated(self):
         """
@@ -2614,6 +2653,17 @@ class TestConnection(object):
         conn = Connection(ctx, None)
         with pytest.raises(WantReadError):
             conn.bio_read(1024)
+
+    @pytest.mark.parametrize('bufsize', [1.0, None, object(), 'bufsize'])
+    def test_bio_read_wrong_args(self, bufsize):
+        """
+        `Connection.bio_read` raises `TypeError` if passed a non-integer
+        argument.
+        """
+        ctx = Context(TLSv1_METHOD)
+        conn = Connection(ctx, None)
+        with pytest.raises(TypeError):
+            conn.bio_read(bufsize)
 
     def test_buffer_size(self):
         """
@@ -3581,18 +3631,15 @@ class TestRequires(object):
         does not execute and NotImplementedError is raised.
         """
         feature_guard = _make_requires(False, "Error text")
-        results = []
 
         @feature_guard
-        def inner():
-            results.append(True)
-            return True
+        def inner():  # pragma: nocover
+            pytest.fail("Should not be called")
 
         with pytest.raises(NotImplementedError) as e:
             inner()
 
         assert "Error text" in str(e.value)
-        assert results == []
 
 
 class TestOCSP(object):
@@ -3643,18 +3690,14 @@ class TestOCSP(object):
         the client does not send the OCSP request, neither callback gets
         called.
         """
-        called = []
-
-        def ocsp_callback(*args, **kwargs):
-            called.append((args, kwargs))
+        def ocsp_callback(*args, **kwargs):  # pragma: nocover
+            pytest.fail("Should not be called")
 
         client = self._client_connection(
             callback=ocsp_callback, data=None, request_ocsp=False
         )
         server = self._server_connection(callback=ocsp_callback, data=None)
         handshake_in_memory(client, server)
-
-        assert not called
 
     def test_client_negotiates_without_server(self):
         """
@@ -3813,7 +3856,7 @@ class TestOCSP(object):
         def server_callback(*args):
             raise SentinelException()
 
-        def client_callback(*args):
+        def client_callback(*args):  # pragma: nocover
             pytest.fail("Should not be called")
 
         client = self._client_connection(callback=client_callback, data=None)
@@ -3829,7 +3872,7 @@ class TestOCSP(object):
         def server_callback(*args):
             return self.sample_ocsp_data.decode('ascii')
 
-        def client_callback(*args):
+        def client_callback(*args):  # pragma: nocover
             pytest.fail("Should not be called")
 
         client = self._client_connection(callback=client_callback, data=None)
