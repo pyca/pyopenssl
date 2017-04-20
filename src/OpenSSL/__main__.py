@@ -18,8 +18,7 @@ OpenSSL: {openssl}
 Python: {python}
 Python version: {python_version}
 Platform: {platform}
-sys.path: {sys_path}
-""".format(
+sys.path: {sys_path}""".format(
     pyopenssl=version.__version__,
     openssl=OpenSSL.SSL.SSLeay_version(OpenSSL.SSL.SSLEAY_VERSION),
     cryptography=cryptography.__version__,
