@@ -29,11 +29,12 @@ Currently that means:
 - 1.0.2
 - 1.1.0
 
-
 If you need support for older releases, the following pinned versions will work:
 
 - **OpenSSL 0.9.8**: ``'pyOpenSSL<17.0' 'cryptography<1.4'``
 - **OpenSSL 1.0.0**: ``'pyOpenSSL<17.1' 'cryptography<1.7'``
+
+You can always find out the versions of pyOpenSSL, cryptography, and the linked OpenSSL by running ``python -m OpenSSL``.
 
 
 Documentation

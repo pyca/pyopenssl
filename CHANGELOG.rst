@@ -24,7 +24,8 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-*none*
+- Added ``OpenSSL.__main__`` that allows to get an overview of used library versions (including linked OpenSSL) using ``python -m OpenSSL``.
+  `#620 <https://github.com/pyca/pyopenssl/pull/620>`_
 
 
 ----
