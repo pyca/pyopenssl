@@ -357,17 +357,15 @@ class _EllipticCurve(object):
         :return: A :py:type:`set` of ``cls`` instances giving the names of the
             elliptic curves the underlying library supports.
         """
-        if lib.Cryptography_HAS_EC:
-            num_curves = lib.EC_get_builtin_curves(_ffi.NULL, 0)
-            builtin_curves = _ffi.new('EC_builtin_curve[]', num_curves)
-            # The return value on this call should be num_curves again.  We
-            # could check it to make sure but if it *isn't* then.. what could
-            # we do? Abort the whole process, I suppose...?  -exarkun
-            lib.EC_get_builtin_curves(builtin_curves, num_curves)
-            return set(
-                cls.from_nid(lib, c.nid)
-                for c in builtin_curves)
-        return set()
+        num_curves = lib.EC_get_builtin_curves(_ffi.NULL, 0)
+        builtin_curves = _ffi.new('EC_builtin_curve[]', num_curves)
+        # The return value on this call should be num_curves again.  We
+        # could check it to make sure but if it *isn't* then.. what could
+        # we do? Abort the whole process, I suppose...?  -exarkun
+        lib.EC_get_builtin_curves(builtin_curves, num_curves)
+        return set(
+            cls.from_nid(lib, c.nid)
+            for c in builtin_curves)
 
     @classmethod
     def _get_elliptic_curves(cls, lib):
