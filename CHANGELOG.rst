@@ -24,7 +24,7 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-- Added ``OpenSSL.__main__`` that allows to get an overview of used library versions (including linked OpenSSL) and other useful runtime information using ``python -m OpenSSL``.
+- Added ``OpenSSL.debug.__main__`` that allows to get an overview of used library versions (including linked OpenSSL) and other useful runtime information using ``python -m OpenSSL.debug``.
   `#620 <https://github.com/pyca/pyopenssl/pull/620>`_
 
 

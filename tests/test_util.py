@@ -16,13 +16,3 @@ class TestErrors(object):
         with pytest.raises(ValueError) as exc:
             exception_from_error_queue(ValueError)
         assert exc.value.args[0][0][2] == ""
-
-
-def test_main_not_importable():
-    """
-    Raise ImportError if `OpenSSL.__main__` is attempted to be imported.
-    """
-    with pytest.raises(ImportError) as ei:
-        from OpenSSL import __main__  # noqa
-
-    assert "This module can't be imported." == ei.value.args[0]
