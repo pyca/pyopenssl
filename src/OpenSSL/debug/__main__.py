@@ -20,7 +20,7 @@ Platform: {platform}
 sys.path: {sys_path}""".format(
     pyopenssl=version.__version__,
     crypto_openssl=OpenSSL.SSL.SSLeay_version(OpenSSL.SSL.SSLEAY_VERSION),
-    python_openssl=ssl.OPENSSL_VERSION,
+    python_openssl=getattr(ssl, "OPENSSL_VERSION", "n/a"),
     cryptography=cryptography.__version__,
     python=sys.executable,
     python_version=sys.version,
