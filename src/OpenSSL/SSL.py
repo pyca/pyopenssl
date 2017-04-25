@@ -1453,10 +1453,16 @@ class Connection(object):
             buf = buf.tobytes()
         if isinstance(buf, _buffer):
             buf = str(buf)
-        if not isinstance(buf, bytes):
-            raise TypeError("data must be a memoryview, buffer or byte string")
+
+        if not isinstance(buf, (bytes, bytearray)):
+            raise TypeError(
+                "data must be a memoryview, buffer, bytearray or byte string"
+            )
+
         if len(buf) > 2147483647:
             raise ValueError("Cannot send more than 2**31-1 bytes at once.")
+
+        buf = _ffi.from_buffer(buf)
 
         result = _lib.SSL_write(self._ssl, buf, len(buf))
         self._raise_ssl_error(self._ssl, result)
@@ -1480,12 +1486,14 @@ class Connection(object):
             buf = buf.tobytes()
         if isinstance(buf, _buffer):
             buf = str(buf)
-        if not isinstance(buf, bytes):
-            raise TypeError("buf must be a memoryview, buffer or byte string")
+        if not isinstance(buf, (bytes, bytearray)):
+            raise TypeError(
+                "buf must be a memoryview, buffer, bytearray or byte string"
+            )
 
         left_to_send = len(buf)
         total_sent = 0
-        data = _ffi.new("char[]", buf)
+        data = _ffi.from_buffer(buf)
 
         while left_to_send:
             # SSL_write's num arg is an int,
