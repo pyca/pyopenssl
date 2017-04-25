@@ -2696,6 +2696,22 @@ class TestConnection(object):
         data = conn.bio_read(long(2))
         assert 2 == len(data)
 
+    def test_send_bytearray(self):
+        """
+        The ``Connection.send`` method accepts bytearrays.
+        """
+        server, client = loopback()
+        server.send(bytearray(b'xy'))
+        assert client.recv(2) == b'xy'
+
+    def test_sendall_bytearray(self):
+        """
+        The ``Connection.sendall`` method accepts bytearrays.
+        """
+        server, client = loopback()
+        server.sendall(bytearray(b'xy'))
+        assert client.recv(2) == b'xy'
+
 
 class TestConnectionGetCipherList(object):
     """
