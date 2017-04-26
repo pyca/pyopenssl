@@ -5,6 +5,8 @@ from itertools import count, chain
 from weakref import WeakValueDictionary
 from errno import errorcode
 
+import cffi
+
 from six import binary_type as _binary_type
 from six import integer_types as integer_types
 from six import int2byte, indexbytes
@@ -159,6 +161,46 @@ class ZeroReturnError(Error):
 
 class SysCallError(Error):
     pass
+
+
+def _make_buffer_checker(cffi_version_tuple):
+    """
+    Returns a callable that converts a sendable buffer object into something
+    that can be sent by OpenSSL using CFFI. Has different supported types
+    depending on the CFFI version.
+
+    :param cffi_version_tuple: The version of CFFI in use, from
+        cffi.__version_info.
+    """
+    if cffi_version_tuple >= (1, 8):
+        allowed_types = (bytes, bytearray)
+        error_message = (
+            "data must be a memoryview, buffer, bytearray or byte string"
+        )
+        make_buffer = _ffi.from_buffer
+    else:
+        allowed_types = (bytes,)
+        error_message = "data must be a memoryview, buffer, or byte string"
+        make_buffer = partial(_ffi.new, "char[]")
+
+    def buffer_factory(buf):
+        """
+        Given a sendable data buffer passed into send or sendall, returns a
+        CFFI object representing it.
+
+        :param buf: The sendable data buffer the user wishes to send.
+        """
+        if isinstance(buf, _memoryview):
+            buf = buf.tobytes()
+        if isinstance(buf, _buffer):
+            buf = str(buf)
+
+        if not isinstance(buf, allowed_types):
+            raise TypeError(error_message)
+
+        return make_buffer(buf)
+
+    return buffer_factory
 
 
 class _CallbackExceptionHelper(object):
@@ -1290,6 +1332,7 @@ class Connection(object):
         self._ssl = _ffi.gc(ssl, _lib.SSL_free)
         self._context = context
         self._app_data = None
+        self._buffer_factory = _make_buffer_checker(cffi.__version_info__)
 
         # References to strings used for Next Protocol Negotiation. OpenSSL's
         # header files suggest that these might get copied at some point, but
@@ -1448,23 +1491,14 @@ class Connection(object):
         """
         # Backward compatibility
         buf = _text_to_bytes_and_warn("buf", buf)
+        size = len(buf)
 
-        if isinstance(buf, _memoryview):
-            buf = buf.tobytes()
-        if isinstance(buf, _buffer):
-            buf = str(buf)
-
-        if not isinstance(buf, (bytes, bytearray)):
-            raise TypeError(
-                "data must be a memoryview, buffer, bytearray or byte string"
-            )
-
-        if len(buf) > 2147483647:
+        if size > 2147483647:
             raise ValueError("Cannot send more than 2**31-1 bytes at once.")
 
-        buf = _ffi.from_buffer(buf)
+        buf = self._buffer_factory(buf)
 
-        result = _lib.SSL_write(self._ssl, buf, len(buf))
+        result = _lib.SSL_write(self._ssl, buf, size)
         self._raise_ssl_error(self._ssl, result)
         return result
     write = send
@@ -1482,18 +1516,9 @@ class Connection(object):
         """
         buf = _text_to_bytes_and_warn("buf", buf)
 
-        if isinstance(buf, _memoryview):
-            buf = buf.tobytes()
-        if isinstance(buf, _buffer):
-            buf = str(buf)
-        if not isinstance(buf, (bytes, bytearray)):
-            raise TypeError(
-                "buf must be a memoryview, buffer, bytearray or byte string"
-            )
-
         left_to_send = len(buf)
         total_sent = 0
-        data = _ffi.from_buffer(buf)
+        data = self._buffer_factory(buf)
 
         while left_to_send:
             # SSL_write's num arg is an int,

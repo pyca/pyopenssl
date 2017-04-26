@@ -55,9 +55,9 @@ from OpenSSL.SSL import (
     Error, SysCallError, WantReadError, WantWriteError, ZeroReturnError)
 from OpenSSL.SSL import (
     Context, ContextType, Session, Connection, ConnectionType, SSLeay_version)
-from OpenSSL.SSL import _make_requires
+from OpenSSL.SSL import _make_requires, _make_buffer_checker
 
-from OpenSSL._util import lib as _lib
+from OpenSSL._util import lib as _lib, ffi as _ffi
 
 from OpenSSL.SSL import (
     OP_NO_QUERY_MTU, OP_COOKIE_EXCHANGE, OP_NO_TICKET, OP_NO_COMPRESSION,
@@ -3896,3 +3896,56 @@ class TestOCSP(object):
 
         with pytest.raises(TypeError):
             handshake_in_memory(client, server)
+
+
+class TestMakeBufferChecker(object):
+    """
+    Tests for the _make_buffer_checker helper.
+    """
+    high_version_numbers = [
+        (1, 10, 0), (1, 8, 0), (1, 9)
+    ]
+    low_version_numbers = [
+        (1, 6, 99), (1, 6), (0, 8)
+    ]
+    supported_by_newer_cffi = [b'hello', bytearray(b'hello')]
+    supported_by_older_cffi = [b'hello']
+
+    if version_info[0:2] >= (2, 7):
+        supported_by_newer_cffi.append(memoryview(b'hello'))
+        supported_by_older_cffi.append(memoryview(b'hello'))
+
+    @pytest.mark.parametrize('cffi_version', high_version_numbers)
+    @pytest.mark.parametrize('data', supported_by_newer_cffi)
+    def test_ffi_buffer_support_late(self, cffi_version, data):
+        """
+        When using CFFI versions 1.7 or later, bytearrays, bytes, and
+        memoryviews are supported.
+        """
+        buffer_factory = _make_buffer_checker(cffi_version)
+        cdata_buffer = buffer_factory(data)
+        # We need an explicit length here because cffi on recent PyPy doesn't
+        # correctly construct buffers when it knows the length of the cdata,
+        # weirdly. It works fine on CPython: just not PyPy.
+        assert _ffi.buffer(cdata_buffer, 5)[:] == b'hello'
+
+    @pytest.mark.parametrize('cffi_version', low_version_numbers)
+    @pytest.mark.parametrize('data', supported_by_older_cffi)
+    def test_ffi_buffer_support_early(self, cffi_version, data):
+        """
+        When using versions of CFFI before 1.7, only bytes and memoryviews are
+        supported.
+        """
+        buffer_factory = _make_buffer_checker(cffi_version)
+        cdata_buffer = buffer_factory(data)
+        assert _ffi.buffer(cdata_buffer)[:] == b'hello\x00'
+
+    @pytest.mark.parametrize('cffi_version',
+                             high_version_numbers + low_version_numbers)
+    def test_ffi_buffer_forbidden_types(self, cffi_version):
+        """
+        Forbidden types throw TypeError exceptions.
+        """
+        buffer_factory = _make_buffer_checker(cffi_version)
+        with pytest.raises(TypeError):
+            buffer_factory(object())
