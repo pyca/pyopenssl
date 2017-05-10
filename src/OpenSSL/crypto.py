@@ -33,6 +33,7 @@ TYPE_RSA = _lib.EVP_PKEY_RSA
 TYPE_DSA = _lib.EVP_PKEY_DSA
 TYPE_EC = _lib.EVP_PKEY_EC
 
+
 class Error(Exception):
     """
     An error occurred in an `OpenSSL.crypto` API.
