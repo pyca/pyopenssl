@@ -228,7 +228,8 @@ class PKey(object):
         This generates a key "into" the this object.
 
         :param type: The key type.
-        :type type: :py:data:`TYPE_RSA`, :py:data:`TYPE_DSA`, :py:data:`TYPE_EC`
+        :type type: :py:data:`TYPE_RSA`, :py:data:`TYPE_DSA`,
+            :py:data:`TYPE_EC`
         :param bits: The number of bits.
         :type bits: :py:data:`int` ``>= 0``
         :param curve: The EC curve name.
@@ -281,7 +282,8 @@ class PKey(object):
             c = get_elliptic_curve(curve)
             ec_key = c._to_EC_KEY()
             _openssl_assert(_lib.EC_KEY_generate_key(ec_key) == 1)
-            _openssl_assert(_lib.EC_KEY_set_asn1_flag(ec_key, 1) != _ffi.NULL)  # OPENSSL_EC_NAMED_CURVE
+            # OPENSSL_EC_NAMED_CURVE
+            _openssl_assert(_lib.EC_KEY_set_asn1_flag(ec_key, 1) != _ffi.NULL)
             _openssl_assert(_lib.EVP_PKEY_set1_EC_KEY(self._pkey, ec_key) == 1)
         else:
             raise Error("No such key type")
