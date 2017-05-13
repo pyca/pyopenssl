@@ -14,14 +14,20 @@ _env_info = u"""\
 pyOpenSSL: {pyopenssl}
 cryptography: {cryptography}
 cffi: {cffi}
-cryptography's OpenSSL: {crypto_openssl}
+cryptography's compiled against OpenSSL: {crypto_openssl_compile}
+cryptography's linked OpenSSL: {crypto_openssl_link}
 Pythons's OpenSSL: {python_openssl}
 Python executable: {python}
 Python version: {python_version}
 Platform: {platform}
 sys.path: {sys_path}""".format(
     pyopenssl=version.__version__,
-    crypto_openssl=OpenSSL.SSL.SSLeay_version(OpenSSL.SSL.SSLEAY_VERSION),
+    crypto_openssl_compile=OpenSSL._util.ffi.string(
+        OpenSSL._util.lib.OPENSSL_VERSION_TEXT,
+    ).decode("ascii"),
+    crypto_openssl_link=OpenSSL.SSL.SSLeay_version(
+        OpenSSL.SSL.SSLEAY_VERSION
+    ).decode("ascii"),
     python_openssl=getattr(ssl, "OPENSSL_VERSION", "n/a"),
     cryptography=cryptography.__version__,
     cffi=cffi.__version__,
