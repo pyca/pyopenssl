@@ -1,4 +1,4 @@
-from OpenSSL.debug.__main__ import _env_info
+from OpenSSL.debug import _env_info
 from OpenSSL import version
 
 

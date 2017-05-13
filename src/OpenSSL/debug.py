@@ -7,7 +7,7 @@ import OpenSSL.SSL
 import cffi
 import cryptography
 
-from .. import version
+from . import version
 
 
 _env_info = u"""\
