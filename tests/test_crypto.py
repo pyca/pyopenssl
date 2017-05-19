@@ -955,14 +955,20 @@ class TestX509Name(object):
 
     def test_type(self):
         """
-        The type of X509Name objects is `X509NameType`.
+        The type of X509Name objects is `X509Name`.
         """
-        assert X509Name is X509NameType
-        assert X509NameType.__name__ == 'X509Name'
-        assert isinstance(X509NameType, type)
+        assert X509Name.__name__ == 'X509Name'
+        assert isinstance(X509Name, type)
 
         name = x509_name()
-        assert isinstance(name, X509NameType)
+        assert isinstance(name, X509Name)
+
+    def test_deprecated_constructor(self):
+        """
+        Using `X509NameType` raises a DeprecationWarning.
+        """
+        with pytest.warns(DeprecationWarning):
+            X509NameType('foo')
 
     def test_only_string_attributes(self):
         """
@@ -1304,7 +1310,7 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         """
         request = X509Req()
         subject = request.get_subject()
-        assert isinstance(subject, X509NameType)
+        assert isinstance(subject, X509Name)
         subject.commonName = "foo"
         assert request.get_subject().commonName == "foo"
         del request
@@ -1435,21 +1441,25 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_type(self):
         """
-        `X509` and `X509Type` refer to the same type object and can be used to
-        create instances of that type.
+        `X509` can be used to create instances of that type.
         """
-        assert X509 is X509Type
         assert is_consistent_type(X509, 'X509')
+
+    def test_deprecated_constructor(self):
+        """
+        Using `X509Type` raises a DeprecationWarning.
+        """
+        with pytest.warns(DeprecationWarning):
+            X509Type()
 
     def test_construction(self):
         """
-        `X509` takes no arguments and returns an instance of `X509Type`.
+        `X509` takes no arguments and returns an instance of `X509`.
         """
         certificate = X509()
-        assert isinstance(certificate, X509Type)
-        assert type(X509Type).__name__ == 'type'
+        assert isinstance(certificate, X509)
+        assert type(X509).__name__ == 'type'
         assert type(certificate).__name__ == 'X509'
-        assert type(certificate) == X509Type
         assert type(certificate) == X509
 
     def test_set_version_wrong_args(self):
