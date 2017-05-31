@@ -2,9 +2,6 @@
 PRNG management routines, thin wrappers.
 """
 
-import os
-import warnings
-
 from functools import partial
 
 from six import integer_types as _integer_types
