@@ -2,9 +2,6 @@
 PRNG management routines, thin wrappers.
 """
 
-import os
-import warnings
-
 from functools import partial
 
 from six import integer_types as _integer_types
@@ -111,38 +108,6 @@ def status():
     :return: 1 if the PRNG is seeded enough, 0 otherwise.
     """
     return _lib.RAND_status()
-
-
-def egd(path, bytes=_unspecified):
-    """
-    Query the system random source and seed the PRNG.
-
-    Does *not* actually query the EGD.
-
-    .. deprecated:: 16.0.0
-        EGD was only necessary for some commercial UNIX systems that all
-        reached their ends of life more than a decade ago.  See
-        `pyca/cryptography#1636
-        <https://github.com/pyca/cryptography/pull/1636>`_.
-
-    :param path: Ignored.
-    :param bytes: (optional) The number of bytes to read, default is 255.
-
-    :returns: ``len(bytes)`` or 255 if not specified.
-    """
-    warnings.warn("OpenSSL.rand.egd() is deprecated as of 16.0.0.",
-                  DeprecationWarning)
-
-    if not isinstance(path, _builtin_bytes):
-        raise TypeError("path must be a byte string")
-
-    if bytes is _unspecified:
-        bytes = 255
-    elif not isinstance(bytes, int):
-        raise TypeError("bytes must be an integer")
-
-    seed(os.urandom(bytes))
-    return bytes
 
 
 def cleanup():
