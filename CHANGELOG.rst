@@ -12,7 +12,7 @@ The third digit is only for regressions.
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-*none*
+- Removed the deprecated ``OpenSSL.rand.egd`` function. Applications should prefer ``os.urandom()`` for random number generation.
 
 
 Deprecations:
