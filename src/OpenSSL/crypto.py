@@ -309,7 +309,7 @@ class PKey(object):
 
         :return: The type of the key.
         """
-        return _lib.Cryptography_EVP_PKEY_id(self._pkey)
+        return _lib.EVP_PKEY_id(self._pkey)
 
     def bits(self):
         """
