@@ -20,8 +20,6 @@ This module handles the OpenSSL pseudo random number generator (PRNG) and declar
 
 .. autofunction:: cleanup
 
-.. autofunction:: egd(path[, bytes])
-
 .. autofunction:: load_file(filename[, bytes])
 
 .. autofunction:: seed
