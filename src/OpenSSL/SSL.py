@@ -717,8 +717,8 @@ class Context(object):
         # This function will attempt to load certs from both a cafile and
         # capath that are set at compile time. However, it will first check
         # environment variables and, if present, load those paths instead
-        # set_result = _lib.SSL_CTX_set_default_verify_paths(self._context)
-        # _openssl_assert(set_result == 1)
+        set_result = _lib.SSL_CTX_set_default_verify_paths(self._context)
+        _openssl_assert(set_result == 1)
         # After attempting to set default_verify_paths we need to know whether
         # to go down the fallback path.
         # First we'll check to see if any env vars have been set. If so,
