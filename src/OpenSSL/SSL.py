@@ -724,18 +724,16 @@ class Context(object):
         # First we'll check to see if any env vars have been set. If so,
         # we won't try to do anything else because the user has set the path
         # themselves.
-        if self._verify_env_vars_set():
-            return
-
-        # If no env vars are set next we want to see if any certs were loaded.
-        # For a cafile this is simple and we can just ask how many objects are
-        # present. However, the cert directory (capath) is lazily loaded and
-        # num will always be zero so we need to check if the dir exists and
-        # has valid file names in it to cover that case.
-        num = self._check_num_store_objects()
-        if num == 0 and not self._default_dir_exists():
-            # No certs and no default dir, let's load our fallbacks
-            self._fallback_default_verify_paths()
+        if not self._verify_env_vars_set():
+            # If no env vars are set next we want to see if any certs were
+            # loaded. For a cafile this is simple and we can just ask how many
+            # objects are present. However, the cert directory (capath) is
+            # lazily loaded and num will always be zero so we need to check if
+            # the dir exists and has valid file names in it to cover that case.
+            num = self._check_num_store_objects()
+            if num == 0 and not self._default_dir_exists():
+                # No certs and no default dir, let's load our fallbacks
+                self._fallback_default_verify_paths()
 
     def _verify_env_vars_set(self):
         """
