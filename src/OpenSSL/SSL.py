@@ -1,4 +1,5 @@
 import os
+import re
 import socket
 from sys import platform
 from functools import wraps, partial
@@ -138,6 +139,10 @@ _CERTIFICATE_FILE_LOCATIONS = [
     "/etc/ssl/ca-bundle.pem",  # OpenSUSE
     "/etc/pki/tls/cacert.pem",  # OpenELEC
     "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",  # CentOS/RHEL 7
+]
+
+_CERTIFICATE_PATH_LOCATIONS = [
+    "/etc/ssl/certs",  # SLES10/SLES11
 ]
 
 
@@ -709,11 +714,66 @@ class Context(object):
 
         :return: None
         """
-        set_result = _lib.SSL_CTX_set_default_verify_paths(self._context)
-        _openssl_assert(set_result == 1)
+        # This function will attempt to load certs from both a cafile and
+        # capath that are set at compile time. However, it will first check
+        # environment variables and, if present, load those paths instead
+        # set_result = _lib.SSL_CTX_set_default_verify_paths(self._context)
+        # _openssl_assert(set_result == 1)
+        # After attempting to set default_verify_paths we need to know whether
+        # to go down the fallback path.
+        # First we'll check to see if any env vars have been set. If so,
+        # we won't try to do anything else because the user has set the path
+        # themselves.
+        if self._verify_env_vars_set():
+            return
+
+        # If no env vars are set next we want to see if any certs were loaded.
+        # For a cafile this is simple and we can just ask how many objects are
+        # present. However, the cert directory (capath) is lazily loaded and
+        # num will always be zero so we need to check if the dir exists and
+        # has valid file names in it to cover that case.
         num = self._check_num_store_objects()
-        if num == 0:
+        if num == 0 and not self._default_dir_exists():
+            # No certs and no default dir, let's load our fallbacks
             self._fallback_default_verify_paths()
+
+    def _verify_env_vars_set(self):
+        """
+        Check to see if the default cert dir/file environment vars are present.
+
+        :return: bool
+        """
+        dir_env_var = _ffi.string(
+            _lib.X509_get_default_cert_dir_env()
+        ).decode("ascii")
+        file_env_var = _ffi.string(
+            _lib.X509_get_default_cert_file_env()
+        ).decode("ascii")
+        return (
+            os.environ.get(file_env_var, None) is not None or
+            os.environ.get(dir_env_var, None) is not None
+        )
+
+    def _default_dir_exists(self):
+        """
+        Check to see if the default cert dir exists and has filenames in a
+        valid form.
+
+        :return: bool
+        """
+        path = _ffi.string(_lib.X509_get_default_cert_dir())
+        try:
+            l = os.listdir(path)
+            # the dir exists, but we need to know if there are any valid
+            # certs in there. OpenSSL requires a hashed naming scheme of the
+            # form: [0-9a-f]{8}\.[0-9]
+            # Arguably this is overkill and we could just assume that if the
+            # dir exists it's fine.
+            return any(
+                [re.match('^[0-9a-f]{8}\.[0-9]', x) is not None for x in l]
+            )
+        except (NotADirectoryError, FileNotFoundError):
+            return False
 
     def _check_num_store_objects(self):
         """
@@ -739,6 +799,11 @@ class Context(object):
         for cafile in _CERTIFICATE_FILE_LOCATIONS:
             if os.path.isfile(cafile):
                 self.load_verify_locations(cafile)
+                break
+
+        for capath in _CERTIFICATE_PATH_LOCATIONS:
+            if os.path.isdir(capath):
+                self.load_verify_locations(None, capath)
                 break
 
     def use_certificate_chain_file(self, certfile):
