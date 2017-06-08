@@ -1,3 +1,4 @@
+import os
 import socket
 from sys import platform
 from functools import wraps, partial
@@ -129,6 +130,15 @@ SSL_CB_CONNECT_LOOP = _lib.SSL_CB_CONNECT_LOOP
 SSL_CB_CONNECT_EXIT = _lib.SSL_CB_CONNECT_EXIT
 SSL_CB_HANDSHAKE_START = _lib.SSL_CB_HANDSHAKE_START
 SSL_CB_HANDSHAKE_DONE = _lib.SSL_CB_HANDSHAKE_DONE
+
+# Taken from https://golang.org/src/crypto/x509/root_linux.go
+_CERTIFICATE_FILE_LOCATIONS = [
+    "/etc/ssl/certs/ca-certificates.crt",  # Debian/Ubuntu/Gentoo etc.
+    "/etc/pki/tls/certs/ca-bundle.crt",  # Fedora/RHEL 6
+    "/etc/ssl/ca-bundle.pem",  # OpenSUSE
+    "/etc/pki/tls/cacert.pem",  # OpenELEC
+    "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",  # CentOS/RHEL 7
+]
 
 
 class Error(Exception):
@@ -701,6 +711,35 @@ class Context(object):
         """
         set_result = _lib.SSL_CTX_set_default_verify_paths(self._context)
         _openssl_assert(set_result == 1)
+        num = self._check_num_store_objects()
+        if num == 0:
+            self._fallback_default_verify_paths()
+
+    def _check_num_store_objects(self):
+        """
+        Checks how many objects are present in the Context's X509Store.
+
+        :return: int
+        """
+        store = self.get_cert_store()
+        sk_obj = _lib.X509_STORE_get0_objects(store._store)
+        _openssl_assert(sk_obj != _ffi.NULL)
+        return _lib.sk_X509_OBJECT_num(sk_obj)
+
+    def _fallback_default_verify_paths(self):
+        """
+        Default verify paths are based on the compiled version of OpenSSL.
+        However, when pyca/cryptography is compiled as a manylinux1 wheel
+        that compiled location can potentially be wrong. So, like Go, we
+        will try a predefined set of paths and attempt to load roots
+        from there.
+
+        :return: None
+        """
+        for cafile in _CERTIFICATE_FILE_LOCATIONS:
+            if os.path.isfile(cafile):
+                self.load_verify_locations(cafile)
+                break
 
     def use_certificate_chain_file(self, certfile):
         """

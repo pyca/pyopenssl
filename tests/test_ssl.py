@@ -1109,6 +1109,20 @@ class TestContext(object):
             context.load_verify_locations(object(), object())
 
     @pytest.mark.skipif(
+        platform != "linux",
+        reason="Loading fallback paths is a linux-specific behavior to "
+        "accommodate pyca/cryptography manylinux1 wheels"
+    )
+    def test_fallback_default_verify_paths(self, monkeypatch):
+        context = Context(TLSv1_METHOD)
+        monkeypatch.setattr(
+            _lib, "SSL_CTX_set_default_verify_paths", lambda x: 1
+        )
+        context.set_default_verify_paths()
+        num = context._check_num_store_objects()
+        assert num != 0
+
+    @pytest.mark.skipif(
         platform == "win32",
         reason="set_default_verify_paths appears not to work on Windows.  "
         "See LP#404343 and LP#404344."
