@@ -768,7 +768,7 @@ class Context(object):
             # Arguably this is overkill and we could just assume that if the
             # dir exists it's fine.
             return any(
-                [re.match('^[0-9a-f]{8}\.[0-9]', x) is not None for x in l]
+                [re.match(b'^[0-9a-f]{8}\.[0-9]', x) is not None for x in l]
             )
         except (NotADirectoryError, FileNotFoundError):
             return False
