@@ -770,7 +770,7 @@ class Context(object):
             return any(
                 [re.match(b'^[0-9a-f]{8}\.[0-9]', x) is not None for x in l]
             )
-        except (NotADirectoryError, FileNotFoundError):
+        except OSError:
             return False
 
     def _check_num_store_objects(self):
