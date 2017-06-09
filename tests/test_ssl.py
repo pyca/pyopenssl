@@ -1118,6 +1118,7 @@ class TestContext(object):
         monkeypatch.setattr(
             _lib, "SSL_CTX_set_default_verify_paths", lambda x: 1
         )
+        monkeypatch.setattr(context, "_default_dir_exists", lambda: False)
         context.set_default_verify_paths()
         num = context._check_num_store_objects()
         assert num != 0
