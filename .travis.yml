@@ -14,11 +14,11 @@ matrix:
   include:
   - language: generic
     os: osx
-    osx_image: xcode8
+    osx_image: xcode8.3
     env: TOXENV=py27
   - language: generic
     os: osx
-    osx_image: xcode8
+    osx_image: xcode8.3
     env: TOXENV=py27 OPENSSL=1.1.0
   - python: "2.6" # these are just to make travis's UI a bit prettier
     env: TOXENV=py26
