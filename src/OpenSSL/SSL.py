@@ -724,44 +724,44 @@ class Context(object):
         # First we'll check to see if any env vars have been set. If so,
         # we won't try to do anything else because the user has set the path
         # themselves.
-        if not self._verify_env_vars_set():
-            # If no env vars are set next we want to see if any certs were
-            # loaded. For a cafile this is simple and we can just ask how many
-            # objects are present. However, the cert directory (capath) is
-            # lazily loaded and num will always be zero so we need to check if
-            # the dir exists and has valid file names in it to cover that case.
-            num = self._check_num_store_objects()
-            if num == 0 and not self._default_dir_exists():
-                # No certs and no default dir, let's load our fallbacks
-                self._fallback_default_verify_paths()
-
-    def _verify_env_vars_set(self):
-        """
-        Check to see if the default cert dir/file environment vars are present.
-
-        :return: bool
-        """
         dir_env_var = _ffi.string(
             _lib.X509_get_default_cert_dir_env()
         ).decode("ascii")
         file_env_var = _ffi.string(
             _lib.X509_get_default_cert_file_env()
         ).decode("ascii")
+        if not self._verify_env_vars_set(dir_env_var, file_env_var):
+            # If no env vars are set next we want to see if any certs were
+            # loaded. For a cafile this is simple and we can just ask how many
+            # objects are present. However, the cert directory (capath) is
+            # lazily loaded and num will always be zero so we need to check if
+            # the dir exists and has valid file names in it to cover that case.
+            num = self._check_num_store_objects()
+            default_dir = _ffi.string(_lib.X509_get_default_cert_dir())
+            if num == 0 and not self._default_dir_exists(default_dir):
+                # No certs and no default dir, let's load our fallbacks
+                self._fallback_default_verify_paths()
+
+    def _verify_env_vars_set(self, dir_env_var, file_env_var):
+        """
+        Check to see if the default cert dir/file environment vars are present.
+
+        :return: bool
+        """
         return (
             os.environ.get(file_env_var, None) is not None or
             os.environ.get(dir_env_var, None) is not None
         )
 
-    def _default_dir_exists(self):
+    def _default_dir_exists(self, default_dir):
         """
         Check to see if the default cert dir exists and has filenames in a
         valid form.
 
         :return: bool
         """
-        path = _ffi.string(_lib.X509_get_default_cert_dir())
         try:
-            l = os.listdir(path)
+            l = os.listdir(default_dir)
             # the dir exists, but we need to know if there are any valid
             # certs in there. OpenSSL requires a hashed naming scheme of the
             # form: [0-9a-f]{8}\.[0-9]

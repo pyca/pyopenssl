@@ -6,6 +6,7 @@ Unit tests for :mod:`OpenSSL.SSL`.
 """
 
 import datetime
+import os
 import sys
 import uuid
 
@@ -1114,14 +1115,52 @@ class TestContext(object):
         "accommodate pyca/cryptography manylinux1 wheels"
     )
     def test_fallback_default_verify_paths(self, monkeypatch):
+        """
+        Test that we load certificates successfully on linux from the fallback
+        path.
+        """
         context = Context(TLSv1_METHOD)
         monkeypatch.setattr(
             _lib, "SSL_CTX_set_default_verify_paths", lambda x: 1
         )
-        monkeypatch.setattr(context, "_default_dir_exists", lambda: False)
+        monkeypatch.setattr(context, "_default_dir_exists", lambda x: False)
         context.set_default_verify_paths()
         num = context._check_num_store_objects()
         assert num != 0
+
+    def test_verify_env_vars(self):
+        """
+        Test that we return True/False appropriately if the env vars are set.
+        """
+        context = Context(TLSv1_METHOD)
+        original = dict(os.environ)
+        try:
+            dir_var = "CUSTOM_DIR_VAR"
+            file_var = "CUSTOM_FILE_VAR"
+            os.environ[dir_var] = "value"
+            assert context._verify_env_vars_set(dir_var, file_var) is True
+            os.environ[file_var] = "value"
+            assert context._verify_env_vars_set(dir_var, file_var) is True
+            del os.environ[dir_var]
+            del os.environ[file_var]
+            assert context._verify_env_vars_set(dir_var, file_var) is False
+        finally:
+            os.environ.clear()
+            os.environ.update(original)
+
+    def test_default_dir_doesnt_exist(self):
+        """
+        Test that we raise catch OSError for both non-existent dirs and paths
+        that are not directories.
+        """
+        context = Context(TLSv1_METHOD)
+        assert context._default_dir_exists(
+            b"/nonexistent/path/probably"
+        ) is False
+
+        assert context._default_dir_exists(
+            os.path.dirname(os.path.abspath(__file__)).encode("ascii")
+        ) is False
 
     @pytest.mark.skipif(
         platform == "win32",
