@@ -10,7 +10,7 @@ from six import (
     text_type as _text_type,
     PY3 as _PY3)
 
-from cryptography.hazmat.primitives.asymmetric import dsa, rsa
+from cryptography.hazmat.primitives.asymmetric import ec, dsa, rsa
 
 from OpenSSL._util import (
     ffi as _ffi,
@@ -212,11 +212,14 @@ class PKey(object):
         """
         pkey = cls()
         if not isinstance(crypto_key, (rsa.RSAPublicKey, rsa.RSAPrivateKey,
-                                       dsa.DSAPublicKey, dsa.DSAPrivateKey)):
+                                       dsa.DSAPublicKey, dsa.DSAPrivateKey,
+                                       ec.EllipticCurvePublicKey,
+                                       ec.EllipticCurvePrivateKey)):
             raise TypeError("Unsupported key type")
 
         pkey._pkey = crypto_key._evp_pkey
-        if isinstance(crypto_key, (rsa.RSAPublicKey, dsa.DSAPublicKey)):
+        if isinstance(crypto_key, (rsa.RSAPublicKey, dsa.DSAPublicKey,
+                                   ec.EllipticCurvePublicKey)):
             pkey._only_public = True
         pkey._initialized = True
         return pkey
