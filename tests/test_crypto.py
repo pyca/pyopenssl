@@ -58,7 +58,7 @@ BAD_CIPHER = "zippers"
 GOOD_DIGEST = "SHA1"
 BAD_DIGEST = "monkeys"
 
-root_cert_pem = b"""-----BEGIN CERTIFICATE-----
+old_root_cert_pem = b"""-----BEGIN CERTIFICATE-----
 MIIC7TCCAlagAwIBAgIIPQzE4MbeufQwDQYJKoZIhvcNAQEFBQAwWDELMAkGA1UE
 BhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQHEwdDaGljYWdvMRAwDgYDVQQKEwdU
 ZXN0aW5nMRgwFgYDVQQDEw9UZXN0aW5nIFJvb3QgQ0EwIhgPMjAwOTAzMjUxMjM2
@@ -75,6 +75,26 @@ b290IENBggg9DMTgxt659DAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GB
 AGGCDazMJGoWNBpc03u6+smc95dEead2KlZXBATOdFT1VesY3+nUOqZhEhTGlDMi
 hkgaZnzoIq/Uamidegk4hirsCT/R+6vsKAAxNTcBjUeZjlykCJWy5ojShGftXIKY
 w/njVbKMXrvc83qmTdGl3TAM0fxQIpqgcglFLveEBgzn
+-----END CERTIFICATE-----
+"""
+
+root_cert_pem = b"""-----BEGIN CERTIFICATE-----
+MIIC6TCCAlKgAwIBAgIIPQzE4MbeufQwDQYJKoZIhvcNAQEFBQAwWDELMAkGA1UE
+BhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQHEwdDaGljYWdvMRAwDgYDVQQKEwdU
+ZXN0aW5nMRgwFgYDVQQDEw9UZXN0aW5nIFJvb3QgQ0EwHhcNMTcwNjExMjIzMjU5
+WhcNMzcwNjA2MjIzMjU5WjBYMQswCQYDVQQGEwJVUzELMAkGA1UECBMCSUwxEDAO
+BgNVBAcTB0NoaWNhZ28xEDAOBgNVBAoTB1Rlc3RpbmcxGDAWBgNVBAMTD1Rlc3Rp
+bmcgUm9vdCBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA+ZpC6Yu6ukTn
+bu5IQd0vWmpwNGZbO773xjpgfNP8nspYRqbIwI1np9FbUkJHvzZRDxrTt/LbFewr
+LhZ0prHIbwJxq3CZe+m9FDjh1IA0yKEcQukA1N3JWnoMLKwQPrCRAW6seUXV2yER
+onDxv/KkOGZtUijoKLXG8ImqK9ssWdsCAwEAAaOBuzCBuDAdBgNVHQ4EFgQUg1V3
+LV4h8UkMCSTnVAkSjch+BK4wgYgGA1UdIwSBgDB+gBSDVXctXiHxSQwJJOdUCRKN
+yH4ErqFcpFowWDELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQHEwdD
+aGljYWdvMRAwDgYDVQQKEwdUZXN0aW5nMRgwFgYDVQQDEw9UZXN0aW5nIFJvb3Qg
+Q0GCCD0MxODG3rn0MAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQEFBQADgYEANFYQ
+R+T70VcZ+SnvURnwviFgCXeedBzCr21meo+DNHbkp2gudB9W8Xrned/wtUBVymy9
+gjB5jINfU7Lci0H57Evsw96UJJVfhXdUMHpqt1RGCoEd9FWnrDyrSy0NysnBT2bH
+lEqxh3aFEUx9IOQ4sgnx1/NOFXBpkRtivl6O0Ec=
 -----END CERTIFICATE-----
 """
 
@@ -1646,7 +1666,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         `X509.digest` returns a string giving ":"-separated hex-encoded
         words of the digest of the certificate.
         """
-        cert = load_certificate(FILETYPE_PEM, root_cert_pem)
+        cert = load_certificate(FILETYPE_PEM, old_root_cert_pem)
         assert (
             # This is MD5 instead of GOOD_DIGEST because the digest algorithm
             # actually matters to the assertion (ie, another arbitrary, good
