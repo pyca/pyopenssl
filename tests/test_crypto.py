@@ -1573,7 +1573,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         ASN1 GENERALIZEDTIME even for certificates which store it as UTCTIME
         internally.
         """
-        cert = load_certificate(FILETYPE_PEM, self.pemData)
+        cert = load_certificate(FILETYPE_PEM, old_root_cert_pem)
         assert cert.get_notBefore() == b"20090325123658Z"
 
     def test_get_notAfter(self):
@@ -1582,7 +1582,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         ASN1 GENERALIZEDTIME even for certificates which store it as UTCTIME
         internally.
         """
-        cert = load_certificate(FILETYPE_PEM, self.pemData)
+        cert = load_certificate(FILETYPE_PEM, old_root_cert_pem)
         assert cert.get_notAfter() == b"20170611123658Z"
 
     def test_gmtime_adj_notBefore_wrong_args(self):
