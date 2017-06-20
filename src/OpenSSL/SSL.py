@@ -740,7 +740,10 @@ class Context(object):
             default_dir = _ffi.string(_lib.X509_get_default_cert_dir())
             if num == 0 and not self._default_dir_exists(default_dir):
                 # No certs and no default dir, let's load our fallbacks
-                self._fallback_default_verify_paths()
+                self._fallback_default_verify_paths(
+                    _CERTIFICATE_FILE_LOCATIONS,
+                    _CERTIFICATE_PATH_LOCATIONS
+                )
 
     def _verify_env_vars_set(self, dir_env_var, file_env_var):
         """
@@ -784,7 +787,7 @@ class Context(object):
         _openssl_assert(sk_obj != _ffi.NULL)
         return _lib.sk_X509_OBJECT_num(sk_obj)
 
-    def _fallback_default_verify_paths(self):
+    def _fallback_default_verify_paths(self, file_path, dir_path):
         """
         Default verify paths are based on the compiled version of OpenSSL.
         However, when pyca/cryptography is compiled as a manylinux1 wheel
@@ -794,12 +797,12 @@ class Context(object):
 
         :return: None
         """
-        for cafile in _CERTIFICATE_FILE_LOCATIONS:
+        for cafile in file_path:
             if os.path.isfile(cafile):
                 self.load_verify_locations(cafile)
                 break
 
-        for capath in _CERTIFICATE_PATH_LOCATIONS:
+        for capath in dir_path:
             if os.path.isdir(capath):
                 self.load_verify_locations(None, capath)
                 break

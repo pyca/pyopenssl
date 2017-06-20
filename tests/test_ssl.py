@@ -37,6 +37,7 @@ from OpenSSL.crypto import dump_privatekey, load_privatekey
 from OpenSSL.crypto import dump_certificate, load_certificate
 from OpenSSL.crypto import get_elliptic_curves
 
+from OpenSSL import SSL
 from OpenSSL.SSL import OPENSSL_VERSION_NUMBER, SSLEAY_VERSION, SSLEAY_CFLAGS
 from OpenSSL.SSL import SSLEAY_PLATFORM, SSLEAY_DIR, SSLEAY_BUILT_ON
 from OpenSSL.SSL import SENT_SHUTDOWN, RECEIVED_SHUTDOWN
@@ -58,7 +59,7 @@ from OpenSSL.SSL import (
     Context, ContextType, Session, Connection, ConnectionType, SSLeay_version)
 from OpenSSL.SSL import _make_requires
 
-from OpenSSL._util import lib as _lib
+from OpenSSL._util import ffi as _ffi, lib as _lib
 
 from OpenSSL.SSL import (
     OP_NO_QUERY_MTU, OP_COOKIE_EXCHANGE, OP_NO_TICKET, OP_NO_COMPRESSION,
@@ -1147,6 +1148,42 @@ class TestContext(object):
         finally:
             os.environ.clear()
             os.environ.update(original)
+
+    def test_verify_no_fallback_if_env_vars_set(self, monkeypatch):
+        """
+        Test that we don't use the fallback path if env vars are set.
+        """
+        context = Context(TLSv1_METHOD)
+        monkeypatch.setattr(
+            _lib, "SSL_CTX_set_default_verify_paths", lambda x: 1
+        )
+        original = dict(os.environ)
+        dir_env_var = _ffi.string(
+            _lib.X509_get_default_cert_dir_env()
+        ).decode("ascii")
+        file_env_var = _ffi.string(
+            _lib.X509_get_default_cert_file_env()
+        ).decode("ascii")
+        try:
+            os.environ[file_env_var] = "nonsense-value"
+            os.environ[dir_env_var] = "nonsense-value"
+            context.set_default_verify_paths()
+            num = context._check_num_store_objects()
+            assert num == 0
+        finally:
+            os.environ.clear()
+            os.environ.update(original)
+
+    def _fallback_path_is_not_file_or_dir(self, monkeypatch):
+        """
+        Test that when passed empty arrays or paths that do not exist no
+        errors are raised.
+        """
+        context = Context(TLSv1_METHOD)
+        context._fallback_default_verify_paths([], [])
+        context._fallback_default_verify_paths(
+            ["/not/a/file"], ["/not/a/dir"]
+        )
 
     def test_default_dir_doesnt_exist(self):
         """
