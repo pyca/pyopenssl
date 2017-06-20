@@ -37,7 +37,6 @@ from OpenSSL.crypto import dump_privatekey, load_privatekey
 from OpenSSL.crypto import dump_certificate, load_certificate
 from OpenSSL.crypto import get_elliptic_curves
 
-from OpenSSL import SSL
 from OpenSSL.SSL import OPENSSL_VERSION_NUMBER, SSLEAY_VERSION, SSLEAY_CFLAGS
 from OpenSSL.SSL import SSLEAY_PLATFORM, SSLEAY_DIR, SSLEAY_BUILT_ON
 from OpenSSL.SSL import SENT_SHUTDOWN, RECEIVED_SHUTDOWN
