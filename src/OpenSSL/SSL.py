@@ -144,8 +144,8 @@ _CERTIFICATE_PATH_LOCATIONS = [
     "/etc/ssl/certs",  # SLES10/SLES11
 ]
 
-_CRYPTOGRAPHY_MANYLINUX1_CA_DIR = "/pyca/cryptography/openssl/certs"
-_CRYPTOGRAPHY_MANYLINUX1_CA_FILE = "/pyca/cryptography/openssl/cert.pem"
+_CRYPTOGRAPHY_MANYLINUX1_CA_DIR = "/opt/pyca/cryptography/openssl/certs"
+_CRYPTOGRAPHY_MANYLINUX1_CA_FILE = "/opt/pyca/cryptography/openssl/cert.pem"
 
 
 class Error(Exception):
