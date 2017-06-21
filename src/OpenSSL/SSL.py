@@ -145,6 +145,9 @@ _CERTIFICATE_PATH_LOCATIONS = [
     "/etc/ssl/certs",  # SLES10/SLES11
 ]
 
+_CRYPTOGRAPHY_MANYLINUX1_CA_DIR = "/pyca/cryptography/openssl/certs"
+_CRYPTOGRAPHY_MANYLINUX1_CA_FILE = "/pyca/cryptography/openssl/cert.pem"
+
 
 class Error(Exception):
     """
@@ -714,9 +717,10 @@ class Context(object):
 
         :return: None
         """
-        # This function will attempt to load certs from both a cafile and
-        # capath that are set at compile time. However, it will first check
-        # environment variables and, if present, load those paths instead
+        # SSL_CTX_set_default_verify_paths will attempt to load certs from
+        # both a cafile and capath that are set at compile time. However,
+        # it will first check environment variables and, if present, load
+        # those paths instead
         set_result = _lib.SSL_CTX_set_default_verify_paths(self._context)
         _openssl_assert(set_result == 1)
         # After attempting to set default_verify_paths we need to know whether
@@ -730,62 +734,32 @@ class Context(object):
         file_env_var = _ffi.string(
             _lib.X509_get_default_cert_file_env()
         ).decode("ascii")
-        if not self._verify_env_vars_set(dir_env_var, file_env_var):
-            # If no env vars are set next we want to see if any certs were
-            # loaded. For a cafile this is simple and we can just ask how many
-            # objects are present. However, the cert directory (capath) is
-            # lazily loaded and num will always be zero so we need to check if
-            # the dir exists and has valid file names in it to cover that case.
-            num = self._check_num_store_objects()
+        if not self._check_env_vars_set(dir_env_var, file_env_var):
             default_dir = _ffi.string(_lib.X509_get_default_cert_dir())
-            if num == 0 and not self._default_dir_exists(default_dir):
-                # No certs and no default dir, let's load our fallbacks
+            default_file = _ffi.string(_lib.X509_get_default_cert_file())
+            # Now we check to see if the default_dir and default_file are set
+            # to the exact values we use in our manylinux1 builds. If they are
+            # then we know to load the fallbacks
+            if (
+                default_dir == _CRYPTOGRAPHY_MANYLINUX1_CA_DIR and
+                default_file == _CRYPTOGRAPHY_MANYLINUX1_CA_FILE
+            ):
+                # This is manylinux1, let's load our fallback paths
                 self._fallback_default_verify_paths(
                     _CERTIFICATE_FILE_LOCATIONS,
                     _CERTIFICATE_PATH_LOCATIONS
                 )
 
-    def _verify_env_vars_set(self, dir_env_var, file_env_var):
+    def _check_env_vars_set(self, dir_env_var, file_env_var):
         """
         Check to see if the default cert dir/file environment vars are present.
 
         :return: bool
         """
         return (
-            os.environ.get(file_env_var, None) is not None or
-            os.environ.get(dir_env_var, None) is not None
+            os.environ.get(file_env_var) is not None or
+            os.environ.get(dir_env_var) is not None
         )
-
-    def _default_dir_exists(self, default_dir):
-        """
-        Check to see if the default cert dir exists and has filenames in a
-        valid form.
-
-        :return: bool
-        """
-        try:
-            l = os.listdir(default_dir)
-            # the dir exists, but we need to know if there are any valid
-            # certs in there. OpenSSL requires a hashed naming scheme of the
-            # form: [0-9a-f]{8}\.[0-9]
-            # Arguably this is overkill and we could just assume that if the
-            # dir exists it's fine.
-            return any(
-                [re.match(b'^[0-9a-f]{8}\.[0-9]', x) is not None for x in l]
-            )
-        except OSError:
-            return False
-
-    def _check_num_store_objects(self):
-        """
-        Checks how many objects are present in the Context's X509Store.
-
-        :return: int
-        """
-        store = self.get_cert_store()
-        sk_obj = _lib.X509_STORE_get0_objects(store._store)
-        _openssl_assert(sk_obj != _ffi.NULL)
-        return _lib.sk_X509_OBJECT_num(sk_obj)
 
     def _fallback_default_verify_paths(self, file_path, dir_path):
         """
