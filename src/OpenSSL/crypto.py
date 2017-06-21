@@ -103,7 +103,7 @@ def _set_asn1_time(boundary, when):
     """
     The the time value of an ASN1 time object.
 
-    @param boundary: An ASN1_GENERALIZEDTIME pointer (or an object safely
+    @param boundary: An ASN1_TIME pointer (or an object safely
         castable to that type) which will have its value set.
     @param when: A string representation of the desired time value.
 
@@ -116,17 +116,9 @@ def _set_asn1_time(boundary, when):
     if not isinstance(when, bytes):
         raise TypeError("when must be a byte string")
 
-    set_result = _lib.ASN1_GENERALIZEDTIME_set_string(
-        _ffi.cast('ASN1_GENERALIZEDTIME*', boundary), when)
+    set_result = _lib.ASN1_TIME_set_string(boundary, when)
     if set_result == 0:
-        dummy = _ffi.gc(_lib.ASN1_STRING_new(), _lib.ASN1_STRING_free)
-        _lib.ASN1_STRING_set(dummy, when, len(when))
-        check_result = _lib.ASN1_GENERALIZEDTIME_check(
-            _ffi.cast('ASN1_GENERALIZEDTIME*', dummy))
-        if not check_result:
-            raise ValueError("Invalid string")
-        else:
-            _untested_error()
+        raise ValueError("Invalid string")
 
 
 def _get_asn1_time(timestamp):
