@@ -1141,7 +1141,10 @@ class TestContext(object):
             _ffi.string(_lib.X509_get_default_cert_dir())
         )
         context.set_default_verify_paths()
-        num = context._check_num_store_objects()
+        store = context.get_cert_store()
+        sk_obj = _lib.X509_STORE_get0_objects(store._store)
+        assert sk_obj != _ffi.NULL
+        num = _lib.sk_X509_OBJECT_num(sk_obj)
         assert num != 0
 
     def test_check_env_vars(self, monkeypatch):
