@@ -1235,11 +1235,9 @@ class X509(object):
         """
         Get the timestamp at which the certificate starts being valid.
 
-        The timestamp is formatted as an ASN.1 GENERALIZEDTIME::
+        The timestamp is formatted as an ASN.1 TIME::
 
             YYYYMMDDhhmmssZ
-            YYYYMMDDhhmmss+hhmm
-            YYYYMMDDhhmmss-hhmm
 
         :return: A timestamp string, or ``None`` if there is none.
         :rtype: bytes or NoneType
@@ -1253,11 +1251,9 @@ class X509(object):
         """
         Set the timestamp at which the certificate starts being valid.
 
-        The timestamp is formatted as an ASN.1 GENERALIZEDTIME::
+        The timestamp is formatted as an ASN.1 TIME::
 
             YYYYMMDDhhmmssZ
-            YYYYMMDDhhmmss+hhmm
-            YYYYMMDDhhmmss-hhmm
 
         :param bytes when: A timestamp string.
         :return: ``None``
@@ -1268,11 +1264,9 @@ class X509(object):
         """
         Get the timestamp at which the certificate stops being valid.
 
-        The timestamp is formatted as an ASN.1 GENERALIZEDTIME::
+        The timestamp is formatted as an ASN.1 TIME::
 
             YYYYMMDDhhmmssZ
-            YYYYMMDDhhmmss+hhmm
-            YYYYMMDDhhmmss-hhmm
 
         :return: A timestamp string, or ``None`` if there is none.
         :rtype: bytes or NoneType
@@ -1283,11 +1277,9 @@ class X509(object):
         """
         Set the timestamp at which the certificate stops being valid.
 
-        The timestamp is formatted as an ASN.1 GENERALIZEDTIME::
+        The timestamp is formatted as an ASN.1 TIME::
 
             YYYYMMDDhhmmssZ
-            YYYYMMDDhhmmss+hhmm
-            YYYYMMDDhhmmss-hhmm
 
         :param bytes when: A timestamp string.
         :return: ``None``
@@ -1943,7 +1935,7 @@ class Revoked(object):
         Set the revocation timestamp.
 
         :param bytes when: The timestamp of the revocation,
-            as ASN.1 GENERALIZEDTIME.
+            as ASN.1 TIME.
         :return: ``None``
         """
         dt = _lib.X509_REVOKED_get0_revocationDate(self._revoked)
@@ -1953,7 +1945,7 @@ class Revoked(object):
         """
         Get the revocation timestamp.
 
-        :return: The timestamp of the revocation, as ASN.1 GENERALIZEDTIME.
+        :return: The timestamp of the revocation, as ASN.1 TIME.
         :rtype: bytes
         """
         dt = _lib.X509_REVOKED_get0_revocationDate(self._revoked)
@@ -2040,11 +2032,9 @@ class CRL(object):
         """
         Set when the CRL was last updated.
 
-        The timestamp is formatted as an ASN.1 GENERALIZEDTIME::
+        The timestamp is formatted as an ASN.1 TIME::
 
             YYYYMMDDhhmmssZ
-            YYYYMMDDhhmmss+hhmm
-            YYYYMMDDhhmmss-hhmm
 
         .. versionadded:: 16.1.0
 
@@ -2057,11 +2047,9 @@ class CRL(object):
         """
         Set when the CRL will next be udpated.
 
-        The timestamp is formatted as an ASN.1 GENERALIZEDTIME::
+        The timestamp is formatted as an ASN.1 TIME::
 
             YYYYMMDDhhmmssZ
-            YYYYMMDDhhmmss+hhmm
-            YYYYMMDDhhmmss-hhmm
 
         .. versionadded:: 16.1.0
 
