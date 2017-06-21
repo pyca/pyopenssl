@@ -1217,6 +1217,17 @@ class TestContext(object):
         clientSSL.send(b"GET / HTTP/1.0\r\n\r\n")
         assert clientSSL.recv(1024)
 
+    def test_fallback_path_is_not_file_or_dir(self):
+        """
+        Test that when passed empty arrays or paths that do not exist no
+        errors are raised.
+        """
+        context = Context(TLSv1_METHOD)
+        context._fallback_default_verify_paths([], [])
+        context._fallback_default_verify_paths(
+            ["/not/a/file"], ["/not/a/dir"]
+        )
+
     def test_add_extra_chain_cert_invalid_cert(self):
         """
         `Context.add_extra_chain_cert` raises `TypeError` if called with an
