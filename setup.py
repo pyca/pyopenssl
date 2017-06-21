@@ -96,7 +96,7 @@ if __name__ == "__main__":
         package_dir={"": "src"},
         install_requires=[
             # Fix cryptographyMinimum in tox.ini when changing this!
-            "cryptography>=1.7",
+            "cryptography>=1.9",
             "six>=1.5.2"
         ],
     )
