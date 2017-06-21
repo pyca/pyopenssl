@@ -15,6 +15,9 @@ Backward-incompatible changes:
 - Removed the deprecated ``OpenSSL.rand.egd`` function.
   Applications should prefer ``os.urandom()`` for random number generation.
   `#630 <https://github.com/pyca/pyopenssl/pull/630>`_
+- Fixed a bug with ``ASN1_TIME`` casting in ``X509.set_notBefore`` and
+  ``X509.set_notAfter``. You must now pass times solely in the form
+  ``YYYYMMDDhhmmssZ`` `#612 <https://github.com/pyca/pyopenssl/pull/612>`_
 
 
 Deprecations:
