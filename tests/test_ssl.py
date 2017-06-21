@@ -1113,7 +1113,7 @@ class TestContext(object):
             context.load_verify_locations(object(), object())
 
     @pytest.mark.skipif(
-        platform != "linux",
+        not platform.startswith("linux"),
         reason="Loading fallback paths is a linux-specific behavior to "
         "accommodate pyca/cryptography manylinux1 wheels"
     )
