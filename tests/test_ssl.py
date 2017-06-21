@@ -6,7 +6,6 @@ Unit tests for :mod:`OpenSSL.SSL`.
 """
 
 import datetime
-import os
 import sys
 import uuid
 

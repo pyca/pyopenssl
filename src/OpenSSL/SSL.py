@@ -1,5 +1,4 @@
 import os
-import re
 import socket
 from sys import platform
 from functools import wraps, partial
