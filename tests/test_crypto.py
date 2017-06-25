@@ -17,6 +17,7 @@ import pytest
 
 from six import binary_type
 
+from cryptography import x509
 from cryptography.hazmat.backends.openssl.backend import backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -1921,6 +1922,26 @@ tgI5
         cert = X509()
         with pytest.raises(TypeError):
             cert.sign(object(), b"sha256")
+
+    def test_convert_from_cryptography(self):
+        crypto_cert = x509.load_pem_x509_certificate(
+            intermediate_cert_pem, backend
+        )
+        cert = X509.from_cryptography(crypto_cert)
+
+        assert isinstance(cert, X509)
+        assert cert.get_version() == crypto_cert.version.value
+
+    def test_convert_from_cryptography_unsupported_type(self):
+        with pytest.raises(TypeError):
+            X509.from_cryptography(object())
+
+    def test_convert_to_cryptography_key(self):
+        cert = load_certificate(FILETYPE_PEM, intermediate_cert_pem)
+        crypto_cert = cert.to_cryptography()
+
+        assert isinstance(crypto_cert, x509.Certificate)
+        assert crypto_cert.version.value == cert.get_version()
 
 
 class TestX509Store(object):

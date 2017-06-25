@@ -10,6 +10,7 @@ from six import (
     text_type as _text_type,
     PY3 as _PY3)
 
+from cryptography import x509
 from cryptography.hazmat.primitives.asymmetric import dsa, rsa
 
 from OpenSSL._util import (
@@ -995,6 +996,37 @@ class X509(object):
         x509 = _lib.X509_new()
         _openssl_assert(x509 != _ffi.NULL)
         self._x509 = _ffi.gc(x509, _lib.X509_free)
+
+    def to_cryptography(self):
+        """
+        Export as a ``cryptography`` certificate.
+
+        :rtype: ``cryptography.x509.Certificate``
+
+        .. versionadded:: 17.1.0
+        """
+        from cryptography.hazmat.backends.openssl.x509 import _Certificate
+        backend = _get_backend()
+        return _Certificate(backend, self._x509)
+
+    @classmethod
+    def from_cryptography(cls, crypto_cert):
+        """
+        Construct based on a ``cryptography`` *crypto_cert*.
+
+        :param crypto_key: A ``cryptography`` X.509 certificate.
+        :type crypto_key: ``cryptography.x509.Certificate``
+
+        :rtype: PKey
+
+        .. versionadded:: 17.1.0
+        """
+        if not isinstance(crypto_cert, x509.Certificate):
+            raise TypeError("Must be a certificate")
+
+        cert = cls()
+        cert._x509 = crypto_cert._x509
+        return cert
 
     def set_version(self, version):
         """
