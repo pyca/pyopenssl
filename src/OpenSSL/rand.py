@@ -157,22 +157,6 @@ def write_file(filename):
     return _lib.RAND_write_file(filename)
 
 
-# TODO There are no tests for screen at all
-def screen():
-    """
-    Add the current contents of the screen to the PRNG state.
-
-    Availability: Windows.
-
-    :return: None
-    """
-    _lib.RAND_screen()
-
-
-if getattr(_lib, 'RAND_screen', None) is None:
-    del screen
-
-
 # TODO There are no tests for the RAND strings being loaded, whatever that
 # means.
 _lib.ERR_load_RAND_strings()
