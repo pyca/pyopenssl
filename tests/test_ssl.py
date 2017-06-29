@@ -2419,15 +2419,8 @@ class TestConnection(object):
         with a context using a different SSL method than the `Connection`
         is using, a `OpenSSL.SSL.Error` is raised.
         """
-        # Make this work on both OpenSSL 1.0.0, which doesn't support TLSv1.2
-        # and also on OpenSSL 1.1.0 which doesn't support SSLv3. (SSL_ST_INIT
-        # is a way to check for 1.1.0)
-        if SSL_ST_INIT is not None:
-            v1 = TLSv1_METHOD
-            v2 = SSLv3_METHOD
-        else:
-            v1 = TLSv1_2_METHOD
-            v2 = TLSv1_METHOD
+        v1 = TLSv1_2_METHOD
+        v2 = TLSv1_METHOD
 
         key = load_privatekey(FILETYPE_PEM, server_key_pem)
         cert = load_certificate(FILETYPE_PEM, server_cert_pem)
