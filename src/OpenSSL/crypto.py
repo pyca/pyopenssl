@@ -843,6 +843,39 @@ class X509Req(object):
         # Default to version 0.
         self.set_version(0)
 
+    def to_cryptography(self):
+        """
+        Export as a ``cryptography`` certificate signing request.
+
+        :rtype: ``cryptography.x509.CertificateSigningRequest``
+
+        .. versionadded:: 17.1.0
+        """
+        from cryptography.hazmat.backends.openssl.x509 import (
+            _CertificateSigningRequest
+        )
+        backend = _get_backend()
+        return _CertificateSigningRequest(backend, self._req)
+
+    @classmethod
+    def from_cryptography(cls, crypto_req):
+        """
+        Construct based on a ``cryptography`` *crypto_req*.
+
+        :param crypto_req: A ``cryptography`` X.509 certificate signing request
+        :type crypto_req: ``cryptography.x509.CertificateSigningRequest``
+
+        :rtype: PKey
+
+        .. versionadded:: 17.1.0
+        """
+        if not isinstance(crypto_req, x509.CertificateSigningRequest):
+            raise TypeError("Must be a certificate signing request")
+
+        req = cls()
+        req._req = crypto_req._x509_req
+        return req
+
     def set_pubkey(self, pkey):
         """
         Set the public key of the certificate signing request.
@@ -2017,6 +2050,39 @@ class CRL(object):
     def __init__(self):
         crl = _lib.X509_CRL_new()
         self._crl = _ffi.gc(crl, _lib.X509_CRL_free)
+
+    def to_cryptography(self):
+        """
+        Export as a ``cryptography`` CRL.
+
+        :rtype: ``cryptography.x509.CertificateRevocationList``
+
+        .. versionadded:: 17.1.0
+        """
+        from cryptography.hazmat.backends.openssl.x509 import (
+            _CertificateRevocationList
+        )
+        backend = _get_backend()
+        return _CertificateRevocationList(backend, self._crl)
+
+    @classmethod
+    def from_cryptography(cls, crypto_crl):
+        """
+        Construct based on a ``cryptography`` *crypto_crl*.
+
+        :param crypto_crl: A ``cryptography`` certificate revocation list
+        :type crypto_crl: ``cryptography.x509.CertificateRevocationList``
+
+        :rtype: CRL
+
+        .. versionadded:: 17.1.0
+        """
+        if not isinstance(crypto_crl, x509.CertificateRevocationList):
+            raise TypeError("Must be a certificate revocation list")
+
+        crl = cls()
+        crl._crl = crypto_crl._x509_crl
+        return crl
 
     def get_revoked(self):
         """

@@ -1420,6 +1420,24 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         request.sign(pkey, GOOD_DIGEST)
         assert request.verify(pkey)
 
+    def test_convert_from_cryptography(self):
+        crypto_req = x509.load_pem_x509_csr(
+            cleartextCertificateRequestPEM, backend
+        )
+        req = X509Req.from_cryptography(crypto_req)
+        assert isinstance(req, X509Req)
+
+    def test_convert_from_cryptography_unsupported_type(self):
+        with pytest.raises(TypeError):
+            X509Req.from_cryptography(object())
+
+    def test_convert_to_cryptography_key(self):
+        req = load_certificate_request(
+            FILETYPE_PEM, cleartextCertificateRequestPEM
+        )
+        crypto_req = req.to_cryptography()
+        assert isinstance(crypto_req, x509.CertificateSigningRequest)
+
 
 class TestX509(_PKeyInteractionTestsMixin):
     """
@@ -3436,6 +3454,20 @@ class TestCRL(object):
             store_ctx.verify_certificate()
         assert err.value.args[0][2] == 'unable to get certificate CRL'
         assert err.value.certificate.get_subject().CN == 'intermediate-service'
+
+    def test_convert_from_cryptography(self):
+        crypto_crl = x509.load_pem_x509_crl(crlData, backend)
+        crl = CRL.from_cryptography(crypto_crl)
+        assert isinstance(crl, CRL)
+
+    def test_convert_from_cryptography_unsupported_type(self):
+        with pytest.raises(TypeError):
+            CRL.from_cryptography(object())
+
+    def test_convert_to_cryptography_key(self):
+        crl = load_crl(FILETYPE_PEM, crlData)
+        crypto_crl = crl.to_cryptography()
+        assert isinstance(crypto_crl, x509.CertificateRevocationList)
 
 
 class TestX509StoreContext(object):
