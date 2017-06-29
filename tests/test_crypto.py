@@ -2623,6 +2623,10 @@ class TestFunction(object):
         with pytest.raises(TypeError):
             dump_privatekey(FILETYPE_TEXT, key)
 
+    def test_dump_privatekey_invalid_pkey(self):
+        with pytest.raises(TypeError):
+            dump_privatekey(FILETYPE_TEXT, object())
+
     def test_dump_privatekey_unknown_cipher(self):
         """
         `dump_privatekey` raises `ValueError` if called with an unrecognized

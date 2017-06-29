@@ -1779,6 +1779,9 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
     """
     bio = _new_mem_buf()
 
+    if not isinstance(pkey, PKey):
+        raise TypeError("pkey must be a PKey")
+
     if cipher is not None:
         if passphrase is None:
             raise TypeError(
