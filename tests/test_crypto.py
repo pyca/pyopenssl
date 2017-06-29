@@ -2631,6 +2631,20 @@ class TestFunction(object):
         with pytest.raises(TypeError):
             dump_privatekey(FILETYPE_PEM, key, cipher=GOOD_CIPHER)
 
+    def test_dump_privatekey_not_rsa_key(self):
+        """
+        `dump_privatekey` raises `TypeError` if called with a key that is
+        not RSA.
+        """
+        key = PKey()
+        key.generate_key(TYPE_DSA, 512)
+        with pytest.raises(TypeError):
+            dump_privatekey(FILETYPE_TEXT, key)
+
+    def test_dump_privatekey_invalid_pkey(self):
+        with pytest.raises(TypeError):
+            dump_privatekey(FILETYPE_TEXT, object())
+
     def test_dump_privatekey_unknown_cipher(self):
         """
         `dump_privatekey` raises `ValueError` if called with an unrecognized
