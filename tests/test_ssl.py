@@ -20,6 +20,8 @@ from warnings import simplefilter
 
 import pytest
 
+from pretend import raiser
+
 from six import PY3, text_type
 
 from cryptography import x509
@@ -46,6 +48,7 @@ from OpenSSL.SSL import OP_SINGLE_DH_USE, OP_NO_SSLv2, OP_NO_SSLv3
 from OpenSSL.SSL import (
     VERIFY_PEER, VERIFY_FAIL_IF_NO_PEER_CERT, VERIFY_CLIENT_ONCE, VERIFY_NONE)
 
+from OpenSSL import SSL
 from OpenSSL.SSL import (
     SESS_CACHE_OFF, SESS_CACHE_CLIENT, SESS_CACHE_SERVER, SESS_CACHE_BOTH,
     SESS_CACHE_NO_AUTO_CLEAR, SESS_CACHE_NO_INTERNAL_LOOKUP,
@@ -57,7 +60,7 @@ from OpenSSL.SSL import (
     Context, ContextType, Session, Connection, ConnectionType, SSLeay_version)
 from OpenSSL.SSL import _make_requires
 
-from OpenSSL._util import lib as _lib
+from OpenSSL._util import ffi as _ffi, lib as _lib
 
 from OpenSSL.SSL import (
     OP_NO_QUERY_MTU, OP_COOKIE_EXCHANGE, OP_NO_TICKET, OP_NO_COMPRESSION,
@@ -1109,6 +1112,79 @@ class TestContext(object):
             context.load_verify_locations(object(), object())
 
     @pytest.mark.skipif(
+        not platform.startswith("linux"),
+        reason="Loading fallback paths is a linux-specific behavior to "
+        "accommodate pyca/cryptography manylinux1 wheels"
+    )
+    def test_fallback_default_verify_paths(self, monkeypatch):
+        """
+        Test that we load certificates successfully on linux from the fallback
+        path. To do this we set the _CRYPTOGRAPHY_MANYLINUX1_CA_FILE and
+        _CRYPTOGRAPHY_MANYLINUX1_CA_DIR vars to be equal to whatever the
+        current OpenSSL default is and we disable
+        SSL_CTX_SET_default_verify_paths so that it can't find certs unless
+        it loads via fallback.
+        """
+        context = Context(TLSv1_METHOD)
+        monkeypatch.setattr(
+            _lib, "SSL_CTX_set_default_verify_paths", lambda x: 1
+        )
+        monkeypatch.setattr(
+            SSL,
+            "_CRYPTOGRAPHY_MANYLINUX1_CA_FILE",
+            _ffi.string(_lib.X509_get_default_cert_file())
+        )
+        monkeypatch.setattr(
+            SSL,
+            "_CRYPTOGRAPHY_MANYLINUX1_CA_DIR",
+            _ffi.string(_lib.X509_get_default_cert_dir())
+        )
+        context.set_default_verify_paths()
+        store = context.get_cert_store()
+        sk_obj = _lib.X509_STORE_get0_objects(store._store)
+        assert sk_obj != _ffi.NULL
+        num = _lib.sk_X509_OBJECT_num(sk_obj)
+        assert num != 0
+
+    def test_check_env_vars(self, monkeypatch):
+        """
+        Test that we return True/False appropriately if the env vars are set.
+        """
+        context = Context(TLSv1_METHOD)
+        dir_var = "CUSTOM_DIR_VAR"
+        file_var = "CUSTOM_FILE_VAR"
+        assert context._check_env_vars_set(dir_var, file_var) is False
+        monkeypatch.setenv(dir_var, "value")
+        monkeypatch.setenv(file_var, "value")
+        assert context._check_env_vars_set(dir_var, file_var) is True
+        assert context._check_env_vars_set(dir_var, file_var) is True
+
+    def test_verify_no_fallback_if_env_vars_set(self, monkeypatch):
+        """
+        Test that we don't use the fallback path if env vars are set.
+        """
+        context = Context(TLSv1_METHOD)
+        monkeypatch.setattr(
+            _lib, "SSL_CTX_set_default_verify_paths", lambda x: 1
+        )
+        dir_env_var = _ffi.string(
+            _lib.X509_get_default_cert_dir_env()
+        ).decode("ascii")
+        file_env_var = _ffi.string(
+            _lib.X509_get_default_cert_file_env()
+        ).decode("ascii")
+        monkeypatch.setenv(dir_env_var, "value")
+        monkeypatch.setenv(file_env_var, "value")
+        context.set_default_verify_paths()
+
+        monkeypatch.setattr(
+            context,
+            "_fallback_default_verify_paths",
+            raiser(SystemError)
+        )
+        context.set_default_verify_paths()
+
+    @pytest.mark.skipif(
         platform == "win32",
         reason="set_default_verify_paths appears not to work on Windows.  "
         "See LP#404343 and LP#404344."
@@ -1140,6 +1216,17 @@ class TestContext(object):
         clientSSL.do_handshake()
         clientSSL.send(b"GET / HTTP/1.0\r\n\r\n")
         assert clientSSL.recv(1024)
+
+    def test_fallback_path_is_not_file_or_dir(self):
+        """
+        Test that when passed empty arrays or paths that do not exist no
+        errors are raised.
+        """
+        context = Context(TLSv1_METHOD)
+        context._fallback_default_verify_paths([], [])
+        context._fallback_default_verify_paths(
+            ["/not/a/file"], ["/not/a/dir"]
+        )
 
     def test_add_extra_chain_cert_invalid_cert(self):
         """

@@ -1,3 +1,4 @@
+import os
 import socket
 from sys import platform
 from functools import wraps, partial
@@ -131,6 +132,22 @@ SSL_CB_CONNECT_LOOP = _lib.SSL_CB_CONNECT_LOOP
 SSL_CB_CONNECT_EXIT = _lib.SSL_CB_CONNECT_EXIT
 SSL_CB_HANDSHAKE_START = _lib.SSL_CB_HANDSHAKE_START
 SSL_CB_HANDSHAKE_DONE = _lib.SSL_CB_HANDSHAKE_DONE
+
+# Taken from https://golang.org/src/crypto/x509/root_linux.go
+_CERTIFICATE_FILE_LOCATIONS = [
+    "/etc/ssl/certs/ca-certificates.crt",  # Debian/Ubuntu/Gentoo etc.
+    "/etc/pki/tls/certs/ca-bundle.crt",  # Fedora/RHEL 6
+    "/etc/ssl/ca-bundle.pem",  # OpenSUSE
+    "/etc/pki/tls/cacert.pem",  # OpenELEC
+    "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",  # CentOS/RHEL 7
+]
+
+_CERTIFICATE_PATH_LOCATIONS = [
+    "/etc/ssl/certs",  # SLES10/SLES11
+]
+
+_CRYPTOGRAPHY_MANYLINUX1_CA_DIR = "/opt/pyca/cryptography/openssl/certs"
+_CRYPTOGRAPHY_MANYLINUX1_CA_FILE = "/opt/pyca/cryptography/openssl/cert.pem"
 
 
 class Error(Exception):
@@ -701,8 +718,69 @@ class Context(object):
 
         :return: None
         """
+        # SSL_CTX_set_default_verify_paths will attempt to load certs from
+        # both a cafile and capath that are set at compile time. However,
+        # it will first check environment variables and, if present, load
+        # those paths instead
         set_result = _lib.SSL_CTX_set_default_verify_paths(self._context)
         _openssl_assert(set_result == 1)
+        # After attempting to set default_verify_paths we need to know whether
+        # to go down the fallback path.
+        # First we'll check to see if any env vars have been set. If so,
+        # we won't try to do anything else because the user has set the path
+        # themselves.
+        dir_env_var = _ffi.string(
+            _lib.X509_get_default_cert_dir_env()
+        ).decode("ascii")
+        file_env_var = _ffi.string(
+            _lib.X509_get_default_cert_file_env()
+        ).decode("ascii")
+        if not self._check_env_vars_set(dir_env_var, file_env_var):
+            default_dir = _ffi.string(_lib.X509_get_default_cert_dir())
+            default_file = _ffi.string(_lib.X509_get_default_cert_file())
+            # Now we check to see if the default_dir and default_file are set
+            # to the exact values we use in our manylinux1 builds. If they are
+            # then we know to load the fallbacks
+            if (
+                default_dir == _CRYPTOGRAPHY_MANYLINUX1_CA_DIR and
+                default_file == _CRYPTOGRAPHY_MANYLINUX1_CA_FILE
+            ):
+                # This is manylinux1, let's load our fallback paths
+                self._fallback_default_verify_paths(
+                    _CERTIFICATE_FILE_LOCATIONS,
+                    _CERTIFICATE_PATH_LOCATIONS
+                )
+
+    def _check_env_vars_set(self, dir_env_var, file_env_var):
+        """
+        Check to see if the default cert dir/file environment vars are present.
+
+        :return: bool
+        """
+        return (
+            os.environ.get(file_env_var) is not None or
+            os.environ.get(dir_env_var) is not None
+        )
+
+    def _fallback_default_verify_paths(self, file_path, dir_path):
+        """
+        Default verify paths are based on the compiled version of OpenSSL.
+        However, when pyca/cryptography is compiled as a manylinux1 wheel
+        that compiled location can potentially be wrong. So, like Go, we
+        will try a predefined set of paths and attempt to load roots
+        from there.
+
+        :return: None
+        """
+        for cafile in file_path:
+            if os.path.isfile(cafile):
+                self.load_verify_locations(cafile)
+                break
+
+        for capath in dir_path:
+            if os.path.isdir(capath):
+                self.load_verify_locations(None, capath)
+                break
 
     def use_certificate_chain_file(self, certfile):
         """
