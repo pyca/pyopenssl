@@ -32,6 +32,7 @@ Changes:
 ^^^^^^^^
 
 - Added ``OpenSSL.crypto.X509.from_cryptography`` and ``OpenSSL.crypto.X509.to_cryptography`` for converting X.509 certificate to and from pyca/cryptography objects. `#640 <https://github.com/pyca/pyopenssl/pull/640>`_
+- Added ``OpenSSL.crypto.X509Req.from_cryptography``, ``OpenSSL.crypto.X509Req.to_cryptography``, ``OpenSSL.crypto.CRL.from_cryptography``, and ``OpenSSL.crypto.CRL.to_cryptography`` for converting X.509 CSRs and CRLs to and from pyca/cryptography objects. `#645 <https://github.com/pyca/pyopenssl/pull/645>`_
 - Added ``OpenSSL.debug`` that allows to get an overview of used library versions (including linked OpenSSL) and other useful runtime information using ``python -m OpenSSL.debug``.
   `#620 <https://github.com/pyca/pyopenssl/pull/620>`_
 
