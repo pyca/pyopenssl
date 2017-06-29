@@ -2419,8 +2419,8 @@ class TestConnection(object):
         with a context using a different SSL method than the `Connection`
         is using, a `OpenSSL.SSL.Error` is raised.
         """
-        v1 = TLSv1_2_METHOD
-        v2 = TLSv1_METHOD
+        v1 = TLSv1_METHOD
+        v2 = TLSv1_2_METHOD
 
         key = load_privatekey(FILETYPE_PEM, server_key_pem)
         cert = load_certificate(FILETYPE_PEM, server_cert_pem)
