@@ -5,6 +5,8 @@ from itertools import count, chain
 from weakref import WeakValueDictionary
 from errno import errorcode
 
+from cryptography.utils import deprecated
+
 from six import binary_type as _binary_type
 from six import integer_types as integer_types
 from six import int2byte, indexbytes
@@ -1267,7 +1269,10 @@ class Context(object):
         self._set_ocsp_callback(helper, data)
 
 
-ContextType = Context
+ContextType = deprecated(
+    Context, __name__,
+    "ContextType has been deprecated, use Context instead", DeprecationWarning
+)
 
 
 class Connection(object):
@@ -2153,7 +2158,11 @@ class Connection(object):
         _openssl_assert(rc == 1)
 
 
-ConnectionType = Connection
+ConnectionType = deprecated(
+    Connection, __name__,
+    "ConnectionType has been deprecated, use Connection instead",
+    DeprecationWarning
+)
 
 # This is similar to the initialization calls at the end of OpenSSL/crypto.py
 # but is exercised mostly by the Context initializer.

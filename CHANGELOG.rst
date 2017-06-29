@@ -25,7 +25,8 @@ Backward-incompatible changes:
 Deprecations:
 ^^^^^^^^^^^^^
 
-*none*
+
+- Deprecated the legacy "Type" aliases: ``ContextType``, ``ConnectionType``, ``PKeyType``, ``X509NameType``, ``X509ExtensionType``, ``X509ReqType``, ``X509Type``, ``X509StoreType``, ``CRLType``, ``PKCS7Type``, ``PKCS12Type``, ``NetscapeSPKIType``. The names without the "Type"-suffix should be used instead.
 
 
 Changes:
