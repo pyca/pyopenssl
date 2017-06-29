@@ -1799,6 +1799,9 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
     elif type == FILETYPE_ASN1:
         result_code = _lib.i2d_PrivateKey_bio(bio, pkey._pkey)
     elif type == FILETYPE_TEXT:
+        if _lib.EVP_PKEY_id(pkey._pkey) != _lib.EVP_PKEY_RSA:
+            raise TypeError("Only RSA keys are supported for FILETYPE_TEXT")
+
         rsa = _ffi.gc(
             _lib.EVP_PKEY_get1_RSA(pkey._pkey),
             _lib.RSA_free
