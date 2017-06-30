@@ -652,10 +652,6 @@ class Context(object):
         self._ocsp_callback = None
         self._ocsp_data = None
 
-        # SSL_CTX_set_app_data(self->ctx, self);
-        # SSL_CTX_set_mode(self->ctx, SSL_MODE_ENABLE_PARTIAL_WRITE |
-        #                             SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER |
-        #                             SSL_MODE_AUTO_RETRY);
         self.set_mode(_lib.SSL_MODE_ENABLE_PARTIAL_WRITE)
 
     def load_verify_locations(self, cafile, capath=None):
@@ -912,7 +908,6 @@ class Context(object):
             _text_to_bytes_and_warn("cafile", cafile)
         )
         _openssl_assert(ca_list != _ffi.NULL)
-        # SSL_CTX_set_client_CA_list doesn't return anything.
         _lib.SSL_CTX_set_client_CA_list(self._context, ca_list)
 
     def set_session_id(self, buf):
@@ -1269,8 +1264,7 @@ class Context(object):
         # Build a C string from the list. We don't need to save this off
         # because OpenSSL immediately copies the data out.
         input_str = _ffi.new("unsigned char[]", protostr)
-        input_str_len = _ffi.cast("unsigned", len(protostr))
-        _lib.SSL_CTX_set_alpn_protos(self._context, input_str, input_str_len)
+        _lib.SSL_CTX_set_alpn_protos(self._context, input_str, len(protostr))
 
     @_requires_alpn
     def set_alpn_select_callback(self, callback):
@@ -2204,8 +2198,7 @@ class Connection(object):
         # Build a C string from the list. We don't need to save this off
         # because OpenSSL immediately copies the data out.
         input_str = _ffi.new("unsigned char[]", protostr)
-        input_str_len = _ffi.cast("unsigned", len(protostr))
-        _lib.SSL_set_alpn_protos(self._ssl, input_str, input_str_len)
+        _lib.SSL_set_alpn_protos(self._ssl, input_str, len(protostr))
 
     @_requires_alpn
     def get_alpn_proto_negotiated(self):
