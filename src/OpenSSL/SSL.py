@@ -8,9 +8,9 @@ from errno import errorcode
 
 from cryptography.utils import deprecated
 
-from six import binary_type as _binary_type
-from six import integer_types as integer_types
-from six import int2byte, indexbytes
+from six import (
+    binary_type as _binary_type, integer_types as integer_types, int2byte,
+    indexbytes)
 
 from OpenSSL._util import (
     UNSPECIFIED as _UNSPECIFIED,
