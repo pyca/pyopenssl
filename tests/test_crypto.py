@@ -3305,7 +3305,7 @@ class TestCRL(object):
         """
         crl = CRL()
         with pytest.raises(ValueError):
-            crl.export(self.cert, self.pkey, 100, 10)
+            crl.export(self.cert, self.pkey, 100, 10, digest="sha256")
 
     def test_export_unknown_digest(self):
         """
