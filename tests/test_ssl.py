@@ -2428,7 +2428,7 @@ class TestConnection(object):
         elif hasattr(_lib, "SSLv3_method"):
             v1 = TLSv1_METHOD
             v2 = SSLv3_METHOD
-         else:
+        else:
             pytest.skip("Test requires either OpenSSL 1.1.0 or SSLv3")
 
         key = load_privatekey(FILETYPE_PEM, server_key_pem)
