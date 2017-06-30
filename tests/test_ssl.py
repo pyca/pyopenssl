@@ -2425,7 +2425,7 @@ class TestConnection(object):
         if SSL_ST_INIT is None:
             v1 = TLSv1_2_METHOD
             v2 = TLSv1_METHOD
-        elif hasattr(_lib, "SSLv3_method()"):
+        elif hasattr(_lib, "SSLv3_method"):
             v1 = TLSv1_METHOD
             v2 = SSLv3_METHOD
          else:
