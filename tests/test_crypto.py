@@ -3181,7 +3181,9 @@ class TestCRL(object):
         """
         crl = self._get_crl()
         # PEM format
-        dumped_crl = crl.export(self.cert, self.pkey, days=20)
+        dumped_crl = crl.export(
+            self.cert, self.pkey, days=20, digest=b"sha256"
+        )
         text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
 
         # These magic values are based on the way the CRL above was constructed
@@ -3201,7 +3203,9 @@ class TestCRL(object):
         crl = self._get_crl()
 
         # DER format
-        dumped_crl = crl.export(self.cert, self.pkey, FILETYPE_ASN1)
+        dumped_crl = crl.export(
+            self.cert, self.pkey, FILETYPE_ASN1, digest=b"md5"
+        )
         text = _runopenssl(
             dumped_crl, b"crl", b"-noout", b"-text", b"-inform", b"DER"
         )
@@ -3219,13 +3223,17 @@ class TestCRL(object):
         """
         crl = self._get_crl()
 
-        dumped_crl = crl.export(self.cert, self.pkey, FILETYPE_ASN1)
+        dumped_crl = crl.export(
+            self.cert, self.pkey, FILETYPE_ASN1, digest=b"md5"
+        )
         text = _runopenssl(
             dumped_crl, b"crl", b"-noout", b"-text", b"-inform", b"DER"
         )
 
         # text format
-        dumped_text = crl.export(self.cert, self.pkey, type=FILETYPE_TEXT)
+        dumped_text = crl.export(
+            self.cert, self.pkey, type=FILETYPE_TEXT, digest=b"md5"
+        )
         assert text == dumped_text
 
     def test_export_custom_digest(self):
@@ -3253,20 +3261,12 @@ class TestCRL(object):
 
     def test_export_default_digest(self):
         """
-        If not passed the name of a digest function, ``CRL.export`` uses a
-        signature algorithm based on MD5 and emits a deprecation warning.
+        If not passed the name of a digest function, ``CRL.export`` raises a
+        ``TypeError``.
         """
         crl = self._get_crl()
-        with pytest.warns(None) as catcher:
-            simplefilter("always")
-            dumped_crl = crl.export(self.cert, self.pkey)
-        assert (
-            "The default message digest (md5) is deprecated.  "
-            "Pass the name of a message digest explicitly." ==
-            str(catcher[0].message)
-        )
-        text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
-        text.index(b'Signature Algorithm: md5')
+        with pytest.raises(TypeError):
+            crl.export(self.cert, self.pkey)
 
     def test_export_invalid(self):
         """
@@ -3275,7 +3275,7 @@ class TestCRL(object):
         """
         crl = CRL()
         with pytest.raises(Error):
-            crl.export(X509(), PKey())
+            crl.export(X509(), PKey(), digest=b"sha256")
 
     def test_add_revoked_keyword(self):
         """
@@ -3313,7 +3313,7 @@ class TestCRL(object):
         """
         crl = CRL()
         with pytest.raises(ValueError):
-            crl.export(self.cert, self.pkey, 100, 10)
+            crl.export(self.cert, self.pkey, 100, 10, digest=b"sha256")
 
     def test_export_unknown_digest(self):
         """

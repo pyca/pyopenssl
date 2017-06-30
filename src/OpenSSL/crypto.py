@@ -3,7 +3,6 @@ import datetime
 from base64 import b16encode
 from functools import partial
 from operator import __eq__, __ne__, __lt__, __le__, __gt__, __ge__
-from warnings import warn as _warn
 
 from six import (
     integer_types as _integer_types,
@@ -2221,13 +2220,7 @@ class CRL(object):
             raise TypeError("type must be an integer")
 
         if digest is _UNSPECIFIED:
-            _warn(
-                "The default message digest (md5) is deprecated.  "
-                "Pass the name of a message digest explicitly.",
-                category=DeprecationWarning,
-                stacklevel=2,
-            )
-            digest = b"md5"
+            raise TypeError("digest must be provided")
 
         digest_obj = _lib.EVP_get_digestbyname(digest)
         if digest_obj == _ffi.NULL:
