@@ -3,7 +3,6 @@ import datetime
 from base64 import b16encode
 from functools import partial
 from operator import __eq__, __ne__, __lt__, __le__, __gt__, __ge__
-from warnings import warn as _warn
 
 from six import (
     integer_types as _integer_types,
