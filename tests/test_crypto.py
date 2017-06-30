@@ -3181,7 +3181,7 @@ class TestCRL(object):
         """
         crl = self._get_crl()
         # PEM format
-        dumped_crl = crl.export(self.cert, self.pkey, days=20)
+        dumped_crl = crl.export(self.cert, self.pkey, days=20, digest="sha256")
         text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
 
         # These magic values are based on the way the CRL above was constructed
@@ -3201,7 +3201,9 @@ class TestCRL(object):
         crl = self._get_crl()
 
         # DER format
-        dumped_crl = crl.export(self.cert, self.pkey, FILETYPE_ASN1)
+        dumped_crl = crl.export(
+            self.cert, self.pkey, FILETYPE_ASN1, digest="md5"
+        )
         text = _runopenssl(
             dumped_crl, b"crl", b"-noout", b"-text", b"-inform", b"DER"
         )
@@ -3219,7 +3221,9 @@ class TestCRL(object):
         """
         crl = self._get_crl()
 
-        dumped_crl = crl.export(self.cert, self.pkey, FILETYPE_ASN1)
+        dumped_crl = crl.export(
+            self.cert, self.pkey, FILETYPE_ASN1, digest="md5"
+        )
         text = _runopenssl(
             dumped_crl, b"crl", b"-noout", b"-text", b"-inform", b"DER"
         )
@@ -3267,7 +3271,7 @@ class TestCRL(object):
         """
         crl = CRL()
         with pytest.raises(Error):
-            crl.export(X509(), PKey())
+            crl.export(X509(), PKey(), digest="sha256")
 
     def test_add_revoked_keyword(self):
         """
