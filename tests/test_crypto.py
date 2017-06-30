@@ -3229,7 +3229,9 @@ class TestCRL(object):
         )
 
         # text format
-        dumped_text = crl.export(self.cert, self.pkey, type=FILETYPE_TEXT)
+        dumped_text = crl.export(
+            self.cert, self.pkey, type=FILETYPE_TEXT, digest="md5"
+        )
         assert text == dumped_text
 
     def test_export_custom_digest(self):
