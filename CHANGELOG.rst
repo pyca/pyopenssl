@@ -42,7 +42,7 @@ Changes:
   `#645 <https://github.com/pyca/pyopenssl/pull/645>`_
 - Added ``OpenSSL.debug`` that allows to get an overview of used library versions (including linked OpenSSL) and other useful runtime information using ``python -m OpenSSL.debug``.
   `#620 <https://github.com/pyca/pyopenssl/pull/620>`_
-- Added a fallback path to `Context.set_default_verify_paths` to accommodate the upcoming release of ``cryptography`` ``manylinux1`` wheels.
+- Added a fallback path to ``Context.set_default_verify_paths()`` to accommodate the upcoming release of ``cryptography`` ``manylinux1`` wheels.
   `#633 <https://github.com/pyca/pyopenssl/pull/633>`_
 
 
