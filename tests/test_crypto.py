@@ -3253,20 +3253,12 @@ class TestCRL(object):
 
     def test_export_default_digest(self):
         """
-        If not passed the name of a digest function, ``CRL.export`` uses a
-        signature algorithm based on MD5 and emits a deprecation warning.
+        If not passed the name of a digest function, ``CRL.export`` raises a
+        ``TypeError``.
         """
         crl = self._get_crl()
-        with pytest.warns(None) as catcher:
-            simplefilter("always")
-            dumped_crl = crl.export(self.cert, self.pkey)
-        assert (
-            "The default message digest (md5) is deprecated.  "
-            "Pass the name of a message digest explicitly." ==
-            str(catcher[0].message)
-        )
-        text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
-        text.index(b'Signature Algorithm: md5')
+        with pytest.raises(TypeError):
+            crl.export(self.cert, self.pkey)
 
     def test_export_invalid(self):
         """
