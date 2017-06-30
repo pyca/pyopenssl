@@ -1196,8 +1196,6 @@ class TestContext(object):
         # internet which has such a certificate.  Connecting to the network
         # in a unit test is bad, but it's the only way I can think of to
         # really test this. -exarkun
-
-        # Arg, verisign.com doesn't speak anything newer than TLS 1.0
         context = Context(SSLv23_METHOD)
         context.set_default_verify_paths()
         context.set_verify(
