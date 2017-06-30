@@ -512,23 +512,25 @@ class X509Name(object):
                 pass
             raise AttributeError("No such attribute")
 
-        # If there's an old entry for this NID, remove it
-        for i in range(_lib.X509_NAME_entry_count(self._name)):
+        # If there are any old entries for this NID, remove them
+        for i in range(_lib.X509_NAME_entry_count(self._name)-1, -1, -1):
             ent = _lib.X509_NAME_get_entry(self._name, i)
             ent_obj = _lib.X509_NAME_ENTRY_get_object(ent)
             ent_nid = _lib.OBJ_obj2nid(ent_obj)
             if nid == ent_nid:
                 ent = _lib.X509_NAME_delete_entry(self._name, i)
                 _lib.X509_NAME_ENTRY_free(ent)
-                break
 
-        if isinstance(value, _text_type):
-            value = value.encode('utf-8')
+        if not isinstance(value, list):
+            value = [value]
 
-        add_result = _lib.X509_NAME_add_entry_by_NID(
-            self._name, nid, _lib.MBSTRING_UTF8, value, -1, -1, 0)
-        if not add_result:
-            _raise_current_error()
+        for entry in value:
+            if isinstance(entry, _text_type):
+                entry = entry.encode('utf-8')
+            add_result = _lib.X509_NAME_add_entry_by_NID(
+                self._name, nid, _lib.MBSTRING_UTF8, entry, -1, -1, 0)
+            if not add_result:
+                _raise_current_error()
 
     def __getattr__(self, name):
         """
