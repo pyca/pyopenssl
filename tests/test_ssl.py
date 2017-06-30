@@ -44,7 +44,9 @@ from OpenSSL.SSL import SENT_SHUTDOWN, RECEIVED_SHUTDOWN
 from OpenSSL.SSL import (
     SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, TLSv1_METHOD,
     TLSv1_1_METHOD, TLSv1_2_METHOD)
-from OpenSSL.SSL import OP_SINGLE_DH_USE, OP_NO_SSLv2, OP_NO_SSLv3
+from OpenSSL.SSL import (
+    OP_SINGLE_DH_USE, OP_NO_SSLv2, OP_NO_SSLv3, OP_NO_TLSv1, OP_NO_TLSv1_1,
+    OP_NO_TLSv1_2)
 from OpenSSL.SSL import (
     VERIFY_PEER, VERIFY_FAIL_IF_NO_PEER_CERT, VERIFY_CLIENT_ONCE, VERIFY_NONE)
 
@@ -65,11 +67,6 @@ from OpenSSL._util import ffi as _ffi, lib as _lib
 from OpenSSL.SSL import (
     OP_NO_QUERY_MTU, OP_COOKIE_EXCHANGE, OP_NO_TICKET, OP_NO_COMPRESSION,
     MODE_RELEASE_BUFFERS)
-
-try:
-    from OpenSSL.SSL import OP_NO_TLSv1, OP_NO_TLSv1_1, OP_NO_TLSv1_2
-except ImportError:
-    OP_NO_TLSv1 = OP_NO_TLSv1_1 = OP_NO_TLSv1_2 = None
 
 from OpenSSL.SSL import (
     SSL_ST_CONNECT, SSL_ST_ACCEPT, SSL_ST_MASK,
