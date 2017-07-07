@@ -2,6 +2,7 @@
 PRNG management routines, thin wrappers.
 """
 
+import warnings
 from functools import partial
 
 from six import integer_types as _integer_types
@@ -11,6 +12,12 @@ from OpenSSL._util import (
     lib as _lib,
     exception_from_error_queue as _exception_from_error_queue,
     path_string as _path_string)
+
+
+warnings.warn(
+    "OpenSSL.rand is deprecated - you should use os.urandom instead",
+    DeprecationWarning, stacklevel=3
+)
 
 
 class Error(Exception):

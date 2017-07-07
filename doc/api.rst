@@ -14,5 +14,4 @@ OpenSSL library. The following modules are defined:
    :maxdepth: 2
 
    api/crypto
-   api/rand
    api/ssl
