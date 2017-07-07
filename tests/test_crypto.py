@@ -1615,6 +1615,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         with pytest.raises(TypeError):
             cert.gmtime_adj_notBefore(None)
 
+    @flaky.flaky
     def test_gmtime_adj_notBefore(self):
         """
         `X509.gmtime_adj_notBefore` changes the not-before timestamp to be the
@@ -1628,7 +1629,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         not_before = datetime.strptime(
             cert.get_notBefore().decode(), "%Y%m%d%H%M%SZ"
         )
-        not_before_max = datetime.utcnow() + timedelta(seconds=101)
+        not_before_max = datetime.utcnow() + timedelta(seconds=100)
         assert not_before_min <= not_before <= not_before_max
 
     def test_gmtime_adj_notAfter_wrong_args(self):
