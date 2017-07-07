@@ -22,6 +22,8 @@ from cryptography.hazmat.backends.openssl.backend import backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
+import flaky
+
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
 from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
 from OpenSSL.crypto import (
@@ -1626,7 +1628,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         not_before = datetime.strptime(
             cert.get_notBefore().decode(), "%Y%m%d%H%M%SZ"
         )
-        not_before_max = datetime.utcnow() + timedelta(seconds=100)
+        not_before_max = datetime.utcnow() + timedelta(seconds=101)
         assert not_before_min <= not_before <= not_before_max
 
     def test_gmtime_adj_notAfter_wrong_args(self):
@@ -3215,6 +3217,9 @@ class TestCRL(object):
             b'Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA'
         )
 
+    # Flaky because we compare teh output of running commands which sometimes
+    # varies by 1 second
+    @flaky.flaky
     def test_export_text(self):
         """
         If passed ``FILETYPE_TEXT`` for the format, ``CRL.export`` returns a
