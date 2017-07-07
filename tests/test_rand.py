@@ -32,11 +32,11 @@ class TestRand(object):
 
     def test_insufficient_memory(self):
         """
-        `OpenSSL.rand.bytes` raises `MemoryError` if more bytes are requested
-        than will fit in memory.
+        `OpenSSL.rand.bytes` raises `MemoryError` or `OverflowError` if more
+        bytes are requested than will fit in memory.
         """
-        with pytest.raises(MemoryError):
-            rand.bytes(sys.maxsize)
+        with pytest.raises((MemoryError, OverflowError)):
+            rand.bytes(sys.maxsize + 1)
 
     def test_bytes(self):
         """
