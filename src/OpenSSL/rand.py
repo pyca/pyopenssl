@@ -19,6 +19,7 @@ warnings.warn(
     DeprecationWarning, stacklevel=3
 )
 
+
 class Error(Exception):
     """
     An error occurred in an :mod:`OpenSSL.rand` API.
