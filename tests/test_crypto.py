@@ -3217,7 +3217,7 @@ class TestCRL(object):
             b'Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA'
         )
 
-    # Flaky because we compare teh output of running commands which sometimes
+    # Flaky because we compare the output of running commands which sometimes
     # varies by 1 second
     @flaky.flaky
     def test_export_text(self):
