@@ -36,7 +36,7 @@ class TestRand(object):
         bytes are requested than will fit in memory.
         """
         with pytest.raises((MemoryError, OverflowError)):
-            rand.bytes(sys.maxsize)
+            rand.bytes(sys.maxsize + 1)
 
     def test_bytes(self):
         """
