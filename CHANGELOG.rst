@@ -19,7 +19,7 @@ Deprecations:
 ^^^^^^^^^^^^^
 
 - Deprecated ``OpenSSL.rand`` - callers should use ``os.urandom()`` instead.
-  `#658 <https://github.com/pyca/pyopenssl/pull/658`_
+  `#658 <https://github.com/pyca/pyopenssl/pull/658>`_
 
 
 Changes:
