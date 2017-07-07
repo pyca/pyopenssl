@@ -99,4 +99,15 @@ if __name__ == "__main__":
             "cryptography>=1.9",
             "six>=1.5.2"
         ],
+        extras_require={
+            "test": [
+                "flaky",
+                "pretend",
+                "pytest>=3.0.1",
+            ],
+            "docs": [
+                "sphinx",
+                "sphinx_rtd_theme",
+            ]
+        },
     )
