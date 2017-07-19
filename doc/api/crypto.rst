@@ -6,6 +6,15 @@
 .. py:module:: OpenSSL.crypto
    :synopsis: Generic cryptographic module
 
+.. note::
+
+    `pyca/cryptography`_ is likely a better choice than using this module. It
+    contains a complete set of cryptographic primitives as well as a
+    significantly better and more powerful X509 API. If necessary you can
+    convert to and from cryptography objects using the ``to_cryptography``
+    and ``from_cryptography`` methods on ``X509``, ``X509Req``, ``CRL``,
+    and ``PKey``.
+
 Elliptic curves
 ---------------
 
@@ -321,3 +330,4 @@ More information and a list of these digest names can be found in the ``EVP_Dige
 This page can be found online for the latest version of OpenSSL:
 https://www.openssl.org/docs/manmaster/man3/EVP_DigestInit.html
 
+.. _`pyca/cryptography`:  https://cryptography.io
