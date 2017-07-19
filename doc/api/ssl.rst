@@ -308,12 +308,14 @@ Context objects have the following methods:
 
     Specify that the platform provided CA certificates are to be used for
     verification purposes. This method has some caveats related to the
-    binary wheels that cryptography (pyOpenSSL's primary dependency ships:
+    binary wheels that cryptography (pyOpenSSL's primary dependency) ships:
 
     * macOS will only load certificates using this method if the user has
       the ``openssl@1.1`` Homebrew formula installed in the default location.
     * Windows will not work.
     * manylinux1 cryptography wheels will work in pyOpenSSL 17.1.0 and above.
+      pyOpenSSL detects the manylinux1 wheel and attempts to load roots via
+      a fallback path.
 
 .. py:method:: Context.load_tmp_dh(dhfile)
 
