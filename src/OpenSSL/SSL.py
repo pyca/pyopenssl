@@ -145,8 +145,10 @@ _CERTIFICATE_PATH_LOCATIONS = [
     "/etc/ssl/certs",  # SLES10/SLES11
 ]
 
-_CRYPTOGRAPHY_MANYLINUX1_CA_DIR = "/opt/pyca/cryptography/openssl/certs"
-_CRYPTOGRAPHY_MANYLINUX1_CA_FILE = "/opt/pyca/cryptography/openssl/cert.pem"
+# These values are compared to output from cffi's ffi.string so they must be
+# byte strings.
+_CRYPTOGRAPHY_MANYLINUX1_CA_DIR = b"/opt/pyca/cryptography/openssl/certs"
+_CRYPTOGRAPHY_MANYLINUX1_CA_FILE = b"/opt/pyca/cryptography/openssl/cert.pem"
 
 
 class Error(Exception):
