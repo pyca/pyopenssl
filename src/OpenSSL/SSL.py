@@ -145,8 +145,10 @@ _CERTIFICATE_PATH_LOCATIONS = [
     "/etc/ssl/certs",  # SLES10/SLES11
 ]
 
-_CRYPTOGRAPHY_MANYLINUX1_CA_DIR = "/opt/pyca/cryptography/openssl/certs"
-_CRYPTOGRAPHY_MANYLINUX1_CA_FILE = "/opt/pyca/cryptography/openssl/cert.pem"
+# These values are compared to output from cffi's ffi.string so they must be 
+# byte strings.
+_CRYPTOGRAPHY_MANYLINUX1_CA_DIR = b"/opt/pyca/cryptography/openssl/certs"
+_CRYPTOGRAPHY_MANYLINUX1_CA_FILE = b"/opt/pyca/cryptography/openssl/cert.pem"
 
 
 class Error(Exception):
@@ -731,12 +733,8 @@ class Context(object):
             _lib.X509_get_default_cert_file_env()
         ).decode("ascii")
         if not self._check_env_vars_set(dir_env_var, file_env_var):
-            default_dir = _ffi.string(
-                _lib.X509_get_default_cert_dir()
-            ).decode("ascii")
-            default_file = _ffi.string(
-                _lib.X509_get_default_cert_file()
-            ).decode("ascii")
+            default_dir = _ffi.string(_lib.X509_get_default_cert_dir())
+            default_file = _ffi.string(_lib.X509_get_default_cert_file())
             # Now we check to see if the default_dir and default_file are set
             # to the exact values we use in our manylinux1 builds. If they are
             # then we know to load the fallbacks
