@@ -8,12 +8,10 @@
 
 .. note::
 
-    `pyca/cryptography`_ is likely a better choice than using this module. It
-    contains a complete set of cryptographic primitives as well as a
-    significantly better and more powerful X509 API. If necessary you can
-    convert to and from cryptography objects using the ``to_cryptography``
-    and ``from_cryptography`` methods on ``X509``, ``X509Req``, ``CRL``,
-    and ``PKey``.
+    `pyca/cryptography`_ is likely a better choice than using this module.
+    It contains a complete set of cryptographic primitives as well as a significantly better and more powerful X509 API.
+    If necessary you can convert to and from cryptography objects using the ``to_cryptography`` and ``from_cryptography`` methods on ``X509``, ``X509Req``, ``CRL``, and ``PKey``.
+
 
 Elliptic curves
 ---------------
