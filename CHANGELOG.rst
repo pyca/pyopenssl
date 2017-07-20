@@ -27,6 +27,8 @@ Changes:
 
 - Fixed a bug causing ``Context.set_default_verify_paths()`` to not work with cryptography ``manylinux1`` wheels on Python 3.x.
   `#665 <https://github.com/pyca/pyopenssl/pull/665>`_
+- Fixed a crash with (EC)DSA signatures in some cases.
+  `#670 <https://github.com/pyca/pyopenssl/pull/670>`_
 
 
 ----
