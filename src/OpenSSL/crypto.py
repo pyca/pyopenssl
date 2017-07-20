@@ -2802,6 +2802,7 @@ def sign(pkey, data, digest):
     _lib.EVP_SignUpdate(md_ctx, data, len(data))
 
     length = _lib.EVP_PKEY_size(pkey._pkey)
+    _openssl_assert(length > 0)
     signature_buffer = _ffi.new("unsigned char[]", length)
     signature_length = _ffi.new("unsigned int *")
     final_result = _lib.EVP_SignFinal(
