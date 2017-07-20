@@ -544,6 +544,29 @@ zo0MUVPQgwJ3aJtNM1QMOQUayCrRwfklg+D/rFSUwEUqtZh7fJDiFqz3
 -----END PRIVATE KEY-----
 """
 
+ec_root_key_pem = b"""-----BEGIN EC PRIVATE KEY-----
+MIGlAgEBBDEAz/HOBFPYLB0jLWeTpJn4Yc4m/C4mdWymVHBjOmnwiPHKT326iYN/
+ZhmSs+RM94RsoAcGBSuBBAAioWQDYgAEwE5vDdla/nLpWAPAQ0yFGqwLuw4BcN2r
+U+sKab5EAEHzLeceRa8ffncYdCXNoVsBcdob1y66CFZMEWLetPTmGapyWkBAs6/L
+8kUlkU9OsE+7IVo4QQJkgV5gM+Dim1XE
+-----END EC PRIVATE KEY-----
+"""
+
+ec_root_cert_pem = b"""-----BEGIN CERTIFICATE-----
+MIICLTCCAbKgAwIBAgIMWW/hwTl6ufz6/WkCMAoGCCqGSM49BAMDMFgxGDAWBgNV
+BAMTD1Rlc3RpbmcgUm9vdCBDQTEQMA4GA1UEChMHVGVzdGluZzEQMA4GA1UEBxMH
+Q2hpY2FnbzELMAkGA1UECBMCSUwxCzAJBgNVBAYTAlVTMCAXDTE3MDcxOTIyNDgz
+M1oYDzk5OTkxMjMxMjM1OTU5WjBYMRgwFgYDVQQDEw9UZXN0aW5nIFJvb3QgQ0Ex
+EDAOBgNVBAoTB1Rlc3RpbmcxEDAOBgNVBAcTB0NoaWNhZ28xCzAJBgNVBAgTAklM
+MQswCQYDVQQGEwJVUzB2MBAGByqGSM49AgEGBSuBBAAiA2IABMBObw3ZWv5y6VgD
+wENMhRqsC7sOAXDdq1PrCmm+RABB8y3nHkWvH353GHQlzaFbAXHaG9cuughWTBFi
+3rT05hmqclpAQLOvy/JFJZFPTrBPuyFaOEECZIFeYDPg4ptVxKNDMEEwDwYDVR0T
+AQH/BAUwAwEB/zAPBgNVHQ8BAf8EBQMDBwQAMB0GA1UdDgQWBBSoTrF0H2m8RDzB
+MnY2KReEPfz7ZjAKBggqhkjOPQQDAwNpADBmAjEA3+G1oVCxGjYX4iUN93QYcNHe
+e3fJQJwX9+KsHRut6qNZDUbvRbtO1YIAwB4UJZjwAjEAtXCPURS5A4McZHnSwgTi
+Td8GMrwKz0557OxxtKN6uVVy4ACFMqEw0zN/KJI1vxc9
+-----END CERTIFICATE-----"""
+
 
 @pytest.fixture
 def x509_data():
@@ -3696,6 +3719,24 @@ class TestSignVerify(object):
                 "{0} for data is no longer accepted, use bytes".format(
                     WARNING_TYPE_EXPECTED
                 ) == str(w[-1].message))
+
+    def test_sign_verify_ecdsa(self):
+        """
+        `sign` generates a cryptographic signature which `verify` can check.
+        ECDSA Signatures in the X9.62 format may have variable length,
+        different from the length of the private key.
+        """
+        content = (
+            b"It was a bright cold day in April, and the clocks were striking "
+            b"thirteen. Winston Smith, his chin nuzzled into his breast in an "
+            b"effort to escape the vile wind, slipped quickly through the "
+            b"glass doors of Victory Mansions, though not quickly enough to "
+            b"prevent a swirl of gritty dust from entering along with him."
+        ).decode("ascii")
+        priv_key = load_privatekey(FILETYPE_PEM, ec_root_key_pem)
+        cert = load_certificate(FILETYPE_PEM, ec_root_cert_pem)
+        sig = sign(priv_key, content, "sha1")
+        verify(cert, sig, content, "sha1")
 
     def test_sign_nulls(self):
         """
