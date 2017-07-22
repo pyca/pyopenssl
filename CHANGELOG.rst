@@ -18,8 +18,8 @@ Backward-incompatible changes:
 Deprecations:
 ^^^^^^^^^^^^^
 
-*none*
-
+- Deprecated ``OpenSSL.tsafe``.
+  `#673 <https://github.com/pyca/pyopenssl/pull/673>`_
 
 Changes:
 ^^^^^^^^
