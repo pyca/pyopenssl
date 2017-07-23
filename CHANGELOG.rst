@@ -12,7 +12,8 @@ The third digit is only for regressions.
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-*none*
+- Removed the deprecated ``OpenSSL.rand`` module. ``os.urandom`` should be used instead.
+  `#675 <https://github.com/pyca/pyopenssl/pull/675>`_
 
 
 Deprecations:
