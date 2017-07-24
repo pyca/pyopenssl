@@ -1664,6 +1664,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         with pytest.raises(TypeError):
             cert.gmtime_adj_notAfter(None)
 
+    @flaky.flaky
     def test_gmtime_adj_notAfter(self):
         """
         `X509.gmtime_adj_notAfter` changes the not-after timestamp
