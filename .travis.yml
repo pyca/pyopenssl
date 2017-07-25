@@ -24,8 +24,6 @@ matrix:
     env: TOXENV=py26
   - python: "2.7"
     env: TOXENV=py27
-  - python: "3.3"
-    env: TOXENV=py33
   - python: "3.4"
     env: TOXENV=py34
   - python: "3.5"
@@ -39,8 +37,6 @@ matrix:
     env: TOXENV=py26-cryptographyMaster
   - python: "2.7"
     env: TOXENV=py27-cryptographyMaster
-  - python: "3.3"
-    env: TOXENV=py33-cryptographyMaster
   - python: "3.4"
     env: TOXENV=py34-cryptographyMaster
   - python: "3.5"
@@ -54,8 +50,6 @@ matrix:
     env: TOXENV=py26-cryptographyMinimum
   - python: "2.7"
     env: TOXENV=py27-cryptographyMinimum
-  - python: "3.3"
-    env: TOXENV=py33-cryptographyMinimum
   - python: "3.4"
     env: TOXENV=py34-cryptographyMinimum
   - python: "3.5"
@@ -90,7 +84,6 @@ matrix:
   allow_failures:
   - env: TOXENV=py26-cryptographyMaster
   - env: TOXENV=py27-cryptographyMaster
-  - env: TOXENV=py33-cryptographyMaster
   - env: TOXENV=py34-cryptographyMaster
   - env: TOXENV=py35-cryptographyMaster
   - env: TOXENV=py36-cryptographyMaster

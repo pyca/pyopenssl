@@ -12,7 +12,8 @@ The third digit is only for regressions.
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-*none*
+- Dropped support for Python 3.3.
+  `#677 <https://github.com/pyca/pyopenssl/pull/677>`_
 
 
 Deprecations:
