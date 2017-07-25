@@ -8,8 +8,6 @@ Unit tests for :py:mod:`OpenSSL.crypto`.
 from warnings import simplefilter
 
 import base64
-import os
-import re
 from subprocess import PIPE, Popen
 from datetime import datetime, timedelta
 
@@ -46,7 +44,6 @@ from OpenSSL.crypto import CRL, Revoked, dump_crl, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.crypto import (
     sign, verify, get_elliptic_curve, get_elliptic_curves)
-from OpenSSL._util import native
 
 from .util import EqualityTestsMixin, is_consistent_type, WARNING_TYPE_EXPECTED
 
@@ -2447,58 +2444,12 @@ class TestPKCS12(object):
             p12.export()
 
 
-# These quoting functions taken directly from Twisted's twisted.python.win32.
-_cmdLineQuoteRe = re.compile(br'(\\*)"')
-_cmdLineQuoteRe2 = re.compile(br'(\\+)\Z')
-
-
-def cmdLineQuote(s):
-    """
-    Internal method for quoting a single command-line argument.
-
-    See http://www.perlmonks.org/?node_id=764004
-
-    :type: :py:obj:`str`
-    :param s: A single unquoted string to quote for something that is expecting
-        cmd.exe-style quoting
-
-    :rtype: :py:obj:`str`
-    :return: A cmd.exe-style quoted string
-    """
-    s = _cmdLineQuoteRe2.sub(br"\1\1", _cmdLineQuoteRe.sub(br'\1\1\\"', s))
-    return b'"' + s + b'"'
-
-
-def quoteArguments(arguments):
-    """
-    Quote an iterable of command-line arguments for passing to CreateProcess or
-    a similar API.  This allows the list passed to
-    :py:obj:`reactor.spawnProcess` to match the child process's
-    :py:obj:`sys.argv` properly.
-
-    :type arguments: :py:obj:`iterable` of :py:obj:`str`
-    :param arguments: An iterable of unquoted arguments to quote
-
-    :rtype: :py:obj:`str`
-    :return: A space-delimited string containing quoted versions of
-        :py:obj:`arguments`
-    """
-    return b' '.join(map(cmdLineQuote, arguments))
-
-
 def _runopenssl(pem, *args):
     """
     Run the command line openssl tool with the given arguments and write
     the given PEM to its stdin.  Not safe for quotes.
     """
-    if os.name == 'posix':
-        command = b"openssl " + b" ".join([
-            (b"'" + arg.replace(b"'", b"'\\''") + b"'")
-            for arg in args
-        ])
-    else:
-        command = b"openssl " + quoteArguments(args)
-    proc = Popen(native(command), shell=True, stdin=PIPE, stdout=PIPE)
+    proc = Popen([b"openssl"] + list(args), stdin=PIPE, stdout=PIPE)
     proc.stdin.write(pem)
     proc.stdin.close()
     output = proc.stdout.read()
