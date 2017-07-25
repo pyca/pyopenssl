@@ -14,7 +14,9 @@ Backward-incompatible changes:
 
 - Dropped support for Python 3.3.
   `#677 <https://github.com/pyca/pyopenssl/pull/677>`_
-- Removed the deprecated ``OpenSSL.rand`` module. ``os.urandom`` should be used instead.
+- Removed the deprecated ``OpenSSL.rand`` module.
+  This is being done ahead of our normal deprecation schedule due to its lack of use and the fact that it was becoming a maintaince burden.
+  ``os.urandom()`` should be used instead.
   `#675 <https://github.com/pyca/pyopenssl/pull/675>`_
 
 
