@@ -13,7 +13,7 @@ Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Dropped support for Python 3.3.
-  `#677 <https://github.com/pyca/pyopenssl/pull/677`_
+  `#677 <https://github.com/pyca/pyopenssl/pull/677>`_
 
 
 Deprecations:
