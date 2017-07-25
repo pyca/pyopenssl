@@ -2449,7 +2449,7 @@ def _runopenssl(pem, *args):
     Run the command line openssl tool with the given arguments and write
     the given PEM to its stdin.  Not safe for quotes.
     """
-    proc = Popen([b"openssl"] + args, stdin=PIPE, stdout=PIPE)
+    proc = Popen([b"openssl"] + list(args), stdin=PIPE, stdout=PIPE)
     proc.stdin.write(pem)
     proc.stdin.close()
     output = proc.stdout.read()
