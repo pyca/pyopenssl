@@ -221,13 +221,13 @@ def _create_certificate_chain():
 
 
 def loopback_client_factory(socket):
-    client = Connection(Context(SSLv23_METHO), socket)
+    client = Connection(Context(SSLv23_METHOD), socket)
     client.set_connect_state()
     return client
 
 
 def loopback_server_factory(socket):
-    ctx = Context(SSLv23_METHO)
+    ctx = Context(SSLv23_METHOD)
     ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
     ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
     server = Connection(ctx, socket)
