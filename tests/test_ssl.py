@@ -2463,7 +2463,7 @@ class TestConnection(object):
         """
         key = load_privatekey(FILETYPE_PEM, server_key_pem)
         cert = load_certificate(FILETYPE_PEM, server_cert_pem)
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         ctx.use_privatekey(key)
         ctx.use_certificate(cert)
         ctx.set_session_id("unity-test")
