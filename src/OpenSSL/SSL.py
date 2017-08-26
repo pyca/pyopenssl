@@ -1941,6 +1941,31 @@ class Connection(object):
         _lib.SSL_SESSION_get_master_key(session, outp, length)
         return _ffi.buffer(outp, length)[:]
 
+    def export_keying_material(self, label, olen, context=None):
+        """
+        Obtain keying material for application use.
+
+        :param label - a disambiguating label string as described in RFC 5705
+        :param olen - the length of the exported key material in bytes
+        :param context - a per-association context value
+        :return the exported key material bytes or None
+        """
+        outp = _no_zero_allocator("unsigned char[]", olen)
+        # RFC 5705: "Labels here have the same definition as in TLS, i.e., an
+        # ASCII string with no terminating NULL."
+        # So we must remove the NULL terminator.
+        label_buf = _ffi.new("char[]", label)[0:len(label)]
+        context_buf, context_len, use_context, success = _ffi.NULL, 0, 0, 0
+        if context is not None:
+            context_buf = _ffi.new("unsigned char[]", context)
+            context_len = len(context)
+            use_context = 1
+        success = _lib.SSL_export_keying_material(self._ssl, outp, olen,
+                                                  label_buf, len(label),
+                                                  context_buf, context_len,
+                                                  use_context)
+        return _ffi.buffer(outp, olen)[:] if success == 1 else None
+
     def sock_shutdown(self, *args, **kwargs):
         """
         See shutdown(2)
