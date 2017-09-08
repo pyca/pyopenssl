@@ -2898,7 +2898,7 @@ def load_crl(type, buffer):
         _raise_current_error()
 
     result = CRL.__new__(CRL)
-    result._crl = crl
+    result._crl = _ffi.gc(crl, _lib.X509_CRL_free)
     return result
 
 
