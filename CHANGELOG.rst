@@ -5,7 +5,7 @@ Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
 
-17.3.0 (UNRELEASED)
+17.3.0 (2017-09-14)
 -------------------
 
 
@@ -29,7 +29,10 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-*none*
+- Fixed a memory leak in ``OpenSSL.crypto.CRL``.
+  `#690 <https://github.com/pyca/pyopenssl/pull/690>`_
+- Fixed a memory leak when verifying certificates with ``OpenSSL.crypto.X509StoreContext``.
+  `#691 <https://github.com/pyca/pyopenssl/pull/691>`_
 
 
 ----
