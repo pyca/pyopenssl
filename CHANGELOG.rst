@@ -29,7 +29,10 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-*none*
+- Fixed a memory leak in CRLs.
+  `#690 <https://github.com/pyca/pyopenssl/pull/690>`_
+- Fixed a memory leak when verifying certificates with X509StoreContext.
+  `#691 <https://github.com/pyca/pyopenssl/pull/691>`_
 
 
 ----
