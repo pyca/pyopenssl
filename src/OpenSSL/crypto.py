@@ -1655,6 +1655,9 @@ class X509StoreContext(object):
     def _init(self):
         """
         Set up the store context for a subsequent verification operation.
+
+        Calling this method more than once without first calling
+        :meth:`_cleanup` will leak memory.
         """
         ret = _lib.X509_STORE_CTX_init(
             self._store_ctx, self._store._store, self._cert._x509, _ffi.NULL
@@ -1715,6 +1718,10 @@ class X509StoreContext(object):
         """
         # Always re-initialize the store context in case
         # :meth:`verify_certificate` is called multiple times.
+        #
+        # :meth:`_init` is called in :meth:`__init__` so _cleanup is called
+        # before _init to ensure memory is not leaked.
+        self._cleanup()
         self._init()
         ret = _lib.X509_verify_cert(self._store_ctx)
         self._cleanup()
