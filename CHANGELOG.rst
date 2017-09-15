@@ -23,7 +23,7 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-*none*
+- Modified ``OpenSSL._util.exception_from_error_queue`` to only raise error if any errors were obtained from err library.
 
 
 ----
