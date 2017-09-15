@@ -51,7 +51,8 @@ def exception_from_error_queue(exception_type):
             text(lib.ERR_func_error_string(error)),
             text(lib.ERR_reason_error_string(error))))
 
-    raise exception_type(errors)
+    if errors:
+        raise exception_type(errors)
 
 
 def make_assert(error):
