@@ -369,8 +369,9 @@ Context objects have the following methods:
     this, it will be truncated.  Second, a boolean value which will be true if
     the user should be prompted for the passphrase twice and the callback should
     verify that the two values supplied are equal. Third, the value given as the
-    *userdata* parameter to :py:meth:`set_passwd_cb`.  If an error occurs,
-    *callback* should return a false value (e.g. an empty string).
+    *userdata* parameter to :py:meth:`set_passwd_cb`.  The *callback* must return
+    a byte string. If an error occurs, *callback* should return a false value
+    (e.g. an empty string).
 
 
 .. py:method:: Context.set_session_cache_mode(mode)
