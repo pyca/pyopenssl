@@ -695,7 +695,7 @@ class Context(object):
         """
         Set the passphrase callback
 
-        :param callback: The Python callback to use
+        :param callback: The Python callback to use; must return a byte string
         :param userdata: (optional) A Python object which will be given as
                          argument to the callback
         :return: None
