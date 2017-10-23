@@ -3362,6 +3362,7 @@ class TestMemoryBIO(object):
         assert cekm == sekm
         assert len(sekm) == 32
 
+        # Export key material for other uses with additional context.
         cekmc = client_conn.export_keying_material(b'LABEL', 32, b'CONTEXT')
         sekmc = server_conn.export_keying_material(b'LABEL', 32, b'CONTEXT')
         assert cekmc is not None
