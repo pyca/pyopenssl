@@ -24,7 +24,7 @@ Changes:
 ^^^^^^^^
 
 
-- Corrected a use-after-free with some uses of the ``X509`` API.
+- Corrected a use-after-free when reusing an issuer or subject from an ``X509`` object after the underlying object has been mutated.
   `#709 <https://github.com/pyca/pyopenssl/pull/709>`_
 
 ----
