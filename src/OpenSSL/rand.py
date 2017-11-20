@@ -41,15 +41,3 @@ def status():
     :return: 1 if the PRNG is seeded enough, 0 otherwise.
     """
     return _lib.RAND_status()
-
-
-def cleanup():
-    """
-    Erase the memory used by the PRNG.
-
-    This is a wrapper for the C function ``RAND_cleanup``.
-
-    :return: :obj:`None`
-    """
-    # TODO Nothing tests this call actually being made, or made properly.
-    _lib.RAND_cleanup()

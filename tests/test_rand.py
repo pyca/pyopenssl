@@ -35,14 +35,4 @@ class TestRand(object):
         `OpenSSL.rand.status` returns `1` if the PRNG has sufficient entropy,
         `0` otherwise.
         """
-        # It's hard to know what it is actually going to return.  Different
-        # OpenSSL random engines decide differently whether they have enough
-        # entropy or not.
-        assert rand.status() in (0, 1)
-
-    def test_cleanup(self):
-        """
-        `OpenSSL.rand.cleanup` releases the memory used by the PRNG and
-        returns `None`.
-        """
-        assert rand.cleanup() is None
+        assert rand.status() == 1
