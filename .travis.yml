@@ -100,7 +100,7 @@ install:
       fi
       curl -O https://bootstrap.pypa.io/get-pip.py
       python get-pip.py --user
-      pip install --user virtualenv
+      python -m pip install --user virtualenv
     else
       # install our own pypy. This can be removed if and when Travis gets a reasonably up to date pypy
       if [[ "${TOXENV}" = pypy* ]]; then
