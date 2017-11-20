@@ -88,19 +88,23 @@ matrix:
   - env: TOXENV=py35-cryptographyMaster
   - env: TOXENV=py36-cryptographyMaster
   - env: TOXENV=pypy-cryptographyMaster
+  # TODO: undo this once upstream fixes their tests
+  - python: "3.5"
+    env: TOXENV=py35-urllib3Master
+
 
 install:
   - |
     if [[ "$(uname -s)" == 'Darwin' ]]; then
       brew update
       if [[ "${OPENSSL}" == "1.1.0" ]]; then
-        brew install openssl@1.1
+        brew upgrade openssl@1.1
       else
         brew upgrade openssl
       fi
       curl -O https://bootstrap.pypa.io/get-pip.py
       python get-pip.py --user
-      pip install --user virtualenv
+      python -m pip install --user virtualenv
     else
       # install our own pypy. This can be removed if and when Travis gets a reasonably up to date pypy
       if [[ "${TOXENV}" = pypy* ]]; then
