@@ -1846,11 +1846,11 @@ WpOdIpB8KksUTCzV591Nr1wd
         cert = X509()
         name = cert.get_subject()
         name.C = 'AU'
-        name.O = 'Unit Tests'
+        name.OU = 'Unit Tests'
         cert.set_subject(name)
         assert (
             cert.get_subject().get_components() ==
-            [(b'C', b'AU'), (b'O', b'Unit Tests')])
+            [(b'C', b'AU'), (b'OU', b'Unit Tests')])
 
     def test_get_issuer(self):
         """
@@ -1882,11 +1882,11 @@ WpOdIpB8KksUTCzV591Nr1wd
         cert = X509()
         name = cert.get_issuer()
         name.C = 'AU'
-        name.O = 'Unit Tests'
+        name.OU = 'Unit Tests'
         cert.set_issuer(name)
         assert (
             cert.get_issuer().get_components() ==
-            [(b'C', b'AU'), (b'O', b'Unit Tests')])
+            [(b'C', b'AU'), (b'OU', b'Unit Tests')])
 
     def test_get_pubkey_uninitialized(self):
         """
