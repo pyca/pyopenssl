@@ -719,8 +719,8 @@ class X509Extension(object):
                 raise TypeError("issuer must be an X509 instance")
             ctx.issuer_cert = issuer._x509
         if subject is not None:
-            if not isinstance(subject, X509):
-                raise TypeError("subject must be an X509 instance")
+            if not isinstance(subject, (X509, X509Req)):
+                raise TypeError("subject must be an X509 or X509Req instance")
             ctx.subject_cert = subject._x509
 
         if critical:
@@ -1302,12 +1302,13 @@ X509Type = deprecated(
 )
 
 
-class X509Req(object):
+class X509Req(X509):
     """
     An X.509 certificate signing requests.
     """
 
     def __init__(self):
+        super(X509Req, self).__init__()
         req = _lib.X509_REQ_new()
         self._req = _ffi.gc(req, _lib.X509_REQ_free)
         # Default to version 0.
