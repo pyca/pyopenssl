@@ -307,10 +307,10 @@ class _NpnSelectHelper(_CallbackExceptionHelper):
                 instr = _ffi.buffer(in_, inlen)[:]
                 protolist = []
                 while instr:
-                    l = indexbytes(instr, 0)
-                    proto = instr[1:l + 1]
+                    length = indexbytes(instr, 0)
+                    proto = instr[1:length + 1]
                     protolist.append(proto)
-                    instr = instr[l + 1:]
+                    instr = instr[length + 1:]
 
                 # Call the callback
                 outstr = callback(conn, protolist)
@@ -1080,7 +1080,7 @@ class Context(object):
                 if not push_result:
                     _lib.X509_NAME_free(copy)
                     _raise_current_error()
-        except:
+        except Exception:
             _lib.sk_X509_NAME_free(name_stack)
             raise
 
