@@ -23,8 +23,9 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-*none*
 
+- Corrected a use-after-free with some uses of the ``X509`` API.
+  `#709 <https://github.com/pyca/pyopenssl/pull/709>`_
 
 ----
 
