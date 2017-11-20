@@ -94,7 +94,7 @@ install:
     if [[ "$(uname -s)" == 'Darwin' ]]; then
       brew update
       if [[ "${OPENSSL}" == "1.1.0" ]]; then
-        brew install openssl@1.1
+        brew upgrade openssl@1.1
       else
         brew upgrade openssl
       fi
