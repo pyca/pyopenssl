@@ -2,11 +2,7 @@
 PRNG management routines, thin wrappers.
 """
 
-from OpenSSL._util import (
-    ffi as _ffi,
-    lib as _lib,
-    exception_from_error_queue as _exception_from_error_queue,
-    path_string as _path_string)
+from OpenSSL._util import lib as _lib
 
 
 _builtin_bytes = bytes
