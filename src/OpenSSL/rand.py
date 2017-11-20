@@ -5,9 +5,6 @@ PRNG management routines, thin wrappers.
 from OpenSSL._util import lib as _lib
 
 
-_builtin_bytes = bytes
-
-
 def add(buffer, entropy):
     """
     Mix bytes from *string* into the PRNG state.
@@ -25,7 +22,7 @@ def add(buffer, entropy):
 
     :return: :obj:`None`
     """
-    if not isinstance(buffer, _builtin_bytes):
+    if not isinstance(buffer, bytes):
         raise TypeError("buffer must be a byte string")
 
     if not isinstance(entropy, int):
