@@ -23,11 +23,11 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-
+- Re-added a subset of the ``OpenSSL.rand`` module.
+  This subset allows conscientious users to reseed the OpenSSL CSPRNG after fork.
+  `#708 <https://github.com/pyca/pyopenssl/pull/708>`_
 - Corrected a use-after-free when reusing an issuer or subject from an ``X509`` object after the underlying object has been mutated.
   `#709 <https://github.com/pyca/pyopenssl/pull/709>`_
-
-----
 
 
 17.3.0 (2017-09-14)
