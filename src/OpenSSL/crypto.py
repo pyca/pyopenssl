@@ -162,6 +162,19 @@ def _get_asn1_time(timestamp):
             return string_result
 
 
+class _X509NameInvalidator(object):
+    def __init__(self):
+        self._names = []
+
+    def add(self, name):
+        self._names.append(name)
+
+    def clear(self):
+        for name in self._names:
+            # Breaks the object, but also prevents UAF!
+            del name._name
+
+
 class PKey(object):
     """
     A class representing an DSA or RSA public key or key pair.
@@ -1032,6 +1045,17 @@ class X509(object):
         _openssl_assert(x509 != _ffi.NULL)
         self._x509 = _ffi.gc(x509, _lib.X509_free)
 
+        self._issuer_invalidator = _X509NameInvalidator()
+        self._subject_invalidator = _X509NameInvalidator()
+
+    @classmethod
+    def _from_raw_x509_ptr(cls, x509):
+        cert = cls.__new__(cls)
+        cert._x509 = _ffi.gc(x509, _lib.X509_free)
+        cert._issuer_invalidator = _X509NameInvalidator()
+        cert._subject_invalidator = _X509NameInvalidator()
+        return cert
+
     def to_cryptography(self):
         """
         Export as a ``cryptography`` certificate.
@@ -1382,7 +1406,9 @@ class X509(object):
         :return: The issuer of this certificate.
         :rtype: :class:`X509Name`
         """
-        return self._get_name(_lib.X509_get_issuer_name)
+        name = self._get_name(_lib.X509_get_issuer_name)
+        self._issuer_invalidator.add(name)
+        return name
 
     def set_issuer(self, issuer):
         """
@@ -1393,7 +1419,8 @@ class X509(object):
 
         :return: ``None``
         """
-        return self._set_name(_lib.X509_set_issuer_name, issuer)
+        self._set_name(_lib.X509_set_issuer_name, issuer)
+        self._issuer_invalidator.clear()
 
     def get_subject(self):
         """
@@ -1407,7 +1434,9 @@ class X509(object):
         :return: The subject of this certificate.
         :rtype: :class:`X509Name`
         """
-        return self._get_name(_lib.X509_get_subject_name)
+        name = self._get_name(_lib.X509_get_subject_name)
+        self._subject_invalidator.add(name)
+        return name
 
     def set_subject(self, subject):
         """
@@ -1418,7 +1447,8 @@ class X509(object):
 
         :return: ``None``
         """
-        return self._set_name(_lib.X509_set_subject_name, subject)
+        self._set_name(_lib.X509_set_subject_name, subject)
+        self._subject_invalidator.clear()
 
     def get_extension_count(self):
         """
@@ -1691,8 +1721,7 @@ class X509StoreContext(object):
         # expect this call to never return :class:`None`.
         _x509 = _lib.X509_STORE_CTX_get_current_cert(self._store_ctx)
         _cert = _lib.X509_dup(_x509)
-        pycert = X509.__new__(X509)
-        pycert._x509 = _ffi.gc(_cert, _lib.X509_free)
+        pycert = X509._from_raw_x509_ptr(_cert)
         return X509StoreContextError(errors, pycert)
 
     def set_store(self, store):
@@ -1755,9 +1784,7 @@ def load_certificate(type, buffer):
     if x509 == _ffi.NULL:
         _raise_current_error()
 
-    cert = X509.__new__(X509)
-    cert._x509 = _ffi.gc(x509, _lib.X509_free)
-    return cert
+    return X509._from_raw_x509_ptr(x509)
 
 
 def dump_certificate(type, cert):

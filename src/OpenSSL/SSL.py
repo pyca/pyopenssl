@@ -1957,9 +1957,7 @@ class Connection(object):
         """
         cert = _lib.SSL_get_peer_certificate(self._ssl)
         if cert != _ffi.NULL:
-            pycert = X509.__new__(X509)
-            pycert._x509 = _ffi.gc(cert, _lib.X509_free)
-            return pycert
+            return X509._from_raw_x509_ptr(cert)
         return None
 
     def get_peer_cert_chain(self):
@@ -1977,8 +1975,7 @@ class Connection(object):
         for i in range(_lib.sk_X509_num(cert_stack)):
             # TODO could incref instead of dup here
             cert = _lib.X509_dup(_lib.sk_X509_value(cert_stack, i))
-            pycert = X509.__new__(X509)
-            pycert._x509 = _ffi.gc(cert, _lib.X509_free)
+            pycert = X509._from_raw_x509_ptr(cert)
             result.append(pycert)
         return result
 
