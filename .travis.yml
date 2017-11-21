@@ -88,9 +88,6 @@ matrix:
   - env: TOXENV=py35-cryptographyMaster
   - env: TOXENV=py36-cryptographyMaster
   - env: TOXENV=pypy-cryptographyMaster
-  # TODO: undo this once upstream fixes their tests
-  - python: "3.5"
-    env: TOXENV=py35-urllib3Master
 
 
 install:
