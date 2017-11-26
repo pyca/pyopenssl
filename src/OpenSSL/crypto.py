@@ -24,6 +24,45 @@ from OpenSSL._util import (
     make_assert as _make_assert,
 )
 
+__all__ = [
+    'FILETYPE_PEM',
+    'FILETYPE_ASN1',
+    'FILETYPE_TEXT',
+    'TYPE_RSA',
+    'TYPE_DSA',
+    'Error',
+    'PKey',
+    'get_elliptic_curves',
+    'get_elliptic_curve',
+    'X509Name',
+    'X509Extension',
+    'X509Req',
+    'X509',
+    'X509StoreFlags',
+    'X509Store',
+    'X509StoreContextError',
+    'X509StoreContext',
+    'load_certificate',
+    'dump_certificate',
+    'dump_publickey',
+    'dump_privatekey',
+    'Revoked',
+    'CRL',
+    'PKCS7',
+    'PKCS12',
+    'NetscapeSPKI',
+    'load_publickey',
+    'load_privatekey',
+    'dump_certificate_request',
+    'load_certificate_request',
+    'sign',
+    'verify',
+    'dump_crl',
+    'load_crl',
+    'load_pkcs7_data',
+    'load_pkcs12'
+]
+
 FILETYPE_PEM = _lib.SSL_FILETYPE_PEM
 FILETYPE_ASN1 = _lib.SSL_FILETYPE_ASN1
 
