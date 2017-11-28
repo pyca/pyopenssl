@@ -102,7 +102,9 @@ if __name__ == "__main__":
             "test": [
                 "flaky",
                 "pretend",
-                "pytest>=3.0.1",
+                # pytest 3.3 doesn't support Python 2.6 anymore.
+                # Remove this pin once we drop Python 2.6 too.
+                "pytest>=3.0.1,<3.3.0",
             ],
             "docs": [
                 "sphinx",
