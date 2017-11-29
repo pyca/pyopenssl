@@ -309,8 +309,10 @@ class _VerifyHelper(_CallbackExceptionHelper):
 
         @wraps(callback)
         def wrapper(ok, store_ctx):
-            cert = X509.__new__(X509)
-            cert._x509 = _lib.X509_STORE_CTX_get_current_cert(store_ctx)
+            x509 = _lib.X509_STORE_CTX_get_current_cert(store_ctx)
+            res = _lib.X509_up_ref(x509)
+            _openssl_assert(res == 1)
+            cert = X509._from_raw_x509_ptr(x509)
             error_number = _lib.X509_STORE_CTX_get_error(store_ctx)
             error_depth = _lib.X509_STORE_CTX_get_error_depth(store_ctx)
 

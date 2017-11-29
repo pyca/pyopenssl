@@ -3058,8 +3058,7 @@ def load_pkcs12(buffer, passphrase=None):
         pycert = None
         friendlyname = None
     else:
-        pycert = X509.__new__(X509)
-        pycert._x509 = _ffi.gc(cert[0], _lib.X509_free)
+        pycert = X509._from_raw_x509_ptr(cert[0])
 
         friendlyname_length = _ffi.new("int*")
         friendlyname_buffer = _lib.X509_alias_get0(
@@ -3073,8 +3072,8 @@ def load_pkcs12(buffer, passphrase=None):
 
     pycacerts = []
     for i in range(_lib.sk_X509_num(cacerts)):
-        pycacert = X509.__new__(X509)
-        pycacert._x509 = _lib.sk_X509_value(cacerts, i)
+        x509 = _lib.sk_X509_value(cacerts, i)
+        pycacert = X509._from_raw_x509_ptr(x509)
         pycacerts.append(pycacert)
     if not pycacerts:
         pycacerts = None

@@ -1279,6 +1279,31 @@ class TestContext(object):
 
         assert verify.connection is clientConnection
 
+    def test_x509_in_verify_works(self):
+        """
+        We had a bug where the X509 cert instantiated in the callback wrapper
+        didn't __init__ so it was missing objects needed when calling
+        get_subject. This test sets up a handshake where we call get_subject
+        on the cert provided to the verify callback.
+        """
+        serverContext = Context(TLSv1_METHOD)
+        serverContext.use_privatekey(
+            load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM))
+        serverContext.use_certificate(
+            load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
+        serverConnection = Connection(serverContext, None)
+
+        def verify_cb_get_subject(conn, cert, errnum, depth, ok):
+            assert cert.get_subject()
+            return 1
+
+        clientContext = Context(TLSv1_METHOD)
+        clientContext.set_verify(VERIFY_PEER, verify_cb_get_subject)
+        clientConnection = Connection(clientContext, None)
+        clientConnection.set_connect_state()
+
+        handshake_in_memory(clientConnection, serverConnection)
+
     def test_set_verify_callback_exception(self):
         """
         If the verify callback passed to `Context.set_verify` raises an
