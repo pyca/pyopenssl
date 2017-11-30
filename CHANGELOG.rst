@@ -11,7 +11,7 @@ The third digit is only for regressions.
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-*none*
+* The minimum ``cryptography`` version is now 2.1.4.
 
 
 Deprecations:
@@ -23,8 +23,8 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-
-*none*
+- Fixed a potential use-after-free in the verify callback and resolved a memory leak when loading PKCS12 files with ``cacerts``.
+  `#723 <https://github.com/pyca/pyopenssl/pull/723>`_
 
 ----
 
