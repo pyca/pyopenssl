@@ -3379,6 +3379,28 @@ class TestMemoryBIO(object):
         assert server_conn.client_random() != server_conn.server_random()
         assert client_conn.client_random() != client_conn.server_random()
 
+        # Export key material for other uses.
+        cekm = client_conn.export_keying_material(b'LABEL', 32)
+        sekm = server_conn.export_keying_material(b'LABEL', 32)
+        assert cekm is not None
+        assert sekm is not None
+        assert cekm == sekm
+        assert len(sekm) == 32
+
+        # Export key material for other uses with additional context.
+        cekmc = client_conn.export_keying_material(b'LABEL', 32, b'CONTEXT')
+        sekmc = server_conn.export_keying_material(b'LABEL', 32, b'CONTEXT')
+        assert cekmc is not None
+        assert sekmc is not None
+        assert cekmc == sekmc
+        assert cekmc != cekm
+        assert sekmc != sekm
+        # Export with alternate label
+        cekmt = client_conn.export_keying_material(b'test', 32, b'CONTEXT')
+        sekmt = server_conn.export_keying_material(b'test', 32, b'CONTEXT')
+        assert cekmc != cekmt
+        assert sekmc != sekmt
+
         # Here are the bytes we'll try to send.
         important_message = b'One if by land, two if by sea.'
 

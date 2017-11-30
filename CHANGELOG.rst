@@ -25,6 +25,8 @@ Changes:
 
 - Fixed a potential use-after-free in the verify callback and resolved a memory leak when loading PKCS12 files with ``cacerts``.
   `#723 <https://github.com/pyca/pyopenssl/pull/723>`_
+- Added ``Connection.export_keying_material`` for RFC 5705 compatible export of keying material.
+  `#725 <https://github.com/pyca/pyopenssl/pull/725>`_
 
 ----
 
