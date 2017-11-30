@@ -2041,20 +2041,17 @@ class Connection(object):
         :return the exported key material bytes or None
         """
         outp = _no_zero_allocator("unsigned char[]", olen)
-        # RFC 5705: "Labels here have the same definition as in TLS, i.e., an
-        # ASCII string with no terminating NULL."
-        # So we must remove the NULL terminator.
-        label_buf = _ffi.new("char[]", label)[0:len(label)]
         context_buf, context_len, use_context, success = _ffi.NULL, 0, 0, 0
         if context is not None:
-            context_buf = _ffi.new("unsigned char[]", context)
+            context_buf = context
             context_len = len(context)
             use_context = 1
         success = _lib.SSL_export_keying_material(self._ssl, outp, olen,
-                                                  label_buf, len(label),
+                                                  label, len(label),
                                                   context_buf, context_len,
                                                   use_context)
-        return _ffi.buffer(outp, olen)[:] if success == 1 else None
+        _openssl_assert(success == 1)
+        return _ffi.buffer(outp, olen)[:]
 
     def sock_shutdown(self, *args, **kwargs):
         """
