@@ -2041,7 +2041,9 @@ class Connection(object):
         :return the exported key material bytes or None
         """
         outp = _no_zero_allocator("unsigned char[]", olen)
-        context_buf, context_len, use_context, success = _ffi.NULL, 0, 0, 0
+        context_buf = _ffi.NULL
+        context_len = 0
+        use_context = 0
         if context is not None:
             context_buf = context
             context_len = len(context)

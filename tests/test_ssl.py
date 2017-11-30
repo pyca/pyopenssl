@@ -3393,6 +3393,13 @@ class TestMemoryBIO(object):
         assert cekmc is not None
         assert sekmc is not None
         assert cekmc == sekmc
+        assert cekmc != cekm
+        assert sekmc != sekm
+        # Export with alternate label
+        cekmt = client_conn.export_keying_material(b'test', 32, b'CONTEXT')
+        sekmt = server_conn.export_keying_material(b'test', 32, b'CONTEXT')
+        assert cekmc != cekmt
+        assert sekmc != sekmt
 
         # Here are the bytes we'll try to send.
         important_message = b'One if by land, two if by sea.'
