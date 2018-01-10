@@ -25,7 +25,8 @@ def read_file(*parts):
     resulting file.  Assume UTF-8 encoding.
     """
     with codecs.open(os.path.join(HERE, *parts), "rb", "ascii") as f:
-        return f.read()
+        # replace to convert CRLF to LF for windows dev
+        return f.read().replace("\r\n", "\n")
 
 
 META_FILE = read_file(META_PATH)
@@ -49,7 +50,7 @@ LONG = (
     read_file("README.rst") + "\n\n" +
     "Release Information\n" +
     "===================\n\n" +
-    re.search("(\d{2}.\d.\d \(.*?\)\n.*?)\n\n\n----\n",
+    re.search(r"(\d{2}\.\d\.\d \(.*?\)\n.*?)\n\n\n----\n",
               read_file("CHANGELOG.rst"), re.S).group(1) +
     "\n\n`Full changelog " +
     "<{uri}en/stable/changelog.html>`_.\n\n"
