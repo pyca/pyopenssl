@@ -746,6 +746,39 @@ class Context(object):
 
         self.set_mode(_lib.SSL_MODE_ENABLE_PARTIAL_WRITE)
 
+    def set_psk_client_callback(self, callback):
+        """
+        """
+        if not callable(callback):
+            raise TypeError("callback must be callable")
+
+        # possibly connect to a self.variable to not gc
+        psk_client_helper = _PskClientHelper(callback)
+        _callback = psk_client_helper.callback
+        _lib.SSL_CTX_set_psk_client_callback(self._context, _callback)
+
+    def set_psk_server_callback(self, callback):
+        """
+        """
+        if not callable(callback):
+            raise TypeError("callback must be callable")
+
+        # possibly connect to a self.variable to not gc
+        psk_server_helper = _PskServerHelper(callback)
+        _callback = psk_server_helper.callback
+        _lib.SSL_CTX_set_psk_server_callback(self._context, _callback)
+
+    def use_psk_identity_hint(self, hint):
+        """
+        """
+        hint = _text_to_bytes_and_warn("hint", hint)
+
+        if not isinstance(hint, bytes):
+            raise TypeError("hint must be a byte string.")
+
+        result = _lib.SSL_CTX_use_psk_identity_hint(self._context, hint)
+        _openssl_assert(result == 1)
+
     def load_verify_locations(self, cafile, capath=None):
         """
         Let SSL know where we can find trusted certificates for the certificate
