@@ -298,6 +298,59 @@ class _CallbackExceptionHelper(object):
             raise self._problems.pop(0)
 
 
+class _PskServerHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as an NPN selection callback.
+    """
+
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ssl, identity, psk, max_psk_len):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+
+                # Call the callback
+                res = callback(conn)
+
+                return 0
+            except Exception as e:
+                self._problems.append(e)
+                return 2  # SSL_TLSEXT_ERR_ALERT_FATAL
+
+        self.callback = _ffi.callback(
+            ("unsigned int (*)(SSL *, const char *, unsigned char *, int)"),
+            wrapper
+        )
+
+
+class _PskClientHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as an NPN selection callback.
+    """
+
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ssl, hint, identity, max_identity_length, psk, max_psk_len):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+
+                res = callback(conn, protolist)
+
+                return 0
+            except Exception as e:
+                self._problems.append(e)
+                return 2  # SSL_TLSEXT_ERR_ALERT_FATAL
+
+        self.callback = _ffi.callback(
+            ("unsigned int (*)(SSL *, const char *, char *, unsigned int, unsigned char *, unsigned int)"),
+            wrapper
+        )
+
+
 class _VerifyHelper(_CallbackExceptionHelper):
     """
     Wrap a callback such that it can be used as a certificate verification
