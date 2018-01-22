@@ -1,6 +1,7 @@
 import os
 import socket
 from sys import platform
+from socket import SOCK_DGRAM
 from functools import wraps, partial
 from itertools import count, chain
 from weakref import WeakValueDictionary
@@ -1479,6 +1480,8 @@ class Connection(object):
 
         self._reverse_mapping[self._ssl] = self
 
+        self.is_datagram_socket = None
+
         if socket is None:
             self._socket = None
             # Don't set up any gc for these, SSL_free will take care of them.
@@ -1493,9 +1496,15 @@ class Connection(object):
             self._into_ssl = None
             self._from_ssl = None
             self._socket = socket
-            set_result = _lib.SSL_set_fd(
-                self._ssl, _asFileDescriptor(self._socket))
-            _openssl_assert(set_result == 1)
+            self.is_datagram_socket = self._socket.type == SOCK_DGRAM
+            socket_fd = _asFileDescriptor(self._socket)
+            if self.is_datagram_socket:
+                # setup dgram specific BIO
+                bio = _lib.BIO_new_dgram(socket_fd, _lib.BIO_NOCLOSE)
+                _lib.SSL_set_bio(self._ssl, bio, bio)
+            else:
+                set_result = _lib.SSL_set_fd(self._ssl, socket_fd)
+                _openssl_assert(set_result == 1)
 
     def __getattr__(self, name):
         """
