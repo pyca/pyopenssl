@@ -1845,6 +1845,10 @@ class Connection(object):
         :param addr: A remote address
         :return: What the socket's connect method returns
         """
+        if self.is_datagram_socket:
+            # DTLS BIO set connected
+            _lib.BIO_ctrl(_lib.SSL_get_rbio(self._ssl),
+                          _lib.BIO_CTRL_DGRAM_SET_CONNECTED, 0, addr[0])
         _lib.SSL_set_connect_state(self._ssl)
         return self._socket.connect(addr)
 
