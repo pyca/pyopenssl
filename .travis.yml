@@ -82,12 +82,12 @@ matrix:
   # Let the cryptography master builds fail because they might be caused by
   # cryptography changes that are beyond our control.
   allow_failures:
-  - env: TOXENV=py26-cryptographyMaster
-  - env: TOXENV=py27-cryptographyMaster
-  - env: TOXENV=py34-cryptographyMaster
-  - env: TOXENV=py35-cryptographyMaster
-  - env: TOXENV=py36-cryptographyMaster
-  - env: TOXENV=pypy-cryptographyMaster
+  - env: TOXENV=py26-cryptographyMaster OPENSSL=1.1.0
+  - env: TOXENV=py27-cryptographyMaster OPENSSL=1.1.0
+  - env: TOXENV=py34-cryptographyMaster OPENSSL=1.1.0
+  - env: TOXENV=py35-cryptographyMaster OPENSSL=1.1.0
+  - env: TOXENV=py36-cryptographyMaster OPENSSL=1.1.0
+  - env: TOXENV=pypy-cryptographyMaster OPENSSL=1.1.0
 
 
 install:
