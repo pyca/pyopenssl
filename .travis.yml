@@ -34,16 +34,16 @@ matrix:
 
   # Also run the tests against cryptography master.
   - python: "2.6"
-    env: TOXENV=py26-cryptographyMaster OPENSSL=1.1.0
+    env: TOXENV=py26-cryptographyMaster
   - python: "2.7"
-    env: TOXENV=py27-cryptographyMaster OPENSSL=1.1.0
+    env: TOXENV=py27-cryptographyMaster
   - python: "3.4"
-    env: TOXENV=py34-cryptographyMaster OPENSSL=1.1.0
+    env: TOXENV=py34-cryptographyMaster
   - python: "3.5"
-    env: TOXENV=py35-cryptographyMaster OPENSSL=1.1.0
+    env: TOXENV=py35-cryptographyMaster
   - python: "3.6"
-    env: TOXENV=py36-cryptographyMaster OPENSSL=1.1.0
-  - env: TOXENV=pypy-cryptographyMaster OPENSSL=1.1.0
+    env: TOXENV=py36-cryptographyMaster
+  - env: TOXENV=pypy-cryptographyMaster
 
   # And current minimum cryptography version.
   - python: "2.6"
@@ -122,7 +122,7 @@ script:
   - |
     if [[ "$(uname -s)" == 'Darwin' ]]; then
       # set our flags to use homebrew openssl
-      if [[ "${OPENSSL}" == "1.1.0" ]]; then
+      if [[ "${OPENSSL}"  == "1.1.0" ]]; then
         export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
         export CFLAGS="-I/usr/local/opt/openssl@1.1/include"
         export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
