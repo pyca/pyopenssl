@@ -489,7 +489,8 @@ class TestContext(object):
         for meth in methods:
             Context(meth)
 
-        maybe = [SSLv2_METHOD, SSLv3_METHOD, TLSv1_1_METHOD, TLSv1_2_METHOD, DTLS_METHOD]
+        maybe = [SSLv2_METHOD, SSLv3_METHOD, TLSv1_1_METHOD,
+                 TLSv1_2_METHOD, DTLS_METHOD]
         for meth in maybe:
             try:
                 Context(meth)
