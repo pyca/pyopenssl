@@ -16,6 +16,7 @@ Context, Connection.
              TLSv1_METHOD
              TLSv1_1_METHOD
              TLSv1_2_METHOD
+             DTLS_METHOD
 
     These constants represent the different SSL methods to use when creating a
     context object.  If the underlying OpenSSL build is missing support for any
@@ -74,6 +75,8 @@ Context, Connection.
              OP_NO_TLSv1
              OP_NO_TLSv1_1
              OP_NO_TLSv1_2
+             OP_NO_DTLSv1
+             OP_NO_DTLSv1_2
 
     Constants used with :py:meth:`set_options` of Context objects.
 
@@ -137,7 +140,7 @@ Context, Connection.
 
     *method* should be :py:const:`SSLv2_METHOD`, :py:const:`SSLv3_METHOD`,
     :py:const:`SSLv23_METHOD`, :py:const:`TLSv1_METHOD`, :py:const:`TLSv1_1_METHOD`,
-    or :py:const:`TLSv1_2_METHOD`.
+    :py:const:`TLSv1_2_METHOD`, or :py:const:`DTLS_METHOD`.
 
 
 .. py:class:: Session()

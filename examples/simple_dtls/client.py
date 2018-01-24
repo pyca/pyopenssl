@@ -31,7 +31,9 @@ if dir == '':
 # Initialize context
 ctx = SSL.Context(SSL.DTLS_METHOD)
 ctx.set_options(SSL.OP_NO_DTLSv1)
-ctx.set_verify(SSL.VERIFY_PEER, verify_cb)  # Demand a certificate
+ctx.set_verify(
+    SSL.VERIFY_PEER | SSL.VERIFY_FAIL_IF_NO_PEER_CERT, verify_cb
+) # Demand a certificate
 ctx.use_privatekey_file(os.path.join(dir, 'client.pkey'))
 ctx.use_certificate_file(os.path.join(dir, 'client.cert'))
 ctx.load_verify_locations(os.path.join(dir, 'CA.cert'))

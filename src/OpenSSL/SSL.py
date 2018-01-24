@@ -49,6 +49,8 @@ __all__ = [
     'OP_NO_TLSv1',
     'OP_NO_TLSv1_1',
     'OP_NO_TLSv1_2',
+    'OP_NO_DTLSv1',
+    'OP_NO_DTLSv1_2',
     'MODE_RELEASE_BUFFERS',
     'OP_SINGLE_DH_USE',
     'OP_SINGLE_ECDH_USE',

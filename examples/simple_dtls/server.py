@@ -15,6 +15,7 @@ def verify_cb(conn, cert, errnum, depth, ok):
     certsubject = crypto.X509Name(cert.get_subject())
     commonname = certsubject.commonName
     print('Got certificate: ' + commonname)
+    sys.stdout.flush()
     return ok
 
 
@@ -53,6 +54,8 @@ while True:
     cli_conn = SSL.Connection(ctx, server)
 
     print('Connected', cli)
+    sys.stdout.flush()
+
     cli_conn.connect(cli)
 
     cli_conn.set_accept_state()
@@ -72,6 +75,7 @@ while True:
     cli_conn.shutdown()
     cli_conn.close()
     print('Disconnected', cli)
+    sys.stdout.flush()
 
 
 server.shutdown()
