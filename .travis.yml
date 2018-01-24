@@ -97,7 +97,7 @@ install:
       if [[ "${OPENSSL}" == "1.1.0" ]]; then
         brew upgrade openssl@1.1
       else
-        brew upgrade openssl@1.0.2
+        brew upgrade openssl
       fi
       curl -O https://bootstrap.pypa.io/get-pip.py
       python get-pip.py --user
@@ -127,9 +127,9 @@ script:
         export CFLAGS="-I/usr/local/opt/openssl@1.1/include"
         export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
       else
-        export LDFLAGS="-L/usr/local/opt/openssl@1.0.2/lib"
-        export CFLAGS="-I/usr/local/opt/openssl@1.0.2/include"
-        export PATH="/usr/local/opt/openssl@1.0.2/bin:$PATH"
+        export LDFLAGS="-L/usr/local/opt/openssl/lib"
+        export CFLAGS="-I/usr/local/opt/openssl/include"
+        export PATH="/usr/local/opt/openssl/bin:$PATH"
       fi
     fi
     # activate the pypy env we installed via our custom pyenv in the install stage
