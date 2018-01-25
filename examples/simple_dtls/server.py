@@ -15,6 +15,7 @@ from cryptography.hazmat.primitives import hashes, hmac
 
 SERVER_COOKIE_SECRET = os.urandom(16)
 
+
 def verify_cb(conn, cert, errnum, depth, ok):
     certsubject = crypto.X509Name(cert.get_subject())
     commonname = certsubject.commonName
@@ -22,11 +23,17 @@ def verify_cb(conn, cert, errnum, depth, ok):
     sys.stdout.flush()
     return ok
 
+
 def generate_cookie_cb(conn):
-    h = hmac.HMAC(SERVER_COOKIE_SECRET, hashes.SHA256(), backend=default_backend())
+    h = hmac.HMAC(
+        SERVER_COOKIE_SECRET,
+        hashes.SHA256(),
+        backend=default_backend()
+    )
     # TODO: fix this, actually use peer info as a digest
     h.update(str(conn))
     return h.finalize()
+
 
 def verify_cookie_cb(conn, client_cookie):
     return client_cookie == generate_cookie_cb(conn)

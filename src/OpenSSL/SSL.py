@@ -622,7 +622,8 @@ class _OCSPClientCallbackHelper(_CallbackExceptionHelper):
 
 class _CookieGenerateHelper(_CallbackExceptionHelper):
     """
-    Wrap a callback such that it can be used as a DTLS cookie generation callback.
+    Wrap a callback such that it can be used as a
+    DTLS cookie generation callback.
     """
 
     def __init__(self, callback):
@@ -657,7 +658,8 @@ class _CookieGenerateHelper(_CallbackExceptionHelper):
 
 class _CookieVerifyHelper(_CallbackExceptionHelper):
     """
-    Wrap a callback such that it can be used as a DTLS cookie verification callback.
+    Wrap a callback such that it can be used as a
+    DTLS cookie verification callback.
     """
 
     def __init__(self, callback):
@@ -1524,21 +1526,28 @@ class Context(object):
         """
         self._cookie_generate_helper = _CookieGenerateHelper(callback)
         self._cookie_generate_callback = self._cookie_generate_helper.callback
-        _lib.SSL_CTX_set_cookie_generate_cb(self._context, self._cookie_generate_callback)
+        _lib.SSL_CTX_set_cookie_generate_cb(
+            self._context,
+            self._cookie_generate_callback
+        )
 
     def set_cookie_verify_cb(self, callback):
         """
         Set the callback to handle DTLS ClientHello cookie verification.
 
         :param callback: The callback function.  It will be invoked with two
-            arguments: the Connection and a bytestring containing the client cookie.  The
-            callback must return a boolean that indicates the result of
-            validating the client cookie: ``True`` if the cookie is valid,
+            arguments: the Connection and a bytestring
+            containing the client cookie.  The callback must return a
+            boolean that indicates the result of validating the client cookie:
+            ``True`` if the cookie is valid,
             or ``False`` if the cookie is invalid.
         """
         self._cookie_verify_helper = _CookieVerifyHelper(callback)
         self._cookie_verify_callback = self._cookie_verify_helper.callback
-        _lib.SSL_CTX_set_cookie_verify_cb(self._context, self._cookie_verify_callback)
+        _lib.SSL_CTX_set_cookie_verify_cb(
+            self._context,
+            self._cookie_verify_callback
+        )
 
 
 ContextType = deprecated(
