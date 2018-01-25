@@ -43,7 +43,8 @@ __all__ = [
     'TLSv1_METHOD',
     'TLSv1_1_METHOD',
     'TLSv1_2_METHOD',
-    'DTLS_METHOD',
+    'DTLSv1_METHOD',
+    # 'DTLS_METHOD',
     'OP_NO_SSLv2',
     'OP_NO_SSLv3',
     'OP_NO_TLSv1',
@@ -148,13 +149,16 @@ SSLv23_METHOD = 3
 TLSv1_METHOD = 4
 TLSv1_1_METHOD = 5
 TLSv1_2_METHOD = 6
-DTLS_METHOD = 7
+DTLSv1_METHOD = 7
+# Requires openssl>=1.0.2
+# DTLS_METHOD = 8
 
 OP_NO_SSLv2 = _lib.SSL_OP_NO_SSLv2
 OP_NO_SSLv3 = _lib.SSL_OP_NO_SSLv3
 OP_NO_TLSv1 = _lib.SSL_OP_NO_TLSv1
 OP_NO_TLSv1_1 = _lib.SSL_OP_NO_TLSv1_1
 OP_NO_TLSv1_2 = _lib.SSL_OP_NO_TLSv1_2
+# Requires openssl>=1.0.2
 # OP_NO_DTLSv1 = _lib.SSL_OP_NO_DTLSv1
 # OP_NO_DTLSv1_2 = _lib.SSL_OP_NO_DTLSv1_2
 
@@ -616,6 +620,72 @@ class _OCSPClientCallbackHelper(_CallbackExceptionHelper):
         self.callback = _ffi.callback("int (*)(SSL *, void *)", wrapper)
 
 
+class _CookieGenerateHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as a DTLS cookie generation callback.
+    """
+
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ssl, cookie, cookie_length):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+
+                # Call the callback
+                cookie_str = callback(conn)
+
+                # Set the cookie length
+                cookie_str_len = len(cookie_str)
+                cookie_length[0] = cookie_str_len
+
+                # Set the cookie string
+                _ffi.memmove(cookie, cookie_str, cookie_str_len)
+
+                return 1
+
+            except Exception as e:
+                self._problems.append(e)
+                return 0  # SSL_TLSEXT_ERR_ALERT_FATAL
+
+        self.callback = _ffi.callback(
+            ("int (*)(SSL *, unsigned char *, unsigned int *)"),
+            wrapper
+        )
+
+
+class _CookieVerifyHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as a DTLS cookie verification callback.
+    """
+
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ssl, cookie, cookie_length):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+
+                client_cookie = _ffi.string(cookie, cookie_length)
+
+                # Call the callback
+                valid = callback(conn, client_cookie)
+
+                # Return 1 on success or 0 on error.
+                return int(bool(valid))
+
+            except Exception as e:
+                self._problems.append(e)
+                return 0  # SSL_TLSEXT_ERR_ALERT_FATAL
+
+        self.callback = _ffi.callback(
+            ("int (*)(SSL *, const unsigned char *, unsigned int)"),
+            wrapper
+        )
+
+
 def _asFileDescriptor(obj):
     fd = None
     if not isinstance(obj, integer_types):
@@ -697,7 +767,8 @@ class Context(object):
         TLSv1_METHOD: "TLSv1_method",
         TLSv1_1_METHOD: "TLSv1_1_method",
         TLSv1_2_METHOD: "TLSv1_2_method",
-        DTLS_METHOD: "DTLSv1_method",
+        DTLSv1_METHOD: "DTLSv1_method",
+        # DTLS_METHOD: "DTLS_method",
     }
     _methods = dict(
         (identifier, getattr(_lib, name))
@@ -751,6 +822,10 @@ class Context(object):
         self._ocsp_helper = None
         self._ocsp_callback = None
         self._ocsp_data = None
+        self._cookie_generate_helper = None
+        self._cookie_generate_callback = None
+        self._cookie_verify_helper = None
+        self._cookie_verify_callback = None
 
         self.set_mode(_lib.SSL_MODE_ENABLE_PARTIAL_WRITE)
 
@@ -1438,6 +1513,32 @@ class Context(object):
         """
         helper = _OCSPClientCallbackHelper(callback)
         self._set_ocsp_callback(helper, data)
+
+    def set_cookie_generate_cb(self, callback):
+        """
+        Set the callback to handle DTLS HelloVerifyRequest cookie generation.
+
+        :param callback: The callback function.  It will be invoked with one
+            argument: the Connection.  It should return
+            a cookie in the form of a bytestring.
+        """
+        self._cookie_generate_helper = _CookieGenerateHelper(callback)
+        self._cookie_generate_callback = self._cookie_generate_helper.callback
+        _lib.SSL_CTX_set_cookie_generate_cb(self._context, self._cookie_generate_callback)
+
+    def set_cookie_verify_cb(self, callback):
+        """
+        Set the callback to handle DTLS ClientHello cookie verification.
+
+        :param callback: The callback function.  It will be invoked with two
+            arguments: the Connection and a bytestring containing the client cookie.  The
+            callback must return a boolean that indicates the result of
+            validating the client cookie: ``True`` if the cookie is valid,
+            or ``False`` if the cookie is invalid.
+        """
+        self._cookie_verify_helper = _CookieVerifyHelper(callback)
+        self._cookie_verify_callback = self._cookie_verify_helper.callback
+        _lib.SSL_CTX_set_cookie_verify_cb(self._context, self._cookie_verify_callback)
 
 
 ContextType = deprecated(

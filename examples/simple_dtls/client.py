@@ -29,7 +29,8 @@ if dir == '':
 
 
 # Initialize context
-ctx = SSL.Context(SSL.DTLS_METHOD)
+ctx = SSL.Context(SSL.DTLSv1_METHOD)
+# ctx = SSL.Context(SSL.DTLS_METHOD)
 # ctx.set_options(SSL.OP_NO_DTLSv1)
 ctx.set_verify(
     SSL.VERIFY_PEER | SSL.VERIFY_FAIL_IF_NO_PEER_CERT, verify_cb

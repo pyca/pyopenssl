@@ -9,7 +9,11 @@ import socket
 import sys
 
 from OpenSSL import SSL, crypto
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, hmac
 
+
+SERVER_COOKIE_SECRET = os.urandom(16)
 
 def verify_cb(conn, cert, errnum, depth, ok):
     certsubject = crypto.X509Name(cert.get_subject())
@@ -17,6 +21,15 @@ def verify_cb(conn, cert, errnum, depth, ok):
     print('Got certificate: ' + commonname)
     sys.stdout.flush()
     return ok
+
+def generate_cookie_cb(conn):
+    h = hmac.HMAC(SERVER_COOKIE_SECRET, hashes.SHA256(), backend=default_backend())
+    # TODO: fix this, actually use peer info as a digest
+    h.update(str(conn))
+    return h.finalize()
+
+def verify_cookie_cb(conn, client_cookie):
+    return client_cookie == generate_cookie_cb(conn)
 
 
 if len(sys.argv) < 2:
@@ -30,8 +43,12 @@ if dir == '':
 port = int(sys.argv[1])
 
 # Initialize context
-ctx = SSL.Context(SSL.DTLS_METHOD)
+ctx = SSL.Context(SSL.DTLSv1_METHOD)
+# ctx = SSL.Context(SSL.DTLS_METHOD)
 # ctx.set_options(SSL.OP_NO_DTLSv1)
+ctx.set_options(SSL.OP_COOKIE_EXCHANGE)
+ctx.set_cookie_generate_cb(generate_cookie_cb)
+ctx.set_cookie_verify_cb(verify_cookie_cb)
 ctx.set_verify(
     SSL.VERIFY_PEER | SSL.VERIFY_FAIL_IF_NO_PEER_CERT, verify_cb
 )  # Demand a certificate

@@ -16,7 +16,7 @@ Context, Connection.
              TLSv1_METHOD
              TLSv1_1_METHOD
              TLSv1_2_METHOD
-             DTLS_METHOD
+             DTLSv1_METHOD
 
     These constants represent the different SSL methods to use when creating a
     context object.  If the underlying OpenSSL build is missing support for any
@@ -54,6 +54,15 @@ Context, Connection.
 
     When this option is used, ephemeral RSA keys will always be used when doing
     RSA operations.
+
+
+.. py:data:: OP_COOKIE_EXCHANGE
+
+    Constant used with :py:meth:`set_options` of Context objects.
+
+    When this option is used on a DTLS server, cookies will be exchanged
+    via ClientHello/HelloVerifyRequest and handled with :py:meth:`set_cookie_generate_cb` and
+    :py:meth:`set_cookie_verify_cb` of Context objects.
 
 
 .. py:data:: OP_NO_TICKET
@@ -140,7 +149,7 @@ Context, Connection.
 
     *method* should be :py:const:`SSLv2_METHOD`, :py:const:`SSLv3_METHOD`,
     :py:const:`SSLv23_METHOD`, :py:const:`TLSv1_METHOD`, :py:const:`TLSv1_1_METHOD`,
-    :py:const:`TLSv1_2_METHOD`, or :py:const:`DTLS_METHOD`.
+    :py:const:`TLSv1_2_METHOD`, or :py:const:`DTLSv1_METHOD`.
 
 
 .. py:class:: Session()
@@ -515,6 +524,29 @@ Context objects have the following methods:
     arguments: the :py:class:`Connection` and a list of offered protocols as
     bytestrings, e.g. ``[b'http/1.1', b'spdy/2']``. It should return one of
     these bytestrings, the chosen protocol.
+
+
+.. py:method:: Context.set_cookie_generate_cb(callback)
+
+    Specify a callback function that will be called on the server when the
+    :py:data:`OP_COOKIE_EXCHANGE` option is enabled. The server will use this
+    callback to build the DTLS HelloVerifyRequest.
+
+    *callback* should be the callback function. It will be invoked with one
+    argument: the :py:class:`Connection`. It should return a
+    bytestring containing the generated cookie.
+
+
+.. py:method:: Context.set_cookie_verify_cb(callback)
+
+    Specify a callback function that will be called on the server when a client
+    offers a cookie within a DTLS ClientHello.
+
+    *callback* should be the callback function. It will be invoked with two
+    arguments: the :py:class:`Connection` and a bytestring containing the client cookie.
+    The callback must return a boolean that indicates the result of
+    validating the client cookie: ``True`` if the cookie is valid,
+    or ``False`` if the cookie is invalid.
 
 
 .. _openssl-session:
