@@ -637,8 +637,13 @@ class _CookieGenerateHelper(_CallbackExceptionHelper):
                 # Call the callback
                 cookie_str = callback(conn)
 
+                if not isinstance(cookie_str, _binary_type):
+                    raise TypeError("DTLS cookie generation "
+                                    "callback must return a bytestring.")
+
                 # Set the cookie length
                 cookie_str_len = len(cookie_str)
+                assert cookie_str_len <= 32
                 cookie_length[0] = cookie_str_len
 
                 # Set the cookie string
