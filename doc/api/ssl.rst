@@ -84,8 +84,6 @@ Context, Connection.
              OP_NO_TLSv1
              OP_NO_TLSv1_1
              OP_NO_TLSv1_2
-             OP_NO_DTLSv1
-             OP_NO_DTLSv1_2
 
     Constants used with :py:meth:`set_options` of Context objects.
 
