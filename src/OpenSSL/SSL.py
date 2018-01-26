@@ -298,59 +298,6 @@ class _CallbackExceptionHelper(object):
             raise self._problems.pop(0)
 
 
-class _PskServerHelper(_CallbackExceptionHelper):
-    """
-    Wrap a callback such that it can be used as an NPN selection callback.
-    """
-
-    def __init__(self, callback):
-        _CallbackExceptionHelper.__init__(self)
-
-        @wraps(callback)
-        def wrapper(ssl, identity, psk, max_psk_len):
-            try:
-                conn = Connection._reverse_mapping[ssl]
-
-                # Call the callback
-                res = callback(conn)
-
-                return 0
-            except Exception as e:
-                self._problems.append(e)
-                return 2  # SSL_TLSEXT_ERR_ALERT_FATAL
-
-        self.callback = _ffi.callback(
-            ("unsigned int (*)(SSL *, const char *, unsigned char *, int)"),
-            wrapper
-        )
-
-
-class _PskClientHelper(_CallbackExceptionHelper):
-    """
-    Wrap a callback such that it can be used as an NPN selection callback.
-    """
-
-    def __init__(self, callback):
-        _CallbackExceptionHelper.__init__(self)
-
-        @wraps(callback)
-        def wrapper(ssl, hint, identity, max_identity_length, psk, max_psk_len):
-            try:
-                conn = Connection._reverse_mapping[ssl]
-
-                res = callback(conn, protolist)
-
-                return 0
-            except Exception as e:
-                self._problems.append(e)
-                return 2  # SSL_TLSEXT_ERR_ALERT_FATAL
-
-        self.callback = _ffi.callback(
-            ("unsigned int (*)(SSL *, const char *, char *, unsigned int, unsigned char *, unsigned int)"),
-            wrapper
-        )
-
-
 class _VerifyHelper(_CallbackExceptionHelper):
     """
     Wrap a callback such that it can be used as a certificate verification
@@ -662,6 +609,88 @@ class _OCSPClientCallbackHelper(_CallbackExceptionHelper):
         self.callback = _ffi.callback("int (*)(SSL *, void *)", wrapper)
 
 
+class _PskServerHelper(_CallbackExceptionHelper):
+    """
+    """
+
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ssl, identity, psk, max_psk_len):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+
+                client_identity = _ffi.string(identity)
+
+                # Call the callback
+                psk_str = callback(conn, client_identity)
+
+                if not isinstance(psk_str, _binary_type):
+                    raise TypeError("Client PSK "
+                                    "must be a bytestring.")
+
+                psk_str_len = len(psk_str)
+
+                assert psk_str_len <= max_psk_len
+
+                _ffi.memmove(psk, psk_str, psk_str_len)
+
+                return psk_str_len
+
+            except Exception as e:
+                self._problems.append(e)
+                return 0  # SSL_TLSEXT_ERR_ALERT_FATAL
+
+        self.callback = _ffi.callback(
+            ("unsigned int (*)(SSL *, const char *, unsigned char *, int)"),
+            wrapper
+        )
+
+
+class _PskClientHelper(_CallbackExceptionHelper):
+    """
+    """
+
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ssl, hint, identity, max_identity_len, psk, max_psk_len):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+
+                psk_identity, psk_str = callback(conn)
+
+                if not isinstance(psk_identity, _binary_type):
+                    raise TypeError("Client PSK identity "
+                                    "must be a bytestring.")
+
+                if not isinstance(psk_str, _binary_type):
+                    raise TypeError("Client PSK "
+                                    "must be a bytestring.")
+
+                psk_identity_len = len(psk_identity)
+                psk_str_len = len(psk_str)
+
+                assert psk_identity_len <= max_identity_len
+                assert psk_str_len <= max_psk_len
+
+                _ffi.memmove(identity, psk_identity, psk_identity_len)
+                _ffi.memmove(psk, psk_str, psk_str_len)
+
+                return psk_str_len
+
+            except Exception as e:
+                self._problems.append(e)
+                return 0  # SSL_TLSEXT_ERR_ALERT_FATAL
+
+        self.callback = _ffi.callback(
+            ("unsigned int (*)(SSL *, const char *, char *, unsigned int, unsigned char *, unsigned int)"),
+            wrapper
+        )
+
+
 def _asFileDescriptor(obj):
     fd = None
     if not isinstance(obj, integer_types):
@@ -796,41 +825,12 @@ class Context(object):
         self._ocsp_helper = None
         self._ocsp_callback = None
         self._ocsp_data = None
+        self._psk_client_helper = None
+        self._psk_client_callback = None
+        self._psk_server_helper = None
+        self._psk_server_callback = None
 
         self.set_mode(_lib.SSL_MODE_ENABLE_PARTIAL_WRITE)
-
-    def set_psk_client_callback(self, callback):
-        """
-        """
-        if not callable(callback):
-            raise TypeError("callback must be callable")
-
-        # possibly connect to a self.variable to not gc
-        psk_client_helper = _PskClientHelper(callback)
-        _callback = psk_client_helper.callback
-        _lib.SSL_CTX_set_psk_client_callback(self._context, _callback)
-
-    def set_psk_server_callback(self, callback):
-        """
-        """
-        if not callable(callback):
-            raise TypeError("callback must be callable")
-
-        # possibly connect to a self.variable to not gc
-        psk_server_helper = _PskServerHelper(callback)
-        _callback = psk_server_helper.callback
-        _lib.SSL_CTX_set_psk_server_callback(self._context, _callback)
-
-    def use_psk_identity_hint(self, hint):
-        """
-        """
-        hint = _text_to_bytes_and_warn("hint", hint)
-
-        if not isinstance(hint, bytes):
-            raise TypeError("hint must be a byte string.")
-
-        result = _lib.SSL_CTX_use_psk_identity_hint(self._context, hint)
-        _openssl_assert(result == 1)
 
     def load_verify_locations(self, cafile, capath=None):
         """
@@ -1516,6 +1516,43 @@ class Context(object):
         """
         helper = _OCSPClientCallbackHelper(callback)
         self._set_ocsp_callback(helper, data)
+
+    def set_psk_client_callback(self, callback):
+        """
+        """
+        if not callable(callback):
+            raise TypeError("callback must be callable")
+
+        self._psk_client_helper = _PskClientHelper(callback)
+        self._psk_client_callback = self._psk_client_helper.callback
+        _lib.SSL_CTX_set_psk_client_callback(
+            self._context,
+            self._psk_client_callback
+        )
+
+    def set_psk_server_callback(self, callback):
+        """
+        """
+        if not callable(callback):
+            raise TypeError("callback must be callable")
+
+        self._psk_server_helper = _PskServerHelper(callback)
+        self._psk_server_callback = self._psk_server_helper.callback
+        _lib.SSL_CTX_set_psk_server_callback(
+            self._context,
+            self._psk_server_callback
+        )
+
+    def use_psk_identity_hint(self, hint):
+        """
+        """
+        hint = _text_to_bytes_and_warn("hint", hint)
+
+        if not isinstance(hint, bytes):
+            raise TypeError("hint must be a byte string.")
+
+        result = _lib.SSL_CTX_use_psk_identity_hint(self._context, hint)
+        _openssl_assert(result == 1)
 
 
 ContextType = deprecated(
