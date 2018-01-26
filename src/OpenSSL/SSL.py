@@ -611,6 +611,7 @@ class _OCSPClientCallbackHelper(_CallbackExceptionHelper):
 
 class _PskServerHelper(_CallbackExceptionHelper):
     """
+    Wrap a callback such that it can be used as a PSK server callback.
     """
 
     def __init__(self, callback):
@@ -624,6 +625,7 @@ class _PskServerHelper(_CallbackExceptionHelper):
                 client_identity = _ffi.string(identity)
 
                 # Call the callback
+                # returning an empty string signifies a failed handshake
                 psk_str = callback(conn, client_identity)
 
                 if not isinstance(psk_str, _binary_type):
@@ -650,6 +652,7 @@ class _PskServerHelper(_CallbackExceptionHelper):
 
 class _PskClientHelper(_CallbackExceptionHelper):
     """
+    Wrap a callback such that it can be used as a PSK client callback.
     """
 
     def __init__(self, callback):
@@ -661,6 +664,7 @@ class _PskClientHelper(_CallbackExceptionHelper):
                 conn = Connection._reverse_mapping[ssl]
 
                 if hint == _ffi.NULL:
+                    # identity hint empty if NULL pointer
                     identity_hint = ''
                 else:
                     identity_hint = _ffi.string(hint)
