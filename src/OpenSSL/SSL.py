@@ -660,7 +660,12 @@ class _PskClientHelper(_CallbackExceptionHelper):
             try:
                 conn = Connection._reverse_mapping[ssl]
 
-                psk_identity, psk_str = callback(conn)
+                if hint == _ffi.NULL:
+                    identity_hint = ''
+                else:
+                    identity_hint = _ffi.string(hint)
+
+                psk_identity, psk_str = callback(conn, identity_hint)
 
                 if not isinstance(psk_identity, _binary_type):
                     raise TypeError("Client PSK identity "
