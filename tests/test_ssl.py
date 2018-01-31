@@ -4040,7 +4040,8 @@ class TestPSK(object):
         ctx = Context(TLSv1_2_METHOD)
         if hint is not None:
             ctx.use_psk_identity_hint(hint)
-        ctx.set_psk_server_callback(callback)
+        if callback is not None:
+            ctx.set_psk_server_callback(callback)
         ctx.set_cipher_list('PSK')
         server = Connection(ctx)
         server.set_accept_state()
@@ -4108,16 +4109,18 @@ class TestPSK(object):
 
         handshake_in_memory(client, server)
 
+        client = self._client_connection(callback=client_callback)
+        server = self._server_connection(callback=server_callback, hint=None)
+
+        handshake_in_memory(client, server)
+
     def test_non_bytestring_server_identity_hint(self):
         """
         If the server identity hint is not convertable to bytestrings,
         raise error.
         """
-        def server_callback(*args):
-            return 'psk'
-
         with pytest.raises(TypeError):
-            self._server_connection(callback=server_callback, hint=3)
+            self._server_connection(callback=None, hint=3)
 
     def test_psk_mismatch_terminates_handshake(self):
         """
@@ -4141,9 +4144,6 @@ class TestPSK(object):
         If the PSK info is not convertable to bytestrings,
         the handshake fails.
         """
-        def server_callback(*args):
-            return 'psk'
-
         def client_callback(*args):
             return ('identity', 'psk')
 
@@ -4163,13 +4163,13 @@ class TestPSK(object):
             handshake_in_memory(client, server)
 
         client = self._client_connection(callback=bad_identity_client_callback)
-        server = self._server_connection(callback=server_callback)
+        server = self._server_connection(callback=None)
 
         with pytest.raises(Error):
             handshake_in_memory(client, server)
 
         client = self._client_connection(callback=bad_psk_client_callback)
-        server = self._server_connection(callback=server_callback)
+        server = self._server_connection(callback=None)
 
         with pytest.raises(Error):
             handshake_in_memory(client, server)
