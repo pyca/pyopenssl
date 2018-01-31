@@ -4143,9 +4143,6 @@ class TestPSK(object):
         If the PSK info is not convertable to bytestrings,
         the handshake fails.
         """
-        def server_callback(*args):
-            pass
-
         def client_callback(*args):
             return ('identity', 'psk')
 
@@ -4165,13 +4162,13 @@ class TestPSK(object):
             handshake_in_memory(client, server)
 
         client = self._client_connection(callback=bad_identity_client_callback)
-        server = self._server_connection(callback=server_callback)
+        server = self._server_connection(callback=bad_server_callback)
 
         with pytest.raises(Error):
             handshake_in_memory(client, server)
 
         client = self._client_connection(callback=bad_psk_client_callback)
-        server = self._server_connection(callback=server_callback)
+        server = self._server_connection(callback=bad_server_callback)
 
         with pytest.raises(Error):
             handshake_in_memory(client, server)
