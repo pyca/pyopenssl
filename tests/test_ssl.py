@@ -4068,13 +4068,15 @@ class TestPSK(object):
         client_calls = []
         server_calls = []
 
-        def client_callback(conn, *args, **kwargs):
-            client_calls.append(conn)
-            return ('identity', 'psk')
-
-        def server_callback(conn, *args, **kwargs):
+        def server_callback(conn, client_identity):
+            assert client_identity == 'identity'
             server_calls.append(conn)
             return 'psk'
+
+        def client_callback(conn, identity_hint):
+            assert identity_hint == 'pre_shared_key_identity_hint'
+            client_calls.append(conn)
+            return ('identity', 'psk')
 
         client = self._client_connection(callback=client_callback)
         server = self._server_connection(callback=server_callback)

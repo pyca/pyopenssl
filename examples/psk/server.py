@@ -10,7 +10,6 @@ Simple echo server, using nonblocking I/O
 
 from __future__ import print_function
 
-import os
 import select
 import socket
 import sys

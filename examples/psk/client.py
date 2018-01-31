@@ -8,7 +8,6 @@
 Simple SSL client, using blocking I/O
 """
 
-import os
 import socket
 import sys
 
