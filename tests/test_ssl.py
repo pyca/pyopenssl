@@ -4009,3 +4009,94 @@ class TestOCSP(object):
 
         with pytest.raises(TypeError):
             handshake_in_memory(client, server)
+
+class TestPSK(object):
+    """
+    Tests for PyOpenSSL's PSK support.
+    """
+
+    def _client_connection(self, callback):
+        """
+        Builds a client connection suitable for using PSK.
+
+        :param callback: The callback to register for PSK.
+        """
+        ctx = Context(TLSv1_2_METHOD)
+        ctx.set_psk_client_callback(callback)
+        ctx.set_cipher_list('PSK')
+        client = Connection(ctx)
+
+        client.set_connect_state()
+        return client
+
+    def _server_connection(self, callback):
+        """
+        Builds a server connection suitable for using PSK.
+
+        :param callback: The callback to register for PSK.
+        """
+        ctx = Context(SSLv23_METHOD)
+        ctx.use_psk_identity_hint('pre_shared_key_identity_hint')
+        ctx.set_psk_server_callback(callback)
+        ctx.set_cipher_list('PSK')
+        server = Connection(ctx)
+        server.set_accept_state()
+        return server
+
+    def test_valid_handshake(self):
+        """
+        The client sends it's PSK and is verified by the server.
+        """
+
+        def server_callback(conn, client_identity):
+            assert client_identity == 'client_identity'
+            return 'pre_shared_key'
+
+        def client_callback(conn, identity_hint):
+            assert identity_hint == 'pre_shared_key_identity_hint'
+            return ('client_identity', 'pre_shared_key')
+
+        client = self._client_connection(callback=client_callback)
+        server = self._server_connection(callback=server_callback)
+        handshake_in_memory(client, server)
+
+    def test_callbacks_are_invoked_with_connections(self):
+        """
+        The first arguments to both callbacks are their respective connections.
+        """
+        client_calls = []
+        server_calls = []
+
+        def client_callback(conn, *args, **kwargs):
+            client_calls.append(conn)
+            return ('', 'psk')
+
+        def server_callback(conn, *args, **kwargs):
+            server_calls.append(conn)
+            return 'psk'
+
+        client = self._client_connection(callback=client_callback)
+        server = self._server_connection(callback=server_callback)
+        handshake_in_memory(client, server)
+
+        assert len(client_calls) == 1
+        assert len(server_calls) == 1
+        assert client_calls[0] is client
+        assert server_calls[0] is server
+
+    def test_server_returns_empty_terminates_handshake(self):
+        """
+        If the server returns empty string from its callback,
+        the handshake fails.
+        """
+        def server_callback(*args):
+            return ''
+
+        def client_callback(*args):
+            return ('', 'psk')
+
+        client = self._client_connection(callback=client_callback)
+        server = self._server_connection(callback=server_callback)
+
+        with pytest.raises(Error):
+            handshake_in_memory(client, server)
