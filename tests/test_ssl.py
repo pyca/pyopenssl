@@ -4030,14 +4030,15 @@ class TestPSK(object):
         client.set_connect_state()
         return client
 
-    def _server_connection(self, callback):
+    def _server_connection(self, callback, hint='pre_shared_key_identity_hint'):
         """
         Builds a server connection suitable for using PSK.
 
         :param callback: The callback to register for PSK.
         """
         ctx = Context(TLSv1_2_METHOD)
-        ctx.use_psk_identity_hint('pre_shared_key_identity_hint')
+        if hint is not None:
+            ctx.use_psk_identity_hint(hint)
         ctx.set_psk_server_callback(callback)
         ctx.set_cipher_list('PSK')
         server = Connection(ctx)
@@ -4061,6 +4062,17 @@ class TestPSK(object):
         server = self._server_connection(callback=server_callback)
         handshake_in_memory(client, server)
 
+    def test_bad_callbacks(self):
+        """
+        If the callbacks are not callable,
+        raise error.
+        """
+        with pytest.raises(Error):
+            self._server_connection(callback=3)
+
+        with pytest.raises(Error):
+            self._client_connection(callback=3)
+
     def test_server_returns_empty_string_terminates_handshake(self):
         """
         If the server returns empty string from its callback,
@@ -4073,6 +4085,93 @@ class TestPSK(object):
             return ('identity', 'psk')
 
         client = self._client_connection(callback=client_callback)
+        server = self._server_connection(callback=server_callback)
+
+        with pytest.raises(Error):
+            handshake_in_memory(client, server)
+
+    def test_empty_string_server_identity_hint(self):
+        """
+        If the server can send an empty identity hint.
+        """
+        def server_callback(*args):
+            return 'psk'
+
+        def client_callback(conn, identity_hint):
+            assert identity_hint == ''
+            return ('identity', 'psk')
+
+        client = self._client_connection(callback=client_callback)
+        server = self._server_connection(callback=server_callback, hint=None)
+
+        handshake_in_memory(client, server)
+
+        client = self._client_connection(callback=client_callback)
+        server = self._server_connection(callback=server_callback, hint='')
+
+        handshake_in_memory(client, server)
+
+    def test_non_bytestring_server_identity_hint(self):
+        """
+        If the server identity hint is not convertable to bytestrings,
+        raise error.
+        """
+        def server_callback(*args):
+            return 'psk'
+
+        with pytest.raises(Error):
+            self._server_connection(callback=server_callback, hint=3)
+
+    def test_psk_mismatch_terminates_handshake(self):
+        """
+        If the PSKs do not match,
+        the handshake fails.
+        """
+        def server_callback(*args):
+            return 'good_psk'
+
+        def client_callback(*args):
+            return ('identity', 'bad_psk')
+
+        client = self._client_connection(callback=client_callback)
+        server = self._server_connection(callback=server_callback)
+
+        with pytest.raises(Error):
+            handshake_in_memory(client, server)
+
+    def test_non_bytestring_terminates_handshakes(self):
+        """
+        If the PSK info is not convertable to bytestrings,
+        the handshake fails.
+        """
+        def server_callback(*args):
+            return 'psk'
+
+        def client_callback(*args):
+            return ('identity', 'psk')
+
+        def bad_server_callback(*args):
+            return 3
+
+        def bad_identity_client_callback(*args):
+            return (3, 'bad_psk')
+
+        def bad_psk_client_callback(*args):
+            return ('identity', 3)
+
+        client = self._client_connection(callback=client_callback)
+        server = self._server_connection(callback=bad_server_callback)
+
+        with pytest.raises(Error):
+            handshake_in_memory(client, server)
+
+        client = self._client_connection(callback=bad_identity_client_callback)
+        server = self._server_connection(callback=server_callback)
+
+        with pytest.raises(Error):
+            handshake_in_memory(client, server)
+
+        client = self._client_connection(callback=bad_psk_client_callback)
         server = self._server_connection(callback=server_callback)
 
         with pytest.raises(Error):
