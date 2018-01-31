@@ -622,7 +622,7 @@ class _PskServerHelper(_CallbackExceptionHelper):
             try:
                 conn = Connection._reverse_mapping[ssl]
 
-                client_identity = bytes(_ffi.string(identity))
+                client_identity = _ffi.string(identity).decode('utf-8')
 
                 # Call the callback
                 # returning an empty string signifies a failed handshake
@@ -670,9 +670,9 @@ class _PskClientHelper(_CallbackExceptionHelper):
 
                 if hint == _ffi.NULL:
                     # identity hint empty if NULL pointer
-                    identity_hint = bytes()
+                    identity_hint = u''
                 else:
-                    identity_hint = bytes(_ffi.string(hint))
+                    identity_hint = _ffi.string(hint).decode('utf-8')
 
                 psk_identity, psk_str = callback(conn, identity_hint)
 
@@ -1546,6 +1546,7 @@ class Context(object):
         """
         Set the server PSK identity hint.
 
+        :param hint: The server PSK identity hint.
         :return: None
         """
         hint = _text_to_bytes_and_warn("hint", hint)
@@ -1561,7 +1562,7 @@ class Context(object):
         Set a callback to populate the server PSK.
 
         :param callback: The callback function. It will be invoked with two
-            arguments: the Connection, and a bytestring containing the PSK
+            arguments: the Connection, and a unicode string containing the PSK
             identity from the client. The callback must return a bytestring
             containing the server PSK that corresponds to the client PSK
             identity. If the client PSK identity is invalid,
@@ -1582,7 +1583,7 @@ class Context(object):
         Set a callback to populate the client PSK identity and PSK.
 
         :param callback: The callback function. It will be invoked with two
-            arguments: the Connection, and a bytestring containing the PSK
+            arguments: the Connection, and a unicode string containing the PSK
             identity hint from the server. The callback must return a two
             element tuple: a bytestring containing the client PSK identity,
             and a bytestring containing the client PSK. These bytestrings
