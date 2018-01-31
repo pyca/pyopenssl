@@ -4010,6 +4010,7 @@ class TestOCSP(object):
         with pytest.raises(TypeError):
             handshake_in_memory(client, server)
 
+
 class TestPSK(object):
     """
     Tests for PyOpenSSL's PSK support.
