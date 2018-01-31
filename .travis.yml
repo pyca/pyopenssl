@@ -15,11 +15,20 @@ matrix:
   - language: generic
     os: osx
     osx_image: xcode8.3
-    env: TOXENV=py27-cryptographyMinimum
+    env: TOXENV=py27
   - language: generic
     os: osx
     osx_image: xcode8.3
-    env: TOXENV=py27-cryptographyMinimum OPENSSL=1.1.0
+    env: TOXENV=py27 OPENSSL=1.1.0
+  - python: "2.7" # these are just to make travis's UI a bit prettier
+    env: TOXENV=py27
+  - python: "3.4"
+    env: TOXENV=py34
+  - python: "3.5"
+    env: TOXENV=py35
+  - python: "3.6"
+    env: TOXENV=py36
+  - env: TOXENV=pypy
 
   # Also run the tests against cryptography master.
   - python: "2.7"

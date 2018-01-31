@@ -95,8 +95,15 @@ if __name__ == "__main__":
         package_dir={"": "src"},
         install_requires=[
             # Fix cryptographyMinimum in tox.ini when changing this!
-            "cryptography>=2.1.4",
+            "cryptography>=2.2.dev1",
             "six>=1.5.2"
+        ],
+        dependency_links=[
+            (
+                "git+https://github.com/pyca/cryptography.git"
+                "@47d96e39e9b6d413f970cf02cc58553a9647241a"
+                "#egg=cryptography-2.2.dev1"
+            )
         ],
         extras_require={
             "test": [
