@@ -47,9 +47,6 @@ if len(sys.argv) < 2:
     print('Usage: python server.py PORT')
     sys.exit(1)
 
-dir = os.path.dirname(sys.argv[0])
-if dir == '':
-    dir = os.curdir
 
 # Initialize context
 ctx = SSL.Context(SSL.SSLv23_METHOD)

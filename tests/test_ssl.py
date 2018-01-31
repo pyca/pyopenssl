@@ -4070,7 +4070,7 @@ class TestPSK(object):
 
         def client_callback(conn, *args, **kwargs):
             client_calls.append(conn)
-            return ('', 'psk')
+            return ('identity', 'psk')
 
         def server_callback(conn, *args, **kwargs):
             server_calls.append(conn)
@@ -4094,7 +4094,7 @@ class TestPSK(object):
             return ''
 
         def client_callback(*args):
-            return ('', 'psk')
+            return ('identity', 'psk')
 
         client = self._client_connection(callback=client_callback)
         server = self._server_connection(callback=server_callback)

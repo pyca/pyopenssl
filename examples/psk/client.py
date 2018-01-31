@@ -32,11 +32,6 @@ if len(sys.argv) < 3:
     sys.exit(1)
 
 
-dir = os.path.dirname(sys.argv[0])
-if dir == '':
-    dir = os.curdir
-
-
 # Initialize context
 ctx = SSL.Context(SSL.SSLv23_METHOD)
 ctx.set_options(SSL.OP_NO_SSLv2)
