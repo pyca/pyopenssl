@@ -642,7 +642,7 @@ class _PskServerHelper(_CallbackExceptionHelper):
 
             except Exception as e:
                 self._problems.append(e)
-                return 0  # SSL_TLSEXT_ERR_ALERT_FATAL
+                return 0
 
         self.callback = _ffi.callback(
             ("unsigned int (*)(SSL *, const char *, unsigned char *, int)"),
@@ -692,10 +692,11 @@ class _PskClientHelper(_CallbackExceptionHelper):
 
             except Exception as e:
                 self._problems.append(e)
-                return 0  # SSL_TLSEXT_ERR_ALERT_FATAL
+                return 0
 
         self.callback = _ffi.callback(
-            ("unsigned int (*)(SSL *, const char *, char *, unsigned int, unsigned char *, unsigned int)"),
+            ("unsigned int (*)(SSL *, const char *, "
+             "char *, unsigned int, unsigned char *, unsigned int)"),
             wrapper
         )
 
@@ -1526,21 +1527,30 @@ class Context(object):
         helper = _OCSPClientCallbackHelper(callback)
         self._set_ocsp_callback(helper, data)
 
-    def set_psk_client_callback(self, callback):
+    def use_psk_identity_hint(self, hint):
         """
-        """
-        if not callable(callback):
-            raise TypeError("callback must be callable")
+        Set the server PSK identity hint.
 
-        self._psk_client_helper = _PskClientHelper(callback)
-        self._psk_client_callback = self._psk_client_helper.callback
-        _lib.SSL_CTX_set_psk_client_callback(
-            self._context,
-            self._psk_client_callback
-        )
+        :return: None
+        """
+        hint = _text_to_bytes_and_warn("hint", hint)
+
+        if not isinstance(hint, bytes):
+            raise TypeError("hint must be a byte string.")
+
+        result = _lib.SSL_CTX_use_psk_identity_hint(self._context, hint)
+        _openssl_assert(result == 1)
 
     def set_psk_server_callback(self, callback):
         """
+        Set a callback to populate the server PSK.
+
+        :param callback: The callback function. It will be invoked with two
+            arguments: the Connection, and a bytestring containing the PSK
+            identity from the client. The callback must return a bytestring
+            containing the server PSK that corresponds to the client PSK
+            identity. If the client PSK identity is invalid,
+            returning an empty bytestring will cause a handshake error.
         """
         if not callable(callback):
             raise TypeError("callback must be callable")
@@ -1552,16 +1562,26 @@ class Context(object):
             self._psk_server_callback
         )
 
-    def use_psk_identity_hint(self, hint):
+    def set_psk_client_callback(self, callback):
         """
+        Set a callback to populate the client PSK identity and PSK.
+
+        :param callback: The callback function. It will be invoked with two
+            arguments: the Connection, and a bytestring containing the PSK
+            identity hint from the server. The callback must return a two
+            element tuple: a bytestring containing the client PSK identity,
+            and a bytestring containing the client PSK. These bytestrings
+            will be sent to the server during a handshake.
         """
-        hint = _text_to_bytes_and_warn("hint", hint)
+        if not callable(callback):
+            raise TypeError("callback must be callable")
 
-        if not isinstance(hint, bytes):
-            raise TypeError("hint must be a byte string.")
-
-        result = _lib.SSL_CTX_use_psk_identity_hint(self._context, hint)
-        _openssl_assert(result == 1)
+        self._psk_client_helper = _PskClientHelper(callback)
+        self._psk_client_callback = self._psk_client_helper.callback
+        _lib.SSL_CTX_set_psk_client_callback(
+            self._context,
+            self._psk_client_callback
+        )
 
 
 ContextType = deprecated(
