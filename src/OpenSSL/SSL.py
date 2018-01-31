@@ -622,7 +622,7 @@ class _PskServerHelper(_CallbackExceptionHelper):
             try:
                 conn = Connection._reverse_mapping[ssl]
 
-                client_identity = _ffi.string(identity)
+                client_identity = bytes(_ffi.string(identity))
 
                 # Call the callback
                 # returning an empty string signifies a failed handshake
@@ -633,7 +633,7 @@ class _PskServerHelper(_CallbackExceptionHelper):
                     psk_str
                 )
 
-                if not isinstance(psk_str, _binary_type):
+                if not isinstance(psk_str, bytes):
                     raise TypeError("Client PSK "
                                     "must be a bytestring.")
 
@@ -670,9 +670,9 @@ class _PskClientHelper(_CallbackExceptionHelper):
 
                 if hint == _ffi.NULL:
                     # identity hint empty if NULL pointer
-                    identity_hint = u''
+                    identity_hint = bytes()
                 else:
-                    identity_hint = _ffi.string(hint)
+                    identity_hint = bytes(_ffi.string(hint))
 
                 psk_identity, psk_str = callback(conn, identity_hint)
 
@@ -686,11 +686,11 @@ class _PskClientHelper(_CallbackExceptionHelper):
                     psk_str
                 )
 
-                if not isinstance(psk_identity, _binary_type):
+                if not isinstance(psk_identity, bytes):
                     raise TypeError("Client PSK identity "
                                     "must be a bytestring.")
 
-                if not isinstance(psk_str, _binary_type):
+                if not isinstance(psk_str, bytes):
                     raise TypeError("Client PSK "
                                     "must be a bytestring.")
 
