@@ -4068,10 +4068,10 @@ class TestPSK(object):
         If the callbacks are not callable,
         raise error.
         """
-        with pytest.raises(Error):
+        with pytest.raises(TypeError):
             self._server_connection(callback=3)
 
-        with pytest.raises(Error):
+        with pytest.raises(TypeError):
             self._client_connection(callback=3)
 
     def test_server_returns_empty_string_terminates_handshake(self):
@@ -4095,17 +4095,13 @@ class TestPSK(object):
         """
         If the server can send an empty identity hint.
         """
-        def server_callback(*args):
-            return 'psk'
+        def server_callback(conn, client_identity):
+            assert client_identity == 'client_identity'
+            return 'pre_shared_key'
 
         def client_callback(conn, identity_hint):
             assert identity_hint == ''
-            return ('identity', 'psk')
-
-        client = self._client_connection(callback=client_callback)
-        server = self._server_connection(callback=server_callback, hint=None)
-
-        handshake_in_memory(client, server)
+            return ('client_identity', 'pre_shared_key')
 
         client = self._client_connection(callback=client_callback)
         server = self._server_connection(callback=server_callback, hint='')
@@ -4120,7 +4116,7 @@ class TestPSK(object):
         def server_callback(*args):
             return 'psk'
 
-        with pytest.raises(Error):
+        with pytest.raises(TypeError):
             self._server_connection(callback=server_callback, hint=3)
 
     def test_psk_mismatch_terminates_handshake(self):
