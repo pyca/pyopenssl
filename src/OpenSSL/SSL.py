@@ -628,6 +628,11 @@ class _PskServerHelper(_CallbackExceptionHelper):
                 # returning an empty string signifies a failed handshake
                 psk_str = callback(conn, client_identity)
 
+                psk_str = _text_to_bytes_and_warn(
+                    "psk",
+                    psk_str
+                )
+
                 if not isinstance(psk_str, _binary_type):
                     raise TypeError("Client PSK "
                                     "must be a bytestring.")
@@ -665,11 +670,21 @@ class _PskClientHelper(_CallbackExceptionHelper):
 
                 if hint == _ffi.NULL:
                     # identity hint empty if NULL pointer
-                    identity_hint = ''
+                    identity_hint = u''
                 else:
                     identity_hint = _ffi.string(hint)
 
                 psk_identity, psk_str = callback(conn, identity_hint)
+
+                psk_identity = _text_to_bytes_and_warn(
+                    "psk_identity",
+                    psk_identity
+                )
+
+                psk_str = _text_to_bytes_and_warn(
+                    "psk",
+                    psk_str
+                )
 
                 if not isinstance(psk_identity, _binary_type):
                     raise TypeError("Client PSK identity "
