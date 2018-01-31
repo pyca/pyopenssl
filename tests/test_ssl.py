@@ -4036,7 +4036,7 @@ class TestPSK(object):
 
         :param callback: The callback to register for PSK.
         """
-        ctx = Context(SSLv23_METHOD)
+        ctx = Context(TLSv1_2_METHOD)
         ctx.use_psk_identity_hint('pre_shared_key_identity_hint')
         ctx.set_psk_server_callback(callback)
         ctx.set_cipher_list('PSK')
