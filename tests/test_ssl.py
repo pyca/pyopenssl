@@ -4030,11 +4030,12 @@ class TestPSK(object):
         client.set_connect_state()
         return client
 
-    def _server_connection(self, callback, hint='pre_shared_key_identity_hint'):
+    def _server_connection(self, callback, hint='identity_hint'):
         """
         Builds a server connection suitable for using PSK.
 
         :param callback: The callback to register for PSK.
+        :param hint: The server PSK identity hint.
         """
         ctx = Context(TLSv1_2_METHOD)
         if hint is not None:
@@ -4055,7 +4056,7 @@ class TestPSK(object):
             return 'pre_shared_key'
 
         def client_callback(conn, identity_hint):
-            assert identity_hint == 'pre_shared_key_identity_hint'
+            assert identity_hint == 'identity_hint'
             return ('client_identity', 'pre_shared_key')
 
         client = self._client_connection(callback=client_callback)
