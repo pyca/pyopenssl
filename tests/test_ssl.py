@@ -4061,33 +4061,7 @@ class TestPSK(object):
         server = self._server_connection(callback=server_callback)
         handshake_in_memory(client, server)
 
-    def test_callbacks_are_invoked_with_connections(self):
-        """
-        The first arguments to both callbacks are their respective connections.
-        """
-        client_calls = []
-        server_calls = []
-
-        def server_callback(conn, client_identity):
-            assert client_identity == 'identity'
-            server_calls.append(conn)
-            return 'psk'
-
-        def client_callback(conn, identity_hint):
-            assert identity_hint == 'pre_shared_key_identity_hint'
-            client_calls.append(conn)
-            return ('identity', 'psk')
-
-        client = self._client_connection(callback=client_callback)
-        server = self._server_connection(callback=server_callback)
-        handshake_in_memory(client, server)
-
-        assert len(client_calls) == 1
-        assert len(server_calls) == 1
-        assert client_calls[0] is client
-        assert server_calls[0] is server
-
-    def test_server_returns_empty_terminates_handshake(self):
+    def test_server_returns_empty_string_terminates_handshake(self):
         """
         If the server returns empty string from its callback,
         the handshake fails.
