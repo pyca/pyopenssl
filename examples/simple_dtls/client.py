@@ -15,6 +15,7 @@ def verify_cb(conn, cert, errnum, depth, ok):
     certsubject = crypto.X509Name(cert.get_subject())
     commonname = certsubject.commonName
     print('Got certificate: ' + commonname)
+    sys.stdout.flush()
     return ok
 
 
@@ -29,9 +30,9 @@ if dir == '':
 
 
 # Initialize context
-ctx = SSL.Context(SSL.DTLSv1_METHOD)
-# ctx = SSL.Context(SSL.DTLS_METHOD)
-# ctx.set_options(SSL.OP_NO_DTLSv1)
+ctx = SSL.Context(SSL.DTLS_METHOD)
+# ctx = SSL.Context(SSL.DTLSv1_METHOD)
+ctx.set_options(SSL.OP_NO_DTLSv1)
 ctx.set_verify(
     SSL.VERIFY_PEER | SSL.VERIFY_FAIL_IF_NO_PEER_CERT, verify_cb
 )  # Demand a certificate
@@ -42,6 +43,13 @@ ctx.load_verify_locations(os.path.join(dir, 'CA.cert'))
 # Set up client
 sock = SSL.Connection(ctx, socket.socket(socket.AF_INET, socket.SOCK_DGRAM))
 sock.connect((sys.argv[1], int(sys.argv[2])))
+
+
+print sock._socket.getsockname()
+sys.stdout.flush()
+
+# do handshake on connect
+# sock.do_handshake()
 
 while 1:
     line = sys.stdin.readline()
