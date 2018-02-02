@@ -52,9 +52,9 @@ if dir == '':
     dir = os.curdir
 
 # Initialize context
-ctx = SSL.Context(SSL.DTLS_METHOD)
-# ctx = SSL.Context(SSL.DTLSv1_METHOD)
-ctx.set_options(SSL.OP_NO_DTLSv1)
+ctx = SSL.Context(SSL.DTLSv1_METHOD)
+# ctx = SSL.Context(SSL.DTLS_METHOD)
+# ctx.set_options(SSL.OP_NO_DTLSv1)
 ctx.set_options(SSL.OP_COOKIE_EXCHANGE)
 ctx.set_cookie_generate_cb(generate_cookie_cb)
 ctx.set_cookie_verify_cb(verify_cookie_cb)
@@ -105,7 +105,8 @@ while 1:
     for cli in r:
         if cli == listenfd:
 
-            # use message peek so the client doesn't have to retransmit another ClientHello
+            # use message peek so the client
+            # doesn't have to retransmit another ClientHello
             try:
                 _, cli_addr = listenfd.recvfrom(1024, socket.MSG_PEEK)
             except socket.error as err:
@@ -129,8 +130,8 @@ while 1:
                 except (SSL.WantReadError,
                         SSL.WantWriteError,
                         SSL.WantX509LookupError):
-                    # todo check for timeouts here and continue if up, we don't want server
-                    # to get stuck in this loop
+                    # todo check for timeouts here and continue if up,
+                    # we don't want server to get stuck in this loop
                     continue
                 except (SSL.ZeroReturnError, SSL.Error) as errors:
                     # handshake error
