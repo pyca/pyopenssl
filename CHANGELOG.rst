@@ -24,7 +24,8 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-*none*
+- Added ``Connection.get_certificate`` to retrieve the local certificate.
+  `#733 <https://github.com/pyca/pyopenssl/pull/733>`_
 
 
 ----

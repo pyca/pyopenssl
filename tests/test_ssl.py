@@ -2388,6 +2388,31 @@ class TestConnection(object):
         with pytest.raises(NotImplementedError):
             conn.makefile()
 
+    def test_get_certificate(self):
+        """
+        `Connection.get_certificate` returns the local certificate.
+        """
+        chain = _create_certificate_chain()
+        [(cakey, cacert), (ikey, icert), (skey, scert)] = chain
+
+        context = Context(TLSv1_METHOD)
+        context.use_certificate(scert)
+        client = Connection(context, None)
+        cert = client.get_certificate()
+        assert cert is not None
+        assert "Server Certificate" == cert.get_subject().CN
+
+    def test_get_certificate_none(self):
+        """
+        `Connection.get_certificate` returns the local certificate.
+
+        If there is no certificate, it returns None.
+        """
+        context = Context(TLSv1_METHOD)
+        client = Connection(context, None)
+        cert = client.get_certificate()
+        assert cert is None
+
     def test_get_peer_cert_chain(self):
         """
         `Connection.get_peer_cert_chain` returns a list of certificates
