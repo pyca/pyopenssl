@@ -1592,6 +1592,35 @@ class TestContext(object):
         store = context.get_cert_store()
         assert isinstance(store, X509Store)
 
+    def test_set_tlsext_use_srtp_not_bytes(self):
+        """
+        `Context.set_tlsext_use_srtp' enables negotiating SRTP keying material.
+
+        It raises a TypeError if the list of profiles is not a byte string.
+        """
+        context = Context(TLSv1_METHOD)
+        with pytest.raises(TypeError):
+            context.set_tlsext_use_srtp(text_type('SRTP_AES128_CM_SHA1_80'))
+
+    def test_set_tlsext_use_srtp_invalid_profile(self):
+        """
+        `Context.set_tlsext_use_srtp' enables negotiating SRTP keying material.
+
+        It raises an Error if the call to OpenSSL fails.
+        """
+        context = Context(TLSv1_METHOD)
+        with pytest.raises(Error):
+            context.set_tlsext_use_srtp(b'SRTP_BOGUS')
+
+    def test_set_tlsext_use_srtp_valid(self):
+        """
+        `Context.set_tlsext_use_srtp' enables negotiating SRTP keying material.
+
+        It does not return anything.
+        """
+        context = Context(TLSv1_METHOD)
+        assert context.set_tlsext_use_srtp(b'SRTP_AES128_CM_SHA1_80') is None
+
 
 class TestServerNameCallback(object):
     """
