@@ -1799,7 +1799,8 @@ class X509StoreContext(object):
 
 def load_certificate(type, buffer):
     """
-    Load a certificate from a buffer
+    Load a certificate (X509) from the string *buffer* encoded with the
+    type *type*.
 
     :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)
 
@@ -1828,7 +1829,8 @@ def load_certificate(type, buffer):
 
 def dump_certificate(type, cert):
     """
-    Dump a certificate to a buffer
+    Dump the certificate *cert* into a buffer string encoded with the type
+    *type*.
 
     :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1, or
         FILETYPE_TEXT)
@@ -2766,7 +2768,8 @@ def load_publickey(type, buffer):
 
 def load_privatekey(type, buffer, passphrase=None):
     """
-    Load a private key from a buffer
+    Load a private key (PKey) from the string *buffer* encoded with the type
+    *type*.
 
     :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)
     :param buffer: The buffer the key is stored in
@@ -2801,7 +2804,8 @@ def load_privatekey(type, buffer, passphrase=None):
 
 def dump_certificate_request(type, req):
     """
-    Dump a certificate request to a buffer
+    Dump the certificate request *req* into a buffer string encoded with the
+    type *type*.
 
     :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)
     :param req: The certificate request to dump
@@ -2828,7 +2832,8 @@ def dump_certificate_request(type, req):
 
 def load_certificate_request(type, buffer):
     """
-    Load a certificate request from a buffer
+    Load a certificate request (X509Req) from the string *buffer* encoded with
+    the type *type*.
 
     :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)
     :param buffer: The buffer the certificate request is stored in
@@ -2855,12 +2860,14 @@ def load_certificate_request(type, buffer):
 
 def sign(pkey, data, digest):
     """
-    Sign data with a digest
+    Sign a data string using the given key and message digest.
 
-    :param pkey: Pkey to sign with
+    :param pkey: PKey to sign with
     :param data: data to be signed
     :param digest: message digest to use
     :return: signature
+
+    .. versionadded:: 0.11
     """
     data = _text_to_bytes_and_warn("data", data)
 
@@ -2887,13 +2894,16 @@ def sign(pkey, data, digest):
 
 def verify(cert, signature, data, digest):
     """
-    Verify a signature.
+    Verify the signature for a data string.
 
-    :param cert: signing certificate (X509 object)
+    :param cert: signing certificate (X509 object) corresponding to the
+        private key which generated the signature.
     :param signature: signature returned by sign function
     :param data: data to be verified
     :param digest: message digest to use
     :return: ``None`` if the signature is correct, raise exception otherwise.
+
+    .. versionadded:: 0.11
     """
     data = _text_to_bytes_and_warn("data", data)
 
@@ -2948,7 +2958,8 @@ def dump_crl(type, crl):
 
 def load_crl(type, buffer):
     """
-    Load a certificate revocation list from a buffer
+    Load Certificate Revocation List (CRL) data from a string *buffer*.
+    *buffer* encoded with the type *type*.
 
     :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)
     :param buffer: The buffer the CRL is stored in
@@ -2977,7 +2988,8 @@ def load_crl(type, buffer):
 
 def load_pkcs7_data(type, buffer):
     """
-    Load pkcs7 data from a buffer
+    Load pkcs7 data from the string *buffer* encoded with the type
+    *type*.
 
     :param type: The file type (one of FILETYPE_PEM or FILETYPE_ASN1)
     :param buffer: The buffer with the pkcs7 data.
@@ -3005,7 +3017,11 @@ def load_pkcs7_data(type, buffer):
 
 def load_pkcs12(buffer, passphrase=None):
     """
-    Load a PKCS12 object from a buffer
+    Load pkcs12 data from the string *buffer*. If the pkcs12 structure is
+    encrypted, a *passphrase* must be included.  The MAC is always
+    checked and thus required.
+
+    See also the man page for the C function :py:func:`PKCS12_parse`.
 
     :param buffer: The buffer the certificate is stored in
     :param passphrase: (Optional) The password to decrypt the PKCS12 lump
