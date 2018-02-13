@@ -632,7 +632,7 @@ def SSLeay_version(type):
     """
     Return a string describing the version of OpenSSL in use.
 
-    :param type: One of the SSLEAY_ constants defined in this module.
+    :param type: One of the :const:`SSLEAY_` constants defined in this module.
     """
     return _ffi.string(_lib.SSLeay_version(type))
 
@@ -675,6 +675,13 @@ _requires_sni = _make_requires(
 
 
 class Session(object):
+    """
+    A class representing an SSL session.  A session defines certain connection
+    parameters which may be re-used to speed up the setup of subsequent
+    connections.
+
+    .. versionadded:: 0.14
+    """
     pass
 
 
@@ -682,6 +689,9 @@ class Context(object):
     """
     :class:`OpenSSL.SSL.Context` instances define the parameters for setting
     up new SSL connections.
+
+    :param method: One of SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, or
+        TLSv1_METHOD.
     """
     _methods = {
         SSLv2_METHOD: "SSLv2_method",
@@ -697,10 +707,6 @@ class Context(object):
         if getattr(_lib, name, None) is not None)
 
     def __init__(self, method):
-        """
-        :param method: One of SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, or
-            TLSv1_METHOD.
-        """
         if not isinstance(method, integer_types):
             raise TypeError("method must be an integer")
 
@@ -749,7 +755,11 @@ class Context(object):
     def load_verify_locations(self, cafile, capath=None):
         """
         Let SSL know where we can find trusted certificates for the certificate
-        chain
+        chain.  Note that the certificates have to be in PEM format.
+
+        If capath is passed, it must be a directory prepared using the
+        ``c_rehash`` tool included with OpenSSL.  Either, but not both, of
+        *pemfile* or *capath* may be :py:data:`None`.
 
         :param cafile: In which file we can find the certificates (``bytes`` or
             ``unicode``).
@@ -783,9 +793,19 @@ class Context(object):
 
     def set_passwd_cb(self, callback, userdata=None):
         """
-        Set the passphrase callback
+        Set the passphrase callback.  This function will be called
+        when a private key with a passphrase is loaded.
 
-        :param callback: The Python callback to use; must return a byte string
+        :param callback: The Python callback to use.  This must accept three
+            positional arguments.  First, an integer giving the maximum length
+            of the passphrase it may return.  If the returned passphrase is
+            longer than this, it will be truncated.  Second, a boolean value
+            which will be true if the user should be prompted for the
+            passphrase twice and the callback should verify that the two values
+            supplied are equal. Third, the value given as the *userdata*
+            parameter to :meth:`set_passwd_cb`.  The *callback* must return
+            a byte string. If an error occurs, *callback* should return a false
+            value (e.g. an empty string).
         :param userdata: (optional) A Python object which will be given as
                          argument to the callback
         :return: None
@@ -801,7 +821,17 @@ class Context(object):
 
     def set_default_verify_paths(self):
         """
-        Use the platform-specific CA certificate locations
+        Specify that the platform provided CA certificates are to be used for
+        verification purposes. This method has some caveats related to the
+        binary wheels that cryptography (pyOpenSSL's primary dependency) ships:
+
+        *   macOS will only load certificates using this method if the user has
+            the ``openssl@1.1`` `Homebrew <https://brew.sh>`_ formula installed
+            in the default location.
+        *   Windows will not work.
+        *   manylinux1 cryptography wheels will work on most common Linux
+            distributions in pyOpenSSL 17.1.0 and above.  pyOpenSSL detects the
+            manylinux1 wheel and attempts to load roots via a fallback path.
 
         :return: None
         """
@@ -871,10 +901,10 @@ class Context(object):
 
     def use_certificate_chain_file(self, certfile):
         """
-        Load a certificate chain from a file
+        Load a certificate chain from a file.
 
         :param certfile: The name of the certificate chain file (``bytes`` or
-            ``unicode``).
+            ``unicode``).  Must be PEM encoded.
 
         :return: None
         """
@@ -892,7 +922,9 @@ class Context(object):
 
         :param certfile: The name of the certificate file (``bytes`` or
             ``unicode``).
-        :param filetype: (optional) The encoding of the file, default is PEM
+        :param filetype: (optional) The encoding of the file, which is either
+            :const:`FILETYPE_PEM` or :const:`FILETYPE_ASN1`.  The default is
+            :const:`FILETYPE_PEM`.
 
         :return: None
         """
@@ -948,7 +980,9 @@ class Context(object):
         Load a private key from a file
 
         :param keyfile: The name of the key file (``bytes`` or ``unicode``)
-        :param filetype: (optional) The encoding of the file, default is PEM
+        :param filetype: (optional) The encoding of the file, which is either
+            :const:`FILETYPE_PEM` or :const:`FILETYPE_ASN1`.  The default is
+            :const:`FILETYPE_PEM`.
 
         :return: None
         """
@@ -980,9 +1014,10 @@ class Context(object):
 
     def check_privatekey(self):
         """
-        Check that the private key and certificate match up
+        Check if the private key (loaded with :meth:`use_privatekey`) matches
+        the certificate (loaded with :meth:`use_certificate`)
 
-        :return: None (raises an exception if something's wrong)
+        :return: :data:`None` (raises :exc:`Error` if something's wrong)
         """
         if not _lib.SSL_CTX_check_private_key(self._context):
             _raise_current_error()
@@ -1024,11 +1059,15 @@ class Context(object):
 
     def set_session_cache_mode(self, mode):
         """
-        Enable/disable session caching and specify the mode used.
+        Set the behavior of the session cache used by all connections using
+        this Context.  The previously set mode is returned.  See
+        :const:`SESS_CACHE_*` for details about particular modes.
 
         :param mode: One or more of the SESS_CACHE_* flags (combine using
             bitwise or)
         :returns: The previously set caching mode.
+
+        .. versionadded:: 0.14
         """
         if not isinstance(mode, integer_types):
             raise TypeError("mode must be an integer")
@@ -1037,17 +1076,29 @@ class Context(object):
 
     def get_session_cache_mode(self):
         """
+        Get the current session cache mode.
+
         :returns: The currently used cache mode.
+
+        .. versionadded:: 0.14
         """
         return _lib.SSL_CTX_get_session_cache_mode(self._context)
 
     def set_verify(self, mode, callback):
         """
-        Set the verify mode and verify callback
+        et the verification flags for this Context object to *mode* and specify
+        that *callback* should be used for verification callbacks.
 
-        :param mode: The verify mode, this is either VERIFY_NONE or
-                     VERIFY_PEER combined with possible other flags
-        :param callback: The Python callback to use
+        :param mode: The verify mode, this should be one of
+            :const:`VERIFY_NONE` and :const:`VERIFY_PEER`. If
+            :const:`VERIFY_PEER` is used, *mode* can be OR:ed with
+            :const:`VERIFY_FAIL_IF_NO_PEER_CERT` and
+            :const:`VERIFY_CLIENT_ONCE` to further control the behaviour.
+        :param callback: The Python callback to use.  This should take five
+            arguments: A Connection object, an X509 object, and three integer
+            variables, which are in turn potential error number, error depth
+            and return code. *callback* should return True if verification
+            passes and False otherwise.
         :return: None
 
         See SSL_CTX_set_verify(3SSL) for further details.
@@ -1064,7 +1115,8 @@ class Context(object):
 
     def set_verify_depth(self, depth):
         """
-        Set the verify depth
+        Set the maximum depth for the certificate chain verification that shall
+        be allowed for this Context object.
 
         :param depth: An integer specifying the verify depth
         :return: None
@@ -1076,7 +1128,8 @@ class Context(object):
 
     def get_verify_mode(self):
         """
-        Get the verify mode
+        Retrieve the Context object's verify mode, as set by
+        :meth:`set_verify`.
 
         :return: The verify mode
         """
@@ -1084,7 +1137,8 @@ class Context(object):
 
     def get_verify_depth(self):
         """
-        Get the verify depth
+        Retrieve the Context object's verify depth, as set by
+        :meth:`set_verify_depth`.
 
         :return: The verify depth
         """
@@ -1151,6 +1205,8 @@ class Context(object):
 
         :param certificate_authorities: a sequence of X509Names.
         :return: None
+
+        .. versionadded:: 0.10
         """
         name_stack = _lib.sk_X509_NAME_new_null()
         _openssl_assert(name_stack != _ffi.NULL)
@@ -1186,6 +1242,8 @@ class Context(object):
 
         :param certificate_authority: certificate authority's X509 certificate.
         :return: None
+
+        .. versionadded:: 0.10
         """
         if not isinstance(certificate_authority, X509):
             raise TypeError("certificate_authority must be an X509 instance")
@@ -1196,9 +1254,11 @@ class Context(object):
 
     def set_timeout(self, timeout):
         """
-        Set session timeout
+        Set the timeout for newly created sessions for this Context object to
+        *timeout*.  The default value is 300 seconds. See the OpenSSL manual
+        for more information (e.g. :manpage:`SSL_CTX_set_timeout(3)`).
 
-        :param timeout: The timeout in seconds
+        :param timeout: The timeout in (whole) seconds
         :return: The previous session timeout
         """
         if not isinstance(timeout, integer_types):
@@ -1208,7 +1268,8 @@ class Context(object):
 
     def get_timeout(self):
         """
-        Get the session timeout
+        Retrieve session timeout, as set by :meth:`set_timeout`. The default
+        is 300 seconds.
 
         :return: The session timeout
         """
@@ -1216,9 +1277,14 @@ class Context(object):
 
     def set_info_callback(self, callback):
         """
-        Set the info callback
+        Set the information callback to *callback*. This function will be
+        called from time to time during SSL handshakes.
 
-        :param callback: The Python callback to use
+        :param callback: The Python callback to use.  This should take three
+            arguments: a Connection object and two integers.  The first integer
+            specifies where in the SSL handshake the function was called, and
+            the other the return code from a (possibly failed) internal
+            function call.
         :return: None
         """
         @wraps(callback)
@@ -1230,7 +1296,7 @@ class Context(object):
 
     def get_app_data(self):
         """
-        Get the application data (supplied via set_app_data())
+        Get the application data (supplied via :meth:`set_app_data()`)
 
         :return: The application data
         """
@@ -1247,7 +1313,9 @@ class Context(object):
 
     def get_cert_store(self):
         """
-        Get the certificate store for the context.
+        Get the certificate store for the context.  This can be used to add
+        "trusted" certificates without using the
+        :meth:`load_verify_locations` method.
 
         :return: A X509Store object or None if it does not have one.
         """
@@ -1263,6 +1331,7 @@ class Context(object):
     def set_options(self, options):
         """
         Add options. Options set before are not cleared!
+        This method should be used with the :const:`OP_*` constants.
 
         :param options: The options to add.
         :return: The new option bitmask.
@@ -1274,7 +1343,8 @@ class Context(object):
 
     def set_mode(self, mode):
         """
-        Add modes via bitmask. Modes set before are not cleared!
+        Add modes via bitmask. Modes set before are not cleared!  This method
+        should be used with the :const:`MODE_*` constants.
 
         :param mode: The mode to add.
         :return: The new mode bitmask.
@@ -1292,6 +1362,8 @@ class Context(object):
 
         :param callback: The callback function.  It will be invoked with one
             argument, the Connection instance.
+
+        .. versionadded:: 0.13
         """
         @wraps(callback)
         def wrapper(ssl, alert, arg):
@@ -1311,9 +1383,11 @@ class Context(object):
         <https://technotes.googlecode.com/git/nextprotoneg.html>`_ as a server.
 
         :param callback: The callback function.  It will be invoked with one
-            argument, the Connection instance.  It should return a list of
-            bytestrings representing the advertised protocols, like
+            argument, the :class:`Connection` instance.  It should return a
+            list of bytestrings representing the advertised protocols, like
             ``[b'http/1.1', b'spdy/2']``.
+
+        .. versionadded:: 0.15
         """
         self._npn_advertise_helper = _NpnAdvertiseHelper(callback)
         self._npn_advertise_callback = self._npn_advertise_helper.callback
@@ -1330,6 +1404,8 @@ class Context(object):
             arguments: the Connection, and a list of offered protocols as
             bytestrings, e.g. ``[b'http/1.1', b'spdy/2']``.  It should return
             one of those bytestrings, the chosen protocol.
+
+        .. versionadded:: 0.15
         """
         self._npn_select_helper = _NpnSelectHelper(callback)
         self._npn_select_callback = self._npn_select_helper.callback
@@ -1339,7 +1415,7 @@ class Context(object):
     @_requires_alpn
     def set_alpn_protos(self, protos):
         """
-        Specify the clients ALPN protocol list.
+        Specify the ALPN protocol list of the client.
 
         These protocols are offered to the server during protocol negotiation.
 
@@ -1361,7 +1437,8 @@ class Context(object):
     @_requires_alpn
     def set_alpn_select_callback(self, callback):
         """
-        Set the callback to handle ALPN protocol choice.
+        Specify a callback function that will be called on the server when a
+        client offers protocols using ALPN.
 
         :param callback: The callback function.  It will be invoked with two
             arguments: the Connection, and a list of offered protocols as
