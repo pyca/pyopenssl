@@ -16,27 +16,9 @@
 Elliptic curves
 ---------------
 
-.. py:function:: get_elliptic_curves
+.. autofunction:: get_elliptic_curves
 
-    Return a set of objects representing the elliptic curves supported in the
-    OpenSSL build in use.
-
-    The curve objects have a :py:class:`unicode` ``name`` attribute by which
-    they identify themselves.
-
-    The curve objects are useful as values for the argument accepted by
-    :py:meth:`Context.set_tmp_ecdh` to specify which elliptical curve should be
-    used for ECDHE key exchange.
-
-
-.. py:function:: get_elliptic_curve(name)
-
-    Return a single curve object selected by *name*.
-
-    See :py:func:`get_elliptic_curves` for information about curve objects.
-
-    If the named curve is not supported then :py:class:`ValueError` is raised.
-
+.. autofunction:: get_elliptic_curve
 
 Serialization and deserialization
 ---------------------------------
@@ -54,42 +36,23 @@ The following serialization functions take one of these constants to determine t
 Certificates
 ~~~~~~~~~~~~
 
-.. py:function:: dump_certificate(type, cert)
+.. autofunction:: dump_certificate
 
-    Dump the certificate *cert* into a buffer string encoded with the type
-    *type*.
-
-.. py:function:: load_certificate(type, buffer)
-
-    Load a certificate (X509) from the string *buffer* encoded with the
-    type *type*.
+.. autofunction:: load_certificate
 
 Certificate signing requests
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. py:function:: dump_certificate_request(type, req)
+.. autofunction:: dump_certificate_request
 
-    Dump the certificate request *req* into a buffer string encoded with the
-    type *type*.
-
-.. py:function:: load_certificate_request(type, buffer)
-
-    Load a certificate request (X509Req) from the string *buffer* encoded with
-    the type *type*.
+.. autofunction:: load_certificate_request
 
 Private keys
 ~~~~~~~~~~~~
 
 .. autofunction:: dump_privatekey
 
-.. py:function:: load_privatekey(type, buffer[, passphrase])
-
-    Load a private key (PKey) from the string *buffer* encoded with the type
-    *type* (must be one of :py:const:`FILETYPE_PEM` and
-    :py:const:`FILETYPE_ASN1`).
-
-    *passphrase* must be either a string or a callback for providing the pass
-    phrase.
+.. autofunction:: load_privatekey
 
 Public keys
 ~~~~~~~~~~~
@@ -103,53 +66,18 @@ Certificate revocation lists
 
 .. autofunction:: dump_crl
 
-.. py:function:: load_crl(type, buffer)
+.. autofunction:: load_crl
 
-    Load Certificate Revocation List (CRL) data from a string *buffer*.
-    *buffer* encoded with the type *type*.  The type *type* must either
-    :py:const:`FILETYPE_PEM` or :py:const:`FILETYPE_ASN1`).
+.. autofunction:: load_pkcs7_data
 
-
-.. py:function:: load_pkcs7_data(type, buffer)
-
-    Load pkcs7 data from the string *buffer* encoded with the type
-    *type*. The type *type* must either :py:const:`FILETYPE_PEM` or
-    :py:const:`FILETYPE_ASN1`).
-
-
-.. py:function:: load_pkcs12(buffer[, passphrase])
-
-    Load pkcs12 data from the string *buffer*. If the pkcs12 structure is
-    encrypted, a *passphrase* must be included.  The MAC is always
-    checked and thus required.
-
-    See also the man page for the C function :py:func:`PKCS12_parse`.
+.. autofunction:: load_pkcs12
 
 Signing and verifying signatures
 --------------------------------
 
-.. py:function:: sign(key, data, digest)
+.. autofunction:: sign
 
-    Sign a data string using the given key and message digest.
-
-    *key* is a :py:class:`PKey` instance.  *data* is a ``str`` instance.
-    *digest* is a ``str`` naming a supported message digest type, for example
-    :py:const:`b"sha256"`.
-
-    .. versionadded:: 0.11
-
-
-.. py:function:: verify(certificate, signature, data, digest)
-
-    Verify the signature for a data string.
-
-    *certificate* is a :py:class:`X509` instance corresponding to the private
-    key which generated the signature.  *signature* is a *str* instance giving
-    the signature itself.  *data* is a *str* instance giving the data to which
-    the signature applies.  *digest* is a *str* instance naming the message
-    digest type of the signature, for example :py:const:`b"sha256"`.
-
-    .. versionadded:: 0.11
+.. autofunction:: verify
 
 
 .. _openssl-x509:
@@ -243,25 +171,8 @@ PKCS7 objects
 
 PKCS7 objects have the following methods:
 
-.. py:method:: PKCS7.type_is_signed()
-
-    FIXME
-
-.. py:method:: PKCS7.type_is_enveloped()
-
-    FIXME
-
-.. py:method:: PKCS7.type_is_signedAndEnveloped()
-
-    FIXME
-
-.. py:method:: PKCS7.type_is_data()
-
-    FIXME
-
-.. py:method:: PKCS7.get_type_name()
-
-    Get the type name of the PKCS7.
+.. autoclass:: PKCS7
+               :members:
 
 .. _openssl-pkcs12:
 
