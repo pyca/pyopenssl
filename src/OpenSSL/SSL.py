@@ -87,10 +87,6 @@ __all__ = [
     'SSL_ST_CONNECT',
     'SSL_ST_ACCEPT',
     'SSL_ST_MASK',
-    'SSL_ST_INIT',
-    'SSL_ST_BEFORE',
-    'SSL_ST_OK',
-    'SSL_ST_RENEGOTIATE',
     'SSL_CB_LOOP',
     'SSL_CB_EXIT',
     'SSL_CB_READ',
@@ -206,6 +202,12 @@ if _lib.Cryptography_HAS_SSL_ST:
     SSL_ST_BEFORE = _lib.SSL_ST_BEFORE
     SSL_ST_OK = _lib.SSL_ST_OK
     SSL_ST_RENEGOTIATE = _lib.SSL_ST_RENEGOTIATE
+    __all__.extend([
+        'SSL_ST_INIT',
+        'SSL_ST_BEFORE',
+        'SSL_ST_OK',
+        'SSL_ST_RENEGOTIATE',
+    ])
 
 SSL_CB_LOOP = _lib.SSL_CB_LOOP
 SSL_CB_EXIT = _lib.SSL_CB_EXIT
