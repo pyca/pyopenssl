@@ -113,12 +113,6 @@ __all__ = [
 ]
 
 try:
-    _memoryview = memoryview
-except NameError:
-    class _memoryview(object):
-        pass
-
-try:
     _buffer = buffer
 except NameError:
     class _buffer(object):
@@ -1702,7 +1696,7 @@ class Connection(object):
         # Backward compatibility
         buf = _text_to_bytes_and_warn("buf", buf)
 
-        if isinstance(buf, _memoryview):
+        if isinstance(buf, memoryview):
             buf = buf.tobytes()
         if isinstance(buf, _buffer):
             buf = str(buf)
@@ -1729,7 +1723,7 @@ class Connection(object):
         """
         buf = _text_to_bytes_and_warn("buf", buf)
 
-        if isinstance(buf, _memoryview):
+        if isinstance(buf, memoryview):
             buf = buf.tobytes()
         if isinstance(buf, _buffer):
             buf = str(buf)
@@ -1802,12 +1796,8 @@ class Connection(object):
         # This strange line is all to avoid a memory copy. The buffer protocol
         # should allow us to assign a CFFI buffer to the LHS of this line, but
         # on CPython 3.3+ that segfaults. As a workaround, we can temporarily
-        # wrap it in a memoryview, except on Python 2.6 which doesn't have a
-        # memoryview type.
-        try:
-            buffer[:result] = memoryview(_ffi.buffer(buf, result))
-        except NameError:
-            buffer[:result] = _ffi.buffer(buf, result)
+        # wrap it in a memoryview.
+        buffer[:result] = memoryview(_ffi.buffer(buf, result))
 
         return result
 
