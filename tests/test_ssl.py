@@ -479,7 +479,7 @@ class TestContext(object):
         """
         `Context` can be instantiated with one of `SSLv2_METHOD`,
         `SSLv3_METHOD`, `SSLv23_METHOD`, `TLSv1_METHOD`, `TLSv1_1_METHOD`,
-        or `TLSv1_2_METHOD`.
+        `TLSv1_2_METHOD`, or `DTLSv1_METHOD`.
         """
         methods = [SSLv23_METHOD, TLSv1_METHOD]
         for meth in methods:

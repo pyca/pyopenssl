@@ -770,8 +770,8 @@ class Context(object):
     :class:`OpenSSL.SSL.Context` instances define the parameters for setting
     up new SSL connections.
 
-    :param method: One of SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD, or
-        TLSv1_METHOD.
+    :param method: One of SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD,
+        TLSv1_METHOD, TLSv1_1_METHOD, TLSv1_2_METHOD, or DTLSv1_METHOD.
     """
     _methods = {
         SSLv2_METHOD: "SSLv2_method",
