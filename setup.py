@@ -97,13 +97,6 @@ if __name__ == "__main__":
             "cryptography>=2.2.1",
             "six>=1.5.2"
         ],
-        dependency_links=[
-            (
-                "git+https://github.com/pyca/cryptography.git"
-                "@47d96e39e9b6d413f970cf02cc58553a9647241a"
-                "#egg=cryptography-2.2.dev1"
-            )
-        ],
         extras_require={
             "test": [
                 "flaky",
