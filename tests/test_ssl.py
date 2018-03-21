@@ -11,7 +11,7 @@ import uuid
 
 from gc import collect, get_referrers
 from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE, ESHUTDOWN
-from sys import platform, getfilesystemencoding, version_info
+from sys import platform, getfilesystemencoding
 from socket import MSG_PEEK, SHUT_RDWR, error, socket
 from os import makedirs
 from os.path import join
@@ -99,10 +99,6 @@ V7H54LmltOT/hEh6QWsJqb6BQgH65bswvV/XkYGja8/T0GzvbaVzAgEC
 
 
 skip_if_py3 = pytest.mark.skipif(PY3, reason="Python 2 only")
-skip_if_py26 = pytest.mark.skipif(
-    version_info[0:2] == (2, 6),
-    reason="Python 2.7 and later only"
-)
 
 
 def join_bytes_or_unicode(prefix, suffix):
@@ -2868,7 +2864,6 @@ class TestConnectionSend(object):
         assert count == 2
         assert client.recv(2) == b'xy'
 
-    @skip_if_py26
     def test_short_memoryview(self):
         """
         When passed a memoryview onto a small number of bytes,
@@ -3005,7 +3000,6 @@ class TestConnectionRecvInto(object):
             assert client.recv_into(output_buffer, flags=MSG_PEEK) == 2
             assert output_buffer == bytearray(b'xy\x00\x00\x00')
 
-    @skip_if_py26
     def test_memoryview_no_length(self):
         """
         `Connection.recv_into` can be passed a `memoryview` instance and data
@@ -3013,7 +3007,6 @@ class TestConnectionRecvInto(object):
         """
         self._no_length_test(_make_memoryview)
 
-    @skip_if_py26
     def test_memoryview_respects_length(self):
         """
         When called with a `memoryview` instance, `Connection.recv_into`
@@ -3022,7 +3015,6 @@ class TestConnectionRecvInto(object):
         """
         self._respects_length_test(_make_memoryview)
 
-    @skip_if_py26
     def test_memoryview_doesnt_overfill(self):
         """
         When called with a `memoryview` instance, `Connection.recv_into`
@@ -3031,7 +3023,6 @@ class TestConnectionRecvInto(object):
         """
         self._doesnt_overfill_test(_make_memoryview)
 
-    @skip_if_py26
     def test_memoryview_really_doesnt_overfill(self):
         """
         When called with a `memoryview` instance and an `nbytes` value that is
@@ -3079,7 +3070,6 @@ class TestConnectionSendall(object):
                 ) == str(w[-1].message))
         assert client.recv(1) == b"x"
 
-    @skip_if_py26
     def test_short_memoryview(self):
         """
         When passed a memoryview onto a small number of bytes,

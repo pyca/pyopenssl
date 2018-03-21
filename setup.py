@@ -78,7 +78,6 @@ if __name__ == "__main__":
             'Operating System :: POSIX',
 
             'Programming Language :: Python :: 2',
-            'Programming Language :: Python :: 2.6',
             'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3',
             'Programming Language :: Python :: 3.4',
@@ -96,16 +95,14 @@ if __name__ == "__main__":
         package_dir={"": "src"},
         install_requires=[
             # Fix cryptographyMinimum in tox.ini when changing this!
-            "cryptography>=2.1.4",
+            "cryptography>=2.2.1",
             "six>=1.5.2"
         ],
         extras_require={
             "test": [
                 "flaky",
                 "pretend",
-                # pytest 3.3 doesn't support Python 2.6 anymore.
-                # Remove this pin once we drop Python 2.6 too.
-                "pytest>=3.0.1,<3.3.0",
+                "pytest>=3.0.1",
             ],
             "docs": [
                 "sphinx",

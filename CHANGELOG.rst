@@ -11,7 +11,8 @@ The third digit is only for regressions.
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-*none*
+* The minimum ``cryptography`` version is now 2.2.1.
+* Support for Python 2.6 has been dropped.
 
 
 Deprecations:
