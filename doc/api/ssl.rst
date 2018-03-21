@@ -231,29 +231,6 @@ Context objects have the following methods:
 .. autoclass:: OpenSSL.SSL.Context
                :members:
 
-.. py:method:: Context.set_cookie_generate_cb(callback)
-
-    Specify a callback function that will be called on the server when the
-    :py:data:`OP_COOKIE_EXCHANGE` option is enabled. The server will use this
-    callback to build the DTLS HelloVerifyRequest.
-
-    *callback* should be the callback function. It will be invoked with one
-    argument: the :py:class:`Connection`. It should return a
-    bytestring containing the generated cookie.
-
-
-.. py:method:: Context.set_cookie_verify_cb(callback)
-
-    Specify a callback function that will be called on the server when a client
-    offers a cookie within a DTLS ClientHello.
-
-    *callback* should be the callback function. It will be invoked with two
-    arguments: the :py:class:`Connection` and a bytestring containing the client cookie.
-    The callback must return a boolean that indicates the result of
-    validating the client cookie: ``True`` if the cookie is valid,
-    or ``False`` if the cookie is invalid.
-
-
 .. _openssl-session:
 
 Session objects

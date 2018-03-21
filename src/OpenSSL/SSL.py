@@ -771,7 +771,7 @@ class Context(object):
     up new SSL connections.
 
     :param method: One of SSLv2_METHOD, SSLv3_METHOD, SSLv23_METHOD,
-        TLSv1_METHOD, TLSv1_1_METHOD, TLSv1_2_METHOD, or DTLSv1_METHOD.
+        TLSv1_METHOD, or DTLSv1_METHOD.
     """
     _methods = {
         SSLv2_METHOD: "SSLv2_method",
@@ -1596,7 +1596,7 @@ class Context(object):
 
     def set_cookie_generate_cb(self, callback):
         """
-        Set the callback to handle DTLS HelloVerifyRequest cookie generation.
+        Set a callback to handle DTLS HelloVerifyRequest cookie generation.
 
         :param callback: The callback function.  It will be invoked with one
             argument: the Connection.  It should return
@@ -1611,7 +1611,7 @@ class Context(object):
 
     def set_cookie_verify_cb(self, callback):
         """
-        Set the callback to handle DTLS ClientHello cookie verification.
+        Set a callback to handle DTLS ClientHello cookie verification.
 
         :param callback: The callback function.  It will be invoked with two
             arguments: the Connection and a bytestring
