@@ -1090,7 +1090,7 @@ class TestX509Name(object):
         a description of the type and the NIDs which have been set on it.
         """
         name = x509_name(commonName="foo", emailAddress="bar")
-        assert repr(name) == "<X509Name object '/emailAddress=bar/CN=foo'>"
+        assert repr(name) == "<X509Name object 'emailAddress=bar,CN=foo'>"
 
     def test_comparison(self):
         """
