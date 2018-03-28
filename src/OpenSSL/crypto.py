@@ -643,13 +643,10 @@ class X509Name(object):
         """
         String representation of an X509Name
         """
-        result_buffer = _ffi.new("char[]", 512)
-        format_result = _lib.X509_NAME_oneline(
-            self._name, result_buffer, len(result_buffer))
-        _openssl_assert(format_result != _ffi.NULL)
-
+        bio = _new_mem_buf()
+        res = _lib.X509_NAME_print_ex(bio, self._name, 0, _lib.XN_FLAG_RFC2253)
         return "<X509Name object '%s'>" % (
-            _native(_ffi.string(result_buffer)),)
+            _native(_bio_to_string(bio)),)
 
     def hash(self):
         """
