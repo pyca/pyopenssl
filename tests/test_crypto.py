@@ -1087,10 +1087,11 @@ class TestX509Name(object):
     def test_repr(self):
         """
         `repr` passed an `X509Name` instance should return a string containing
-        a description of the type and the NIDs which have been set on it.
+        a description of the type and the NIDs which have been set on it.  The
+        internal string object is now formattted according to XN_FLAG_RFC2212.
         """
         name = x509_name(commonName="foo", emailAddress="bar")
-        assert repr(name) == "<X509Name object 'emailAddress=bar,CN=foo'>"
+        assert repr(name) == "<X509Name object 'CN=foo,emailAddress=bar'>"
 
     def test_comparison(self):
         """
