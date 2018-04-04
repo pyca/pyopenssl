@@ -71,6 +71,7 @@ FILETYPE_TEXT = 2 ** 16 - 1
 
 TYPE_RSA = _lib.EVP_PKEY_RSA
 TYPE_DSA = _lib.EVP_PKEY_DSA
+TYPE_EC = _lib.EVP_PKEY_EC
 
 
 class Error(Exception):
@@ -266,16 +267,19 @@ class PKey(object):
         pkey._initialized = True
         return pkey
 
-    def generate_key(self, type, bits):
+    def generate_key(self, type, bits, curve='prime256v1'):
         """
         Generate a key pair of the given type, with the given number of bits.
 
         This generates a key "into" the this object.
 
         :param type: The key type.
-        :type type: :py:data:`TYPE_RSA` or :py:data:`TYPE_DSA`
+        :type type: :py:data:`TYPE_RSA`, :py:data:`TYPE_DSA`,
+            :py:data:`TYPE_EC`
         :param bits: The number of bits.
         :type bits: :py:data:`int` ``>= 0``
+        :param curve: The EC curve name.
+        :type curve: :py:data:`str` ``crypto.get_elliptic_curves()``
         :raises TypeError: If :py:data:`type` or :py:data:`bits` isn't
             of the appropriate type.
         :raises ValueError: If the number of bits isn't an integer of
@@ -287,6 +291,9 @@ class PKey(object):
 
         if not isinstance(bits, int):
             raise TypeError("bits must be an integer")
+
+        if not isinstance(curve, str):
+            raise TypeError("curve must be a valid curve string")
 
         # TODO Check error return
         exponent = _lib.BN_new()
@@ -317,6 +324,13 @@ class PKey(object):
 
             _openssl_assert(_lib.DSA_generate_key(dsa) == 1)
             _openssl_assert(_lib.EVP_PKEY_set1_DSA(self._pkey, dsa) == 1)
+        elif type == TYPE_EC:
+            c = get_elliptic_curve(curve)
+            ec_key = c._to_EC_KEY()
+            _openssl_assert(_lib.EC_KEY_generate_key(ec_key) == 1)
+            # OPENSSL_EC_NAMED_CURVE
+            _openssl_assert(_lib.EC_KEY_set_asn1_flag(ec_key, 1) != _ffi.NULL)
+            _openssl_assert(_lib.EVP_PKEY_set1_EC_KEY(self._pkey, ec_key) == 1)
         else:
             raise Error("No such key type")
 
