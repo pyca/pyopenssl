@@ -645,6 +645,7 @@ class X509Name(object):
         """
         bio = _new_mem_buf()
         res = _lib.X509_NAME_print_ex(bio, self._name, 0, _lib.XN_FLAG_RFC2253)
+        assert res == 1
         return "<X509Name object '%s'>" % (
             _native(_bio_to_string(bio)),)
 
