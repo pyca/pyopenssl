@@ -644,8 +644,9 @@ class X509Name(object):
         String representation of an X509Name
         """
         bio = _new_mem_buf()
-        res = _lib.X509_NAME_print_ex(bio, self._name, 0, _lib.XN_FLAG_RFC2253)
-        assert res == 1
+        print_result = _lib.X509_NAME_print_ex(
+                           bio, self._name, 0, _lib.XN_FLAG_RFC2253)
+        _openssl_assert(print_result >= 0)
         return "<X509Name object '%s'>" % (
             _native(_bio_to_string(bio)),)
 
