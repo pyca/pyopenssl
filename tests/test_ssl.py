@@ -1865,6 +1865,104 @@ class TestNextProtoNegotiation(object):
             interact_in_memory(server, client)
         assert select_args == []
 
+def loopback_client_factory(socket):
+    client = Connection(Context(SSLv23_METHOD), socket)
+    client.set_connect_state()
+    return client
+
+
+def loopback_server_factory(socket):
+    ctx = Context(SSLv23_METHOD)
+    ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
+    ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
+    server = Connection(ctx, socket)
+    server.set_accept_state()
+    return server
+
+
+class TestCustomExtensions(object):
+    def _loopback(self, server_ctx_mod, client_ctx_mod):
+        def server_factory(socket):
+            print 'making server'
+            ctx = Context(TLSv1_2_METHOD)
+            ctx.set_options(SSL.OP_NO_SSLv3)
+            ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
+            ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
+            ctx = server_ctx_mod(ctx)
+            server = Connection(ctx, socket)
+            server.set_accept_state()
+            return server
+
+        def client_factory(socket):
+            print 'making client'
+            ctx = Context(TLSv1_2_METHOD)
+            ctx.set_options(SSL.OP_NO_SSLv3)
+            ctx = client_ctx_mod(ctx)
+            client = Connection(ctx, socket)
+            client.set_connect_state()
+            return client
+        return loopback(server_factory, client_factory)
+
+    """
+    want to test
+    success
+    add two identical extension types -> should fail
+    client/server adds multiple extensions:
+        * server doesn't support one of them TODO: what happens?
+        * server adds extensions that the client doesn't ask for. should be fine
+    test the freeing of add arguments.
+    client callbacks:
+        None add/parse
+        add/parse throws our exception/some other exception
+        add returns None
+
+    server callbacks:
+        same as client, except that None add is handled differently
+
+    """
+    if _lib.Cryptography_HAS_CUSTOM_EXT:
+        def test(self):
+            def cadd_cb(conn, ext_type):
+                print 'client ctx add'
+                assert ext_type == 10
+                return b'\x00\x0d\x01\x02'
+            def cparse_cb(conn, ext_type, in_bytes):
+                print 'client ctx parse'
+                assert ext_type == 10
+                assert in_bytes == b'\xde\xad'
+                # parse doesn't need to return anything. it just throws if the extension data is not acceptable.
+
+            def sadd_cb(conn, ext_type):
+                print 'server ctx add'
+                assert ext_type == 10
+                return b'\xde\xad'
+            def sparse_cb(conn, ext_type, in_bytes):
+                print 'server ctx add'
+                assert ext_type == 10
+                assert in_bytes == b'\x00\x0d\x01\x02'
+
+            def client_ctx(ctx):
+                ctx.add_client_custom_ext(11, cadd_cb, cparse_cb)
+                return ctx
+            def server_ctx(ctx):
+                ctx.add_server_custom_ext(10, sadd_cb, sparse_cb)
+                return ctx
+
+            print 'in custom ext test'
+            server, client = self._loopback(server_ctx, client_ctx)
+            client.send(b'xy')
+    else:
+        def test_not_implemented(self):
+            """
+            """
+            context = Context(TLSv1_METHOD)
+            with pytest.raises(NotImplementedError):
+                context.extension_supported(1)
+            with pytest.raises(NotImplementedError):
+                context.add_client_custom_ext(1, None, None)
+            with pytest.raises(NotImplementedError):
+                context.add_server_custom_ext(1, None, None)
+
 
 class TestApplicationLayerProtoNegotiation(object):
     """
