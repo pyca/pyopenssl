@@ -353,7 +353,6 @@ class _CustomExtAddHelper(_CallbackExceptionHelper):
             self.free_callback = _ffi.NULL
             return
 
-        # TODO(dlila): documentation for the callback: return None to not include the extension. return data 
         @wraps(callback)
         def wrapper(ssl, ext_type, out, outlen, al, add_arg):
             print('_CustomExtAddHelper')
@@ -374,13 +373,13 @@ class _CustomExtAddHelper(_CallbackExceptionHelper):
                 print('returning success from add cb')
                 return 1
             except CustomExtError as e:
-                # TODO
                 al[0] = e.al
                 return -1
             except Exception as e:
                 print('error in custom ext add cb wrapper')
                 print(str(e))
-                al[0] = 40
+                self._problems.append(e)
+                al[0] = 2 # SSL_TLSEXT_ERR_ALERT_FATAL
                 return -1
 
         def free_cb(ssl, ext_type, out, add_arg):
@@ -425,8 +424,8 @@ class _CustomExtParseHelper(_CallbackExceptionHelper):
                 al[0] = e.al
                 return -1
             except Exception as e:
-                # TODO: error handling in general, but also what is 40?
-                al[0] = 40
+                self._problems.append(e)
+                al[0] = 2 # SSL_TLSEXT_ERR_ALERT_FATAL
                 return -1
 
         self.callback = _ffi.callback(
@@ -1726,7 +1725,9 @@ class Connection(object):
         # avoid them getting freed.
         self._alpn_select_callback_args = None
 
-        # TODO(dlila): docs for this.
+        # References to strings used for custom extensions negotiation. We need
+        # to keep references to them so that they're not freed while the native
+        # code is using them.
         self._custom_ext_add_callback_args = set([])
 
         self._reverse_mapping[self._ssl] = self
@@ -1772,6 +1773,8 @@ class Connection(object):
             self._context._alpn_select_helper.raise_if_problem()
         if self._context._ocsp_helper is not None:
             self._context._ocsp_helper.raise_if_problem()
+        for custom_ext_helper in self._context._custom_ext_cb_helpers:
+            custom_ext_helper.raise_if_problem()
 
         error = _lib.SSL_get_error(ssl, result)
         if error == _lib.SSL_ERROR_WANT_READ:

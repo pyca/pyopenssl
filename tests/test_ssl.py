@@ -1990,9 +1990,8 @@ class TestCustomExtensions(object):
             ])
             client, server = self._connect(cc, sc)
 
-            with pytest.raises(SSL.Error) as err:
+            with pytest.raises(TypeError):
                 interact_in_memory(client, server)
-            assert err.value.args[0][0][1] == 'tls_construct_client_hello'
             assert set(ca) == set([24])
             assert set(sp) == set([])
             assert set(sa) == set([])
