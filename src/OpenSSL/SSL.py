@@ -355,7 +355,6 @@ class _CustomExtAddHelper(_CallbackExceptionHelper):
 
         @wraps(callback)
         def wrapper(ssl, ext_type, out, outlen, al, add_arg):
-            print('_CustomExtAddHelper')
             conn = Connection._reverse_mapping[ssl]
             try:
                 out_data = callback(conn, ext_type)
@@ -367,28 +366,20 @@ class _CustomExtAddHelper(_CallbackExceptionHelper):
 
                 ffi_out_data = _ffi.new("unsigned char[]", out_data)
                 conn._custom_ext_add_callback_args.add(ffi_out_data)
-                print('allocated add out_data: %s at address %s' % (str(ffi_out_data), _ffi.addressof(ffi_out_data)))
                 outlen[0] = len(out_data)
                 out[0] = ffi_out_data
-                print('returning success from add cb')
                 return 1
             except CustomExtError as e:
                 al[0] = e.al
                 return -1
             except Exception as e:
-                print('error in custom ext add cb wrapper')
-                print(str(e))
                 self._problems.append(e)
                 al[0] = 2 # SSL_TLSEXT_ERR_ALERT_FATAL
                 return -1
 
         def free_cb(ssl, ext_type, out, add_arg):
             conn = Connection._reverse_mapping[ssl]
-            print('free cb: out %s' % (out,))
-            print('free cb: saved args: %s' % (conn._custom_ext_add_callback_args,))
-            print out in conn._custom_ext_add_callback_args
             conn._custom_ext_add_callback_args.remove(out)
-            print('free cb: saved args: %s' % (conn._custom_ext_add_callback_args,))
 
         self.callback = _ffi.callback(
             ("int (*)(SSL *, unsigned int, const unsigned char **, "
@@ -412,7 +403,6 @@ class _CustomExtParseHelper(_CallbackExceptionHelper):
 
         @wraps(callback)
         def wrapper(ssl, ext_type, inbuf, inlen, al, parse_arg):
-            print('in parse cb helper wrapper')
             conn = Connection._reverse_mapping[ssl]
 
             inbytes = _ffi.buffer(inbuf, inlen)[:]

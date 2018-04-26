@@ -1995,7 +1995,7 @@ class TestCustomExtensions(object):
             assert set(ca) == set([24])
             assert set(sp) == set([])
             assert set(sa) == set([])
-            assert set(cp) == set([]) 
+            assert set(cp) == set([])
 
         def test_serverParseError(self):
             """
@@ -2017,7 +2017,7 @@ class TestCustomExtensions(object):
             assert set(sp) == set([(24, 'c24')])
             # The server rejected, so server add and client parse are not called
             assert set(sa) == set([])
-            assert set(cp) == set([]) 
+            assert set(cp) == set([])
 
         def test_serverAddError(self):
             """
@@ -2039,7 +2039,7 @@ class TestCustomExtensions(object):
             assert set(sp) == set([(24, 'c24')])
             assert set(sa) == set([24])
             # The server refused the extension.
-            assert set(cp) == set([]) 
+            assert set(cp) == set([])
 
         def test_clientParseError(self):
             """
@@ -2060,7 +2060,7 @@ class TestCustomExtensions(object):
             assert set(ca) == set([24])
             assert set(sp) == set([(24, 'c24')])
             assert set(sa) == set([24])
-            assert set(cp) == set([(24, 's24')]) 
+            assert set(cp) == set([(24, 's24')])
 
         def test_clientAddError(self):
             """
@@ -2083,7 +2083,7 @@ class TestCustomExtensions(object):
             # The server callbacks and client parse are not called because the
             # client aborted the handshake and never added the extension.
             assert set(sa) == set([])
-            assert set(cp) == set([]) 
+            assert set(cp) == set([])
 
         def test_sameExtTypes(self):
             """
