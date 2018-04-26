@@ -2019,7 +2019,7 @@ class TestCustomExtensions(object):
             assert set(ca) == set([50, 51, 52, 53, 54, 56, 57, 58])
             assert set(sp) == set([(50, 'c50'), (51, 'c51'), (52, ''), (54, 'c54'), (55, ''), (56, 'c56')])
             assert set(sa) == set([50, 51, 52, 54, 55, 57])
-            assert set(cp) == set([(50, 's50'), (51, 's51'), (52, ''), (55, '')])
+            assert set(cp) == set([(50, 's50'), (51, 's51'), (52, ''), (55, 's55')])
             client.send('hello')
             assert interact_in_memory(client, server) == (server, 'hello')
 
@@ -2182,9 +2182,8 @@ class TestCustomExtensions(object):
 
         def test_sameExtTypes(self):
             # TODO(dlila): finish.
-            with pytest.raises(SSL.Error) as err:
-                cc = self._client_ctx([(24, None, None), (24, None, None)])
-            assert err.value.args[0][0][1] == ''
+            with pytest.raises(SSL.Error):
+                self._client_ctx([(24, None, None), (24, None, None)])
 
         def test_handledInternally(self):
             ext_type = -1

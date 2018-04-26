@@ -111,6 +111,7 @@ __all__ = [
     'Context',
     'Connection',
     'CustomExtException',
+    'extension_supported',
 ]
 
 try:
@@ -339,11 +340,14 @@ class CustomExtException(Exception):
         self.al = al
 
 
-# TODO(dlila): we should really implement the free callback here to delete the arguments that we're keeping track of.
 class _CustomExtAddHelper(_CallbackExceptionHelper):
-    # TODO(dlila): can the callback be None? Probably yes, but double check, and handle that case
     def __init__(self, callback):
         _CallbackExceptionHelper.__init__(self)
+
+        if callback is None:
+            self.callback = _ffi.NULL
+            self.free_callback = _ffi.NULL
+            return
 
         # TODO(dlila): documentation for the callback: return None to not include the extension. return data 
         @wraps(callback)
@@ -352,17 +356,17 @@ class _CustomExtAddHelper(_CallbackExceptionHelper):
             conn = Connection._reverse_mapping[ssl]
             try:
                 out_data = callback(conn, ext_type)
-                # TODO: maybe this should be 'if not out_data', but then we'd return 0 and not add the extension. Should we support zero data extension?
                 if out_data is None:
                     return 0 # Don't add the extension.
 
                 if not isinstance(out_data, _binary_type):
                     raise TypeError("Custom Extension callback must return a bytestring.")
 
-                conn._custom_ext_add_callback_args = _ffi.new("unsigned char[]", out_data)
-                print('allocated add out_data: ' + str(conn._custom_ext_add_callback_args))
+                ffi_out_data = _ffi.new("unsigned char[]", out_data)
+                conn._custom_ext_add_callback_args.add(ffi_out_data)
+                print('allocated add out_data: %s at address %s' % (str(ffi_out_data), _ffi.addressof(ffi_out_data)))
                 outlen[0] = len(out_data)
-                out[0] = conn._custom_ext_add_callback_args
+                out[0] = ffi_out_data
                 print('returning success from add cb')
                 return 1
             except CustomExtException as e:
@@ -375,16 +379,33 @@ class _CustomExtAddHelper(_CallbackExceptionHelper):
                 al[0] = 40
                 return -1
 
+        def free_cb(ssl, ext_type, out, add_arg):
+            conn = Connection._reverse_mapping[ssl]
+            print('free cb: out %s' % (out,))
+            print('free cb: saved args: %s' % (conn._custom_ext_add_callback_args,))
+            print out in conn._custom_ext_add_callback_args
+            conn._custom_ext_add_callback_args.remove(out)
+            print('free cb: saved args: %s' % (conn._custom_ext_add_callback_args,))
+
         self.callback = _ffi.callback(
             ("int (*)(SSL *, unsigned int, const unsigned char **, "
                 "size_t *, int *, void *)"),
             wrapper
         )
 
+        self.free_callback = _ffi.callback(
+            "void (*)(SSL *, unsigned int, const unsigned char *, void *)",
+            free_cb
+        )
+
 
 class _CustomExtParseHelper(_CallbackExceptionHelper):
     def __init__(self, callback):
         _CallbackExceptionHelper.__init__(self)
+
+        if callback is None:
+            self.callback = _ffi.NULL
+            return
 
         @wraps(callback)
         def wrapper(ssl, ext_type, inbuf, inlen, al, parse_arg):
@@ -828,10 +849,7 @@ class Context(object):
         self._ocsp_helper = None
         self._ocsp_callback = None
         self._ocsp_data = None
-        self._client_custom_ext_add_helper = None
-        self._client_custom_ext_parse_helper = None
-        self._server_custom_ext_add_helper = None
-        self._server_custom_ext_parse_helper = None
+        self._custom_ext_cb_helpers = []
 
         self.set_mode(_lib.SSL_MODE_ENABLE_PARTIAL_WRITE)
 
@@ -1336,7 +1354,7 @@ class Context(object):
         _openssl_assert(add_result == 1)
 
     def set_timeout(self, timeout):
-        """
+        """extension_supported
         Set the timeout for newly created sessions for this Context object to
         *timeout*.  The default value is 300 seconds. See the OpenSSL manual
         for more information (e.g. :manpage:`SSL_CTX_set_timeout(3)`).
@@ -1597,23 +1615,30 @@ class Context(object):
         """add_cb: if none, a zero length extension will be added.
         parse_cb: TODO: what happens if none?
         """
-        self._client_custom_ext_add_helper = _CustomExtAddHelper(add_cb)
-        self._client_custom_ext_parse_helper = _CustomExtParseHelper(parse_cb)
-        print('adding client custom ext')
-        rc = _lib.SSL_CTX_add_client_custom_ext(self._context, ext_type, self._client_custom_ext_add_helper.callback, _ffi.NULL, _ffi.NULL, self._client_custom_ext_parse_helper.callback, _ffi.NULL)
+        add_helper = _CustomExtAddHelper(add_cb)
+        parse_helper = _CustomExtParseHelper(parse_cb)
+        rc = _lib.SSL_CTX_add_client_custom_ext(
+            self._context, ext_type,
+            add_helper.callback, add_helper.free_callback, _ffi.NULL,
+            parse_helper.callback, _ffi.NULL)
         _openssl_assert(rc == 1)
-        # TODO(dlila): handle rc.
+        self._custom_ext_cb_helpers.append(add_helper)
+        self._custom_ext_cb_helpers.append(parse_helper)
 
     @_requires_custom_ext
     def add_server_custom_ext(self, ext_type, add_cb, parse_cb):
         """add_cb: TODO: what happens if none
         parse_cb: TODO: what happens if none."""
-        # TODO(dlila): can we use the same varialbes for the server and client extension callback helpers?
-        self._server_custom_ext_add_helper = _CustomExtAddHelper(add_cb)
-        self._server_custom_ext_parse_helper = _CustomExtParseHelper(parse_cb)
-        rc = _lib.SSL_CTX_add_server_custom_ext(self._context, ext_type, self._server_custom_ext_add_helper.callback, _ffi.NULL, _ffi.NULL, self._server_custom_ext_parse_helper.callback, _ffi.NULL)
+        add_helper = _CustomExtAddHelper(add_cb)
+        parse_helper = _CustomExtParseHelper(parse_cb)
+        rc = _lib.SSL_CTX_add_server_custom_ext(
+            self._context, ext_type,
+            add_helper.callback, add_helper.free_callback, _ffi.NULL,
+            parse_helper.callback, _ffi.NULL)
         _openssl_assert(rc == 1)
-        # TODO(dlila): handle rc.
+        self._custom_ext_cb_helpers.append(add_helper)
+        self._custom_ext_cb_helpers.append(parse_helper)
+
 
 @_requires_custom_ext
 def extension_supported(ext_type):
@@ -1661,7 +1686,7 @@ class Connection(object):
         self._alpn_select_callback_args = None
 
         # TODO(dlila): docs for this.
-        self._custom_ext_add_callback_args = None
+        self._custom_ext_add_callback_args = set([])
 
         self._reverse_mapping[self._ssl] = self
 
