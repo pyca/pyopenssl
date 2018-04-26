@@ -348,6 +348,7 @@ class _CustomExtAddHelper(_CallbackExceptionHelper):
         # TODO(dlila): documentation for the callback: return None to not include the extension. return data 
         @wraps(callback)
         def wrapper(ssl, ext_type, out, outlen, al, add_arg):
+            print('_CustomExtAddHelper')
             conn = Connection._reverse_mapping[ssl]
             try:
                 out_data = callback(conn, ext_type)
@@ -359,17 +360,20 @@ class _CustomExtAddHelper(_CallbackExceptionHelper):
                     raise TypeError("Custom Extension callback must return a bytestring.")
 
                 conn._custom_ext_add_callback_args = _ffi.new("unsigned char[]", out_data)
+                print('allocated add out_data: ' + str(conn._custom_ext_add_callback_args))
                 outlen[0] = len(out_data)
                 out[0] = conn._custom_ext_add_callback_args
+                print('returning success from add cb')
                 return 1
             except CustomExtException as e:
                 # TODO
                 al[0] = e.al
                 return -1
             except Exception as e:
+                print('error in custom ext add cb wrapper')
+                print(str(e))
                 al[0] = 40
                 return -1
- 
 
         self.callback = _ffi.callback(
             ("int (*)(SSL *, unsigned int, const unsigned char **, "
@@ -384,10 +388,10 @@ class _CustomExtParseHelper(_CallbackExceptionHelper):
 
         @wraps(callback)
         def wrapper(ssl, ext_type, inbuf, inlen, al, parse_arg):
+            print('in parse cb helper wrapper')
             conn = Connection._reverse_mapping[ssl]
 
-            # TODO(dlila) look at other callback examples that get data arrays from SSL. weird that we're the only ones using ffi.unpack
-            inbytes = _ffi.unpack(inbuf, inlen)
+            inbytes = _ffi.buffer(inbuf, inlen)[:]
 
             try:
                 callback(conn, ext_type, inbytes)
@@ -1595,7 +1599,9 @@ class Context(object):
         """
         self._client_custom_ext_add_helper = _CustomExtAddHelper(add_cb)
         self._client_custom_ext_parse_helper = _CustomExtParseHelper(parse_cb)
+        print('adding client custom ext')
         rc = _lib.SSL_CTX_add_client_custom_ext(self._context, ext_type, self._client_custom_ext_add_helper.callback, _ffi.NULL, _ffi.NULL, self._client_custom_ext_parse_helper.callback, _ffi.NULL)
+        _openssl_assert(rc == 1)
         # TODO(dlila): handle rc.
 
     @_requires_custom_ext
@@ -1606,11 +1612,12 @@ class Context(object):
         self._server_custom_ext_add_helper = _CustomExtAddHelper(add_cb)
         self._server_custom_ext_parse_helper = _CustomExtParseHelper(parse_cb)
         rc = _lib.SSL_CTX_add_server_custom_ext(self._context, ext_type, self._server_custom_ext_add_helper.callback, _ffi.NULL, _ffi.NULL, self._server_custom_ext_parse_helper.callback, _ffi.NULL)
+        _openssl_assert(rc == 1)
         # TODO(dlila): handle rc.
 
-    @_requires_custom_ext
-    def extension_supported(self, ext_type):
-        return _lib.SSL_extension_supported(ext_type)
+@_requires_custom_ext
+def extension_supported(ext_type):
+    return _lib.SSL_extension_supported(ext_type)
 
 
 ContextType = deprecated(
