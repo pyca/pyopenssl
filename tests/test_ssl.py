@@ -1865,43 +1865,9 @@ class TestNextProtoNegotiation(object):
             interact_in_memory(server, client)
         assert select_args == []
 
-def loopback_client_factory(socket):
-    client = Connection(Context(SSLv23_METHOD), socket)
-    client.set_connect_state()
-    return client
-
-
-def loopback_server_factory(socket):
-    ctx = Context(SSLv23_METHOD)
-    ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
-    ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
-    server = Connection(ctx, socket)
-    server.set_accept_state()
-    return server
-
-
 
 class TestCustomExtensions(object):
-    """
-    want to test
-    success
-    
-    add two identical extension types -> should fail
-    
-    client/server adds multiple extensions:
-        * server doesn't support one of them TODO: what happens?
-        * server adds extensions that the client doesn't ask for. should be fine
-    
-    test the freeing of add arguments.
 
-    client callbacks:
-        None add/parse
-        add/parse throws our exception/some other exception
-        add returns None
-    server callbacks:
-        same as client, except that None add is handled differently
-
-    """
     def _server_ctx(self, extensions):
         ctx = Context(TLSv1_2_METHOD)
         ctx.set_options(SSL.OP_NO_SSLv3)
@@ -1929,14 +1895,14 @@ class TestCustomExtensions(object):
     def _add_cb_err(self, al, arg_recorder):
         def cb(conn, ext_type):
             arg_recorder.append(ext_type)
-            raise SSL.CustomExtException(al)
+            raise SSL.CustomExtError(al)
         return cb
 
     def _parse_cb(self, expected_in_bytes, al, arg_recorder):
         def cb(conn, ext_type, in_bytes):
             arg_recorder.append((ext_type, in_bytes))
             if in_bytes != expected_in_bytes:
-                raise SSL.CustomExtException(al)
+                raise SSL.CustomExtError(al)
         return cb
 
     def _connect(self, client_ctx, server_ctx):
@@ -1949,39 +1915,13 @@ class TestCustomExtensions(object):
         return (client, server)
 
     if _lib.Cryptography_HAS_CUSTOM_EXT:
-        def test_success2(self):
-            ext_type = 24
-            def cadd_cb(conn, et):
-                print 'client ctx add'
-                assert et == ext_type
-                return b'\x00\x0d\x01\x02'
-            def cparse_cb(conn, et, in_bytes):
-                print 'client ctx parse'
-                assert et == ext_type
-                assert in_bytes == b'\xde\xad'
-                # parse doesn't need to return anything. it just throws if the extension data is not acceptable.
-
-            def sadd_cb(conn, et):
-                print 'server ctx add'
-                assert et == ext_type
-                return b'\xde\xad'
-            def sparse_cb(conn, et, in_bytes):
-                print 'server ctx add'
-                assert et == ext_type
-                assert in_bytes == b'\x00\x0d\x01\x02'
-
-            cc = self._client_ctx([(24, cadd_cb, cparse_cb)])
-            sc = self._server_ctx([(24, sadd_cb, sparse_cb)])
-            client, server = self._connect(cc, sc)
-
-            assert interact_in_memory(client, server) is None
-            client.send('hello')
-            assert interact_in_memory(client, server) == (server, 'hello')
 
         def test_success(self):
+            """
+            Test various extension configurations, none of which make the
+            handshake fail.
+            """
             ca, cp, sa, sp = [], [], [], []
-            # TODO(dlila): I think we'll fix this after properly recording multiple extension args.
-            # currently segfaults.
             cc = self._client_ctx([
                 # 50 and 51 are normal extensions, supported by the server.
                 (50, self._add_cb('c50', ca), self._parse_cb('s50', 1, cp)),
@@ -2017,13 +1957,29 @@ class TestCustomExtensions(object):
 
             assert interact_in_memory(client, server) is None
             assert set(ca) == set([50, 51, 52, 53, 54, 56, 57, 58])
-            assert set(sp) == set([(50, 'c50'), (51, 'c51'), (52, ''), (54, 'c54'), (55, ''), (56, 'c56')])
+            assert set(sp) == set([
+                (50, 'c50'),
+                (51, 'c51'),
+                (52, ''),
+                (54, 'c54'),
+                (55, ''),
+                (56, 'c56'),
+            ])
             assert set(sa) == set([50, 51, 52, 54, 55, 57])
-            assert set(cp) == set([(50, 's50'), (51, 's51'), (52, ''), (55, 's55')])
+            assert set(cp) == set([
+                (50, 's50'),
+                (51, 's51'),
+                (52, ''),
+                (55, 's55'),
+            ])
             client.send('hello')
             assert interact_in_memory(client, server) == (server, 'hello')
 
         def test_badAddData(self):
+            """
+            Tests an add callback that returns something other than
+            a byte string.
+            """
             ca, cp, sa, sp = [], [], [], []
             cc = self._client_ctx([
                 # add_cb is returning 3 instead of a string.
@@ -2043,6 +1999,9 @@ class TestCustomExtensions(object):
             assert set(cp) == set([]) 
 
         def test_serverParseError(self):
+            """
+            Test a server parse callback that raises a CustomExtError.
+            """
             ca, cp, sa, sp = [], [], [], []
             cc = self._client_ctx([
                 (24, self._add_cb('c24', ca), self._parse_cb('s24', 1, cp)),
@@ -2062,6 +2021,9 @@ class TestCustomExtensions(object):
             assert set(cp) == set([]) 
 
         def test_serverAddError(self):
+            """
+            Test a server add callback that raises a CustomExtError.
+            """
             ca, cp, sa, sp = [], [], [], []
             cc = self._client_ctx([
                 (24, self._add_cb('c24', ca), self._parse_cb('', 1, cp)),
@@ -2081,6 +2043,9 @@ class TestCustomExtensions(object):
             assert set(cp) == set([]) 
 
         def test_clientParseError(self):
+            """
+            Test a client parse callback that raises CustomExtError.
+            """
             ca, cp, sa, sp = [], [], [], []
             cc = self._client_ctx([
                 (24, self._add_cb('c24', ca), self._parse_cb('__', 1, cp)),
@@ -2099,6 +2064,9 @@ class TestCustomExtensions(object):
             assert set(cp) == set([(24, 's24')]) 
 
         def test_clientAddError(self):
+            """
+            Test a client add callback that raises CustomExtError.
+            """
             ca, cp, sa, sp = [], [], [], []
             cc = self._client_ctx([
                 (24, self._add_cb_err(1, ca), self._parse_cb('s24', 1, cp)),
@@ -2118,74 +2086,18 @@ class TestCustomExtensions(object):
             assert set(sa) == set([])
             assert set(cp) == set([]) 
 
-        def test_clientAddRejection(self):
-            ca, cp, sa, sp = [], [], [], []
-            cc = self._client_ctx([
-                (24, self._add_cb(None, ca), self._parse_cb('s24', 1, cp)),
-            ])
-            sc = self._server_ctx([
-                (24, self._add_cb('s24', sa), self._parse_cb('c24', 1, sp)),
-            ])
-            client, server = self._connect(cc, sc)
-
-            assert interact_in_memory(client, server) is None
-            assert set(ca) == set([24])
-            # The client decided not to add the extension.
-            assert set(sp) == set([])
-            assert set(sa) == set([])
-            assert set(cp) == set([]) 
-            client.send('hello')
-            assert interact_in_memory(client, server) == (server, 'hello')
-
-        def test_serverAddRejection(self):
-            ca, cp, sa, sp = [], [], [], []
-            cc = self._client_ctx([
-                (24, self._add_cb('c24', ca), self._parse_cb('s24', 1, cp)),
-            ])
-            sc = self._server_ctx([
-                (24, self._add_cb(None, sa), self._parse_cb('c24', 1, sp)),
-            ])
-            client, server = self._connect(cc, sc)
-
-            assert interact_in_memory(client, server) is None
-            assert set(ca) == set([24])
-            assert set(sp) == set([(24, 'c24')])
-            assert set(sa) == set([24])
-            assert set(cp) == set([]) 
-            client.send('hello')
-            assert interact_in_memory(client, server) == (server, 'hello')
-
-        def test_clientEmptyData(self):
-            # TODO(dlila): maybe get rid of this and the AddRejection tests, and just test those cases in test_success, which is able to test more than one extension at the same time.
-            ca, cp, sa, sp = [], [], [], []
-            cc = self._client_ctx([
-                (24, self._add_cb('', ca), self._parse_cb('s24', 1, cp)),
-            ])
-            sc = self._server_ctx([
-                (24, self._add_cb('s24', sa), self._parse_cb('', 1, sp)),
-            ])
-            client, server = self._connect(cc, sc)
-
-            assert interact_in_memory(client, server) is None
-            assert set(ca) == set([24])
-            assert set(sp) == set([(24, '')])
-            assert set(sa) == set([24])
-            assert set(cp) == set([(24, 's24')]) 
-            client.send('hello')
-            assert interact_in_memory(client, server) == (server, 'hello')
-
-        def test_noneCallbacks(self):
-            # TODO(dlila): i'm not even sure what the behavior is *supposed* to be here, except that if add_cb is none on the client, we send no data to the server.
-            # I think for parse null it returns success (1) for both client and server.
-            # for add, if client then we just send a 0-length data. for servers, it's equivalent to having added a callback that returns 0.
-            pass
-
         def test_sameExtTypes(self):
-            # TODO(dlila): finish.
+            """
+            Test adding the same extension type more than onece.
+            """
             with pytest.raises(SSL.Error):
                 self._client_ctx([(24, None, None), (24, None, None)])
 
         def test_handledInternally(self):
+            """
+            Test adding an extesion with an ext_type that is handled
+            internally by OpenSSL.
+            """
             ext_type = -1
             for i in xrange(100):
                 if SSL.extension_supported(i):
@@ -2202,13 +2114,11 @@ class TestCustomExtensions(object):
                     (ext_type, self._add_cb('', []), self._parse_cb('', 1, [])),
                 ])
 
-        def test_extension_supported(self):
-            assert SSL.extension_supported(16)
-            assert not SSL.extension_supported(17)
-
     else:
         def test_not_implemented(self):
             """
+            Test that if custom extensions are not present, the methods raise
+            NotImplementedError.
             """
             context = Context(TLSv1_METHOD)
             with pytest.raises(NotImplementedError):

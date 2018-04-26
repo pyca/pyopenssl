@@ -110,7 +110,7 @@ __all__ = [
     'Session',
     'Context',
     'Connection',
-    'CustomExtException',
+    'CustomExtError',
     'extension_supported',
 ]
 
@@ -335,7 +335,11 @@ class _VerifyHelper(_CallbackExceptionHelper):
             "int (*)(int, X509_STORE_CTX *)", wrapper)
 
 
-class CustomExtException(Exception):
+class CustomExtError(Error):
+    """
+    An error used to return fatal handshake alert codes from the custom
+    extension callbacks.
+    """
     def __init__(self, al):
         self.al = al
 
@@ -369,7 +373,7 @@ class _CustomExtAddHelper(_CallbackExceptionHelper):
                 out[0] = ffi_out_data
                 print('returning success from add cb')
                 return 1
-            except CustomExtException as e:
+            except CustomExtError as e:
                 # TODO
                 al[0] = e.al
                 return -1
@@ -417,7 +421,7 @@ class _CustomExtParseHelper(_CallbackExceptionHelper):
             try:
                 callback(conn, ext_type, inbytes)
                 return 1
-            except CustomExtException as e:
+            except CustomExtError as e:
                 al[0] = e.al
                 return -1
             except Exception as e:
@@ -1611,9 +1615,25 @@ class Context(object):
 
     @_requires_custom_ext
     def add_client_custom_ext(self, ext_type, add_cb, parse_cb):
-        #TODO(dlila): these methods can be called more than once for different extension types, so our argument keep-alives and self._client_custom_ext_add_helper are not correct.
-        """add_cb: if none, a zero length extension will be added.
-        parse_cb: TODO: what happens if none?
+        """
+        Add a custom extension for a TLS client.
+
+        :param ext_type: The extension type to add.
+        :param add_cb: The add callback, or None. It will be invoked with two
+            arguments: the Connection, and ext_type. It must return a byte
+            string with the data to be included in ClientHello. It can return
+            None, in which case the extension won't be added. In case of an
+            error, it can throw SSL.CustomExtError to terminate the handshake
+            and return an alert code to the OpenSSL library. If this callback
+            is None, that is equivalent to a callback that returns the empty
+            string.
+        :param parse_cb: The parse callback, or None. It will be invoked with
+            three arguments: the Connection, ext_type, and a bytestring that
+            contains the extension data received in ServerHello. If the data
+            from the server is acceptable, it should return None. Otherwise
+            it should throw a SSL.CustomExtError to terminate the handshake
+            with an alert code. If this callback is None, this is equivalent to
+            a callback that always accepts the server data.
         """
         add_helper = _CustomExtAddHelper(add_cb)
         parse_helper = _CustomExtParseHelper(parse_cb)
@@ -1627,8 +1647,25 @@ class Context(object):
 
     @_requires_custom_ext
     def add_server_custom_ext(self, ext_type, add_cb, parse_cb):
-        """add_cb: TODO: what happens if none
-        parse_cb: TODO: what happens if none."""
+        """
+        Add a custom extension for a TLS server.
+
+        :param ext_type: The extension type to add.
+        :param add_cb: The add callback, or None. If None, the server will
+            never add this extension. Otherwise, it will be invoked with two
+            arguments: the Connection, and ext_type. It must return a byte
+            string with the data to be included in ServerHello. It can return
+            None, in which case the extension won't be added. In case of an
+            error, it can throw SSL.CustomExtError to terminate the handshake
+            and return an alert code to the OpenSSL library.
+        :param parse_cb: The parse callback, or None. It will be invoked with
+            three arguments: the Connection, ext_type, and a bytestring that
+            contains the extension data received in ClientHello. If the data
+            from the client is acceptable, it should return None. Otherwise
+            it should throw a SSL.CustomExtError to terminate the handshake
+            with an alert code. If this callback is None, this is equivalent to
+            a callback that always accepts the client data.
+        """
         add_helper = _CustomExtAddHelper(add_cb)
         parse_helper = _CustomExtParseHelper(parse_cb)
         rc = _lib.SSL_CTX_add_server_custom_ext(
@@ -1642,6 +1679,10 @@ class Context(object):
 
 @_requires_custom_ext
 def extension_supported(ext_type):
+    """
+    :return: 1 if the extension ext_type is handled internally by OpenSSL
+        and 0 otherwise.
+    """
     return _lib.SSL_extension_supported(ext_type)
 
 
