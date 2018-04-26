@@ -377,10 +377,6 @@ class _CustomExtAddHelper(_CallbackExceptionHelper):
                 al[0] = 2 # SSL_TLSEXT_ERR_ALERT_FATAL
                 return -1
 
-        def free_cb(ssl, ext_type, out, add_arg):
-            conn = Connection._reverse_mapping[ssl]
-            conn._custom_ext_add_callback_args.remove(out)
-
         self.callback = _ffi.callback(
             ("int (*)(SSL *, unsigned int, const unsigned char **, "
                 "size_t *, int *, void *)"),
@@ -389,8 +385,13 @@ class _CustomExtAddHelper(_CallbackExceptionHelper):
 
         self.free_callback = _ffi.callback(
             "void (*)(SSL *, unsigned int, const unsigned char *, void *)",
-            free_cb
+            _CustomExtAddHelper.free_cb
         )
+
+    @staticmethod
+    def free_cb(ssl, ext_type, out, add_arg):
+        conn = Connection._reverse_mapping[ssl]
+        conn._custom_ext_add_callback_args.remove(out)
 
 
 class _CustomExtParseHelper(_CallbackExceptionHelper):
