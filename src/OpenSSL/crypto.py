@@ -1817,7 +1817,7 @@ class X509StoreContext(object):
         """
         Set the chain certificates for the context
 
-        .. versionadded:: 16.1.0
+        .. versionadded:: 17.6.0
 
         :param chain: Untrusted certificates that may be used to build a chain
             during verification.

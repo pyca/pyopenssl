@@ -3487,8 +3487,8 @@ class TestX509StoreContext(object):
 
     def test_valid_chain(self):
         """
-        :py:obj:`verify_certificate` returns ``None`` when called with
-        a certificate and valid chain when the intermediate cert is
+        `verify_certificate` returns ``None`` when called with a
+        certificate and valid chain when the intermediate cert is
         considered 'untrusted'
         """
         store = X509Store()
@@ -3534,8 +3534,9 @@ class TestX509StoreContext(object):
 
     def test_untrusted_self_signed(self):
         """
-        :py:obj:`verify_certificate` raises error when a self-signed
-        certificate is verified when it is in the chain, but untrusted.
+        `verify_certificate` raises error when a self-signed
+        certificate is verified when it is in the chain, but
+        untrusted.
         """
         store = X509Store()
         store_ctx = X509StoreContext(
@@ -3563,8 +3564,8 @@ class TestX509StoreContext(object):
 
     def test_untrusted_intermediate_no_root(self):
         """
-        :py:obj:`verify_certificate` raises error when a root
-        certificate is missing from the chain.
+        `verify_certificate` raises error when a root certificate is
+        missing from the chain.
         """
         store = X509Store()
         store_ctx = X509StoreContext(
@@ -3578,8 +3579,8 @@ class TestX509StoreContext(object):
 
     def test_untrusted_root(self):
         """
-        :py:obj:`verify_certificate` raises error when a root
-        certificate is present but untrusted.
+        `verify_certificate` raises error when a root certificate is
+        present but untrusted.
         """
         store = X509Store()
         chain = [self.intermediate_cert, self.root_cert]
@@ -3629,7 +3630,6 @@ class TestX509StoreContext(object):
         store_ctx.set_store(store_good)
         assert store_ctx.verify_certificate() is None
 
-
     def test_verify_with_time(self):
         """
         `verify_certificate` raises error when the verification time is
@@ -3653,8 +3653,8 @@ class TestX509StoreContext(object):
 
     def test_wrong_chain_type(self):
         """
-        :py:obj:`set_chain` raises ValueError when provided with
-        something other than an iterable of X509 objects
+        `set_chain` raises ValueError when provided with something
+        other than an iterable of X509 objects
         """
         store = X509Store()
         store.add_cert(self.root_cert)
