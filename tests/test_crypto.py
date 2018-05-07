@@ -44,7 +44,6 @@ from OpenSSL.crypto import CRL, Revoked, dump_crl, load_crl
 from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
 from OpenSSL.crypto import (
     sign, verify, get_elliptic_curve, get_elliptic_curves)
-from OpenSSL._util import ffi as _ffi
 
 from .util import EqualityTestsMixin, is_consistent_type, WARNING_TYPE_EXPECTED
 
@@ -3662,22 +3661,6 @@ class TestX509StoreContext(object):
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
         with pytest.raises(TypeError):
             store_ctx.set_chain(["I am not an X509"])
-
-    def test_null_chain_cert(self):
-        """
-        :py:obj:`verify_certificate` raises if X509_dup() call fails
-        (in this case, because of an X509 instance with a NULL pointer!)
-        """
-        store = X509Store()
-        store.add_cert(self.root_cert)
-        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        bad_x509 = X509()
-        bad_x509._x509 = _ffi.NULL
-        store_ctx.set_chain([bad_x509])
-
-        # OpenSSL lib doesn't set a specific error for this case
-        with pytest.raises(Error):
-            store_ctx.verify_certificate()
 
 
 class TestSignVerify(object):

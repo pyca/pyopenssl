@@ -1754,15 +1754,11 @@ class X509StoreContext(object):
             chain_stack = _ffi.gc(chain_stack, cleanup)
 
             for cert in self._chain:
-                # We'd prefer to use X509_up_ref() or something
-                # similar, but cryptography does not appear to expose
-                # a binding for it
-                copy = _lib.X509_dup(cert._x509)
-                _openssl_assert(copy != _ffi.NULL)
+                _openssl_assert(_lib.X509_up_ref(cert._x509) == 1)
 
-                push_result = _lib.sk_X509_push(chain_stack, copy)
+                push_result = _lib.sk_X509_push(chain_stack, cert._x509)
                 if not push_result:
-                    _lib.X509_free(copy)
+                    _lib.X509_free(cert._x509)
                     _raise_current_error()
 
         ret = _lib.X509_STORE_CTX_init(
