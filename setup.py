@@ -77,12 +77,11 @@ if __name__ == "__main__":
             'Operating System :: POSIX',
 
             'Programming Language :: Python :: 2',
-            'Programming Language :: Python :: 2.6',
             'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.3',
             'Programming Language :: Python :: 3.4',
             'Programming Language :: Python :: 3.5',
+            'Programming Language :: Python :: 3.6',
 
             'Programming Language :: Python :: Implementation :: CPython',
             'Programming Language :: Python :: Implementation :: PyPy',
@@ -95,7 +94,18 @@ if __name__ == "__main__":
         package_dir={"": "src"},
         install_requires=[
             # Fix cryptographyMinimum in tox.ini when changing this!
-            "cryptography>=1.3.4",
+            "cryptography>=2.2.1",
             "six>=1.5.2"
         ],
+        extras_require={
+            "test": [
+                "flaky",
+                "pretend",
+                "pytest>=3.0.1",
+            ],
+            "docs": [
+                "sphinx",
+                "sphinx_rtd_theme",
+            ]
+        },
     )

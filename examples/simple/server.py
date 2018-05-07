@@ -67,12 +67,13 @@ def dropClient(cli, errors=None):
         cli.shutdown()
     cli.close()
 
+
 while 1:
     try:
         r, w, _ = select.select(
             [server] + list(clients.keys()), list(writers.keys()), []
         )
-    except:
+    except Exception:
         break
 
     for cli in r:
