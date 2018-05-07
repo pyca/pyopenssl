@@ -1754,7 +1754,7 @@ class X509StoreContext(object):
             chain_stack = _ffi.gc(chain_stack, cleanup)
 
             for cert in self._chain:
-                _openssl_assert(_lib.X509_up_ref(cert._x509) == 1)
+                _lib.X509_up_ref(cert._x509)
 
                 push_result = _lib.sk_X509_push(chain_stack, cert._x509)
                 if not push_result:
