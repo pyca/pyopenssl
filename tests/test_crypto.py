@@ -917,7 +917,7 @@ class TestPKey(object):
         `PKey.generate_key` generates an RSA key when passed `TYPE_RSA` as a
         type and a reasonable number of bits.
         """
-        bits = 128
+        bits = 512
         key = PKey()
         key.generate_key(TYPE_RSA, bits)
         assert key.type() == TYPE_RSA
