@@ -1202,6 +1202,7 @@ class TestContext(object):
         client.connect(("encrypted.google.com", 443))
         clientSSL = Connection(context, client)
         clientSSL.set_connect_state()
+        clientSSL.set_tlsext_host_name(b"encrypted.google.com")
         clientSSL.do_handshake()
         clientSSL.send(b"GET / HTTP/1.0\r\n\r\n")
         assert clientSSL.recv(1024)
