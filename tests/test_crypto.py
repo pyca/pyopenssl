@@ -573,7 +573,7 @@ def x509_data():
     """
     # Basic setup stuff to generate a certificate
     pkey = PKey()
-    pkey.generate_key(TYPE_RSA, 384)
+    pkey.generate_key(TYPE_RSA, 512)
     req = X509Req()
     req.set_pubkey(pkey)
     # Authority good you have.
