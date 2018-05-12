@@ -519,7 +519,7 @@ class TestContext(object):
         `Context.use_privatekey` takes an `OpenSSL.crypto.PKey` instance.
         """
         key = PKey()
-        key.generate_key(TYPE_RSA, 128)
+        key.generate_key(TYPE_RSA, 512)
         ctx = Context(TLSv1_METHOD)
         ctx.use_privatekey(key)
         with pytest.raises(TypeError):
@@ -540,7 +540,7 @@ class TestContext(object):
         arguments does not raise an exception.
         """
         key = PKey()
-        key.generate_key(TYPE_RSA, 128)
+        key.generate_key(TYPE_RSA, 512)
 
         with open(pemfile, "wt") as pem:
             pem.write(
@@ -843,7 +843,7 @@ class TestContext(object):
         passphrase.  Return the path to the new file.
         """
         key = PKey()
-        key.generate_key(TYPE_RSA, 128)
+        key.generate_key(TYPE_RSA, 512)
         pem = dump_privatekey(FILETYPE_PEM, key, "blowfish", passphrase)
         with open(tmpfile, 'w') as fObj:
             fObj.write(pem.decode('ascii'))
