@@ -1529,6 +1529,7 @@ class Connection(object):
 
         ssl = _lib.SSL_new(context._context)
         self._ssl = _ffi.gc(ssl, _lib.SSL_free)
+        _lib.SSL_set_mode(self._ssl, _lib.SSL_MODE_AUTO_RETRY)
         self._context = context
         self._app_data = None
 
