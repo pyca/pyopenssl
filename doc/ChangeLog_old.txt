@@ -740,7 +740,7 @@ found at <https://pyopenssl.readthedocs.io/en/latest/changelog.html>.
 2002-06-13  Martin Sjögren  <martin@strakt.com>
 
 	* src/ssl/context.c: Changed global_verify_callback so that it uses
-	  PyObject_IsTrue instead of requring ints.
+	  PyObject_IsTrue instead of requiring ints.
 	* Added pymemcompat.h to make the memory management uniform and
 	  backwards-compatible.
 	* src/util.h: Added conditional definition of PyModule_AddObject and

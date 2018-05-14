@@ -1483,7 +1483,7 @@ class TestContext(object):
     @pytest.mark.parametrize('callback', [None, 1.0, 'mode', ('foo', 'bar')])
     def test_set_verify_wrong_callable_arg(self, callback):
         """
-        `Context.set_verify` raises `TypeError` if the the second argument
+        `Context.set_verify` raises `TypeError` if the second argument
         is not callable.
         """
         context = Context(TLSv1_METHOD)
