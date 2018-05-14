@@ -24,7 +24,7 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-* `OpenSSL.SSL.Connection` now sets `SSL_MODE_AUTO_RETRY` by default.
+* ``OpenSSL.SSL.Connection`` now sets ``SSL_MODE_AUTO_RETRY`` by default.
   `#753 <https://github.com/pyca/pyopenssl/pull/753>`_
 
 
