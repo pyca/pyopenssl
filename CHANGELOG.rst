@@ -4,7 +4,7 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
-17.6.0 (UNRELEASED)
+18.0.0 (UNRELEASED)
 -------------------
 
 
@@ -24,7 +24,8 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-*none*
+* `OpenSSL.SSL.Connection` now sets `SSL_MODE_AUTO_RETRY` by default.
+  `#753 <https://github.com/pyca/pyopenssl/pull/753>`_
 
 
 ----
