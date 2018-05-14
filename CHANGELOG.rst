@@ -11,8 +11,8 @@ The third digit is only for regressions.
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* The minimum ``cryptography`` version is now 2.2.1.
-* Support for Python 2.6 has been dropped.
+- The minimum ``cryptography`` version is now 2.2.1.
+- Support for Python 2.6 has been dropped.
 
 
 Deprecations:
@@ -36,7 +36,7 @@ Changes:
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* The minimum ``cryptography`` version is now 2.1.4.
+- The minimum ``cryptography`` version is now 2.1.4.
 
 
 Deprecations:
