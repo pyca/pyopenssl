@@ -26,6 +26,8 @@ Changes:
 
 - ``OpenSSL.SSL.Connection`` now sets ``SSL_MODE_AUTO_RETRY`` by default.
   `#753 <https://github.com/pyca/pyopenssl/pull/753>`_
+- Added ``Context.set_tlsext_use_srtp`` to enable negotiation of SRTP keying material.
+  `#734 <https://github.com/pyca/pyopenssl/pull/734>`_
 
 
 ----
