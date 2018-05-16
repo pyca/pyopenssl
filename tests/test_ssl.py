@@ -519,7 +519,7 @@ class TestContext(object):
         `Context.use_privatekey` takes an `OpenSSL.crypto.PKey` instance.
         """
         key = PKey()
-        key.generate_key(TYPE_RSA, 128)
+        key.generate_key(TYPE_RSA, 512)
         ctx = Context(TLSv1_METHOD)
         ctx.use_privatekey(key)
         with pytest.raises(TypeError):
@@ -540,7 +540,7 @@ class TestContext(object):
         arguments does not raise an exception.
         """
         key = PKey()
-        key.generate_key(TYPE_RSA, 128)
+        key.generate_key(TYPE_RSA, 512)
 
         with open(pemfile, "wt") as pem:
             pem.write(
@@ -843,7 +843,7 @@ class TestContext(object):
         passphrase.  Return the path to the new file.
         """
         key = PKey()
-        key.generate_key(TYPE_RSA, 128)
+        key.generate_key(TYPE_RSA, 512)
         pem = dump_privatekey(FILETYPE_PEM, key, "blowfish", passphrase)
         with open(tmpfile, 'w') as fObj:
             fObj.write(pem.decode('ascii'))
@@ -1202,6 +1202,7 @@ class TestContext(object):
         client.connect(("encrypted.google.com", 443))
         clientSSL = Connection(context, client)
         clientSSL.set_connect_state()
+        clientSSL.set_tlsext_host_name(b"encrypted.google.com")
         clientSSL.do_handshake()
         clientSSL.send(b"GET / HTTP/1.0\r\n\r\n")
         assert clientSSL.recv(1024)
@@ -1482,7 +1483,7 @@ class TestContext(object):
     @pytest.mark.parametrize('callback', [None, 1.0, 'mode', ('foo', 'bar')])
     def test_set_verify_wrong_callable_arg(self, callback):
         """
-        `Context.set_verify` raises `TypeError` if the the second argument
+        `Context.set_verify` raises `TypeError` if the second argument
         is not callable.
         """
         context = Context(TLSv1_METHOD)

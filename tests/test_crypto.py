@@ -573,7 +573,7 @@ def x509_data():
     """
     # Basic setup stuff to generate a certificate
     pkey = PKey()
-    pkey.generate_key(TYPE_RSA, 384)
+    pkey.generate_key(TYPE_RSA, 512)
     req = X509Req()
     req.set_pubkey(pkey)
     # Authority good you have.
@@ -917,7 +917,7 @@ class TestPKey(object):
         `PKey.generate_key` generates an RSA key when passed `TYPE_RSA` as a
         type and a reasonable number of bits.
         """
-        bits = 128
+        bits = 512
         key = PKey()
         key.generate_key(TYPE_RSA, bits)
         assert key.type() == TYPE_RSA
