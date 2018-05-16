@@ -2019,7 +2019,7 @@ class Connection(object):
             result.append(pyname)
         return result
 
-    def makefile(self, mode=None, bufsize=None):
+    def makefile(self, *args, **kwargs):
         """
         The makefile() method is not implemented, since there is no dup
         semantics for SSL connections
