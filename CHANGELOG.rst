@@ -24,6 +24,8 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- Added ``Connection.get_certificate`` to retrieve the local certificate.
+  `#733 <https://github.com/pyca/pyopenssl/pull/733>`_
 - ``OpenSSL.SSL.Connection`` now sets ``SSL_MODE_AUTO_RETRY`` by default.
   `#753 <https://github.com/pyca/pyopenssl/pull/753>`_
 - Added ``Context.set_tlsext_use_srtp`` to enable negotiation of SRTP keying material.
