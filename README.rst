@@ -44,3 +44,4 @@ You can also join ``#cryptography-dev`` on Freenode to ask questions or get invo
 .. _`issue tracker`: https://github.com/pyca/pyopenssl/issues
 .. _cryptography-dev: https://mail.python.org/mailman/listinfo/cryptography-dev
 .. _GitHub: https://github.com/pyca/pyopenssl
+.. _`pyca/cryptography`: https://github.com/pyca/cryptography
