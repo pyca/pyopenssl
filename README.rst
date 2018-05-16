@@ -14,8 +14,11 @@ pyOpenSSL -- A Python wrapper around the OpenSSL library
    :target: https://codecov.io/github/pyca/pyopenssl
    :alt: Test coverage
 
+**Note: The Python Cryptographic Authority strongly suggests the use of `pyca/cryptography`_
+where possible. If you are using pyOpenSSL for anything other than making a TLS connection 
+you should move to cryptography and drop your pyOpenSSL dependency.**
 
-High-level wrapper around a subset of the OpenSSL library.  Includes
+High-level wrapper around a subset of the OpenSSL library. Includes
 
 * ``SSL.Connection`` objects, wrapping the methods of Python's portable sockets
 * Callbacks written in Python
