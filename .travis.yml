@@ -14,11 +14,11 @@ matrix:
   include:
   - language: generic
     os: osx
-    osx_image: xcode8.3
+    osx_image: xcode9.3
     env: TOXENV=py27
   - language: generic
     os: osx
-    osx_image: xcode8.3
+    osx_image: xcode9.3
     env: TOXENV=py27 OPENSSL=1.1.0
   - python: "2.7" # these are just to make travis's UI a bit prettier
     env: TOXENV=py27
@@ -28,7 +28,10 @@ matrix:
     env: TOXENV=py35
   - python: "3.6"
     env: TOXENV=py36
-  - env: TOXENV=pypy
+  - python: "pypy"
+    env: TOXENV=pypy
+  - python: "pypy3"
+    env: TOXENV=pypy3
 
   # Also run the tests against cryptography master.
   - python: "2.7"
@@ -39,7 +42,10 @@ matrix:
     env: TOXENV=py35-cryptographyMaster
   - python: "3.6"
     env: TOXENV=py36-cryptographyMaster
-  - env: TOXENV=pypy-cryptographyMaster
+  - python: "pypy"
+    env: TOXENV=pypy-cryptographyMaster
+  - python: "pypy3"
+    env: TOXENV=pypy3-cryptographyMaster
 
   # And current minimum cryptography version.
   - python: "2.7"
@@ -50,7 +56,10 @@ matrix:
     env: TOXENV=py35-cryptographyMinimum
   - python: "3.6"
     env: TOXENV=py36-cryptographyMinimum
-  - env: TOXENV=pypy-cryptographyMinimum
+  - python: "pypy"
+    env: TOXENV=pypy-cryptographyMinimum
+  - python: "pypy3"
+    env: TOXENV=pypy3-cryptographyMinimum
 
 
   # Make sure we don't break Twisted or urllib3
@@ -81,6 +90,7 @@ matrix:
   - env: TOXENV=py35-cryptographyMaster
   - env: TOXENV=py36-cryptographyMaster
   - env: TOXENV=pypy-cryptographyMaster
+  - env: TOXENV=pypy3-cryptographyMaster
 
 
 install:
@@ -96,16 +106,6 @@ install:
       python get-pip.py --user
       python -m pip install --user virtualenv
     else
-      # install our own pypy. This can be removed if and when Travis gets a reasonably up to date pypy
-      if [[ "${TOXENV}" = pypy* ]]; then
-          rm -rf ~/.pyenv
-          git clone --depth=1 https://github.com/yyuu/pyenv.git ~/.pyenv
-          PYENV_ROOT="$HOME/.pyenv"
-          PATH="$PYENV_ROOT/bin:$PATH"
-          eval "$(pyenv init -)"
-          pyenv install pypy-5.4.1
-          pyenv global pypy-5.4.1
-      fi
       pip install virtualenv
     fi
     python -m virtualenv ~/.venv
@@ -124,12 +124,6 @@ script:
         export CFLAGS="-I/usr/local/opt/openssl/include"
         export PATH="/usr/local/opt/openssl/bin:$PATH"
       fi
-    fi
-    # activate the pypy env we installed via our custom pyenv in the install stage
-    if [[ "${TOXENV}" == "pypy" ]]; then
-        PYENV_ROOT="$HOME/.pyenv"
-        PATH="$PYENV_ROOT/bin:$PATH"
-        eval "$(pyenv init -)"
     fi
     openssl version
     ~/.venv/bin/tox -v

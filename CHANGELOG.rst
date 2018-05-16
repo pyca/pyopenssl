@@ -4,15 +4,15 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
-17.6.0 (UNRELEASED)
+18.0.0 (UNRELEASED)
 -------------------
 
 
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* The minimum ``cryptography`` version is now 2.2.1.
-* Support for Python 2.6 has been dropped.
+- The minimum ``cryptography`` version is now 2.2.1.
+- Support for Python 2.6 has been dropped.
 
 
 Deprecations:
@@ -26,6 +26,8 @@ Changes:
 
 - Added ``Connection.get_certificate`` to retrieve the local certificate.
   `#733 <https://github.com/pyca/pyopenssl/pull/733>`_
+- ``OpenSSL.SSL.Connection`` now sets ``SSL_MODE_AUTO_RETRY`` by default.
+  `#753 <https://github.com/pyca/pyopenssl/pull/753>`_
 
 
 ----
@@ -37,7 +39,7 @@ Changes:
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* The minimum ``cryptography`` version is now 2.1.4.
+- The minimum ``cryptography`` version is now 2.1.4.
 
 
 Deprecations:
