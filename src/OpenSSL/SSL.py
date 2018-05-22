@@ -1367,7 +1367,7 @@ class Context(object):
             return 0
 
         self._tlsext_servername_callback = _ffi.callback(
-            "int (*)(const SSL *, int *, void *)", wrapper)
+            "int (*)(SSL *, int *, void *)", wrapper)
         _lib.SSL_CTX_set_tlsext_servername_callback(
             self._context, self._tlsext_servername_callback)
 
