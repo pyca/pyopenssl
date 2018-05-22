@@ -523,13 +523,8 @@ class _OCSPServerCallbackHelper(_CallbackExceptionHelper):
                 if not ocsp_data:
                     return 3  # SSL_TLSEXT_ERR_NOACK
 
-                # Pass the data to OpenSSL. Insanely, OpenSSL doesn't make a
-                # private copy of this data, so we need to keep it alive, but
-                # it *does* want to free it itself if it gets replaced. This
-                # somewhat bonkers behaviour means we need to use
-                # OPENSSL_malloc directly, which is a pain in the butt to work
-                # with. It's ok for us to "leak" the memory here because
-                # OpenSSL now owns it and will free it.
+                # OpenSSL takes ownership of this data and expects it to have
+                # been allocated by OPENSSL_malloc.
                 ocsp_data_length = len(ocsp_data)
                 data_ptr = _lib.OPENSSL_malloc(ocsp_data_length)
                 _ffi.buffer(data_ptr, ocsp_data_length)[:] = ocsp_data
