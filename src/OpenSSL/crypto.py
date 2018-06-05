@@ -288,14 +288,14 @@ class PKey(object):
         if not isinstance(bits, int):
             raise TypeError("bits must be an integer")
 
-        # TODO Check error return
-        exponent = _lib.BN_new()
-        exponent = _ffi.gc(exponent, _lib.BN_free)
-        _lib.BN_set_word(exponent, _lib.RSA_F4)
-
         if type == TYPE_RSA:
             if bits <= 0:
                 raise ValueError("Invalid number of bits")
+
+            # TODO Check error return
+            exponent = _lib.BN_new()
+            exponent = _ffi.gc(exponent, _lib.BN_free)
+            _lib.BN_set_word(exponent, _lib.RSA_F4)
 
             rsa = _lib.RSA_new()
 
