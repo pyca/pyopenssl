@@ -28,6 +28,10 @@ matrix:
     env: TOXENV=py35
   - python: "3.6"
     env: TOXENV=py36
+  - python: "3.7"
+    env: TOXENV=py37
+    dist: xenial
+    sudo: true
   - python: "pypy"
     env: TOXENV=pypy
   - python: "pypy3"
@@ -42,6 +46,10 @@ matrix:
     env: TOXENV=py35-cryptographyMaster
   - python: "3.6"
     env: TOXENV=py36-cryptographyMaster
+  - python: "3.7"
+    env: TOXENV=py37-cryptographyMaster
+    dist: xenial
+    sudo: true
   - python: "pypy"
     env: TOXENV=pypy-cryptographyMaster
   - python: "pypy3"
@@ -56,6 +64,10 @@ matrix:
     env: TOXENV=py35-cryptographyMinimum
   - python: "3.6"
     env: TOXENV=py36-cryptographyMinimum
+  - python: "3.7"
+    env: TOXENV=py37-cryptographyMinimum
+    dist: xenial
+    sudo: true
   - python: "pypy"
     env: TOXENV=pypy-cryptographyMinimum
   - python: "pypy3"
@@ -89,6 +101,7 @@ matrix:
   - env: TOXENV=py34-cryptographyMaster
   - env: TOXENV=py35-cryptographyMaster
   - env: TOXENV=py36-cryptographyMaster
+  - env: TOXENV=py37-cryptographyMaster
   - env: TOXENV=pypy-cryptographyMaster
   - env: TOXENV=pypy3-cryptographyMaster
 
