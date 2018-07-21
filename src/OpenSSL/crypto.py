@@ -791,7 +791,8 @@ class X509Extension(object):
 
     def _authorityInfoAccessList(self):
         info = _ffi.cast(
-            "Cryptography_STACK_OF_ACCESS_DESCRIPTION *", _lib.X509V3_EXT_d2i(self._extension)
+            "Cryptography_STACK_OF_ACCESS_DESCRIPTION *",
+            _lib.X509V3_EXT_d2i(self._extension)
         )
 
         info = _ffi.gc(info, _lib.sk_ACCESS_DESCRIPTION_free)
@@ -815,7 +816,8 @@ class X509Extension(object):
 
     def _crlDistributionPointsList(self):
         distp = _ffi.cast(
-            "Cryptography_STACK_OF_DIST_POINT *", _lib.X509V3_EXT_d2i(self._extension)
+            "Cryptography_STACK_OF_DIST_POINT *",
+            _lib.X509V3_EXT_d2i(self._extension)
         )
 
         distp = _ffi.gc(distp, _lib.sk_DIST_POINT_free)
