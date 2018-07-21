@@ -789,6 +789,79 @@ class X509Extension(object):
         _lib.GEN_URI: "URI",
     }
 
+    def _authorityInfoAccessList(self):
+        info = _ffi.cast(
+            "Cryptography_STACK_OF_ACCESS_DESCRIPTION *",
+            _lib.X509V3_EXT_d2i(self._extension)
+        )
+
+        info = _ffi.gc(info, _lib.sk_ACCESS_DESCRIPTION_free)
+        parts = []
+        for i in range(_lib.sk_ACCESS_DESCRIPTION_num(info)):
+            ad = _lib.sk_ACCESS_DESCRIPTION_value(info, i)
+            name = ad.location
+            if _lib.OBJ_obj2nid(ad.method) == _lib.NID_ad_OCSP:
+                if ad.location.type == _lib.GEN_URI:
+                    try:
+                        label = self._prefixes[name.type]
+                    except KeyError:
+                        bio = _new_mem_buf()
+                        _lib.GENERAL_NAME_print(bio, name)
+                        parts.append(_native(_bio_to_string(bio)))
+                    else:
+                        value = _native(
+                            _ffi.buffer(name.d.ia5.data, name.d.ia5.length)[:])
+                        parts.append(label + ":" + value)
+        return parts
+
+    def _crlDistributionPointsList(self):
+        distp = _ffi.cast(
+            "Cryptography_STACK_OF_DIST_POINT *",
+            _lib.X509V3_EXT_d2i(self._extension)
+        )
+
+        distp = _ffi.gc(distp, _lib.sk_DIST_POINT_free)
+        parts = []
+        for i in range(_lib.sk_DIST_POINT_num(distp)):
+            dist = _lib.sk_DIST_POINT_value(distp, i)
+
+            names = dist.distpoint.name.fullname
+            for i in range(_lib.sk_GENERAL_NAME_num(names)):
+                name = _lib.sk_GENERAL_NAME_value(names, i)
+                try:
+                    label = self._prefixes[name.type]
+                except KeyError:
+                    bio = _new_mem_buf()
+                    _lib.GENERAL_NAME_print(bio, name)
+                    parts.append(_native(_bio_to_string(bio)))
+                else:
+                    value = _native(
+                        _ffi.buffer(name.d.ia5.data, name.d.ia5.length)[:])
+                    parts.append(label + ":" + value)
+
+        return parts
+
+    def _subjectAltNameList(self):
+        names = _ffi.cast(
+            "GENERAL_NAMES*", _lib.X509V3_EXT_d2i(self._extension)
+        )
+
+        names = _ffi.gc(names, _lib.GENERAL_NAMES_free)
+        parts = []
+        for i in range(_lib.sk_GENERAL_NAME_num(names)):
+            name = _lib.sk_GENERAL_NAME_value(names, i)
+            try:
+                label = self._prefixes[name.type]
+            except KeyError:
+                bio = _new_mem_buf()
+                _lib.GENERAL_NAME_print(bio, name)
+                parts.append(_native(_bio_to_string(bio)))
+            else:
+                value = _native(
+                    _ffi.buffer(name.d.ia5.data, name.d.ia5.length)[:])
+                parts.append(label + ":" + value)
+        return parts
+
     def _subjectAltNameString(self):
         names = _ffi.cast(
             "GENERAL_NAMES*", _lib.X509V3_EXT_d2i(self._extension)
