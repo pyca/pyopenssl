@@ -2582,9 +2582,28 @@ class NetscapeSPKI(object):
     A Netscape SPKI object.
     """
 
-    def __init__(self):
-        spki = _lib.NETSCAPE_SPKI_new()
-        self._spki = _ffi.gc(spki, _lib.NETSCAPE_SPKI_free)
+    def __init__(self, spkac_str=None):
+        if spkac_str is not None:
+            self._spki = NetscapeSPKI.b64_decode(spkac_str)._spki
+        else:
+            spki = _lib.NETSCAPE_SPKI_new()
+            self._spki = _ffi.gc(spki, _lib.NETSCAPE_SPKI_free)
+
+    @classmethod
+    def b64_decode(cls, spkac_str):
+        """
+        Construct a NetscapeSPKI from spkac base64 string
+
+        :param spkac_str: base64 encoded string
+        """
+
+        new = cls()
+        arg = _ffi.new("char[]", spkac_str)
+        spki = _lib.NETSCAPE_SPKI_b64_decode(arg, -1)
+        if spki == _ffi.NULL:
+            raise ValueError("Invalid SPKAC string")
+        new._spki = _ffi.gc(spki, _lib.NETSCAPE_SPKI_free)
+        return new
 
     def sign(self, pkey, digest):
         """

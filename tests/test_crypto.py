@@ -564,6 +564,18 @@ e3fJQJwX9+KsHRut6qNZDUbvRbtO1YIAwB4UJZjwAjEAtXCPURS5A4McZHnSwgTi
 Td8GMrwKz0557OxxtKN6uVVy4ACFMqEw0zN/KJI1vxc9
 -----END CERTIFICATE-----"""
 
+spkac_b64 = b"MIICWDCCAUAwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCcH2SG7c+M\
+CR+qExC5SwcnvqLLNUPMYXmgbQ7cBdS/qxoCrD6I8Acgs7bcZCz58SdEbpxf4BXpV0JP/wHgX2tYvz\
+wWogUjppcSYnEwbpgjX60PYOZJ/x59XPnBZmoMdgi24MRy2rjY0gZ/8THbpiWGonnqoJDnK19Q58Zi\
+ZboIwP0c/36E6l7MsyLGLkS24q9K+HPFd/W+aFvgoOOwg6spwDMIw+mQ2m/s5GN7yMS+NVMZwFBI03\
+aCitQkVsisXdoHdnY/GhbrK8+/UebNdqnaXSRViK3mp9sHuOY1xxL2gWlA6KizZZTI0Z/zEnQv2WMB\
+el7KrAFKsaE3SrqUZ+xRAgMBAAEWGHB5b3BlbnNzbC10ZXN0LWNoYWxsZW5nZTANBgkqhkiG9w0BAQ\
+QFAAOCAQEAP1UMYcNxBrljw1MNDkAGSrWXQHJU9Bp6gmxTQlDQUOjAi8FDyw4rcHvLZjeOrsf6IHuc\
+heFVjteTR6OyGNOhyon4LlLjFF17q/Mr4OfIyj3VB1ZP7OY9mWCo9vUvn+5i9+tY/cae6evNZrAiWf\
+pZHXS3vMcqY8+Qxtcp1ScDc22XyDl2zrWOFd1020b2qbTNa0fOpkWdzWTMvRx9SDJI/1QpbPj8Rk/y\
+6yGDiz/NYTZfO0yp6OJ/dFwJ8eoWISYdqul2L6SxrehOIPkfLyhLBwBPjhXd+C0XJ/NxG62aQHc/ye\
+YxWBh9VYorvwr18PXaAxUHMsUEnW7Aou7WJcGlbg=="
+
 
 @pytest.fixture
 def x509_data():
@@ -3012,6 +3024,24 @@ class TestNetscapeSPKI(_PKeyInteractionTestsMixin):
         nspki = NetscapeSPKI()
         blob = nspki.b64_encode()
         assert isinstance(blob, binary_type)
+
+    def test_init_str(self):
+        """
+        Initialize a `NetscapeSPKI` from a base64 string.
+        """
+        nspki = NetscapeSPKI(spkac_b64)
+        assert nspki.get_pubkey().bits() == 2048
+        assert nspki.verify(nspki.get_pubkey())
+
+    def test_b64_decode(self):
+        """
+        `NetscapeSPKI.b64_decode` decodes the certificate from a base64 string.
+        """
+        with pytest.raises(ValueError):
+            NetscapeSPKI.b64_decode(b"invalid SPKAC str")
+        nspki = NetscapeSPKI.b64_decode(spkac_b64)
+        assert nspki.get_pubkey().bits() == 2048
+        assert nspki.verify(nspki.get_pubkey())
 
 
 class TestRevoked(object):
