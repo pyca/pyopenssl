@@ -2632,7 +2632,7 @@ class TestConnection(object):
         # always happen on all platforms (FreeBSD and OS X particular) for the
         # very last bit of available buffer space.
         msg = b"x"
-        for i in range(1024 * 1024 * 4):
+        for i in range(1024 * 1024 * 64):
             try:
                 client_socket.send(msg)
             except error as e:
