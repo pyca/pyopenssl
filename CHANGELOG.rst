@@ -11,7 +11,8 @@ The third digit is only for regressions.
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-*none*
+- ``X509Store.add_cert`` no longer raises an error if you add a duplicate cert.
+  `#787 <https://github.com/pyca/pyopenssl/pull/787>`_
 
 
 Deprecations:

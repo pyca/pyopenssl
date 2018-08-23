@@ -2016,16 +2016,15 @@ class TestX509Store(object):
         with pytest.raises(TypeError):
             store.add_cert(cert)
 
-    def test_add_cert_rejects_duplicate(self):
+    def test_add_cert_accepts_duplicate(self):
         """
-        `X509Store.add_cert` raises `OpenSSL.crypto.Error` if an attempt is
-        made to add the same certificate to the store more than once.
+        `X509Store.add_cert` doesn't raise `OpenSSL.crypto.Error` if an attempt
+        is made to add the same certificate to the store more than once.
         """
         cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
         store = X509Store()
         store.add_cert(cert)
-        with pytest.raises(Error):
-            store.add_cert(cert)
+        store.add_cert(cert)
 
 
 class TestPKCS12(object):
