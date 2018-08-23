@@ -1607,7 +1607,16 @@ class X509Store(object):
         if not isinstance(cert, X509):
             raise TypeError()
 
-        _openssl_assert(_lib.X509_STORE_add_cert(self._store, cert._x509) != 0)
+        # As of OpenSSL 1.1.0i adding the same cert to the store more than
+        # once doesn't cause an error. Accordingly, this code now silences
+        # the error for OpenSSL < 1.1.0i as well.
+        if _lib.X509_STORE_add_cert(self._store, cert._x509) == 0:
+            code = _lib.ERR_peek_error()
+            err_reason = _lib.ERR_GET_REASON(code)
+            _openssl_assert(
+                err_reason == _lib.X509_R_CERT_ALREADY_IN_HASH_TABLE
+            )
+            _lib.ERR_clear_error()
 
     def add_crl(self, crl):
         """
