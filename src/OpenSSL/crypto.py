@@ -1952,7 +1952,7 @@ class Revoked(object):
     """
     A certificate revocation.
     """
-    # http://www.openssl.org/docs/apps/x509v3_config.html#CRL_distribution_points_
+    # https://www.openssl.org/docs/manmaster/man5/x509v3_config.html#CRL-distribution-points
     # which differs from crl_reasons of crypto/x509v3/v3_enum.c that matches
     # OCSP_crl_reason_str.  We use the latter, just like the command line
     # program.
