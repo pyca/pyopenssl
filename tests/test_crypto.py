@@ -3161,10 +3161,10 @@ class TestCRL(object):
         dumped_crl = crl.export(
             self.cert, self.pkey, days=20, digest=b"sha256"
         )
-        text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
+        text = _runopenssl(
+            dumped_crl, b"crl", b"-noout", b"-text", b"-nameopt", ""
+        )
 
-        # These magic values are based on the way the CRL above was constructed
-        # and with what certificate it was exported.
         text.index(b'Serial Number: 03AB')
         text.index(b'Superseded')
         text.index(
@@ -3184,7 +3184,8 @@ class TestCRL(object):
             self.cert, self.pkey, FILETYPE_ASN1, digest=b"md5"
         )
         text = _runopenssl(
-            dumped_crl, b"crl", b"-noout", b"-text", b"-inform", b"DER"
+            dumped_crl, b"crl", b"-noout", b"-text", b"-inform", b"DER",
+            b"-nameopt", ""
         )
         text.index(b'Serial Number: 03AB')
         text.index(b'Superseded')
@@ -3207,7 +3208,8 @@ class TestCRL(object):
             self.cert, self.pkey, FILETYPE_ASN1, digest=b"md5"
         )
         text = _runopenssl(
-            dumped_crl, b"crl", b"-noout", b"-text", b"-inform", b"DER"
+            dumped_crl, b"crl", b"-noout", b"-text", b"-inform", b"DER",
+            b"-nameopt", ""
         )
 
         # text format
