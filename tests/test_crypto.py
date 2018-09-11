@@ -3167,9 +3167,9 @@ class TestCRL(object):
 
         text.index(b'Serial Number: 03AB')
         text.index(b'Superseded')
-        text.index(
-            b'Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA'
-        )
+        text.index(b'Issuer:')
+        text.index(b'C=US')
+        text.index(b'CN=Testing Root CA')
 
     def test_export_der(self):
         """
@@ -3189,9 +3189,9 @@ class TestCRL(object):
         )
         text.index(b'Serial Number: 03AB')
         text.index(b'Superseded')
-        text.index(
-            b'Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA'
-        )
+        text.index(b'Issuer:')
+        text.index(b'C=US')
+        text.index(b'CN=Testing Root CA')
 
     # Flaky because we compare the output of running commands which sometimes
     # varies by 1 second
