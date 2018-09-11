@@ -409,19 +409,18 @@ class TestContext(object):
         conn = Connection(context, None)
 
         assert "AES128-SHA" in conn.get_cipher_list()
+    
+    def test_set_cipher_list_imaginary(self, context):
+        # Doesn't raise an exception
+        context.set_cipher_list(b"gibberish")
 
-    @pytest.mark.parametrize("cipher_list,error", [
-        (object(), TypeError),
-        ("imaginary-cipher", Error),
-    ])
-    def test_set_cipher_list_wrong_args(self, context, cipher_list, error):
+    def test_set_cipher_list_wrong_args(self, context):
         """
         `Context.set_cipher_list` raises `TypeError` when passed a non-string
-        argument and raises `OpenSSL.SSL.Error` when passed an incorrect cipher
-        list string.
+        argument.
         """
-        with pytest.raises(error):
-            context.set_cipher_list(cipher_list)
+        with pytest.raises(TypeError):
+            context.set_cipher_list(object())
 
     def test_load_client_ca(self, context, ca_file):
         """
