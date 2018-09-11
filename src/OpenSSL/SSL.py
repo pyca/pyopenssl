@@ -1182,7 +1182,8 @@ class Context(object):
         if not isinstance(cipher_list, bytes):
             raise TypeError("cipher_list must be a byte string.")
 
-        # This can return an error if there's no ciphersuites, but we don't care.
+        # This can return an error if there's no ciphersuites, but we don't
+        # care.
         _lib.SSL_CTX_set_cipher_list(self._context, cipher_list)
 
     def set_client_ca_list(self, certificate_authorities):
