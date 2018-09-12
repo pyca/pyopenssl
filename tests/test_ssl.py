@@ -409,7 +409,7 @@ class TestContext(object):
         conn = Connection(context, None)
 
         assert "AES128-SHA" in conn.get_cipher_list()
-    
+
     def test_set_cipher_list_imaginary(self, context):
         # Doesn't raise an exception
         context.set_cipher_list(b"gibberish")
