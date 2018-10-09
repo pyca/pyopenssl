@@ -1688,6 +1688,12 @@ class Connection(object):
         # XXX I guess this can fail sometimes?
         _lib.SSL_set_tlsext_host_name(self._ssl, name)
 
+    def set_verify_host(self, hostname):
+		param = _lib.SSL_get0_param(self._ssl)
+		_lib.X509_VERIFY_PARAM_set_hostflags(param, _lib.X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS)
+		if not _lib.X509_VERIFY_PARAM_set1_host(param, hostname, len(hostname)):
+			raise Error("set1_host call")
+
     def pending(self):
         """
         Get the number of bytes that can be safely read from the SSL buffer
