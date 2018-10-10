@@ -665,6 +665,11 @@ _requires_sni = _make_requires(
 )
 
 
+_requires_x509_verify = _make_requires(
+    _lib.Cryptography_HAS_102_VERIFICATION_PARAMS, "X509 verification not available"
+)
+
+
 class Session(object):
     """
     A class representing an SSL session.  A session defines certain connection
@@ -1688,11 +1693,12 @@ class Connection(object):
         # XXX I guess this can fail sometimes?
         _lib.SSL_set_tlsext_host_name(self._ssl, name)
 
+    @_requires_x509_verify
     def set_verify_host(self, hostname):
 		param = _lib.SSL_get0_param(self._ssl)
 		_lib.X509_VERIFY_PARAM_set_hostflags(param, _lib.X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS)
 		if not _lib.X509_VERIFY_PARAM_set1_host(param, hostname, len(hostname)):
-			raise Error("set1_host call")
+			raise Error("X509_VERIFY_PARAM_set1_host call failed")
 
     def pending(self):
         """
