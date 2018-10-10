@@ -1696,9 +1696,9 @@ class Connection(object):
     @_requires_x509_verify
     def set_verify_host_name(self, hostname):
 		param = _lib.SSL_get0_param(self._ssl)
-		flags = _lib.X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS;
+		flags = _lib.X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS
 		if _lib.Cryptography_HAS_110_VERIFICATION_PARAMS:
-			flags |= _lib.X509_CHECK_FLAG_NEVER_CHECK_SUBJECT;
+			flags |= _lib.X509_CHECK_FLAG_NEVER_CHECK_SUBJECT
 		_lib.X509_VERIFY_PARAM_set_hostflags(param, flags)
 		if not _lib.X509_VERIFY_PARAM_set1_host(param, hostname, len(hostname)):
 			raise Error("X509_VERIFY_PARAM_set1_host call failed")
