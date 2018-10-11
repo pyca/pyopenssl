@@ -666,7 +666,8 @@ _requires_sni = _make_requires(
 
 
 _requires_x509_verify = _make_requires(
-    _lib.Cryptography_HAS_102_VERIFICATION_PARAMS, "X509 verification not available"
+    _lib.Cryptography_HAS_102_VERIFICATION_PARAMS,
+        "X509 verification not available"
 )
 
 
@@ -1700,7 +1701,8 @@ class Connection(object):
         if _lib.Cryptography_HAS_110_VERIFICATION_PARAMS:
             flags |= _lib.X509_CHECK_FLAG_NEVER_CHECK_SUBJECT
         _lib.X509_VERIFY_PARAM_set_hostflags(param, flags)
-        if not _lib.X509_VERIFY_PARAM_set1_host(param, hostname, len(hostname)):
+        if not _lib.X509_VERIFY_PARAM_set1_host(param, hostname,
+                                                len(hostname)):
             raise Error("X509_VERIFY_PARAM_set1_host call failed")
 
     def pending(self):
