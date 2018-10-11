@@ -667,7 +667,7 @@ _requires_sni = _make_requires(
 
 _requires_x509_verify = _make_requires(
     _lib.Cryptography_HAS_102_VERIFICATION_PARAMS,
-        "X509 verification not available"
+    "X509 verification not available"
 )
 
 
