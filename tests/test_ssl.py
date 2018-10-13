@@ -1301,19 +1301,19 @@ class TestContext(object):
 
         handshake_in_memory(clientConnection, serverConnection)
 
-    def test_set_verify_callback_exception(self):
+    def test_set_verify_callback_exception(self, tls_version):
         """
         If the verify callback passed to `Context.set_verify` raises an
         exception, verification fails and the exception is propagated to the
         caller of `Connection.do_handshake`.
         """
-        serverContext = Context(TLSv1_METHOD)
+        serverContext = Context(tls_version)
         serverContext.use_privatekey(
             load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM))
         serverContext.use_certificate(
             load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
 
-        clientContext = Context(TLSv1_METHOD)
+        clientContext = Context(tls_version)
 
         def verify_callback(*args):
             raise Exception("silly verify failure")
@@ -1324,7 +1324,7 @@ class TestContext(object):
 
         assert "silly verify failure" == str(exc.value)
 
-    def test_add_extra_chain_cert(self, tmpdir):
+    def test_add_extra_chain_cert(self, tmpdir, tls_version):
         """
         `Context.add_extra_chain_cert` accepts an `X509`
         instance to add to the certificate chain.
@@ -1354,14 +1354,14 @@ class TestContext(object):
                 f.write(dump_privatekey(FILETYPE_PEM, key).decode('ascii'))
 
         # Create the server context
-        serverContext = Context(TLSv1_METHOD)
+        serverContext = Context(tls_version)
         serverContext.use_privatekey(skey)
         serverContext.use_certificate(scert)
         # The client already has cacert, we only need to give them icert.
         serverContext.add_extra_chain_cert(icert)
 
         # Create the client
-        clientContext = Context(TLSv1_METHOD)
+        clientContext = Context(tls_version)
         clientContext.set_verify(
             VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT, verify_cb)
         clientContext.load_verify_locations(str(tmpdir.join("ca.pem")))
