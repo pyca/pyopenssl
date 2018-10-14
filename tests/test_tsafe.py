@@ -5,7 +5,7 @@
 Unit tests for `OpenSSL.tsafe`.
 """
 
-from OpenSSL.SSL import TLSv1_METHOD, Context
+from OpenSSL.SSL import Context
 from OpenSSL.tsafe import Connection
 
 
