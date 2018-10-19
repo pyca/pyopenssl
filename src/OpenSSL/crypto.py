@@ -902,7 +902,7 @@ class X509Req(object):
         :param crypto_req: A ``cryptography`` X.509 certificate signing request
         :type crypto_req: ``cryptography.x509.CertificateSigningRequest``
 
-        :rtype: PKey
+        :rtype: X509Req
 
         .. versionadded:: 17.1.0
         """
@@ -1115,7 +1115,7 @@ class X509(object):
         :param crypto_key: A ``cryptography`` X.509 certificate.
         :type crypto_key: ``cryptography.x509.Certificate``
 
-        :rtype: PKey
+        :rtype: X509
 
         .. versionadded:: 17.1.0
         """
