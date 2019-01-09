@@ -1222,7 +1222,7 @@ class TestX509Name(object):
         cert = load_certificate(FILETYPE_PEM, nulbyteSubjectAltNamePEM)
         subject = cert.get_subject()
         components = subject.get_components()
-        ccn = [value for name, value in components if name == 'CN']
+        ccn = [value for name, value in components if name == b'CN']
         assert ccn[0] == b'null.python.org\x00example.org'
 
     def test_set_attribute_failure(self):
