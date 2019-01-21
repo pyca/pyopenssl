@@ -30,9 +30,9 @@ matrix:
     env: TOXENV=py36
   - python: "3.7"
     env: TOXENV=py37
-  - python: "pypy"
+  - python: "pypy2.7-5.10.0"
     env: TOXENV=pypy
-  - python: "pypy3"
+  - python: "pypy3.5-5.10.1"
     env: TOXENV=pypy3
 
   # Also run the tests against cryptography master.
@@ -46,9 +46,9 @@ matrix:
     env: TOXENV=py36-cryptographyMaster
   - python: "3.7"
     env: TOXENV=py37-cryptographyMaster
-  - python: "pypy"
+  - python: "pypy2.7-5.10.0"
     env: TOXENV=pypy-cryptographyMaster
-  - python: "pypy3"
+  - python: "pypy3.5-5.10.1"
     env: TOXENV=pypy3-cryptographyMaster
 
   # And current minimum cryptography version.
@@ -62,9 +62,9 @@ matrix:
     env: TOXENV=py36-cryptographyMinimum
   - python: "3.7"
     env: TOXENV=py37-cryptographyMinimum
-  - python: "pypy"
+  - python: "pypy2.7-5.10.0"
     env: TOXENV=pypy-cryptographyMinimum
-  - python: "pypy3"
+  - python: "pypy3.5-5.10.1"
     env: TOXENV=pypy3-cryptographyMinimum
 
 
