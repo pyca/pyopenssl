@@ -1,5 +1,5 @@
-dist: trusty
-sudo: false
+dist: xenial
+sudo: true
 language: python
 
 cache:
@@ -19,7 +19,7 @@ matrix:
   - language: generic
     os: osx
     osx_image: xcode10.1
-    env: TOXENV=py27 OPENSSL=1.1.0
+    env: TOXENV=py27 OPENSSL=1.1.1
   - python: "2.7" # these are just to make travis's UI a bit prettier
     env: TOXENV=py27
   - python: "3.4"
@@ -30,8 +30,6 @@ matrix:
     env: TOXENV=py36
   - python: "3.7"
     env: TOXENV=py37
-    dist: xenial
-    sudo: true
   - python: "pypy"
     env: TOXENV=pypy
   - python: "pypy3"
@@ -48,8 +46,6 @@ matrix:
     env: TOXENV=py36-cryptographyMaster
   - python: "3.7"
     env: TOXENV=py37-cryptographyMaster
-    dist: xenial
-    sudo: true
   - python: "pypy"
     env: TOXENV=pypy-cryptographyMaster
   - python: "pypy3"
@@ -66,8 +62,6 @@ matrix:
     env: TOXENV=py36-cryptographyMinimum
   - python: "3.7"
     env: TOXENV=py37-cryptographyMinimum
-    dist: xenial
-    sudo: true
   - python: "pypy"
     env: TOXENV=pypy-cryptographyMinimum
   - python: "pypy3"
@@ -110,7 +104,7 @@ install:
   - |
     if [[ "$(uname -s)" == 'Darwin' ]]; then
       brew update
-      if [[ "${OPENSSL}" == "1.1.0" ]]; then
+      if [[ "${OPENSSL}" == "1.1.1" ]]; then
         brew upgrade openssl@1.1
       else
         brew upgrade openssl
@@ -128,7 +122,7 @@ script:
   - |
     if [[ "$(uname -s)" == 'Darwin' ]]; then
       # set our flags to use homebrew openssl
-      if [[ "${OPENSSL}"  == "1.1.0" ]]; then
+      if [[ "${OPENSSL}"  == "1.1.1" ]]; then
         export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
         export CFLAGS="-I/usr/local/opt/openssl@1.1/include"
         export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
