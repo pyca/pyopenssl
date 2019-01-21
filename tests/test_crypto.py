@@ -3156,20 +3156,20 @@ class TestCRL(object):
         representing a serial number, a revoked reason, and certificate issuer
         information.
         """
-        crl = self._get_crl()
         # PEM format
-        dumped_crl = crl.export(
+        dumped_crl = self._get_crl().export(
             self.cert, self.pkey, days=20, digest=b"sha256"
         )
-        text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
-
-        # These magic values are based on the way the CRL above was constructed
-        # and with what certificate it was exported.
-        text.index(b'Serial Number: 03AB')
-        text.index(b'Superseded')
-        text.index(
-            b'Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA'
-        )
+        crl = x509.load_pem_x509_crl(dumped_crl, backend)
+        revoked = crl.get_revoked_certificate_by_serial_number(0x03AB)
+        assert revoked is not None
+        assert crl.issuer == x509.Name([
+            x509.NameAttribute(x509.NameOID.COUNTRY_NAME, u"US"),
+            x509.NameAttribute(x509.NameOID.STATE_OR_PROVINCE_NAME, u"IL"),
+            x509.NameAttribute(x509.NameOID.LOCALITY_NAME, u"Chicago"),
+            x509.NameAttribute(x509.NameOID.ORGANIZATION_NAME, u"Testing"),
+            x509.NameAttribute(x509.NameOID.COMMON_NAME, u"Testing Root CA"),
+        ])
 
     def test_export_der(self):
         """
@@ -3180,17 +3180,19 @@ class TestCRL(object):
         crl = self._get_crl()
 
         # DER format
-        dumped_crl = crl.export(
+        dumped_crl = self._get_crl().export(
             self.cert, self.pkey, FILETYPE_ASN1, digest=b"md5"
         )
-        text = _runopenssl(
-            dumped_crl, b"crl", b"-noout", b"-text", b"-inform", b"DER"
-        )
-        text.index(b'Serial Number: 03AB')
-        text.index(b'Superseded')
-        text.index(
-            b'Issuer: /C=US/ST=IL/L=Chicago/O=Testing/CN=Testing Root CA'
-        )
+        crl = x509.load_der_x509_crl(dumped_crl, backend)
+        revoked = crl.get_revoked_certificate_by_serial_number(0x03AB)
+        assert revoked is not None
+        assert crl.issuer == x509.Name([
+            x509.NameAttribute(x509.NameOID.COUNTRY_NAME, u"US"),
+            x509.NameAttribute(x509.NameOID.STATE_OR_PROVINCE_NAME, u"IL"),
+            x509.NameAttribute(x509.NameOID.LOCALITY_NAME, u"Chicago"),
+            x509.NameAttribute(x509.NameOID.ORGANIZATION_NAME, u"Testing"),
+            x509.NameAttribute(x509.NameOID.COMMON_NAME, u"Testing Root CA"),
+        ])
 
     # Flaky because we compare the output of running commands which sometimes
     # varies by 1 second
@@ -3207,7 +3209,8 @@ class TestCRL(object):
             self.cert, self.pkey, FILETYPE_ASN1, digest=b"md5"
         )
         text = _runopenssl(
-            dumped_crl, b"crl", b"-noout", b"-text", b"-inform", b"DER"
+            dumped_crl, b"crl", b"-noout", b"-text", b"-inform", b"DER",
+            b"-nameopt", b""
         )
 
         # text format
@@ -3778,7 +3781,7 @@ class EllipticCurveFactory(object):
 
 class TestEllipticCurveEquality(EqualityTestsMixin):
     """
-    Tests `_EllipticCurve`\ 's implementation of ``==`` and ``!=``.
+    Tests `_EllipticCurve`'s implementation of ``==`` and ``!=``.
     """
     curve_factory = EllipticCurveFactory()
 

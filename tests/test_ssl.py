@@ -216,14 +216,14 @@ def _create_certificate_chain():
     return [(cakey, cacert), (ikey, icert), (skey, scert)]
 
 
-def loopback_client_factory(socket):
-    client = Connection(Context(SSLv23_METHOD), socket)
+def loopback_client_factory(socket, version=SSLv23_METHOD):
+    client = Connection(Context(version), socket)
     client.set_connect_state()
     return client
 
 
-def loopback_server_factory(socket):
-    ctx = Context(SSLv23_METHOD)
+def loopback_server_factory(socket, version=SSLv23_METHOD):
+    ctx = Context(version)
     ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
     ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
     server = Connection(ctx, socket)
@@ -1307,13 +1307,13 @@ class TestContext(object):
         exception, verification fails and the exception is propagated to the
         caller of `Connection.do_handshake`.
         """
-        serverContext = Context(TLSv1_METHOD)
+        serverContext = Context(TLSv1_2_METHOD)
         serverContext.use_privatekey(
             load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM))
         serverContext.use_certificate(
             load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
 
-        clientContext = Context(TLSv1_METHOD)
+        clientContext = Context(TLSv1_2_METHOD)
 
         def verify_callback(*args):
             raise Exception("silly verify failure")
@@ -2539,7 +2539,7 @@ class TestConnection(object):
         """
         key = load_privatekey(FILETYPE_PEM, server_key_pem)
         cert = load_certificate(FILETYPE_PEM, server_cert_pem)
-        ctx = Context(SSLv23_METHOD)
+        ctx = Context(TLSv1_2_METHOD)
         ctx.use_privatekey(key)
         ctx.use_certificate(cert)
         ctx.set_session_id("unity-test")
@@ -3193,7 +3193,10 @@ class TestConnectionRenegotiate(object):
         """
         Go through a complete renegotiation cycle.
         """
-        server, client = loopback()
+        server, client = loopback(
+            lambda s: loopback_server_factory(s, TLSv1_2_METHOD),
+            lambda s: loopback_client_factory(s, TLSv1_2_METHOD),
+        )
 
         server.send(b"hello world")
 
