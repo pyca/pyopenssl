@@ -4,7 +4,7 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
-18.1.0 (UNRELEASED)
+19.0.0 (UNRELEASED)
 -------------------
 
 
@@ -24,7 +24,11 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-*none*
+- pyOpenSSL now works with OpenSSL 1.1.1.
+  `#805 <https://github.com/pyca/pyopenssl/pull/805>`_
+- pyOpenSSL now handles NUL bytes in ``X509Name.get_components()``
+  `#804 <https://github.com/pyca/pyopenssl/pull/804>`_
+
 
 
 ----
