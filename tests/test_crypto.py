@@ -1214,6 +1214,17 @@ class TestX509Name(object):
         subject = cert.get_subject()
         assert "null.python.org\x00example.org" == subject.commonName
 
+    def test_load_nul_byte_components(self):
+        """
+        An `X509Name` from an `X509` instance loaded from a file can have a
+        NUL byte in the value of its components
+        """
+        cert = load_certificate(FILETYPE_PEM, nulbyteSubjectAltNamePEM)
+        subject = cert.get_subject()
+        components = subject.get_components()
+        ccn = [value for name, value in components if name == b'CN']
+        assert ccn[0] == b'null.python.org\x00example.org'
+
     def test_set_attribute_failure(self):
         """
         If the value of an attribute cannot be set for some reason then
