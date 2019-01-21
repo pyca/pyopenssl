@@ -19,7 +19,6 @@ from cryptography import x509
 from cryptography.hazmat.backends.openssl.backend import backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.x509.oid import NameOID
 
 import flaky
 
@@ -3782,7 +3781,7 @@ class EllipticCurveFactory(object):
 
 class TestEllipticCurveEquality(EqualityTestsMixin):
     """
-    Tests `_EllipticCurve`\ 's implementation of ``==`` and ``!=``.
+    Tests `_EllipticCurve`'s implementation of ``==`` and ``!=``.
     """
     curve_factory = EllipticCurveFactory()
 
