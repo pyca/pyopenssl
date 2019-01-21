@@ -71,6 +71,8 @@ FILETYPE_TEXT = 2 ** 16 - 1
 
 TYPE_RSA = _lib.EVP_PKEY_RSA
 TYPE_DSA = _lib.EVP_PKEY_DSA
+TYPE_DH = _lib.EVP_PKEY_DH
+TYPE_EC = _lib.EVP_PKEY_EC
 
 
 class Error(Exception):
