@@ -2295,7 +2295,7 @@ class CRL(object):
             :data:`FILETYPE_ASN1`, or :data:`FILETYPE_TEXT`.
         :param int days: The number of days until the next update of this CRL.
         :param bytes digest: The name of the message digest to use (eg
-            ``b"sha2566"``).
+            ``b"sha256"``).
         :rtype: bytes
         """
 
