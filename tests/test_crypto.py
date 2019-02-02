@@ -1923,10 +1923,8 @@ WpOdIpB8KksUTCzV591Nr1wd
         subject name.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        assert cert.subject_name_hash() in [
-            3350047874,  # OpenSSL 0.9.8, MD5
-            3278919224,  # OpenSSL 1.0.0, SHA1
-        ]
+        # SHA1
+        assert cert.subject_name_hash() == 3278919224
 
     def test_get_signature_algorithm(self):
         """
