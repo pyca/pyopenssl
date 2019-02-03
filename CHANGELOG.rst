@@ -11,7 +11,7 @@ The third digit is only for regressions.
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Removed deprecated ``ContextType``, ``ConnectionType``, ``PKeyType``, ``X509NameType`, ``X509ReqType``, ``X509Type``, ``X509StoreType``, ``CRLType``, ``PKCS7Type``, ``PKCS12Type``, and ``NetscapeSPKIType`` aliases. Use the classes without the ``Type`` suffix instead.
+- Removed deprecated ``ContextType``, ``ConnectionType``, ``PKeyType``, ``X509NameType``, ``X509ReqType``, ``X509Type``, ``X509StoreType``, ``CRLType``, ``PKCS7Type``, ``PKCS12Type``, and ``NetscapeSPKIType`` aliases. Use the classes without the ``Type`` suffix instead.
   `#814 <https://github.com/pyca/pyopenssl/pull/814`_
 
 Deprecations:
