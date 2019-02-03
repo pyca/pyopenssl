@@ -23,7 +23,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 import flaky
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey
-from OpenSSL.crypto import X509, X509Type, X509Name
+from OpenSSL.crypto import X509, X509Name
 from OpenSSL.crypto import (
     X509Store,
     X509StoreFlags,
@@ -1498,7 +1498,6 @@ WpOdIpB8KksUTCzV591Nr1wd
         """
         `X509` can be used to create instances of that type.
         """
-        assert X509 is X509Type
         assert is_consistent_type(X509, 'X509')
 
     def test_construction(self):
@@ -1506,10 +1505,8 @@ WpOdIpB8KksUTCzV591Nr1wd
         `X509` takes no arguments and returns an instance of `X509`.
         """
         certificate = X509()
-        assert isinstance(certificate, X509Type)
-        assert type(X509Type).__name__ == 'type'
+        assert isinstance(certificate, X509)
         assert type(certificate).__name__ == 'X509'
-        assert type(certificate) == X509Type
         assert type(certificate) == X509
 
     def test_set_version_wrong_args(self):
