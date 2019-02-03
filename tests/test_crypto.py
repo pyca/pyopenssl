@@ -22,26 +22,25 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 
 import flaky
 
-from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey, PKeyType
-from OpenSSL.crypto import X509, X509Type, X509Name, X509NameType
+from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey
+from OpenSSL.crypto import X509, X509Type, X509Name
 from OpenSSL.crypto import (
     X509Store,
     X509StoreFlags,
-    X509StoreType,
     X509StoreContext,
     X509StoreContextError
 )
-from OpenSSL.crypto import X509Req, X509ReqType
-from OpenSSL.crypto import X509Extension, X509ExtensionType
+from OpenSSL.crypto import X509Req
+from OpenSSL.crypto import X509Extension
 from OpenSSL.crypto import load_certificate, load_privatekey
 from OpenSSL.crypto import load_publickey, dump_publickey
 from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT
 from OpenSSL.crypto import dump_certificate, load_certificate_request
 from OpenSSL.crypto import dump_certificate_request, dump_privatekey
-from OpenSSL.crypto import PKCS7, PKCS7Type, load_pkcs7_data
-from OpenSSL.crypto import PKCS12, PKCS12Type, load_pkcs12
+from OpenSSL.crypto import PKCS7, load_pkcs7_data
+from OpenSSL.crypto import PKCS12, load_pkcs12
 from OpenSSL.crypto import CRL, Revoked, dump_crl, load_crl
-from OpenSSL.crypto import NetscapeSPKI, NetscapeSPKIType
+from OpenSSL.crypto import NetscapeSPKI
 from OpenSSL.crypto import (
     sign, verify, get_elliptic_curve, get_elliptic_curves)
 
@@ -609,10 +608,8 @@ class TestX509Ext(object):
 
     def test_type(self):
         """
-        `X509Extension` and `X509ExtensionType` refer to the same type object
-        and can be used to create instances of that type.
+        `X509Extension` can be used to create instances of that type.
         """
-        assert X509Extension is X509ExtensionType
         assert is_consistent_type(
             X509Extension,
             'X509Extension', b'basicConstraints', True, b'CA:true')
@@ -620,13 +617,13 @@ class TestX509Ext(object):
     def test_construction(self):
         """
         `X509Extension` accepts an extension type name, a critical flag,
-        and an extension value and returns an `X509ExtensionType` instance.
+        and an extension value and returns an `X509Extension` instance.
         """
         basic = X509Extension(b'basicConstraints', True, b'CA:true')
-        assert isinstance(basic, X509ExtensionType)
+        assert isinstance(basic, X509Extension)
 
         comment = X509Extension(b'nsComment', False, b'pyOpenSSL unit test')
-        assert isinstance(comment, X509ExtensionType)
+        assert isinstance(comment, X509Extension)
 
     @pytest.mark.parametrize('type_name, critical, value', [
         (b'thisIsMadeUp', False, b'hi'),
@@ -847,10 +844,8 @@ class TestPKey(object):
 
     def test_type(self):
         """
-        `PKey` and `PKeyType` refer to the same type object and can be used to
-        create instances of that type.
+        `PKey` can be used to create instances of that type.
         """
-        assert PKey is PKeyType
         assert is_consistent_type(PKey, 'PKey')
 
     def test_construction(self):
@@ -998,14 +993,10 @@ class TestX509Name(object):
 
     def test_type(self):
         """
-        The type of X509Name objects is `X509NameType`.
+        The type of X509Name objects is `X509Name`.
         """
-        assert X509Name is X509NameType
-        assert X509NameType.__name__ == 'X509Name'
-        assert isinstance(X509NameType, type)
-
         name = x509_name()
-        assert isinstance(name, X509NameType)
+        assert isinstance(name, X509Name)
 
     def test_only_string_attributes(self):
         """
@@ -1315,18 +1306,16 @@ class TestX509Req(_PKeyInteractionTestsMixin):
 
     def test_type(self):
         """
-        `X509Req` and `X509ReqType` refer to the same type object and can be
-        used to create instances of that type.
+        `X509Req` can be used to create instances of that type.
         """
-        assert X509Req is X509ReqType
         assert is_consistent_type(X509Req, 'X509Req')
 
     def test_construction(self):
         """
-        `X509Req` takes no arguments and returns an `X509ReqType` instance.
+        `X509Req` takes no arguments and returns an `X509Req` instance.
         """
         request = X509Req()
-        assert isinstance(request, X509ReqType)
+        assert isinstance(request, X509Req)
 
     def test_version(self):
         """
@@ -1358,7 +1347,7 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         """
         request = X509Req()
         subject = request.get_subject()
-        assert isinstance(subject, X509NameType)
+        assert isinstance(subject, X509Name)
         subject.commonName = "foo"
         assert request.get_subject().commonName == "foo"
         del request
@@ -1507,15 +1496,14 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def test_type(self):
         """
-        `X509` and `X509Type` refer to the same type object and can be used to
-        create instances of that type.
+        `X509` can be used to create instances of that type.
         """
         assert X509 is X509Type
         assert is_consistent_type(X509, 'X509')
 
     def test_construction(self):
         """
-        `X509` takes no arguments and returns an instance of `X509Type`.
+        `X509` takes no arguments and returns an instance of `X509`.
         """
         certificate = X509()
         assert isinstance(certificate, X509Type)
@@ -2004,7 +1992,6 @@ class TestX509Store(object):
         """
         `X509Store` is a type object.
         """
-        assert X509Store is X509StoreType
         assert is_consistent_type(X509Store, 'X509Store')
 
     def test_add_cert(self):
@@ -2044,9 +2031,8 @@ class TestPKCS12(object):
 
     def test_type(self):
         """
-        `PKCS12Type` is a type object.
+        `PKCS12` is a type object.
         """
-        assert PKCS12 is PKCS12Type
         assert is_consistent_type(PKCS12, 'PKCS12')
 
     def test_empty_construction(self):
@@ -2554,7 +2540,7 @@ class TestFunction(object):
         key = load_privatekey(
             FILETYPE_PEM, encryptedPrivateKeyPEM,
             encryptedPrivateKeyPEMPassphrase)
-        assert isinstance(key, PKeyType)
+        assert isinstance(key, PKey)
 
     def test_load_privatekey_passphrase_exception(self):
         """
@@ -2595,7 +2581,7 @@ class TestFunction(object):
             called.append(writing)
             return encryptedPrivateKeyPEMPassphrase
         key = load_privatekey(FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
-        assert isinstance(key, PKeyType)
+        assert isinstance(key, PKey)
         assert called == [False]
 
     def test_load_privatekey_passphrase_wrong_return_type(self):
@@ -2681,7 +2667,7 @@ class TestFunction(object):
         pem = dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, passphrase)
         assert isinstance(pem, binary_type)
         loadedKey = load_privatekey(FILETYPE_PEM, pem, passphrase)
-        assert isinstance(loadedKey, PKeyType)
+        assert isinstance(loadedKey, PKey)
         assert loadedKey.type() == key.type()
         assert loadedKey.bits() == key.bits()
 
@@ -2822,7 +2808,7 @@ class TestFunction(object):
         assert isinstance(pem, binary_type)
         assert called == [True]
         loadedKey = load_privatekey(FILETYPE_PEM, pem, passphrase)
-        assert isinstance(loadedKey, PKeyType)
+        assert isinstance(loadedKey, PKey)
         assert loadedKey.type() == key.type()
         assert loadedKey.bits() == key.bits()
 
@@ -2910,14 +2896,6 @@ class TestPKCS7(object):
     Tests for `PKCS7`.
     """
 
-    def test_type(self):
-        """
-        `PKCS7` is a type object.
-        """
-        assert isinstance(PKCS7, type)
-        assert PKCS7Type.__name__ == 'PKCS7'
-        assert PKCS7 is PKCS7Type
-
     def test_type_is_signed(self):
         """
         `PKCS7.type_is_signed` returns `True` if the PKCS7 object is of
@@ -2981,18 +2959,16 @@ class TestNetscapeSPKI(_PKeyInteractionTestsMixin):
 
     def test_type(self):
         """
-        `NetscapeSPKI` and `NetscapeSPKIType` refer to the same type object
-        and can be used to create instances of that type.
+        `NetscapeSPKI` can be used to create instances of that type.
         """
-        assert NetscapeSPKI is NetscapeSPKIType
         assert is_consistent_type(NetscapeSPKI, 'NetscapeSPKI')
 
     def test_construction(self):
         """
-        `NetscapeSPKI` returns an instance of `NetscapeSPKIType`.
+        `NetscapeSPKI` returns an instance of `NetscapeSPKI`.
         """
         nspki = NetscapeSPKI()
-        assert isinstance(nspki, NetscapeSPKIType)
+        assert isinstance(nspki, NetscapeSPKI)
 
     def test_invalid_attribute(self):
         """

@@ -57,7 +57,7 @@ from OpenSSL.SSL import (
 from OpenSSL.SSL import (
     Error, SysCallError, WantReadError, WantWriteError, ZeroReturnError)
 from OpenSSL.SSL import (
-    Context, ContextType, Session, Connection, ConnectionType, SSLeay_version)
+    Context, Session, Connection, SSLeay_version)
 from OpenSSL.SSL import _make_requires
 
 from OpenSSL._util import ffi as _ffi, lib as _lib
@@ -508,10 +508,8 @@ class TestContext(object):
 
     def test_type(self):
         """
-        `Context` and `ContextType` refer to the same type object and can
-        be used to create instances of that type.
+        `Context` can be used to create instances of that type.
         """
-        assert Context is ContextType
         assert is_consistent_type(Context, 'Context', TLSv1_METHOD)
 
     def test_use_privatekey(self):
@@ -2129,10 +2127,8 @@ class TestConnection(object):
 
     def test_type(self):
         """
-        `Connection` and `ConnectionType` refer to the same type object and
-        can be used to create instances of that type.
+        `Connection` can be used to create instances of that type.
         """
-        assert Connection is ConnectionType
         ctx = Context(TLSv1_METHOD)
         assert is_consistent_type(Connection, 'Connection', ctx, None)
 
