@@ -11,7 +11,6 @@ from six import (
 
 from cryptography import x509
 from cryptography.hazmat.primitives.asymmetric import dsa, rsa
-from cryptography.utils import deprecated
 
 from OpenSSL._util import (
     ffi as _ffi,
@@ -367,13 +366,6 @@ class PKey(object):
         return _lib.EVP_PKEY_bits(self._pkey)
 
 
-PKeyType = deprecated(
-    PKey, __name__,
-    "PKeyType has been deprecated, use PKey instead",
-    DeprecationWarning
-)
-
-
 class _EllipticCurve(object):
     """
     A representation of a supported elliptic curve.
@@ -706,13 +698,6 @@ class X509Name(object):
         return result
 
 
-X509NameType = deprecated(
-    X509Name, __name__,
-    "X509NameType has been deprecated, use X509Name instead",
-    DeprecationWarning
-)
-
-
 class X509Extension(object):
     """
     An X.509 v3 certificate extension.
@@ -862,13 +847,6 @@ class X509Extension(object):
         char_result = _lib.ASN1_STRING_data(string_result)
         result_length = _lib.ASN1_STRING_length(string_result)
         return _ffi.buffer(char_result, result_length)[:]
-
-
-X509ExtensionType = deprecated(
-    X509Extension, __name__,
-    "X509ExtensionType has been deprecated, use X509Extension instead",
-    DeprecationWarning
-)
 
 
 class X509Req(object):
@@ -1068,13 +1046,6 @@ class X509Req(object):
             _raise_current_error()
 
         return result
-
-
-X509ReqType = deprecated(
-    X509Req, __name__,
-    "X509ReqType has been deprecated, use X509Req instead",
-    DeprecationWarning
-)
 
 
 class X509(object):
@@ -1543,13 +1514,6 @@ class X509(object):
         return ext
 
 
-X509Type = deprecated(
-    X509, __name__,
-    "X509Type has been deprecated, use X509 instead",
-    DeprecationWarning
-)
-
-
 class X509StoreFlags(object):
     """
     Flags for X509 verification, used to change the behavior of
@@ -1682,13 +1646,6 @@ class X509Store(object):
 
         _lib.X509_VERIFY_PARAM_set_time(param, int(vfy_time.strftime('%s')))
         _openssl_assert(_lib.X509_STORE_set1_param(self._store, param) != 0)
-
-
-X509StoreType = deprecated(
-    X509Store, __name__,
-    "X509StoreType has been deprecated, use X509Store instead",
-    DeprecationWarning
-)
 
 
 class X509StoreContextError(Exception):
@@ -2338,13 +2295,6 @@ class CRL(object):
         return dump_crl(type, self)
 
 
-CRLType = deprecated(
-    CRL, __name__,
-    "CRLType has been deprecated, use CRL instead",
-    DeprecationWarning
-)
-
-
 class PKCS7(object):
     def type_is_signed(self):
         """
@@ -2387,13 +2337,6 @@ class PKCS7(object):
         nid = _lib.OBJ_obj2nid(self._pkcs7.type)
         string_type = _lib.OBJ_nid2sn(nid)
         return _ffi.string(string_type)
-
-
-PKCS7Type = deprecated(
-    PKCS7, __name__,
-    "PKCS7Type has been deprecated, use PKCS7 instead",
-    DeprecationWarning
-)
 
 
 class PKCS12(object):
@@ -2570,13 +2513,6 @@ class PKCS12(object):
         return _bio_to_string(bio)
 
 
-PKCS12Type = deprecated(
-    PKCS12, __name__,
-    "PKCS12Type has been deprecated, use PKCS12 instead",
-    DeprecationWarning
-)
-
-
 class NetscapeSPKI(object):
     """
     A Netscape SPKI object.
@@ -2665,13 +2601,6 @@ class NetscapeSPKI(object):
         """
         set_result = _lib.NETSCAPE_SPKI_set_pubkey(self._spki, pkey._pkey)
         _openssl_assert(set_result == 1)
-
-
-NetscapeSPKIType = deprecated(
-    NetscapeSPKI, __name__,
-    "NetscapeSPKIType has been deprecated, use NetscapeSPKI instead",
-    DeprecationWarning
-)
 
 
 class _PassphraseHelper(object):
