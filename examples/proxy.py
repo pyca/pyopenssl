@@ -9,6 +9,7 @@
 # $Id: proxy.py,v 1.2 2004/07/22 12:01:25 martin Exp $
 
 from __future__ import print_function
+
 import sys
 import socket
 import string
@@ -71,7 +72,7 @@ def run(server, proxy):
             # we're done
             break
 
-        print(buff, end=' ')
+        print(buff, end="")
 
 
 if __name__ == '__main__':

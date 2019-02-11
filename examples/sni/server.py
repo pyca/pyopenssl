@@ -2,6 +2,8 @@ from __future__ import print_function
 # Copyright (C) Jean-Paul Calderone
 # See LICENSE for details.
 
+from __future__ import print_function
+
 from sys import stdout
 from socket import SOL_SOCKET, SO_REUSEADDR, socket
 
@@ -30,7 +32,7 @@ def main():
     port.bind(('', 8443))
     port.listen(3)
 
-    print('Accepting...', end=' ')
+    print('Accepting...', end="")
     stdout.flush()
     server, addr = port.accept()
     print('accepted', addr)

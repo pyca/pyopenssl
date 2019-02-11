@@ -2,6 +2,8 @@ from __future__ import print_function
 # Copyright (C) Jean-Paul Calderone
 # See LICENSE for details.
 
+from __future__ import print_function
+
 from sys import argv, stdout
 from socket import socket
 
@@ -19,7 +21,7 @@ def main():
 
     client = socket()
 
-    print('Connecting...', end=' ')
+    print('Connecting...', end="")
     stdout.flush()
     client.connect(('127.0.0.1', 8443))
     print('connected', client.getpeername())
