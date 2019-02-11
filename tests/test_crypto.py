@@ -1507,7 +1507,7 @@ WpOdIpB8KksUTCzV591Nr1wd
         certificate = X509()
         assert isinstance(certificate, X509)
         assert type(certificate).__name__ == 'X509'
-        assert type(certificate) == X509
+        assert isinstance(certificate, X509)
 
     def test_set_version_wrong_args(self):
         """
@@ -3014,7 +3014,7 @@ class TestRevoked(object):
         """
         revoked = Revoked()
         assert isinstance(revoked, Revoked)
-        assert type(revoked) == Revoked
+        assert isinstance(revoked, Revoked)
         assert revoked.get_serial() == b'00'
         assert revoked.get_rev_date() is None
         assert revoked.get_reason() is None
@@ -3308,8 +3308,8 @@ class TestCRL(object):
 
         revs = crl.get_revoked()
         assert len(revs) == 2
-        assert type(revs[0]) == Revoked
-        assert type(revs[1]) == Revoked
+        assert isinstance(revs[0], Revoked)
+        assert isinstance(revs[1], Revoked)
         assert revs[0].get_serial() == b'03AB'
         assert revs[1].get_serial() == b'0100'
         assert revs[0].get_rev_date() == now

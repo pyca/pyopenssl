@@ -45,7 +45,7 @@ ctx.load_verify_locations(os.path.join(dir, 'CA.cert'))
 sock = SSL.Connection(ctx, socket.socket(socket.AF_INET, socket.SOCK_STREAM))
 sock.connect((sys.argv[1], int(sys.argv[2])))
 
-while 1:
+while True:
     line = sys.stdin.readline()
     if line == '':
         break

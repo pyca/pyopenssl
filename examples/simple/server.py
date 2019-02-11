@@ -68,7 +68,7 @@ def dropClient(cli, errors=None):
     cli.close()
 
 
-while 1:
+while True:
     try:
         r, w, _ = select.select(
             [server] + list(clients.keys()), list(writers.keys()), []

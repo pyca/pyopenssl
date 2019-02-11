@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright (C) Jean-Paul Calderone
 # See LICENSE for details.
 #
@@ -58,7 +59,7 @@ def go():
 
     called = []
     def info(*args):
-        print count.next()
+        print(next(count))
         called.append(None)
         return 1
     context = Context(TLSv1_METHOD)
@@ -68,7 +69,7 @@ def go():
     context.use_privatekey(
         load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM))
 
-    while 1:
+    while True:
         client = socket()
         client.setblocking(False)
         client.connect_ex(port.getsockname())
@@ -87,11 +88,11 @@ def go():
             for ssl in clientSSL, serverSSL:
                 try:
                     ssl.send('foo')
-                except WantReadError, e:
+                except WantReadError as e:
                     pass
 
 
-threads = [Thread(target=go, args=()) for i in xrange(2)]
+threads = [Thread(target=go, args=()) for i in range(2)]
 for th in threads:
     th.start()
 for th in threads:

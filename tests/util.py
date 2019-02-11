@@ -28,7 +28,7 @@ def is_consistent_type(theType, name, *constructionArgs):
     assert theType.__name__ == name
     assert isinstance(theType, type)
     instance = theType(*constructionArgs)
-    assert type(instance) is theType
+    assert isinstance(instance, theType)
     return True
 
 

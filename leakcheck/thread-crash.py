@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright (C) Jean-Paul Calderone
 # See LICENSE for details.
 #
@@ -12,20 +13,22 @@
 from socket import socket
 from threading import Thread
 
+from six.moves import xrange
+
 from OpenSSL.SSL import Connection, Context, TLSv1_METHOD
 
 def send(conn):
-    while 1:
+    while True:
         for i in xrange(1024 * 32):
             conn.send('x')
-        print 'Sent 32KB on', hex(id(conn))
+        print('Sent 32KB on', hex(id(conn)))
 
 
 def recv(conn):
-    while 1:
+    while True:
         for i in xrange(1024 * 64):
             conn.recv(1)
-        print 'Received 64KB on', hex(id(conn))
+        print('Received 64KB on', hex(id(conn)))
 
 
 def main():

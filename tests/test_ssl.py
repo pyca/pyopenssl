@@ -86,6 +86,10 @@ from .test_crypto import (
     client_cert_pem, client_key_pem, server_cert_pem, server_key_pem,
     root_cert_pem)
 
+if PY3:
+    buffer = bytes
+    long = int
+
 
 # openssl dhparam 1024 -out dh-1024.pem (note that 1024 is a small number of
 # bits to use)
@@ -108,7 +112,7 @@ def join_bytes_or_unicode(prefix, suffix):
     The return type is the same as the type of ``prefix``.
     """
     # If the types are the same, nothing special is necessary.
-    if type(prefix) == type(suffix):
+    if isinstance(prefix, type(suffix)):
         return join(prefix, suffix)
 
     # Otherwise, coerce suffix to the type of prefix.

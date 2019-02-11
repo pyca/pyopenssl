@@ -1,7 +1,10 @@
+from __future__ import print_function
 # Copyright (C) Jean-Paul Calderone
 # See LICENSE for details.
 
 import sys
+
+from six.moves import xrange
 
 from OpenSSL.crypto import (
     FILETYPE_PEM, TYPE_DSA, Error, PKey, X509, load_privatekey, CRL, Revoked,
@@ -162,7 +165,7 @@ class Checker_EllipticCurve(BaseChecker):
 
 
 def vmsize():
-    return [x for x in file('/proc/self/status').readlines() if 'VmSize' in x]
+    return [x for x in open('/proc/self/status').readlines() if 'VmSize' in x]
 
 
 def main(iterations='1000'):
@@ -170,13 +173,13 @@ def main(iterations='1000'):
     for klass in globals():
         if klass.startswith('Checker_'):
             klass = globals()[klass]
-            print klass
+            print(klass)
             checker = klass(iterations)
             for meth in dir(checker):
                 if meth.startswith('check_'):
-                    print '\t', meth, vmsize(), '...',
+                    print('\t', meth, vmsize(), '...', end=' ')
                     getattr(checker, meth)()
-                    print vmsize()
+                    print(vmsize())
 
 
 if __name__ == '__main__':
