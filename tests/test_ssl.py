@@ -423,6 +423,24 @@ class TestContext(object):
         with pytest.raises(error):
             context.set_cipher_list(cipher_list)
 
+    def test_set_cipher_list_no_cipher_match(self, context):
+        """
+        `Context.set_cipher_list` raises `OpenSSL.SSL.Error` with a
+        `"no cipher match"` reason string regardless of the TLS
+        version.
+        """
+        with pytest.raises(Error) as excinfo:
+            context.set_cipher_list(b"imaginary-cipher")
+        assert excinfo.value.args == (
+                [
+                    (
+                        'SSL routines',
+                        'SSL_CTX_set_cipher_list',
+                        'no cipher match',
+                    ),
+                ],
+            )
+
     def test_load_client_ca(self, context, ca_file):
         """
         `Context.load_client_ca` works as far as we can tell.

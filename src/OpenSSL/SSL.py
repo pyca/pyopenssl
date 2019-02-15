@@ -1189,13 +1189,22 @@ class Context(object):
         # invalid cipher string is passed, but without the following check
         # for the TLS 1.3 specific cipher suites it would never error.
         tmpconn = Connection(self, None)
-        _openssl_assert(
-            tmpconn.get_cipher_list() != [
+        if (
+            tmpconn.get_cipher_list() == [
                 'TLS_AES_256_GCM_SHA384',
                 'TLS_CHACHA20_POLY1305_SHA256',
                 'TLS_AES_128_GCM_SHA256'
             ]
-        )
+        ):
+            raise Error(
+                [
+                    (
+                        'SSL routines',
+                        'SSL_CTX_set_cipher_list',
+                        'no cipher match',
+                    ),
+                ],
+            )
 
     def set_client_ca_list(self, certificate_authorities):
         """
