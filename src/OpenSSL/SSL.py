@@ -1,5 +1,6 @@
 import os
 import socket
+import warnings
 from sys import platform
 from functools import wraps, partial
 from itertools import count, chain
@@ -624,6 +625,11 @@ def SSLeay_version(type):
     :param type: One of the :const:`SSLEAY_` constants defined in this module.
     """
     return _ffi.string(_lib.SSLeay_version(type))
+
+
+def _warn_npn():
+    warnings.warn("NPN is deprecated. Protocols should switch to using ALPN.",
+                  DeprecationWarning, stacklevel=3)
 
 
 def _make_requires(flag, error):
@@ -1415,6 +1421,7 @@ class Context(object):
 
         .. versionadded:: 0.15
         """
+        _warn_npn()
         self._npn_advertise_helper = _NpnAdvertiseHelper(callback)
         self._npn_advertise_callback = self._npn_advertise_helper.callback
         _lib.SSL_CTX_set_next_protos_advertised_cb(
@@ -1433,6 +1440,7 @@ class Context(object):
 
         .. versionadded:: 0.15
         """
+        _warn_npn()
         self._npn_select_helper = _NpnSelectHelper(callback)
         self._npn_select_callback = self._npn_select_helper.callback
         _lib.SSL_CTX_set_next_proto_select_cb(
@@ -2437,6 +2445,7 @@ class Connection(object):
 
         .. versionadded:: 0.15
         """
+        _warn_npn()
         data = _ffi.new("unsigned char **")
         data_len = _ffi.new("unsigned int *")
 
