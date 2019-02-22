@@ -20,7 +20,7 @@ Deprecations:
 
 - Deprecated ``OpenSSL.SSL.Context.set_npn_advertise_callback``, ``OpenSSL.SSL.Context.set_npn_select_callback``, and ``OpenSSL.SSL.Connection.get_next_proto_negotiated``.
   ALPN should be used instead.
-  `#820 <https://github.com/pyca/pyopenssl/pull/820`_
+  `#820 <https://github.com/pyca/pyopenssl/pull/820>`_
 
 
 Changes:
