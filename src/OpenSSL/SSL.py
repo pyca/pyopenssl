@@ -664,11 +664,6 @@ _requires_alpn = _make_requires(
 )
 
 
-_requires_sni = _make_requires(
-    _lib.Cryptography_HAS_TLSEXT_HOSTNAME, "SNI not available"
-)
-
-
 class Session(object):
     """
     A class representing an SSL session.  A session defines certain connection
@@ -1371,7 +1366,6 @@ class Context(object):
 
         return _lib.SSL_CTX_set_mode(self._context, mode)
 
-    @_requires_sni
     def set_tlsext_servername_callback(self, callback):
         """
         Specify a callback function to be called when clients specify a server
@@ -1675,7 +1669,6 @@ class Connection(object):
         _lib.SSL_set_SSL_CTX(self._ssl, context._context)
         self._context = context
 
-    @_requires_sni
     def get_servername(self):
         """
         Retrieve the servername extension value if provided in the client hello
@@ -1693,7 +1686,6 @@ class Connection(object):
 
         return _ffi.string(name)
 
-    @_requires_sni
     def set_tlsext_host_name(self, name):
         """
         Set the value of the servername extension to send in the client hello.
