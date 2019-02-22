@@ -18,7 +18,9 @@ Backward-incompatible changes:
 Deprecations:
 ^^^^^^^^^^^^^
 
-*none*
+- Deprecated ``OpenSSL.SSL.Context.set_npn_advertise_callback``, ``OpenSSL.SSL.Context.set_npn_select_callback``, and ``OpenSSL.SSL.Connection.get_next_proto_negotiated``.
+  ALPN should be used instead.
+  `#819 <https://github.com/pyca/pyopenssl/pull/819`_
 
 
 Changes:
