@@ -1727,7 +1727,7 @@ class TestServerNameCallback(object):
 
 
 @pytest.mark.skipif(
-    not _lib.Cryptography_HAS_NPN, reason="NPN is not available"
+    not _lib.Cryptography_HAS_NEXTPROTONEG, reason="NPN is not available"
 )
 class TestNextProtoNegotiation(object):
     """
