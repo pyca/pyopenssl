@@ -1726,6 +1726,9 @@ class TestServerNameCallback(object):
         assert args == [(server, b"foo1.example.com")]
 
 
+@pytest.mark.skipif(
+    not _lib.Cryptography_HAS_NPN, reason="NPN is not available"
+)
 class TestNextProtoNegotiation(object):
     """
     Test for Next Protocol Negotiation in PyOpenSSL.
