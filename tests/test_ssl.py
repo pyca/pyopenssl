@@ -10,7 +10,8 @@ import sys
 import uuid
 
 from gc import collect, get_referrers
-from errno import EAFNOSUPPORT, ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE, ESHUTDOWN
+from errno import (
+    EAFNOSUPPORT, ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE, ESHUTDOWN)
 from sys import platform, getfilesystemencoding
 from socket import AF_INET, AF_INET6, MSG_PEEK, SHUT_RDWR, error, socket
 from os import makedirs
