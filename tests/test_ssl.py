@@ -10,7 +10,7 @@ import sys
 import uuid
 
 from gc import collect, get_referrers
-from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE, ESHUTDOWN
+from errno import EAFNOSUPPORT, ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE, ESHUTDOWN
 from sys import platform, getfilesystemencoding
 from socket import AF_INET, AF_INET6, MSG_PEEK, SHUT_RDWR, error, socket
 from os import makedirs
@@ -104,16 +104,18 @@ skip_if_py3 = pytest.mark.skipif(PY3, reason="Python 2 only")
 def socket_any_family():
     try:
         return socket(AF_INET)
-    except error:
-        return socket(AF_INET6)
+    except error as e:
+        if e.errno == EAFNOSUPPORT:
+            return socket(AF_INET6)
+        raise e
 
 
 def loopback_address(socket):
     if socket.family == AF_INET:
         return "127.0.0.1"
-    if socket.family == AF_INET6:
+    else:
+        assert socket.family == AF_INET6
         return "::1"
-    raise ValueError("Unknown socket family")
 
 
 def join_bytes_or_unicode(prefix, suffix):
