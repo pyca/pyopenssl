@@ -107,7 +107,7 @@ def socket_any_family():
     except error as e:
         if e.errno == EAFNOSUPPORT:
             return socket(AF_INET6)
-        raise e
+        raise
 
 
 def loopback_address(socket):
