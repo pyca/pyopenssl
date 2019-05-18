@@ -26,7 +26,8 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-*none*
+- Added ``OpenSSL.crypto.dump_pkcs7_data()`` to dump a PKCS7 object out to a string buffer.
+  `#829 <https://github.com/pyca/pyopenssl/pull/829>`_
 
 
 ----

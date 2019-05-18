@@ -37,7 +37,7 @@ from OpenSSL.crypto import load_publickey, dump_publickey
 from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT
 from OpenSSL.crypto import dump_certificate, load_certificate_request
 from OpenSSL.crypto import dump_certificate_request, dump_privatekey
-from OpenSSL.crypto import PKCS7, load_pkcs7_data
+from OpenSSL.crypto import PKCS7, dump_pkcs7_data, load_pkcs7_data
 from OpenSSL.crypto import PKCS12, load_pkcs12
 from OpenSSL.crypto import CRL, Revoked, dump_crl, load_crl
 from OpenSSL.crypto import NetscapeSPKI
@@ -2832,6 +2832,31 @@ class TestFunction(object):
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         with pytest.raises(ValueError):
             dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, cb)
+
+    def test_dump_pkcs7_data_pem(self):
+        """
+        The dumped PKCS7 data matches the original input.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+        buf = dump_pkcs7_data(FILETYPE_PEM, pkcs7)
+        assert buf == pkcs7Data
+
+    def test_dump_pkcs7_data_asn1(self):
+        """
+        The dumped PKCS7 data matches the original input.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_ASN1, pkcs7DataASN1)
+        buf = dump_pkcs7_data(FILETYPE_ASN1, pkcs7)
+        assert buf == pkcs7DataASN1
+
+    def test_dump_pkcs7_type_invalid(self):
+        """
+        dump_pkcs7_data doesn't support FILETYPE_TEXT.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
+
+        with pytest.raises(ValueError):
+            dump_pkcs7_data(FILETYPE_TEXT, pkcs7)
 
     def test_load_pkcs7_data_pem(self):
         """

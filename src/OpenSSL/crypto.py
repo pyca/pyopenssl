@@ -58,6 +58,7 @@ __all__ = [
     'verify',
     'dump_crl',
     'load_crl',
+    'dump_pkcs7_data',
     'load_pkcs7_data',
     'load_pkcs12'
 ]
@@ -2925,6 +2926,31 @@ def load_crl(type, buffer):
     result = CRL.__new__(CRL)
     result._crl = _ffi.gc(crl, _lib.X509_CRL_free)
     return result
+
+
+def dump_pkcs7_data(type, pkcs7):
+    """
+    Dump PKCS7 data to a buffer.
+
+    :param type: The file type (one of ``FILETYPE_PEM`` or ``FILETYPE_ASN1``).
+    :param PKCS7 pkcs7: The PKCS7 object to dump.
+
+    :return: The buffer with the PKCS7 object.
+    :rtype: bytes
+    """
+    bio = _new_mem_buf()
+
+    if type == FILETYPE_PEM:
+        ret = _lib.PEM_write_bio_PKCS7(bio, pkcs7._pkcs7)
+    elif type == FILETYPE_ASN1:
+        ret = _lib.i2d_PKCS7_bio(bio, pkcs7._pkcs7)
+    else:
+        raise ValueError("type argument must be FILETYPE_PEM or FILETYPE_ASN1")
+
+    if ret != 1:
+        _raise_current_error()
+
+    return _bio_to_string(bio)
 
 
 def load_pkcs7_data(type, buffer):

@@ -68,6 +68,8 @@ Certificate revocation lists
 
 .. autofunction:: load_crl
 
+.. autofunction:: dump_pkcs7_data
+
 .. autofunction:: load_pkcs7_data
 
 .. autofunction:: load_pkcs12
