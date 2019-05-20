@@ -530,13 +530,6 @@ class TestContext(object):
         with pytest.raises(ValueError):
             Context(10)
 
-    @skip_if_py3
-    def test_method_long(self):
-        """
-        On Python 2 `Context` accepts values of type `long` as well as `int`.
-        """
-        Context(long(TLSv1_METHOD))
-
     def test_type(self):
         """
         `Context` can be used to create instances of that type.
@@ -608,14 +601,6 @@ class TestContext(object):
             tmpfile.decode(getfilesystemencoding()) + NON_ASCII,
             FILETYPE_PEM,
         )
-
-    @skip_if_py3
-    def test_use_privatekey_file_long(self, tmpfile):
-        """
-        On Python 2 `Context.use_privatekey_file` accepts a filetype of
-        type `long` as well as `int`.
-        """
-        self._use_privatekey_file_test(tmpfile, long(FILETYPE_PEM))
 
     def test_use_certificate_wrong_args(self):
         """
@@ -705,19 +690,6 @@ class TestContext(object):
         filename = tmpfile.decode(getfilesystemencoding()) + NON_ASCII
         self._use_certificate_file_test(filename)
 
-    @skip_if_py3
-    def test_use_certificate_file_long(self, tmpfile):
-        """
-        On Python 2 `Context.use_certificate_file` accepts a
-        filetype of type `long` as well as `int`.
-        """
-        pem_filename = tmpfile
-        with open(pem_filename, "wb") as pem_file:
-            pem_file.write(cleartextCertificatePEM)
-
-        ctx = Context(TLSv1_METHOD)
-        ctx.use_certificate_file(pem_filename, long(FILETYPE_PEM))
-
     def test_check_privatekey_valid(self):
         """
         `Context.check_privatekey` returns `None` if the `Context` instance
@@ -771,16 +743,6 @@ class TestContext(object):
         options = context.set_options(OP_NO_SSLv2)
         assert options & OP_NO_SSLv2 == OP_NO_SSLv2
 
-    @skip_if_py3
-    def test_set_options_long(self):
-        """
-        On Python 2 `Context.set_options` accepts values of type
-        `long` as well as `int`.
-        """
-        context = Context(TLSv1_METHOD)
-        options = context.set_options(long(OP_NO_SSLv2))
-        assert options & OP_NO_SSLv2 == OP_NO_SSLv2
-
     def test_set_mode_wrong_args(self):
         """
         `Context.set_mode` raises `TypeError` if called with
@@ -797,16 +759,6 @@ class TestContext(object):
         """
         context = Context(TLSv1_METHOD)
         assert MODE_RELEASE_BUFFERS & context.set_mode(MODE_RELEASE_BUFFERS)
-
-    @skip_if_py3
-    def test_set_mode_long(self):
-        """
-        On Python 2 `Context.set_mode` accepts values of type `long` as well
-        as `int`.
-        """
-        context = Context(TLSv1_METHOD)
-        mode = context.set_mode(long(MODE_RELEASE_BUFFERS))
-        assert MODE_RELEASE_BUFFERS & mode
 
     def test_set_timeout_wrong_args(self):
         """
@@ -827,16 +779,6 @@ class TestContext(object):
         context.set_timeout(1234)
         assert context.get_timeout() == 1234
 
-    @skip_if_py3
-    def test_timeout_long(self):
-        """
-        On Python 2 `Context.set_timeout` accepts values of type `long` as
-        well as int.
-        """
-        context = Context(TLSv1_METHOD)
-        context.set_timeout(long(1234))
-        assert context.get_timeout() == 1234
-
     def test_set_verify_depth_wrong_args(self):
         """
         `Context.set_verify_depth` raises `TypeError` if called with a
@@ -854,16 +796,6 @@ class TestContext(object):
         """
         context = Context(TLSv1_METHOD)
         context.set_verify_depth(11)
-        assert context.get_verify_depth() == 11
-
-    @skip_if_py3
-    def test_verify_depth_long(self):
-        """
-        On Python 2 `Context.set_verify_depth` accepts values of type `long`
-        as well as int.
-        """
-        context = Context(TLSv1_METHOD)
-        context.set_verify_depth(long(11))
         assert context.get_verify_depth() == 11
 
     def _write_encrypted_pem(self, passphrase, tmpfile):
@@ -1486,19 +1418,6 @@ class TestContext(object):
             VERIFY_PEER | VERIFY_CLIENT_ONCE, lambda *args: None)
         assert context.get_verify_mode() == (VERIFY_PEER | VERIFY_CLIENT_ONCE)
 
-    @skip_if_py3
-    def test_set_verify_mode_long(self):
-        """
-        On Python 2 `Context.set_verify_mode` accepts values of type `long`
-        as well as `int`.
-        """
-        context = Context(TLSv1_METHOD)
-        assert context.get_verify_mode() == 0
-        context.set_verify(
-            long(VERIFY_PEER | VERIFY_CLIENT_ONCE), lambda *args: None
-        )  # pragma: nocover
-        assert context.get_verify_mode() == (VERIFY_PEER | VERIFY_CLIENT_ONCE)
-
     @pytest.mark.parametrize('mode', [None, 1.0, object(), 'mode'])
     def test_set_verify_wrong_mode_arg(self, mode):
         """
@@ -1602,16 +1521,6 @@ class TestContext(object):
         context.set_session_cache_mode(SESS_CACHE_OFF)
         off = context.set_session_cache_mode(SESS_CACHE_BOTH)
         assert SESS_CACHE_OFF == off
-        assert SESS_CACHE_BOTH == context.get_session_cache_mode()
-
-    @skip_if_py3
-    def test_session_cache_mode_long(self):
-        """
-        On Python 2 `Context.set_session_cache_mode` accepts values
-        of type `long` as well as `int`.
-        """
-        context = Context(TLSv1_METHOD)
-        context.set_session_cache_mode(long(SESS_CACHE_BOTH))
         assert SESS_CACHE_BOTH == context.get_session_cache_mode()
 
     def test_get_cert_store(self):
@@ -2401,16 +2310,6 @@ class TestConnection(object):
         connection.set_shutdown(RECEIVED_SHUTDOWN)
         assert connection.get_shutdown() == RECEIVED_SHUTDOWN
 
-    @skip_if_py3
-    def test_set_shutdown_long(self):
-        """
-        On Python 2 `Connection.set_shutdown` accepts an argument
-        of type `long` as well as `int`.
-        """
-        connection = Connection(Context(TLSv1_METHOD), socket_any_family())
-        connection.set_shutdown(long(RECEIVED_SHUTDOWN))
-        assert connection.get_shutdown() == RECEIVED_SHUTDOWN
-
     def test_state_string(self):
         """
         `Connection.state_string` verbosely describes the current state of
@@ -2866,22 +2765,6 @@ class TestConnection(object):
         except WantReadError:
             pass
         data = conn.bio_read(2)
-        assert 2 == len(data)
-
-    @skip_if_py3
-    def test_buffer_size_long(self):
-        """
-        On Python 2 `Connection.bio_read` accepts values of type `long` as
-        well as `int`.
-        """
-        ctx = Context(TLSv1_METHOD)
-        conn = Connection(ctx, None)
-        conn.set_connect_state()
-        try:
-            conn.do_handshake()
-        except WantReadError:
-            pass
-        data = conn.bio_read(long(2))
         assert 2 == len(data)
 
 
