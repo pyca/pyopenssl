@@ -66,6 +66,11 @@ matrix:
   - python: "pypy3.5-5.10.1"
     env: TOXENV=pypy3-cryptographyMinimum
 
+  # Run tests in random order
+  - python: "2.7"
+    env: TOXENV=py27-randomorder
+  - python: "3.7"
+    env: TOXENV=py37-randomorder
 
   # Make sure we don't break Twisted or urllib3
   - python: "2.7"
