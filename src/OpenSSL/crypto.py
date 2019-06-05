@@ -1304,7 +1304,7 @@ class X509(object):
         if not isinstance(amount, int):
             raise TypeError("amount must be an integer")
 
-        notAfter = _lib.X509_get_notAfter(self._x509)
+        notAfter = _lib.X509_getm_notAfter(self._x509)
         _lib.X509_gmtime_adj(notAfter, amount)
 
     def gmtime_adj_notBefore(self, amount):
@@ -1317,7 +1317,7 @@ class X509(object):
         if not isinstance(amount, int):
             raise TypeError("amount must be an integer")
 
-        notBefore = _lib.X509_get_notBefore(self._x509)
+        notBefore = _lib.X509_getm_notBefore(self._x509)
         _lib.X509_gmtime_adj(notBefore, amount)
 
     def has_expired(self):
@@ -1346,7 +1346,7 @@ class X509(object):
         :return: A timestamp string, or ``None`` if there is none.
         :rtype: bytes or NoneType
         """
-        return self._get_boundary_time(_lib.X509_get_notBefore)
+        return self._get_boundary_time(_lib.X509_getm_notBefore)
 
     def _set_boundary_time(self, which, when):
         return _set_asn1_time(which(self._x509), when)
@@ -1362,7 +1362,7 @@ class X509(object):
         :param bytes when: A timestamp string.
         :return: ``None``
         """
-        return self._set_boundary_time(_lib.X509_get_notBefore, when)
+        return self._set_boundary_time(_lib.X509_getm_notBefore, when)
 
     def get_notAfter(self):
         """
@@ -1375,7 +1375,7 @@ class X509(object):
         :return: A timestamp string, or ``None`` if there is none.
         :rtype: bytes or NoneType
         """
-        return self._get_boundary_time(_lib.X509_get_notAfter)
+        return self._get_boundary_time(_lib.X509_getm_notAfter)
 
     def set_notAfter(self, when):
         """
@@ -1388,7 +1388,7 @@ class X509(object):
         :param bytes when: A timestamp string.
         :return: ``None``
         """
-        return self._set_boundary_time(_lib.X509_get_notAfter, when)
+        return self._set_boundary_time(_lib.X509_getm_notAfter, when)
 
     def _get_name(self, which):
         name = X509Name.__new__(X509Name)
