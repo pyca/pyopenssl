@@ -788,6 +788,16 @@ class TestContext(object):
         with pytest.raises(TypeError):
             context.set_verify_depth(None)
 
+    def test_connection_set_verify_depth_wrong_args(self):
+        """
+        `Connection.set_verify_depth` raises `TypeError` if called with a
+        non-`int` argument.
+        """
+        context = Context(TLSv1_METHOD)
+        connection = Connection(context, None)
+        with pytest.raises(TypeError):
+            connection.set_verify_depth(None)
+
     def test_verify_depth(self):
         """
         `Context.set_verify_depth` sets the number of certificates in
@@ -797,6 +807,17 @@ class TestContext(object):
         context = Context(TLSv1_METHOD)
         context.set_verify_depth(11)
         assert context.get_verify_depth() == 11
+
+    def test_connection_verify_depth(self):
+        """
+        `Connection.set_verify_depth` sets the number of certificates in
+        a chain to follow before giving up.  The value can be retrieved with
+        `Connection.get_verify_depth`.
+        """
+        context = Context(TLSv1_METHOD)
+        connection = Connection(context, None)
+        connection.set_verify_depth(11)
+        assert connection.get_verify_depth() == 11
 
     def _write_encrypted_pem(self, passphrase, tmpfile):
         """
@@ -1285,6 +1306,50 @@ class TestContext(object):
 
         assert "silly verify failure" == str(exc.value)
 
+    def test_set_verify_callback_in_connection_object(self):
+        """
+        The first argument passed to the verify callback is the
+        `Connection` instance for which verification is taking place.
+        """
+        serverContext = Context(TLSv1_METHOD)
+        serverContext.use_privatekey(
+            load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM))
+        serverContext.use_certificate(
+            load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
+        serverConnection = Connection(serverContext, None)
+
+        class VerifyCallback(object):
+            def callback(self, connection, *args):
+                self.connection = connection
+                return 1
+
+        verify = VerifyCallback()
+        clientContext = Context(TLSv1_METHOD)
+        clientConnection = Connection(clientContext, None)
+        clientConnection.set_verify(VERIFY_PEER, verify.callback)
+        clientConnection.set_connect_state()
+
+        handshake_in_memory(clientConnection, serverConnection)
+
+        assert verify.connection is clientConnection
+
+    def test_set_verify_wrong_args(self):
+        context = Context(TLSv1_METHOD)
+        with pytest.raises(TypeError):
+            context.set_verify(None, lambda *args: None)
+
+        with pytest.raises(TypeError):
+            context.set_verify(VERIFY_PEER, None)
+
+    def test_connection_set_verify_wrong_args(self):
+        context = Context(TLSv1_METHOD)
+        connection = Connection(context, None)
+        with pytest.raises(TypeError):
+            connection.set_verify(None, lambda *args: None)
+
+        with pytest.raises(TypeError):
+            connection.set_verify(VERIFY_PEER, None)
+
     def test_add_extra_chain_cert(self, tmpdir):
         """
         `Context.add_extra_chain_cert` accepts an `X509`
@@ -1417,6 +1482,18 @@ class TestContext(object):
         context.set_verify(
             VERIFY_PEER | VERIFY_CLIENT_ONCE, lambda *args: None)
         assert context.get_verify_mode() == (VERIFY_PEER | VERIFY_CLIENT_ONCE)
+
+    def test_connection_get_verify_mode(self):
+        """
+        `Connection.get_verify_mode` returns the verify mode flags previously
+        passed to `Connection.set_verify`.
+        """
+        context = Context(TLSv1_METHOD)
+        conn = Connection(context, None)
+        assert conn.get_verify_mode() == 0
+        conn.set_verify(
+            VERIFY_PEER | VERIFY_CLIENT_ONCE, lambda *args: None)
+        assert conn.get_verify_mode() == (VERIFY_PEER | VERIFY_CLIENT_ONCE)
 
     @pytest.mark.parametrize('mode', [None, 1.0, object(), 'mode'])
     def test_set_verify_wrong_mode_arg(self, mode):

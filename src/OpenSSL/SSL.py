@@ -1562,6 +1562,8 @@ class Connection(object):
         _lib.SSL_set_mode(self._ssl, _lib.SSL_MODE_AUTO_RETRY)
         self._context = context
         self._app_data = None
+        self._verify_helper = None
+        self._verify_callback = None
 
         # References to strings used for Next Protocol Negotiation. OpenSSL's
         # header files suggest that these might get copied at some point, but
@@ -1609,6 +1611,8 @@ class Connection(object):
             return getattr(self._socket, name)
 
     def _raise_ssl_error(self, ssl, result):
+        if self._verify_helper is not None:
+            self._verify_helper.raise_if_problem()
         if self._context._verify_helper is not None:
             self._context._verify_helper.raise_if_problem()
         if self._context._npn_advertise_helper is not None:
@@ -2496,6 +2500,70 @@ class Connection(object):
             self._ssl, _lib.TLSEXT_STATUSTYPE_ocsp
         )
         _openssl_assert(rc == 1)
+
+    def set_verify(self, mode, callback):
+        """
+        Set the verification flags for this Connection object to *mode* and
+        specify that *callback* should be used for verification callbacks.
+
+        While a Connection will inherit the verification config from
+        its Context, it is also possible to change it once the Connection
+        has been instantiated already.
+
+        :param mode: The verify mode, this should be one of
+            :const:`VERIFY_NONE` and :const:`VERIFY_PEER`. If
+            :const:`VERIFY_PEER` is used, *mode* can be OR:ed with
+            :const:`VERIFY_FAIL_IF_NO_PEER_CERT` and
+            :const:`VERIFY_CLIENT_ONCE` to further control the behaviour.
+        :param callback: The Python callback to use.  This should take five
+            arguments: A Connection object, an X509 object, and three integer
+            variables, which are in turn potential error number, error depth
+            and return code. *callback* should return True if verification
+            passes and False otherwise.
+        :return: None
+
+        See SSL_set_verify(3SSL) for further details.
+        """
+        if not isinstance(mode, integer_types):
+            raise TypeError("mode must be an integer")
+
+        if not callable(callback):
+            raise TypeError("callback must be callable")
+
+        self._verify_helper = _VerifyHelper(callback)
+        self._verify_callback = self._verify_helper.callback
+        _lib.SSL_set_verify(self._ssl, mode, self._verify_callback)
+
+    def set_verify_depth(self, depth):
+        """
+        Set the maximum depth for the certificate chain verification that shall
+        be allowed for this Connection object.
+
+        :param depth: An integer specifying the verify depth
+        :return: None
+        """
+        if not isinstance(depth, integer_types):
+            raise TypeError("depth must be an integer")
+
+        _lib.SSL_set_verify_depth(self._ssl, depth)
+
+    def get_verify_mode(self):
+        """
+        Retrieve the Connection object's verify mode, as set by
+        :meth:`set_verify`.
+
+        :return: The verify mode
+        """
+        return _lib.SSL_get_verify_mode(self._ssl)
+
+    def get_verify_depth(self):
+        """
+        Retrieve the Connection object's verify depth, as set by
+        :meth:`set_verify_depth`.
+
+        :return: The verify depth
+        """
+        return _lib.SSL_get_verify_depth(self._ssl)
 
 
 # This is similar to the initialization calls at the end of OpenSSL/crypto.py
