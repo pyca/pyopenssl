@@ -1907,7 +1907,7 @@ class Connection(object):
     def do_handshake(self):
         """
         Perform an SSL handshake (usually called after :meth:`renegotiate` or
-        one of :meth:`set_accept_state` or :meth:`set_accept_state`). This can
+        one of :meth:`set_accept_state` or :meth:`set_connect_state`). This can
         raise the same exceptions as :meth:`send` and :meth:`recv`.
 
         :return: None.
