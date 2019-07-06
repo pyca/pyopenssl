@@ -19,6 +19,8 @@ from os.path import join
 from weakref import ref
 from warnings import simplefilter
 
+import flaky
+
 import pytest
 
 from pretend import raiser
@@ -436,6 +438,7 @@ class TestContext(object):
         with pytest.raises(TypeError):
             context.set_cipher_list(object())
 
+    @flaky.flaky
     def test_set_cipher_list_no_cipher_match(self, context):
         """
         `Context.set_cipher_list` raises `OpenSSL.SSL.Error` with a
