@@ -2842,6 +2842,16 @@ class TestConnectionSend(object):
         assert count == 2
         assert client.recv(2) == b'xy'
 
+    def test_short_bytearray(self):
+        """
+        When passed a short bytearray, `Connection.send` transmits all of
+        it and returns the number of bytes sent.
+        """
+        server, client = loopback()
+        count = server.send(bytearray(b'xy'))
+        assert count == 2
+        assert client.recv(2) == b'xy'
+
     @skip_if_py3
     def test_short_buffer(self):
         """
