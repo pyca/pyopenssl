@@ -1725,10 +1725,10 @@ class Connection(object):
         # Backward compatibility
         buf = _text_to_bytes_and_warn("buf", buf)
 
+        buf = _ffi.from_buffer(buf)
+
         if len(buf) > 2147483647:
             raise ValueError("Cannot send more than 2**31-1 bytes at once.")
-
-        buf = _ffi.from_buffer(buf)
 
         result = _lib.SSL_write(self._ssl, buf, len(buf))
         self._raise_ssl_error(self._ssl, result)
