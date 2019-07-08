@@ -1726,14 +1726,12 @@ class Connection(object):
         # Backward compatibility
         buf = _text_to_bytes_and_warn("buf", buf)
 
-        with _from_buffer(buf) as buf:
-
-            # THE TEST MOCK HAS ZERO BYTES HERE
-
+        with _from_buffer(buf) as data:
+            # check len(buf) instead of len(data) for testability
             if len(buf) > 2147483647:
                 raise ValueError("Cannot send more than 2**31-1 bytes at once.")
 
-            result = _lib.SSL_write(self._ssl, buf, len(buf))
+            result = _lib.SSL_write(self._ssl, data, len(data))
             self._raise_ssl_error(self._ssl, result)
             
         return result
