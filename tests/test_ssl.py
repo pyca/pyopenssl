@@ -3063,8 +3063,9 @@ class TestConnectionSendall(object):
         `Connection.sendall` transmits all of them.
         """
         server, client = loopback()
-        server.sendall(buffer(b'x'))
-        assert client.recv(1) == b'x'
+        count = server.sendall(buffer(b'xy'))
+        assert count == 2
+        assert client.recv(1) == b'xy'
 
     def test_long(self):
         """
