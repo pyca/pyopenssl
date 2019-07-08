@@ -532,6 +532,78 @@ class TestContext:
             ),
         ]
 
+    @pytest.mark.parametrize("sigalgs_list", [
+        b"RSA+SHA256:RSA+SHA384",
+        u"RSA+SHA256:RSA+SHA384",
+    ])
+    def test_set_sigalgs_list(self, context, sigalgs_list):
+        """
+        `Context.set_sigalgs_list` accepts both byte and unicode strings
+        for naming the signature algorithms which connections created
+        with the context object will send to the server.
+        """
+        context.set_sigalgs_list(sigalgs_list)
+
+    def test_set_sigalgs_list_wrong_type(self, context):
+        """
+        `Context.set_cipher_list` raises `TypeError` when passed a non-string
+        argument.
+        """
+        with pytest.raises(TypeError):
+            context.set_sigalgs_list(object())
+
+    if _lib.Cryptography_HAS_SIGALGS:
+        def test_set_sigalgs_list_invalid_name(self, context):
+            """
+            `Context.set_cipher_list` raises `OpenSSL.SSL.Error` with a
+            `"no cipher match"` reason string regardless of the TLS
+            version.
+            """
+            with pytest.raises(Error):
+                context.set_sigalgs_list(b"imaginary-sigalg")
+
+        def test_set_sigalgs_list_not_supported(self):
+            """
+            If no signature algorithms supported by the server are set,
+            the handshake fails with a `"no suitable signature algorithm"`
+            reason string, or 'no shared cipher' on older OpenSSL releases.
+            """
+
+            def make_client(socket):
+                context = Context(TLSv1_2_METHOD)
+                context.set_sigalgs_list(b"ECDSA+SHA256:ECDSA+SHA384")
+                c = Connection(context, socket)
+                c.set_connect_state()
+                return c
+
+            with pytest.raises(Error):
+                loopback(client_factory=make_client)
+
+    def test_get_sigalgs(self):
+        """
+        `Connection.get_sigalgs` returns the signature algorithms send by
+        the client to the server. This is supported only in TLS1_2 and later.
+        """
+        def make_client(socket):
+            context = Context(TLSv1_2_METHOD)
+            context.set_sigalgs_list(b"RSA+SHA256:ECDSA+SHA384")
+            c = Connection(context, socket)
+            c.set_connect_state()
+            return c
+
+        srv, client = loopback(
+            server_factory=lambda s: loopback_server_factory(s,
+                                                             TLSv1_2_METHOD),
+            client_factory=make_client)
+
+        sigalgs = srv.get_sigalgs()
+        if _lib.Cryptography_HAS_SIGALGS:
+            assert 0x0401 in sigalgs  # rsa_pkcs1_sha256
+            assert 0x0503 in sigalgs  # ecdsa_secp384r1_sha384
+        else:
+            # gracefully degrades on older OpenSSL versions
+            assert len(sigalgs) == 0
+
     def test_load_client_ca(self, context, ca_file):
         """
         `Context.load_client_ca` works as far as we can tell.
