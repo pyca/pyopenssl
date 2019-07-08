@@ -3069,7 +3069,7 @@ class TestConnectionSendall(object):
         server, client = loopback()
         count = server.sendall(buffer(b'xy'))
         assert count == 2
-        assert client.recv(1) == b'xy'
+        assert client.recv(2) == b'xy'
 
     def test_long(self):
         """
