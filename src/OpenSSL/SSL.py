@@ -1734,7 +1734,7 @@ class Connection(object):
             result = _lib.SSL_write(self._ssl, data, len(data))
             self._raise_ssl_error(self._ssl, result)
             
-        return result
+            return result
 
     write = send
 
@@ -1768,7 +1768,7 @@ class Connection(object):
                 total_sent += result
                 left_to_send -= result
 
-        return total_sent
+            return total_sent
 
     def recv(self, bufsiz, flags=None):
         """
@@ -1882,10 +1882,11 @@ class Connection(object):
         if self._into_ssl is None:
             raise TypeError("Connection sock was not None")
 
-        result = _lib.BIO_write(self._into_ssl, buf, len(buf))
-        if result <= 0:
-            self._handle_bio_errors(self._into_ssl, result)
-        return result
+        with _from_buffer(buf) as data:
+            result = _lib.BIO_write(self._into_ssl, data, len(data))
+            if result <= 0:
+                self._handle_bio_errors(self._into_ssl, result)
+            return result
 
     def renegotiate(self):
         """
