@@ -46,13 +46,10 @@ def exception_from_error_queue(exception_type):
         error = lib.ERR_get_error()
         if error == 0:
             break
-        errors.append(
-            (
-                text(lib.ERR_lib_error_string(error)),
-                text(lib.ERR_func_error_string(error)),
-                text(lib.ERR_reason_error_string(error)),
-            )
-        )
+        errors.append((
+            text(lib.ERR_lib_error_string(error)),
+            text(lib.ERR_func_error_string(error)),
+            text(lib.ERR_reason_error_string(error))))
 
     raise exception_type(errors)
 
@@ -62,7 +59,6 @@ def make_assert(error):
     Create an assert function that uses :func:`exception_from_error_queue` to
     raise an exception wrapped by *error*.
     """
-
     def openssl_assert(ok):
         """
         If *ok* is not True, retrieve the error from OpenSSL and raise it.
@@ -112,13 +108,9 @@ def path_string(s):
 
 
 if PY3:
-
     def byte_string(s):
         return s.encode("charmap")
-
-
 else:
-
     def byte_string(s):
         return s
 
@@ -127,7 +119,9 @@ else:
 # value or not.
 UNSPECIFIED = object()
 
-_TEXT_WARNING = text_type.__name__ + " for {0} is no longer accepted, use bytes"
+_TEXT_WARNING = (
+    text_type.__name__ + " for {0} is no longer accepted, use bytes"
+)
 
 
 def text_to_bytes_and_warn(label, obj):
@@ -145,9 +139,11 @@ def text_to_bytes_and_warn(label, obj):
     """
     if isinstance(obj, text_type):
         warnings.warn(
-            _TEXT_WARNING.format(label), category=DeprecationWarning, stacklevel=3
+            _TEXT_WARNING.format(label),
+            category=DeprecationWarning,
+            stacklevel=3
         )
-        return obj.encode("utf-8")
+        return obj.encode('utf-8')
     return obj
 
 
