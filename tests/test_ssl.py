@@ -2084,6 +2084,29 @@ class TestConnection(object):
         with pytest.raises(TypeError):
             Connection(bad_context)
 
+    @pytest.mark.parametrize('bad_bio', [object(), None, 1, [1, 2, 3]])
+    def test_bio_write_wrong_args(self, bad_bio):
+        """
+        `Connection.bio_write` raises `TypeError` if called with a non-bytes
+        (or text) argument.
+        """
+        context = Context(TLSv1_METHOD)
+        connection = Connection(context, None)
+        with pytest.raises(TypeError):
+            connection.bio_write(bad_bio)
+
+    def test_bio_write(self):
+        """
+        `Connection.bio_write` does not raise if called with bytes or bytearray,
+        warns if called with text.
+        """
+        context = Context(TLSv1_METHOD)
+        connection = Connection(context, None)
+        connection.bio_write(b'xy')
+        connection.bio_write(bytearray(b'za'))
+        with pytest.warns(DeprecationWarning):
+            connection.bio_write(u'deprecated')
+
     def test_get_context(self):
         """
         `Connection.get_context` returns the `Context` instance used to
