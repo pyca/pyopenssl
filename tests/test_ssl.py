@@ -2097,8 +2097,8 @@ class TestConnection(object):
 
     def test_bio_write(self):
         """
-        `Connection.bio_write` does not raise if called with bytes or bytearray,
-        warns if called with text.
+        `Connection.bio_write` does not raise if called with bytes or
+        bytearray, warns if called with text.
         """
         context = Context(TLSv1_METHOD)
         connection = Connection(context, None)
