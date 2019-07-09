@@ -2805,7 +2805,7 @@ class TestConnectionSend(object):
         with pytest.raises(TypeError):
             connection.send(object())
         with pytest.raises(TypeError):
-            connection.send([1,2,3])
+            connection.send([1, 2, 3])
 
     def test_short_bytes(self):
         """
@@ -3025,7 +3025,7 @@ class TestConnectionSendall(object):
         with pytest.raises(TypeError):
             connection.sendall(object())
         with pytest.raises(TypeError):
-            connection.sendall([1,2,3])
+            connection.sendall([1, 2, 3])
 
     def test_short(self):
         """

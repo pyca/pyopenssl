@@ -1729,11 +1729,13 @@ class Connection(object):
         with _from_buffer(buf) as data:
             # check len(buf) instead of len(data) for testability
             if len(buf) > 2147483647:
-                raise ValueError("Cannot send more than 2**31-1 bytes at once.")
+                raise ValueError(
+                    "Cannot send more than 2**31-1 bytes at once."
+                )
 
             result = _lib.SSL_write(self._ssl, data, len(data))
             self._raise_ssl_error(self._ssl, result)
-            
+
             return result
 
     write = send
@@ -1752,7 +1754,7 @@ class Connection(object):
         buf = _text_to_bytes_and_warn("buf", buf)
 
         with _from_buffer(buf) as data:
-            
+
             left_to_send = len(buf)
             total_sent = 0
 
