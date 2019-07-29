@@ -64,8 +64,8 @@ if __name__ == "__main__":
         long_description=LONG,
         author=find_meta("author"),
         author_email=find_meta("email"),
-        maintainer="Hynek Schlawack",
-        maintainer_email="hs@ox.cx",
+        maintainer=find_meta("author"),
+        maintainer_email=find_meta("email"),
         url=URI,
         license=find_meta("license"),
         classifiers=[
