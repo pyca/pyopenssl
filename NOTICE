@@ -1,0 +1,5 @@
+pyOpenSSL -- A Python wrapper around the OpenSSL library
+Copyright 2001 by the pyOpenSSL authors. 
+
+Originally developed and maintained 2001-2008 by Martin Sjögren at AB Strakt.
+Maintained 2008-2015 by Jean-Paul Calderone.
