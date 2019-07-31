@@ -2137,8 +2137,7 @@ class CRL(object):
             pyrev = Revoked.__new__(Revoked)
             pyrev._revoked = _ffi.gc(revoked_copy, _lib.X509_REVOKED_free)
             results.append(pyrev)
-        if results:
-            return tuple(results)
+        return tuple(results)
 
     def add_revoked(self, revoked):
         """

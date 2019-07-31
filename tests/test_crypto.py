@@ -3117,7 +3117,7 @@ class TestCRL(object):
         """
         crl = CRL()
         assert isinstance(crl, CRL)
-        assert crl.get_revoked() is None
+        assert crl.get_revoked() is ()
 
     def _get_crl(self):
         """
