@@ -140,7 +140,10 @@ OP_NO_SSLv3 = _lib.SSL_OP_NO_SSLv3
 OP_NO_TLSv1 = _lib.SSL_OP_NO_TLSv1
 OP_NO_TLSv1_1 = _lib.SSL_OP_NO_TLSv1_1
 OP_NO_TLSv1_2 = _lib.SSL_OP_NO_TLSv1_2
-OP_NO_TLSv1_3 = _lib.SSL_OP_NO_TLSv1_3
+try:
+    OP_NO_TLSv1_3 = _lib.SSL_OP_NO_TLSv1_3
+except AttributeError:
+    pass
 
 MODE_RELEASE_BUFFERS = _lib.SSL_MODE_RELEASE_BUFFERS
 
