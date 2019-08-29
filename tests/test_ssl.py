@@ -25,7 +25,7 @@ import pytest
 
 from pretend import raiser
 
-from six import PY3, text_type
+from six import PY2, text_type
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -101,7 +101,7 @@ V7H54LmltOT/hEh6QWsJqb6BQgH65bswvV/XkYGja8/T0GzvbaVzAgEC
 """
 
 
-skip_if_py3 = pytest.mark.skipif(PY3, reason="Python 2 only")
+skip_if_py3 = pytest.mark.skipif(not PY2, reason="Python 2 only")
 
 
 def socket_any_family():
@@ -2138,7 +2138,7 @@ class TestConnection(object):
         with pytest.raises(TypeError):
             conn.set_tlsext_host_name(b"with\0null")
 
-        if PY3:
+        if not PY2:
             # On Python 3.x, don't accidentally implicitly convert from text.
             with pytest.raises(TypeError):
                 conn.set_tlsext_host_name(b"example.com".decode("ascii"))
