@@ -119,6 +119,15 @@ Context, Connection.
     for details.
 
 
+.. py:data:: NO_OVERLAPPING_PROTOCOLS
+
+    A sentinel value that can be returned by the callback passed to
+    :py:meth:`Context.set_alpn_select_callback` to indicate that
+    the handshake can continue without a specific application protocol.
+
+    .. versionadded:: 19.1
+
+
 .. autofunction:: SSLeay_version
 
 

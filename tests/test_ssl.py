@@ -67,7 +67,7 @@ from OpenSSL._util import ffi as _ffi, lib as _lib
 
 from OpenSSL.SSL import (
     OP_NO_QUERY_MTU, OP_COOKIE_EXCHANGE, OP_NO_TICKET, OP_NO_COMPRESSION,
-    MODE_RELEASE_BUFFERS)
+    MODE_RELEASE_BUFFERS, NO_OVERLAPPING_PROTOCOLS)
 
 from OpenSSL.SSL import (
     SSL_ST_CONNECT, SSL_ST_ACCEPT, SSL_ST_MASK,
@@ -1959,6 +1959,83 @@ class TestApplicationLayerProtoNegotiation(object):
                 interact_in_memory(server, client)
 
             assert select_args == [(server, [b'http/1.1', b'spdy/2'])]
+
+        def test_alpn_no_server_overlap(self):
+            """
+            A server can allow a TLS handshake to complete without
+            agreeing to an application protocol by returning
+            ``NO_OVERLAPPING_PROTOCOLS``.
+            """
+            refusal_args = []
+
+            def refusal(conn, options):
+                refusal_args.append((conn, options))
+                return NO_OVERLAPPING_PROTOCOLS
+
+            client_context = Context(SSLv23_METHOD)
+            client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
+
+            server_context = Context(SSLv23_METHOD)
+            server_context.set_alpn_select_callback(refusal)
+
+            # Necessary to actually accept the connection
+            server_context.use_privatekey(
+                load_privatekey(FILETYPE_PEM, server_key_pem))
+            server_context.use_certificate(
+                load_certificate(FILETYPE_PEM, server_cert_pem))
+
+            # Do a little connection to trigger the logic
+            server = Connection(server_context, None)
+            server.set_accept_state()
+
+            client = Connection(client_context, None)
+            client.set_connect_state()
+
+            # Do the dance.
+            interact_in_memory(server, client)
+
+            assert refusal_args == [(server, [b'http/1.1', b'spdy/2'])]
+
+            assert client.get_alpn_proto_negotiated() == b''
+
+        def test_alpn_select_cb_returns_invalid_value(self):
+            """
+            If the ALPN selection callback returns anything other than
+            a bytestring or ``NO_OVERLAPPING_PROTOCOLS``, a
+            :py:exc:`TypeError` is raised.
+            """
+            invalid_cb_args = []
+
+            def invalid_cb(conn, options):
+                invalid_cb_args.append((conn, options))
+                return u"can't return unicode"
+
+            client_context = Context(SSLv23_METHOD)
+            client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
+
+            server_context = Context(SSLv23_METHOD)
+            server_context.set_alpn_select_callback(invalid_cb)
+
+            # Necessary to actually accept the connection
+            server_context.use_privatekey(
+                load_privatekey(FILETYPE_PEM, server_key_pem))
+            server_context.use_certificate(
+                load_certificate(FILETYPE_PEM, server_cert_pem))
+
+            # Do a little connection to trigger the logic
+            server = Connection(server_context, None)
+            server.set_accept_state()
+
+            client = Connection(client_context, None)
+            client.set_connect_state()
+
+            # Do the dance.
+            with pytest.raises(TypeError):
+                interact_in_memory(server, client)
+
+            assert invalid_cb_args == [(server, [b'http/1.1', b'spdy/2'])]
+
+            assert client.get_alpn_proto_negotiated() == b''
 
         def test_alpn_no_server(self):
             """

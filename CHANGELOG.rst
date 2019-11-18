@@ -30,6 +30,8 @@ Changes:
 
 - Support ``bytearray`` in ``SSL.Connection.send()`` by using cffi's from_buffer.
   `#852 <https://github.com/pyca/pyopenssl/pull/852>`_
+- The ``OpenSSL.SSL.Context.set_alpn_select_callback`` can return a new ``NO_OVERLAPPING_PROTOCOLS`` sentinel value
+  to allow a TLS handshake to complete without an application protocol.
 
 
 ----
