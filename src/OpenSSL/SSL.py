@@ -428,6 +428,21 @@ class _NpnSelectHelper(_CallbackExceptionHelper):
         )
 
 
+class _Sentinel(object):
+    """
+    A sentinel value.
+    """
+
+    def __init__(self, value):
+        self._value = value
+
+    def __repr__(self):
+        return "<Sentinel {!r}>".format(self._value)
+
+
+NO_OVERLAPPING_PROTOCOLS = _Sentinel("NO_OVERLAPPING_PROTOCOLS")
+
+
 class _ALPNSelectHelper(_CallbackExceptionHelper):
     """
     Wrap a callback such that it can be used as an ALPN selection callback.
@@ -435,6 +450,10 @@ class _ALPNSelectHelper(_CallbackExceptionHelper):
 
     def __init__(self, callback):
         _CallbackExceptionHelper.__init__(self)
+
+        SSL_TLSEXT_ERR_OK = _lib.SSL_TLSEXT_ERR_OK
+        SSL_TLSEXT_ERR_NOACK = _lib.SSL_TLSEXT_ERR_NOACK
+        SSL_TLSEXT_ERR_ALERT_FATAL = _lib.SSL_TLSEXT_ERR_ALERT_FATAL
 
         @wraps(callback)
         def wrapper(ssl, out, outlen, in_, inlen, arg):
@@ -453,24 +472,32 @@ class _ALPNSelectHelper(_CallbackExceptionHelper):
                     instr = instr[encoded_len + 1:]
 
                 # Call the callback
-                outstr = callback(conn, protolist)
-
-                if not isinstance(outstr, _binary_type):
-                    raise TypeError("ALPN callback must return a bytestring.")
+                outbytes = callback(conn, protolist)
+                any_accepted = True
+                if outbytes is NO_OVERLAPPING_PROTOCOLS:
+                    outbytes = b''
+                    any_accepted = False
+                elif not isinstance(outbytes, _binary_type):
+                    raise TypeError(
+                        "ALPN callback must return a bytestring or the "
+                        "special NO_OVERLAPPING_PROTOCOLS sentinel value."
+                    )
 
                 # Save our callback arguments on the connection object to make
                 # sure that they don't get freed before OpenSSL can use them.
                 # Then, return them in the appropriate output parameters.
                 conn._alpn_select_callback_args = [
-                    _ffi.new("unsigned char *", len(outstr)),
-                    _ffi.new("unsigned char[]", outstr),
+                    _ffi.new("unsigned char *", len(outbytes)),
+                    _ffi.new("unsigned char[]", outbytes),
                 ]
                 outlen[0] = conn._alpn_select_callback_args[0][0]
                 out[0] = conn._alpn_select_callback_args[1]
-                return 0
+                if not any_accepted:
+                    return SSL_TLSEXT_ERR_NOACK
+                return SSL_TLSEXT_ERR_OK
             except Exception as e:
                 self._problems.append(e)
-                return 2  # SSL_TLSEXT_ERR_ALERT_FATAL
+                return SSL_TLSEXT_ERR_ALERT_FATAL
 
         self.callback = _ffi.callback(
             ("int (*)(SSL *, unsigned char **, unsigned char *, "
@@ -1476,8 +1503,11 @@ class Context(object):
 
         :param callback: The callback function.  It will be invoked with two
             arguments: the Connection, and a list of offered protocols as
-            bytestrings, e.g ``[b'http/1.1', b'spdy/2']``.  It should return
-            one of those bytestrings, the chosen protocol.
+            bytestrings, e.g ``[b'http/1.1', b'spdy/2']``.  It can return
+            one of those bytestrings to indicate the chosen protocol, the
+            empty bytestring to terminate the TLS connection, or the
+            :py:obj:`NO_OVERLAPPING_PROTOCOLS` to indicate that no offered
+            protocol was selected.
         """
         self._alpn_select_helper = _ALPNSelectHelper(callback)
         self._alpn_select_callback = self._alpn_select_helper.callback
