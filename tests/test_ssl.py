@@ -1972,10 +1972,10 @@ class TestApplicationLayerProtoNegotiation(object):
                 refusal_args.append((conn, options))
                 return NO_OVERLAPPING_PROTOCOLS
 
-            client_context = Context(TLSv1_METHOD)
+            client_context = Context(SSLv23_METHOD)
             client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
 
-            server_context = Context(TLSv1_METHOD)
+            server_context = Context(SSLv23_METHOD)
             server_context.set_alpn_select_callback(refusal)
 
             # Necessary to actually accept the connection

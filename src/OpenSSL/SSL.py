@@ -428,19 +428,7 @@ class _NpnSelectHelper(_CallbackExceptionHelper):
         )
 
 
-class _Sentinel(object):
-    """
-    A sentinel value.
-    """
-
-    def __init__(self, value):
-        self._value = value
-
-    def __repr__(self):
-        return "<Sentinel {!r}>".format(self._value)
-
-
-NO_OVERLAPPING_PROTOCOLS = _Sentinel("NO_OVERLAPPING_PROTOCOLS")
+NO_OVERLAPPING_PROTOCOLS = object()
 
 
 class _ALPNSelectHelper(_CallbackExceptionHelper):
@@ -450,10 +438,6 @@ class _ALPNSelectHelper(_CallbackExceptionHelper):
 
     def __init__(self, callback):
         _CallbackExceptionHelper.__init__(self)
-
-        SSL_TLSEXT_ERR_OK = _lib.SSL_TLSEXT_ERR_OK
-        SSL_TLSEXT_ERR_NOACK = _lib.SSL_TLSEXT_ERR_NOACK
-        SSL_TLSEXT_ERR_ALERT_FATAL = _lib.SSL_TLSEXT_ERR_ALERT_FATAL
 
         @wraps(callback)
         def wrapper(ssl, out, outlen, in_, inlen, arg):
@@ -493,11 +477,11 @@ class _ALPNSelectHelper(_CallbackExceptionHelper):
                 outlen[0] = conn._alpn_select_callback_args[0][0]
                 out[0] = conn._alpn_select_callback_args[1]
                 if not any_accepted:
-                    return SSL_TLSEXT_ERR_NOACK
-                return SSL_TLSEXT_ERR_OK
+                    return _lib.SSL_TLSEXT_ERR_NOACK
+                return _lib.SSL_TLSEXT_ERR_OK
             except Exception as e:
                 self._problems.append(e)
-                return SSL_TLSEXT_ERR_ALERT_FATAL
+                return _lib.SSL_TLSEXT_ERR_ALERT_FATAL
 
         self.callback = _ffi.callback(
             ("int (*)(SSL *, unsigned char **, unsigned char *, "
