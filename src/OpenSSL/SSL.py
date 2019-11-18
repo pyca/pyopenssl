@@ -7,9 +7,7 @@ from itertools import count, chain
 from weakref import WeakValueDictionary
 from errno import errorcode
 
-from six import (
-    binary_type as _binary_type, integer_types as integer_types, int2byte,
-    indexbytes)
+from six import integer_types, int2byte, indexbytes
 
 from OpenSSL._util import (
     UNSPECIFIED as _UNSPECIFIED,
@@ -461,7 +459,7 @@ class _ALPNSelectHelper(_CallbackExceptionHelper):
                 if outbytes is NO_OVERLAPPING_PROTOCOLS:
                     outbytes = b''
                     any_accepted = False
-                elif not isinstance(outbytes, _binary_type):
+                elif not isinstance(outbytes, bytes):
                     raise TypeError(
                         "ALPN callback must return a bytestring or the "
                         "special NO_OVERLAPPING_PROTOCOLS sentinel value."
@@ -529,7 +527,7 @@ class _OCSPServerCallbackHelper(_CallbackExceptionHelper):
                 # Call the callback.
                 ocsp_data = callback(conn, data)
 
-                if not isinstance(ocsp_data, _binary_type):
+                if not isinstance(ocsp_data, bytes):
                     raise TypeError("OCSP callback must return a bytestring.")
 
                 # If the OCSP data was provided, we will pass it to OpenSSL.
