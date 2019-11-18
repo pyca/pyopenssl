@@ -14,6 +14,8 @@ Backward-incompatible changes:
 - Removed deprecated ``ContextType``, ``ConnectionType``, ``PKeyType``, ``X509NameType``, ``X509ReqType``, ``X509Type``, ``X509StoreType``, ``CRLType``, ``PKCS7Type``, ``PKCS12Type``, and ``NetscapeSPKIType`` aliases.
   Use the classes without the ``Type`` suffix instead.
   `#814 <https://github.com/pyca/pyopenssl/pull/814>`_
+- The minimum ``cryptography`` version is now 2.8 due to issues on macOS with a transitive dependency.
+  `#875 <https://github.com/pyca/pyopenssl/pull/875>`_
 
 Deprecations:
 ^^^^^^^^^^^^^
