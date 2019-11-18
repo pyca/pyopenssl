@@ -4,6 +4,27 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
+20.0.0 (UNRELEASED)
+-------------------
+
+
+Backward-incompatible changes:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*none*
+
+Deprecations:
+^^^^^^^^^^^^^
+
+*none*
+
+
+Changes:
+^^^^^^^^
+
+*none*
+
+
 19.1.0 (2019-11-18)
 -------------------
 
