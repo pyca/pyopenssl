@@ -13,8 +13,6 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from six import binary_type
-
 from cryptography import x509
 from cryptography.hazmat.backends.openssl.backend import backend
 from cryptography.hazmat.primitives import serialization
@@ -2662,7 +2660,7 @@ class TestFunction(object):
         passphrase = b"foo"
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         pem = dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, passphrase)
-        assert isinstance(pem, binary_type)
+        assert isinstance(pem, bytes)
         loadedKey = load_privatekey(FILETYPE_PEM, pem, passphrase)
         assert isinstance(loadedKey, PKey)
         assert loadedKey.type() == key.type()
@@ -2802,7 +2800,7 @@ class TestFunction(object):
             return passphrase
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         pem = dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, cb)
-        assert isinstance(pem, binary_type)
+        assert isinstance(pem, bytes)
         assert called == [True]
         loadedKey = load_privatekey(FILETYPE_PEM, pem, passphrase)
         assert isinstance(loadedKey, PKey)
@@ -2982,7 +2980,7 @@ class TestNetscapeSPKI(_PKeyInteractionTestsMixin):
         """
         nspki = NetscapeSPKI()
         blob = nspki.b64_encode()
-        assert isinstance(blob, binary_type)
+        assert isinstance(blob, bytes)
 
 
 class TestRevoked(object):

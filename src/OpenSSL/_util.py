@@ -1,7 +1,7 @@
 import sys
 import warnings
 
-from six import PY2, binary_type, text_type
+from six import PY2, text_type
 
 from cryptography.hazmat.bindings.openssl.binding import Binding
 
@@ -79,13 +79,13 @@ def native(s):
     :raise TypeError: The input is neither :py:class:`bytes` nor
         :py:class:`unicode`.
     """
-    if not isinstance(s, (binary_type, text_type)):
+    if not isinstance(s, (bytes, text_type)):
         raise TypeError("%r is neither bytes nor unicode" % s)
     if PY2:
         if isinstance(s, text_type):
             return s.encode("utf-8")
     else:
-        if isinstance(s, binary_type):
+        if isinstance(s, bytes):
             return s.decode("utf-8")
     return s
 
@@ -99,7 +99,7 @@ def path_string(s):
 
     :return: An instance of :py:class:`bytes`.
     """
-    if isinstance(s, binary_type):
+    if isinstance(s, bytes):
         return s
     elif isinstance(s, text_type):
         return s.encode(sys.getfilesystemencoding())
