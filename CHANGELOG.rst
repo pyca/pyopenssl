@@ -28,7 +28,8 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-*none*
+- Support ``bytearray`` in ``SSL.Connection.send()`` by using cffi's from_buffer.
+  `#852 <https://github.com/pyca/pyopenssl/pull/852>`_
 
 
 ----

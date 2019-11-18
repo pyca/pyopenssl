@@ -145,3 +145,17 @@ def text_to_bytes_and_warn(label, obj):
         )
         return obj.encode('utf-8')
     return obj
+
+
+try:
+    # newer versions of cffi free the buffer deterministically
+    with ffi.from_buffer(b""):
+        pass
+    from_buffer = ffi.from_buffer
+except AttributeError:
+    # cffi < 0.12 frees the buffer with refcounting gc
+    from contextlib import contextmanager
+
+    @contextmanager
+    def from_buffer(*args):
+        yield ffi.from_buffer(*args)
