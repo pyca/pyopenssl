@@ -1994,6 +1994,8 @@ class TestApplicationLayerProtoNegotiation(object):
             # Do the dance.
             interact_in_memory(server, client)
 
+            assert refusal_args == [(server, [b'http/1.1', b'spdy/2'])]
+
             assert client.get_alpn_proto_negotiated() == b''
 
         def test_alpn_no_server(self):
