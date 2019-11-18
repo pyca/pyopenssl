@@ -7,7 +7,7 @@ from operator import __eq__, __ne__, __lt__, __le__, __gt__, __ge__
 from six import (
     integer_types as _integer_types,
     text_type as _text_type,
-    PY3 as _PY3)
+    PY2 as _PY2)
 
 from cryptography import x509
 from cryptography.hazmat.primitives.asymmetric import dsa, rsa
@@ -377,7 +377,7 @@ class _EllipticCurve(object):
     """
     _curves = None
 
-    if _PY3:
+    if not _PY2:
         # This only necessary on Python 3.  Morever, it is broken on Python 2.
         def __ne__(self, other):
             """
