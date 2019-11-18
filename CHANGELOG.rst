@@ -4,7 +4,7 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
-19.1.0 (UNRELEASED)
+19.1.0 (2019-11-18)
 -------------------
 
 
