@@ -11,7 +11,7 @@ The third digit is only for regressions.
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-*none*
+- Drop support for Python 3.4
 
 Deprecations:
 ^^^^^^^^^^^^^
