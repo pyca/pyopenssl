@@ -21,8 +21,6 @@ matrix:
     dist: trusty # For OpenSSL 1.0.1 coverage
   - python: "2.7"
     env: TOXENV=py27
-  - python: "3.4"
-    env: TOXENV=py34
   - python: "3.5"
     env: TOXENV=py35
   - python: "3.6"
@@ -39,8 +37,6 @@ matrix:
   # Also run the tests against cryptography master.
   - python: "2.7"
     env: TOXENV=py27-cryptographyMaster
-  - python: "3.4"
-    env: TOXENV=py34-cryptographyMaster
   - python: "3.5"
     env: TOXENV=py35-cryptographyMaster
   - python: "3.6"
@@ -57,8 +53,6 @@ matrix:
   # And current minimum cryptography version.
   - python: "2.7"
     env: TOXENV=py27-cryptographyMinimum
-  - python: "3.4"
-    env: TOXENV=py34-cryptographyMinimum
   - python: "3.5"
     env: TOXENV=py35-cryptographyMinimum
   - python: "3.6"
@@ -102,7 +96,6 @@ matrix:
   # cryptography changes that are beyond our control.
   allow_failures:
   - env: TOXENV=py27-cryptographyMaster
-  - env: TOXENV=py34-cryptographyMaster
   - env: TOXENV=py35-cryptographyMaster
   - env: TOXENV=py36-cryptographyMaster
   - env: TOXENV=py37-cryptographyMaster
