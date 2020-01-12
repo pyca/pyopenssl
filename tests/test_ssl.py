@@ -192,6 +192,8 @@ def _create_certificate_chain():
         3. A new server certificate signed by icert (scert)
     """
     caext = X509Extension(b'basicConstraints', False, b'CA:true')
+    not_after_date = (datetime.date.today() + datetime.timedelta(days=365))
+    not_after = not_after_date.strftime("%Y%m%d%H%M%SZ").encode("ascii")
 
     # Step 1
     cakey = PKey()
@@ -201,7 +203,7 @@ def _create_certificate_chain():
     cacert.set_issuer(cacert.get_subject())
     cacert.set_pubkey(cakey)
     cacert.set_notBefore(b"20000101000000Z")
-    cacert.set_notAfter(b"20200101000000Z")
+    cacert.set_notAfter(not_after)
     cacert.add_extensions([caext])
     cacert.set_serial_number(0)
     cacert.sign(cakey, "sha1")
@@ -214,7 +216,7 @@ def _create_certificate_chain():
     icert.set_issuer(cacert.get_subject())
     icert.set_pubkey(ikey)
     icert.set_notBefore(b"20000101000000Z")
-    icert.set_notAfter(b"20200101000000Z")
+    icert.set_notAfter(not_after)
     icert.add_extensions([caext])
     icert.set_serial_number(0)
     icert.sign(cakey, "sha1")
@@ -227,7 +229,7 @@ def _create_certificate_chain():
     scert.set_issuer(icert.get_subject())
     scert.set_pubkey(skey)
     scert.set_notBefore(b"20000101000000Z")
-    scert.set_notAfter(b"20200101000000Z")
+    scert.set_notAfter(not_after)
     scert.add_extensions([
         X509Extension(b'basicConstraints', True, b'CA:false')])
     scert.set_serial_number(0)
