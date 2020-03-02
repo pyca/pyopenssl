@@ -39,6 +39,7 @@ from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
 from OpenSSL.crypto import PKey, X509, X509Extension, X509Store
 from OpenSSL.crypto import dump_privatekey, load_privatekey
 from OpenSSL.crypto import dump_certificate, load_certificate
+from OpenSSL.crypto import load_dhparams
 from OpenSSL.crypto import get_elliptic_curves
 
 from OpenSSL.SSL import OPENSSL_VERSION_NUMBER, SSLEAY_VERSION, SSLEAY_CFLAGS
@@ -1472,6 +1473,11 @@ class TestContext(object):
 
         context.load_tmp_dh(dhfilename)
         # XXX What should I assert here? -exarkun
+
+    def test_load_tmp_dh_dhparams(self):
+        context = Context(TLSv1_METHOD)
+        dh = load_dhparams(dhparam)
+        context.load_tmp_dhparams(dh)
 
     def test_load_tmp_dh_bytes(self, tmpfile):
         """

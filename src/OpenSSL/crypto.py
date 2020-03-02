@@ -47,6 +47,7 @@ __all__ = [
     'dump_privatekey',
     'Revoked',
     'CRL',
+    'DHparams',
     'PKCS7',
     'PKCS12',
     'NetscapeSPKI',
@@ -57,7 +58,9 @@ __all__ = [
     'sign',
     'verify',
     'dump_crl',
+    'dump_dhparams',
     'load_crl',
+    'load_dhparams',
     'load_pkcs7_data',
     'load_pkcs12'
 ]
@@ -214,7 +217,57 @@ class _X509NameInvalidator(object):
             # Breaks the object, but also prevents UAF!
             del name._name
 
+class DHparams(object):
+    """
+    A class representing Diffie-Hellmann parameters.
+    """
+    _only_public = False
+    _initialized = True
 
+    def __init__(self):
+        dh = _lib.DH_new()
+        self._dh = _ffi.gc(dh, _lib.DH_free)
+
+    def generate_dh(self, bits):
+        """
+        Generate Diffie-Hellman parameters with the given number of bits.
+
+        This generates Diffie-Hellman parameters "into" the this object.
+        Generation can take several seconds.
+
+        :param bits: The number of bits.
+        :raises TypeError: If :py:data:`bits` isn't of the appropriate type.
+        :raises ValueError: If the number of bits isn't an integer of
+            the appropriate size.
+        :return: ``None``
+        """
+
+        if not isinstance(bits, int):
+            raise TypeError("bits must be an integer")
+
+        result = _lib.DH_generate_parameters_ex(self._dh, bits, 2, _ffi.NULL)
+        _openssl_assert(result != 0)
+
+    def check(self):
+        """
+        Check the consistency of Diffie-Hellman parameters.
+
+        This is the Python equivalent of OpenSSL's ``DH_check_``.
+
+        :return: ``True`` if dh is consistent.
+
+        :raise OpenSSL.crypto.Error: if the dh is inconsistent.
+
+        :raise TypeError: if dh is of a type which cannot be checked.
+            Only Diffie-Hellman parameters can currently be checked.
+        """
+
+        codes = _ffi.new("int *")
+        result = _lib.Cryptography_DH_check(self._dh, codes)
+        if result:
+            return True
+        _raise_current_error()
+        
 class PKey(object):
     """
     A class representing an DSA or RSA public key or key pair.
@@ -1906,6 +1959,52 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
 
     return _bio_to_string(bio)
 
+def load_dhparams(buffer, passphrase=None):
+    """
+    Load Diffie-Hellman parameters (DHparams) from the string PEM encoded *buffer*.
+
+    :param buffer: The buffer the key is stored in
+    :param passphrase: (optional) if encrypted PEM format, this can be
+                       either the passphrase to use, or a callback for
+                       providing the passphrase.
+
+
+    :return: The DHParams object
+    """
+    if isinstance(buffer, _text_type):
+        buffer = buffer.encode("ascii")
+
+    bio = _new_mem_buf(buffer)
+    helper = _PassphraseHelper(FILETYPE_PEM, passphrase)
+
+    dh = _lib.PEM_read_bio_DHparams(bio, _ffi.NULL, helper.callback, helper.callback_args)
+    if dh == _ffi.NULL:
+        _raise_current_error()
+
+    dhparams = DHparams.__new__(DHparams)
+
+    dhparams._dh = _ffi.gc(dh, _lib.DH_free)
+
+    return dhparams
+
+def dump_dhparams(dh):
+    """
+    Dump the Diffie-Hellman parameters *dh* into a buffer string encoded as PEM.
+
+    :param DHParams dh: The Diffie-Hellman parameters to dump
+
+    :return: The buffer with the dumped Diffie-Hellman parameters in
+    :rtype: bytes
+    """
+    bio = _new_mem_buf()
+
+    if not isinstance(dh, DHparams):
+        raise TypeError("dh must be a DHParams")
+
+    result = _lib.PEM_write_bio_DHparams(bio, dh._dh)
+    _openssl_assert(result != 0)
+
+    return _bio_to_string(bio)    
 
 class Revoked(object):
     """

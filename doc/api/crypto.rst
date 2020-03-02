@@ -72,6 +72,13 @@ Certificate revocation lists
 
 .. autofunction:: load_pkcs12
 
+Diffie-Hellman parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: dump_dhparams
+
+.. autofunction:: load_dhparams
+
 Signing and verifying signatures
 --------------------------------
 
@@ -183,6 +190,12 @@ PKCS12 objects
                :members:
 
 .. _openssl-509ext:
+
+DHparams objects
+----------------
+
+.. autoclass:: DHparams
+               :members:                  
 
 X509Extension objects
 ---------------------

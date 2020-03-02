@@ -30,8 +30,10 @@ from OpenSSL.crypto import (
 )
 from OpenSSL.crypto import X509Req
 from OpenSSL.crypto import X509Extension
+from OpenSSL.crypto import DHparams
 from OpenSSL.crypto import load_certificate, load_privatekey
 from OpenSSL.crypto import load_publickey, dump_publickey
+from OpenSSL.crypto import load_dhparams, dump_dhparams
 from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT
 from OpenSSL.crypto import dump_certificate, load_certificate_request
 from OpenSSL.crypto import dump_certificate_request, dump_privatekey
@@ -560,6 +562,10 @@ MnY2KReEPfz7ZjAKBggqhkjOPQQDAwNpADBmAjEA3+G1oVCxGjYX4iUN93QYcNHe
 e3fJQJwX9+KsHRut6qNZDUbvRbtO1YIAwB4UJZjwAjEAtXCPURS5A4McZHnSwgTi
 Td8GMrwKz0557OxxtKN6uVVy4ACFMqEw0zN/KJI1vxc9
 -----END CERTIFICATE-----"""
+
+dh_params_256 = b"""-----BEGIN DH PARAMETERS-----
+MCYCIQDPvtehIUOc4qMdxwqiFnRVGewaZYOpJH64+bS0TTJAewIBAg==
+-----END DH PARAMETERS-----"""
 
 
 @pytest.fixture
@@ -3811,3 +3817,27 @@ class TestEllipticCurveHash(object):
             get_elliptic_curve(self.curve_factory.another_curve_name)
         ])
         assert curve not in curves
+
+class TestDHParameters(object):
+    """
+    Tests for `DHParams` object.
+    """
+
+    def test_generate_dhparams(self):
+        # Basic setup stuff to generate a certificate
+        dh = DHparams()
+
+        # We generate a very small DH to make this test
+        # not wait 20s for a 2048 bit DH key.
+        dh.generate_dh(256)
+        dh.check()
+        dh_pem = dump_dhparams(dh)
+        dh2 = load_dhparams(dh_params_256)
+
+    def test_load_dhparams(self):
+        dh = load_dhparams(dh_params_256)
+        dh.check()
+        dh_pem = dump_dhparams(dh)
+        assert dh_pem.strip() == dh_params_256.strip()
+
+        

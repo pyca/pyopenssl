@@ -1169,6 +1169,18 @@ class Context(object):
         dh = _ffi.gc(dh, _lib.DH_free)
         _lib.SSL_CTX_set_tmp_dh(self._context, dh)
 
+    def load_tmp_dhparams(self, dh):
+        """
+        Load parameters for Ephemeral Diffie-Hellman
+
+        :param DHparams dh: The DHparams object to load the
+		Diffie-Hellman parameters from
+
+        :return: None
+        """
+        _lib.SSL_CTX_set_tmp_dh(self._context, dh._dh)
+
+
     def set_tmp_ecdh(self, curve):
         """
         Select a curve to use for ECDHE key exchange.
