@@ -28,6 +28,7 @@ from OpenSSL.crypto import (
     X509Name,
     X509,
     X509Store,
+    X509StoreContext,
 )
 
 __all__ = [
@@ -2144,6 +2145,48 @@ class Connection(object):
             pycert = X509._from_raw_x509_ptr(cert)
             result.append(pycert)
         return result
+
+    def get_verified_chain(self):
+        """
+        Retrieve the verified certificate chain of the peer including the
+        peer's end entity certificate. It must be called after a session has
+        been successfully established. If peer verification was not successful
+        the chain may be incomplete, invalid, or None.
+
+        :return: A list of X509 instances giving the peer's verified
+                 certificate chain, or None if it does not have one.
+
+        .. versionadded:: 20.0
+        """
+        if hasattr(_lib, 'SSL_get0_verified_chain'):
+            # OpenSSL 1.1+
+            cert_stack = _lib.SSL_get0_verified_chain(self._ssl)
+            if cert_stack == _ffi.NULL:
+                return None
+
+            result = []
+            for i in range(_lib.sk_X509_num(cert_stack)):
+                # TODO could incref instead of dup here
+                cert = _lib.X509_dup(_lib.sk_X509_value(cert_stack, i))
+                pycert = X509._from_raw_x509_ptr(cert)
+                result.append(pycert)
+            return result
+
+        pycert = self.get_peer_certificate()
+        if pycert is None:
+            return None
+
+        cert_stack = _lib.SSL_get_peer_cert_chain(self._ssl)
+        if cert_stack == _ffi.NULL:
+            return None
+
+        pystore = self._context.get_cert_store()
+        if pystore is None:
+            return None
+
+        pystorectx = X509StoreContext(pystore, pycert)
+        pystorectx._add_chain(cert_stack)
+        return pystorectx.get_verified_chain()
 
     def want_read(self):
         """

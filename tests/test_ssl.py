@@ -2445,6 +2445,63 @@ class TestConnection(object):
         interact_in_memory(client, server)
         assert None is server.get_peer_cert_chain()
 
+    def test_get_verified_chain(self):
+        """
+        `Connection.get_verified_chain` returns a list of certificates
+        which the connected server returned for the certification verification.
+        """
+        chain = _create_certificate_chain()
+        [(cakey, cacert), (ikey, icert), (skey, scert)] = chain
+
+        serverContext = Context(TLSv1_METHOD)
+        serverContext.use_privatekey(skey)
+        serverContext.use_certificate(scert)
+        serverContext.add_extra_chain_cert(icert)
+        serverContext.add_extra_chain_cert(cacert)
+        server = Connection(serverContext, None)
+        server.set_accept_state()
+
+        # Create the client
+        clientContext = Context(TLSv1_METHOD)
+        # cacert is self-signed so the client must trust it for verification
+        # to succeed.
+        clientContext.get_cert_store().add_cert(cacert)
+        clientContext.set_verify(VERIFY_PEER, verify_cb)
+        client = Connection(clientContext, None)
+        client.set_connect_state()
+
+        interact_in_memory(client, server)
+
+        chain = client.get_verified_chain()
+        assert len(chain) == 3
+        assert "Server Certificate" == chain[0].get_subject().CN
+        assert "Intermediate Certificate" == chain[1].get_subject().CN
+        assert "Authority Certificate" == chain[2].get_subject().CN
+
+    def test_get_verified_chain_none(self):
+        """
+        `Connection.get_verified_chain` returns `None` if the peer sends
+        no certificate chain.
+        """
+        ctx = Context(TLSv1_METHOD)
+        ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
+        ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
+        server = Connection(ctx, None)
+        server.set_accept_state()
+        client = Connection(Context(TLSv1_METHOD), None)
+        client.set_connect_state()
+        interact_in_memory(client, server)
+        assert None is server.get_verified_chain()
+
+    def test_get_verified_chain_unconnected(self):
+        """
+        `Connection.get_verified_chain` returns `None` when used with an object
+        which has not been connected.
+        """
+        ctx = Context(TLSv1_METHOD)
+        server = Connection(ctx, None)
+        assert None is server.get_verified_chain()
+
     def test_get_session_unconnected(self):
         """
         `Connection.get_session` returns `None` when used with an object
