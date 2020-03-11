@@ -561,6 +561,12 @@ e3fJQJwX9+KsHRut6qNZDUbvRbtO1YIAwB4UJZjwAjEAtXCPURS5A4McZHnSwgTi
 Td8GMrwKz0557OxxtKN6uVVy4ACFMqEw0zN/KJI1vxc9
 -----END CERTIFICATE-----"""
 
+rsa_p_not_prime_pem = """
+-----BEGIN RSA PRIVATE KEY-----
+MBsCAQACAS0CAQcCAQACAQ8CAQMCAQACAQACAQA=
+-----END RSA PRIVATE KEY-----
+"""
+
 
 @pytest.fixture
 def x509_data():
@@ -965,6 +971,14 @@ class TestPKey(object):
         pub = cert.get_pubkey()
         with pytest.raises(TypeError):
             pub.check()
+
+    def test_check_pr_897(self):
+        """
+        `PKey.check` raises `OpenSSL.crypto.Error` if provided with broken key
+        """
+        pkey = load_privatekey(FILETYPE_PEM, rsa_p_not_prime_pem)
+        with pytest.raises(Error):
+            pkey.check()
 
 
 def x509_name(**attrs):

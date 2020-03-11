@@ -345,7 +345,7 @@ class PKey(object):
         rsa = _lib.EVP_PKEY_get1_RSA(self._pkey)
         rsa = _ffi.gc(rsa, _lib.RSA_free)
         result = _lib.RSA_check_key(rsa)
-        if result:
+        if result == 1:
             return True
         _raise_current_error()
 
