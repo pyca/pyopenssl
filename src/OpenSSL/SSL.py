@@ -2131,7 +2131,7 @@ class Connection(object):
         if session == _ffi.NULL:
             return None
         length = _lib.SSL_get_server_random(self._ssl, _ffi.NULL, 0)
-        assert length > 0
+        _openssl_assert(length > 0)
         outp = _no_zero_allocator("unsigned char[]", length)
         _lib.SSL_get_server_random(self._ssl, outp, length)
         return _ffi.buffer(outp, length)[:]
@@ -2147,7 +2147,7 @@ class Connection(object):
             return None
 
         length = _lib.SSL_get_client_random(self._ssl, _ffi.NULL, 0)
-        assert length > 0
+        _openssl_assert(length > 0)
         outp = _no_zero_allocator("unsigned char[]", length)
         _lib.SSL_get_client_random(self._ssl, outp, length)
         return _ffi.buffer(outp, length)[:]
@@ -2163,7 +2163,7 @@ class Connection(object):
             return None
 
         length = _lib.SSL_SESSION_get_master_key(session, _ffi.NULL, 0)
-        assert length > 0
+        _openssl_assert(length > 0)
         outp = _no_zero_allocator("unsigned char[]", length)
         _lib.SSL_SESSION_get_master_key(session, outp, length)
         return _ffi.buffer(outp, length)[:]
