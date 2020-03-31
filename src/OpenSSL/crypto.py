@@ -1819,7 +1819,7 @@ def dump_certificate(type, cert):
             "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or "
             "FILETYPE_TEXT")
 
-    assert result_code == 1
+    _openssl_assert(result_code == 1)
     return _bio_to_string(bio)
 
 
@@ -2893,7 +2893,7 @@ def dump_crl(type, crl):
             "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or "
             "FILETYPE_TEXT")
 
-    assert ret == 1
+    _openssl_assert(ret == 1)
     return _bio_to_string(bio)
 
 
