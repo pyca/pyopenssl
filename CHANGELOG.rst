@@ -24,7 +24,8 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-*none*
+- Added ``Context.set_keylog_callback`` to log key material.
+  `#910 <https://github.com/pyca/pyopenssl/pull/910>`_
 
 
 19.1.0 (2019-11-18)
