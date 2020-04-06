@@ -45,7 +45,15 @@ def find_meta(meta):
 
 
 URI = find_meta("uri")
-LONG = 'nothing relevant'
+LONG = (
+    read_file("README.rst") + "\n\n" +
+    "Release Information\n" +
+    "===================\n\n" +
+    re.search(r"(\d{2}.\d.\d \(.*?\)\n.*?)\n\n\n----\n",
+              read_file("CHANGELOG.rst"), re.S).group(1) +
+    "\n\n`Full changelog " +
+    "<{uri}en/stable/changelog.html>`_.\n\n"
+).format(uri=URI)
 
 
 if __name__ == "__main__":
