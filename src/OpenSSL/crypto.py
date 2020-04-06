@@ -1,4 +1,5 @@
 import datetime
+import calendar
 
 from base64 import b16encode
 from functools import partial
@@ -1641,7 +1642,6 @@ class X509Store(object):
         :param datetime vfy_time: The verification time to set on this store.
         :return: ``None`` if the verification time was successfully set.
         """
-        import calendar
         param = _lib.X509_VERIFY_PARAM_new()
         param = _ffi.gc(param, _lib.X509_VERIFY_PARAM_free)
 
