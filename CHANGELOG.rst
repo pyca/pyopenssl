@@ -12,6 +12,7 @@ Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Drop support for Python 3.4
+- Drop support for OpenSSL 1.0.1
 
 Deprecations:
 ^^^^^^^^^^^^^

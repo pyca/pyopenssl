@@ -727,14 +727,11 @@ class Context(object):
         _openssl_assert(context != _ffi.NULL)
         context = _ffi.gc(context, _lib.SSL_CTX_free)
 
-        # If SSL_CTX_set_ecdh_auto is available then set it so the ECDH curve
-        # will be auto-selected. This function was added in 1.0.2 and made a
-        # noop in 1.1.0+ (where it is set automatically).
-        try:
-            res = _lib.SSL_CTX_set_ecdh_auto(context, 1)
-            _openssl_assert(res == 1)
-        except AttributeError:
-            pass
+        # Set SSL_CTX_set_ecdh_auto so that the ECDH curve will be
+        # auto-selected. This function was added in 1.0.2 and made a noop in
+        # 1.1.0+ (where it is set automatically).
+        res = _lib.SSL_CTX_set_ecdh_auto(context, 1)
+        _openssl_assert(res == 1)
 
         self._context = context
         self._passphrase_helper = None
@@ -2309,8 +2306,7 @@ class Connection(object):
             raise TypeError("session must be a Session instance")
 
         result = _lib.SSL_set_session(self._ssl, session._session)
-        if not result:
-            _raise_current_error()
+        _openssl_assert(result == 1)
 
     def _get_finished_message(self, function):
         """
