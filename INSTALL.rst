@@ -25,7 +25,6 @@ Supported OpenSSL Versions
 pyOpenSSL supports the same platforms and releases as the upstream cryptography project `does <https://cryptography.io/en/latest/installation/#supported-platforms>`_.
 Currently that means:
 
-- 1.0.1
 - 1.0.2
 - 1.1.0
 - 1.1.1
