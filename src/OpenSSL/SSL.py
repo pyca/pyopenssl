@@ -697,7 +697,7 @@ _requires_alpn = _make_requires(
 
 
 _requires_keylog = _make_requires(
-    getattr(_lib,"Cryptography_HAS_KEYLOG", None), "Key logging not available"
+    getattr(_lib, "Cryptography_HAS_KEYLOG", None), "Key logging not available"
 )
 
 
@@ -1348,20 +1348,29 @@ class Context(object):
     def set_keylog_callback(self, callback):
         """
         Set the TLS key logging callback to *callback*. This function will be
-        called whenever TLS key material is generated or received,
-        in order to allow applications to store this keying material for debugging purposes.
+        called whenever TLS key material is generated or received, in order
+        to allow applications to store this keying material for debugging
+        purposes.
 
         :param callback: The Python callback to use.  This should take two
-            arguments: a Connection object and a bytestring that contains the key material
-            in the format used by NSS for its SSLKEYLOGFILE debugging output.
+            arguments: a Connection object and a bytestring that contains
+            the key material in the format used by NSS for its SSLKEYLOGFILE
+            debugging output.
         :return: None
         """
         @wraps(callback)
         def wrapper(ssl, line):
             line = _ffi.string(line)
             callback(Connection._reverse_mapping[ssl], line)
-        self._keylog_callback = _ffi.callback("void (*)(const SSL *, const char *)", wrapper)
-        _lib.SSL_CTX_set_keylog_callback(self._context, self._keylog_callback)
+
+        self._keylog_callback = _ffi.callback(
+            "void (*)(const SSL *, const char *)",
+            wrapper
+        )
+        _lib.SSL_CTX_set_keylog_callback(
+            self._context,
+            self._keylog_callback
+        )
 
     def get_app_data(self):
         """

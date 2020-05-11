@@ -1003,7 +1003,7 @@ class TestContext(object):
 
     @pytest.mark.skipif(
         not getattr(_lib, "Cryptography_HAS_KEYLOG", None),
-        reason="SSL_CTX_set_keylog_callback unavailable - OpenSSL version may be too old"
+        reason="SSL_CTX_set_keylog_callback unavailable"
     )
     def test_set_keylog_callback(self):
         """
@@ -1017,8 +1017,12 @@ class TestContext(object):
 
         server_context = Context(TLSv1_METHOD)
         server_context.set_keylog_callback(keylog)
-        server_context.use_certificate(load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
-        server_context.use_privatekey(load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+        )
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        )
 
         client_context = Context(TLSv1_METHOD)
 
