@@ -697,7 +697,7 @@ _requires_alpn = _make_requires(
 
 
 _requires_keylog = _make_requires(
-    _lib.Cryptography_HAS_KEYLOG, "Key logging not available"
+    getattr(_lib,"Cryptography_HAS_KEYLOG", None), "Key logging not available"
 )
 
 

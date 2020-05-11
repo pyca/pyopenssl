@@ -1002,7 +1002,7 @@ class TestContext(object):
         ), "Some info callback arguments were not Connection instances."
 
     @pytest.mark.skipif(
-        not _lib.Cryptography_HAS_KEYLOG,
+        not getattr(_lib, "Cryptography_HAS_KEYLOG", None),
         reason="SSL_CTX_set_keylog_callback unavailable - OpenSSL version may be too old"
     )
     def test_set_keylog_callback(self):
