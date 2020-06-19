@@ -14,11 +14,8 @@ matrix:
   include:
   - language: generic
     os: osx
-    osx_image: xcode10.1
-    env: TOXENV=py27 OPENSSL=1.1.1
-  - python: "2.7" # these are just to make travis's UI a bit prettier
+    osx_image: xcode11.3
     env: TOXENV=py27
-    dist: trusty # For OpenSSL 1.0.1 coverage
   - python: "2.7"
     env: TOXENV=py27
   - python: "3.5"
@@ -108,11 +105,7 @@ install:
   - |
     if [[ "$(uname -s)" == 'Darwin' ]]; then
       brew update
-      if [[ "${OPENSSL}" == "1.1.1" ]]; then
-        brew upgrade openssl@1.1
-      else
-        brew upgrade openssl
-      fi
+      brew upgrade openssl@1.1
       curl -O https://bootstrap.pypa.io/get-pip.py
       python get-pip.py --user
       python -m pip install --user virtualenv
@@ -126,15 +119,9 @@ script:
   - |
     if [[ "$(uname -s)" == 'Darwin' ]]; then
       # set our flags to use homebrew openssl
-      if [[ "${OPENSSL}"  == "1.1.1" ]]; then
-        export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
-        export CFLAGS="-I/usr/local/opt/openssl@1.1/include"
-        export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
-      else
-        export LDFLAGS="-L/usr/local/opt/openssl/lib"
-        export CFLAGS="-I/usr/local/opt/openssl/include"
-        export PATH="/usr/local/opt/openssl/bin:$PATH"
-      fi
+      export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
+      export CFLAGS="-I/usr/local/opt/openssl@1.1/include"
+      export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
     fi
     openssl version
     ~/.venv/bin/tox -v

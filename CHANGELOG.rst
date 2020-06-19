@@ -11,7 +11,9 @@ The third digit is only for regressions.
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- Remove deprecated ``OpenSSL.tsafe`` module.
 - Drop support for Python 3.4
+- Drop support for OpenSSL 1.0.1
 
 Deprecations:
 ^^^^^^^^^^^^^
