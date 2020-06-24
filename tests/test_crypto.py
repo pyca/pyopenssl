@@ -1729,6 +1729,9 @@ WpOdIpB8KksUTCzV591Nr1wd
 
     def _extcert(self, pkey, extensions):
         cert = X509()
+        # Certificates with extensions must be X.509v3, which is encoded with a
+        # version of two.
+        cert.set_version(2)
         cert.set_pubkey(pkey)
         cert.get_subject().commonName = "Unit Tests"
         cert.get_issuer().commonName = "Unit Tests"
