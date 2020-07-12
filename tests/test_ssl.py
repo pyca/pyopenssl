@@ -10,19 +10,22 @@ import sys
 import uuid
 
 from gc import collect, get_referrers
-from errno import ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE, ESHUTDOWN
+from errno import (
+    EAFNOSUPPORT, ECONNREFUSED, EINPROGRESS, EWOULDBLOCK, EPIPE, ESHUTDOWN)
 from sys import platform, getfilesystemencoding
-from socket import MSG_PEEK, SHUT_RDWR, error, socket
+from socket import AF_INET, AF_INET6, MSG_PEEK, SHUT_RDWR, error, socket
 from os import makedirs
 from os.path import join
 from weakref import ref
 from warnings import simplefilter
 
+import flaky
+
 import pytest
 
 from pretend import raiser
 
-from six import PY3, text_type
+from six import PY2, text_type
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -64,7 +67,7 @@ from OpenSSL._util import ffi as _ffi, lib as _lib
 
 from OpenSSL.SSL import (
     OP_NO_QUERY_MTU, OP_COOKIE_EXCHANGE, OP_NO_TICKET, OP_NO_COMPRESSION,
-    MODE_RELEASE_BUFFERS)
+    MODE_RELEASE_BUFFERS, NO_OVERLAPPING_PROTOCOLS)
 
 from OpenSSL.SSL import (
     SSL_ST_CONNECT, SSL_ST_ACCEPT, SSL_ST_MASK,
@@ -98,7 +101,24 @@ V7H54LmltOT/hEh6QWsJqb6BQgH65bswvV/XkYGja8/T0GzvbaVzAgEC
 """
 
 
-skip_if_py3 = pytest.mark.skipif(PY3, reason="Python 2 only")
+skip_if_py3 = pytest.mark.skipif(not PY2, reason="Python 2 only")
+
+
+def socket_any_family():
+    try:
+        return socket(AF_INET)
+    except error as e:
+        if e.errno == EAFNOSUPPORT:
+            return socket(AF_INET6)
+        raise
+
+
+def loopback_address(socket):
+    if socket.family == AF_INET:
+        return "127.0.0.1"
+    else:
+        assert socket.family == AF_INET6
+        return "::1"
 
 
 def join_bytes_or_unicode(prefix, suffix):
@@ -127,12 +147,12 @@ def socket_pair():
     Establish and return a pair of network sockets connected to each other.
     """
     # Connect a pair of sockets
-    port = socket()
+    port = socket_any_family()
     port.bind(('', 0))
     port.listen(1)
-    client = socket()
+    client = socket(port.family)
     client.setblocking(False)
-    client.connect_ex(("127.0.0.1", port.getsockname()[1]))
+    client.connect_ex((loopback_address(port), port.getsockname()[1]))
     client.setblocking(True)
     server = port.accept()[0]
 
@@ -172,16 +192,19 @@ def _create_certificate_chain():
         3. A new server certificate signed by icert (scert)
     """
     caext = X509Extension(b'basicConstraints', False, b'CA:true')
+    not_after_date = (datetime.date.today() + datetime.timedelta(days=365))
+    not_after = not_after_date.strftime("%Y%m%d%H%M%SZ").encode("ascii")
 
     # Step 1
     cakey = PKey()
     cakey.generate_key(TYPE_RSA, 1024)
     cacert = X509()
+    cacert.set_version(2)
     cacert.get_subject().commonName = "Authority Certificate"
     cacert.set_issuer(cacert.get_subject())
     cacert.set_pubkey(cakey)
     cacert.set_notBefore(b"20000101000000Z")
-    cacert.set_notAfter(b"20200101000000Z")
+    cacert.set_notAfter(not_after)
     cacert.add_extensions([caext])
     cacert.set_serial_number(0)
     cacert.sign(cakey, "sha1")
@@ -190,11 +213,12 @@ def _create_certificate_chain():
     ikey = PKey()
     ikey.generate_key(TYPE_RSA, 1024)
     icert = X509()
+    icert.set_version(2)
     icert.get_subject().commonName = "Intermediate Certificate"
     icert.set_issuer(cacert.get_subject())
     icert.set_pubkey(ikey)
     icert.set_notBefore(b"20000101000000Z")
-    icert.set_notAfter(b"20200101000000Z")
+    icert.set_notAfter(not_after)
     icert.add_extensions([caext])
     icert.set_serial_number(0)
     icert.sign(cakey, "sha1")
@@ -203,11 +227,12 @@ def _create_certificate_chain():
     skey = PKey()
     skey.generate_key(TYPE_RSA, 1024)
     scert = X509()
+    scert.set_version(2)
     scert.get_subject().commonName = "Server Certificate"
     scert.set_issuer(icert.get_subject())
     scert.set_pubkey(skey)
     scert.set_notBefore(b"20000101000000Z")
-    scert.set_notAfter(b"20200101000000Z")
+    scert.set_notAfter(not_after)
     scert.add_extensions([
         X509Extension(b'basicConstraints', True, b'CA:false')])
     scert.set_serial_number(0)
@@ -410,18 +435,32 @@ class TestContext(object):
 
         assert "AES128-SHA" in conn.get_cipher_list()
 
-    @pytest.mark.parametrize("cipher_list,error", [
-        (object(), TypeError),
-        ("imaginary-cipher", Error),
-    ])
-    def test_set_cipher_list_wrong_args(self, context, cipher_list, error):
+    def test_set_cipher_list_wrong_type(self, context):
         """
         `Context.set_cipher_list` raises `TypeError` when passed a non-string
-        argument and raises `OpenSSL.SSL.Error` when passed an incorrect cipher
-        list string.
+        argument.
         """
-        with pytest.raises(error):
-            context.set_cipher_list(cipher_list)
+        with pytest.raises(TypeError):
+            context.set_cipher_list(object())
+
+    @flaky.flaky
+    def test_set_cipher_list_no_cipher_match(self, context):
+        """
+        `Context.set_cipher_list` raises `OpenSSL.SSL.Error` with a
+        `"no cipher match"` reason string regardless of the TLS
+        version.
+        """
+        with pytest.raises(Error) as excinfo:
+            context.set_cipher_list(b"imaginary-cipher")
+        assert excinfo.value.args == (
+                [
+                    (
+                        'SSL routines',
+                        'SSL_CTX_set_cipher_list',
+                        'no cipher match',
+                    ),
+                ],
+            )
 
     def test_load_client_ca(self, context, ca_file):
         """
@@ -499,13 +538,6 @@ class TestContext(object):
         with pytest.raises(ValueError):
             Context(10)
 
-    @skip_if_py3
-    def test_method_long(self):
-        """
-        On Python 2 `Context` accepts values of type `long` as well as `int`.
-        """
-        Context(long(TLSv1_METHOD))
-
     def test_type(self):
         """
         `Context` can be used to create instances of that type.
@@ -577,14 +609,6 @@ class TestContext(object):
             tmpfile.decode(getfilesystemencoding()) + NON_ASCII,
             FILETYPE_PEM,
         )
-
-    @skip_if_py3
-    def test_use_privatekey_file_long(self, tmpfile):
-        """
-        On Python 2 `Context.use_privatekey_file` accepts a filetype of
-        type `long` as well as `int`.
-        """
-        self._use_privatekey_file_test(tmpfile, long(FILETYPE_PEM))
 
     def test_use_certificate_wrong_args(self):
         """
@@ -674,19 +698,6 @@ class TestContext(object):
         filename = tmpfile.decode(getfilesystemencoding()) + NON_ASCII
         self._use_certificate_file_test(filename)
 
-    @skip_if_py3
-    def test_use_certificate_file_long(self, tmpfile):
-        """
-        On Python 2 `Context.use_certificate_file` accepts a
-        filetype of type `long` as well as `int`.
-        """
-        pem_filename = tmpfile
-        with open(pem_filename, "wb") as pem_file:
-            pem_file.write(cleartextCertificatePEM)
-
-        ctx = Context(TLSv1_METHOD)
-        ctx.use_certificate_file(pem_filename, long(FILETYPE_PEM))
-
     def test_check_privatekey_valid(self):
         """
         `Context.check_privatekey` returns `None` if the `Context` instance
@@ -740,16 +751,6 @@ class TestContext(object):
         options = context.set_options(OP_NO_SSLv2)
         assert options & OP_NO_SSLv2 == OP_NO_SSLv2
 
-    @skip_if_py3
-    def test_set_options_long(self):
-        """
-        On Python 2 `Context.set_options` accepts values of type
-        `long` as well as `int`.
-        """
-        context = Context(TLSv1_METHOD)
-        options = context.set_options(long(OP_NO_SSLv2))
-        assert options & OP_NO_SSLv2 == OP_NO_SSLv2
-
     def test_set_mode_wrong_args(self):
         """
         `Context.set_mode` raises `TypeError` if called with
@@ -766,16 +767,6 @@ class TestContext(object):
         """
         context = Context(TLSv1_METHOD)
         assert MODE_RELEASE_BUFFERS & context.set_mode(MODE_RELEASE_BUFFERS)
-
-    @skip_if_py3
-    def test_set_mode_long(self):
-        """
-        On Python 2 `Context.set_mode` accepts values of type `long` as well
-        as `int`.
-        """
-        context = Context(TLSv1_METHOD)
-        mode = context.set_mode(long(MODE_RELEASE_BUFFERS))
-        assert MODE_RELEASE_BUFFERS & mode
 
     def test_set_timeout_wrong_args(self):
         """
@@ -796,16 +787,6 @@ class TestContext(object):
         context.set_timeout(1234)
         assert context.get_timeout() == 1234
 
-    @skip_if_py3
-    def test_timeout_long(self):
-        """
-        On Python 2 `Context.set_timeout` accepts values of type `long` as
-        well as int.
-        """
-        context = Context(TLSv1_METHOD)
-        context.set_timeout(long(1234))
-        assert context.get_timeout() == 1234
-
     def test_set_verify_depth_wrong_args(self):
         """
         `Context.set_verify_depth` raises `TypeError` if called with a
@@ -823,16 +804,6 @@ class TestContext(object):
         """
         context = Context(TLSv1_METHOD)
         context.set_verify_depth(11)
-        assert context.get_verify_depth() == 11
-
-    @skip_if_py3
-    def test_verify_depth_long(self):
-        """
-        On Python 2 `Context.set_verify_depth` accepts values of type `long`
-        as well as int.
-        """
-        context = Context(TLSv1_METHOD)
-        context.set_verify_depth(long(11))
         assert context.get_verify_depth() == 11
 
     def _write_encrypted_pem(self, passphrase, tmpfile):
@@ -1196,7 +1167,7 @@ class TestContext(object):
             VERIFY_PEER,
             lambda conn, cert, errno, depth, preverify_ok: preverify_ok)
 
-        client = socket()
+        client = socket_any_family()
         client.connect(("encrypted.google.com", 443))
         clientSSL = Connection(context, client)
         clientSSL.set_connect_state()
@@ -1455,19 +1426,6 @@ class TestContext(object):
             VERIFY_PEER | VERIFY_CLIENT_ONCE, lambda *args: None)
         assert context.get_verify_mode() == (VERIFY_PEER | VERIFY_CLIENT_ONCE)
 
-    @skip_if_py3
-    def test_set_verify_mode_long(self):
-        """
-        On Python 2 `Context.set_verify_mode` accepts values of type `long`
-        as well as `int`.
-        """
-        context = Context(TLSv1_METHOD)
-        assert context.get_verify_mode() == 0
-        context.set_verify(
-            long(VERIFY_PEER | VERIFY_CLIENT_ONCE), lambda *args: None
-        )  # pragma: nocover
-        assert context.get_verify_mode() == (VERIFY_PEER | VERIFY_CLIENT_ONCE)
-
     @pytest.mark.parametrize('mode', [None, 1.0, object(), 'mode'])
     def test_set_verify_wrong_mode_arg(self, mode):
         """
@@ -1571,16 +1529,6 @@ class TestContext(object):
         context.set_session_cache_mode(SESS_CACHE_OFF)
         off = context.set_session_cache_mode(SESS_CACHE_BOTH)
         assert SESS_CACHE_OFF == off
-        assert SESS_CACHE_BOTH == context.get_session_cache_mode()
-
-    @skip_if_py3
-    def test_session_cache_mode_long(self):
-        """
-        On Python 2 `Context.set_session_cache_mode` accepts values
-        of type `long` as well as `int`.
-        """
-        context = Context(TLSv1_METHOD)
-        context.set_session_cache_mode(long(SESS_CACHE_BOTH))
         assert SESS_CACHE_BOTH == context.get_session_cache_mode()
 
     def test_get_cert_store(self):
@@ -1724,6 +1672,9 @@ class TestServerNameCallback(object):
         assert args == [(server, b"foo1.example.com")]
 
 
+@pytest.mark.skipif(
+    not _lib.Cryptography_HAS_NEXTPROTONEG, reason="NPN is not available"
+)
 class TestNextProtoNegotiation(object):
     """
     Test for Next Protocol Negotiation in PyOpenSSL.
@@ -1898,200 +1849,256 @@ class TestApplicationLayerProtoNegotiation(object):
     """
     Tests for ALPN in PyOpenSSL.
     """
-    # Skip tests on versions that don't support ALPN.
-    if _lib.Cryptography_HAS_ALPN:
+    def test_alpn_success(self):
+        """
+        Clients and servers that agree on the negotiated ALPN protocol can
+        correct establish a connection, and the agreed protocol is reported
+        by the connections.
+        """
+        select_args = []
 
-        def test_alpn_success(self):
-            """
-            Clients and servers that agree on the negotiated ALPN protocol can
-            correct establish a connection, and the agreed protocol is reported
-            by the connections.
-            """
-            select_args = []
+        def select(conn, options):
+            select_args.append((conn, options))
+            return b'spdy/2'
 
-            def select(conn, options):
-                select_args.append((conn, options))
-                return b'spdy/2'
+        client_context = Context(TLSv1_METHOD)
+        client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
 
-            client_context = Context(TLSv1_METHOD)
-            client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
+        server_context = Context(TLSv1_METHOD)
+        server_context.set_alpn_select_callback(select)
 
-            server_context = Context(TLSv1_METHOD)
-            server_context.set_alpn_select_callback(select)
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
 
-            # Necessary to actually accept the connection
-            server_context.use_privatekey(
-                load_privatekey(FILETYPE_PEM, server_key_pem))
-            server_context.use_certificate(
-                load_certificate(FILETYPE_PEM, server_cert_pem))
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
 
-            # Do a little connection to trigger the logic
-            server = Connection(server_context, None)
-            server.set_accept_state()
+        client = Connection(client_context, None)
+        client.set_connect_state()
 
-            client = Connection(client_context, None)
-            client.set_connect_state()
+        interact_in_memory(server, client)
 
+        assert select_args == [(server, [b'http/1.1', b'spdy/2'])]
+
+        assert server.get_alpn_proto_negotiated() == b'spdy/2'
+        assert client.get_alpn_proto_negotiated() == b'spdy/2'
+
+    def test_alpn_set_on_connection(self):
+        """
+        The same as test_alpn_success, but setting the ALPN protocols on
+        the connection rather than the context.
+        """
+        select_args = []
+
+        def select(conn, options):
+            select_args.append((conn, options))
+            return b'spdy/2'
+
+        # Setup the client context but don't set any ALPN protocols.
+        client_context = Context(TLSv1_METHOD)
+
+        server_context = Context(TLSv1_METHOD)
+        server_context.set_alpn_select_callback(select)
+
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
+
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
+
+        # Set the ALPN protocols on the client connection.
+        client = Connection(client_context, None)
+        client.set_alpn_protos([b'http/1.1', b'spdy/2'])
+        client.set_connect_state()
+
+        interact_in_memory(server, client)
+
+        assert select_args == [(server, [b'http/1.1', b'spdy/2'])]
+
+        assert server.get_alpn_proto_negotiated() == b'spdy/2'
+        assert client.get_alpn_proto_negotiated() == b'spdy/2'
+
+    def test_alpn_server_fail(self):
+        """
+        When clients and servers cannot agree on what protocol to use next
+        the TLS connection does not get established.
+        """
+        select_args = []
+
+        def select(conn, options):
+            select_args.append((conn, options))
+            return b''
+
+        client_context = Context(TLSv1_METHOD)
+        client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
+
+        server_context = Context(TLSv1_METHOD)
+        server_context.set_alpn_select_callback(select)
+
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
+
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
+
+        client = Connection(client_context, None)
+        client.set_connect_state()
+
+        # If the client doesn't return anything, the connection will fail.
+        with pytest.raises(Error):
             interact_in_memory(server, client)
 
-            assert select_args == [(server, [b'http/1.1', b'spdy/2'])]
+        assert select_args == [(server, [b'http/1.1', b'spdy/2'])]
 
-            assert server.get_alpn_proto_negotiated() == b'spdy/2'
-            assert client.get_alpn_proto_negotiated() == b'spdy/2'
+    def test_alpn_no_server_overlap(self):
+        """
+        A server can allow a TLS handshake to complete without
+        agreeing to an application protocol by returning
+        ``NO_OVERLAPPING_PROTOCOLS``.
+        """
+        refusal_args = []
 
-        def test_alpn_set_on_connection(self):
-            """
-            The same as test_alpn_success, but setting the ALPN protocols on
-            the connection rather than the context.
-            """
-            select_args = []
+        def refusal(conn, options):
+            refusal_args.append((conn, options))
+            return NO_OVERLAPPING_PROTOCOLS
 
-            def select(conn, options):
-                select_args.append((conn, options))
-                return b'spdy/2'
+        client_context = Context(SSLv23_METHOD)
+        client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
 
-            # Setup the client context but don't set any ALPN protocols.
-            client_context = Context(TLSv1_METHOD)
+        server_context = Context(SSLv23_METHOD)
+        server_context.set_alpn_select_callback(refusal)
 
-            server_context = Context(TLSv1_METHOD)
-            server_context.set_alpn_select_callback(select)
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
 
-            # Necessary to actually accept the connection
-            server_context.use_privatekey(
-                load_privatekey(FILETYPE_PEM, server_key_pem))
-            server_context.use_certificate(
-                load_certificate(FILETYPE_PEM, server_cert_pem))
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
 
-            # Do a little connection to trigger the logic
-            server = Connection(server_context, None)
-            server.set_accept_state()
+        client = Connection(client_context, None)
+        client.set_connect_state()
 
-            # Set the ALPN protocols on the client connection.
-            client = Connection(client_context, None)
-            client.set_alpn_protos([b'http/1.1', b'spdy/2'])
-            client.set_connect_state()
+        # Do the dance.
+        interact_in_memory(server, client)
 
+        assert refusal_args == [(server, [b'http/1.1', b'spdy/2'])]
+
+        assert client.get_alpn_proto_negotiated() == b''
+
+    def test_alpn_select_cb_returns_invalid_value(self):
+        """
+        If the ALPN selection callback returns anything other than
+        a bytestring or ``NO_OVERLAPPING_PROTOCOLS``, a
+        :py:exc:`TypeError` is raised.
+        """
+        invalid_cb_args = []
+
+        def invalid_cb(conn, options):
+            invalid_cb_args.append((conn, options))
+            return u"can't return unicode"
+
+        client_context = Context(SSLv23_METHOD)
+        client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
+
+        server_context = Context(SSLv23_METHOD)
+        server_context.set_alpn_select_callback(invalid_cb)
+
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
+
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
+
+        client = Connection(client_context, None)
+        client.set_connect_state()
+
+        # Do the dance.
+        with pytest.raises(TypeError):
             interact_in_memory(server, client)
 
-            assert select_args == [(server, [b'http/1.1', b'spdy/2'])]
+        assert invalid_cb_args == [(server, [b'http/1.1', b'spdy/2'])]
 
-            assert server.get_alpn_proto_negotiated() == b'spdy/2'
-            assert client.get_alpn_proto_negotiated() == b'spdy/2'
+        assert client.get_alpn_proto_negotiated() == b''
 
-        def test_alpn_server_fail(self):
-            """
-            When clients and servers cannot agree on what protocol to use next
-            the TLS connection does not get established.
-            """
-            select_args = []
+    def test_alpn_no_server(self):
+        """
+        When clients and servers cannot agree on what protocol to use next
+        because the server doesn't offer ALPN, no protocol is negotiated.
+        """
+        client_context = Context(TLSv1_METHOD)
+        client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
 
-            def select(conn, options):
-                select_args.append((conn, options))
-                return b''
+        server_context = Context(TLSv1_METHOD)
 
-            client_context = Context(TLSv1_METHOD)
-            client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
 
-            server_context = Context(TLSv1_METHOD)
-            server_context.set_alpn_select_callback(select)
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
 
-            # Necessary to actually accept the connection
-            server_context.use_privatekey(
-                load_privatekey(FILETYPE_PEM, server_key_pem))
-            server_context.use_certificate(
-                load_certificate(FILETYPE_PEM, server_cert_pem))
+        client = Connection(client_context, None)
+        client.set_connect_state()
 
-            # Do a little connection to trigger the logic
-            server = Connection(server_context, None)
-            server.set_accept_state()
+        # Do the dance.
+        interact_in_memory(server, client)
 
-            client = Connection(client_context, None)
-            client.set_connect_state()
+        assert client.get_alpn_proto_negotiated() == b''
 
-            # If the client doesn't return anything, the connection will fail.
-            with pytest.raises(Error):
-                interact_in_memory(server, client)
+    def test_alpn_callback_exception(self):
+        """
+        We can handle exceptions in the ALPN select callback.
+        """
+        select_args = []
 
-            assert select_args == [(server, [b'http/1.1', b'spdy/2'])]
+        def select(conn, options):
+            select_args.append((conn, options))
+            raise TypeError()
 
-        def test_alpn_no_server(self):
-            """
-            When clients and servers cannot agree on what protocol to use next
-            because the server doesn't offer ALPN, no protocol is negotiated.
-            """
-            client_context = Context(TLSv1_METHOD)
-            client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
+        client_context = Context(TLSv1_METHOD)
+        client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
 
-            server_context = Context(TLSv1_METHOD)
+        server_context = Context(TLSv1_METHOD)
+        server_context.set_alpn_select_callback(select)
 
-            # Necessary to actually accept the connection
-            server_context.use_privatekey(
-                load_privatekey(FILETYPE_PEM, server_key_pem))
-            server_context.use_certificate(
-                load_certificate(FILETYPE_PEM, server_cert_pem))
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem))
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem))
 
-            # Do a little connection to trigger the logic
-            server = Connection(server_context, None)
-            server.set_accept_state()
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
 
-            client = Connection(client_context, None)
-            client.set_connect_state()
+        client = Connection(client_context, None)
+        client.set_connect_state()
 
-            # Do the dance.
+        with pytest.raises(TypeError):
             interact_in_memory(server, client)
-
-            assert client.get_alpn_proto_negotiated() == b''
-
-        def test_alpn_callback_exception(self):
-            """
-            We can handle exceptions in the ALPN select callback.
-            """
-            select_args = []
-
-            def select(conn, options):
-                select_args.append((conn, options))
-                raise TypeError()
-
-            client_context = Context(TLSv1_METHOD)
-            client_context.set_alpn_protos([b'http/1.1', b'spdy/2'])
-
-            server_context = Context(TLSv1_METHOD)
-            server_context.set_alpn_select_callback(select)
-
-            # Necessary to actually accept the connection
-            server_context.use_privatekey(
-                load_privatekey(FILETYPE_PEM, server_key_pem))
-            server_context.use_certificate(
-                load_certificate(FILETYPE_PEM, server_cert_pem))
-
-            # Do a little connection to trigger the logic
-            server = Connection(server_context, None)
-            server.set_accept_state()
-
-            client = Connection(client_context, None)
-            client.set_connect_state()
-
-            with pytest.raises(TypeError):
-                interact_in_memory(server, client)
-            assert select_args == [(server, [b'http/1.1', b'spdy/2'])]
-
-    else:
-        # No ALPN.
-        def test_alpn_not_implemented(self):
-            """
-            If ALPN is not in OpenSSL, we should raise NotImplementedError.
-            """
-            # Test the context methods first.
-            context = Context(TLSv1_METHOD)
-            with pytest.raises(NotImplementedError):
-                context.set_alpn_protos(None)
-            with pytest.raises(NotImplementedError):
-                context.set_alpn_select_callback(None)
-
-            # Now test a connection.
-            conn = Connection(context)
-            with pytest.raises(NotImplementedError):
-                conn.set_alpn_protos(None)
+        assert select_args == [(server, [b'http/1.1', b'spdy/2'])]
 
 
 class TestSession(object):
@@ -2140,6 +2147,29 @@ class TestConnection(object):
         """
         with pytest.raises(TypeError):
             Connection(bad_context)
+
+    @pytest.mark.parametrize('bad_bio', [object(), None, 1, [1, 2, 3]])
+    def test_bio_write_wrong_args(self, bad_bio):
+        """
+        `Connection.bio_write` raises `TypeError` if called with a non-bytes
+        (or text) argument.
+        """
+        context = Context(TLSv1_METHOD)
+        connection = Connection(context, None)
+        with pytest.raises(TypeError):
+            connection.bio_write(bad_bio)
+
+    def test_bio_write(self):
+        """
+        `Connection.bio_write` does not raise if called with bytes or
+        bytearray, warns if called with text.
+        """
+        context = Context(TLSv1_METHOD)
+        connection = Connection(context, None)
+        connection.bio_write(b'xy')
+        connection.bio_write(bytearray(b'za'))
+        with pytest.warns(DeprecationWarning):
+            connection.bio_write(u'deprecated')
 
     def test_get_context(self):
         """
@@ -2192,7 +2222,7 @@ class TestConnection(object):
         with pytest.raises(TypeError):
             conn.set_tlsext_host_name(b"with\0null")
 
-        if PY3:
+        if not PY2:
             # On Python 3.x, don't accidentally implicitly convert from text.
             with pytest.raises(TypeError):
                 conn.set_tlsext_host_name(b"example.com".decode("ascii"))
@@ -2221,7 +2251,7 @@ class TestConnection(object):
         `Connection.connect` raises `TypeError` if called with a non-address
         argument.
         """
-        connection = Connection(Context(TLSv1_METHOD), socket())
+        connection = Connection(Context(TLSv1_METHOD), socket_any_family())
         with pytest.raises(TypeError):
             connection.connect(None)
 
@@ -2230,13 +2260,13 @@ class TestConnection(object):
         `Connection.connect` raises `socket.error` if the underlying socket
         connect method raises it.
         """
-        client = socket()
+        client = socket_any_family()
         context = Context(TLSv1_METHOD)
         clientSSL = Connection(context, client)
         # pytest.raises here doesn't work because of a bug in py.test on Python
         # 2.6: https://github.com/pytest-dev/pytest/issues/988
         try:
-            clientSSL.connect(("127.0.0.1", 1))
+            clientSSL.connect((loopback_address(client), 1))
         except error as e:
             exc = e
         assert exc.args[0] == ECONNREFUSED
@@ -2245,12 +2275,12 @@ class TestConnection(object):
         """
         `Connection.connect` establishes a connection to the specified address.
         """
-        port = socket()
+        port = socket_any_family()
         port.bind(('', 0))
         port.listen(3)
 
-        clientSSL = Connection(Context(TLSv1_METHOD), socket())
-        clientSSL.connect(('127.0.0.1', port.getsockname()[1]))
+        clientSSL = Connection(Context(TLSv1_METHOD), socket(port.family))
+        clientSSL.connect((loopback_address(port), port.getsockname()[1]))
         # XXX An assertion?  Or something?
 
     @pytest.mark.skipif(
@@ -2262,11 +2292,11 @@ class TestConnection(object):
         If there is a connection error, `Connection.connect_ex` returns the
         errno instead of raising an exception.
         """
-        port = socket()
+        port = socket_any_family()
         port.bind(('', 0))
         port.listen(3)
 
-        clientSSL = Connection(Context(TLSv1_METHOD), socket())
+        clientSSL = Connection(Context(TLSv1_METHOD), socket(port.family))
         clientSSL.setblocking(False)
         result = clientSSL.connect_ex(port.getsockname())
         expected = (EINPROGRESS, EWOULDBLOCK)
@@ -2281,16 +2311,16 @@ class TestConnection(object):
         ctx = Context(TLSv1_METHOD)
         ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
         ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
-        port = socket()
+        port = socket_any_family()
         portSSL = Connection(ctx, port)
         portSSL.bind(('', 0))
         portSSL.listen(3)
 
-        clientSSL = Connection(Context(TLSv1_METHOD), socket())
+        clientSSL = Connection(Context(TLSv1_METHOD), socket(port.family))
 
         # Calling portSSL.getsockname() here to get the server IP address
         # sounds great, but frequently fails on Windows.
-        clientSSL.connect(('127.0.0.1', portSSL.getsockname()[1]))
+        clientSSL.connect((loopback_address(port), portSSL.getsockname()[1]))
 
         serverSSL, address = portSSL.accept()
 
@@ -2363,18 +2393,8 @@ class TestConnection(object):
         `Connection.set_shutdown` sets the state of the SSL connection
         shutdown process.
         """
-        connection = Connection(Context(TLSv1_METHOD), socket())
+        connection = Connection(Context(TLSv1_METHOD), socket_any_family())
         connection.set_shutdown(RECEIVED_SHUTDOWN)
-        assert connection.get_shutdown() == RECEIVED_SHUTDOWN
-
-    @skip_if_py3
-    def test_set_shutdown_long(self):
-        """
-        On Python 2 `Connection.set_shutdown` accepts an argument
-        of type `long` as well as `int`.
-        """
-        connection = Connection(Context(TLSv1_METHOD), socket())
-        connection.set_shutdown(long(RECEIVED_SHUTDOWN))
         assert connection.get_shutdown() == RECEIVED_SHUTDOWN
 
     def test_state_string(self):
@@ -2834,22 +2854,6 @@ class TestConnection(object):
         data = conn.bio_read(2)
         assert 2 == len(data)
 
-    @skip_if_py3
-    def test_buffer_size_long(self):
-        """
-        On Python 2 `Connection.bio_read` accepts values of type `long` as
-        well as `int`.
-        """
-        ctx = Context(TLSv1_METHOD)
-        conn = Connection(ctx, None)
-        conn.set_connect_state()
-        try:
-            conn.do_handshake()
-        except WantReadError:
-            pass
-        data = conn.bio_read(long(2))
-        assert 2 == len(data)
-
 
 class TestConnectionGetCipherList(object):
     """
@@ -2887,6 +2891,8 @@ class TestConnectionSend(object):
         connection = Connection(Context(TLSv1_METHOD), None)
         with pytest.raises(TypeError):
             connection.send(object())
+        with pytest.raises(TypeError):
+            connection.send([1, 2, 3])
 
     def test_short_bytes(self):
         """
@@ -2922,6 +2928,16 @@ class TestConnectionSend(object):
         """
         server, client = loopback()
         count = server.send(memoryview(b'xy'))
+        assert count == 2
+        assert client.recv(2) == b'xy'
+
+    def test_short_bytearray(self):
+        """
+        When passed a short bytearray, `Connection.send` transmits all of
+        it and returns the number of bytes sent.
+        """
+        server, client = loopback()
+        count = server.send(bytearray(b'xy'))
         assert count == 2
         assert client.recv(2) == b'xy'
 
@@ -3095,6 +3111,8 @@ class TestConnectionSendall(object):
         connection = Connection(Context(TLSv1_METHOD), None)
         with pytest.raises(TypeError):
             connection.sendall(object())
+        with pytest.raises(TypeError):
+            connection.sendall([1, 2, 3])
 
     def test_short(self):
         """
@@ -3136,8 +3154,9 @@ class TestConnectionSendall(object):
         `Connection.sendall` transmits all of them.
         """
         server, client = loopback()
-        server.sendall(buffer(b'x'))  # noqa: F821
-        assert client.recv(1) == b'x'
+        count = server.sendall(buffer(b'xy'))  # noqa: F821
+        assert count == 2
+        assert client.recv(2) == b'xy'
 
     def test_long(self):
         """
@@ -3487,7 +3506,7 @@ class TestMemoryBIO(object):
         work on `OpenSSL.SSL.Connection`() that use sockets.
         """
         context = Context(TLSv1_METHOD)
-        client = socket()
+        client = socket_any_family()
         clientSSL = Connection(context, client)
         with pytest.raises(TypeError):
             clientSSL.bio_read(100)

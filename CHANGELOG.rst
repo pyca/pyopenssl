@@ -4,16 +4,16 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
-19.1.0 (UNRELEASED)
+20.0.0 (UNRELEASED)
 -------------------
 
 
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Removed deprecated ``ContextType``, ``ConnectionType``, ``PKeyType``, ``X509NameType``, ``X509ReqType``, ``X509Type``, ``X509StoreType``, ``CRLType``, ``PKCS7Type``, ``PKCS12Type``, and ``NetscapeSPKIType`` aliases.
-  Use the classes without the ``Type`` suffix instead.
-  `#814 <https://github.com/pyca/pyopenssl/pull/814>`_
+- Remove deprecated ``OpenSSL.tsafe`` module.
+- Drop support for Python 3.4
+- Drop support for OpenSSL 1.0.1
 
 Deprecations:
 ^^^^^^^^^^^^^
@@ -25,6 +25,36 @@ Changes:
 ^^^^^^^^
 
 *none*
+
+
+19.1.0 (2019-11-18)
+-------------------
+
+
+Backward-incompatible changes:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Removed deprecated ``ContextType``, ``ConnectionType``, ``PKeyType``, ``X509NameType``, ``X509ReqType``, ``X509Type``, ``X509StoreType``, ``CRLType``, ``PKCS7Type``, ``PKCS12Type``, and ``NetscapeSPKIType`` aliases.
+  Use the classes without the ``Type`` suffix instead.
+  `#814 <https://github.com/pyca/pyopenssl/pull/814>`_
+- The minimum ``cryptography`` version is now 2.8 due to issues on macOS with a transitive dependency.
+  `#875 <https://github.com/pyca/pyopenssl/pull/875>`_
+
+Deprecations:
+^^^^^^^^^^^^^
+
+- Deprecated ``OpenSSL.SSL.Context.set_npn_advertise_callback``, ``OpenSSL.SSL.Context.set_npn_select_callback``, and ``OpenSSL.SSL.Connection.get_next_proto_negotiated``.
+  ALPN should be used instead.
+  `#820 <https://github.com/pyca/pyopenssl/pull/820>`_
+
+
+Changes:
+^^^^^^^^
+
+- Support ``bytearray`` in ``SSL.Connection.send()`` by using cffi's from_buffer.
+  `#852 <https://github.com/pyca/pyopenssl/pull/852>`_
+- The ``OpenSSL.SSL.Context.set_alpn_select_callback`` can return a new ``NO_OVERLAPPING_PROTOCOLS`` sentinel value
+  to allow a TLS handshake to complete without an application protocol.
 
 
 ----

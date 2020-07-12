@@ -74,6 +74,7 @@ Context, Connection.
              OP_NO_TLSv1
              OP_NO_TLSv1_1
              OP_NO_TLSv1_2
+             OP_NO_TLSv1_3
 
     Constants used with :py:meth:`set_options` of Context objects.
 
@@ -116,6 +117,15 @@ Context, Connection.
     An integer giving the version number of the OpenSSL library used to build this
     version of pyOpenSSL.  See the man page for the :py:func:`SSLeay_version` C API
     for details.
+
+
+.. py:data:: NO_OVERLAPPING_PROTOCOLS
+
+    A sentinel value that can be returned by the callback passed to
+    :py:meth:`Context.set_alpn_select_callback` to indicate that
+    the handshake can continue without a specific application protocol.
+
+    .. versionadded:: 19.1
 
 
 .. autofunction:: SSLeay_version

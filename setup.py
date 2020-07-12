@@ -64,8 +64,6 @@ if __name__ == "__main__":
         long_description=LONG,
         author=find_meta("author"),
         author_email=find_meta("email"),
-        maintainer="Hynek Schlawack",
-        maintainer_email="hs@ox.cx",
         url=URI,
         license=find_meta("license"),
         classifiers=[
@@ -79,10 +77,10 @@ if __name__ == "__main__":
             'Programming Language :: Python :: 2',
             'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.4',
             'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
 
             'Programming Language :: Python :: Implementation :: CPython',
             'Programming Language :: Python :: Implementation :: PyPy',
@@ -90,12 +88,13 @@ if __name__ == "__main__":
             'Topic :: Software Development :: Libraries :: Python Modules',
             'Topic :: System :: Networking',
         ],
+        python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*',
 
         packages=find_packages(where="src"),
         package_dir={"": "src"},
         install_requires=[
             # Fix cryptographyMinimum in tox.ini when changing this!
-            "cryptography>=2.3",
+            "cryptography>=2.8",
             "six>=1.5.2"
         ],
         extras_require={

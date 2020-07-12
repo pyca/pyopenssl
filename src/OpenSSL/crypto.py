@@ -7,7 +7,7 @@ from operator import __eq__, __ne__, __lt__, __le__, __gt__, __ge__
 from six import (
     integer_types as _integer_types,
     text_type as _text_type,
-    PY3 as _PY3)
+    PY2 as _PY2)
 
 from cryptography import x509
 from cryptography.hazmat.primitives.asymmetric import dsa, rsa
@@ -345,7 +345,7 @@ class PKey(object):
         rsa = _lib.EVP_PKEY_get1_RSA(self._pkey)
         rsa = _ffi.gc(rsa, _lib.RSA_free)
         result = _lib.RSA_check_key(rsa)
-        if result:
+        if result == 1:
             return True
         _raise_current_error()
 
@@ -377,7 +377,7 @@ class _EllipticCurve(object):
     """
     _curves = None
 
-    if _PY3:
+    if not _PY2:
         # This only necessary on Python 3.  Morever, it is broken on Python 2.
         def __ne__(self, other):
             """
@@ -1819,7 +1819,7 @@ def dump_certificate(type, cert):
             "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or "
             "FILETYPE_TEXT")
 
-    assert result_code == 1
+    _openssl_assert(result_code == 1)
     return _bio_to_string(bio)
 
 
@@ -2893,7 +2893,7 @@ def dump_crl(type, crl):
             "type argument must be FILETYPE_PEM, FILETYPE_ASN1, or "
             "FILETYPE_TEXT")
 
-    assert ret == 1
+    _openssl_assert(ret == 1)
     return _bio_to_string(bio)
 
 
