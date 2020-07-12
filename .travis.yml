@@ -1,5 +1,5 @@
+os: linux
 dist: xenial
-sudo: true
 language: python
 
 cache:
@@ -10,7 +10,7 @@ env:
   global:
     - LC_ALL=en_US.UTF-8
 
-matrix:
+jobs:
   include:
   - language: generic
     os: osx
