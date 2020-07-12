@@ -86,6 +86,10 @@ from .test_crypto import (
     client_cert_pem, client_key_pem, server_cert_pem, server_key_pem,
     root_cert_pem)
 
+try:
+    buffer
+except NameError:
+    buffer = bytes
 
 # openssl dhparam 1024 -out dh-1024.pem (note that 1024 is a small number of
 # bits to use)
