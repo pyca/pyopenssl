@@ -86,10 +86,6 @@ from .test_crypto import (
     client_cert_pem, client_key_pem, server_cert_pem, server_key_pem,
     root_cert_pem)
 
-try:
-    buffer
-except NameError:
-    buffer = bytes
 
 # openssl dhparam 1024 -out dh-1024.pem (note that 1024 is a small number of
 # bits to use)
@@ -2937,7 +2933,7 @@ class TestConnectionSend(object):
         of bytes sent.
         """
         server, client = loopback()
-        count = server.send(buffer(b'xy'))
+        count = server.send(buffer(b'xy'))  # noqa: F821
         assert count == 2
         assert client.recv(2) == b'xy'
 
@@ -3140,7 +3136,7 @@ class TestConnectionSendall(object):
         `Connection.sendall` transmits all of them.
         """
         server, client = loopback()
-        server.sendall(buffer(b'x'))
+        server.sendall(buffer(b'x'))  # noqa: F821
         assert client.recv(1) == b'x'
 
     def test_long(self):
