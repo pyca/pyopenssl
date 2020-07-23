@@ -14,23 +14,24 @@ from threading import Thread
 
 from OpenSSL.SSL import Connection, Context, TLSv1_METHOD
 
+
 def send(conn):
     while 1:
         for i in xrange(1024 * 32):
-            conn.send('x')
-        print 'Sent 32KB on', hex(id(conn))
+            conn.send("x")
+        print "Sent 32KB on", hex(id(conn))
 
 
 def recv(conn):
     while 1:
         for i in xrange(1024 * 64):
             conn.recv(1)
-        print 'Received 64KB on', hex(id(conn))
+        print "Received 64KB on", hex(id(conn))
 
 
 def main():
     port = socket()
-    port.bind(('', 0))
+    port.bind(("", 0))
     port.listen(5)
 
     client = socket()
@@ -41,15 +42,15 @@ def main():
     server = port.accept()[0]
 
     clientCtx = Context(TLSv1_METHOD)
-    clientCtx.set_cipher_list('ALL:ADH')
-    clientCtx.load_tmp_dh('dhparam.pem')
+    clientCtx.set_cipher_list("ALL:ADH")
+    clientCtx.load_tmp_dh("dhparam.pem")
 
     sslClient = Connection(clientCtx, client)
     sslClient.set_connect_state()
 
     serverCtx = Context(TLSv1_METHOD)
-    serverCtx.set_cipher_list('ALL:ADH')
-    serverCtx.load_tmp_dh('dhparam.pem')
+    serverCtx.set_cipher_list("ALL:ADH")
+    serverCtx.load_tmp_dh("dhparam.pem")
 
     sslServer = Connection(serverCtx, server)
     sslServer.set_accept_state()
@@ -67,5 +68,6 @@ def main():
     t2.join()
     t3.join()
     t4.join()
+
 
 main()
