@@ -11,11 +11,7 @@ from OpenSSL import rand
 
 
 class TestRand(object):
-
-    @pytest.mark.parametrize('args', [
-        (b"foo", None),
-        (None, 3),
-    ])
+    @pytest.mark.parametrize("args", [(b"foo", None), (None, 3)])
     def test_add_wrong_args(self, args):
         """
         `OpenSSL.rand.add` raises `TypeError` if called with arguments not of
@@ -28,7 +24,7 @@ class TestRand(object):
         """
         `OpenSSL.rand.add` adds entropy to the PRNG.
         """
-        rand.add(b'hamburger', 3)
+        rand.add(b"hamburger", 3)
 
     def test_status(self):
         """

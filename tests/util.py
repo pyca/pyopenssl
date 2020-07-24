@@ -59,7 +59,7 @@ class EqualityTestsMixin(object):
         An object compares equal to itself using the C{==} operator.
         """
         o = self.anInstance()
-        assert (o == o)
+        assert o == o
 
     def test_identicalNe(self):
         """
@@ -75,7 +75,7 @@ class EqualityTestsMixin(object):
         """
         a = self.anInstance()
         b = self.anInstance()
-        assert (a == b)
+        assert a == b
 
     def test_sameNe(self):
         """
@@ -102,7 +102,7 @@ class EqualityTestsMixin(object):
         """
         a = self.anInstance()
         b = self.anotherInstance()
-        assert (a != b)
+        assert a != b
 
     def test_anotherTypeEq(self):
         """
@@ -120,13 +120,14 @@ class EqualityTestsMixin(object):
         """
         a = self.anInstance()
         b = object()
-        assert (a != b)
+        assert a != b
 
     def test_delegatedEq(self):
         """
         The result of comparison using C{==} is delegated to the right-hand
         operand if it is of an unrelated type.
         """
+
         class Delegate(object):
             def __eq__(self, other):
                 # Do something crazy and obvious.
@@ -141,6 +142,7 @@ class EqualityTestsMixin(object):
         The result of comparison using C{!=} is delegated to the right-hand
         operand if it is of an unrelated type.
         """
+
         class Delegate(object):
             def __ne__(self, other):
                 # Do something crazy and obvious.

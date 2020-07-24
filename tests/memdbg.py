@@ -5,8 +5,8 @@ import traceback
 from cffi import api as _api
 
 
-sys.modules['ssl'] = None
-sys.modules['_hashlib'] = None
+sys.modules["ssl"] = None
+sys.modules["_hashlib"] = None
 
 
 _ffi = _api.FFI()
@@ -16,18 +16,22 @@ _ffi.cdef(
     void free(void *ptr);
     void *realloc(void *ptr, size_t size);
 
-    int  CRYPTO_set_mem_functions(void *(*m)(size_t),void *(*r)(void *,size_t), void (*f)(void *));
+    int  CRYPTO_set_mem_functions(
+        void *(*m)(size_t),void *(*r)(void *,size_t), void (*f)(void *));
 
     int backtrace(void **buffer, int size);
     char **backtrace_symbols(void *const *buffer, int size);
     void backtrace_symbols_fd(void *const *buffer, int size, int fd);
-    """)  # noqa
+    """
+)  # noqa
 _api = _ffi.verify(
     """
     #include <openssl/crypto.h>
     #include <stdlib.h>
     #include <execinfo.h>
-    """, libraries=["crypto"])
+    """,
+    libraries=["crypto"],
+)
 C = _ffi.dlopen(None)
 
 verbose = False
@@ -80,8 +84,8 @@ def free(p):
 
 
 if _api.CRYPTO_set_mem_functions(malloc, realloc, free):
-    log('Enabled memory debugging')
+    log("Enabled memory debugging")
     heap = {}
 else:
-    log('Failed to enable memory debugging')
+    log("Failed to enable memory debugging")
     heap = None

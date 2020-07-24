@@ -4,11 +4,19 @@
 import sys
 
 from OpenSSL.crypto import (
-    FILETYPE_PEM, TYPE_DSA, Error, PKey, X509, load_privatekey, CRL, Revoked,
-    get_elliptic_curves, _X509_REVOKED_dup)
+    FILETYPE_PEM,
+    TYPE_DSA,
+    Error,
+    PKey,
+    X509,
+    load_privatekey,
+    CRL,
+    Revoked,
+    get_elliptic_curves,
+    _X509_REVOKED_dup,
+)
 
 from OpenSSL._util import lib as _lib
-
 
 
 class BaseChecker(object):
@@ -16,11 +24,11 @@ class BaseChecker(object):
         self.iterations = iterations
 
 
-
 class Checker_X509_get_pubkey(BaseChecker):
     """
     Leak checks for L{X509.get_pubkey}.
     """
+
     def check_exception(self):
         """
         Call the method repeatedly such that it will raise an exception.
@@ -31,7 +39,6 @@ class Checker_X509_get_pubkey(BaseChecker):
                 cert.get_pubkey()
             except Error:
                 pass
-
 
     def check_success(self):
         """
@@ -48,11 +55,11 @@ class Checker_X509_get_pubkey(BaseChecker):
                     cert.get_pubkey()
 
 
-
 class Checker_load_privatekey(BaseChecker):
     """
     Leak checks for :py:obj:`load_privatekey`.
     """
+
     ENCRYPTED_PEM = """\
 -----BEGIN RSA PRIVATE KEY-----
 Proc-Type: 4,ENCRYPTED
@@ -67,14 +74,15 @@ FCB5K3c2kkTv2KjcCAimjxkE+SBKfHg35W0wB0AWkXpVFO5W/TbHg4tqtkpt/KMn
 /MPnSxvYr/vEqYMfW4Y83c45iqK0Cyr2pwY60lcn8Kk=
 -----END RSA PRIVATE KEY-----
 """
+
     def check_load_privatekey_callback(self):
         """
         Call the function with an encrypted PEM and a passphrase callback.
         """
         for i in xrange(self.iterations * 10):
             load_privatekey(
-                FILETYPE_PEM, self.ENCRYPTED_PEM, lambda *args: "hello, secret")
-
+                FILETYPE_PEM, self.ENCRYPTED_PEM, lambda *args: "hello, secret"
+            )
 
     def check_load_privatekey_callback_incorrect(self):
         """
@@ -84,11 +92,12 @@ FCB5K3c2kkTv2KjcCAimjxkE+SBKfHg35W0wB0AWkXpVFO5W/TbHg4tqtkpt/KMn
         for i in xrange(self.iterations * 10):
             try:
                 load_privatekey(
-                    FILETYPE_PEM, self.ENCRYPTED_PEM,
-                    lambda *args: "hello, public")
+                    FILETYPE_PEM,
+                    self.ENCRYPTED_PEM,
+                    lambda *args: "hello, public",
+                )
             except Error:
                 pass
-
 
     def check_load_privatekey_callback_wrong_type(self):
         """
@@ -98,24 +107,23 @@ FCB5K3c2kkTv2KjcCAimjxkE+SBKfHg35W0wB0AWkXpVFO5W/TbHg4tqtkpt/KMn
         for i in xrange(self.iterations * 10):
             try:
                 load_privatekey(
-                    FILETYPE_PEM, self.ENCRYPTED_PEM,
-                    lambda *args: {})
+                    FILETYPE_PEM, self.ENCRYPTED_PEM, lambda *args: {}
+                )
             except ValueError:
                 pass
-
 
 
 class Checker_CRL(BaseChecker):
     """
     Leak checks for L{CRL.add_revoked} and L{CRL.get_revoked}.
     """
+
     def check_add_revoked(self):
         """
         Call the add_revoked method repeatedly on an empty CRL.
         """
         for i in xrange(self.iterations * 200):
             CRL().add_revoked(Revoked())
-
 
     def check_get_revoked(self):
         """
@@ -129,11 +137,11 @@ class Checker_CRL(BaseChecker):
             crl.get_revoked()
 
 
-
 class Checker_X509_REVOKED_dup(BaseChecker):
     """
     Leak checks for :py:obj:`_X509_REVOKED_dup`.
     """
+
     def check_X509_REVOKED_dup(self):
         """
         Copy an empty Revoked object repeatedly. The copy is not garbage
@@ -144,11 +152,11 @@ class Checker_X509_REVOKED_dup(BaseChecker):
             _lib.X509_REVOKED_free(revoked_copy)
 
 
-
 class Checker_EllipticCurve(BaseChecker):
     """
     Leak checks for :py:obj:`_EllipticCurve`.
     """
+
     def check_to_EC_KEY(self):
         """
         Repeatedly create an EC_KEY* from an :py:obj:`_EllipticCurve`.  The
@@ -162,22 +170,22 @@ class Checker_EllipticCurve(BaseChecker):
 
 
 def vmsize():
-    return [x for x in file('/proc/self/status').readlines() if 'VmSize' in x]
+    return [x for x in file("/proc/self/status").readlines() if "VmSize" in x]
 
 
-def main(iterations='1000'):
+def main(iterations="1000"):
     iterations = int(iterations)
     for klass in globals():
-        if klass.startswith('Checker_'):
+        if klass.startswith("Checker_"):
             klass = globals()[klass]
             print klass
             checker = klass(iterations)
             for meth in dir(checker):
-                if meth.startswith('check_'):
-                    print '\t', meth, vmsize(), '...',
+                if meth.startswith("check_"):
+                    print "\t", meth, vmsize(), "...",
                     getattr(checker, meth)()
                     print vmsize()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(*sys.argv[1:])

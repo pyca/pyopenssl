@@ -36,8 +36,7 @@ def find_meta(meta):
     Extract __*meta*__ from META_FILE.
     """
     meta_match = re.search(
-        r"^__{meta}__ = ['\"]([^'\"]*)['\"]".format(meta=meta),
-        META_FILE, re.M
+        r"^__{meta}__ = ['\"]([^'\"]*)['\"]".format(meta=meta), META_FILE, re.M
     )
     if meta_match:
         return meta_match.group(1)
@@ -46,13 +45,17 @@ def find_meta(meta):
 
 URI = find_meta("uri")
 LONG = (
-    read_file("README.rst") + "\n\n" +
-    "Release Information\n" +
-    "===================\n\n" +
-    re.search(r"(\d{2}.\d.\d \(.*?\)\n.*?)\n\n\n----\n",
-              read_file("CHANGELOG.rst"), re.S).group(1) +
-    "\n\n`Full changelog " +
-    "<{uri}en/stable/changelog.html>`_.\n\n"
+    read_file("README.rst")
+    + "\n\n"
+    + "Release Information\n"
+    + "===================\n\n"
+    + re.search(
+        r"(\d{2}.\d.\d \(.*?\)\n.*?)\n\n\n----\n",
+        read_file("CHANGELOG.rst"),
+        re.S,
+    ).group(1)
+    + "\n\n`Full changelog "
+    + "<{uri}en/stable/changelog.html>`_.\n\n"
 ).format(uri=URI)
 
 
@@ -67,45 +70,35 @@ if __name__ == "__main__":
         url=URI,
         license=find_meta("license"),
         classifiers=[
-            'Development Status :: 6 - Mature',
-            'Intended Audience :: Developers',
-            'License :: OSI Approved :: Apache Software License',
-            'Operating System :: MacOS :: MacOS X',
-            'Operating System :: Microsoft :: Windows',
-            'Operating System :: POSIX',
-
-            'Programming Language :: Python :: 2',
-            'Programming Language :: Python :: 2.7',
-            'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.5',
-            'Programming Language :: Python :: 3.6',
-            'Programming Language :: Python :: 3.7',
-            'Programming Language :: Python :: 3.8',
-
-            'Programming Language :: Python :: Implementation :: CPython',
-            'Programming Language :: Python :: Implementation :: PyPy',
-            'Topic :: Security :: Cryptography',
-            'Topic :: Software Development :: Libraries :: Python Modules',
-            'Topic :: System :: Networking',
+            "Development Status :: 6 - Mature",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: Apache Software License",
+            "Operating System :: MacOS :: MacOS X",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Programming Language :: Python :: Implementation :: PyPy",
+            "Topic :: Security :: Cryptography",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+            "Topic :: System :: Networking",
         ],
-        python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*',
-
+        python_requires=">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*",
         packages=find_packages(where="src"),
         package_dir={"": "src"},
         install_requires=[
             # Fix cryptographyMinimum in tox.ini when changing this!
             "cryptography>=2.8",
-            "six>=1.5.2"
+            "six>=1.5.2",
         ],
         extras_require={
-            "test": [
-                "flaky",
-                "pretend",
-                "pytest>=3.0.1",
-            ],
-            "docs": [
-                "sphinx",
-                "sphinx_rtd_theme",
-            ]
+            "test": ["flaky", "pretend", "pytest>=3.0.1"],
+            "docs": ["sphinx", "sphinx_rtd_theme"],
         },
     )

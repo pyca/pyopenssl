@@ -7,6 +7,7 @@ class TestErrors(object):
     """
     Tests for handling of certain OpenSSL error cases.
     """
+
     def test_exception_from_error_queue_nonexistent_reason(self):
         """
         :func:`exception_from_error_queue` raises ``ValueError`` when it
