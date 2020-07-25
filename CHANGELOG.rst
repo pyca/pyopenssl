@@ -19,6 +19,8 @@ Backward-incompatible changes:
 Deprecations:
 ^^^^^^^^^^^^^
 
+- Deprecated ``OpenSSL.crypto.loads_pkcs7`` and ``OpenSSL.crypto.loads_pkcs12``.
+
 *none*
 
 
