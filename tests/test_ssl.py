@@ -1003,7 +1003,7 @@ class TestContext(object):
 
     @pytest.mark.skipif(
         not getattr(_lib, "Cryptography_HAS_KEYLOG", None),
-        reason="SSL_CTX_set_keylog_callback unavailable"
+        reason="SSL_CTX_set_keylog_callback unavailable",
     )
     def test_set_keylog_callback(self):
         """

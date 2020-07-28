@@ -1358,19 +1358,16 @@ class Context(object):
             debugging output.
         :return: None
         """
+
         @wraps(callback)
         def wrapper(ssl, line):
             line = _ffi.string(line)
             callback(Connection._reverse_mapping[ssl], line)
 
         self._keylog_callback = _ffi.callback(
-            "void (*)(const SSL *, const char *)",
-            wrapper
+            "void (*)(const SSL *, const char *)", wrapper
         )
-        _lib.SSL_CTX_set_keylog_callback(
-            self._context,
-            self._keylog_callback
-        )
+        _lib.SSL_CTX_set_keylog_callback(self._context, self._keylog_callback)
 
     def get_app_data(self):
         """
