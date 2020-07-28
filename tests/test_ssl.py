@@ -1001,6 +1001,37 @@ class TestContext(object):
             [] == notConnections
         ), "Some info callback arguments were not Connection instances."
 
+    @pytest.mark.skipif(
+        not getattr(_lib, "Cryptography_HAS_KEYLOG", None),
+        reason="SSL_CTX_set_keylog_callback unavailable",
+    )
+    def test_set_keylog_callback(self):
+        """
+        `Context.set_keylog_callback` accepts a callable which will be
+        invoked when key material is generated or received.
+        """
+        called = []
+
+        def keylog(conn, line):
+            called.append((conn, line))
+
+        server_context = Context(TLSv1_METHOD)
+        server_context.set_keylog_callback(keylog)
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+        )
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        )
+
+        client_context = Context(TLSv1_METHOD)
+
+        self._handshake_test(server_context, client_context)
+
+        assert called
+        assert all(isinstance(conn, Connection) for conn, line in called)
+        assert all(b"CLIENT_RANDOM" in line for conn, line in called)
+
     def _load_verify_locations_test(self, *args):
         """
         Create a client context which will verify the peer certificate and call
