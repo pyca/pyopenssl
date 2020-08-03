@@ -256,7 +256,7 @@ def _create_certificate_chain():
     cacert.set_notAfter(not_after)
     cacert.add_extensions([caext])
     cacert.set_serial_number(0)
-    cacert.sign(cakey, "sha1")
+    cacert.sign(cakey, "sha256")
 
     # Step 2
     ikey = PKey()
@@ -270,7 +270,7 @@ def _create_certificate_chain():
     icert.set_notAfter(not_after)
     icert.add_extensions([caext])
     icert.set_serial_number(0)
-    icert.sign(cakey, "sha1")
+    icert.sign(cakey, "sha256")
 
     # Step 3
     skey = PKey()
@@ -286,7 +286,7 @@ def _create_certificate_chain():
         [X509Extension(b"basicConstraints", True, b"CA:false")]
     )
     scert.set_serial_number(0)
-    scert.sign(ikey, "sha1")
+    scert.sign(ikey, "sha256")
 
     return [(cakey, cacert), (ikey, icert), (skey, scert)]
 
