@@ -151,7 +151,8 @@ jsvxvqVnkIhWeuP9GIb6XUhq74huGZ0Hpaxe6xG34QYiBpr/O3O/ew==
 -----END RSA PRIVATE KEY-----
 """
 
-root_key_der = base64.b64decode("""
+root_key_der = base64.b64decode(
+    """
 MIIG5AIBAAKCAYEAuljmNv5LsBRvH2DM3TrCSpR5v540tOMI4qh+IxOfxjROoIDZ
 nJjdcxw0ExohLuF0VOCaaq18We1ihvEsCX+3B9vP0CdFpUOHYfJS8e8wHEqfUdIM
 sAsu2p0XSlxciM/ThLs0o9BSaCS/YfQrBxSliWCNMW1dGI/7vANKJB4/VhVKuISg
@@ -189,7 +190,8 @@ yPAR2qxBqIJe2uY4pdVy3bMPJWOG7MR74hs6By6HmKfKVuqVAoHBAMRSefX1QtfS
 SsPYeYlPDCCvyJYGpR19QocYp6JCaemb7uMd6FuPHSHUgyoR4GS8PUuIbiRnpPxN
 4ta7VzmIZOCFu5e+vOq1NwTd0hR6sy5uNsTHV5ezOOqz2SB+yTRMDPr7cW0dMSJ8
 jsvxvqVnkIhWeuP9GIb6XUhq74huGZ0Hpaxe6xG34QYiBpr/O3O/ew=='
-""")
+"""
+)
 
 normalized_root_key_pem = normalize_privatekey_pem(root_key_pem)
 

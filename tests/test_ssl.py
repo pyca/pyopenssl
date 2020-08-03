@@ -683,9 +683,7 @@ class TestContext(object):
         # OpenSSL if the cert and key agree using check_privatekey.  Then as
         # long as check_privatekey works right we're good...
         ctx = Context(TLSv1_METHOD)
-        ctx.use_certificate(
-            load_certificate(FILETYPE_PEM, root_cert_pem)
-        )
+        ctx.use_certificate(load_certificate(FILETYPE_PEM, root_cert_pem))
 
     def test_use_certificate_file_wrong_args(self):
         """
@@ -974,12 +972,8 @@ class TestContext(object):
 
         context = Context(TLSv1_METHOD)
         context.set_info_callback(info)
-        context.use_certificate(
-            load_certificate(FILETYPE_PEM, root_cert_pem)
-        )
-        context.use_privatekey(
-            load_privatekey(FILETYPE_PEM, root_key_pem)
-        )
+        context.use_certificate(load_certificate(FILETYPE_PEM, root_cert_pem))
+        context.use_privatekey(load_privatekey(FILETYPE_PEM, root_key_pem))
 
         serverSSL = Connection(context, server)
         serverSSL.set_accept_state()
