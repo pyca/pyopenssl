@@ -2802,7 +2802,7 @@ class TestFunction(object):
         dumped_pem2 = dump_certificate(FILETYPE_PEM, cert2)
         assert dumped_pem2 == cleartextCertificatePEM
         dumped_text = dump_certificate(FILETYPE_TEXT, cert)
-        assert dumped_text.startswith(b"Certificate:")
+        assert len(dumped_text) > 500
 
     def test_dump_certificate_bad_type(self):
         """
@@ -2843,7 +2843,7 @@ class TestFunction(object):
         """
         key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
         dumped_text = dump_privatekey(FILETYPE_TEXT, key)
-        assert dumped_text.startswith(b"RSA Private")
+        assert len(dumped_text) > 500
 
     def test_dump_publickey_pem(self):
         """
@@ -2888,7 +2888,7 @@ class TestFunction(object):
         dumped_pem2 = dump_certificate_request(FILETYPE_PEM, req2)
         assert dumped_pem2 == cleartextCertificateRequestPEM
         dumped_text = dump_certificate_request(FILETYPE_TEXT, req)
-        assert dumped_text.startswith(b"Certificate Request")
+        assert len(dumped_text) > 500
         with pytest.raises(ValueError):
             dump_certificate_request(100, req)
 
@@ -3306,7 +3306,7 @@ class TestCRL(object):
         dumped_text = crl.export(
             self.cert, self.pkey, type=FILETYPE_TEXT, digest=b"md5"
         )
-        assert dumped_text.startswith(b"Certificate Revocation List")
+        assert len(dumped_text) > 500
 
     def test_export_custom_digest(self):
         """
