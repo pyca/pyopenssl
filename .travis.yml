@@ -104,8 +104,6 @@ jobs:
 install:
   - |
     if [[ "$(uname -s)" == 'Darwin' ]]; then
-      brew update
-      brew upgrade openssl@1.1
       curl -O https://bootstrap.pypa.io/get-pip.py
       python get-pip.py --user
       python -m pip install --user virtualenv
@@ -116,15 +114,7 @@ install:
     ~/.venv/bin/pip install tox coverage
 
 script:
-  - |
-    if [[ "$(uname -s)" == 'Darwin' ]]; then
-      # set our flags to use homebrew openssl
-      export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
-      export CFLAGS="-I/usr/local/opt/openssl@1.1/include"
-      export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
-    fi
-    openssl version
-    ~/.venv/bin/tox -v
+  - ~/.venv/bin/tox -v
 
 after_script:
   - ./.travis/upload_coverage.sh
