@@ -130,13 +130,12 @@ except ImportError:
 
 from .util import WARNING_TYPE_EXPECTED, NON_ASCII, is_consistent_type
 from .test_crypto import (
-    cleartextCertificatePEM,
-    cleartextPrivateKeyPEM,
     client_cert_pem,
     client_key_pem,
     server_cert_pem,
     server_key_pem,
     root_cert_pem,
+    root_key_pem,
 )
 
 
@@ -685,7 +684,7 @@ class TestContext(object):
         # long as check_privatekey works right we're good...
         ctx = Context(TLSv1_METHOD)
         ctx.use_certificate(
-            load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+            load_certificate(FILETYPE_PEM, root_cert_pem)
         )
 
     def test_use_certificate_file_wrong_args(self):
@@ -720,7 +719,7 @@ class TestContext(object):
         # OpenSSL if the cert and key agree using check_privatekey.  Then as
         # long as check_privatekey works right we're good...
         with open(certificate_file, "wb") as pem_file:
-            pem_file.write(cleartextCertificatePEM)
+            pem_file.write(root_cert_pem)
 
         ctx = Context(TLSv1_METHOD)
         ctx.use_certificate_file(certificate_file)
@@ -976,10 +975,10 @@ class TestContext(object):
         context = Context(TLSv1_METHOD)
         context.set_info_callback(info)
         context.use_certificate(
-            load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+            load_certificate(FILETYPE_PEM, root_cert_pem)
         )
         context.use_privatekey(
-            load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+            load_privatekey(FILETYPE_PEM, root_key_pem)
         )
 
         serverSSL = Connection(context, server)
@@ -1018,10 +1017,10 @@ class TestContext(object):
         server_context = Context(TLSv1_METHOD)
         server_context.set_keylog_callback(keylog)
         server_context.use_certificate(
-            load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+            load_certificate(FILETYPE_PEM, root_cert_pem)
         )
         server_context.use_privatekey(
-            load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+            load_privatekey(FILETYPE_PEM, root_key_pem)
         )
 
         client_context = Context(TLSv1_METHOD)
@@ -1054,10 +1053,10 @@ class TestContext(object):
 
         serverContext = Context(TLSv1_METHOD)
         serverContext.use_certificate(
-            load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+            load_certificate(FILETYPE_PEM, root_cert_pem)
         )
         serverContext.use_privatekey(
-            load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+            load_privatekey(FILETYPE_PEM, root_key_pem)
         )
 
         serverSSL = Connection(serverContext, server)
@@ -1080,7 +1079,7 @@ class TestContext(object):
         connections created using that `Context`.
         """
         with open(cafile, "w") as fObj:
-            fObj.write(cleartextCertificatePEM.decode("ascii"))
+            fObj.write(root_cert_pem.decode("ascii"))
 
         self._load_verify_locations_test(cafile)
 
@@ -1124,7 +1123,7 @@ class TestContext(object):
         for name in [b"c7adac82.0", b"c3705638.0"]:
             cafile = join_bytes_or_unicode(capath, name)
             with open(cafile, "w") as fObj:
-                fObj.write(cleartextCertificatePEM.decode("ascii"))
+                fObj.write(root_cert_pem.decode("ascii"))
 
         self._load_verify_locations_test(None, capath)
 
@@ -1308,10 +1307,10 @@ class TestContext(object):
         """
         serverContext = Context(TLSv1_METHOD)
         serverContext.use_privatekey(
-            load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+            load_privatekey(FILETYPE_PEM, root_key_pem)
         )
         serverContext.use_certificate(
-            load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+            load_certificate(FILETYPE_PEM, root_cert_pem)
         )
         serverConnection = Connection(serverContext, None)
 
@@ -1339,10 +1338,10 @@ class TestContext(object):
         """
         serverContext = Context(TLSv1_METHOD)
         serverContext.use_privatekey(
-            load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+            load_privatekey(FILETYPE_PEM, root_key_pem)
         )
         serverContext.use_certificate(
-            load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+            load_certificate(FILETYPE_PEM, root_cert_pem)
         )
         serverConnection = Connection(serverContext, None)
 
@@ -1365,10 +1364,10 @@ class TestContext(object):
         """
         serverContext = Context(TLSv1_2_METHOD)
         serverContext.use_privatekey(
-            load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+            load_privatekey(FILETYPE_PEM, root_key_pem)
         )
         serverContext.use_certificate(
-            load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+            load_certificate(FILETYPE_PEM, root_cert_pem)
         )
 
         clientContext = Context(TLSv1_2_METHOD)

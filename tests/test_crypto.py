@@ -1,4 +1,4 @@
-# Copyright (c) Jean-Paul Calderone
+# copyright (c) jean-paul calderone
 # See LICENSE file for details.
 
 """
@@ -250,46 +250,6 @@ D/9beFUw3MUXmQXZUfyYz39xf6CDZsu1GEdEC5haykeln3Of4M9d/4Kj+FcCQQCY
 si6xwT7GzMDkk/ko684AV3KPc/h6G0yGtFIrMg7J3uExpR/VdH2KgwMkZXisSMvw
 JJEQjOMCVsEJlRk54WWjAkEAzoZNH6UhDdBK5F38rVt/y4SEHgbSfJHIAmPS32Kq
 f6GGcfNpip0Uk7q7udTKuX7Q/buZi/C4YW7u3VKAquv9NA==
------END RSA PRIVATE KEY-----
-"""
-)
-
-cleartextCertificatePEM = b"""-----BEGIN CERTIFICATE-----
-MIIC6TCCAlKgAwIBAgIIPQzE4MbeufQwDQYJKoZIhvcNAQEFBQAwWDELMAkGA1UE
-BhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQHEwdDaGljYWdvMRAwDgYDVQQKEwdU
-ZXN0aW5nMRgwFgYDVQQDEw9UZXN0aW5nIFJvb3QgQ0EwHhcNMTcwNjExMjIzMjU5
-WhcNMzcwNjA2MjIzMjU5WjBYMQswCQYDVQQGEwJVUzELMAkGA1UECBMCSUwxEDAO
-BgNVBAcTB0NoaWNhZ28xEDAOBgNVBAoTB1Rlc3RpbmcxGDAWBgNVBAMTD1Rlc3Rp
-bmcgUm9vdCBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA+ZpC6Yu6ukTn
-bu5IQd0vWmpwNGZbO773xjpgfNP8nspYRqbIwI1np9FbUkJHvzZRDxrTt/LbFewr
-LhZ0prHIbwJxq3CZe+m9FDjh1IA0yKEcQukA1N3JWnoMLKwQPrCRAW6seUXV2yER
-onDxv/KkOGZtUijoKLXG8ImqK9ssWdsCAwEAAaOBuzCBuDAdBgNVHQ4EFgQUg1V3
-LV4h8UkMCSTnVAkSjch+BK4wgYgGA1UdIwSBgDB+gBSDVXctXiHxSQwJJOdUCRKN
-yH4ErqFcpFowWDELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQHEwdD
-aGljYWdvMRAwDgYDVQQKEwdUZXN0aW5nMRgwFgYDVQQDEw9UZXN0aW5nIFJvb3Qg
-Q0GCCD0MxODG3rn0MAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQEFBQADgYEANFYQ
-R+T70VcZ+SnvURnwviFgCXeedBzCr21meo+DNHbkp2gudB9W8Xrned/wtUBVymy9
-gjB5jINfU7Lci0H57Evsw96UJJVfhXdUMHpqt1RGCoEd9FWnrDyrSy0NysnBT2bH
-lEqxh3aFEUx9IOQ4sgnx1/NOFXBpkRtivl6O0Ec=
------END CERTIFICATE-----
-"""
-
-cleartextPrivateKeyPEM = normalize_privatekey_pem(
-    b"""\
------BEGIN RSA PRIVATE KEY-----
-MIICXQIBAAKBgQD5mkLpi7q6ROdu7khB3S9aanA0Zls7vvfGOmB80/yeylhGpsjA
-jWen0VtSQke/NlEPGtO38tsV7CsuFnSmschvAnGrcJl76b0UOOHUgDTIoRxC6QDU
-3claegwsrBA+sJEBbqx5RdXbIRGicPG/8qQ4Zm1SKOgotcbwiaor2yxZ2wIDAQAB
-AoGBAPCgMpmLxzwDaUmcFbTJUvlLW1hoxNNYSu2jIZm1k/hRAcE60JYwvBkgz3UB
-yMEh0AtLxYe0bFk6EHah11tMUPgscbCq73snJ++8koUw+csk22G65hOs51bVb7Aa
-6JBe67oLzdtvgCUFAA2qfrKzWRZzAdhUirQUZgySZk+Xq1pBAkEA/kZG0A6roTSM
-BVnx7LnPfsycKUsTumorpXiylZJjTi9XtmzxhrYN6wgZlDOOwOLgSQhszGpxVoMD
-u3gByT1b2QJBAPtL3mSKdvwRu/+40zaZLwvSJRxaj0mcE4BJOS6Oqs/hS1xRlrNk
-PpQ7WJ4yM6ZOLnXzm2mKyxm50Mv64109FtMCQQDOqS2KkjHaLowTGVxwC0DijMfr
-I9Lf8sSQk32J5VWCySWf5gGTfEnpmUa41gKTMJIbqZZLucNuDcOtzUaeWZlZAkA8
-ttXigLnCqR486JDPTi9ZscoZkZ+w7y6e/hH8t6d5Vjt48JVyfjPIaJY+km58LcN3
-6AWSeGAdtRFHVzR7oHjVAkB4hutvxiOeiIVQNBhM6RSI9aBPMI21DoX2JRoxvNW2
-cbvAhow217X9V0dVerEOKxnNYspXRrh36h7k4mQA+sDq
 -----END RSA PRIVATE KEY-----
 """
 )
@@ -859,7 +819,7 @@ class TestPKey(object):
         """
         PKey.to_cryptography_key creates a proper cryptography private key.
         """
-        pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        pkey = load_privatekey(FILETYPE_PEM, root_key_pem)
         key = pkey.to_cryptography_key()
 
         assert isinstance(key, rsa.RSAPrivateKey)
@@ -1460,7 +1420,7 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         key which signed the request.
         """
         request = X509Req()
-        pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        pkey = load_privatekey(FILETYPE_PEM, root_key_pem)
         request.sign(pkey, GOOD_DIGEST)
         another_pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
         with pytest.raises(Error):
@@ -1472,7 +1432,7 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         which represents the public part of the key which signed the request.
         """
         request = X509Req()
-        pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        pkey = load_privatekey(FILETYPE_PEM, root_key_pem)
         request.sign(pkey, GOOD_DIGEST)
         assert request.verify(pkey)
 
@@ -1500,28 +1460,7 @@ class TestX509(_PKeyInteractionTestsMixin):
     Tests for `OpenSSL.crypto.X509`.
     """
 
-    pemData = cleartextCertificatePEM + cleartextPrivateKeyPEM
-
-    extpem = """
------BEGIN CERTIFICATE-----
-MIIC3jCCAkegAwIBAgIJAJHFjlcCgnQzMA0GCSqGSIb3DQEBBQUAMEcxCzAJBgNV
-BAYTAlNFMRUwEwYDVQQIEwxXZXN0ZXJib3R0b20xEjAQBgNVBAoTCUNhdGFsb2dp
-eDENMAsGA1UEAxMEUm9vdDAeFw0wODA0MjIxNDQ1MzhaFw0wOTA0MjIxNDQ1Mzha
-MFQxCzAJBgNVBAYTAlNFMQswCQYDVQQIEwJXQjEUMBIGA1UEChMLT3Blbk1ldGFk
-aXIxIjAgBgNVBAMTGW5vZGUxLm9tMi5vcGVubWV0YWRpci5vcmcwgZ8wDQYJKoZI
-hvcNAQEBBQADgY0AMIGJAoGBAPIcQMrwbk2nESF/0JKibj9i1x95XYAOwP+LarwT
-Op4EQbdlI9SY+uqYqlERhF19w7CS+S6oyqx0DRZSk4Y9dZ9j9/xgm2u/f136YS1u
-zgYFPvfUs6PqYLPSM8Bw+SjJ+7+2+TN+Tkiof9WP1cMjodQwOmdsiRbR0/J7+b1B
-hec1AgMBAAGjgcQwgcEwCQYDVR0TBAIwADAsBglghkgBhvhCAQ0EHxYdT3BlblNT
-TCBHZW5lcmF0ZWQgQ2VydGlmaWNhdGUwHQYDVR0OBBYEFIdHsBcMVVMbAO7j6NCj
-03HgLnHaMB8GA1UdIwQYMBaAFL2h9Bf9Mre4vTdOiHTGAt7BRY/8MEYGA1UdEQQ/
-MD2CDSouZXhhbXBsZS5vcmeCESoub20yLmV4bWFwbGUuY29thwSC7wgKgRNvbTJA
-b3Blbm1ldGFkaXIub3JnMA0GCSqGSIb3DQEBBQUAA4GBALd7WdXkp2KvZ7/PuWZA
-MPlIxyjS+Ly11+BNE0xGQRp9Wz+2lABtpgNqssvU156+HkKd02rGheb2tj7MX9hG
-uZzbwDAZzJPjzDQDD7d3cWsrVcfIdqVU7epHqIadnOF+X0ghJ39pAm6VVadnSXCt
-WpOdIpB8KksUTCzV591Nr1wd
------END CERTIFICATE-----
-    """
+    pemData = root_cert_pem + root_key_pem
 
     def signable(self):
         """
@@ -2046,7 +1985,7 @@ class TestX509Store(object):
         """
         `X509Store.add_cert` adds a `X509` instance to the certificate store.
         """
-        cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+        cert = load_certificate(FILETYPE_PEM, root_cert_pem)
         store = X509Store()
         store.add_cert(cert)
 
@@ -2065,7 +2004,7 @@ class TestX509Store(object):
         `X509Store.add_cert` doesn't raise `OpenSSL.crypto.Error` if an attempt
         is made to add the same certificate to the store more than once.
         """
-        cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+        cert = load_certificate(FILETYPE_PEM, root_cert_pem)
         store = X509Store()
         store.add_cert(cert)
         store.add_cert(cert)
@@ -2075,8 +2014,6 @@ class TestPKCS12(object):
     """
     Test for `OpenSSL.crypto.PKCS12` and `OpenSSL.crypto.load_pkcs12`.
     """
-
-    pemData = cleartextCertificatePEM + cleartextPrivateKeyPEM
 
     def test_type(self):
         """
@@ -2122,7 +2059,7 @@ class TestPKCS12(object):
         """
         passwd = b"blah"
         p12 = PKCS12()
-        pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        pkey = load_privatekey(FILETYPE_PEM, root_key_pem)
         p12.set_privatekey(pkey)
         assert None is p12.get_certificate()
         assert pkey == p12.get_privatekey()
@@ -2148,7 +2085,7 @@ class TestPKCS12(object):
         """
         passwd = b"blah"
         p12 = PKCS12()
-        cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+        cert = load_certificate(FILETYPE_PEM, root_cert_pem)
         p12.set_certificate(cert)
         assert cert == p12.get_certificate()
         assert None is p12.get_privatekey()
@@ -2171,7 +2108,7 @@ class TestPKCS12(object):
         # it to.  At some point, hopefully this will change so that
         # p12.get_certificate() is actually what returns the loaded
         # certificate.
-        assert cleartextCertificatePEM == dump_certificate(
+        assert root_cert_pem == dump_certificate(
             FILETYPE_PEM, p12.get_ca_certificates()[0]
         )
 
@@ -2626,7 +2563,7 @@ class TestFunction(object):
         with a private key encoded in a format, that doesn't support
         encryption.
         """
-        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        key = load_privatekey(FILETYPE_PEM, root_key_pem)
         blob = dump_privatekey(FILETYPE_ASN1, key)
         with pytest.raises(ValueError):
             load_privatekey(FILETYPE_ASN1, blob, "secret")
@@ -2769,7 +2706,7 @@ class TestFunction(object):
         `dump_privatekey` writes an encrypted PEM when given a passphrase.
         """
         passphrase = b"foo"
-        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        key = load_privatekey(FILETYPE_PEM, root_key_pem)
         pem = dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, passphrase)
         assert isinstance(pem, bytes)
         loadedKey = load_privatekey(FILETYPE_PEM, pem, passphrase)
@@ -2783,7 +2720,7 @@ class TestFunction(object):
         with a private key encoded in a format, that doesn't support
         encryption.
         """
-        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        key = load_privatekey(FILETYPE_PEM, root_key_pem)
         with pytest.raises(ValueError):
             dump_privatekey(FILETYPE_ASN1, key, GOOD_CIPHER, "secret")
 
@@ -2791,16 +2728,16 @@ class TestFunction(object):
         """
         `dump_certificate` writes PEM, DER, and text.
         """
-        pemData = cleartextCertificatePEM + cleartextPrivateKeyPEM
+        pemData = root_cert_pem + root_key_pem
         cert = load_certificate(FILETYPE_PEM, pemData)
         dumped_pem = dump_certificate(FILETYPE_PEM, cert)
-        assert dumped_pem == cleartextCertificatePEM
+        assert dumped_pem == root_cert_pem
         dumped_der = dump_certificate(FILETYPE_ASN1, cert)
         good_der = _runopenssl(dumped_pem, b"x509", b"-outform", b"DER")
         assert dumped_der == good_der
         cert2 = load_certificate(FILETYPE_ASN1, dumped_der)
         dumped_pem2 = dump_certificate(FILETYPE_PEM, cert2)
-        assert dumped_pem2 == cleartextCertificatePEM
+        assert dumped_pem2 == root_cert_pem
         dumped_text = dump_certificate(FILETYPE_TEXT, cert)
         assert len(dumped_text) > 500
 
@@ -2809,7 +2746,7 @@ class TestFunction(object):
         `dump_certificate` raises a `ValueError` if it's called with
         a bad type.
         """
-        cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+        cert = load_certificate(FILETYPE_PEM, root_cert_pem)
         with pytest.raises(ValueError):
             dump_certificate(object(), cert)
 
@@ -2817,16 +2754,16 @@ class TestFunction(object):
         """
         `dump_privatekey` writes a PEM
         """
-        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        key = load_privatekey(FILETYPE_PEM, root_key_pem)
         assert key.check()
         dumped_pem = dump_privatekey(FILETYPE_PEM, key)
-        assert dumped_pem == cleartextPrivateKeyPEM
+        assert dumped_pem == root_key_pem
 
     def test_dump_privatekey_asn1(self):
         """
         `dump_privatekey` writes a DER
         """
-        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        key = load_privatekey(FILETYPE_PEM, root_key_pem)
         dumped_pem = dump_privatekey(FILETYPE_PEM, key)
 
         dumped_der = dump_privatekey(FILETYPE_ASN1, key)
@@ -2835,13 +2772,13 @@ class TestFunction(object):
         assert dumped_der == good_der
         key2 = load_privatekey(FILETYPE_ASN1, dumped_der)
         dumped_pem2 = dump_privatekey(FILETYPE_PEM, key2)
-        assert dumped_pem2 == cleartextPrivateKeyPEM
+        assert dumped_pem2 == root_key_pem
 
     def test_dump_privatekey_text(self):
         """
         `dump_privatekey` writes a text
         """
-        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        key = load_privatekey(FILETYPE_PEM, root_key_pem)
         dumped_text = dump_privatekey(FILETYPE_TEXT, key)
         assert len(dumped_text) > 500
 
@@ -2904,7 +2841,7 @@ class TestFunction(object):
             called.append(writing)
             return passphrase
 
-        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        key = load_privatekey(FILETYPE_PEM, root_key_pem)
         pem = dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, cb)
         assert isinstance(pem, bytes)
         assert called == [True]
@@ -2922,7 +2859,7 @@ class TestFunction(object):
         def cb(ignored):
             raise ArithmeticError
 
-        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        key = load_privatekey(FILETYPE_PEM, root_key_pem)
         with pytest.raises(ArithmeticError):
             dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, cb)
 
@@ -2935,7 +2872,7 @@ class TestFunction(object):
         def cb(ignored):
             return "a" * 1025
 
-        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        key = load_privatekey(FILETYPE_PEM, root_key_pem)
         with pytest.raises(ValueError):
             dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, cb)
 
@@ -3206,8 +3143,8 @@ class TestCRL(object):
     Tests for `OpenSSL.crypto.CRL`.
     """
 
-    cert = load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
-    pkey = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+    cert = load_certificate(FILETYPE_PEM, root_cert_pem)
+    pkey = load_privatekey(FILETYPE_PEM, root_key_pem)
 
     root_cert = load_certificate(FILETYPE_PEM, root_cert_pem)
     root_key = load_privatekey(FILETYPE_PEM, root_key_pem)
