@@ -26,9 +26,9 @@ jobs:
     env: TOXENV=py37
   - python: "3.8"
     env: TOXENV=py38
-  - python: "pypy2.7-5.10.0"
+  - python: "pypy2.7-7.3.1"
     env: TOXENV=pypy
-  - python: "pypy3.5-5.10.1"
+  - python: "pypy3.6-7.3.1"
     env: TOXENV=pypy3
 
   # Also run the tests against cryptography master.
@@ -42,9 +42,9 @@ jobs:
     env: TOXENV=py37-cryptographyMaster
   - python: "3.8"
     env: TOXENV=py38-cryptographyMaster
-  - python: "pypy2.7-5.10.0"
+  - python: "pypy2.7-7.3.1"
     env: TOXENV=pypy-cryptographyMaster
-  - python: "pypy3.5-5.10.1"
+  - python: "pypy3.6-7.3.1"
     env: TOXENV=pypy3-cryptographyMaster
 
   # And current minimum cryptography version.
