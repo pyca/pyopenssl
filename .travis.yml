@@ -58,9 +58,9 @@ jobs:
     env: TOXENV=py37-cryptographyMinimum
   - python: "3.8"
     env: TOXENV=py38-cryptographyMinimum
-  - python: "pypy2.7-5.10.0"
+  - python: "pypy2.7-7.3.1"
     env: TOXENV=pypy-cryptographyMinimum
-  - python: "pypy3.5-5.10.1"
+  - python: "pypy3.6-7.3.1"
     env: TOXENV=pypy3-cryptographyMinimum
 
   # Run tests in random order
