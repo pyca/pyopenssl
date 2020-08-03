@@ -2,7 +2,6 @@ include             LICENSE MANIFEST.in *.rst tox.ini .coveragerc
 exclude             leakcheck codecov.yml
 recursive-include   tests           *.py
 recursive-include   doc             *
-recursive-include   rpm             *
 recursive-exclude   leakcheck       *.py *.pem
 prune               doc/_build
 prune               .travis
