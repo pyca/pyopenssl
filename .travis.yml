@@ -14,7 +14,7 @@ jobs:
   include:
   - language: generic
     os: osx
-    osx_image: xcode12
+    osx_image: xcode11.6
     env: TOXENV=py27
   - python: "2.7"
     env: TOXENV=py27
