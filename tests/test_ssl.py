@@ -598,7 +598,7 @@ class TestContext(object):
         `Context.use_privatekey` takes an `OpenSSL.crypto.PKey` instance.
         """
         key = PKey()
-        key.generate_key(TYPE_RSA, 512)
+        key.generate_key(TYPE_RSA, 1024)
         ctx = Context(TLSv1_METHOD)
         ctx.use_privatekey(key)
         with pytest.raises(TypeError):
@@ -619,7 +619,7 @@ class TestContext(object):
         arguments does not raise an exception.
         """
         key = PKey()
-        key.generate_key(TYPE_RSA, 512)
+        key.generate_key(TYPE_RSA, 1024)
 
         with open(pemfile, "wt") as pem:
             pem.write(dump_privatekey(FILETYPE_PEM, key).decode("ascii"))
@@ -857,7 +857,7 @@ class TestContext(object):
         passphrase.  Return the path to the new file.
         """
         key = PKey()
-        key.generate_key(TYPE_RSA, 512)
+        key.generate_key(TYPE_RSA, 1024)
         pem = dump_privatekey(FILETYPE_PEM, key, "blowfish", passphrase)
         with open(tmpfile, "w") as fObj:
             fObj.write(pem.decode("ascii"))
@@ -2739,7 +2739,7 @@ class TestConnection(object):
         ctx = Context(v1)
         ctx.use_privatekey(key)
         ctx.use_certificate(cert)
-        ctx.set_session_id("unity-test")
+        ctx.set_session_id(b"unity-test")
 
         def makeServer(socket):
             server = Connection(ctx, socket)
@@ -3665,7 +3665,7 @@ class TestMemoryBIO(object):
         with pytest.raises(TypeError):
             clientSSL.bio_read(100)
         with pytest.raises(TypeError):
-            clientSSL.bio_write("foo")
+            clientSSL.bio_write(b"foo")
         with pytest.raises(TypeError):
             clientSSL.bio_shutdown()
 
