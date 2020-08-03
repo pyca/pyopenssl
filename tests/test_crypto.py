@@ -2987,6 +2987,14 @@ class TestFunction(object):
         dumped_der = dump_privatekey(FILETYPE_ASN1, key)
         assert dumped_der == root_key_der
 
+    def test_load_privatekey_asn1(self):
+        """
+        `dump_privatekey` writes a DER
+        """
+        key = load_privatekey(FILETYPE_ASN1, root_key_der)
+        assert key.bits() == 3072
+        assert key.type() == TYPE_RSA
+
     def test_dump_privatekey_text(self):
         """
         `dump_privatekey` writes a text
