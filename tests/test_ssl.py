@@ -464,9 +464,9 @@ def ca_file(tmpdir):
 @pytest.fixture
 def context():
     """
-    A simple TLS 1.0 context.
+    A simple "best TLS you can get" context. TLS 1.2+ in any reasonable OpenSSL
     """
-    return Context(TLSv1_METHOD)
+    return Context(SSLv23_METHOD)
 
 
 class TestContext(object):
@@ -598,7 +598,7 @@ class TestContext(object):
         """
         key = PKey()
         key.generate_key(TYPE_RSA, 1024)
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         ctx.use_privatekey(key)
         with pytest.raises(TypeError):
             ctx.use_privatekey("")
@@ -608,7 +608,7 @@ class TestContext(object):
         `Context.use_privatekey_file` raises `OpenSSL.SSL.Error` when passed
         the name of a file which does not exist.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         with pytest.raises(Error):
             ctx.use_privatekey_file(tmpfile)
 
@@ -623,7 +623,7 @@ class TestContext(object):
         with open(pemfile, "wt") as pem:
             pem.write(dump_privatekey(FILETYPE_PEM, key).decode("ascii"))
 
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         ctx.use_privatekey_file(pemfile, filetype)
 
     @pytest.mark.parametrize("filetype", [object(), "", None, 1.0])
@@ -632,7 +632,7 @@ class TestContext(object):
         `Context.use_privatekey_file` raises `TypeError` when called with
         a `filetype` which is not a valid file encoding.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
             ctx.use_privatekey_file(tmpfile, filetype)
 
@@ -659,7 +659,7 @@ class TestContext(object):
         `Context.use_certificate_wrong_args` raises `TypeError` when not passed
         exactly one `OpenSSL.crypto.X509` instance as an argument.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
             ctx.use_certificate("hello, world")
 
@@ -669,7 +669,7 @@ class TestContext(object):
         `OpenSSL.crypto.X509` instance which has not been initialized
         (ie, which does not actually have any certificate data).
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         with pytest.raises(Error):
             ctx.use_certificate(X509())
 
@@ -682,7 +682,7 @@ class TestContext(object):
         # Hard to assert anything.  But we could set a privatekey then ask
         # OpenSSL if the cert and key agree using check_privatekey.  Then as
         # long as check_privatekey works right we're good...
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         ctx.use_certificate(load_certificate(FILETYPE_PEM, root_cert_pem))
 
     def test_use_certificate_file_wrong_args(self):
@@ -690,7 +690,7 @@ class TestContext(object):
         `Context.use_certificate_file` raises `TypeError` if the first
         argument is not a byte string or the second argument is not an integer.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
             ctx.use_certificate_file(object(), FILETYPE_PEM)
         with pytest.raises(TypeError):
@@ -703,7 +703,7 @@ class TestContext(object):
         `Context.use_certificate_file` raises `OpenSSL.SSL.Error` if passed
         the name of a file which does not exist.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         with pytest.raises(Error):
             ctx.use_certificate_file(tmpfile)
 
@@ -719,7 +719,7 @@ class TestContext(object):
         with open(certificate_file, "wb") as pem_file:
             pem_file.write(root_cert_pem)
 
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         ctx.use_certificate_file(certificate_file)
 
     def test_use_certificate_file_bytes(self, tmpfile):
@@ -747,7 +747,7 @@ class TestContext(object):
         """
         key = load_privatekey(FILETYPE_PEM, client_key_pem)
         cert = load_certificate(FILETYPE_PEM, client_cert_pem)
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         context.use_privatekey(key)
         context.use_certificate(cert)
         assert None is context.check_privatekey()
@@ -760,7 +760,7 @@ class TestContext(object):
         """
         key = load_privatekey(FILETYPE_PEM, client_key_pem)
         cert = load_certificate(FILETYPE_PEM, server_cert_pem)
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         context.use_privatekey(key)
         context.use_certificate(cert)
         with pytest.raises(Error):
@@ -772,7 +772,7 @@ class TestContext(object):
         using `Context.get_app_data`.
         """
         app_data = object()
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         context.set_app_data(app_data)
         assert context.get_app_data() is app_data
 
@@ -781,7 +781,7 @@ class TestContext(object):
         `Context.set_options` raises `TypeError` if called with
         a non-`int` argument.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
             context.set_options(None)
 
@@ -789,7 +789,7 @@ class TestContext(object):
         """
         `Context.set_options` returns the new options value.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         options = context.set_options(OP_NO_SSLv2)
         assert options & OP_NO_SSLv2 == OP_NO_SSLv2
 
@@ -798,7 +798,7 @@ class TestContext(object):
         `Context.set_mode` raises `TypeError` if called with
         a non-`int` argument.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
             context.set_mode(None)
 
@@ -807,7 +807,7 @@ class TestContext(object):
         `Context.set_mode` accepts a mode bitvector and returns the
         newly set mode.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         assert MODE_RELEASE_BUFFERS & context.set_mode(MODE_RELEASE_BUFFERS)
 
     def test_set_timeout_wrong_args(self):
@@ -815,7 +815,7 @@ class TestContext(object):
         `Context.set_timeout` raises `TypeError` if called with
         a non-`int` argument.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
             context.set_timeout(None)
 
@@ -825,7 +825,7 @@ class TestContext(object):
         created using the context object. `Context.get_timeout` retrieves
         this value.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         context.set_timeout(1234)
         assert context.get_timeout() == 1234
 
@@ -834,7 +834,7 @@ class TestContext(object):
         `Context.set_verify_depth` raises `TypeError` if called with a
         non-`int` argument.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
             context.set_verify_depth(None)
 
@@ -844,7 +844,7 @@ class TestContext(object):
         a chain to follow before giving up.  The value can be retrieved with
         `Context.get_verify_depth`.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         context.set_verify_depth(11)
         assert context.get_verify_depth() == 11
 
@@ -865,7 +865,7 @@ class TestContext(object):
         `Context.set_passwd_cb` raises `TypeError` if called with a
         non-callable first argument.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
             context.set_passwd_cb(None)
 
@@ -882,7 +882,7 @@ class TestContext(object):
             calledWith.append((maxlen, verify, extra))
             return passphrase
 
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         context.set_passwd_cb(passphraseCallback)
         context.use_privatekey_file(pemFile)
         assert len(calledWith) == 1
@@ -900,7 +900,7 @@ class TestContext(object):
         def passphraseCallback(maxlen, verify, extra):
             raise RuntimeError("Sorry, I am a fail.")
 
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         context.set_passwd_cb(passphraseCallback)
         with pytest.raises(RuntimeError):
             context.use_privatekey_file(pemFile)
@@ -915,7 +915,7 @@ class TestContext(object):
         def passphraseCallback(maxlen, verify, extra):
             return b""
 
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         context.set_passwd_cb(passphraseCallback)
         with pytest.raises(Error):
             context.use_privatekey_file(pemFile)
@@ -930,7 +930,7 @@ class TestContext(object):
         def passphraseCallback(maxlen, verify, extra):
             return 10
 
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         context.set_passwd_cb(passphraseCallback)
         # TODO: Surely this is the wrong error?
         with pytest.raises(ValueError):
@@ -949,7 +949,7 @@ class TestContext(object):
             assert maxlen == 1024
             return passphrase + b"y"
 
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         context.set_passwd_cb(passphraseCallback)
         # This shall succeed because the truncated result is the correct
         # passphrase.
@@ -962,7 +962,7 @@ class TestContext(object):
         """
         (server, client) = socket_pair()
 
-        clientSSL = Connection(Context(TLSv1_METHOD), client)
+        clientSSL = Connection(Context(SSLv23_METHOD), client)
         clientSSL.set_connect_state()
 
         called = []
@@ -970,7 +970,7 @@ class TestContext(object):
         def info(conn, where, ret):
             called.append((conn, where, ret))
 
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         context.set_info_callback(info)
         context.use_certificate(load_certificate(FILETYPE_PEM, root_cert_pem))
         context.use_privatekey(load_privatekey(FILETYPE_PEM, root_key_pem))
@@ -1008,7 +1008,7 @@ class TestContext(object):
         def keylog(conn, line):
             called.append((conn, line))
 
-        server_context = Context(TLSv1_METHOD)
+        server_context = Context(TLSv1_2_METHOD)
         server_context.set_keylog_callback(keylog)
         server_context.use_certificate(
             load_certificate(FILETYPE_PEM, root_cert_pem)
@@ -1017,7 +1017,7 @@ class TestContext(object):
             load_privatekey(FILETYPE_PEM, root_key_pem)
         )
 
-        client_context = Context(TLSv1_METHOD)
+        client_context = Context(SSLv23_METHOD)
 
         self._handshake_test(server_context, client_context)
 
@@ -1033,7 +1033,7 @@ class TestContext(object):
         """
         (server, client) = socket_pair()
 
-        clientContext = Context(TLSv1_METHOD)
+        clientContext = Context(SSLv23_METHOD)
         clientContext.load_verify_locations(*args)
         # Require that the server certificate verify properly or the
         # connection will fail.
@@ -1045,7 +1045,7 @@ class TestContext(object):
         clientSSL = Connection(clientContext, client)
         clientSSL.set_connect_state()
 
-        serverContext = Context(TLSv1_METHOD)
+        serverContext = Context(SSLv23_METHOD)
         serverContext.use_certificate(
             load_certificate(FILETYPE_PEM, root_cert_pem)
         )
@@ -1099,7 +1099,7 @@ class TestContext(object):
         `Context.load_verify_locations` raises `Error` when passed a
         non-existent cafile.
         """
-        clientContext = Context(TLSv1_METHOD)
+        clientContext = Context(SSLv23_METHOD)
         with pytest.raises(Error):
             clientContext.load_verify_locations(tmpfile)
 
@@ -1144,7 +1144,7 @@ class TestContext(object):
         `Context.load_verify_locations` raises `TypeError` if with non-`str`
         arguments.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
             context.load_verify_locations(object())
         with pytest.raises(TypeError):
@@ -1164,7 +1164,7 @@ class TestContext(object):
         SSL_CTX_SET_default_verify_paths so that it can't find certs unless
         it loads via fallback.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         monkeypatch.setattr(
             _lib, "SSL_CTX_set_default_verify_paths", lambda x: 1
         )
@@ -1189,7 +1189,7 @@ class TestContext(object):
         """
         Test that we return True/False appropriately if the env vars are set.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         dir_var = "CUSTOM_DIR_VAR"
         file_var = "CUSTOM_FILE_VAR"
         assert context._check_env_vars_set(dir_var, file_var) is False
@@ -1202,7 +1202,7 @@ class TestContext(object):
         """
         Test that we don't use the fallback path if env vars are set.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         monkeypatch.setattr(
             _lib, "SSL_CTX_set_default_verify_paths", lambda x: 1
         )
@@ -1259,7 +1259,7 @@ class TestContext(object):
         Test that when passed empty arrays or paths that do not exist no
         errors are raised.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         context._fallback_default_verify_paths([], [])
         context._fallback_default_verify_paths(["/not/a/file"], ["/not/a/dir"])
 
@@ -1268,7 +1268,7 @@ class TestContext(object):
         `Context.add_extra_chain_cert` raises `TypeError` if called with an
         object which is not an instance of `X509`.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
             context.add_extra_chain_cert(object())
 
@@ -1299,7 +1299,7 @@ class TestContext(object):
         The first argument passed to the verify callback is the
         `Connection` instance for which verification is taking place.
         """
-        serverContext = Context(TLSv1_METHOD)
+        serverContext = Context(SSLv23_METHOD)
         serverContext.use_privatekey(
             load_privatekey(FILETYPE_PEM, root_key_pem)
         )
@@ -1314,7 +1314,7 @@ class TestContext(object):
                 return 1
 
         verify = VerifyCallback()
-        clientContext = Context(TLSv1_METHOD)
+        clientContext = Context(SSLv23_METHOD)
         clientContext.set_verify(VERIFY_PEER, verify.callback)
         clientConnection = Connection(clientContext, None)
         clientConnection.set_connect_state()
@@ -1330,7 +1330,7 @@ class TestContext(object):
         get_subject. This test sets up a handshake where we call get_subject
         on the cert provided to the verify callback.
         """
-        serverContext = Context(TLSv1_METHOD)
+        serverContext = Context(SSLv23_METHOD)
         serverContext.use_privatekey(
             load_privatekey(FILETYPE_PEM, root_key_pem)
         )
@@ -1343,7 +1343,7 @@ class TestContext(object):
             assert cert.get_subject()
             return 1
 
-        clientContext = Context(TLSv1_METHOD)
+        clientContext = Context(SSLv23_METHOD)
         clientContext.set_verify(VERIFY_PEER, verify_cb_get_subject)
         clientConnection = Connection(clientContext, None)
         clientConnection.set_connect_state()
@@ -1406,14 +1406,14 @@ class TestContext(object):
                 f.write(dump_privatekey(FILETYPE_PEM, key).decode("ascii"))
 
         # Create the server context
-        serverContext = Context(TLSv1_METHOD)
+        serverContext = Context(SSLv23_METHOD)
         serverContext.use_privatekey(skey)
         serverContext.use_certificate(scert)
         # The client already has cacert, we only need to give them icert.
         serverContext.add_extra_chain_cert(icert)
 
         # Create the client
-        clientContext = Context(TLSv1_METHOD)
+        clientContext = Context(SSLv23_METHOD)
         clientContext.set_verify(
             VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT, verify_cb
         )
@@ -1449,11 +1449,11 @@ class TestContext(object):
         with open(caFile, "w") as fObj:
             fObj.write(dump_certificate(FILETYPE_PEM, cacert).decode("ascii"))
 
-        serverContext = Context(TLSv1_METHOD)
+        serverContext = Context(SSLv23_METHOD)
         serverContext.use_certificate_chain_file(chainFile)
         serverContext.use_privatekey(skey)
 
-        clientContext = Context(TLSv1_METHOD)
+        clientContext = Context(SSLv23_METHOD)
         clientContext.set_verify(
             VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT, verify_cb
         )
@@ -1486,7 +1486,7 @@ class TestContext(object):
         `Context.use_certificate_chain_file` raises `TypeError` if passed a
         non-byte string single argument.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
             context.use_certificate_chain_file(object())
 
@@ -1496,7 +1496,7 @@ class TestContext(object):
         passed a bad chain file name (for example, the name of a file which
         does not exist).
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         with pytest.raises(Error):
             context.use_certificate_chain_file(tmpfile)
 
@@ -1505,7 +1505,7 @@ class TestContext(object):
         `Context.get_verify_mode` returns the verify mode flags previously
         passed to `Context.set_verify`.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         assert context.get_verify_mode() == 0
         context.set_verify(
             VERIFY_PEER | VERIFY_CLIENT_ONCE, lambda *args: None
@@ -1518,7 +1518,7 @@ class TestContext(object):
         `Context.set_verify` raises `TypeError` if the first argument is
         not an integer.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
             context.set_verify(mode=mode, callback=lambda *args: None)
 
@@ -1528,7 +1528,7 @@ class TestContext(object):
         `Context.set_verify` raises `TypeError` if the second argument
         is not callable.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
             context.set_verify(mode=VERIFY_PEER, callback=callback)
 
@@ -1537,7 +1537,7 @@ class TestContext(object):
         `Context.load_tmp_dh` raises `TypeError` if called with a
         non-`str` argument.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
             context.load_tmp_dh(object())
 
@@ -1546,7 +1546,7 @@ class TestContext(object):
         `Context.load_tmp_dh` raises `OpenSSL.SSL.Error` if the
         specified file does not exist.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         with pytest.raises(Error):
             context.load_tmp_dh(b"hello")
 
@@ -1555,7 +1555,7 @@ class TestContext(object):
         Verify that calling ``Context.load_tmp_dh`` with the given filename
         does not raise an exception.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         with open(dhfilename, "w") as dhfile:
             dhfile.write(dhparam)
 
@@ -1585,7 +1585,7 @@ class TestContext(object):
         `Context.set_tmp_ecdh` sets the elliptic curve for Diffie-Hellman to
         the specified curve.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         for curve in get_elliptic_curves():
             if curve.name.startswith(u"Oakley-"):
                 # Setting Oakley-EC2N-4 and Oakley-EC2N-3 adds
@@ -1602,7 +1602,7 @@ class TestContext(object):
         a non-integer argument.
         called with other than one integer argument.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
             context.set_session_cache_mode(object())
 
@@ -1611,7 +1611,7 @@ class TestContext(object):
         `Context.set_session_cache_mode` specifies how sessions are cached.
         The setting can be retrieved via `Context.get_session_cache_mode`.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         context.set_session_cache_mode(SESS_CACHE_OFF)
         off = context.set_session_cache_mode(SESS_CACHE_BOTH)
         assert SESS_CACHE_OFF == off
@@ -1621,7 +1621,7 @@ class TestContext(object):
         """
         `Context.get_cert_store` returns a `X509Store` instance.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         store = context.get_cert_store()
         assert isinstance(store, X509Store)
 
@@ -1631,7 +1631,7 @@ class TestContext(object):
 
         It raises a TypeError if the list of profiles is not a byte string.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
             context.set_tlsext_use_srtp(text_type("SRTP_AES128_CM_SHA1_80"))
 
@@ -1641,7 +1641,7 @@ class TestContext(object):
 
         It raises an Error if the call to OpenSSL fails.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         with pytest.raises(Error):
             context.set_tlsext_use_srtp(b"SRTP_BOGUS")
 
@@ -1651,7 +1651,7 @@ class TestContext(object):
 
         It does not return anything.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         assert context.set_tlsext_use_srtp(b"SRTP_AES128_CM_SHA1_80") is None
 
 
@@ -1673,7 +1673,7 @@ class TestServerNameCallback(object):
         def replacement(connection):  # pragma: no cover
             pass
 
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         context.set_tlsext_servername_callback(callback)
 
         tracker = ref(callback)
@@ -1705,7 +1705,7 @@ class TestServerNameCallback(object):
         def servername(conn):
             args.append((conn, conn.get_servername()))
 
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         context.set_tlsext_servername_callback(servername)
 
         # Lose our reference to it.  The Context is responsible for keeping it
@@ -1723,7 +1723,7 @@ class TestServerNameCallback(object):
         server = Connection(context, None)
         server.set_accept_state()
 
-        client = Connection(Context(TLSv1_METHOD), None)
+        client = Connection(Context(SSLv23_METHOD), None)
         client.set_connect_state()
 
         interact_in_memory(server, client)
@@ -1742,7 +1742,7 @@ class TestServerNameCallback(object):
         def servername(conn):
             args.append((conn, conn.get_servername()))
 
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         context.set_tlsext_servername_callback(servername)
 
         # Necessary to actually accept the connection
@@ -1755,7 +1755,7 @@ class TestServerNameCallback(object):
         server = Connection(context, None)
         server.set_accept_state()
 
-        client = Connection(Context(TLSv1_METHOD), None)
+        client = Connection(Context(SSLv23_METHOD), None)
         client.set_connect_state()
         client.set_tlsext_host_name(b"foo1.example.com")
 
@@ -1789,10 +1789,10 @@ class TestNextProtoNegotiation(object):
             select_args.append((conn, options))
             return b"spdy/2"
 
-        server_context = Context(TLSv1_METHOD)
+        server_context = Context(SSLv23_METHOD)
         server_context.set_npn_advertise_callback(advertise)
 
-        client_context = Context(TLSv1_METHOD)
+        client_context = Context(SSLv23_METHOD)
         client_context.set_npn_select_callback(select)
 
         # Necessary to actually accept the connection
@@ -1834,10 +1834,10 @@ class TestNextProtoNegotiation(object):
             select_args.append((conn, options))
             return b""
 
-        server_context = Context(TLSv1_METHOD)
+        server_context = Context(SSLv23_METHOD)
         server_context.set_npn_advertise_callback(advertise)
 
-        client_context = Context(TLSv1_METHOD)
+        client_context = Context(SSLv23_METHOD)
         client_context.set_npn_select_callback(select)
 
         # Necessary to actually accept the connection
@@ -1876,10 +1876,10 @@ class TestNextProtoNegotiation(object):
         def select(conn, options):
             raise TypeError
 
-        server_context = Context(TLSv1_METHOD)
+        server_context = Context(SSLv23_METHOD)
         server_context.set_npn_advertise_callback(advertise)
 
-        client_context = Context(TLSv1_METHOD)
+        client_context = Context(SSLv23_METHOD)
         client_context.set_npn_select_callback(select)
 
         # Necessary to actually accept the connection
@@ -1921,10 +1921,10 @@ class TestNextProtoNegotiation(object):
             select_args.append((conn, options))
             return b""
 
-        server_context = Context(TLSv1_METHOD)
+        server_context = Context(SSLv23_METHOD)
         server_context.set_npn_advertise_callback(advertise)
 
-        client_context = Context(TLSv1_METHOD)
+        client_context = Context(SSLv23_METHOD)
         client_context.set_npn_select_callback(select)
 
         # Necessary to actually accept the connection
@@ -1965,10 +1965,10 @@ class TestApplicationLayerProtoNegotiation(object):
             select_args.append((conn, options))
             return b"spdy/2"
 
-        client_context = Context(TLSv1_METHOD)
+        client_context = Context(SSLv23_METHOD)
         client_context.set_alpn_protos([b"http/1.1", b"spdy/2"])
 
-        server_context = Context(TLSv1_METHOD)
+        server_context = Context(SSLv23_METHOD)
         server_context.set_alpn_select_callback(select)
 
         # Necessary to actually accept the connection
@@ -2005,9 +2005,9 @@ class TestApplicationLayerProtoNegotiation(object):
             return b"spdy/2"
 
         # Setup the client context but don't set any ALPN protocols.
-        client_context = Context(TLSv1_METHOD)
+        client_context = Context(SSLv23_METHOD)
 
-        server_context = Context(TLSv1_METHOD)
+        server_context = Context(SSLv23_METHOD)
         server_context.set_alpn_select_callback(select)
 
         # Necessary to actually accept the connection
@@ -2045,10 +2045,10 @@ class TestApplicationLayerProtoNegotiation(object):
             select_args.append((conn, options))
             return b""
 
-        client_context = Context(TLSv1_METHOD)
+        client_context = Context(SSLv23_METHOD)
         client_context.set_alpn_protos([b"http/1.1", b"spdy/2"])
 
-        server_context = Context(TLSv1_METHOD)
+        server_context = Context(SSLv23_METHOD)
         server_context.set_alpn_select_callback(select)
 
         # Necessary to actually accept the connection
@@ -2158,10 +2158,10 @@ class TestApplicationLayerProtoNegotiation(object):
         When clients and servers cannot agree on what protocol to use next
         because the server doesn't offer ALPN, no protocol is negotiated.
         """
-        client_context = Context(TLSv1_METHOD)
+        client_context = Context(SSLv23_METHOD)
         client_context.set_alpn_protos([b"http/1.1", b"spdy/2"])
 
-        server_context = Context(TLSv1_METHOD)
+        server_context = Context(SSLv23_METHOD)
 
         # Necessary to actually accept the connection
         server_context.use_privatekey(
@@ -2193,10 +2193,10 @@ class TestApplicationLayerProtoNegotiation(object):
             select_args.append((conn, options))
             raise TypeError()
 
-        client_context = Context(TLSv1_METHOD)
+        client_context = Context(SSLv23_METHOD)
         client_context.set_alpn_protos([b"http/1.1", b"spdy/2"])
 
-        server_context = Context(TLSv1_METHOD)
+        server_context = Context(SSLv23_METHOD)
         server_context.set_alpn_select_callback(select)
 
         # Necessary to actually accept the connection
@@ -2256,7 +2256,7 @@ class TestConnection(object):
         """
         `Connection` can be used to create instances of that type.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         assert is_consistent_type(Connection, "Connection", ctx, None)
 
     @pytest.mark.parametrize("bad_context", [object(), "context", None, 1])
@@ -2274,7 +2274,7 @@ class TestConnection(object):
         `Connection.bio_write` raises `TypeError` if called with a non-bytes
         (or text) argument.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         connection = Connection(context, None)
         with pytest.raises(TypeError):
             connection.bio_write(bad_bio)
@@ -2284,7 +2284,7 @@ class TestConnection(object):
         `Connection.bio_write` does not raise if called with bytes or
         bytearray, warns if called with text.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         connection = Connection(context, None)
         connection.bio_write(b"xy")
         connection.bio_write(bytearray(b"za"))
@@ -2296,7 +2296,7 @@ class TestConnection(object):
         `Connection.get_context` returns the `Context` instance used to
         construct the `Connection` instance.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         connection = Connection(context, None)
         assert connection.get_context() is context
 
@@ -2305,7 +2305,7 @@ class TestConnection(object):
         `Connection.set_context` raises `TypeError` if called with a
         non-`Context` instance argument.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         connection = Connection(ctx, None)
         with pytest.raises(TypeError):
             connection.set_context(object())
@@ -2321,7 +2321,7 @@ class TestConnection(object):
         used for the connection.
         """
         original = Context(SSLv23_METHOD)
-        replacement = Context(TLSv1_METHOD)
+        replacement = Context(SSLv23_METHOD)
         connection = Connection(original, None)
         connection.set_context(replacement)
         assert replacement is connection.get_context()
@@ -2336,7 +2336,7 @@ class TestConnection(object):
         If `Connection.set_tlsext_host_name` is called with a non-byte string
         argument or a byte string with an embedded NUL, `TypeError` is raised.
         """
-        conn = Connection(Context(TLSv1_METHOD), None)
+        conn = Connection(Context(SSLv23_METHOD), None)
         with pytest.raises(TypeError):
             conn.set_tlsext_host_name(object())
         with pytest.raises(TypeError):
@@ -2352,7 +2352,7 @@ class TestConnection(object):
         `Connection.pending` returns the number of bytes available for
         immediate read.
         """
-        connection = Connection(Context(TLSv1_METHOD), None)
+        connection = Connection(Context(SSLv23_METHOD), None)
         assert connection.pending() == 0
 
     def test_peek(self):
@@ -2371,7 +2371,7 @@ class TestConnection(object):
         `Connection.connect` raises `TypeError` if called with a non-address
         argument.
         """
-        connection = Connection(Context(TLSv1_METHOD), socket_any_family())
+        connection = Connection(Context(SSLv23_METHOD), socket_any_family())
         with pytest.raises(TypeError):
             connection.connect(None)
 
@@ -2381,7 +2381,7 @@ class TestConnection(object):
         connect method raises it.
         """
         client = socket_any_family()
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         clientSSL = Connection(context, client)
         # pytest.raises here doesn't work because of a bug in py.test on Python
         # 2.6: https://github.com/pytest-dev/pytest/issues/988
@@ -2399,7 +2399,7 @@ class TestConnection(object):
         port.bind(("", 0))
         port.listen(3)
 
-        clientSSL = Connection(Context(TLSv1_METHOD), socket(port.family))
+        clientSSL = Connection(Context(SSLv23_METHOD), socket(port.family))
         clientSSL.connect((loopback_address(port), port.getsockname()[1]))
         # XXX An assertion?  Or something?
 
@@ -2416,7 +2416,7 @@ class TestConnection(object):
         port.bind(("", 0))
         port.listen(3)
 
-        clientSSL = Connection(Context(TLSv1_METHOD), socket(port.family))
+        clientSSL = Connection(Context(SSLv23_METHOD), socket(port.family))
         clientSSL.setblocking(False)
         result = clientSSL.connect_ex(port.getsockname())
         expected = (EINPROGRESS, EWOULDBLOCK)
@@ -2428,7 +2428,7 @@ class TestConnection(object):
         tuple of a new `Connection` (the accepted client) and the address the
         connection originated from.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
         ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
         port = socket_any_family()
@@ -2436,7 +2436,7 @@ class TestConnection(object):
         portSSL.bind(("", 0))
         portSSL.listen(3)
 
-        clientSSL = Connection(Context(TLSv1_METHOD), socket(port.family))
+        clientSSL = Connection(Context(SSLv23_METHOD), socket(port.family))
 
         # Calling portSSL.getsockname() here to get the server IP address
         # sounds great, but frequently fails on Windows.
@@ -2453,7 +2453,7 @@ class TestConnection(object):
         `Connection.set_shutdown` raises `TypeError` if called with arguments
         other than integers.
         """
-        connection = Connection(Context(TLSv1_METHOD), None)
+        connection = Connection(Context(SSLv23_METHOD), None)
         with pytest.raises(TypeError):
             connection.set_shutdown(None)
 
@@ -2492,8 +2492,8 @@ class TestConnection(object):
         If the underlying connection is truncated, `Connection.shutdown`
         raises an `Error`.
         """
-        server_ctx = Context(TLSv1_METHOD)
-        client_ctx = Context(TLSv1_METHOD)
+        server_ctx = Context(SSLv23_METHOD)
+        client_ctx = Context(SSLv23_METHOD)
         server_ctx.use_privatekey(
             load_privatekey(FILETYPE_PEM, server_key_pem)
         )
@@ -2515,7 +2515,7 @@ class TestConnection(object):
         `Connection.set_shutdown` sets the state of the SSL connection
         shutdown process.
         """
-        connection = Connection(Context(TLSv1_METHOD), socket_any_family())
+        connection = Connection(Context(SSLv23_METHOD), socket_any_family())
         connection.set_shutdown(RECEIVED_SHUTDOWN)
         assert connection.get_shutdown() == RECEIVED_SHUTDOWN
 
@@ -2543,7 +2543,7 @@ class TestConnection(object):
         `Connection.set_app_data` and later retrieved with
         `Connection.get_app_data`.
         """
-        conn = Connection(Context(TLSv1_METHOD), None)
+        conn = Connection(Context(SSLv23_METHOD), None)
         assert None is conn.get_app_data()
         app_data = object()
         conn.set_app_data(app_data)
@@ -2554,7 +2554,7 @@ class TestConnection(object):
         `Connection.makefile` is not implemented and calling that
         method raises `NotImplementedError`.
         """
-        conn = Connection(Context(TLSv1_METHOD), None)
+        conn = Connection(Context(SSLv23_METHOD), None)
         with pytest.raises(NotImplementedError):
             conn.makefile()
 
@@ -2565,7 +2565,7 @@ class TestConnection(object):
         chain = _create_certificate_chain()
         [(cakey, cacert), (ikey, icert), (skey, scert)] = chain
 
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         context.use_certificate(scert)
         client = Connection(context, None)
         cert = client.get_certificate()
@@ -2578,7 +2578,7 @@ class TestConnection(object):
 
         If there is no certificate, it returns None.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         client = Connection(context, None)
         cert = client.get_certificate()
         assert cert is None
@@ -2591,7 +2591,7 @@ class TestConnection(object):
         chain = _create_certificate_chain()
         [(cakey, cacert), (ikey, icert), (skey, scert)] = chain
 
-        serverContext = Context(TLSv1_METHOD)
+        serverContext = Context(SSLv23_METHOD)
         serverContext.use_privatekey(skey)
         serverContext.use_certificate(scert)
         serverContext.add_extra_chain_cert(icert)
@@ -2600,7 +2600,7 @@ class TestConnection(object):
         server.set_accept_state()
 
         # Create the client
-        clientContext = Context(TLSv1_METHOD)
+        clientContext = Context(SSLv23_METHOD)
         clientContext.set_verify(VERIFY_NONE, verify_cb)
         client = Connection(clientContext, None)
         client.set_connect_state()
@@ -2618,12 +2618,12 @@ class TestConnection(object):
         `Connection.get_peer_cert_chain` returns `None` if the peer sends
         no certificate chain.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
         ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
         server = Connection(ctx, None)
         server.set_accept_state()
-        client = Connection(Context(TLSv1_METHOD), None)
+        client = Connection(Context(SSLv23_METHOD), None)
         client.set_connect_state()
         interact_in_memory(client, server)
         assert None is server.get_peer_cert_chain()
@@ -2633,7 +2633,7 @@ class TestConnection(object):
         `Connection.get_session` returns `None` when used with an object
         which has not been connected.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         server = Connection(ctx, None)
         session = server.get_session()
         assert None is session
@@ -2662,7 +2662,7 @@ class TestConnection(object):
         `Connection.set_session` raises `TypeError` if called with an object
         that is not an instance of `Session`.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         connection = Connection(ctx, None)
         with pytest.raises(TypeError):
             connection.set_session(123)
@@ -2785,7 +2785,7 @@ class TestConnection(object):
                 "Failed to fill socket buffer, cannot test BIO want write"
             )
 
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         conn = Connection(ctx, client_socket)
         # Client's speak first, so make it an SSL client
         conn.set_connect_state()
@@ -2799,7 +2799,7 @@ class TestConnection(object):
         `Connection.get_finished` returns `None` before TLS handshake
         is completed.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         connection = Connection(ctx, None)
         assert connection.get_finished() is None
 
@@ -2808,7 +2808,7 @@ class TestConnection(object):
         `Connection.get_peer_finished` returns `None` before TLS handshake
         is completed.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         connection = Connection(ctx, None)
         assert connection.get_peer_finished() is None
 
@@ -2852,7 +2852,7 @@ class TestConnection(object):
         `Connection.get_cipher_name` returns `None` if no connection
         has been established.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         conn = Connection(ctx, None)
         assert conn.get_cipher_name() is None
 
@@ -2877,7 +2877,7 @@ class TestConnection(object):
         `Connection.get_cipher_version` returns `None` if no connection
         has been established.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         conn = Connection(ctx, None)
         assert conn.get_cipher_version() is None
 
@@ -2902,7 +2902,7 @@ class TestConnection(object):
         `Connection.get_cipher_bits` returns `None` if no connection has
         been established.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         conn = Connection(ctx, None)
         assert conn.get_cipher_bits() is None
 
@@ -2955,7 +2955,7 @@ class TestConnection(object):
         `Connection.bio_read` raises `OpenSSL.SSL.WantReadError` if there are
         no bytes available to be read from the BIO.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         conn = Connection(ctx, None)
         with pytest.raises(WantReadError):
             conn.bio_read(1024)
@@ -2966,7 +2966,7 @@ class TestConnection(object):
         `Connection.bio_read` raises `TypeError` if passed a non-integer
         argument.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         conn = Connection(ctx, None)
         with pytest.raises(TypeError):
             conn.bio_read(bufsize)
@@ -2976,7 +2976,7 @@ class TestConnection(object):
         `Connection.bio_read` accepts an integer giving the maximum number
         of bytes to read and return.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         conn = Connection(ctx, None)
         conn.set_connect_state()
         try:
@@ -2997,7 +2997,7 @@ class TestConnectionGetCipherList(object):
         `Connection.get_cipher_list` returns a list of `bytes` giving the
         names of the ciphers which might be used.
         """
-        connection = Connection(Context(TLSv1_METHOD), None)
+        connection = Connection(Context(SSLv23_METHOD), None)
         ciphers = connection.get_cipher_list()
         assert isinstance(ciphers, list)
         for cipher in ciphers:
@@ -3023,7 +3023,7 @@ class TestConnectionSend(object):
         When called with arguments other than string argument for its first
         parameter, `Connection.send` raises `TypeError`.
         """
-        connection = Connection(Context(TLSv1_METHOD), None)
+        connection = Connection(Context(SSLv23_METHOD), None)
         with pytest.raises(TypeError):
             connection.send(object())
         with pytest.raises(TypeError):
@@ -3097,7 +3097,7 @@ class TestConnectionSend(object):
         `Connection.send` bails out as SSL_write only
         accepts an int for the buffer length.
         """
-        connection = Connection(Context(TLSv1_METHOD), None)
+        connection = Connection(Context(SSLv23_METHOD), None)
         with pytest.raises(ValueError) as exc_info:
             connection.send(VeryLarge())
         exc_info.match(r"Cannot send more than .+ bytes at once")
@@ -3244,7 +3244,7 @@ class TestConnectionSendall(object):
         When called with arguments other than a string argument for its first
         parameter, `Connection.sendall` raises `TypeError`.
         """
-        connection = Connection(Context(TLSv1_METHOD), None)
+        connection = Connection(Context(SSLv23_METHOD), None)
         with pytest.raises(TypeError):
             connection.sendall(object())
         with pytest.raises(TypeError):
@@ -3337,7 +3337,7 @@ class TestConnectionRenegotiate(object):
         `Connection.total_renegotiations` returns `0` before any renegotiations
         have happened.
         """
-        connection = Connection(Context(TLSv1_METHOD), None)
+        connection = Connection(Context(SSLv23_METHOD), None)
         assert connection.total_renegotiations() == 0
 
     def test_renegotiate(self):
@@ -3512,7 +3512,7 @@ class TestMemoryBIO(object):
         """
         # Create the server side Connection.  This is mostly setup boilerplate
         # - use TLSv1, use a particular certificate, etc.
-        server_ctx = Context(TLSv1_METHOD)
+        server_ctx = Context(SSLv23_METHOD)
         server_ctx.set_options(OP_NO_SSLv2 | OP_NO_SSLv3 | OP_SINGLE_DH_USE)
         server_ctx.set_verify(
             VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT | VERIFY_CLIENT_ONCE,
@@ -3539,7 +3539,7 @@ class TestMemoryBIO(object):
         """
         # Now create the client side Connection.  Similar boilerplate to the
         # above.
-        client_ctx = Context(TLSv1_METHOD)
+        client_ctx = Context(SSLv23_METHOD)
         client_ctx.set_options(OP_NO_SSLv2 | OP_NO_SSLv3 | OP_SINGLE_DH_USE)
         client_ctx.set_verify(
             VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT | VERIFY_CLIENT_ONCE,
@@ -3652,7 +3652,7 @@ class TestMemoryBIO(object):
         Test that `OpenSSL.SSL.bio_read` and `OpenSSL.SSL.bio_write` don't
         work on `OpenSSL.SSL.Connection`() that use sockets.
         """
-        context = Context(TLSv1_METHOD)
+        context = Context(SSLv23_METHOD)
         client = socket_any_family()
         clientSSL = Connection(context, client)
         with pytest.raises(TypeError):
@@ -3742,7 +3742,7 @@ class TestMemoryBIO(object):
         `Context.set_client_ca_list` raises a `TypeError` if called with a
         non-list or a list that contains objects other than X509Names.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
             ctx.set_client_ca_list("spam")
         with pytest.raises(TypeError):
@@ -3846,7 +3846,7 @@ class TestMemoryBIO(object):
         `Context.add_client_ca` raises `TypeError` if called with
         a non-X509 object.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
             ctx.add_client_ca("spam")
 
