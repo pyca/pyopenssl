@@ -76,6 +76,8 @@ jobs:
     env: TOXENV=py37-twistedMaster
   - python: "3.5"
     env: TOXENV=py35-urllib3Master
+    # Somehow urllib3 has trouble with newer distributions
+    dist: xenial
 
 
   # Meta
