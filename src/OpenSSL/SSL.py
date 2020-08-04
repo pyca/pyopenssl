@@ -1,6 +1,5 @@
 import os
 import socket
-import warnings
 from sys import platform
 from functools import wraps, partial
 from itertools import count, chain
