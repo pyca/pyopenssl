@@ -139,8 +139,7 @@ from .test_crypto import (
 )
 
 
-# openssl dhparam 1024 -out dh-1024.pem (note that 1024 is a small number of
-# bits to use)
+# openssl dhparam 2048 -out dh-2048.pem
 dhparam = """\
 -----BEGIN DH PARAMETERS-----
 MIIBCAKCAQEA2F5e976d/GjsaCdKv5RMWL/YV7fq1UUWpPAer5fDXflLMVUuYXxE
@@ -1563,7 +1562,6 @@ class TestContext(object):
             dhfile.write(dhparam)
 
         context.load_tmp_dh(dhfilename)
-        assert _lib.ERR_peek_error() == 0
 
     def test_load_tmp_dh_bytes(self, tmpfile):
         """
