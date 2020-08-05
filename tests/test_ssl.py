@@ -139,13 +139,15 @@ from .test_crypto import (
 )
 
 
-# openssl dhparam 1024 -out dh-1024.pem (note that 1024 is a small number of
-# bits to use)
+# openssl dhparam 2048 -out dh-2048.pem
 dhparam = """\
 -----BEGIN DH PARAMETERS-----
-MIGHAoGBALdUMvn+C9MM+y5BWZs11mSeH6HHoEq0UVbzVq7UojC1hbsZUuGukQ3a
-Qh2/pwqb18BZFykrWB0zv/OkLa0kx4cuUgNrUVq1EFheBiX6YqryJ7t2sO09NQiO
-V7H54LmltOT/hEh6QWsJqb6BQgH65bswvV/XkYGja8/T0GzvbaVzAgEC
+MIIBCAKCAQEA2F5e976d/GjsaCdKv5RMWL/YV7fq1UUWpPAer5fDXflLMVUuYXxE
+3m3ayZob9lbpgEU0jlPAsXHfQPGxpKmvhv+xV26V/DEoukED8JeZUY/z4pigoptl
++8+TYdNNE/rFSZQFXIp+v2D91IEgmHBnZlKFSbKR+p8i0KjExXGjU6ji3S5jkOku
+ogikc7df1Ui0hWNJCmTjExq07aXghk97PsdFSxjdawuG3+vos5bnNoUwPLYlFc/z
+ITYG0KXySiCLi4UDlXTZTz7u/+OYczPEgqa/JPUddbM/kfvaRAnjY38cfQ7qXf8Y
+i5s5yYK7a/0eWxxRr2qraYaUj8RwDpH9CwIBAg==
 -----END DH PARAMETERS-----
 """
 
@@ -1560,7 +1562,6 @@ class TestContext(object):
             dhfile.write(dhparam)
 
         context.load_tmp_dh(dhfilename)
-        # XXX What should I assert here? -exarkun
 
     def test_load_tmp_dh_bytes(self, tmpfile):
         """

@@ -1,5 +1,5 @@
 os: linux
-dist: xenial
+dist: focal
 language: python
 
 cache:
@@ -18,6 +18,8 @@ jobs:
     env: TOXENV=py27
   - python: "2.7"
     env: TOXENV=py27
+    # we should still test against OpenSSL 1.0.2. Xenial gives us that for now.
+    dist: xenial
   - python: "3.5"
     env: TOXENV=py35
   - python: "3.6"
@@ -74,6 +76,8 @@ jobs:
     env: TOXENV=py37-twistedMaster
   - python: "3.5"
     env: TOXENV=py35-urllib3Master
+    # Somehow urllib3 has trouble with newer distributions
+    dist: xenial
 
 
   # Meta
