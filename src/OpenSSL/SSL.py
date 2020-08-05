@@ -2168,7 +2168,7 @@ class Connection(object):
 
         .. versionadded:: 20.0
         """
-        if hasattr(_lib, 'SSL_get0_verified_chain'):
+        if hasattr(_lib, "SSL_get0_verified_chain"):
             # OpenSSL 1.1+
             cert_stack = _lib.SSL_get0_verified_chain(self._ssl)
             if cert_stack == _ffi.NULL:

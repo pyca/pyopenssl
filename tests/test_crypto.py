@@ -3859,17 +3859,13 @@ class TestX509StoreContext(object):
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
         chain = store_ctx.get_verified_chain()
         assert len(chain) == 3
-        assert (chain[0].get_subject() ==
-                self.intermediate_server_cert.get_subject())
+        intermediate_subject = self.intermediate_server_cert.get_subject()
+        assert chain[0].get_subject() == intermediate_subject
         assert chain[1].get_subject() == self.intermediate_cert.get_subject()
         assert chain[2].get_subject() == self.root_cert.get_subject()
         # Test reuse
-        chain = store_ctx.get_verified_chain()
-        assert len(chain) == 3
-        assert (chain[0].get_subject() ==
-                self.intermediate_server_cert.get_subject())
-        assert chain[1].get_subject() == self.intermediate_cert.get_subject()
-        assert chain[2].get_subject() == self.root_cert.get_subject()
+        chain2 = store_ctx.get_verified_chain()
+        assert chain == chain2
 
     def test_get_verified_chain_invalid_chain_no_root(self):
         """
@@ -3882,8 +3878,8 @@ class TestX509StoreContext(object):
         with pytest.raises(X509StoreContextError) as exc:
             store_ctx.get_verified_chain()
 
-        assert exc.value.args[0][2] == 'unable to get issuer certificate'
-        assert exc.value.certificate.get_subject().CN == 'intermediate'
+        assert exc.value.args[0][2] == "unable to get issuer certificate"
+        assert exc.value.certificate.get_subject().CN == "intermediate"
 
 
 class TestSignVerify(object):
