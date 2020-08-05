@@ -1829,14 +1829,12 @@ class X509StoreContext(object):
 
         # Note: X509_STORE_CTX_get1_chain returns a deep copy of the chain.
         cert_stack = _lib.X509_STORE_CTX_get1_chain(self._store_ctx)
-        if cert_stack == _ffi.NULL:
-            # TODO: This is untested.
-            self._cleanup()
-            return None
+        _openssl_assert(cert_stack != _ffi.NULL)
 
         result = []
         for i in range(_lib.sk_X509_num(cert_stack)):
             cert = _lib.sk_X509_value(cert_stack, i)
+            _openssl_assert(cert != _ffi.NULL)
             pycert = X509._from_raw_x509_ptr(cert)
             result.append(pycert)
 
