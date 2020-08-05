@@ -3849,6 +3849,41 @@ class TestX509StoreContext(object):
 
         assert exc.value.args[0][2] == "certificate has expired"
 
+    def test_get_verified_chain(self):
+        """
+        `get_verified_chain` returns the verified chain.
+        """
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        store.add_cert(self.intermediate_cert)
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        chain = store_ctx.get_verified_chain()
+        assert len(chain) == 3
+        intermediate_subject = self.intermediate_server_cert.get_subject()
+        assert chain[0].get_subject() == intermediate_subject
+        assert chain[1].get_subject() == self.intermediate_cert.get_subject()
+        assert chain[2].get_subject() == self.root_cert.get_subject()
+        # Test reuse
+        chain = store_ctx.get_verified_chain()
+        assert len(chain) == 3
+        assert chain[0].get_subject() == intermediate_subject
+        assert chain[1].get_subject() == self.intermediate_cert.get_subject()
+        assert chain[2].get_subject() == self.root_cert.get_subject()
+
+    def test_get_verified_chain_invalid_chain_no_root(self):
+        """
+        `get_verified_chain` raises error when cert verification fails.
+        """
+        store = X509Store()
+        store.add_cert(self.intermediate_cert)
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+
+        with pytest.raises(X509StoreContextError) as exc:
+            store_ctx.get_verified_chain()
+
+        assert exc.value.args[0][2] == "unable to get issuer certificate"
+        assert exc.value.certificate.get_subject().CN == "intermediate"
+
 
 class TestSignVerify(object):
     """

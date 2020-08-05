@@ -1712,6 +1712,7 @@ class X509StoreContext(object):
         self._store_ctx = _ffi.gc(store_ctx, _lib.X509_STORE_CTX_free)
         self._store = store
         self._cert = certificate
+        self._chain = _ffi.NULL
         # Make the store context available for use after instantiating this
         # class by initializing it now. Per testing, subsequent calls to
         # :meth:`_init` have no adverse affect.
@@ -1725,7 +1726,7 @@ class X509StoreContext(object):
         :meth:`_cleanup` will leak memory.
         """
         ret = _lib.X509_STORE_CTX_init(
-            self._store_ctx, self._store._store, self._cert._x509, _ffi.NULL
+            self._store_ctx, self._store._store, self._cert._x509, self._chain
         )
         if ret <= 0:
             _raise_current_error()
@@ -1796,6 +1797,45 @@ class X509StoreContext(object):
         self._cleanup()
         if ret <= 0:
             raise self._exception_from_context()
+
+    def get_verified_chain(self):
+        """
+        Verify a certificate in a context and return the complete validated
+        chain.
+
+        :raises X509StoreContextError: If an error occurred when validating a
+          certificate in the context. Sets ``certificate`` attribute to
+          indicate which certificate caused the error.
+
+        .. versionadded:: 20.0
+        """
+        # Always re-initialize the store context in case
+        # :meth:`verify_certificate` is called multiple times.
+        #
+        # :meth:`_init` is called in :meth:`__init__` so _cleanup is called
+        # before _init to ensure memory is not leaked.
+        self._cleanup()
+        self._init()
+        ret = _lib.X509_verify_cert(self._store_ctx)
+        if ret <= 0:
+            self._cleanup()
+            raise self._exception_from_context()
+
+        # Note: X509_STORE_CTX_get1_chain returns a deep copy of the chain.
+        cert_stack = _lib.X509_STORE_CTX_get1_chain(self._store_ctx)
+        _openssl_assert(cert_stack != _ffi.NULL)
+
+        result = []
+        for i in range(_lib.sk_X509_num(cert_stack)):
+            cert = _lib.sk_X509_value(cert_stack, i)
+            _openssl_assert(cert != _ffi.NULL)
+            pycert = X509._from_raw_x509_ptr(cert)
+            result.append(pycert)
+
+        # Free the stack but not the members which are freed by the X509 class.
+        _lib.sk_X509_free(cert_stack)
+        self._cleanup()
+        return result
 
 
 def load_certificate(type, buffer):
