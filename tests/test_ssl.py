@@ -2453,7 +2453,7 @@ class TestConnection(object):
         chain = _create_certificate_chain()
         [(cakey, cacert), (ikey, icert), (skey, scert)] = chain
 
-        serverContext = Context(TLSv1_METHOD)
+        serverContext = Context(SSLv23_METHOD)
         serverContext.use_privatekey(skey)
         serverContext.use_certificate(scert)
         serverContext.add_extra_chain_cert(icert)
@@ -2462,7 +2462,7 @@ class TestConnection(object):
         server.set_accept_state()
 
         # Create the client
-        clientContext = Context(TLSv1_METHOD)
+        clientContext = Context(SSLv23_METHOD)
         # cacert is self-signed so the client must trust it for verification
         # to succeed.
         clientContext.get_cert_store().add_cert(cacert)
@@ -2483,12 +2483,12 @@ class TestConnection(object):
         `Connection.get_verified_chain` returns `None` if the peer sends
         no certificate chain.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
         ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
         server = Connection(ctx, None)
         server.set_accept_state()
-        client = Connection(Context(TLSv1_METHOD), None)
+        client = Connection(Context(SSLv23_METHOD), None)
         client.set_connect_state()
         interact_in_memory(client, server)
         assert None is server.get_verified_chain()
@@ -2498,7 +2498,7 @@ class TestConnection(object):
         `Connection.get_verified_chain` returns `None` when used with an object
         which has not been connected.
         """
-        ctx = Context(TLSv1_METHOD)
+        ctx = Context(SSLv23_METHOD)
         server = Connection(ctx, None)
         assert None is server.get_verified_chain()
 
