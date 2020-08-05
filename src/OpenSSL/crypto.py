@@ -10,7 +10,7 @@ from six import (
     PY2 as _PY2,
 )
 
-from cryptography import x509
+from cryptography import utils, x509
 from cryptography.hazmat.primitives.asymmetric import dsa, rsa
 
 from OpenSSL._util import (
@@ -3010,6 +3010,17 @@ def load_pkcs7_data(type, buffer):
     return pypkcs7
 
 
+load_pkcs7_data = utils.deprecated(
+    load_pkcs7_data,
+    __name__,
+    (
+        "PKCS#7 support in pyOpenSSL is deprecated. You should use the APIs "
+        "in cryptography."
+    ),
+    DeprecationWarning,
+)
+
+
 def load_pkcs12(buffer, passphrase=None):
     """
     Load pkcs12 data from the string *buffer*. If the pkcs12 structure is
@@ -3095,6 +3106,17 @@ def load_pkcs12(buffer, passphrase=None):
     pkcs12._cacerts = pycacerts
     pkcs12._friendlyname = friendlyname
     return pkcs12
+
+
+load_pkcs12 = utils.deprecated(
+    load_pkcs12,
+    __name__,
+    (
+        "PKCS#12 support in pyOpenSSL is deprecated. You should use the APIs "
+        "in cryptography."
+    ),
+    DeprecationWarning,
+)
 
 
 # There are no direct unit tests for this initialization.  It is tested
