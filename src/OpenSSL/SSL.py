@@ -2127,6 +2127,22 @@ class Connection(object):
             return X509._from_raw_x509_ptr(cert)
         return None
 
+    @staticmethod
+    def _cert_stack_to_list(cert_stack):
+        """
+        Internal helper to convert a STACK_OF(X509) to a list of X509
+        instances.
+        """
+        result = []
+        for i in range(_lib.sk_X509_num(cert_stack)):
+            cert = _lib.sk_X509_value(cert_stack, i)
+            _openssl_assert(cert != _ffi.NULL)
+            res = _lib.X509_up_ref(cert)
+            _openssl_assert(res >= 1)
+            pycert = X509._from_raw_x509_ptr(cert)
+            result.append(pycert)
+        return result
+
     def get_peer_cert_chain(self):
         """
         Retrieve the other side's certificate (if any)
@@ -2138,13 +2154,7 @@ class Connection(object):
         if cert_stack == _ffi.NULL:
             return None
 
-        result = []
-        for i in range(_lib.sk_X509_num(cert_stack)):
-            # TODO could incref instead of dup here
-            cert = _lib.X509_dup(_lib.sk_X509_value(cert_stack, i))
-            pycert = X509._from_raw_x509_ptr(cert)
-            result.append(pycert)
-        return result
+        return self._cert_stack_to_list(cert_stack)
 
     def get_verified_chain(self):
         """
@@ -2164,13 +2174,7 @@ class Connection(object):
             if cert_stack == _ffi.NULL:
                 return None
 
-            result = []
-            for i in range(_lib.sk_X509_num(cert_stack)):
-                # TODO could incref instead of dup here
-                cert = _lib.X509_dup(_lib.sk_X509_value(cert_stack, i))
-                pycert = X509._from_raw_x509_ptr(cert)
-                result.append(pycert)
-            return result
+            return self._cert_stack_to_list(cert_stack)
 
         pycert = self.get_peer_certificate()
         if pycert is None:
