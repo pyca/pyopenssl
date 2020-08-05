@@ -21,14 +21,14 @@ Deprecations:
 
 - Deprecated ``OpenSSL.crypto.loads_pkcs7`` and ``OpenSSL.crypto.loads_pkcs12``.
 
-*none*
-
-
 Changes:
 ^^^^^^^^
 
 - Added ``Context.set_keylog_callback`` to log key material.
   `#910 <https://github.com/pyca/pyopenssl/pull/910>`_
+- Added ``OpenSSL.SSL.Connection.get_verified_chain`` to retrieve the
+  verified certificate chain of the peer.
+  `#894 <https://github.com/pyca/pyopenssl/pull/894>`_.
 
 
 19.1.0 (2019-11-18)
