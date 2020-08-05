@@ -3864,8 +3864,11 @@ class TestX509StoreContext(object):
         assert chain[1].get_subject() == self.intermediate_cert.get_subject()
         assert chain[2].get_subject() == self.root_cert.get_subject()
         # Test reuse
-        chain2 = store_ctx.get_verified_chain()
-        assert chain == chain2
+        chain = store_ctx.get_verified_chain()
+        assert len(chain) == 3
+        assert chain[0].get_subject() == intermediate_subject
+        assert chain[1].get_subject() == self.intermediate_cert.get_subject()
+        assert chain[2].get_subject() == self.root_cert.get_subject()
 
     def test_get_verified_chain_invalid_chain_no_root(self):
         """
