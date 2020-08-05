@@ -2180,9 +2180,9 @@ class Connection(object):
         if pycert is None:
             return None
 
+        # Should never be NULL because the peer presented a certificate.
         cert_stack = _lib.SSL_get_peer_cert_chain(self._ssl)
-        if cert_stack == _ffi.NULL:
-            return None
+        _openssl_assert(cert_stack != _ffi.NULL)
 
         pystore = self._context.get_cert_store()
         if pystore is None:
