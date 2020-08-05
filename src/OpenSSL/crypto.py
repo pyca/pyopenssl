@@ -1718,12 +1718,6 @@ class X509StoreContext(object):
         # :meth:`_init` have no adverse affect.
         self._init()
 
-    def _add_chain(self, chain):
-        """
-        Internal helper to set the untrusted certification chain (peer chain).
-        """
-        self._chain = chain
-
     def _init(self):
         """
         Set up the store context for a subsequent verification operation.

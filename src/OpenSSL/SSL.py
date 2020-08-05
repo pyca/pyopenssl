@@ -2189,7 +2189,7 @@ class Connection(object):
             return None
 
         pystorectx = X509StoreContext(pystore, pycert)
-        pystorectx._add_chain(cert_stack)
+        pystorectx._chain = cert_stack
         return pystorectx.get_verified_chain()
 
     def want_read(self):
