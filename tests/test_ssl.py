@@ -1378,6 +1378,29 @@ class TestContext(object):
 
         assert "silly verify failure" == str(exc.value)
 
+    @pytest.mark.parametrize("mode", [SSL.VERIFY_PEER, SSL.VERIFY_NONE])
+    def test_set_verify_default_callback(self, mode):
+        """
+        If the verify callback is omitted, the preverify value is used.
+        """
+        serverContext = Context(TLSv1_2_METHOD)
+        serverContext.use_privatekey(
+            load_privatekey(FILETYPE_PEM, root_key_pem)
+        )
+        serverContext.use_certificate(
+            load_certificate(FILETYPE_PEM, root_cert_pem)
+        )
+
+        clientContext = Context(TLSv1_2_METHOD)
+        clientContext.set_verify(mode, None)
+
+        if mode == SSL.VERIFY_PEER:
+            with pytest.raises(Exception) as exc:
+                self._handshake_test(serverContext, clientContext)
+            assert "certificate verify failed" in str(exc.value)
+        else:
+            self._handshake_test(serverContext, clientContext)
+
     def test_add_extra_chain_cert(self, tmpdir):
         """
         `Context.add_extra_chain_cert` accepts an `X509`
@@ -1509,9 +1532,7 @@ class TestContext(object):
         """
         context = Context(SSLv23_METHOD)
         assert context.get_verify_mode() == 0
-        context.set_verify(
-            VERIFY_PEER | VERIFY_CLIENT_ONCE, lambda *args: None
-        )
+        context.set_verify(VERIFY_PEER | VERIFY_CLIENT_ONCE)
         assert context.get_verify_mode() == (VERIFY_PEER | VERIFY_CLIENT_ONCE)
 
     @pytest.mark.parametrize("mode", [None, 1.0, object(), "mode"])
@@ -1522,9 +1543,9 @@ class TestContext(object):
         """
         context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
-            context.set_verify(mode=mode, callback=lambda *args: None)
+            context.set_verify(mode=mode)
 
-    @pytest.mark.parametrize("callback", [None, 1.0, "mode", ("foo", "bar")])
+    @pytest.mark.parametrize("callback", [1.0, "mode", ("foo", "bar")])
     def test_set_verify_wrong_callable_arg(self, callback):
         """
         `Context.set_verify` raises `TypeError` if the second argument

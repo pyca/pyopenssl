@@ -1003,7 +1003,7 @@ class Context(object):
         """
         return _lib.SSL_CTX_get_session_cache_mode(self._context)
 
-    def set_verify(self, mode, callback):
+    def set_verify(self, mode, callback=None):
         """
         et the verification flags for this Context object to *mode* and specify
         that *callback* should be used for verification callbacks.
@@ -1013,11 +1013,12 @@ class Context(object):
             :const:`VERIFY_PEER` is used, *mode* can be OR:ed with
             :const:`VERIFY_FAIL_IF_NO_PEER_CERT` and
             :const:`VERIFY_CLIENT_ONCE` to further control the behaviour.
-        :param callback: The Python callback to use.  This should take five
+        :param callback: The optional Python callback to use. This should take five
             arguments: A Connection object, an X509 object, and three integer
             variables, which are in turn potential error number, error depth
             and return code. *callback* should return True if verification
-            passes and False otherwise.
+            passes and False otherwise. If omitted, OpenSSL's verification result
+            (the return code) is passed through.
         :return: None
 
         See SSL_CTX_set_verify(3SSL) for further details.
@@ -1025,12 +1026,17 @@ class Context(object):
         if not isinstance(mode, integer_types):
             raise TypeError("mode must be an integer")
 
-        if not callable(callback):
-            raise TypeError("callback must be callable")
+        if callback is None:
+            self._verify_helper = None
+            self._verify_callback = None
+            _lib.SSL_CTX_set_verify(self._context, mode, _ffi.NULL)
+        else:
+            if not callable(callback):
+                raise TypeError("callback must be callable")
 
-        self._verify_helper = _VerifyHelper(callback)
-        self._verify_callback = self._verify_helper.callback
-        _lib.SSL_CTX_set_verify(self._context, mode, self._verify_callback)
+            self._verify_helper = _VerifyHelper(callback)
+            self._verify_callback = self._verify_helper.callback
+            _lib.SSL_CTX_set_verify(self._context, mode, self._verify_callback)
 
     def set_verify_depth(self, depth):
         """

@@ -29,6 +29,8 @@ Changes:
 - Added ``OpenSSL.SSL.Connection.get_verified_chain`` to retrieve the
   verified certificate chain of the peer.
   `#894 <https://github.com/pyca/pyopenssl/pull/894>`_.
+- Allow omission of the verification callback in ``Context.set_verify``.
+  `#933 <https://github.com/pyca/pyopenssl/pull/933>`_
 
 
 19.1.0 (2019-11-18)
