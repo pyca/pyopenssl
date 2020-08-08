@@ -1013,12 +1013,12 @@ class Context(object):
             :const:`VERIFY_PEER` is used, *mode* can be OR:ed with
             :const:`VERIFY_FAIL_IF_NO_PEER_CERT` and
             :const:`VERIFY_CLIENT_ONCE` to further control the behaviour.
-        :param callback: The optional Python callback to use. This should take
-            five arguments: A Connection object, an X509 object, and three
-            integer variables, which are in turn potential error number, error
-            depth and return code. *callback* should return True if
-            verification passes and False otherwise. If omitted, OpenSSL's
-            verification result (the return code) is passed through.
+        :param callback: The optional Python verification callback to use.
+            This should take five arguments: A Connection object, an X509
+            object, and three integer variables, which are in turn potential
+            error number, error depth and return code. *callback* should
+            return True if verification passes and False otherwise.
+            If omitted, OpenSSL's default verification is used.
         :return: None
 
         See SSL_CTX_set_verify(3SSL) for further details.
