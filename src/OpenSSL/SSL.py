@@ -972,7 +972,11 @@ class Context(object):
         """
         buf = _text_to_bytes_and_warn("buf", buf)
         _openssl_assert(
-            _lib.SSL_CTX_set_session_id_context(self._context, buf, len(buf),)
+            _lib.SSL_CTX_set_session_id_context(
+                self._context,
+                buf,
+                len(buf),
+            )
             == 1
         )
 
@@ -1468,9 +1472,6 @@ class Context(object):
 
 
 class Connection(object):
-    """
-    """
-
     _reverse_mapping = WeakValueDictionary()
 
     def __init__(self, context, socket=None):

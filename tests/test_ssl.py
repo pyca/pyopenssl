@@ -448,7 +448,8 @@ def ca_file(tmpdir):
     builder = builder.serial_number(int(uuid.uuid4()))
     builder = builder.public_key(public_key)
     builder = builder.add_extension(
-        x509.BasicConstraints(ca=True, path_length=None), critical=True,
+        x509.BasicConstraints(ca=True, path_length=None),
+        critical=True,
     )
 
     certificate = builder.sign(
@@ -457,7 +458,9 @@ def ca_file(tmpdir):
 
     ca_file = tmpdir.join("test.pem")
     ca_file.write_binary(
-        certificate.public_bytes(encoding=serialization.Encoding.PEM,)
+        certificate.public_bytes(
+            encoding=serialization.Encoding.PEM,
+        )
     )
 
     return str(ca_file).encode("ascii")
@@ -509,7 +512,13 @@ class TestContext(object):
         with pytest.raises(Error) as excinfo:
             context.set_cipher_list(b"imaginary-cipher")
         assert excinfo.value.args == (
-            [("SSL routines", "SSL_CTX_set_cipher_list", "no cipher match",)],
+            [
+                (
+                    "SSL routines",
+                    "SSL_CTX_set_cipher_list",
+                    "no cipher match",
+                )
+            ],
         )
 
     def test_load_client_ca(self, context, ca_file):
@@ -644,7 +653,8 @@ class TestContext(object):
         instance giving the file name to ``Context.use_privatekey_file``.
         """
         self._use_privatekey_file_test(
-            tmpfile + NON_ASCII.encode(getfilesystemencoding()), FILETYPE_PEM,
+            tmpfile + NON_ASCII.encode(getfilesystemencoding()),
+            FILETYPE_PEM,
         )
 
     def test_use_privatekey_file_unicode(self, tmpfile):
@@ -653,7 +663,8 @@ class TestContext(object):
         instance giving the file name to ``Context.use_privatekey_file``.
         """
         self._use_privatekey_file_test(
-            tmpfile.decode(getfilesystemencoding()) + NON_ASCII, FILETYPE_PEM,
+            tmpfile.decode(getfilesystemencoding()) + NON_ASCII,
+            FILETYPE_PEM,
         )
 
     def test_use_certificate_wrong_args(self):
