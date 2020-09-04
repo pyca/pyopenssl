@@ -24,6 +24,9 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- Added ``OpenSSL.crypto.X509Store.load_locations`` to set trusted
+  certificate file bundles and/or directories for verification.
+  `#943 <https://github.com/pyca/pyopenssl/pull/943>`_
 - Added ``Context.set_keylog_callback`` to log key material.
   `#910 <https://github.com/pyca/pyopenssl/pull/910>`_
 - Added ``OpenSSL.SSL.Connection.get_verified_chain`` to retrieve the

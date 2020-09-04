@@ -19,6 +19,7 @@ from OpenSSL._util import (
     exception_from_error_queue as _exception_from_error_queue,
     byte_string as _byte_string,
     native as _native,
+    path_string as _path_string,
     UNSPECIFIED as _UNSPECIFIED,
     text_to_bytes_and_warn as _text_to_bytes_and_warn,
     make_assert as _make_assert,
@@ -1673,6 +1674,53 @@ class X509Store(object):
 
         _lib.X509_VERIFY_PARAM_set_time(param, int(vfy_time.strftime("%s")))
         _openssl_assert(_lib.X509_STORE_set1_param(self._store, param) != 0)
+
+    def load_locations(self, cafile, capath=None):
+        """
+        Let X509Store know where we can find trusted certificates for the
+        certificate chain.  Note that the certificates have to be in PEM
+        format.
+
+        If *capath* is passed, it must be a directory prepared using the
+        ``c_rehash`` tool included with OpenSSL.  Either, but not both, of
+        *cafile* or *capath* may be ``None``.
+
+        .. note::
+
+          Both *cafile* and *capath* may be set simultaneously.
+
+          Call this method multiple times to add more than one location.
+          For example, CA certificates, and certificate revocation list bundles
+          may be passed in *cafile* in subsequent calls to this method.
+
+        .. versionadded:: 20.0
+
+        :param cafile: In which file we can find the certificates (``bytes`` or
+                       ``unicode``).
+        :param capath: In which directory we can find the certificates
+                       (``bytes`` or ``unicode``).
+
+        :return: ``None`` if the locations were set successfully.
+
+        :raises OpenSSL.crypto.Error: If both *cafile* and *capath* is ``None``
+            or the locations could not be set for any reason.
+
+        """
+        if cafile is None:
+            cafile = _ffi.NULL
+        else:
+            cafile = _path_string(cafile)
+
+        if capath is None:
+            capath = _ffi.NULL
+        else:
+            capath = _path_string(capath)
+
+        load_result = _lib.X509_STORE_load_locations(
+            self._store, cafile, capath
+        )
+        if not load_result:
+            _raise_current_error()
 
 
 class X509StoreContextError(Exception):
