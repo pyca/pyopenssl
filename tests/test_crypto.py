@@ -3824,6 +3824,145 @@ class TestX509StoreContext(object):
         assert store_ctx.verify_certificate() is None
         assert store_ctx.verify_certificate() is None
 
+    @pytest.mark.parametrize(
+        "root_cert, chain, verified_cert",
+        [
+            pytest.param(
+                root_cert,
+                [intermediate_cert],
+                intermediate_server_cert,
+                id="intermediate in chain",
+            ),
+            pytest.param(
+                root_cert,
+                [],
+                intermediate_cert,
+                id="empty chain",
+            ),
+            pytest.param(
+                root_cert,
+                [root_cert, intermediate_server_cert, intermediate_cert],
+                intermediate_server_cert,
+                id="extra certs in chain",
+            ),
+        ],
+    )
+    def test_verify_success_with_chain(self, root_cert, chain, verified_cert):
+        store = X509Store()
+        store.add_cert(root_cert)
+        store_ctx = X509StoreContext(store, verified_cert, chain=chain)
+        assert store_ctx.verify_certificate() is None
+
+    def test_valid_untrusted_chain_reuse(self):
+        """
+        `verify_certificate` using an untrusted chain can be called multiple
+        times with the same ``X509StoreContext`` instance to produce the same
+        result.
+        """
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        chain = [self.intermediate_cert]
+
+        store_ctx = X509StoreContext(
+            store, self.intermediate_server_cert, chain=chain
+        )
+        assert store_ctx.verify_certificate() is None
+        assert store_ctx.verify_certificate() is None
+
+    def test_chain_reference(self):
+        """
+        ``X509StoreContext`` properly keeps references to the untrusted chain
+        certificates.
+        """
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        chain = [load_certificate(FILETYPE_PEM, intermediate_cert_pem)]
+
+        store_ctx = X509StoreContext(
+            store, self.intermediate_server_cert, chain=chain
+        )
+
+        del chain
+        assert store_ctx.verify_certificate() is None
+
+    @pytest.mark.parametrize(
+        "root_cert, chain, verified_cert",
+        [
+            pytest.param(
+                root_cert,
+                [],
+                intermediate_server_cert,
+                id="intermediate missing",
+            ),
+            pytest.param(
+                None,
+                [intermediate_cert],
+                intermediate_server_cert,
+                id="no trusted root",
+            ),
+            pytest.param(
+                None,
+                [root_cert, intermediate_cert],
+                intermediate_server_cert,
+                id="untrusted root, full chain is available",
+            ),
+            pytest.param(
+                intermediate_cert,
+                [root_cert, intermediate_cert],
+                intermediate_server_cert,
+                id="untrusted root, intermediate is trusted and in chain",
+            ),
+        ],
+    )
+    def test_verify_fail_with_chain(self, root_cert, chain, verified_cert):
+        store = X509Store()
+        if root_cert:
+            store.add_cert(root_cert)
+
+        store_ctx = X509StoreContext(store, verified_cert, chain=chain)
+
+        with pytest.raises(X509StoreContextError):
+            store_ctx.verify_certificate()
+
+    @pytest.mark.parametrize(
+        "chain, expected_error",
+        [
+            pytest.param(
+                [intermediate_cert, "This is not a certificate"],
+                TypeError,
+                id="non-certificate in chain",
+            ),
+            pytest.param(
+                42,
+                TypeError,
+                id="non-list chain",
+            ),
+        ],
+    )
+    def test_untrusted_chain_wrong_args(self, chain, expected_error):
+        """
+        Creating ``X509StoreContext`` with wrong chain raises an exception.
+        """
+        store = X509Store()
+        store.add_cert(self.root_cert)
+
+        with pytest.raises(expected_error):
+            X509StoreContext(store, self.intermediate_server_cert, chain=chain)
+
+    def test_failure_building_untrusted_chain_raises(self, monkeypatch):
+        """
+        Creating ``X509StoreContext`` raises ``OpenSSL.crypto.Error`` when
+        the underlying lib fails to add the certificate to the stack.
+        """
+        monkeypatch.setattr(_lib, "sk_X509_push", lambda _stack, _x509: -1)
+
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        chain = [self.intermediate_cert]
+
+        with pytest.raises(Error):
+            X509StoreContext(store, self.intermediate_server_cert, chain=chain)
+
     def test_trusted_self_signed(self):
         """
         `verify_certificate` returns ``None`` when called with a self-signed

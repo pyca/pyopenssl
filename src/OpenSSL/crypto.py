@@ -1750,21 +1750,53 @@ class X509StoreContext(object):
         collected.
     :ivar _store: See the ``store`` ``__init__`` parameter.
     :ivar _cert: See the ``certificate`` ``__init__`` parameter.
+    :ivar _chain: See the ``chain`` ``__init__`` parameter.
     :param X509Store store: The certificates which will be trusted for the
         purposes of any verifications.
     :param X509 certificate: The certificate to be verified.
+    :param chain: List of untrusted certificates that may be used for building
+        the certificate chain. May be ``None``.
+    :type chain: :class:`list` of :class:`X509`
     """
 
-    def __init__(self, store, certificate):
+    def __init__(self, store, certificate, chain=None):
         store_ctx = _lib.X509_STORE_CTX_new()
         self._store_ctx = _ffi.gc(store_ctx, _lib.X509_STORE_CTX_free)
         self._store = store
         self._cert = certificate
-        self._chain = _ffi.NULL
+        self._chain = self._build_certificate_stack(chain)
         # Make the store context available for use after instantiating this
         # class by initializing it now. Per testing, subsequent calls to
         # :meth:`_init` have no adverse affect.
         self._init()
+
+    @staticmethod
+    def _build_certificate_stack(certificates):
+        def cleanup(s):
+            # Equivalent to sk_X509_pop_free, but we don't
+            # currently have a CFFI binding for that available
+            for i in range(_lib.sk_X509_num(s)):
+                x = _lib.sk_X509_value(s, i)
+                _lib.X509_free(x)
+            _lib.sk_X509_free(s)
+
+        if certificates is None or len(certificates) == 0:
+            return _ffi.NULL
+
+        stack = _lib.sk_X509_new_null()
+        _openssl_assert(stack != _ffi.NULL)
+        stack = _ffi.gc(stack, cleanup)
+
+        for cert in certificates:
+            if not isinstance(cert, X509):
+                raise TypeError("One of the elements is not an X509 instance")
+
+            _openssl_assert(_lib.X509_up_ref(cert._x509) > 0)
+            if _lib.sk_X509_push(stack, cert._x509) <= 0:
+                _lib.X509_free(cert._x509)
+                _raise_current_error()
+
+        return stack
 
     def _init(self):
         """

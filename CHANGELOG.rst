@@ -24,6 +24,9 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- Added a new optional ``chain`` parameter to ``OpenSSL.crypto.X509StoreContext()``
+  where additional untrusted certificates can be specified to help chain building.
+  `#948 <https://github.com/pyca/pyopenssl/pull/948>`_
 - Added ``OpenSSL.crypto.X509Store.load_locations`` to set trusted
   certificate file bundles and/or directories for verification.
   `#943 <https://github.com/pyca/pyopenssl/pull/943>`_
