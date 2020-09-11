@@ -10,6 +10,7 @@ from warnings import simplefilter
 import base64
 from subprocess import PIPE, Popen
 from datetime import datetime, timedelta
+import sys
 
 import pytest
 
@@ -46,7 +47,14 @@ from OpenSSL.crypto import (
     get_elliptic_curves,
 )
 
-from .util import EqualityTestsMixin, is_consistent_type, WARNING_TYPE_EXPECTED
+from OpenSSL._util import ffi as _ffi, lib as _lib
+
+from .util import (
+    EqualityTestsMixin,
+    is_consistent_type,
+    WARNING_TYPE_EXPECTED,
+    NON_ASCII,
+)
 
 
 def normalize_privatekey_pem(pem):
@@ -2228,6 +2236,68 @@ class TestX509Store(object):
         store.add_cert(cert)
         store.add_cert(cert)
 
+    @pytest.mark.parametrize(
+        "cafile, capath, call_cafile, call_capath",
+        [
+            (
+                "/cafile" + NON_ASCII,
+                None,
+                b"/cafile" + NON_ASCII.encode(sys.getfilesystemencoding()),
+                _ffi.NULL,
+            ),
+            (
+                b"/cafile" + NON_ASCII.encode("utf-8"),
+                None,
+                b"/cafile" + NON_ASCII.encode("utf-8"),
+                _ffi.NULL,
+            ),
+            (
+                None,
+                "/capath" + NON_ASCII,
+                _ffi.NULL,
+                b"/capath" + NON_ASCII.encode(sys.getfilesystemencoding()),
+            ),
+            (
+                None,
+                b"/capath" + NON_ASCII.encode("utf-8"),
+                _ffi.NULL,
+                b"/capath" + NON_ASCII.encode("utf-8"),
+            ),
+        ],
+    )
+    def test_load_locations_parameters(
+        self, cafile, capath, call_cafile, call_capath, monkeypatch
+    ):
+        class LibMock(object):
+            def load_locations(self, store, cafile, capath):
+                self.cafile = cafile
+                self.capath = capath
+                return 1
+
+        lib_mock = LibMock()
+        monkeypatch.setattr(
+            _lib, "X509_STORE_load_locations", lib_mock.load_locations
+        )
+
+        store = X509Store()
+        store.load_locations(cafile=cafile, capath=capath)
+
+        assert call_cafile == lib_mock.cafile
+        assert call_capath == lib_mock.capath
+
+    def test_load_locations_fails_when_all_args_are_none(self):
+        store = X509Store()
+        with pytest.raises(Error):
+            store.load_locations(None, None)
+
+    def test_load_locations_raises_error_on_failure(self, tmpdir):
+        invalid_ca_file = tmpdir.join("invalid.pem")
+        invalid_ca_file.write("This is not a certificate")
+
+        store = X509Store()
+        with pytest.raises(Error):
+            store.load_locations(cafile=str(invalid_ca_file))
+
 
 class TestPKCS12(object):
     """
@@ -3883,6 +3953,70 @@ class TestX509StoreContext(object):
 
         assert exc.value.args[0][2] == "unable to get issuer certificate"
         assert exc.value.certificate.get_subject().CN == "intermediate"
+
+    @pytest.fixture
+    def root_ca_file(self, tmpdir):
+        return self._create_ca_file(tmpdir, "root_ca_hash_dir", self.root_cert)
+
+    @pytest.fixture
+    def intermediate_ca_file(self, tmpdir):
+        return self._create_ca_file(
+            tmpdir, "intermediate_ca_hash_dir", self.intermediate_cert
+        )
+
+    @staticmethod
+    def _create_ca_file(base_path, hash_directory, cacert):
+        ca_hash = "{:08x}.0".format(cacert.subject_name_hash())
+        cafile = base_path.join(hash_directory, ca_hash)
+        cafile.write_binary(
+            dump_certificate(FILETYPE_PEM, cacert), ensure=True
+        )
+        return cafile
+
+    def test_verify_with_ca_file_location(self, root_ca_file):
+        store = X509Store()
+        store.load_locations(str(root_ca_file))
+
+        store_ctx = X509StoreContext(store, self.intermediate_cert)
+        store_ctx.verify_certificate()
+
+    def test_verify_with_ca_path_location(self, root_ca_file):
+        store = X509Store()
+        store.load_locations(None, str(root_ca_file.dirname))
+
+        store_ctx = X509StoreContext(store, self.intermediate_cert)
+        store_ctx.verify_certificate()
+
+    def test_verify_with_cafile_and_capath(
+        self, root_ca_file, intermediate_ca_file
+    ):
+        store = X509Store()
+        store.load_locations(
+            cafile=str(root_ca_file), capath=str(intermediate_ca_file.dirname)
+        )
+
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        store_ctx.verify_certificate()
+
+    def test_verify_with_multiple_ca_files(
+        self, root_ca_file, intermediate_ca_file
+    ):
+        store = X509Store()
+        store.load_locations(str(root_ca_file))
+        store.load_locations(str(intermediate_ca_file))
+
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        store_ctx.verify_certificate()
+
+    def test_verify_failure_with_empty_ca_directory(self, tmpdir):
+        store = X509Store()
+        store.load_locations(None, str(tmpdir))
+
+        store_ctx = X509StoreContext(store, self.intermediate_cert)
+        with pytest.raises(X509StoreContextError) as exc:
+            store_ctx.verify_certificate()
+
+        assert exc.value.args[0][2] == "unable to get local issuer certificate"
 
 
 class TestSignVerify(object):
