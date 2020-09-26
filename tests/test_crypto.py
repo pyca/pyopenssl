@@ -516,6 +516,23 @@ MbzjS007Oe4qqBnCWaFPSnJX6uLApeTbqAxAeyCql56ULW5x6vDMNC3dwjvS/CEh
 
 encryptedPrivateKeyPEMPassphrase = b"foobar"
 
+cleartextPrivateKeyPEM = """-----BEGIN PRIVATE KEY-----
+MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAMcRMugJ4kvkOEuT
+AvMFr9+3A6+HAB6nKYcXXZz93ube8rJpBZQEfWn73H10dQiQR/a+rhxYEeLy8dPc
+UkFcGR9miVkukJ59zex7iySJY76bdBD8gyx1LTKrkCstP2XHKEYqgbj+tm7VzJnY
+sQLqoaa5NeyWJnUC3MJympkAS7p3AgMBAAECgYAoBAcNqd75jnjaiETRgVUnTWzK
+PgMCJmwsob/JrSa/lhWHU6Exbe2f/mcGOQDFpesxaIcrX3DJBDkkc2d9h/vsfo5v
+JLk/rbHoItWxwuY5n5raAPeQPToKpTDxDrL6Ejhgcxd19wNht7/XSrYZ+dq3iU6G
+mOEvU2hrnfIW3kwVYQJBAP62G6R0gucNfaKGtHzfR3TN9G/DnCItchF+TxGTtpdh
+Cz32MG+7pirT/0xunekmUIp15QHdRy496sVxWTCooLkCQQDIEwXTAwhLNRGFEs5S
+jSkxNfTVeNiOzlG8jPBJJDAdlLt1gUqjZWnk9yU+itMSGi/6eeuH2n04FFk+SV/T
+7ryvAkB0y0ZDk5VOozX/p2rtc2iNm77A3N4kIdiTQuq4sZXhNgN0pwWwxke8jbcb
+8gEAnqwBwWt//locTxHu9TmjgT8pAkEAlbF16B0atXptM02QxT8MlN8z4gxaqu4/
+RX2FwpOq1FcVsqMbvwj/o+ouGY8wwRiK0TMrQCf/DFhdNTcc1aqHzQJBAKWtq4LI
+uVZjCAuyrqEnt7R1bOiLrar+/ezJPY2z+f2rb1TGr31ztPeFvO3edLw+QdhzwJGp
+QKImYzqMe+zkIOQ=
+-----END PRIVATE KEY-----
+"""
 
 cleartextPublicKeyPEM = b"""-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxszlc+b71LvlLS0ypt/l
@@ -3166,6 +3183,44 @@ class TestFunction(object):
         key = load_privatekey(FILETYPE_PEM, root_key_pem)
         with pytest.raises(ValueError):
             dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, cb)
+
+    def test_dump_privatekey_truncated(self):
+        """
+        `crypto.dump_privatekey` should not truncate a passphrase that contains
+        a null byte.
+        """
+        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        passphrase = b"foo\x00bar"
+        truncated_passphrase = passphrase.split(b"\x00", 1)[0]
+
+        # By dumping with the full passphrase load should raise an error if we
+        # try to load using the truncated passphrase. If dump truncated the
+        # passphrase, then we WILL load the privatekey and the test fails
+        encrypted_key_pem = dump_privatekey(
+            FILETYPE_PEM, key, "AES-256-CBC", passphrase
+        )
+        with pytest.raises(Error):
+            load_privatekey(
+                FILETYPE_PEM, encrypted_key_pem, truncated_passphrase
+            )
+
+    def test_load_privatekey_truncated(self):
+        """
+        `crypto.load_privatekey` should not truncate a passphrase that contains
+        a null byte.
+        """
+        key = load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+        passphrase = b"foo\x00bar"
+        truncated_passphrase = passphrase.split(b"\x00", 1)[0]
+
+        # By dumping using the truncated passphrase load should raise an error
+        # if we try to load using the full passphrase. If load truncated the
+        # passphrase, then we WILL load the privatekey and the test fails
+        encrypted_key_pem = dump_privatekey(
+            FILETYPE_PEM, key, "AES-256-CBC", truncated_passphrase
+        )
+        with pytest.raises(Error):
+            load_privatekey(FILETYPE_PEM, encrypted_key_pem, passphrase)
 
     def test_load_pkcs7_data_pem(self):
         """
