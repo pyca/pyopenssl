@@ -2788,9 +2788,7 @@ class _PassphraseHelper(object):
     def callback(self):
         if self._passphrase is None:
             return _ffi.NULL
-        elif isinstance(self._passphrase, bytes):
-            return _ffi.NULL
-        elif callable(self._passphrase):
+        elif isinstance(self._passphrase, bytes) or callable(self._passphrase):
             return _ffi.callback("pem_password_cb", self._read_passphrase)
         else:
             raise TypeError(
@@ -2801,9 +2799,7 @@ class _PassphraseHelper(object):
     def callback_args(self):
         if self._passphrase is None:
             return _ffi.NULL
-        elif isinstance(self._passphrase, bytes):
-            return self._passphrase
-        elif callable(self._passphrase):
+        elif isinstance(self._passphrase, bytes) or callable(self._passphrase):
             return _ffi.NULL
         else:
             raise TypeError(
@@ -2823,12 +2819,15 @@ class _PassphraseHelper(object):
 
     def _read_passphrase(self, buf, size, rwflag, userdata):
         try:
-            if self._more_args:
-                result = self._passphrase(size, rwflag, userdata)
+            if callable(self._passphrase):
+                if self._more_args:
+                    result = self._passphrase(size, rwflag, userdata)
+                else:
+                    result = self._passphrase(rwflag)
             else:
-                result = self._passphrase(rwflag)
+                result = self._passphrase
             if not isinstance(result, bytes):
-                raise ValueError("String expected")
+                raise ValueError("Bytes expected")
             if len(result) > size:
                 if self._truncate:
                     result = result[:size]

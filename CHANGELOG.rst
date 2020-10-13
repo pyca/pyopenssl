@@ -38,7 +38,10 @@ Changes:
 - Make verification callback optional in ``Context.set_verify``.
   If omitted, OpenSSL's default verification is used.
   `#933 <https://github.com/pyca/pyopenssl/pull/933>`_
-
+- Fixed a bug that could truncate or cause a zero-length key error due to a
+  null byte in private key passphrase in ``OpenSSL.crypto.load_privatekey``
+  and ``OpenSSL.crypto.dump_privatekey``.
+  `#947 <https://github.com/pyca/pyopenssl/pull/947>`_
 
 19.1.0 (2019-11-18)
 -------------------
