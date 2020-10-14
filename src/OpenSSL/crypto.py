@@ -391,7 +391,7 @@ class _EllipticCurve(object):
     _curves = None
 
     if not _PY2:
-        # This only necessary on Python 3.  Morever, it is broken on Python 2.
+        # This only necessary on Python 3.  Moreover, it is broken on Python 2.
         def __ne__(self, other):
             """
             Implement cooperation with the right-hand side argument of ``!=``.
@@ -2364,7 +2364,7 @@ class CRL(object):
 
     def set_nextUpdate(self, when):
         """
-        Set when the CRL will next be udpated.
+        Set when the CRL will next be updated.
 
         The timestamp is formatted as an ASN.1 TIME::
 
