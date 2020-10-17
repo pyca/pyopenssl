@@ -9,12 +9,14 @@ from threading import Thread
 
 from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, PKey
 
+
 def generate_rsa():
     keys = []
     for i in range(100):
         key = PKey()
         key.generate_key(TYPE_RSA, 1024)
         keys.append(key)
+
 
 def generate_dsa():
     keys = []
@@ -34,5 +36,6 @@ def main():
 
     for t in threads:
         t.start()
+
 
 main()

@@ -29,7 +29,8 @@ cleartextPrivateKeyPEM = (
     "0QwrX8nxFeTytr8pFGezj4a4KVCdb2B3CL+p3f70K7RIo9d/7b6frJI6ZL/LHQf2\n"
     "UP4pKRDkgKsVDx7MELECQGm072/Z7vmb03h/uE95IYJOgY4nfmYs0QKA9Is18wUz\n"
     "DpjfE33p0Ha6GO1VZRIQoqE24F8o5oimy3BEjryFuw4=\n"
-    "-----END RSA PRIVATE KEY-----\n")
+    "-----END RSA PRIVATE KEY-----\n"
+)
 
 
 cleartextCertificatePEM = (
@@ -48,24 +49,31 @@ cleartextCertificatePEM = (
     "q55LJdOnJbCCXIgxLdoVmvYAz1ZJq1eGKgKWI5QLgxiSzJLEU7KK//aVfiZzoCd5\n"
     "RipBiEEMEV4eAY317bHPwPP+4Bj9t0l8AsDLseC5vLRHgxrLEu3bn08DYx6imB5Q\n"
     "UBj849/xpszEM7BhwKE0GiQ=\n"
-    "-----END CERTIFICATE-----\n")
+    "-----END CERTIFICATE-----\n"
+)
 
 count = count()
+
+
 def go():
     port = socket()
-    port.bind(('', 0))
+    port.bind(("", 0))
     port.listen(1)
 
     called = []
+
     def info(conn, where, ret):
         print count.next()
         called.append(None)
+
     context = Context(TLSv1_METHOD)
     context.set_info_callback(info)
     context.use_certificate(
-        load_certificate(FILETYPE_PEM, cleartextCertificatePEM))
+        load_certificate(FILETYPE_PEM, cleartextCertificatePEM)
+    )
     context.use_privatekey(
-        load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM))
+        load_privatekey(FILETYPE_PEM, cleartextPrivateKeyPEM)
+    )
 
     while 1:
         client = socket()

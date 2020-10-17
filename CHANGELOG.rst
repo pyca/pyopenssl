@@ -12,20 +12,36 @@ Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Remove deprecated ``OpenSSL.tsafe`` module.
+- Removed deprecated ``OpenSSL.SSL.Context.set_npn_advertise_callback``, ``OpenSSL.SSL.Context.set_npn_select_callback``, and ``OpenSSL.SSL.Connection.get_next_proto_negotiated``.
 - Drop support for Python 3.4
 - Drop support for OpenSSL 1.0.1
 
 Deprecations:
 ^^^^^^^^^^^^^
 
-*none*
-
+- Deprecated ``OpenSSL.crypto.loads_pkcs7`` and ``OpenSSL.crypto.loads_pkcs12``.
 
 Changes:
 ^^^^^^^^
 
-*none*
-
+- Added a new optional ``chain`` parameter to ``OpenSSL.crypto.X509StoreContext()``
+  where additional untrusted certificates can be specified to help chain building.
+  `#948 <https://github.com/pyca/pyopenssl/pull/948>`_
+- Added ``OpenSSL.crypto.X509Store.load_locations`` to set trusted
+  certificate file bundles and/or directories for verification.
+  `#943 <https://github.com/pyca/pyopenssl/pull/943>`_
+- Added ``Context.set_keylog_callback`` to log key material.
+  `#910 <https://github.com/pyca/pyopenssl/pull/910>`_
+- Added ``OpenSSL.SSL.Connection.get_verified_chain`` to retrieve the
+  verified certificate chain of the peer.
+  `#894 <https://github.com/pyca/pyopenssl/pull/894>`_.
+- Make verification callback optional in ``Context.set_verify``.
+  If omitted, OpenSSL's default verification is used.
+  `#933 <https://github.com/pyca/pyopenssl/pull/933>`_
+- Fixed a bug that could truncate or cause a zero-length key error due to a
+  null byte in private key passphrase in ``OpenSSL.crypto.load_privatekey``
+  and ``OpenSSL.crypto.dump_privatekey``.
+  `#947 <https://github.com/pyca/pyopenssl/pull/947>`_
 
 19.1.0 (2019-11-18)
 -------------------

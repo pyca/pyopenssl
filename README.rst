@@ -6,8 +6,8 @@ pyOpenSSL -- A Python wrapper around the OpenSSL library
    :target: https://pyopenssl.org/en/stable/
    :alt: Stable Docs
 
-.. image:: https://travis-ci.org/pyca/pyopenssl.svg?branch=master
-   :target: https://travis-ci.org/pyca/pyopenssl
+.. image:: https://travis-ci.com/pyca/pyopenssl.svg?branch=master
+   :target: https://travis-ci.com/pyca/pyopenssl
    :alt: Build status
 
 .. image:: https://codecov.io/github/pyca/pyopenssl/branch/master/graph/badge.svg

@@ -1,5 +1,5 @@
-dist: xenial
-sudo: true
+os: linux
+dist: focal
 language: python
 
 cache:
@@ -10,14 +10,16 @@ env:
   global:
     - LC_ALL=en_US.UTF-8
 
-matrix:
+jobs:
   include:
   - language: generic
     os: osx
-    osx_image: xcode11.3
+    osx_image: xcode11.6
     env: TOXENV=py27
   - python: "2.7"
     env: TOXENV=py27
+    # we should still test against OpenSSL 1.0.2. Xenial gives us that for now.
+    dist: xenial
   - python: "3.5"
     env: TOXENV=py35
   - python: "3.6"
@@ -26,9 +28,9 @@ matrix:
     env: TOXENV=py37
   - python: "3.8"
     env: TOXENV=py38
-  - python: "pypy2.7-5.10.0"
+  - python: "pypy2.7-7.3.1"
     env: TOXENV=pypy
-  - python: "pypy3.5-5.10.1"
+  - python: "pypy3.6-7.3.1"
     env: TOXENV=pypy3
 
   # Also run the tests against cryptography master.
@@ -42,9 +44,9 @@ matrix:
     env: TOXENV=py37-cryptographyMaster
   - python: "3.8"
     env: TOXENV=py38-cryptographyMaster
-  - python: "pypy2.7-5.10.0"
+  - python: "pypy2.7-7.3.1"
     env: TOXENV=pypy-cryptographyMaster
-  - python: "pypy3.5-5.10.1"
+  - python: "pypy3.6-7.3.1"
     env: TOXENV=pypy3-cryptographyMaster
 
   # And current minimum cryptography version.
@@ -58,9 +60,9 @@ matrix:
     env: TOXENV=py37-cryptographyMinimum
   - python: "3.8"
     env: TOXENV=py38-cryptographyMinimum
-  - python: "pypy2.7-5.10.0"
+  - python: "pypy2.7-7.3.1"
     env: TOXENV=pypy-cryptographyMinimum
-  - python: "pypy3.5-5.10.1"
+  - python: "pypy3.6-7.3.1"
     env: TOXENV=pypy3-cryptographyMinimum
 
   # Run tests in random order
@@ -74,6 +76,8 @@ matrix:
     env: TOXENV=py37-twistedMaster
   - python: "3.5"
     env: TOXENV=py35-urllib3Master
+    # Somehow urllib3 has trouble with newer distributions
+    dist: xenial
 
 
   # Meta
@@ -83,7 +87,7 @@ matrix:
   - python: "2.7"
     env: TOXENV=pypi-readme
 
-  - python: "2.7"
+  - python: "3.8"
     env: TOXENV=flake8
 
   - python: "2.7"
@@ -104,8 +108,6 @@ matrix:
 install:
   - |
     if [[ "$(uname -s)" == 'Darwin' ]]; then
-      brew update
-      brew upgrade openssl@1.1
       curl -O https://bootstrap.pypa.io/get-pip.py
       python get-pip.py --user
       python -m pip install --user virtualenv
@@ -116,15 +118,7 @@ install:
     ~/.venv/bin/pip install tox coverage
 
 script:
-  - |
-    if [[ "$(uname -s)" == 'Darwin' ]]; then
-      # set our flags to use homebrew openssl
-      export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
-      export CFLAGS="-I/usr/local/opt/openssl@1.1/include"
-      export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
-    fi
-    openssl version
-    ~/.venv/bin/tox -v
+  - ~/.venv/bin/tox -v
 
 after_script:
   - ./.travis/upload_coverage.sh
