@@ -1,3 +1,4 @@
+import calendar
 import datetime
 
 from base64 import b16encode
@@ -1672,7 +1673,9 @@ class X509Store(object):
         param = _lib.X509_VERIFY_PARAM_new()
         param = _ffi.gc(param, _lib.X509_VERIFY_PARAM_free)
 
-        _lib.X509_VERIFY_PARAM_set_time(param, int(vfy_time.strftime("%s")))
+        _lib.X509_VERIFY_PARAM_set_time(
+            param, calendar.timegm(vfy_time.timetuple())
+        )
         _openssl_assert(_lib.X509_STORE_set1_param(self._store, param) != 0)
 
     def load_locations(self, cafile, capath=None):
