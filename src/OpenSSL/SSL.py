@@ -28,7 +28,6 @@ from OpenSSL.crypto import (
     X509Name,
     X509,
     X509Store,
-    X509StoreContext,
 )
 
 __all__ = [
@@ -147,10 +146,7 @@ OP_NO_SSLv3 = _lib.SSL_OP_NO_SSLv3
 OP_NO_TLSv1 = _lib.SSL_OP_NO_TLSv1
 OP_NO_TLSv1_1 = _lib.SSL_OP_NO_TLSv1_1
 OP_NO_TLSv1_2 = _lib.SSL_OP_NO_TLSv1_2
-try:
-    OP_NO_TLSv1_3 = _lib.SSL_OP_NO_TLSv1_3
-except AttributeError:
-    pass
+OP_NO_TLSv1_3 = _lib.SSL_OP_NO_TLSv1_3
 
 MODE_RELEASE_BUFFERS = _lib.SSL_MODE_RELEASE_BUFFERS
 
@@ -202,14 +198,6 @@ SESS_CACHE_NO_INTERNAL = _lib.SSL_SESS_CACHE_NO_INTERNAL
 SSL_ST_CONNECT = _lib.SSL_ST_CONNECT
 SSL_ST_ACCEPT = _lib.SSL_ST_ACCEPT
 SSL_ST_MASK = _lib.SSL_ST_MASK
-if _lib.Cryptography_HAS_SSL_ST:
-    SSL_ST_INIT = _lib.SSL_ST_INIT
-    SSL_ST_BEFORE = _lib.SSL_ST_BEFORE
-    SSL_ST_OK = _lib.SSL_ST_OK
-    SSL_ST_RENEGOTIATE = _lib.SSL_ST_RENEGOTIATE
-    __all__.extend(
-        ["SSL_ST_INIT", "SSL_ST_BEFORE", "SSL_ST_OK", "SSL_ST_RENEGOTIATE"]
-    )
 
 SSL_CB_LOOP = _lib.SSL_CB_LOOP
 SSL_CB_EXIT = _lib.SSL_CB_EXIT
@@ -972,11 +960,7 @@ class Context(object):
         """
         buf = _text_to_bytes_and_warn("buf", buf)
         _openssl_assert(
-            _lib.SSL_CTX_set_session_id_context(
-                self._context,
-                buf,
-                len(buf),
-            )
+            _lib.SSL_CTX_set_session_id_context(self._context, buf, len(buf))
             == 1
         )
 
@@ -2175,29 +2159,12 @@ class Connection(object):
 
         .. versionadded:: 20.0
         """
-        if hasattr(_lib, "SSL_get0_verified_chain"):
-            # OpenSSL 1.1+
-            cert_stack = _lib.SSL_get0_verified_chain(self._ssl)
-            if cert_stack == _ffi.NULL:
-                return None
-
-            return self._cert_stack_to_list(cert_stack)
-
-        pycert = self.get_peer_certificate()
-        if pycert is None:
+        # OpenSSL 1.1+
+        cert_stack = _lib.SSL_get0_verified_chain(self._ssl)
+        if cert_stack == _ffi.NULL:
             return None
 
-        # Should never be NULL because the peer presented a certificate.
-        cert_stack = _lib.SSL_get_peer_cert_chain(self._ssl)
-        _openssl_assert(cert_stack != _ffi.NULL)
-
-        pystore = self._context.get_cert_store()
-        if pystore is None:
-            return None
-
-        pystorectx = X509StoreContext(pystore, pycert)
-        pystorectx._chain = cert_stack
-        return pystorectx.get_verified_chain()
+        return self._cert_stack_to_list(cert_stack)
 
     def want_read(self):
         """
