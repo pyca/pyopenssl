@@ -15,6 +15,10 @@ Backward-incompatible changes:
 - Removed deprecated ``OpenSSL.SSL.Context.set_npn_advertise_callback``, ``OpenSSL.SSL.Context.set_npn_select_callback``, and ``OpenSSL.SSL.Connection.get_next_proto_negotiated``.
 - Drop support for Python 3.4
 - Drop support for OpenSSL 1.0.1
+- Honor time zones in the ``vfy_time`` parameter to ``OpenSSL.crypto.X509Store.set_time()``,
+  and assume that datetimes without a time zone are in UTC instead of in local time.
+  `#907 <https://github.com/pyca/pyopenssl/pull/907>`_
+  `#952 <https://github.com/pyca/pyopenssl/pull/952>`_
 
 Deprecations:
 ^^^^^^^^^^^^^
