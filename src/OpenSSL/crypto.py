@@ -1660,6 +1660,11 @@ class X509Store(object):
 
         Normally the current time is used.
 
+        The verification time can be a ``datetime`` object with or without time
+        zone information. A time without a time zone is assumed to be in UTC.
+        To avoid ambiguity, ``vfy_time`` should be a timezone-aware
+        ``datetime`` in the UTC time zone.
+
         .. note::
 
           For example, you can determine if a certificate was valid at a given
@@ -1667,14 +1672,15 @@ class X509Store(object):
 
         .. versionadded:: 17.0.0
 
-        :param datetime vfy_time: The verification time to set on this store.
+        :param vfy_time: The verification time to set on this store.
+        :type vfy_time: :class:`datetime.datetime`
         :return: ``None`` if the verification time was successfully set.
         """
         param = _lib.X509_VERIFY_PARAM_new()
         param = _ffi.gc(param, _lib.X509_VERIFY_PARAM_free)
 
         _lib.X509_VERIFY_PARAM_set_time(
-            param, calendar.timegm(vfy_time.timetuple())
+            param, calendar.timegm(vfy_time.utctimetuple())
         )
         _openssl_assert(_lib.X509_STORE_set1_param(self._store, param) != 0)
 
