@@ -14,7 +14,7 @@ Backward-incompatible changes:
 - Remove deprecated ``OpenSSL.tsafe`` module.
 - Removed deprecated ``OpenSSL.SSL.Context.set_npn_advertise_callback``, ``OpenSSL.SSL.Context.set_npn_select_callback``, and ``OpenSSL.SSL.Connection.get_next_proto_negotiated``.
 - Drop support for Python 3.4
-- Drop support for OpenSSL 1.0.1
+- Drop support for OpenSSL 1.0.1 and 1.0.2
 
 Deprecations:
 ^^^^^^^^^^^^^
