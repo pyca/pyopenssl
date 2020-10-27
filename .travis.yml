@@ -16,10 +16,6 @@ jobs:
     os: osx
     osx_image: xcode11.6
     env: TOXENV=py27
-  - python: "2.7"
-    env: TOXENV=py27
-    # we should still test against OpenSSL 1.0.2. Xenial gives us that for now.
-    dist: xenial
   - python: "3.5"
     env: TOXENV=py35
   - python: "3.6"
@@ -71,13 +67,9 @@ jobs:
   - python: "3.7"
     env: TOXENV=py37-randomorder
 
-  # Make sure we don't break Twisted or urllib3
+  # Make sure we don't break Twisted
   - python: "3.7"
     env: TOXENV=py37-twistedMaster
-  - python: "3.5"
-    env: TOXENV=py35-urllib3Master
-    # Somehow urllib3 has trouble with newer distributions
-    dist: xenial
 
 
   # Meta
