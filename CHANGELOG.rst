@@ -225,6 +225,10 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- Fixed the inability of ``OpenSSL.SSL.Connection.sendall()`` to
+  keep with sending data over the wire after ``SSL_ERROR_WANT_READ``
+  or ``SSL_ERROR_WANT_WRITE`` is returned by ``SSL_write()``.
+  `#176 <https://github.com/pyca/pyopenssl/pull/176>`_
 - Added a new optional ``chain`` parameter to ``OpenSSL.crypto.X509StoreContext()``
   where additional untrusted certificates can be specified to help chain building.
   `#948 <https://github.com/pyca/pyopenssl/pull/948>`_
