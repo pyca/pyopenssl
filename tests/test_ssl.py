@@ -6,6 +6,7 @@ Unit tests for :mod:`OpenSSL.SSL`.
 """
 
 import datetime
+import gc
 import sys
 import uuid
 
@@ -1388,6 +1389,51 @@ class TestContext(object):
             self._handshake_test(serverContext, clientContext)
 
         assert "silly verify failure" == str(exc.value)
+
+    def test_set_verify_callback_reference(self):
+        """
+        If the verify callback passed to `Context.set_verify` is set multiple
+        times, the pointers to the old call functions should not be dangling
+        and trigger a segfault.
+        """
+        serverContext = Context(TLSv1_2_METHOD)
+        serverContext.use_privatekey(
+            load_privatekey(FILETYPE_PEM, root_key_pem)
+        )
+        serverContext.use_certificate(
+            load_certificate(FILETYPE_PEM, root_cert_pem)
+        )
+
+        clientContext = Context(TLSv1_2_METHOD)
+
+        clients = []
+
+        for i in range(5):
+
+            def verify_callback(*args):
+                return True
+
+            serverSocket, clientSocket = socket_pair()
+            client = Connection(clientContext, clientSocket)
+
+            clients.append((serverSocket, client))
+
+            clientContext.set_verify(VERIFY_PEER, verify_callback)
+
+        gc.collect()
+
+        # Make them talk to each other.
+        for serverSocket, client in clients:
+            server = Connection(serverContext, serverSocket)
+            server.set_accept_state()
+            client.set_connect_state()
+
+            for _ in range(5):
+                for s in [client, server]:
+                    try:
+                        s.do_handshake()
+                    except WantReadError:
+                        pass
 
     @pytest.mark.parametrize("mode", [SSL.VERIFY_PEER, SSL.VERIFY_NONE])
     def test_set_verify_default_callback(self, mode):
