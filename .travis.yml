@@ -32,8 +32,6 @@ jobs:
   # Also run the tests against cryptography master.
   - python: "2.7"
     env: TOXENV=py27-cryptographyMaster
-  - python: "3.5"
-    env: TOXENV=py35-cryptographyMaster
   - python: "3.6"
     env: TOXENV=py36-cryptographyMaster
   - python: "3.7"
@@ -89,7 +87,6 @@ jobs:
   # cryptography changes that are beyond our control.
   allow_failures:
   - env: TOXENV=py27-cryptographyMaster
-  - env: TOXENV=py35-cryptographyMaster
   - env: TOXENV=py36-cryptographyMaster
   - env: TOXENV=py37-cryptographyMaster
   - env: TOXENV=py38-cryptographyMaster
