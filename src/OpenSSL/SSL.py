@@ -993,8 +993,8 @@ class Context(object):
 
     def set_verify(self, mode, callback=None):
         """
-        et the verification flags for this Context object to *mode* and specify
-        that *callback* should be used for verification callbacks.
+        Set the verification flags for this Context object to *mode* and
+        specify that *callback* should be used for verification callbacks.
 
         :param mode: The verify mode, this should be one of
             :const:`VERIFY_NONE` and :const:`VERIFY_PEER`. If
