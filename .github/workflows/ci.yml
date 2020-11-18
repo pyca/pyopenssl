@@ -1,0 +1,62 @@
+name: CI
+on:
+  pull_request: {}
+  push: {}
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        PYTHON:
+          # Base builds
+          - {VERSION: "2.7", TOXENV: "py27"}
+          - {VERSION: "3.5", TOXENV: "py35"}
+          - {VERSION: "3.6", TOXENV: "py36"}
+          - {VERSION: "3.7", TOXENV: "py37"}
+          - {VERSION: "3.8", TOXENV: "py38"}
+          - {VERSION: "3.9", TOXENV: "py39"}
+          - {VERSION: "pypy2", TOXENV: "pypy"}
+          - {VERSION: "pypy3", TOXENV: "pypy3"}
+          # -cryptographyMaster
+          - {VERSION: "2.7", TOXENV: "py27-cryptographyMaster"}
+          - {VERSION: "3.6", TOXENV: "py36-cryptographyMaster"}
+          - {VERSION: "3.7", TOXENV: "py37-cryptographyMaster"}
+          - {VERSION: "3.8", TOXENV: "py38-cryptographyMaster"}
+          - {VERSION: "3.9", TOXENV: "py39-cryptographyMaster"}
+          - {VERSION: "pypy2", TOXENV: "pypy-cryptographyMaster"}
+          - {VERSION: "pypy3", TOXENV: "pypy3-cryptographyMaster"}
+          # -cryptographyMinimum
+          - {VERSION: "2.7", TOXENV: "py27-cryptographyMinimum"}
+          - {VERSION: "3.5", TOXENV: "py35-cryptographyMinimum"}
+          - {VERSION: "3.6", TOXENV: "py36-cryptographyMinimum"}
+          - {VERSION: "3.7", TOXENV: "py37-cryptographyMinimum"}
+          - {VERSION: "3.8", TOXENV: "py38-cryptographyMinimum"}
+          - {VERSION: "3.9", TOXENV: "py39-cryptographyMinimum"}
+          - {VERSION: "pypy2", TOXENV: "pypy-cryptographyMinimum"}
+          - {VERSION: "pypy3", TOXENV: "pypy3-cryptographyMinimum"}
+          # Random order
+          - {VERSION: "2.7", TOXENV: "py27-randomorder"}
+          - {VERSION: "3.9", TOXENV: "py39-randomorder"}
+          # Downstreams
+          - {VERSION: "3.7", TOXENV: "py37-twistedMaster"}
+          # Meta
+          - {VERSION: "2.7", TOXENV: "check-manifest"}
+          - {VERSION: "2.7", TOXENV: "pypi-readme"}
+          - {VERSION: "3.9", TOXENV: "flake8"}
+          - {VERSION: "2.7", TOXENV: "docs"}
+    name: "${{ matrix.PYTHON.TOXENV }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.PYTHON.VERSION }}
+      - run: python -m pip install tox coverage
+      - run: tox -v
+        env:
+          TOXENV: ${{ matrix.PYTHON.TOXENV }}
+      - name: Upload coverage
+        run: |
+          curl -o codecov.sh -f https://codecov.io/bash || curl -o codecov.sh -f https://codecov.io/bash || curl -o codecov.sh -f https://codecov.io/bash
+          bash codecov.sh -n "tox -e ${{ matrix.PYTHON.TOXENV }}"
