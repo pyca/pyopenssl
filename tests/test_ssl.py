@@ -521,6 +521,29 @@ class TestContext(object):
             ],
         )
 
+    @pytest.mark.parametrize(
+        "ciphersuites",
+        [b"TLS_AES_256_GCM_SHA384", u"TLS_AES_256_GCM_SHA384"],
+    )
+    def test_set_ciphersuites(self, context, ciphersuites):
+        """
+        `Context.set_ciphersuites` accepts both byte and unicode strings
+        for naming the ciphers which connections created with the context
+        object will be able to choose from.
+        """
+        context.set_ciphersuites(ciphersuites)
+        conn = Connection(context, None)
+
+        assert "TLS_AES_256_GCM_SHA384" in conn.get_cipher_list()
+
+    def test_set_ciphersuites_wrong_type(self, context):
+        """
+        `Context.set_ciphersuites` raises `TypeError` when passed a non-string
+        argument.
+        """
+        with pytest.raises(TypeError):
+            context.set_ciphersuites(object())
+
     def test_load_client_ca(self, context, ca_file):
         """
         `Context.load_client_ca` works as far as we can tell.
