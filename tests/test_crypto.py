@@ -1625,6 +1625,9 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         assert exts[1].get_short_name() == b"keyUsage"
         assert exts[1].get_critical() == 0
         assert exts[1].get_data() == b"\x03\x02\x07\x80"
+        # Requesting it a second time should return the same list
+        exts = request.get_extensions()
+        assert len(exts) == 2
 
     def test_add_extensions_wrong_args(self):
         """
