@@ -1485,6 +1485,12 @@ class Connection(object):
         # avoid them getting freed.
         self._alpn_select_callback_args = None
 
+        # Reference the verify_callback of the Context. This ensures that if
+        # set_verify is called again after the SSL object has been created we
+        # do not point to a dangling reference
+        self._verify_helper = context._verify_helper
+        self._verify_callback = context._verify_callback
+
         self._reverse_mapping[self._ssl] = self
 
         if socket is None:
