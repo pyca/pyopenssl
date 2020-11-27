@@ -99,7 +99,7 @@ release = version
 # directories to ignore when looking for source files.
 exclude_patterns = ["_build"]
 
-# The reST default role (used for this markup: `text`) to use for all documents.
+# The reST default role (used for this markup `text`) to use for all documents.
 # default_role = None
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
@@ -215,7 +215,7 @@ htmlhelp_basename = "pyOpenSSLdoc"
 # latex_font_size = '10pt'
 
 # Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title, author, documentclass [howto/manual]).
+# (source start file, target name, title, author, documentclass [howto/manual])
 latex_documents = [
     ("index", "pyOpenSSL.tex", u"pyOpenSSL Documentation", authors, "manual"),
 ]
