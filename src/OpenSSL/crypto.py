@@ -1021,9 +1021,7 @@ class X509Req(object):
             native_exts_obj,
             lambda x: _lib.sk_X509_EXTENSION_pop_free(
                 x,
-                _ffi.addressof(
-                    _lib._original_lib, "X509_EXTENSION_free"
-                ),
+                _ffi.addressof(_lib._original_lib, "X509_EXTENSION_free"),
             ),
         )
 
