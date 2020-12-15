@@ -4,7 +4,7 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
-21.0.0 (UNRELEASED)
+20.0.1 (2020-12-15)
 -------------------
 
 Backward-incompatible changes:
@@ -15,6 +15,8 @@ Deprecations:
 
 Changes:
 ^^^^^^^^
+
+- Fixed compatibility with OpenSSL 1.1.0.
 
 20.0.0 (2020-11-27)
 -------------------
