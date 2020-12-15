@@ -23,7 +23,6 @@ jobs:
           - {VERSION: "3.7", TOXENV: "py37-cryptographyMaster"}
           - {VERSION: "3.8", TOXENV: "py38-cryptographyMaster"}
           - {VERSION: "3.9", TOXENV: "py39-cryptographyMaster"}
-          - {VERSION: "pypy2", TOXENV: "pypy-cryptographyMaster"}
           - {VERSION: "pypy3", TOXENV: "pypy3-cryptographyMaster"}
           # -cryptographyMinimum
           - {VERSION: "2.7", TOXENV: "py27-cryptographyMinimum"}
