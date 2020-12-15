@@ -58,3 +58,22 @@ jobs:
         run: |
           curl -o codecov.sh -f https://codecov.io/bash || curl -o codecov.sh -f https://codecov.io/bash || curl -o codecov.sh -f https://codecov.io/bash
           bash codecov.sh -n "tox -e ${{ matrix.PYTHON.TOXENV }}"
+
+  linux-docker:
+    runs-on: ubuntu-latest
+    container: ghcr.io/pyca/cryptography-runner-${{ matrix.TEST.CONTAINER }}
+    strategy:
+      matrix:
+        TEST:
+          - {CONTAINER: "stretch", TOXENV: "py27"}
+          - {CONTAINER: "stretch", TOXENV: "py35"}
+    name: "${{ matrix.TEST.TOXENV }} on ${{ matrix.TEST.CONTAINER }}"
+    steps:
+      - uses: actions/checkout@v2
+      - run: tox -v
+        env:
+          TOXENV: ${{ matrix.TEST.TOXENV }}
+      - name: Upload coverage
+        run: |
+          curl -o codecov.sh -f https://codecov.io/bash || curl -o codecov.sh -f https://codecov.io/bash || curl -o codecov.sh -f https://codecov.io/bash
+          bash codecov.sh -n "tox -e ${{ matrix.TEST.TOXENV }} on ${{ matrix.TEST.CONTAINER }}"
