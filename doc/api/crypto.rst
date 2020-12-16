@@ -149,7 +149,6 @@ X509StoreFlags constants
     .. data:: INHIBIT_MAP
     .. data:: NOTIFY_POLICY
     .. data:: CHECK_SS_SIGNATURE
-    .. data:: CB_ISSUER_CHECK
 
 .. _openssl-x509storeflags:
 
