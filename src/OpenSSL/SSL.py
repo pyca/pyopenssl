@@ -151,11 +151,20 @@ TLS_METHOD = 7
 TLS_SERVER_METHOD = 8
 TLS_CLIENT_METHOD = 9
 
-SSL3_VERSION = _lib.SSL3_VERSION
-TLS1_VERSION = _lib.TLS1_VERSION
-TLS1_1_VERSION = _lib.TLS1_1_VERSION
-TLS1_2_VERSION = _lib.TLS1_2_VERSION
-TLS1_3_VERSION = _lib.TLS1_3_VERSION
+try:
+    SSL3_VERSION = _lib.SSL3_VERSION
+    TLS1_VERSION = _lib.TLS1_VERSION
+    TLS1_1_VERSION = _lib.TLS1_1_VERSION
+    TLS1_2_VERSION = _lib.TLS1_2_VERSION
+    TLS1_3_VERSION = _lib.TLS1_3_VERSION
+except AttributeError:
+    # Hardcode constants for cryptography < 3.4, see
+    # https://github.com/pyca/pyopenssl/pull/985#issuecomment-775186682
+    SSL3_VERSION = 768
+    TLS1_VERSION = 769
+    TLS1_1_VERSION = 770
+    TLS1_2_VERSION = 771
+    TLS1_3_VERSION = 772
 
 OP_NO_SSLv2 = _lib.SSL_OP_NO_SSLv2
 OP_NO_SSLv3 = _lib.SSL_OP_NO_SSLv3
