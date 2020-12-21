@@ -10,7 +10,10 @@
 This module handles things specific to SSL. There are two objects defined:
 Context, Connection.
 
-.. py:data:: SSLv2_METHOD
+.. py:data:: TLS_METHOD
+             TLS_SERVER_METHOD
+             TLS_CLIENT_METHOD
+             SSLv2_METHOD
              SSLv3_METHOD
              SSLv23_METHOD
              TLSv1_METHOD
@@ -18,10 +21,20 @@ Context, Connection.
              TLSv1_2_METHOD
 
     These constants represent the different SSL methods to use when creating a
-    context object.  If the underlying OpenSSL build is missing support for any
-    of these protocols, constructing a :py:class:`Context` using the
+    context object. New code should only use ``TLS_METHOD``, ``TLS_SERVER_METHOD``,
+    or ``TLS_CLIENT_METHOD``. If the underlying OpenSSL build is missing support
+    for any of these protocols, constructing a :py:class:`Context` using the
     corresponding :py:const:`*_METHOD` will raise an exception.
 
+
+.. py:data:: SSL3_VERSION
+             TLS1_VERSION
+             TLS1_1_VERSION
+             TLS1_2_VERSION
+             TLS1_3_VERSION
+
+    These constants represent the different TLS versions to use when
+    setting the minimum or maximum TLS version.
 
 .. py:data:: VERIFY_NONE
              VERIFY_PEER
