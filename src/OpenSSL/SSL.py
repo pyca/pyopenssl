@@ -12,7 +12,6 @@ from OpenSSL._util import (
     UNSPECIFIED as _UNSPECIFIED,
     exception_from_error_queue as _exception_from_error_queue,
     ffi as _ffi,
-    from_buffer as _from_buffer,
     lib as _lib,
     make_assert as _make_assert,
     native as _native,
@@ -1641,7 +1640,7 @@ class Connection(object):
         # Backward compatibility
         buf = _text_to_bytes_and_warn("buf", buf)
 
-        with _from_buffer(buf) as data:
+        with _ffi.from_buffer(buf) as data:
             # check len(buf) instead of len(data) for testability
             if len(buf) > 2147483647:
                 raise ValueError(
@@ -1668,7 +1667,7 @@ class Connection(object):
         """
         buf = _text_to_bytes_and_warn("buf", buf)
 
-        with _from_buffer(buf) as data:
+        with _ffi.from_buffer(buf) as data:
 
             left_to_send = len(buf)
             total_sent = 0
@@ -1798,7 +1797,7 @@ class Connection(object):
         if self._into_ssl is None:
             raise TypeError("Connection sock was not None")
 
-        with _from_buffer(buf) as data:
+        with _ffi.from_buffer(buf) as data:
             result = _lib.BIO_write(self._into_ssl, data, len(data))
             if result <= 0:
                 self._handle_bio_errors(self._into_ssl, result)

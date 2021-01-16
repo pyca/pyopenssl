@@ -153,6 +153,3 @@ def text_to_bytes_and_warn(label, obj):
         )
         return obj.encode("utf-8")
     return obj
-
-
-from_buffer = ffi.from_buffer
