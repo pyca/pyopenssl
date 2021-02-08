@@ -11,7 +11,6 @@ jobs:
         PYTHON:
           # Base builds
           - {VERSION: "2.7", TOXENV: "py27"}
-          - {VERSION: "3.5", TOXENV: "py35"}
           - {VERSION: "3.6", TOXENV: "py36"}
           - {VERSION: "3.7", TOXENV: "py37"}
           - {VERSION: "3.8", TOXENV: "py38"}
@@ -26,7 +25,6 @@ jobs:
           - {VERSION: "pypy3", TOXENV: "pypy3-cryptographyMaster"}
           # -cryptographyMinimum
           - {VERSION: "2.7", TOXENV: "py27-cryptographyMinimum"}
-          - {VERSION: "3.5", TOXENV: "py35-cryptographyMinimum"}
           - {VERSION: "3.6", TOXENV: "py36-cryptographyMinimum"}
           - {VERSION: "3.7", TOXENV: "py37-cryptographyMinimum"}
           - {VERSION: "3.8", TOXENV: "py38-cryptographyMinimum"}
@@ -66,7 +64,7 @@ jobs:
       matrix:
         TEST:
           - {CONTAINER: "stretch", TOXENV: "py27"}
-          - {CONTAINER: "stretch", TOXENV: "py35"}
+          - {CONTAINER: "ubuntu-bionic", TOXENV: "py36"}
     name: "${{ matrix.TEST.TOXENV }} on ${{ matrix.TEST.CONTAINER }}"
     steps:
       - uses: actions/checkout@v2
