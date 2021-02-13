@@ -116,5 +116,5 @@ Feel free to cross-check this information with Keybase_.
 .. _members of PyCA: https://github.com/orgs/pyca/people
 .. _semantic newlines: http://rhodesmill.org/brandon/2012/one-sentence-per-line/
 .. _reStructuredText: http://sphinx-doc.org/rest.html
-.. _CHANGELOG.rst: https://github.com/pyca/pyopenssl/blob/master/CHANGELOG.rst
-.. _`Code of Conduct`: https://github.com/pyca/pyopenssl/blob/master/CODE_OF_CONDUCT.rst
+.. _CHANGELOG.rst: https://github.com/pyca/pyopenssl/blob/main/CHANGELOG.rst
+.. _`Code of Conduct`: https://github.com/pyca/pyopenssl/blob/main/CODE_OF_CONDUCT.rst

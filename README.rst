@@ -6,16 +6,16 @@ pyOpenSSL -- A Python wrapper around the OpenSSL library
    :target: https://pyopenssl.org/en/stable/
    :alt: Stable Docs
 
-.. image:: https://travis-ci.com/pyca/pyopenssl.svg?branch=master
+.. image:: https://travis-ci.com/pyca/pyopenssl.svg?branch=main
    :target: https://travis-ci.com/pyca/pyopenssl
    :alt: Build status
 
-.. image:: https://codecov.io/github/pyca/pyopenssl/branch/master/graph/badge.svg
+.. image:: https://codecov.io/github/pyca/pyopenssl/branch/main/graph/badge.svg
    :target: https://codecov.io/github/pyca/pyopenssl
    :alt: Test coverage
 
 **Note:** The Python Cryptographic Authority **strongly suggests** the use of `pyca/cryptography`_
-where possible. If you are using pyOpenSSL for anything other than making a TLS connection 
+where possible. If you are using pyOpenSSL for anything other than making a TLS connection
 **you should move to cryptography and drop your pyOpenSSL dependency**.
 
 High-level wrapper around a subset of the OpenSSL library. Includes
