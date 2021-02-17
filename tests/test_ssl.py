@@ -1890,8 +1890,8 @@ class TestApplicationLayerProtoNegotiation(object):
 
     def test_alpn_call_failure(self):
         """
-        SSL_CTX_set_alpn_protos does not like to be called with an empty protocols list.
-        Ensure that we produce a user-visible error.
+        SSL_CTX_set_alpn_protos does not like to be called with an empty
+        protocols list. Ensure that we produce a user-visible error.
         """
         context = Context(SSLv23_METHOD)
         with pytest.raises(Error):

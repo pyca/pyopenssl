@@ -1377,7 +1377,8 @@ class Context(object):
         input_str = _ffi.new("unsigned char[]", protostr)
 
         # https://www.openssl.org/docs/man1.1.0/man3/SSL_CTX_set_alpn_protos.html:
-        # SSL_CTX_set_alpn_protos() and SSL_set_alpn_protos() return 0 on success, and non-0 on failure.
+        # SSL_CTX_set_alpn_protos() and SSL_set_alpn_protos()
+        # return 0 on success, and non-0 on failure.
         # WARNING: these functions reverse the return value convention.
         _openssl_assert(
             _lib.SSL_CTX_set_alpn_protos(
@@ -2404,7 +2405,8 @@ class Connection(object):
         input_str = _ffi.new("unsigned char[]", protostr)
 
         # https://www.openssl.org/docs/man1.1.0/man3/SSL_CTX_set_alpn_protos.html:
-        # SSL_CTX_set_alpn_protos() and SSL_set_alpn_protos() return 0 on success, and non-0 on failure.
+        # SSL_CTX_set_alpn_protos() and SSL_set_alpn_protos()
+        # return 0 on success, and non-0 on failure.
         # WARNING: these functions reverse the return value convention.
         _openssl_assert(
             _lib.SSL_set_alpn_protos(self._ssl, input_str, len(protostr)) == 0
