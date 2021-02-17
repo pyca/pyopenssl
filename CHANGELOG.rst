@@ -16,6 +16,9 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- Raise an error when an invalid ALPN value is set.
+  `#993 <https://github.com/pyca/pyopenssl/pull/993>`_
+
 20.0.1 (2020-12-15)
 -------------------
 

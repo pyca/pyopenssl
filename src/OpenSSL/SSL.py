@@ -1375,7 +1375,17 @@ class Context(object):
         # Build a C string from the list. We don't need to save this off
         # because OpenSSL immediately copies the data out.
         input_str = _ffi.new("unsigned char[]", protostr)
-        _lib.SSL_CTX_set_alpn_protos(self._context, input_str, len(protostr))
+
+        # https://www.openssl.org/docs/man1.1.0/man3/SSL_CTX_set_alpn_protos.html:
+        # SSL_CTX_set_alpn_protos() and SSL_set_alpn_protos()
+        # return 0 on success, and non-0 on failure.
+        # WARNING: these functions reverse the return value convention.
+        _openssl_assert(
+            _lib.SSL_CTX_set_alpn_protos(
+                self._context, input_str, len(protostr)
+            )
+            == 0
+        )
 
     @_requires_alpn
     def set_alpn_select_callback(self, callback):
@@ -2393,7 +2403,14 @@ class Connection(object):
         # Build a C string from the list. We don't need to save this off
         # because OpenSSL immediately copies the data out.
         input_str = _ffi.new("unsigned char[]", protostr)
-        _lib.SSL_set_alpn_protos(self._ssl, input_str, len(protostr))
+
+        # https://www.openssl.org/docs/man1.1.0/man3/SSL_CTX_set_alpn_protos.html:
+        # SSL_CTX_set_alpn_protos() and SSL_set_alpn_protos()
+        # return 0 on success, and non-0 on failure.
+        # WARNING: these functions reverse the return value convention.
+        _openssl_assert(
+            _lib.SSL_set_alpn_protos(self._ssl, input_str, len(protostr)) == 0
+        )
 
     @_requires_alpn
     def get_alpn_proto_negotiated(self):
