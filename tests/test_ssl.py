@@ -1888,6 +1888,15 @@ class TestApplicationLayerProtoNegotiation(object):
         assert server.get_alpn_proto_negotiated() == b"spdy/2"
         assert client.get_alpn_proto_negotiated() == b"spdy/2"
 
+    def test_alpn_call_failure(self):
+        """
+        SSL_CTX_set_alpn_protos does not like to be called with an empty protocols list.
+        Ensure that we produce a user-visible error.
+        """
+        context = Context(SSLv23_METHOD)
+        with pytest.raises(Error):
+            context.set_alpn_protos([])
+
     def test_alpn_set_on_connection(self):
         """
         The same as test_alpn_success, but setting the ALPN protocols on
