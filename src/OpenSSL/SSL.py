@@ -1380,7 +1380,10 @@ class Context(object):
         # SSL_CTX_set_alpn_protos() and SSL_set_alpn_protos() return 0 on success, and non-0 on failure.
         # WARNING: these functions reverse the return value convention.
         _openssl_assert(
-            _lib.SSL_CTX_set_alpn_protos(self._context, input_str, len(protostr)) == 0
+            _lib.SSL_CTX_set_alpn_protos(
+                self._context, input_str, len(protostr)
+            )
+            == 0
         )
 
     @_requires_alpn
