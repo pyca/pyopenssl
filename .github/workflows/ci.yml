@@ -71,6 +71,7 @@ jobs:
       - run: tox -v
         env:
           TOXENV: ${{ matrix.TEST.TOXENV }}
+          RUSTUP_HOME: /root/.rustup
       - name: Upload coverage
         run: |
           curl -o codecov.sh -f https://codecov.io/bash || curl -o codecov.sh -f https://codecov.io/bash || curl -o codecov.sh -f https://codecov.io/bash
