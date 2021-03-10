@@ -10,6 +10,9 @@ The third digit is only for regressions.
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- The minimum ``cryptography`` version is now 3.3.
+- Drop support for Python 3.5
+
 Deprecations:
 ^^^^^^^^^^^^^
 
@@ -18,6 +21,8 @@ Changes:
 
 - Raise an error when an invalid ALPN value is set.
   `#993 <https://github.com/pyca/pyopenssl/pull/993>`_
+- Added ``OpenSSL.SSL.Context.set_min_proto_version`` and ``OpenSSL.SSL.Context.set_max_proto_version``
+  to set the minimum and maximum supported TLS version `#985 <https://github.com/pyca/pyopenssl/pull/985>`_.
 
 20.0.1 (2020-12-15)
 -------------------

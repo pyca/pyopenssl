@@ -48,7 +48,14 @@ from OpenSSL.crypto import dump_privatekey, load_privatekey
 from OpenSSL.crypto import dump_certificate, load_certificate
 from OpenSSL.crypto import get_elliptic_curves
 
-from OpenSSL.SSL import OPENSSL_VERSION_NUMBER, SSLEAY_VERSION, SSLEAY_CFLAGS
+from OpenSSL.SSL import (
+    OPENSSL_VERSION_NUMBER,
+    SSLEAY_VERSION,
+    SSLEAY_CFLAGS,
+    TLS_METHOD,
+    TLS1_2_VERSION,
+    TLS1_1_VERSION,
+)
 from OpenSSL.SSL import SSLEAY_PLATFORM, SSLEAY_DIR, SSLEAY_BUILT_ON
 from OpenSSL.SSL import SENT_SHUTDOWN, RECEIVED_SHUTDOWN
 from OpenSSL.SSL import (
@@ -1038,6 +1045,25 @@ class TestContext(object):
         assert called
         assert all(isinstance(conn, Connection) for conn, line in called)
         assert all(b"CLIENT_RANDOM" in line for conn, line in called)
+
+    def test_set_proto_version(self):
+        server_context = Context(TLS_METHOD)
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, root_cert_pem)
+        )
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, root_key_pem)
+        )
+        server_context.set_min_proto_version(TLS1_2_VERSION)
+
+        client_context = Context(TLS_METHOD)
+        client_context.set_max_proto_version(TLS1_1_VERSION)
+
+        with pytest.raises(Error, match="unsupported protocol"):
+            self._handshake_test(server_context, client_context)
+
+        client_context.set_max_proto_version(0)
+        self._handshake_test(server_context, client_context)
 
     def _load_verify_locations_test(self, *args):
         """
