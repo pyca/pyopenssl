@@ -3,4 +3,3 @@ exclude             codecov.yml .readthedocs.yml
 recursive-include   tests           *.py
 recursive-include   doc             *
 prune               doc/_build
-prune               .travis
