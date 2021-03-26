@@ -1935,7 +1935,7 @@ def load_certificate(type, buffer):
     :return: The X509 object
     """
     if isinstance(buffer, _text_type):
-        buffer = buffer.encode("ascii")
+        buffer = buffer.encode("ascii", "ignore")
 
     bio = _new_mem_buf(buffer)
 

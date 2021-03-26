@@ -19,6 +19,8 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- Fixed exception raised when load an certificate with UTF-8 characters on ``Openssl.crypto.load_certificate``
+  `#1007 <https://github.com/pyca/pyopenssl/pull/1007>`_
 - Raise an error when an invalid ALPN value is set.
   `#993 <https://github.com/pyca/pyopenssl/pull/993>`_
 - Added ``OpenSSL.SSL.Context.set_min_proto_version`` and ``OpenSSL.SSL.Context.set_max_proto_version``
