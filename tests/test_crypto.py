@@ -4,6 +4,7 @@
 """
 Unit tests for :py:mod:`OpenSSL.crypto`.
 """
+# -*- coding: utf-8 -*-
 
 import OpenSSL
 
