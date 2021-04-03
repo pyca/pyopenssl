@@ -19,7 +19,7 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-- Fixed exception raised when load an certificate with UTF-8 characters on ``Openssl.crypto.load_certificate``
+- Fixed exception raised when loading a certificate with UTF-8 characters in ``Openssl.crypto.load_certificate``
   `#1007 <https://github.com/pyca/pyopenssl/pull/1007>`_
 - Raise an error when an invalid ALPN value is set.
   `#993 <https://github.com/pyca/pyopenssl/pull/993>`_

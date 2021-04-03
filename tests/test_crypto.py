@@ -4486,18 +4486,10 @@ class TestEllipticCurveHash(object):
         assert curve not in curves
 
 
-def utf8_pem():
-    """
-    Read a certificate, create a x509 object and print his subject
-    """
-    x509 = OpenSSL.crypto.load_certificate(
-        OpenSSL.crypto.FILETYPE_PEM, cert_utf8
-    )
-    print(x509.get_subject())
-
-
 def test_utf8_pem():
     """
-    Test utf8_pemt() function and raises an error in case of UTF8 fixture
+    Read a certificate and raises an error in case of UTF8 fixture.
     """
-    assert utf8_pem() is None
+    assert OpenSSL.crypto.load_certificate(
+        OpenSSL.crypto.FILETYPE_PEM, cert_utf8
+    )
