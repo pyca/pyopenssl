@@ -45,7 +45,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2.3.4
       - name: Setup python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v2.2.2
         with:
           python-version: ${{ matrix.PYTHON.VERSION }}
       - run: python -m pip install tox coverage
