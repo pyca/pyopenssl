@@ -43,7 +43,7 @@ jobs:
           - {VERSION: "2.7", TOXENV: "docs"}
     name: "${{ matrix.PYTHON.TOXENV }}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.3.4
       - name: Setup python
         uses: actions/setup-python@v2
         with:
@@ -69,7 +69,7 @@ jobs:
           - {CONTAINER: "ubuntu-rolling", TOXENV: "py39-cryptographyMaster"}
     name: "${{ matrix.TEST.TOXENV }} on ${{ matrix.TEST.CONTAINER }}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.3.4
       - run: tox -v
         env:
           TOXENV: ${{ matrix.TEST.TOXENV }}
