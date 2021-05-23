@@ -555,6 +555,48 @@ class _OCSPClientCallbackHelper(_CallbackExceptionHelper):
         self.callback = _ffi.callback("int (*)(SSL *, void *)", wrapper)
 
 
+class _CookieGenerateCallbackHelper(_CallbackExceptionHelper):
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ssl, out, outlen):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+                cookie = callback(conn)
+                out[0:len(cookie)] = cookie
+                outlen[0] = len(cookie)
+                return 1
+            except Exception as e:
+                self._problems.append(e)
+                # "a zero return value can be used to abort the handshake"
+                return 0
+
+        self.callback = _ffi.callback(
+            "int (*)(SSL *, unsigned char *, unsigned int *)",
+            wrapper,
+        )
+
+
+class _CookieVerifyCallbackHelper(_CallbackExceptionHelper):
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ssl, c_cookie, cookie_len):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+                return callback(conn, bytes(c_cookie[0:cookie_len]))
+            except Exception as e:
+                self._problems.append(e)
+                return 0
+
+        self.callback = _ffi.callback(
+            "int (*)(SSL *, unsigned char *, unsigned int)",
+            wrapper,
+        )
+
+
 def _asFileDescriptor(obj):
     fd = None
     if not isinstance(obj, int):
@@ -699,6 +741,8 @@ class Context(object):
         self._ocsp_helper = None
         self._ocsp_callback = None
         self._ocsp_data = None
+        self._cookie_generate_helper = None
+        self._cookie_verify_helper = None
 
         self.set_mode(_lib.SSL_MODE_ENABLE_PARTIAL_WRITE)
 
@@ -1533,6 +1577,20 @@ class Context(object):
         helper = _OCSPClientCallbackHelper(callback)
         self._set_ocsp_callback(helper, data)
 
+    def set_cookie_generate_callback(self, callback):
+        self._cookie_generate_helper = _CookieGenerateCallbackHelper(callback)
+        _lib.SSL_CTX_set_cookie_generate_cb(
+            self._context,
+            self._cookie_generate_helper.callback,
+        )
+
+    def set_cookie_verify_callback(self, callback):
+        self._cookie_verify_helper = _CookieVerifyCallbackHelper(callback)
+        _lib.SSL_CTX_set_cookie_verify_cb(
+            self._context,
+            self._cookie_verify_helper.callback,
+        )
+
 
 class Connection(object):
     _reverse_mapping = WeakValueDictionary()
@@ -1569,6 +1627,10 @@ class Connection(object):
         # do not point to a dangling reference
         self._verify_helper = context._verify_helper
         self._verify_callback = context._verify_callback
+
+        # And likewise for the cookie callbacks
+        self._cookie_generate_helper = context._cookie_generate_helper
+        self._cookie_verify_helper = context._cookie_verify_helper
 
         self._reverse_mapping[self._ssl] = self
 
@@ -1988,6 +2050,32 @@ class Connection(object):
         conn = Connection(self._context, client)
         conn.set_accept_state()
         return (conn, addr)
+
+    def DTLSv1_listen(self):
+        """
+        Call the OpenSSL function DTLSv1_listen on this connection. See the
+        OpenSSL manual for more details.
+
+        :return: None
+        """
+        # Possible future extension: return the BIO_ADDR in some form.
+        bio_addr = _lib.BIO_ADDR_new()
+        try:
+            result = _lib.DTLSv1_listen(self._ssl, bio_addr)
+        finally:
+            _lib.BIO_ADDR_free(bio_addr)
+        # DTLSv1_listen is weird. A zero return value means 'didn't find a
+        # ClientHello with valid cookie, but keep trying'. So basically
+        # WantReadError. But it doesn't work correctly with _raise_ssl_error.
+        # So we raise it manually instead.
+        if self._cookie_generate_helper is not None:
+            self._cookie_generate_helper.raise_if_problem()
+        if self._cookie_verify_helper is not None:
+            self._cookie_verify_helper.raise_if_problem()
+        if result == 0:
+            raise WantReadError()
+        if result < 0:
+            self._raise_ssl_error(self._ssl, result)
 
     def bio_shutdown(self):
         """
