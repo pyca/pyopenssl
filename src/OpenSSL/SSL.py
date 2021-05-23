@@ -1678,6 +1678,32 @@ class Connection(object):
 
         return _ffi.string(name)
 
+    def set_ciphertext_mtu(self, mtu):
+        """
+        For DTLS, set the maximum UDP payload size (*not* including IP/UDP
+        overhead).
+
+        Note that you might have to set :data:`OP_NO_QUERY_MTU` to prevent
+        OpenSSL from spontaneously clearing this.
+
+        :param mtu: An integer giving the maximum transmission unit.
+
+        .. versionadded:: 21.0
+        """
+        _lib.SSL_set_mtu(self._ssl, mtu)
+
+    def get_cleartext_mtu(self):
+        """
+        For DTLS, get the maximum size of unencrypted data you can pass to
+        :meth:`write` without exceeding the MTU (as passed to
+        :meth:`set_ciphertext_mtu`).
+
+        :return: The effective MTU as an integer.
+
+        .. versionadded:: 21.0
+        """
+        return _lib.DTLS_get_data_mtu(self._ssl)
+
     def set_tlsext_host_name(self, name):
         """
         Set the value of the servername extension to send in the client hello.
