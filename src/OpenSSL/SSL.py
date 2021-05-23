@@ -45,6 +45,9 @@ __all__ = [
     "TLS_METHOD",
     "TLS_SERVER_METHOD",
     "TLS_CLIENT_METHOD",
+    "DTLS_METHOD",
+    "DTLS_SERVER_METHOD",
+    "DTLS_CLIENT_METHOD",
     "SSL3_VERSION",
     "TLS1_VERSION",
     "TLS1_1_VERSION",
@@ -149,6 +152,9 @@ TLSv1_2_METHOD = 6
 TLS_METHOD = 7
 TLS_SERVER_METHOD = 8
 TLS_CLIENT_METHOD = 9
+DTLS_METHOD = 10
+DTLS_SERVER_METHOD = 11
+DTLS_CLIENT_METHOD = 12
 
 try:
     SSL3_VERSION = _lib.SSL3_VERSION
@@ -628,7 +634,8 @@ class Context(object):
     :class:`OpenSSL.SSL.Context` instances define the parameters for setting
     up new SSL connections.
 
-    :param method: One of TLS_METHOD, TLS_CLIENT_METHOD, or TLS_SERVER_METHOD.
+    :param method: One of TLS_METHOD, TLS_CLIENT_METHOD, TLS_SERVER_METHOD,
+                   DTLS_METHOD, DTLS_CLIENT_METHOD, or DTLS_SERVER_METHOD.
                    SSLv23_METHOD, TLSv1_METHOD, etc. are deprecated and should
                    not be used.
     """
@@ -643,6 +650,9 @@ class Context(object):
         TLS_METHOD: "TLS_method",
         TLS_SERVER_METHOD: "TLS_server_method",
         TLS_CLIENT_METHOD: "TLS_client_method",
+        DTLS_METHOD: "DTLS_method",
+        DTLS_SERVER_METHOD: "DTLS_server_method",
+        DTLS_CLIENT_METHOD: "DTLS_client_method",
     }
     _methods = dict(
         (identifier, getattr(_lib, name))
