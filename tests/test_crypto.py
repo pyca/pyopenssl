@@ -1,4 +1,4 @@
-# coding: utf-8
+# _*_ coding: utf-8 -*-
 
 # Copyright (c) Jean-Paul Calderone
 # See LICENSE file for details.
@@ -4488,7 +4488,8 @@ class TestEllipticCurveHash(object):
 
 def test_utf8_pem():
     """
-    Read a certificate and raises an error in case of UTF8 fixture.
+    Checks that a PEM encoded file with UTF-8 characters outside the PEM
+    boundary does not raise an exception.
     """
     assert OpenSSL.crypto.load_certificate(
         OpenSSL.crypto.FILETYPE_PEM, cert_utf8
