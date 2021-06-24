@@ -117,6 +117,7 @@ __all__ = [
     "WantX509LookupError",
     "ZeroReturnError",
     "SysCallError",
+    "NO_OVERLAPPING_PROTOCOLS",
     "SSLeay_version",
     "Session",
     "Context",
