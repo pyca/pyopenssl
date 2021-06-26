@@ -20,11 +20,14 @@ from errno import (
     ESHUTDOWN,
 )
 from sys import platform, getfilesystemencoding
-from socket import AF_INET, AF_INET6, MSG_PEEK, SHUT_RDWR, error, socket
+from socket import (
+    AF_INET, AF_INET6, MSG_PEEK, SHUT_RDWR, error, socket, SOCK_DGRAM, SOCK_STREAM,
+)
 from os import makedirs
 from os.path import join
 from weakref import ref
 from warnings import simplefilter
+from concurrent.futures import ThreadPoolExecutor
 
 import flaky
 
@@ -54,6 +57,7 @@ from OpenSSL.SSL import (
     TLS1_3_VERSION,
     TLS1_2_VERSION,
     TLS1_1_VERSION,
+    DTLS_METHOD,
 )
 from OpenSSL.SSL import SSLEAY_PLATFORM, SSLEAY_DIR, SSLEAY_BUILT_ON
 from OpenSSL.SSL import SENT_SHUTDOWN, RECEIVED_SHUTDOWN
@@ -164,12 +168,12 @@ i5s5yYK7a/0eWxxRr2qraYaUj8RwDpH9CwIBAg==
 """
 
 
-def socket_any_family():
+def socket_any_family(type=SOCK_STREAM):
     try:
-        return socket(AF_INET)
+        return socket(AF_INET, type=type)
     except error as e:
         if e.errno == EAFNOSUPPORT:
-            return socket(AF_INET6)
+            return socket(AF_INET6, type=type)
         raise
 
 
@@ -604,7 +608,7 @@ class TestContext(object):
         with pytest.raises(TypeError):
             Context("")
         with pytest.raises(ValueError):
-            Context(10)
+            Context(13)
 
     def test_type(self):
         """
@@ -4212,3 +4216,57 @@ class TestOCSP(object):
 
         with pytest.raises(TypeError):
             handshake_in_memory(client, server)
+
+
+class TestDTLS(object):
+    def test_it_works_at_all(self):
+        s_ctx = Context(DTLS_METHOD)
+
+        def generate_cookie(ssl):
+            return b"xyzzy"
+
+        def verify_cookie(ssl, cookie):
+            return cookie == b"xyzzy"
+
+        s_ctx.set_cookie_generate_callback(generate_cookie)
+        s_ctx.set_cookie_verify_callback(verify_cookie)
+
+        s_ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
+        s_ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
+
+        s_sock = socket_any_family(type=SOCK_DGRAM)
+        s_sock.bind((loopback_address(s_sock), 0))
+        s = Connection(s_ctx, s_sock)
+        s.set_accept_state()
+
+        c_sock = socket(s_sock.family, type=SOCK_DGRAM)
+        c = loopback_client_factory(c_sock, DTLS_METHOD)
+
+        c_sock.connect(s_sock.getsockname())
+        s_sock.connect(c_sock.getsockname())
+
+        def s_handler():
+            s.DTLSv1_listen()
+            s.do_handshake()
+            s.write(b"hello")
+            assert s.read(100) == b"goodbye"
+            return "ok"
+
+        def c_handler():
+            c.do_handshake()
+            assert c.read(100) == b"hello"
+            c.write(b"goodbye")
+            return "ok"
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            s_fut = executor.submit(s_handler)
+            c_fut = executor.submit(c_handler)
+
+            assert s_fut.result() == "ok"
+            assert c_fut.result() == "ok"
+
+        # Check that the MTU set/query functions are doing *something*, at least
+        c.set_ciphertext_mtu(1000)
+        assert 500 < c.get_cleartext_mtu() < 1000
+        c.set_ciphertext_mtu(500)
+        assert 0 < c.get_cleartext_mtu() < 500
