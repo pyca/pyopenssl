@@ -212,7 +212,11 @@ OP_NO_COMPRESSION = _lib.SSL_OP_NO_COMPRESSION
 OP_NO_QUERY_MTU = _lib.SSL_OP_NO_QUERY_MTU
 OP_COOKIE_EXCHANGE = _lib.SSL_OP_COOKIE_EXCHANGE
 OP_NO_TICKET = _lib.SSL_OP_NO_TICKET
-OP_NO_RENEGOTIATION = _lib.SSL_OP_NO_RENEGOTIATION
+
+try:
+    OP_NO_RENEGOTIATION = _lib.SSL_OP_NO_RENEGOTIATION
+except AttributeError:
+    pass
 
 OP_ALL = _lib.SSL_OP_ALL
 
@@ -1764,6 +1768,9 @@ class Connection(object):
 
         .. versionadded:: 21.0
         """
+
+        if not hasattr(_lib, "DTLS_get_data_mtu"):
+            raise NotImplementedError("requires OpenSSL 1.1.1 or better")
         return _lib.DTLS_get_data_mtu(self._ssl)
 
     def set_tlsext_host_name(self, name):
