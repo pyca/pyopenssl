@@ -568,7 +568,7 @@ class _CookieGenerateCallbackHelper(_CallbackExceptionHelper):
             try:
                 conn = Connection._reverse_mapping[ssl]
                 cookie = callback(conn)
-                out[0:len(cookie)] = cookie
+                out[0 : len(cookie)] = cookie
                 outlen[0] = len(cookie)
                 return 1
             except Exception as e:

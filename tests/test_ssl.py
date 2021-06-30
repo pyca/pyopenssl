@@ -21,7 +21,14 @@ from errno import (
 )
 from sys import platform, getfilesystemencoding
 from socket import (
-    AF_INET, AF_INET6, MSG_PEEK, SHUT_RDWR, error, socket, SOCK_DGRAM, SOCK_STREAM,
+    AF_INET,
+    AF_INET6,
+    MSG_PEEK,
+    SHUT_RDWR,
+    error,
+    socket,
+    SOCK_DGRAM,
+    SOCK_STREAM,
 )
 from os import makedirs
 from os.path import join
