@@ -4272,7 +4272,7 @@ class TestDTLS(object):
             assert s_fut.result() == "ok"
             assert c_fut.result() == "ok"
 
-        # Check that the MTU set/query functions are doing *something*, at least
+        # Check that the MTU set/query functions are doing *something*
         c.set_ciphertext_mtu(1000)
         assert 500 < c.get_cleartext_mtu() < 1000
         c.set_ciphertext_mtu(500)
