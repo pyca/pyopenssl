@@ -4225,6 +4225,11 @@ class TestOCSP(object):
             handshake_in_memory(client, server)
 
 
+# XX remove this skipif before merging
+@pytest.mark.skipif(
+    not hasattr(SSL._lib, "DTLSv1_listen"),
+    reason="need newer cryptography",
+)
 class TestDTLS(object):
     def test_it_works_at_all(self):
         s_ctx = Context(DTLS_METHOD)
