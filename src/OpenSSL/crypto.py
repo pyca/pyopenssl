@@ -244,11 +244,18 @@ class PKey(object):
 
         .. versionadded:: 16.1.0
         """
+        from cryptography.hazmat.primitives.serialization import (
+            load_der_private_key,
+            load_der_public_key,
+        )
+
         backend = _get_backend()
         if self._only_public:
-            return backend._evp_pkey_to_public_key(self._pkey)
+            der = dump_publickey(FILETYPE_ASN1, self)
+            return load_der_public_key(der, backend)
         else:
-            return backend._evp_pkey_to_private_key(self._pkey)
+            der = dump_privatekey(FILETYPE_ASN1, self)
+            return load_der_private_key(der, None, backend)
 
     @classmethod
     def from_cryptography_key(cls, crypto_key):
@@ -262,7 +269,6 @@ class PKey(object):
 
         .. versionadded:: 16.1.0
         """
-        pkey = cls()
         if not isinstance(
             crypto_key,
             (
@@ -274,11 +280,25 @@ class PKey(object):
         ):
             raise TypeError("Unsupported key type")
 
-        pkey._pkey = crypto_key._evp_pkey
+        from cryptography.hazmat.primitives.serialization import (
+            Encoding,
+            NoEncryption,
+            PrivateFormat,
+            PublicFormat,
+        )
+
         if isinstance(crypto_key, (rsa.RSAPublicKey, dsa.DSAPublicKey)):
-            pkey._only_public = True
-        pkey._initialized = True
-        return pkey
+            return load_publickey(
+                FILETYPE_ASN1,
+                crypto_key.public_bytes(
+                    Encoding.DER, PublicFormat.SubjectPublicKeyInfo
+                ),
+            )
+        else:
+            der = crypto_key.private_bytes(
+                Encoding.DER, PrivateFormat.PKCS8, NoEncryption()
+            )
+            return load_privatekey(FILETYPE_ASN1, der)
 
     def generate_key(self, type, bits):
         """
@@ -888,12 +908,12 @@ class X509Req(object):
 
         .. versionadded:: 17.1.0
         """
-        from cryptography.hazmat.backends.openssl.x509 import (
-            _CertificateSigningRequest,
-        )
+        from cryptography.x509 import load_der_x509_csr
+
+        der = dump_certificate_request(FILETYPE_ASN1, self)
 
         backend = _get_backend()
-        return _CertificateSigningRequest(backend, self._req)
+        return load_der_x509_csr(der, backend)
 
     @classmethod
     def from_cryptography(cls, crypto_req):
@@ -910,9 +930,10 @@ class X509Req(object):
         if not isinstance(crypto_req, x509.CertificateSigningRequest):
             raise TypeError("Must be a certificate signing request")
 
-        req = cls()
-        req._req = crypto_req._x509_req
-        return req
+        from cryptography.hazmat.primitives.serialization import Encoding
+
+        der = crypto_req.public_bytes(Encoding.DER)
+        return load_certificate_request(FILETYPE_ASN1, der)
 
     def set_pubkey(self, pkey):
         """
@@ -1109,10 +1130,11 @@ class X509(object):
 
         .. versionadded:: 17.1.0
         """
-        from cryptography.hazmat.backends.openssl.x509 import _Certificate
+        from cryptography.x509 import load_der_x509_certificate
 
+        der = dump_certificate(FILETYPE_ASN1, self)
         backend = _get_backend()
-        return _Certificate(backend, self._x509)
+        return load_der_x509_certificate(der, backend)
 
     @classmethod
     def from_cryptography(cls, crypto_cert):
@@ -1129,9 +1151,10 @@ class X509(object):
         if not isinstance(crypto_cert, x509.Certificate):
             raise TypeError("Must be a certificate")
 
-        cert = cls()
-        cert._x509 = crypto_cert._x509
-        return cert
+        from cryptography.hazmat.primitives.serialization import Encoding
+
+        der = crypto_cert.public_bytes(Encoding.DER)
+        return load_certificate(FILETYPE_ASN1, der)
 
     def set_version(self, version):
         """
@@ -2259,12 +2282,12 @@ class CRL(object):
 
         .. versionadded:: 17.1.0
         """
-        from cryptography.hazmat.backends.openssl.x509 import (
-            _CertificateRevocationList,
-        )
+        from cryptography.x509 import load_der_x509_crl
+
+        der = dump_crl(FILETYPE_ASN1, self)
 
         backend = _get_backend()
-        return _CertificateRevocationList(backend, self._crl)
+        return load_der_x509_crl(der, backend)
 
     @classmethod
     def from_cryptography(cls, crypto_crl):
@@ -2281,9 +2304,10 @@ class CRL(object):
         if not isinstance(crypto_crl, x509.CertificateRevocationList):
             raise TypeError("Must be a certificate revocation list")
 
-        crl = cls()
-        crl._crl = crypto_crl._x509_crl
-        return crl
+        from cryptography.hazmat.primitives.serialization import Encoding
+
+        der = crypto_crl.public_bytes(Encoding.DER)
+        return load_crl(FILETYPE_ASN1, der)
 
     def get_revoked(self):
         """
