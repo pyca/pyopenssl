@@ -93,7 +93,7 @@ if __name__ == "__main__":
             ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*"
         ),
         packages=find_packages(where="src"),
-        package_data={'': ['*.pyi', 'py.typed']},
+        package_data={"": ["*.pyi", "py.typed"]},
         include_package_data=True,
         package_dir={"": "src"},
         install_requires=[
