@@ -2,3 +2,7 @@
 line-length = 79
 target-version = ["py27"]
 
+
+[tool.mypy]
+strict = true
+warn_unused_configs = true
