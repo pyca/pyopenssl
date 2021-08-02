@@ -106,7 +106,9 @@ if __name__ == "__main__":
                 "flaky",
                 "pretend",
                 "pytest>=3.0.1",
-                "mypy>=0.910; python_version >= '3.6'",
+                "mypy>=0.910; "
+                "python_version >= '3.6' "
+                "and platform_python_implementation == 'CPython'",
                 "types-six",
             ],
             "docs": ["sphinx", "sphinx_rtd_theme"],
