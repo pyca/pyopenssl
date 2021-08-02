@@ -102,7 +102,7 @@ if __name__ == "__main__":
             "six>=1.5.2",
         ],
         extras_require={
-            "test": ["flaky", "pretend", "pytest>=3.0.1"],
+            "test": ["flaky", "pretend", "pytest>=3.0.1", "mypy>=0.910"],
             "docs": ["sphinx", "sphinx_rtd_theme"],
         },
     )
