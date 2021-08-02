@@ -11,10 +11,10 @@ jobs:
         PYTHON:
           # Base builds
           - {VERSION: "2.7", TOXENV: "py27"}
-          - {VERSION: "3.6", TOXENV: "py36"}
-          - {VERSION: "3.7", TOXENV: "py37"}
-          - {VERSION: "3.8", TOXENV: "py38"}
-          - {VERSION: "3.9", TOXENV: "py39"}
+          - {VERSION: "3.6", TOXENV: "py36,py36-mypy"}
+          - {VERSION: "3.7", TOXENV: "py37,py37-mypy"}
+          - {VERSION: "3.8", TOXENV: "py38,py38-mypy"}
+          - {VERSION: "3.9", TOXENV: "py39,py39-mypy"}
           - {VERSION: "pypy2", TOXENV: "pypy"}
           - {VERSION: "pypy3", TOXENV: "pypy3"}
           # -cryptographyMaster
