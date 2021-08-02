@@ -4,10 +4,10 @@ import ssl
 import sys
 
 import OpenSSL.SSL
-import cffi
+import cffi  # type: ignore[import]
 import cryptography
 
-from . import version
+from . import version, _util
 
 
 _env_info = u"""\
@@ -22,7 +22,7 @@ Python version: {python_version}
 Platform: {platform}
 sys.path: {sys_path}""".format(
     pyopenssl=version.__version__,
-    crypto_openssl_compile=OpenSSL._util.ffi.string(
+    crypto_openssl_compile=_util.ffi.string(
         OpenSSL._util.lib.OPENSSL_VERSION_TEXT,
     ).decode("ascii"),
     crypto_openssl_link=OpenSSL.SSL.SSLeay_version(
