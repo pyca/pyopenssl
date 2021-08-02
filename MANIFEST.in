@@ -1,5 +1,6 @@
-include             LICENSE MANIFEST.in *.rst tox.ini .coveragerc
+include             LICENSE MANIFEST.in *.rst tox.ini .coveragerc src/OpenSSL/py.typed
 exclude             codecov.yml .readthedocs.yml
+recursive-include   src             *.pyi
 recursive-include   tests           *.py
 recursive-include   doc             *
 prune               doc/_build
