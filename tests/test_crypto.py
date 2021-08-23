@@ -1668,6 +1668,7 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         """
         request = X509Req()
         pkey = load_privatekey(FILETYPE_PEM, root_key_pem)
+        request.set_pubkey(pkey)
         request.sign(pkey, GOOD_DIGEST)
         another_pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
         with pytest.raises(Error):
@@ -1680,6 +1681,7 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         """
         request = X509Req()
         pkey = load_privatekey(FILETYPE_PEM, root_key_pem)
+        request.set_pubkey(pkey)
         request.sign(pkey, GOOD_DIGEST)
         assert request.verify(pkey)
 
@@ -3373,6 +3375,9 @@ class TestNetscapeSPKI(_PKeyInteractionTestsMixin):
         `NetscapeSPKI.b64_encode` encodes the certificate to a base64 blob.
         """
         nspki = NetscapeSPKI()
+        pkey = load_privatekey(FILETYPE_PEM, root_key_pem)
+        nspki.set_pubkey(pkey)
+        nspki.sign(pkey, GOOD_DIGEST)
         blob = nspki.b64_encode()
         assert isinstance(blob, bytes)
 
