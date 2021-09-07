@@ -1468,7 +1468,7 @@ class _PKeyInteractionTestsMixin:
 
     def signable(self):
         """
-        Return something with a `set_pubkey`, `set_pubkey`, and `sign` method.
+        Return something with `set_pubkey` and `sign` methods.
         """
         raise NotImplementedError()
 
@@ -1715,7 +1715,12 @@ class TestX509(_PKeyInteractionTestsMixin):
         """
         Create and return a new `X509`.
         """
-        return X509()
+        certificate = X509()
+        # Fill in placeholder validity values. signable only expects to call
+        # set_pubkey and sign.
+        certificate.gmtime_adj_notBefore(-24 * 60 * 60)
+        certificate.gmtime_adj_notAfter(24 * 60 * 60)
+        return certificate
 
     def test_type(self):
         """
