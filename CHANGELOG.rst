@@ -4,7 +4,7 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
-21.0.0 (UNRELEASED)
+21.0.0 (2020-09-28)
 -------------------
 
 Backward-incompatible changes:
@@ -23,6 +23,8 @@ Changes:
   `#993 <https://github.com/pyca/pyopenssl/pull/993>`_
 - Added ``OpenSSL.SSL.Context.set_min_proto_version`` and ``OpenSSL.SSL.Context.set_max_proto_version``
   to set the minimum and maximum supported TLS version `#985 <https://github.com/pyca/pyopenssl/pull/985>`_.
+- Updated ``to_cryptography`` and ``from_cryptography`` methods to support an upcoming release of ``cryptography`` without raising deprecation warnings.
+  `#1030 <https://github.com/pyca/pyopenssl/pull/1030>`_
 
 20.0.1 (2020-12-15)
 -------------------
