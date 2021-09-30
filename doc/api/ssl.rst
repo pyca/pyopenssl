@@ -150,6 +150,7 @@ Context, Connection.
 
 
 .. autoclass:: Context
+   :noindex:
 
 .. autoclass:: Session
 
@@ -160,6 +161,7 @@ Context, Connection.
 
 
 .. py:class:: Connection(context, socket)
+   :noindex:
 
     A class representing SSL connections.
 
