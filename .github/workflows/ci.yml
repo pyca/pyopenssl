@@ -10,37 +10,32 @@ jobs:
       matrix:
         PYTHON:
           # Base builds
-          - {VERSION: "2.7", TOXENV: "py27"}
           - {VERSION: "3.6", TOXENV: "py36"}
           - {VERSION: "3.7", TOXENV: "py37"}
           - {VERSION: "3.8", TOXENV: "py38"}
           - {VERSION: "3.9", TOXENV: "py39"}
-          - {VERSION: "pypy2", TOXENV: "pypy"}
           - {VERSION: "pypy3", TOXENV: "pypy3"}
-          # -cryptographyMaster
-          - {VERSION: "3.6", TOXENV: "py36-cryptographyMaster"}
-          - {VERSION: "3.7", TOXENV: "py37-cryptographyMaster"}
-          - {VERSION: "3.8", TOXENV: "py38-cryptographyMaster"}
-          - {VERSION: "3.9", TOXENV: "py39-cryptographyMaster"}
-          - {VERSION: "pypy3", TOXENV: "pypy3-cryptographyMaster"}
+          # -cryptographyMain
+          - {VERSION: "3.6", TOXENV: "py36-cryptographyMain"}
+          - {VERSION: "3.7", TOXENV: "py37-cryptographyMain"}
+          - {VERSION: "3.8", TOXENV: "py38-cryptographyMain"}
+          - {VERSION: "3.9", TOXENV: "py39-cryptographyMain"}
+          - {VERSION: "pypy3", TOXENV: "pypy3-cryptographyMain"}
           # -cryptographyMinimum
-          - {VERSION: "2.7", TOXENV: "py27-cryptographyMinimum"}
           - {VERSION: "3.6", TOXENV: "py36-cryptographyMinimum"}
           - {VERSION: "3.7", TOXENV: "py37-cryptographyMinimum"}
           - {VERSION: "3.8", TOXENV: "py38-cryptographyMinimum"}
           - {VERSION: "3.9", TOXENV: "py39-cryptographyMinimum"}
-          - {VERSION: "pypy2", TOXENV: "pypy-cryptographyMinimum"}
           - {VERSION: "pypy3", TOXENV: "pypy3-cryptographyMinimum"}
           # Random order
-          - {VERSION: "2.7", TOXENV: "py27-randomorder"}
           - {VERSION: "3.9", TOXENV: "py39-randomorder"}
           # Downstreams
-          - {VERSION: "3.7", TOXENV: "py37-twistedMaster"}
+          - {VERSION: "3.7", TOXENV: "py37-twistedTrunk"}
           # Meta
-          - {VERSION: "2.7", TOXENV: "check-manifest"}
-          - {VERSION: "2.7", TOXENV: "pypi-readme"}
+          - {VERSION: "3.9", TOXENV: "check-manifest"}
+          - {VERSION: "3.9", TOXENV: "pypi-readme"}
           - {VERSION: "3.9", TOXENV: "flake8"}
-          - {VERSION: "2.7", TOXENV: "docs"}
+          - {VERSION: "3.9", TOXENV: "docs"}
     name: "${{ matrix.PYTHON.TOXENV }}"
     steps:
       - uses: actions/checkout@v2.3.4
@@ -63,10 +58,9 @@ jobs:
     strategy:
       matrix:
         TEST:
-          - {CONTAINER: "stretch", TOXENV: "py27"}
           - {CONTAINER: "ubuntu-bionic", TOXENV: "py36"}
-          # cryptographyMaster used since there's no wheel
-          - {CONTAINER: "ubuntu-rolling", TOXENV: "py39-cryptographyMaster"}
+          # cryptographyMain used since there's no wheel
+          - {CONTAINER: "ubuntu-rolling", TOXENV: "py39-cryptographyMain"}
     name: "${{ matrix.TEST.TOXENV }} on ${{ matrix.TEST.CONTAINER }}"
     steps:
       - uses: actions/checkout@v2.3.4
