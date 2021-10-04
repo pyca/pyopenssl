@@ -87,9 +87,7 @@ if __name__ == "__main__":
             "Topic :: Software Development :: Libraries :: Python Modules",
             "Topic :: System :: Networking",
         ],
-        python_requires=(
-            ">=3.6"
-        ),
+        python_requires=(">=3.6"),
         packages=find_packages(where="src"),
         package_dir={"": "src"},
         install_requires=[
