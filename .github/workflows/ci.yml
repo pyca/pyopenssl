@@ -10,7 +10,6 @@ jobs:
       matrix:
         PYTHON:
           # Base builds
-          - {VERSION: "2.7", TOXENV: "py27"}
           - {VERSION: "3.6", TOXENV: "py36"}
           - {VERSION: "3.7", TOXENV: "py37"}
           - {VERSION: "3.8", TOXENV: "py38"}
@@ -24,7 +23,6 @@ jobs:
           - {VERSION: "3.9", TOXENV: "py39-cryptographyMain"}
           - {VERSION: "pypy3", TOXENV: "pypy3-cryptographyMain"}
           # -cryptographyMinimum
-          - {VERSION: "2.7", TOXENV: "py27-cryptographyMinimum"}
           - {VERSION: "3.6", TOXENV: "py36-cryptographyMinimum"}
           - {VERSION: "3.7", TOXENV: "py37-cryptographyMinimum"}
           - {VERSION: "3.8", TOXENV: "py38-cryptographyMinimum"}
@@ -32,7 +30,6 @@ jobs:
           - {VERSION: "pypy2", TOXENV: "pypy-cryptographyMinimum"}
           - {VERSION: "pypy3", TOXENV: "pypy3-cryptographyMinimum"}
           # Random order
-          - {VERSION: "2.7", TOXENV: "py27-randomorder"}
           - {VERSION: "3.9", TOXENV: "py39-randomorder"}
           # Downstreams
           - {VERSION: "3.7", TOXENV: "py37-twistedTrunk"}

@@ -6,8 +6,6 @@ from itertools import count, chain
 from weakref import WeakValueDictionary
 from errno import errorcode
 
-from six import integer_types, int2byte, indexbytes
-
 from OpenSSL._util import (
     UNSPECIFIED as _UNSPECIFIED,
     exception_from_error_queue as _exception_from_error_queue,
@@ -381,7 +379,7 @@ class _ALPNSelectHelper(_CallbackExceptionHelper):
                 instr = _ffi.buffer(in_, inlen)[:]
                 protolist = []
                 while instr:
-                    encoded_len = indexbytes(instr, 0)
+                    encoded_len = instr[0]
                     proto = instr[1 : encoded_len + 1]
                     protolist.append(proto)
                     instr = instr[encoded_len + 1 :]
@@ -551,15 +549,15 @@ class _OCSPClientCallbackHelper(_CallbackExceptionHelper):
 
 def _asFileDescriptor(obj):
     fd = None
-    if not isinstance(obj, integer_types):
+    if not isinstance(obj, int):
         meth = getattr(obj, "fileno", None)
         if meth is not None:
             obj = meth()
 
-    if isinstance(obj, integer_types):
+    if isinstance(obj, int):
         fd = obj
 
-    if not isinstance(fd, integer_types):
+    if not isinstance(fd, int):
         raise TypeError("argument must be an int, or have a fileno() method.")
     elif fd < 0:
         raise ValueError(
@@ -653,7 +651,7 @@ class Context(object):
     )
 
     def __init__(self, method):
-        if not isinstance(method, integer_types):
+        if not isinstance(method, int):
             raise TypeError("method must be an integer")
 
         try:
@@ -897,7 +895,7 @@ class Context(object):
         :return: None
         """
         certfile = _path_string(certfile)
-        if not isinstance(filetype, integer_types):
+        if not isinstance(filetype, int):
             raise TypeError("filetype must be an integer")
 
         use_result = _lib.SSL_CTX_use_certificate_file(
@@ -958,7 +956,7 @@ class Context(object):
 
         if filetype is _UNSPECIFIED:
             filetype = FILETYPE_PEM
-        elif not isinstance(filetype, integer_types):
+        elif not isinstance(filetype, int):
             raise TypeError("filetype must be an integer")
 
         use_result = _lib.SSL_CTX_use_PrivateKey_file(
@@ -1035,7 +1033,7 @@ class Context(object):
 
         .. versionadded:: 0.14
         """
-        if not isinstance(mode, integer_types):
+        if not isinstance(mode, int):
             raise TypeError("mode must be an integer")
 
         return _lib.SSL_CTX_set_session_cache_mode(self._context, mode)
@@ -1070,7 +1068,7 @@ class Context(object):
 
         See SSL_CTX_set_verify(3SSL) for further details.
         """
-        if not isinstance(mode, integer_types):
+        if not isinstance(mode, int):
             raise TypeError("mode must be an integer")
 
         if callback is None:
@@ -1093,7 +1091,7 @@ class Context(object):
         :param depth: An integer specifying the verify depth
         :return: None
         """
-        if not isinstance(depth, integer_types):
+        if not isinstance(depth, int):
             raise TypeError("depth must be an integer")
 
         _lib.SSL_CTX_set_verify_depth(self._context, depth)
@@ -1253,7 +1251,7 @@ class Context(object):
         :param timeout: The timeout in (whole) seconds
         :return: The previous session timeout
         """
-        if not isinstance(timeout, integer_types):
+        if not isinstance(timeout, int):
             raise TypeError("timeout must be an integer")
 
         return _lib.SSL_CTX_set_timeout(self._context, timeout)
@@ -1356,7 +1354,7 @@ class Context(object):
         :param options: The options to add.
         :return: The new option bitmask.
         """
-        if not isinstance(options, integer_types):
+        if not isinstance(options, int):
             raise TypeError("options must be an integer")
 
         return _lib.SSL_CTX_set_options(self._context, options)
@@ -1369,7 +1367,7 @@ class Context(object):
         :param mode: The mode to add.
         :return: The new mode bitmask.
         """
-        if not isinstance(mode, integer_types):
+        if not isinstance(mode, int):
             raise TypeError("mode must be an integer")
 
         return _lib.SSL_CTX_set_mode(self._context, mode)
@@ -1426,7 +1424,7 @@ class Context(object):
         # Take the list of protocols and join them together, prefixing them
         # with their lengths.
         protostr = b"".join(
-            chain.from_iterable((int2byte(len(p)), p) for p in protos)
+            chain.from_iterable((bytes((len(p),)), p) for p in protos)
         )
 
         # Build a C string from the list. We don't need to save this off
@@ -1839,7 +1837,7 @@ class Connection(object):
         if self._from_ssl is None:
             raise TypeError("Connection sock was not None")
 
-        if not isinstance(bufsiz, integer_types):
+        if not isinstance(bufsiz, int):
             raise TypeError("bufsiz must be an integer")
 
         buf = _no_zero_allocator("char[]", bufsiz)
@@ -2070,7 +2068,7 @@ class Connection(object):
         :param state: bitvector of SENT_SHUTDOWN, RECEIVED_SHUTDOWN.
         :return: None
         """
-        if not isinstance(state, integer_types):
+        if not isinstance(state, int):
             raise TypeError("state must be an integer")
 
         _lib.SSL_set_shutdown(self._ssl, state)
@@ -2454,7 +2452,7 @@ class Connection(object):
         # Take the list of protocols and join them together, prefixing them
         # with their lengths.
         protostr = b"".join(
-            chain.from_iterable((int2byte(len(p)), p) for p in protos)
+            chain.from_iterable((bytes((len(p),)), p) for p in protos)
         )
 
         # Build a C string from the list. We don't need to save this off
