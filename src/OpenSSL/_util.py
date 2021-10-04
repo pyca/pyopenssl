@@ -1,8 +1,6 @@
 import sys
 import warnings
 
-from six import PY2, text_type
-
 from cryptography.hazmat.bindings.openssl.binding import Binding
 
 
@@ -83,14 +81,10 @@ def native(s):
     :raise TypeError: The input is neither :py:class:`bytes` nor
         :py:class:`unicode`.
     """
-    if not isinstance(s, (bytes, text_type)):
+    if not isinstance(s, (bytes, str)):
         raise TypeError("%r is neither bytes nor unicode" % s)
-    if PY2:
-        if isinstance(s, text_type):
-            return s.encode("utf-8")
-    else:
-        if isinstance(s, bytes):
-            return s.decode("utf-8")
+    if isinstance(s, bytes):
+        return s.decode("utf-8")
     return s
 
 
@@ -105,31 +99,21 @@ def path_string(s):
     """
     if isinstance(s, bytes):
         return s
-    elif isinstance(s, text_type):
+    elif isinstance(s, str):
         return s.encode(sys.getfilesystemencoding())
     else:
         raise TypeError("Path must be represented as bytes or unicode string")
 
 
-if PY2:
-
-    def byte_string(s):
-        return s
-
-
-else:
-
-    def byte_string(s):
-        return s.encode("charmap")
+def byte_string(s):
+    return s.encode("charmap")
 
 
 # A marker object to observe whether some optional arguments are passed any
 # value or not.
 UNSPECIFIED = object()
 
-_TEXT_WARNING = (
-    text_type.__name__ + " for {0} is no longer accepted, use bytes"
-)
+_TEXT_WARNING = "str for {0} is no longer accepted, use bytes"
 
 
 def text_to_bytes_and_warn(label, obj):
@@ -145,7 +129,7 @@ def text_to_bytes_and_warn(label, obj):
         UTF-8 encoding of that text is returned.  Otherwise, ``obj`` itself is
         returned.
     """
-    if isinstance(obj, text_type):
+    if isinstance(obj, str):
         warnings.warn(
             _TEXT_WARNING.format(label),
             category=DeprecationWarning,

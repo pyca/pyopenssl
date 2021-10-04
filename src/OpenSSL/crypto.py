@@ -5,12 +5,6 @@ from base64 import b16encode
 from functools import partial
 from operator import __eq__, __ne__, __lt__, __le__, __gt__, __ge__
 
-from six import (
-    integer_types as _integer_types,
-    text_type as _text_type,
-    PY2 as _PY2,
-)
-
 from cryptography import utils, x509
 from cryptography.hazmat.primitives.asymmetric import dsa, rsa
 
@@ -411,18 +405,16 @@ class _EllipticCurve(object):
 
     _curves = None
 
-    if not _PY2:
-        # This only necessary on Python 3.  Moreover, it is broken on Python 2.
-        def __ne__(self, other):
-            """
-            Implement cooperation with the right-hand side argument of ``!=``.
+    def __ne__(self, other):
+        """
+        Implement cooperation with the right-hand side argument of ``!=``.
 
-            Python 3 seems to have dropped this cooperation in this very narrow
-            circumstance.
-            """
-            if isinstance(other, _EllipticCurve):
-                return super(_EllipticCurve, self).__ne__(other)
-            return NotImplemented
+        Python 3 seems to have dropped this cooperation in this very narrow
+        circumstance.
+        """
+        if isinstance(other, _EllipticCurve):
+            return super(_EllipticCurve, self).__ne__(other)
+        return NotImplemented
 
     @classmethod
     def _load_elliptic_curves(cls, lib):
@@ -602,7 +594,7 @@ class X509Name(object):
                 _lib.X509_NAME_ENTRY_free(ent)
                 break
 
-        if isinstance(value, _text_type):
+        if isinstance(value, str):
             value = value.encode("utf-8")
 
         add_result = _lib.X509_NAME_add_entry_by_NID(
@@ -1304,7 +1296,7 @@ class X509(object):
 
         :return: :py:data`None`
         """
-        if not isinstance(serial, _integer_types):
+        if not isinstance(serial, int):
             raise TypeError("serial must be an integer")
 
         hex_serial = hex(serial)[2:]
@@ -1957,7 +1949,7 @@ def load_certificate(type, buffer):
 
     :return: The X509 object
     """
-    if isinstance(buffer, _text_type):
+    if isinstance(buffer, str):
         buffer = buffer.encode("ascii")
 
     bio = _new_mem_buf(buffer)
@@ -2883,7 +2875,7 @@ def load_publickey(type, buffer):
     :return: The PKey object.
     :rtype: :class:`PKey`
     """
-    if isinstance(buffer, _text_type):
+    if isinstance(buffer, str):
         buffer = buffer.encode("ascii")
 
     bio = _new_mem_buf(buffer)
@@ -2919,7 +2911,7 @@ def load_privatekey(type, buffer, passphrase=None):
 
     :return: The PKey object
     """
-    if isinstance(buffer, _text_type):
+    if isinstance(buffer, str):
         buffer = buffer.encode("ascii")
 
     bio = _new_mem_buf(buffer)
@@ -2980,7 +2972,7 @@ def load_certificate_request(type, buffer):
     :param buffer: The buffer the certificate request is stored in
     :return: The X509Req object
     """
-    if isinstance(buffer, _text_type):
+    if isinstance(buffer, str):
         buffer = buffer.encode("ascii")
 
     bio = _new_mem_buf(buffer)
@@ -3109,7 +3101,7 @@ def load_crl(type, buffer):
 
     :return: The PKey object
     """
-    if isinstance(buffer, _text_type):
+    if isinstance(buffer, str):
         buffer = buffer.encode("ascii")
 
     bio = _new_mem_buf(buffer)
@@ -3138,7 +3130,7 @@ def load_pkcs7_data(type, buffer):
     :param buffer: The buffer with the pkcs7 data.
     :return: The PKCS7 object
     """
-    if isinstance(buffer, _text_type):
+    if isinstance(buffer, str):
         buffer = buffer.encode("ascii")
 
     bio = _new_mem_buf(buffer)
@@ -3183,7 +3175,7 @@ def load_pkcs12(buffer, passphrase=None):
     """
     passphrase = _text_to_bytes_and_warn("passphrase", passphrase)
 
-    if isinstance(buffer, _text_type):
+    if isinstance(buffer, str):
         buffer = buffer.encode("ascii")
 
     bio = _new_mem_buf(buffer)

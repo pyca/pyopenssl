@@ -32,8 +32,6 @@ import pytest
 
 from pretend import raiser
 
-from six import PY2, text_type
-
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
@@ -166,9 +164,6 @@ i5s5yYK7a/0eWxxRr2qraYaUj8RwDpH9CwIBAg==
 """
 
 
-skip_if_py3 = pytest.mark.skipif(not PY2, reason="Python 2 only")
-
-
 def socket_any_family():
     try:
         return socket(AF_INET)
@@ -197,7 +192,7 @@ def join_bytes_or_unicode(prefix, suffix):
         return join(prefix, suffix)
 
     # Otherwise, coerce suffix to the type of prefix.
-    if isinstance(prefix, text_type):
+    if isinstance(prefix, str):
         return join(prefix, suffix.decode(getfilesystemencoding()))
     else:
         return join(prefix, suffix.encode(getfilesystemencoding()))
@@ -1751,7 +1746,7 @@ class TestContext(object):
         """
         context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
-            context.set_tlsext_use_srtp(text_type("SRTP_AES128_CM_SHA1_80"))
+            context.set_tlsext_use_srtp(str("SRTP_AES128_CM_SHA1_80"))
 
     def test_set_tlsext_use_srtp_invalid_profile(self):
         """
@@ -2285,10 +2280,8 @@ class TestConnection(object):
         with pytest.raises(TypeError):
             conn.set_tlsext_host_name(b"with\0null")
 
-        if not PY2:
-            # On Python 3.x, don't accidentally implicitly convert from text.
-            with pytest.raises(TypeError):
-                conn.set_tlsext_host_name(b"example.com".decode("ascii"))
+        with pytest.raises(TypeError):
+            conn.set_tlsext_host_name(b"example.com".decode("ascii"))
 
     def test_pending(self):
         """
@@ -2858,8 +2851,8 @@ class TestConnection(object):
             client.get_cipher_name(),
         )
 
-        assert isinstance(server_cipher_name, text_type)
-        assert isinstance(client_cipher_name, text_type)
+        assert isinstance(server_cipher_name, str)
+        assert isinstance(client_cipher_name, str)
 
         assert server_cipher_name == client_cipher_name
 
@@ -2883,8 +2876,8 @@ class TestConnection(object):
             client.get_cipher_version(),
         )
 
-        assert isinstance(server_cipher_version, text_type)
-        assert isinstance(client_cipher_version, text_type)
+        assert isinstance(server_cipher_version, str)
+        assert isinstance(client_cipher_version, str)
 
         assert server_cipher_version == client_cipher_version
 
@@ -2922,8 +2915,8 @@ class TestConnection(object):
         client_protocol_version_name = client.get_protocol_version_name()
         server_protocol_version_name = server.get_protocol_version_name()
 
-        assert isinstance(server_protocol_version_name, text_type)
-        assert isinstance(client_protocol_version_name, text_type)
+        assert isinstance(server_protocol_version_name, str)
+        assert isinstance(client_protocol_version_name, str)
 
         assert server_protocol_version_name == client_protocol_version_name
 
@@ -3063,18 +3056,6 @@ class TestConnectionSend(object):
         """
         server, client = loopback()
         count = server.send(bytearray(b"xy"))
-        assert count == 2
-        assert client.recv(2) == b"xy"
-
-    @skip_if_py3
-    def test_short_buffer(self):
-        """
-        When passed a buffer containing a small number of bytes,
-        `Connection.send` transmits all of them and returns the number
-        of bytes sent.
-        """
-        server, client = loopback()
-        count = server.send(buffer(b"xy"))  # noqa: F821
         assert count == 2
         assert client.recv(2) == b"xy"
 
@@ -3272,17 +3253,6 @@ class TestConnectionSendall(object):
         server, client = loopback()
         server.sendall(memoryview(b"x"))
         assert client.recv(1) == b"x"
-
-    @skip_if_py3
-    def test_short_buffers(self):
-        """
-        When passed a buffer containing a small number of bytes,
-        `Connection.sendall` transmits all of them.
-        """
-        server, client = loopback()
-        count = server.sendall(buffer(b"xy"))  # noqa: F821
-        assert count == 2
-        assert client.recv(2) == b"xy"
 
     def test_long(self):
         """

@@ -6,8 +6,6 @@ Helpers for the OpenSSL test suite, largely copied from
 U{Twisted<http://twistedmatrix.com/>}.
 """
 
-from six import PY2
-
 
 # This is the UTF-8 encoding of the SNOWMAN unicode code point.
 NON_ASCII = b"\xe2\x98\x83".decode("utf-8")
@@ -154,7 +152,4 @@ class EqualityTestsMixin(object):
 
 
 # The type name expected in warnings about using the wrong string type.
-if PY2:
-    WARNING_TYPE_EXPECTED = "unicode"
-else:
-    WARNING_TYPE_EXPECTED = "str"
+WARNING_TYPE_EXPECTED = "str"
