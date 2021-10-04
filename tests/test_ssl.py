@@ -2280,10 +2280,8 @@ class TestConnection(object):
         with pytest.raises(TypeError):
             conn.set_tlsext_host_name(b"with\0null")
 
-        if not PY2:
-            # On Python 3.x, don't accidentally implicitly convert from text.
-            with pytest.raises(TypeError):
-                conn.set_tlsext_host_name(b"example.com".decode("ascii"))
+        with pytest.raises(TypeError):
+            conn.set_tlsext_host_name(b"example.com".decode("ascii"))
 
     def test_pending(self):
         """
