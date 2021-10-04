@@ -113,9 +113,7 @@ def byte_string(s):
 # value or not.
 UNSPECIFIED = object()
 
-_TEXT_WARNING = (
-    "str for {0} is no longer accepted, use bytes"
-)
+_TEXT_WARNING = "str for {0} is no longer accepted, use bytes"
 
 
 def text_to_bytes_and_warn(label, obj):
