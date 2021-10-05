@@ -30,6 +30,9 @@ jobs:
           - {VERSION: "3.9", TOXENV: "py39-cryptographyMinimum"}
           - {VERSION: "3.10", TOXENV: "py310-cryptographyMinimum"}
           - {VERSION: "pypy3", TOXENV: "pypy3-cryptographyMinimum"}
+          # Cryptography wheels
+          - {VERSION: "3.9", TOXENV: "py39-cryptographyMinimum-useWheel"}
+          - {VERSION: "3.9", TOXENV: "py39-useWheel"}
           # Random order
           - {VERSION: "3.9", TOXENV: "py39-randomorder"}
           # Downstreams
