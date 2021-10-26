@@ -1754,7 +1754,7 @@ class Connection(object):
 
         :param mtu: An integer giving the maximum transmission unit.
 
-        .. versionadded:: 21.0
+        .. versionadded:: 21.1
         """
         _lib.SSL_set_mtu(self._ssl, mtu)
 
@@ -1766,7 +1766,7 @@ class Connection(object):
 
         :return: The effective MTU as an integer.
 
-        .. versionadded:: 21.0
+        .. versionadded:: 21.1
         """
 
         if not hasattr(_lib, "DTLS_get_data_mtu"):
