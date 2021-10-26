@@ -12,12 +12,17 @@ Backward-incompatible changes:
 
 - Drop support for Python 2.7.
   `#1047 <https://github.com/pyca/pyopenssl/pull/1047>`_
+- The minimum ``cryptography`` version is now 35.0.
 
 Deprecations:
 ^^^^^^^^^^^^^
 
 Changes:
 ^^^^^^^^
+
+- Expose wrappers for some `DTLS
+  <https://en.wikipedia.org/wiki/Datagram_Transport_Layer_Security>`_
+  primitives. `#1026 <https://github.com/pyca/pyopenssl/pull/1026>`_
 
 21.0.0 (2021-09-28)
 -------------------
