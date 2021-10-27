@@ -4274,6 +4274,12 @@ class TestDTLS(object):
 
         # Check that the MTU set/query functions are doing *something*
         c.set_ciphertext_mtu(1000)
-        assert 500 < c.get_cleartext_mtu() < 1000
+        try:
+            assert 500 < c.get_cleartext_mtu() < 1000
+        except NotImplementedError:  # OpenSSL 1.1.0 and earlier
+            pass
         c.set_ciphertext_mtu(500)
-        assert 0 < c.get_cleartext_mtu() < 500
+        try:
+            assert 0 < c.get_cleartext_mtu() < 500
+        except NotImplementedError:  # OpenSSL 1.1.0 and earlier
+            pass
