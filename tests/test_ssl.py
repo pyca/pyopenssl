@@ -1928,7 +1928,7 @@ class TestApplicationLayerProtoNegotiation(object):
         protocols list. Ensure that we produce a user-visible error.
         """
         context = Context(SSLv23_METHOD)
-        with pytest.raises(Error):
+        with pytest.raises(ValueError):
             context.set_alpn_protos([])
 
     def test_alpn_set_on_connection(self):
