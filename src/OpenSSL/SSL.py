@@ -1421,9 +1421,9 @@ class Context(object):
             This list should be a Python list of bytestrings representing the
             protocols to offer, e.g. ``[b'http/1.1', b'spdy/2']``.
         """
-        # Different versions of OpenSSL are inconsistent about how they handle empty
-        # proto lists (see #1043), so we avoid the problem entirely by rejecting them
-        # ourselves.
+        # Different versions of OpenSSL are inconsistent about how they handle
+        # empty proto lists (see #1043), so we avoid the problem entirely by
+        # rejecting them ourselves.
         if not protos:
             raise ValueError("at least one protocol must be specified")
 
@@ -2455,9 +2455,9 @@ class Connection(object):
             This list should be a Python list of bytestrings representing the
             protocols to offer, e.g. ``[b'http/1.1', b'spdy/2']``.
         """
-        # Different versions of OpenSSL are inconsistent about how they handle empty
-        # proto lists (see #1043), so we avoid the problem entirely by rejecting them
-        # ourselves.
+        # Different versions of OpenSSL are inconsistent about how they handle
+        # empty proto lists (see #1043), so we avoid the problem entirely by
+        # rejecting them ourselves.
         if not protos:
             raise ValueError("at least one protocol must be specified")
 
