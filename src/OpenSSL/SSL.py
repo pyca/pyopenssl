@@ -45,6 +45,9 @@ __all__ = [
     "TLS_METHOD",
     "TLS_SERVER_METHOD",
     "TLS_CLIENT_METHOD",
+    "DTLS_METHOD",
+    "DTLS_SERVER_METHOD",
+    "DTLS_CLIENT_METHOD",
     "SSL3_VERSION",
     "TLS1_VERSION",
     "TLS1_1_VERSION",
@@ -80,6 +83,7 @@ __all__ = [
     "OP_NO_QUERY_MTU",
     "OP_COOKIE_EXCHANGE",
     "OP_NO_TICKET",
+    "OP_NO_RENEGOTIATION",
     "OP_ALL",
     "VERIFY_PEER",
     "VERIFY_FAIL_IF_NO_PEER_CERT",
@@ -149,6 +153,9 @@ TLSv1_2_METHOD = 6
 TLS_METHOD = 7
 TLS_SERVER_METHOD = 8
 TLS_CLIENT_METHOD = 9
+DTLS_METHOD = 10
+DTLS_SERVER_METHOD = 11
+DTLS_CLIENT_METHOD = 12
 
 try:
     SSL3_VERSION = _lib.SSL3_VERSION
@@ -205,6 +212,11 @@ OP_NO_COMPRESSION = _lib.SSL_OP_NO_COMPRESSION
 OP_NO_QUERY_MTU = _lib.SSL_OP_NO_QUERY_MTU
 OP_COOKIE_EXCHANGE = _lib.SSL_OP_COOKIE_EXCHANGE
 OP_NO_TICKET = _lib.SSL_OP_NO_TICKET
+
+try:
+    OP_NO_RENEGOTIATION = _lib.SSL_OP_NO_RENEGOTIATION
+except AttributeError:
+    pass
 
 OP_ALL = _lib.SSL_OP_ALL
 
@@ -547,6 +559,48 @@ class _OCSPClientCallbackHelper(_CallbackExceptionHelper):
         self.callback = _ffi.callback("int (*)(SSL *, void *)", wrapper)
 
 
+class _CookieGenerateCallbackHelper(_CallbackExceptionHelper):
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ssl, out, outlen):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+                cookie = callback(conn)
+                out[0 : len(cookie)] = cookie
+                outlen[0] = len(cookie)
+                return 1
+            except Exception as e:
+                self._problems.append(e)
+                # "a zero return value can be used to abort the handshake"
+                return 0
+
+        self.callback = _ffi.callback(
+            "int (*)(SSL *, unsigned char *, unsigned int *)",
+            wrapper,
+        )
+
+
+class _CookieVerifyCallbackHelper(_CallbackExceptionHelper):
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ssl, c_cookie, cookie_len):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+                return callback(conn, bytes(c_cookie[0:cookie_len]))
+            except Exception as e:
+                self._problems.append(e)
+                return 0
+
+        self.callback = _ffi.callback(
+            "int (*)(SSL *, unsigned char *, unsigned int)",
+            wrapper,
+        )
+
+
 def _asFileDescriptor(obj):
     fd = None
     if not isinstance(obj, int):
@@ -628,7 +682,8 @@ class Context(object):
     :class:`OpenSSL.SSL.Context` instances define the parameters for setting
     up new SSL connections.
 
-    :param method: One of TLS_METHOD, TLS_CLIENT_METHOD, or TLS_SERVER_METHOD.
+    :param method: One of TLS_METHOD, TLS_CLIENT_METHOD, TLS_SERVER_METHOD,
+                   DTLS_METHOD, DTLS_CLIENT_METHOD, or DTLS_SERVER_METHOD.
                    SSLv23_METHOD, TLSv1_METHOD, etc. are deprecated and should
                    not be used.
     """
@@ -643,6 +698,9 @@ class Context(object):
         TLS_METHOD: "TLS_method",
         TLS_SERVER_METHOD: "TLS_server_method",
         TLS_CLIENT_METHOD: "TLS_client_method",
+        DTLS_METHOD: "DTLS_method",
+        DTLS_SERVER_METHOD: "DTLS_server_method",
+        DTLS_CLIENT_METHOD: "DTLS_client_method",
     }
     _methods = dict(
         (identifier, getattr(_lib, name))
@@ -687,6 +745,8 @@ class Context(object):
         self._ocsp_helper = None
         self._ocsp_callback = None
         self._ocsp_data = None
+        self._cookie_generate_helper = None
+        self._cookie_verify_helper = None
 
         self.set_mode(_lib.SSL_MODE_ENABLE_PARTIAL_WRITE)
 
@@ -1527,6 +1587,20 @@ class Context(object):
         helper = _OCSPClientCallbackHelper(callback)
         self._set_ocsp_callback(helper, data)
 
+    def set_cookie_generate_callback(self, callback):
+        self._cookie_generate_helper = _CookieGenerateCallbackHelper(callback)
+        _lib.SSL_CTX_set_cookie_generate_cb(
+            self._context,
+            self._cookie_generate_helper.callback,
+        )
+
+    def set_cookie_verify_callback(self, callback):
+        self._cookie_verify_helper = _CookieVerifyCallbackHelper(callback)
+        _lib.SSL_CTX_set_cookie_verify_cb(
+            self._context,
+            self._cookie_verify_helper.callback,
+        )
+
 
 class Connection(object):
     _reverse_mapping = WeakValueDictionary()
@@ -1563,6 +1637,10 @@ class Connection(object):
         # do not point to a dangling reference
         self._verify_helper = context._verify_helper
         self._verify_callback = context._verify_callback
+
+        # And likewise for the cookie callbacks
+        self._cookie_generate_helper = context._cookie_generate_helper
+        self._cookie_verify_helper = context._cookie_verify_helper
 
         self._reverse_mapping[self._ssl] = self
 
@@ -1671,6 +1749,35 @@ class Connection(object):
             return None
 
         return _ffi.string(name)
+
+    def set_ciphertext_mtu(self, mtu):
+        """
+        For DTLS, set the maximum UDP payload size (*not* including IP/UDP
+        overhead).
+
+        Note that you might have to set :data:`OP_NO_QUERY_MTU` to prevent
+        OpenSSL from spontaneously clearing this.
+
+        :param mtu: An integer giving the maximum transmission unit.
+
+        .. versionadded:: 21.1
+        """
+        _lib.SSL_set_mtu(self._ssl, mtu)
+
+    def get_cleartext_mtu(self):
+        """
+        For DTLS, get the maximum size of unencrypted data you can pass to
+        :meth:`write` without exceeding the MTU (as passed to
+        :meth:`set_ciphertext_mtu`).
+
+        :return: The effective MTU as an integer.
+
+        .. versionadded:: 21.1
+        """
+
+        if not hasattr(_lib, "DTLS_get_data_mtu"):
+            raise NotImplementedError("requires OpenSSL 1.1.1 or better")
+        return _lib.DTLS_get_data_mtu(self._ssl)
 
     def set_tlsext_host_name(self, name):
         """
@@ -1956,6 +2063,32 @@ class Connection(object):
         conn = Connection(self._context, client)
         conn.set_accept_state()
         return (conn, addr)
+
+    def DTLSv1_listen(self):
+        """
+        Call the OpenSSL function DTLSv1_listen on this connection. See the
+        OpenSSL manual for more details.
+
+        :return: None
+        """
+        # Possible future extension: return the BIO_ADDR in some form.
+        bio_addr = _lib.BIO_ADDR_new()
+        try:
+            result = _lib.DTLSv1_listen(self._ssl, bio_addr)
+        finally:
+            _lib.BIO_ADDR_free(bio_addr)
+        # DTLSv1_listen is weird. A zero return value means 'didn't find a
+        # ClientHello with valid cookie, but keep trying'. So basically
+        # WantReadError. But it doesn't work correctly with _raise_ssl_error.
+        # So we raise it manually instead.
+        if self._cookie_generate_helper is not None:
+            self._cookie_generate_helper.raise_if_problem()
+        if self._cookie_verify_helper is not None:
+            self._cookie_verify_helper.raise_if_problem()
+        if result == 0:
+            raise WantReadError()
+        if result < 0:
+            self._raise_ssl_error(self._ssl, result)
 
     def bio_shutdown(self):
         """

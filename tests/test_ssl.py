@@ -20,7 +20,14 @@ from errno import (
     ESHUTDOWN,
 )
 from sys import platform, getfilesystemencoding
-from socket import AF_INET, AF_INET6, MSG_PEEK, SHUT_RDWR, error, socket
+from socket import (
+    AF_INET,
+    AF_INET6,
+    MSG_PEEK,
+    SHUT_RDWR,
+    error,
+    socket,
+)
 from os import makedirs
 from os.path import join
 from weakref import ref
@@ -54,6 +61,7 @@ from OpenSSL.SSL import (
     TLS1_3_VERSION,
     TLS1_2_VERSION,
     TLS1_1_VERSION,
+    DTLS_METHOD,
 )
 from OpenSSL.SSL import SSLEAY_PLATFORM, SSLEAY_DIR, SSLEAY_BUILT_ON
 from OpenSSL.SSL import SENT_SHUTDOWN, RECEIVED_SHUTDOWN
@@ -604,7 +612,7 @@ class TestContext(object):
         with pytest.raises(TypeError):
             Context("")
         with pytest.raises(ValueError):
-            Context(10)
+            Context(13)
 
     def test_type(self):
         """
@@ -4212,3 +4220,188 @@ class TestOCSP(object):
 
         with pytest.raises(TypeError):
             handshake_in_memory(client, server)
+
+
+class TestDTLS(object):
+    # The way you would expect DTLSv1_listen to work is:
+    #
+    # - it reads packets in a loop
+    # - when it finds a valid ClientHello, it returns
+    # - now the handshake can proceed
+    #
+    # However, on older versions of OpenSSL, it did something "cleverer". The
+    # way it worked is:
+    #
+    # - it "peeks" into the BIO to see the next packet without consuming it
+    # - if *not* a valid ClientHello, then it reads the packet to consume it
+    #   and loops around
+    # - if it *is* a valid ClientHello, it *leaves the packet in the BIO*, and
+    #   returns
+    # - then the handshake finds the ClientHello in the BIO and reads it a
+    #   second time.
+    #
+    # I'm not sure exactly when this switched over. The OpenSSL v1.1.1 in
+    # Ubuntu 18.04 has the old behavior. The OpenSSL v1.1.1 in Ubuntu 20.04 has
+    # the new behavior. There doesn't seem to be any mention of this change in
+    # the OpenSSL v1.1.1 changelog, but presumably it changed in some point
+    # release or another. Presumably in 2025 or so there will be only new
+    # OpenSSLs around we can delete this whole comment and the weird
+    # workaround. If anyone is still using this library by then, which seems
+    # both depressing and inevitable.
+    #
+    # Anyway, why do we care? The reason is that the old strategy has a
+    # problem: the "peek" operation is only defined on "DGRAM BIOs", which are
+    # a special type of object that is different from the more familiar "socket
+    # BIOs" and "memory BIOs". If you *don't* have a DGRAM BIO, and you try to
+    # peek into the BIO... then it silently degrades to a full-fledged "read"
+    # operation that consumes the packet. Which is a problem if your algorithm
+    # depends on leaving the packet in the BIO to be read again later.
+    #
+    # So on old OpenSSL, we have a problem:
+    #
+    # - we can't use a DGRAM BIO, because cryptography/pyopenssl don't wrap the
+    #   relevant APIs, nor should they.
+    #
+    # - if we use a socket BIO, then the first time DTLSv1_listen sees an
+    #   invalid packet (like for example... the challenge packet that *every
+    #   DTLS handshake starts with before the real ClientHello!*), it tries to
+    #   first "peek" it, and then "read" it. But since the first "peek"
+    #   consumes the packet, the second "read" ends up hanging or consuming
+    #   some unrelated packet, which is undesirable. So you can't even get to
+    #   the handshake stage successfully.
+    #
+    # - if we use a memory BIO, then DTLSv1_listen works OK on invalid packets
+    #   -- first the "peek" consumes them, and then it tries to "read" again to
+    #   consume them, which fails immediately, and OpenSSL ignores the failure.
+    #   So it works by accident. BUT, when we get a valid ClientHello, we have
+    #   a problem: DTLSv1_listen tries to "peek" it and then leave it in the
+    #   read BIO for do_handshake to consume. But instead "peek" consumes the
+    #   packet, so it's not there where do_handshake is expecting it, and the
+    #   handshake fails.
+    #
+    # Fortunately (if that's the word), we can work around the memory BIO
+    # problem. (Which is good, because in real life probably all our users will
+    # be using memory BIOs.) All we have to do is to save the valid ClientHello
+    # before calling DTLSv1_listen, and then after it returns we push *a second
+    # copy of it* of the packet memory BIO before calling do_handshake. This
+    # fakes out OpenSSL and makes it think the "peek" operation worked
+    # correctly, and we can go on with our lives.
+    #
+    # In fact, we push the second copy of the ClientHello unconditionally. On
+    # new versions of OpenSSL, this is unnecessary, but harmless, because the
+    # DTLS state machine treats it like a network hiccup that duplicated a
+    # packet, which DTLS is robust against.
+    def test_it_works_at_all(self):
+        # arbitrary number larger than any conceivable handshake volley
+        LARGE_BUFFER = 65536
+
+        s_ctx = Context(DTLS_METHOD)
+
+        def generate_cookie(ssl):
+            return b"xyzzy"
+
+        def verify_cookie(ssl, cookie):
+            return cookie == b"xyzzy"
+
+        s_ctx.set_cookie_generate_callback(generate_cookie)
+        s_ctx.set_cookie_verify_callback(verify_cookie)
+        s_ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
+        s_ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
+        s_ctx.set_options(OP_NO_QUERY_MTU)
+        s = Connection(s_ctx)
+        s.set_accept_state()
+
+        c_ctx = Context(DTLS_METHOD)
+        c_ctx.set_options(OP_NO_QUERY_MTU)
+        c = Connection(c_ctx)
+        c.set_connect_state()
+
+        # These are mandatory, because openssl can't guess the MTU for a memory
+        # bio and will produce a mysterious error if you make it try.
+        c.set_ciphertext_mtu(1500)
+        s.set_ciphertext_mtu(1500)
+
+        latest_client_hello = None
+
+        def pump_membio(label, source, sink):
+            try:
+                chunk = source.bio_read(LARGE_BUFFER)
+            except WantReadError:
+                return False
+            # I'm not sure this check is needed, but I'm not sure it's *not*
+            # needed either:
+            if not chunk:  # pragma: no cover
+                return False
+            # Gross hack: if this is a ClientHello, save it so we can find it
+            # later. See giant comment above.
+            try:
+                # if ContentType == handshake and HandshakeType ==
+                # client_hello:
+                if chunk[0] == 22 and chunk[13] == 1:
+                    nonlocal latest_client_hello
+                    latest_client_hello = chunk
+            except IndexError:  # pragma: no cover
+                pass
+            print(f"{label}: {chunk.hex()}")
+            sink.bio_write(chunk)
+            return True
+
+        def pump():
+            # Raises if there was no data to pump, to avoid infinite loops if
+            # we aren't making progress.
+            assert pump_membio("s -> c", s, c) or pump_membio("c -> s", c, s)
+
+        c_handshaking = True
+        s_listening = True
+        s_handshaking = False
+        first = True
+        while c_handshaking or s_listening or s_handshaking:
+            if not first:
+                pump()
+            first = False
+
+            if c_handshaking:
+                try:
+                    c.do_handshake()
+                except WantReadError:
+                    pass
+                else:
+                    c_handshaking = False
+
+            if s_listening:
+                try:
+                    s.DTLSv1_listen()
+                except WantReadError:
+                    pass
+                else:
+                    s_listening = False
+                    s_handshaking = True
+                    # Write the duplicate ClientHello. See giant comment above.
+                    s.bio_write(latest_client_hello)
+
+            if s_handshaking:
+                try:
+                    s.do_handshake()
+                except WantReadError:
+                    pass
+                else:
+                    s_handshaking = False
+
+        s.write(b"hello")
+        pump()
+        assert c.read(100) == b"hello"
+        c.write(b"goodbye")
+        pump()
+        assert s.read(100) == b"goodbye"
+
+        # Check that the MTU set/query functions are doing *something*
+        c.set_ciphertext_mtu(1000)
+        try:
+            assert 500 < c.get_cleartext_mtu() < 1000
+        except NotImplementedError:  # OpenSSL 1.1.0 and earlier
+            pass
+        c.set_ciphertext_mtu(500)
+        try:
+            assert 0 < c.get_cleartext_mtu() < 500
+        except NotImplementedError:  # OpenSSL 1.1.0 and earlier
+            pass
