@@ -27,14 +27,12 @@ from socket import (
     SHUT_RDWR,
     error,
     socket,
-    SOCK_DGRAM,
     SOCK_STREAM,
 )
 from os import makedirs
 from os.path import join
 from weakref import ref
 from warnings import simplefilter
-from concurrent.futures import ThreadPoolExecutor
 
 import flaky
 
@@ -4319,8 +4317,8 @@ class TestDTLS(object):
         c = Connection(c_ctx)
         c.set_connect_state()
 
-        # These are mandatory, because openssl can't guess the MTU for a memory bio and
-        # will produce a mysterious error if you make it try.
+        # These are mandatory, because openssl can't guess the MTU for a memory
+        # bio and will produce a mysterious error if you make it try.
         c.set_ciphertext_mtu(1500)
         s.set_ciphertext_mtu(1500)
 
@@ -4336,7 +4334,8 @@ class TestDTLS(object):
             # Gross hack: if this is a ClientHello, save it so we can find it
             # later. See giant comment above.
             try:
-                # if ContentType == handshake and HandshakeType == client_hello:
+                # if ContentType == handshake and HandshakeType ==
+                # client_hello:
                 if chunk[0] == 22 and chunk[13] == 1:
                     nonlocal latest_client_hello
                     latest_client_hello = chunk
@@ -4347,8 +4346,8 @@ class TestDTLS(object):
             return True
 
         def pump():
-            # Raises if there was no data to pump, to avoid infinite loops if we aren't
-            # making progress.
+            # Raises if there was no data to pump, to avoid infinite loops if
+            # we aren't making progress.
             assert pump_membio("s -> c", s, c) or pump_membio("c -> s", c, s)
 
         c_handshaking = True
