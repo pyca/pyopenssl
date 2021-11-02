@@ -27,7 +27,6 @@ from socket import (
     SHUT_RDWR,
     error,
     socket,
-    SOCK_STREAM,
 )
 from os import makedirs
 from os.path import join
@@ -173,12 +172,12 @@ i5s5yYK7a/0eWxxRr2qraYaUj8RwDpH9CwIBAg==
 """
 
 
-def socket_any_family(type=SOCK_STREAM):
+def socket_any_family():
     try:
-        return socket(AF_INET, type=type)
+        return socket(AF_INET)
     except error as e:
         if e.errno == EAFNOSUPPORT:
-            return socket(AF_INET6, type=type)
+            return socket(AF_INET6)
         raise
 
 
@@ -4329,7 +4328,9 @@ class TestDTLS(object):
                 chunk = source.bio_read(LARGE_BUFFER)
             except WantReadError:
                 return False
-            if not chunk:
+            # I'm not sure this check is needed, but I'm not sure it's *not*
+            # needed either:
+            if not chunk:  # pragma: no cover
                 return False
             # Gross hack: if this is a ClientHello, save it so we can find it
             # later. See giant comment above.
@@ -4339,7 +4340,7 @@ class TestDTLS(object):
                 if chunk[0] == 22 and chunk[13] == 1:
                     nonlocal latest_client_hello
                     latest_client_hello = chunk
-            except IndexError:
+            except IndexError:  # pragma: no cover
                 pass
             print(f"{label}: {chunk.hex()}")
             sink.bio_write(chunk)
