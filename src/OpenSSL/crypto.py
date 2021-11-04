@@ -2315,7 +2315,7 @@ class CRL(object):
         revoked_stack = _lib.X509_CRL_get_REVOKED(self._crl)
         for i in range(_lib.sk_X509_REVOKED_num(revoked_stack)):
             revoked = _lib.sk_X509_REVOKED_value(revoked_stack, i)
-            revoked_copy = _lib.Cryptography_X509_REVOKED_dup(revoked)
+            revoked_copy = _lib.X509_REVOKED_dup(revoked)
             pyrev = Revoked.__new__(Revoked)
             pyrev._revoked = _ffi.gc(revoked_copy, _lib.X509_REVOKED_free)
             results.append(pyrev)
@@ -2333,7 +2333,7 @@ class CRL(object):
         :param Revoked revoked: The new revocation.
         :return: ``None``
         """
-        copy = _lib.Cryptography_X509_REVOKED_dup(revoked._revoked)
+        copy = _lib.X509_REVOKED_dup(revoked._revoked)
         _openssl_assert(copy != _ffi.NULL)
 
         add_result = _lib.X509_CRL_add0_revoked(self._crl, copy)
@@ -2381,7 +2381,7 @@ class CRL(object):
         :param bytes when: A timestamp string.
         :return: ``None``
         """
-        return self._set_boundary_time(_lib.X509_CRL_get_lastUpdate, when)
+        return self._set_boundary_time(_lib.X509_CRL_get0_lastUpdate, when)
 
     def set_nextUpdate(self, when):
         """
@@ -2396,7 +2396,7 @@ class CRL(object):
         :param bytes when: A timestamp string.
         :return: ``None``
         """
-        return self._set_boundary_time(_lib.X509_CRL_get_nextUpdate, when)
+        return self._set_boundary_time(_lib.X509_CRL_get0_nextUpdate, when)
 
     def sign(self, issuer_cert, issuer_key, digest):
         """
@@ -2463,10 +2463,10 @@ class CRL(object):
         _openssl_assert(sometime != _ffi.NULL)
 
         _lib.X509_gmtime_adj(sometime, 0)
-        _lib.X509_CRL_set_lastUpdate(self._crl, sometime)
+        _lib.X509_CRL_set1_lastUpdate(self._crl, sometime)
 
         _lib.X509_gmtime_adj(sometime, days * 24 * 60 * 60)
-        _lib.X509_CRL_set_nextUpdate(self._crl, sometime)
+        _lib.X509_CRL_set1_nextUpdate(self._crl, sometime)
 
         _lib.X509_CRL_set_issuer_name(
             self._crl, _lib.X509_get_subject_name(cert._x509)
