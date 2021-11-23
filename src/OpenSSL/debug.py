@@ -10,7 +10,7 @@ import cryptography
 from . import version
 
 
-_env_info = u"""\
+_env_info = """\
 pyOpenSSL: {pyopenssl}
 cryptography: {cryptography}
 cffi: {cffi}
