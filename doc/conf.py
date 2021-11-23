@@ -72,9 +72,9 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"pyOpenSSL"
-authors = u"The pyOpenSSL developers"
-copyright = u"2001 " + authors
+project = "pyOpenSSL"
+authors = "The pyOpenSSL developers"
+copyright = "2001 " + authors
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -217,7 +217,7 @@ htmlhelp_basename = "pyOpenSSLdoc"
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual])
 latex_documents = [
-    ("index", "pyOpenSSL.tex", u"pyOpenSSL Documentation", authors, "manual"),
+    ("index", "pyOpenSSL.tex", "pyOpenSSL Documentation", authors, "manual"),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -248,7 +248,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [("index", "pyopenssl", u"pyOpenSSL Documentation", [authors], 1)]
+man_pages = [("index", "pyopenssl", "pyOpenSSL Documentation", [authors], 1)]
 
 intersphinx_mapping = {
     "https://docs.python.org/3": None,

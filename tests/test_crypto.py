@@ -2467,7 +2467,7 @@ class TestPKCS12(object):
                 b"-nodes",
                 b"-passin",
                 b"pass:" + passwd,
-                *extra
+                *extra,
             )
             assert recovered_key[-len(key) :] == key
         if cert:
@@ -2479,7 +2479,7 @@ class TestPKCS12(object):
                 b"-passin",
                 b"pass:" + passwd,
                 b"-nokeys",
-                *extra
+                *extra,
             )
             assert recovered_cert[-len(cert) :] == cert
         if ca:
@@ -2491,7 +2491,7 @@ class TestPKCS12(object):
                 b"-passin",
                 b"pass:" + passwd,
                 b"-nokeys",
-                *extra
+                *extra,
             )
             assert recovered_cert[-len(ca) :] == ca
 
@@ -3477,7 +3477,7 @@ class TestRevoked(object):
         revoked.set_reason(None)
         assert revoked.get_reason() is None
 
-    @pytest.mark.parametrize("reason", [object(), 1.0, u"foo"])
+    @pytest.mark.parametrize("reason", [object(), 1.0, "foo"])
     def test_set_reason_wrong_args(self, reason):
         """
         `Revoked.set_reason` raises `TypeError` if called with an argument
@@ -3553,12 +3553,12 @@ class TestCRL(object):
         assert revoked is not None
         assert crl.issuer == x509.Name(
             [
-                x509.NameAttribute(x509.NameOID.COUNTRY_NAME, u"US"),
-                x509.NameAttribute(x509.NameOID.STATE_OR_PROVINCE_NAME, u"IL"),
-                x509.NameAttribute(x509.NameOID.LOCALITY_NAME, u"Chicago"),
-                x509.NameAttribute(x509.NameOID.ORGANIZATION_NAME, u"Testing"),
+                x509.NameAttribute(x509.NameOID.COUNTRY_NAME, "US"),
+                x509.NameAttribute(x509.NameOID.STATE_OR_PROVINCE_NAME, "IL"),
+                x509.NameAttribute(x509.NameOID.LOCALITY_NAME, "Chicago"),
+                x509.NameAttribute(x509.NameOID.ORGANIZATION_NAME, "Testing"),
                 x509.NameAttribute(
-                    x509.NameOID.COMMON_NAME, u"Testing Root CA"
+                    x509.NameOID.COMMON_NAME, "Testing Root CA"
                 ),
             ]
         )
@@ -3580,12 +3580,12 @@ class TestCRL(object):
         assert revoked is not None
         assert crl.issuer == x509.Name(
             [
-                x509.NameAttribute(x509.NameOID.COUNTRY_NAME, u"US"),
-                x509.NameAttribute(x509.NameOID.STATE_OR_PROVINCE_NAME, u"IL"),
-                x509.NameAttribute(x509.NameOID.LOCALITY_NAME, u"Chicago"),
-                x509.NameAttribute(x509.NameOID.ORGANIZATION_NAME, u"Testing"),
+                x509.NameAttribute(x509.NameOID.COUNTRY_NAME, "US"),
+                x509.NameAttribute(x509.NameOID.STATE_OR_PROVINCE_NAME, "IL"),
+                x509.NameAttribute(x509.NameOID.LOCALITY_NAME, "Chicago"),
+                x509.NameAttribute(x509.NameOID.ORGANIZATION_NAME, "Testing"),
                 x509.NameAttribute(
-                    x509.NameOID.COMMON_NAME, u"Testing Root CA"
+                    x509.NameOID.COMMON_NAME, "Testing Root CA"
                 ),
             ]
         )
@@ -4375,7 +4375,7 @@ class TestEllipticCurve(object):
         does not identify a supported curve.
         """
         with pytest.raises(ValueError):
-            get_elliptic_curve(u"this curve was just invented")
+            get_elliptic_curve("this curve was just invented")
 
     def test_repr(self):
         """

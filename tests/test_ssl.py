@@ -454,10 +454,10 @@ def ca_file(tmpdir):
 
     builder = x509.CertificateBuilder()
     builder = builder.subject_name(
-        x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, u"pyopenssl.org")])
+        x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "pyopenssl.org")])
     )
     builder = builder.issuer_name(
-        x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, u"pyopenssl.org")])
+        x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "pyopenssl.org")])
     )
     one_day = datetime.timedelta(1, 0, 0)
     builder = builder.not_valid_before(datetime.datetime.today() - one_day)
@@ -498,7 +498,7 @@ class TestContext(object):
 
     @pytest.mark.parametrize(
         "cipher_string",
-        [b"hello world:AES128-SHA", u"hello world:AES128-SHA"],
+        [b"hello world:AES128-SHA", "hello world:AES128-SHA"],
     )
     def test_set_cipher_list(self, context, cipher_string):
         """
@@ -588,7 +588,7 @@ class TestContext(object):
         `Context.set_session_id` raises a warning if a unicode string is
         passed.
         """
-        pytest.deprecated_call(context.set_session_id, u"abc")
+        pytest.deprecated_call(context.set_session_id, "abc")
 
     def test_method(self):
         """
@@ -1708,7 +1708,7 @@ class TestContext(object):
         """
         context = Context(SSLv23_METHOD)
         for curve in get_elliptic_curves():
-            if curve.name.startswith(u"Oakley-"):
+            if curve.name.startswith("Oakley-"):
                 # Setting Oakley-EC2N-4 and Oakley-EC2N-3 adds
                 # ('bignum routines', 'BN_mod_inverse', 'no inverse') to the
                 # error queue on OpenSSL 1.0.2.
@@ -2068,7 +2068,7 @@ class TestApplicationLayerProtoNegotiation(object):
 
         def invalid_cb(conn, options):
             invalid_cb_args.append((conn, options))
-            return u"can't return unicode"
+            return "can't return unicode"
 
         client_context = Context(SSLv23_METHOD)
         client_context.set_alpn_protos([b"http/1.1", b"spdy/2"])
@@ -2235,7 +2235,7 @@ class TestConnection(object):
         connection.bio_write(b"xy")
         connection.bio_write(bytearray(b"za"))
         with pytest.warns(DeprecationWarning):
-            connection.bio_write(u"deprecated")
+            connection.bio_write("deprecated")
 
     def test_get_context(self):
         """
