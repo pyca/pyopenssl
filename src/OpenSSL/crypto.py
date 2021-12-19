@@ -13,7 +13,7 @@ from OpenSSL._util import (
     lib as _lib,
     exception_from_error_queue as _exception_from_error_queue,
     byte_string as _byte_string,
-    path_string as _path_string,
+    path_bytes as _path_bytes,
     UNSPECIFIED as _UNSPECIFIED,
     text_to_bytes_and_warn as _text_to_bytes_and_warn,
     make_assert as _make_assert,
@@ -1728,12 +1728,12 @@ class X509Store(object):
         if cafile is None:
             cafile = _ffi.NULL
         else:
-            cafile = _path_string(cafile)
+            cafile = _path_bytes(cafile)
 
         if capath is None:
             capath = _ffi.NULL
         else:
-            capath = _path_string(capath)
+            capath = _path_bytes(capath)
 
         load_result = _lib.X509_STORE_load_locations(
             self._store, cafile, capath
