@@ -12,7 +12,6 @@ from OpenSSL._util import (
     ffi as _ffi,
     lib as _lib,
     make_assert as _make_assert,
-    native as _native,
     path_string as _path_string,
     text_to_bytes_and_warn as _text_to_bytes_and_warn,
     no_zero_allocator as _no_zero_allocator,
@@ -2125,7 +2124,7 @@ class Connection(object):
             result = _lib.SSL_get_cipher_list(self._ssl, i)
             if result == _ffi.NULL:
                 break
-            ciphers.append(_native(_ffi.string(result)))
+            ciphers.append(_ffi.string(result).decode("utf-8"))
         return ciphers
 
     def get_client_ca_list(self):
