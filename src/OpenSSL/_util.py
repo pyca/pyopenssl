@@ -1,3 +1,4 @@
+import os
 import sys
 import warnings
 
@@ -89,19 +90,19 @@ def native(s):
 
 def path_string(s):
     """
-    Convert a Python string to a :py:class:`bytes` string identifying the same
+    Convert a Python path to a :py:class:`bytes` string identifying the same
     path and which can be passed into an OpenSSL API accepting a filename.
 
-    :param s: An instance of :py:class:`bytes` or :py:class:`unicode`.
+    :param s: A path (valid for os.fspath).
 
     :return: An instance of :py:class:`bytes`.
     """
-    if isinstance(s, bytes):
-        return s
-    elif isinstance(s, str):
-        return s.encode(sys.getfilesystemencoding())
+    strpath = os.fspath(s)  # returns str or bytes
+
+    if isinstance(strpath, str):
+        return strpath.encode(sys.getfilesystemencoding())
     else:
-        raise TypeError("Path must be represented as bytes or unicode string")
+        return strpath
 
 
 def byte_string(s):
