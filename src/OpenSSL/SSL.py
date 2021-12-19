@@ -126,13 +126,6 @@ __all__ = [
     "Connection",
 ]
 
-try:
-    _buffer = buffer
-except NameError:
-
-    class _buffer(object):
-        pass
-
 
 OPENSSL_VERSION_NUMBER = _lib.OPENSSL_VERSION_NUMBER
 SSLEAY_VERSION = _lib.SSLEAY_VERSION
