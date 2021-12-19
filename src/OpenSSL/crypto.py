@@ -13,7 +13,6 @@ from OpenSSL._util import (
     lib as _lib,
     exception_from_error_queue as _exception_from_error_queue,
     byte_string as _byte_string,
-    native as _native,
     path_string as _path_string,
     UNSPECIFIED as _UNSPECIFIED,
     text_to_bytes_and_warn as _text_to_bytes_and_warn,
@@ -672,7 +671,7 @@ class X509Name(object):
         _openssl_assert(format_result != _ffi.NULL)
 
         return "<X509Name object '%s'>" % (
-            _native(_ffi.string(result_buffer)),
+            _ffi.string(result_buffer).decode("utf-8"),
         )
 
     def hash(self):
@@ -821,11 +820,11 @@ class X509Extension(object):
             except KeyError:
                 bio = _new_mem_buf()
                 _lib.GENERAL_NAME_print(bio, name)
-                parts.append(_native(_bio_to_string(bio)))
+                parts.append(_bio_to_string(bio).decode("utf-8"))
             else:
-                value = _native(
-                    _ffi.buffer(name.d.ia5.data, name.d.ia5.length)[:]
-                )
+                value = _ffi.buffer(name.d.ia5.data, name.d.ia5.length)[
+                    :
+                ].decode("utf-8")
                 parts.append(label + ":" + value)
         return ", ".join(parts)
 
@@ -840,7 +839,7 @@ class X509Extension(object):
         print_result = _lib.X509V3_EXT_print(bio, self._extension, 0, 0)
         _openssl_assert(print_result != 0)
 
-        return _native(_bio_to_string(bio))
+        return _bio_to_string(bio).decode("utf-8")
 
     def get_critical(self):
         """
@@ -1381,7 +1380,7 @@ class X509(object):
         :return: ``True`` if the certificate has expired, ``False`` otherwise.
         :rtype: bool
         """
-        time_string = _native(self.get_notAfter())
+        time_string = self.get_notAfter().decode("utf-8")
         not_after = datetime.datetime.strptime(time_string, "%Y%m%d%H%M%SZ")
 
         return not_after < datetime.datetime.utcnow()
@@ -1850,13 +1849,11 @@ class X509StoreContext(object):
         errors = [
             _lib.X509_STORE_CTX_get_error(self._store_ctx),
             _lib.X509_STORE_CTX_get_error_depth(self._store_ctx),
-            _native(
-                _ffi.string(
-                    _lib.X509_verify_cert_error_string(
-                        _lib.X509_STORE_CTX_get_error(self._store_ctx)
-                    )
+            _ffi.string(
+                _lib.X509_verify_cert_error_string(
+                    _lib.X509_STORE_CTX_get_error(self._store_ctx)
                 )
-            ),
+            ).decode("utf-8"),
         ]
         # A context error should always be associated with a certificate, so we
         # expect this call to never return :class:`None`.

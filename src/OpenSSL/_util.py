@@ -26,7 +26,7 @@ def text(charp):
     """
     if not charp:
         return ""
-    return native(ffi.string(charp))
+    return ffi.string(charp).decode("utf-8")
 
 
 def exception_from_error_queue(exception_type):
@@ -69,23 +69,6 @@ def make_assert(error):
             exception_from_error_queue(error)
 
     return openssl_assert
-
-
-def native(s):
-    """
-    Convert :py:class:`bytes` or :py:class:`unicode` to the native
-    :py:class:`str` type, using UTF-8 encoding if conversion is necessary.
-
-    :raise UnicodeError: The input string is not UTF-8 decodeable.
-
-    :raise TypeError: The input is neither :py:class:`bytes` nor
-        :py:class:`unicode`.
-    """
-    if not isinstance(s, (bytes, str)):
-        raise TypeError("%r is neither bytes nor unicode" % s)
-    if isinstance(s, bytes):
-        return s.decode("utf-8")
-    return s
 
 
 def path_string(s):
