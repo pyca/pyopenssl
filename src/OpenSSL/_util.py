@@ -71,21 +71,21 @@ def make_assert(error):
     return openssl_assert
 
 
-def path_string(s):
+def path_bytes(s):
     """
-    Convert a Python path to a :py:class:`bytes` string identifying the same
-    path and which can be passed into an OpenSSL API accepting a filename.
+    Convert a Python path to a :py:class:`bytes` for the path which can be
+    passed into an OpenSSL API accepting a filename.
 
     :param s: A path (valid for os.fspath).
 
     :return: An instance of :py:class:`bytes`.
     """
-    strpath = os.fspath(s)  # returns str or bytes
+    b = os.fspath(s)
 
-    if isinstance(strpath, str):
-        return strpath.encode(sys.getfilesystemencoding())
+    if isinstance(b, str):
+        return b.encode(sys.getfilesystemencoding())
     else:
-        return strpath
+        return b
 
 
 def byte_string(s):

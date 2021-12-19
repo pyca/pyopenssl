@@ -12,7 +12,7 @@ from OpenSSL._util import (
     ffi as _ffi,
     lib as _lib,
     make_assert as _make_assert,
-    path_string as _path_string,
+    path_bytes as _path_bytes,
     text_to_bytes_and_warn as _text_to_bytes_and_warn,
     no_zero_allocator as _no_zero_allocator,
 )
@@ -781,12 +781,12 @@ class Context(object):
         if cafile is None:
             cafile = _ffi.NULL
         else:
-            cafile = _path_string(cafile)
+            cafile = _path_bytes(cafile)
 
         if capath is None:
             capath = _ffi.NULL
         else:
-            capath = _path_string(capath)
+            capath = _path_bytes(capath)
 
         load_result = _lib.SSL_CTX_load_verify_locations(
             self._context, cafile, capath
@@ -920,7 +920,7 @@ class Context(object):
 
         :return: None
         """
-        certfile = _path_string(certfile)
+        certfile = _path_bytes(certfile)
 
         result = _lib.SSL_CTX_use_certificate_chain_file(
             self._context, certfile
@@ -940,7 +940,7 @@ class Context(object):
 
         :return: None
         """
-        certfile = _path_string(certfile)
+        certfile = _path_bytes(certfile)
         if not isinstance(filetype, int):
             raise TypeError("filetype must be an integer")
 
@@ -998,7 +998,7 @@ class Context(object):
 
         :return: None
         """
-        keyfile = _path_string(keyfile)
+        keyfile = _path_bytes(keyfile)
 
         if filetype is _UNSPECIFIED:
             filetype = FILETYPE_PEM
@@ -1169,7 +1169,7 @@ class Context(object):
 
         :return: None
         """
-        dhfile = _path_string(dhfile)
+        dhfile = _path_bytes(dhfile)
 
         bio = _lib.BIO_new_file(dhfile, b"r")
         if bio == _ffi.NULL:
