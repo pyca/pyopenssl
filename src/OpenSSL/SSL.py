@@ -259,8 +259,8 @@ _CERTIFICATE_PATH_LOCATIONS = [
 
 # These values are compared to output from cffi's ffi.string so they must be
 # byte strings.
-_CRYPTOGRAPHY_MANYLINUX1_CA_DIR = b"/opt/pyca/cryptography/openssl/certs"
-_CRYPTOGRAPHY_MANYLINUX1_CA_FILE = b"/opt/pyca/cryptography/openssl/cert.pem"
+_CRYPTOGRAPHY_MANYLINUX_CA_DIR = b"/opt/pyca/cryptography/openssl/certs"
+_CRYPTOGRAPHY_MANYLINUX_CA_FILE = b"/opt/pyca/cryptography/openssl/cert.pem"
 
 
 class Error(Exception):
@@ -872,8 +872,8 @@ class Context(object):
             # to the exact values we use in our manylinux1 builds. If they are
             # then we know to load the fallbacks
             if (
-                default_dir == _CRYPTOGRAPHY_MANYLINUX1_CA_DIR
-                and default_file == _CRYPTOGRAPHY_MANYLINUX1_CA_FILE
+                default_dir == _CRYPTOGRAPHY_MANYLINUX_CA_DIR
+                and default_file == _CRYPTOGRAPHY_MANYLINUX_CA_FILE
             ):
                 # This is manylinux1, let's load our fallback paths
                 self._fallback_default_verify_paths(

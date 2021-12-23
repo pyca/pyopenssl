@@ -1214,8 +1214,8 @@ class TestContext(object):
     def test_fallback_default_verify_paths(self, monkeypatch):
         """
         Test that we load certificates successfully on linux from the fallback
-        path. To do this we set the _CRYPTOGRAPHY_MANYLINUX1_CA_FILE and
-        _CRYPTOGRAPHY_MANYLINUX1_CA_DIR vars to be equal to whatever the
+        path. To do this we set the _CRYPTOGRAPHY_MANYLINUX_CA_FILE and
+        _CRYPTOGRAPHY_MANYLINUX_CA_DIR vars to be equal to whatever the
         current OpenSSL default is and we disable
         SSL_CTX_SET_default_verify_paths so that it can't find certs unless
         it loads via fallback.
@@ -1226,12 +1226,12 @@ class TestContext(object):
         )
         monkeypatch.setattr(
             SSL,
-            "_CRYPTOGRAPHY_MANYLINUX1_CA_FILE",
+            "_CRYPTOGRAPHY_MANYLINUX_CA_FILE",
             _ffi.string(_lib.X509_get_default_cert_file()),
         )
         monkeypatch.setattr(
             SSL,
-            "_CRYPTOGRAPHY_MANYLINUX1_CA_DIR",
+            "_CRYPTOGRAPHY_MANYLINUX_CA_DIR",
             _ffi.string(_lib.X509_get_default_cert_dir()),
         )
         context.set_default_verify_paths()
