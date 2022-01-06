@@ -19,6 +19,10 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- Add ``OpenSSL.SSL.Connection.set_verify`` and ``OpenSSL.SSL.Connection.get_verify_mode``
+  to override the context object's verification flags.
+  `#1073 <https://github.com/pyca/pyopenssl/pull/1073>`_
+
 22.0.0 (2022-01-29)
 -------------------
 

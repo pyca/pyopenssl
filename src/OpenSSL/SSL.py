@@ -1745,6 +1745,35 @@ class Connection:
 
         return _ffi.string(name)
 
+    def set_verify(self, mode, callback=None):
+        """
+        Override the Context object's verification flags for this specific
+        connection. See :py:meth:`Context.set_verify` for details.
+        """
+        if not isinstance(mode, int):
+            raise TypeError("mode must be an integer")
+
+        if callback is None:
+            self._verify_helper = None
+            self._verify_callback = None
+            _lib.SSL_set_verify(self._ssl, mode, _ffi.NULL)
+        else:
+            if not callable(callback):
+                raise TypeError("callback must be callable")
+
+            self._verify_helper = _VerifyHelper(callback)
+            self._verify_callback = self._verify_helper.callback
+            _lib.SSL_set_verify(self._ssl, mode, self._verify_callback)
+
+    def get_verify_mode(self):
+        """
+        Retrieve the Connection object's verify mode, as set by
+        :meth:`set_verify`.
+
+        :return: The verify mode
+        """
+        return _lib.SSL_get_verify_mode(self._ssl)
+
     def set_ciphertext_mtu(self, mtu):
         """
         For DTLS, set the maximum UDP payload size (*not* including IP/UDP

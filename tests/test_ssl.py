@@ -2630,6 +2630,51 @@ class TestConnection:
         server = Connection(ctx, None)
         assert None is server.get_verified_chain()
 
+    def test_set_verify_overrides_context(self):
+        context = Context(SSLv23_METHOD)
+        context.set_verify(VERIFY_PEER)
+        conn = Connection(context, None)
+        conn.set_verify(VERIFY_NONE)
+
+        assert context.get_verify_mode() == VERIFY_PEER
+        assert conn.get_verify_mode() == VERIFY_NONE
+
+        with pytest.raises(TypeError):
+            conn.set_verify(None)
+
+        with pytest.raises(TypeError):
+            conn.set_verify(VERIFY_PEER, "not a callable")
+
+    def test_set_verify_callback_reference(self):
+        """
+        The callback for certificate verification should only be forgotten if the context and all connections
+        created by it do not use it anymore.
+        """
+        def callback(conn, cert, errnum, depth, ok):  # pragma: no cover
+            return ok
+
+        tracker = ref(callback)
+
+        context = Context(SSLv23_METHOD)
+        context.set_verify(VERIFY_PEER, callback)
+        del callback
+
+        conn = Connection(context, None)
+        context.set_verify(VERIFY_NONE)
+
+        collect()
+        collect()
+        assert tracker()
+
+        conn.set_verify(VERIFY_PEER, lambda conn, cert, errnum, depth, ok: ok)
+        collect()
+        collect()
+        callback = tracker()
+        if callback is not None:  # pragma: nocover
+            referrers = get_referrers(callback)
+            if len(referrers) > 1:
+                pytest.fail("Some references remain: %r" % (referrers,))
+
     def test_get_session_unconnected(self):
         """
         `Connection.get_session` returns `None` when used with an object
