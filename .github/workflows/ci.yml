@@ -65,6 +65,7 @@ jobs:
     strategy:
       matrix:
         TEST:
+          - {CONTAINER: "ubuntu-bionic", TOXENV: "py36"}
           # cryptographyMain used since there's no wheel
           - {CONTAINER: "ubuntu-rolling", TOXENV: "py310-cryptographyMain"}
     name: "${{ matrix.TEST.TOXENV }} on ${{ matrix.TEST.CONTAINER }}"
