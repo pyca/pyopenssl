@@ -1938,7 +1938,10 @@ class TestX509(_PKeyInteractionTestsMixin):
             # Digest verified with the command:
             # openssl x509 -in root_cert.pem -noout -fingerprint -sha256
             cert.digest("SHA256")
-            == b"3E:0F:16:39:6B:B1:3E:4F:08:85:C6:5F:10:0D:CB:2C:25:C2:91:4E:D0:4A:C2:29:06:BD:55:E3:A7:B3:B7:06"
+            == (
+                b"3E:0F:16:39:6B:B1:3E:4F:08:85:C6:5F:10:0D:CB:2C:"
+                b"25:C2:91:4E:D0:4A:C2:29:06:BD:55:E3:A7:B3:B7:06"
+            )
         )
 
     def _extcert(self, pkey, extensions):
