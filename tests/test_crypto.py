@@ -64,7 +64,7 @@ def normalize_privatekey_pem(pem):
 GOOD_CIPHER = "blowfish"
 BAD_CIPHER = "zippers"
 
-GOOD_DIGEST = "SHA1"
+GOOD_DIGEST = "SHA256"
 BAD_DIGEST = "monkeys"
 
 old_root_cert_pem = b"""-----BEGIN CERTIFICATE-----
@@ -914,7 +914,7 @@ class TestX509Ext(object):
             b"basicConstraints", False, b"CA:TRUE", subject=x509
         )
         x509.add_extensions([ext1])
-        x509.sign(pkey, "sha1")
+        x509.sign(pkey, "sha256")
         # This is a little lame.  Can we think of a better way?
         text = dump_certificate(FILETYPE_TEXT, x509)
         assert b"X509v3 Basic Constraints:" in text
@@ -930,7 +930,7 @@ class TestX509Ext(object):
             b"subjectKeyIdentifier", False, b"hash", subject=x509
         )
         x509.add_extensions([ext3])
-        x509.sign(pkey, "sha1")
+        x509.sign(pkey, "sha256")
         text = dump_certificate(FILETYPE_TEXT, x509)
         assert b"X509v3 Subject Key Identifier:" in text
 
@@ -963,7 +963,7 @@ class TestX509Ext(object):
             b"basicConstraints", False, b"CA:TRUE", issuer=x509
         )
         x509.add_extensions([ext1])
-        x509.sign(pkey, "sha1")
+        x509.sign(pkey, "sha256")
         text = dump_certificate(FILETYPE_TEXT, x509)
         assert b"X509v3 Basic Constraints:" in text
         assert b"CA:TRUE" in text
@@ -978,7 +978,7 @@ class TestX509Ext(object):
             b"authorityKeyIdentifier", False, b"issuer:always", issuer=x509
         )
         x509.add_extensions([ext2])
-        x509.sign(pkey, "sha1")
+        x509.sign(pkey, "sha256")
         text = dump_certificate(FILETYPE_TEXT, x509)
         assert b"X509v3 Authority Key Identifier:" in text
         assert b"DirName:/CN=Yoda root CA" in text
@@ -1935,13 +1935,10 @@ class TestX509(_PKeyInteractionTestsMixin):
         """
         cert = load_certificate(FILETYPE_PEM, old_root_cert_pem)
         assert (
-            # This is MD5 instead of GOOD_DIGEST because the digest algorithm
-            # actually matters to the assertion (ie, another arbitrary, good
-            # digest will not product the same digest).
             # Digest verified with the command:
-            # openssl x509 -in root_cert.pem -noout -fingerprint -md5
-            cert.digest("MD5")
-            == b"19:B3:05:26:2B:F8:F2:FF:0B:8F:21:07:A8:28:B8:75"
+            # openssl x509 -in root_cert.pem -noout -fingerprint -sha256
+            cert.digest("SHA256")
+            == b"3E:0F:16:39:6B:B1:3E:4F:08:85:C6:5F:10:0D:CB:2C:25:C2:91:4E:D0:4A:C2:29:06:BD:55:E3:A7:B3:B7:06"
         )
 
     def _extcert(self, pkey, extensions):
@@ -1957,7 +1954,7 @@ class TestX509(_PKeyInteractionTestsMixin):
         cert.set_notAfter(when)
 
         cert.add_extensions(extensions)
-        cert.sign(pkey, "sha1")
+        cert.sign(pkey, "sha256")
         return load_certificate(
             FILETYPE_PEM, dump_certificate(FILETYPE_PEM, cert)
         )
@@ -3573,7 +3570,7 @@ class TestCRL(object):
 
         # DER format
         dumped_crl = self._get_crl().export(
-            self.cert, self.pkey, FILETYPE_ASN1, digest=b"md5"
+            self.cert, self.pkey, FILETYPE_ASN1, digest=b"sha256"
         )
         crl = x509.load_der_x509_crl(dumped_crl, backend)
         revoked = crl.get_revoked_certificate_by_serial_number(0x03AB)
@@ -3600,7 +3597,7 @@ class TestCRL(object):
 
         # text format
         dumped_text = crl.export(
-            self.cert, self.pkey, type=FILETYPE_TEXT, digest=b"md5"
+            self.cert, self.pkey, type=FILETYPE_TEXT, digest=b"sha256"
         )
         assert len(dumped_text) > 500
 
@@ -3610,9 +3607,9 @@ class TestCRL(object):
         signature algorithm based on that digest function.
         """
         crl = self._get_crl()
-        dumped_crl = crl.export(self.cert, self.pkey, digest=b"sha1")
+        dumped_crl = crl.export(self.cert, self.pkey, digest=b"sha384")
         text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
-        text.index(b"Signature Algorithm: sha1")
+        text.index(b"Signature Algorithm: sha384")
 
     def test_export_md5_digest(self):
         """
@@ -4250,7 +4247,7 @@ class TestSignVerify(object):
         # certificate unrelated to priv_key, used to trigger an error
         bad_cert = load_certificate(FILETYPE_PEM, server_cert_pem)
 
-        for digest in ["md5", "sha1"]:
+        for digest in ["md5", "sha1", "sha256"]:
             sig = sign(priv_key, content, digest)
 
             # Verify the signature of content, will throw an exception if
@@ -4289,7 +4286,7 @@ class TestSignVerify(object):
 
         priv_key = load_privatekey(FILETYPE_PEM, root_key_pem)
         cert = load_certificate(FILETYPE_PEM, root_cert_pem)
-        for digest in ["md5", "sha1"]:
+        for digest in ["md5", "sha1", "sha256"]:
             with pytest.warns(DeprecationWarning) as w:
                 simplefilter("always")
                 sig = sign(priv_key, content, digest)
@@ -4319,8 +4316,8 @@ class TestSignVerify(object):
         )
         priv_key = load_privatekey(FILETYPE_PEM, ec_root_key_pem)
         cert = load_certificate(FILETYPE_PEM, ec_root_cert_pem)
-        sig = sign(priv_key, content, "sha1")
-        verify(cert, sig, content, "sha1")
+        sig = sign(priv_key, content, "sha256")
+        verify(cert, sig, content, "sha256")
 
     def test_sign_nulls(self):
         """
@@ -4329,8 +4326,8 @@ class TestSignVerify(object):
         content = b"Watch out!  \0  Did you see it?"
         priv_key = load_privatekey(FILETYPE_PEM, root_key_pem)
         good_cert = load_certificate(FILETYPE_PEM, root_cert_pem)
-        sig = sign(priv_key, content, "sha1")
-        verify(good_cert, sig, content, "sha1")
+        sig = sign(priv_key, content, "sha256")
+        verify(good_cert, sig, content, "sha256")
 
     def test_sign_with_large_key(self):
         """
@@ -4345,7 +4342,7 @@ class TestSignVerify(object):
         )
 
         priv_key = load_privatekey(FILETYPE_PEM, large_key_pem)
-        sign(priv_key, content, "sha1")
+        sign(priv_key, content, "sha256")
 
 
 class TestEllipticCurve(object):
