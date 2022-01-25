@@ -1053,8 +1053,8 @@ class X509Req(object):
         :param pkey: The key pair to sign with.
         :type pkey: :py:class:`PKey`
         :param digest: The name of the message digest to use for the signature,
-            e.g. :py:data:`b"sha256"`.
-        :type digest: :py:class:`bytes`
+            e.g. :py:data:`"sha256"`.
+        :type digest: :py:class:`str`
         :return: ``None``
         """
         if pkey._only_public:
@@ -1209,7 +1209,7 @@ class X509(object):
         :type pkey: :py:class:`PKey`
 
         :param digest: The name of the message digest to use.
-        :type digest: :py:class:`bytes`
+        :type digest: :py:class:`str`
 
         :return: :py:data:`None`
         """
@@ -1251,7 +1251,7 @@ class X509(object):
         Return the digest of the X509 object.
 
         :param digest_name: The name of the digest algorithm to use.
-        :type digest_name: :py:class:`bytes`
+        :type digest_name: :py:class:`str`
 
         :return: The digest of the object, formatted as
             :py:const:`b":"`-delimited hex pairs.
@@ -2718,7 +2718,7 @@ class NetscapeSPKI(object):
         :type pkey: :py:class:`PKey`
 
         :param digest: The message digest to use.
-        :type digest: :py:class:`bytes`
+        :type digest: :py:class:`str`
 
         :return: ``None``
         """
