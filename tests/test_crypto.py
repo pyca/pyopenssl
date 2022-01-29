@@ -1767,12 +1767,12 @@ class TestX509(_PKeyInteractionTestsMixin):
         assert certificate.get_serial_number() == 0
         certificate.set_serial_number(1)
         assert certificate.get_serial_number() == 1
-        certificate.set_serial_number(2 ** 32 + 1)
-        assert certificate.get_serial_number() == 2 ** 32 + 1
-        certificate.set_serial_number(2 ** 64 + 1)
-        assert certificate.get_serial_number() == 2 ** 64 + 1
-        certificate.set_serial_number(2 ** 128 + 1)
-        assert certificate.get_serial_number() == 2 ** 128 + 1
+        certificate.set_serial_number(2**32 + 1)
+        assert certificate.get_serial_number() == 2**32 + 1
+        certificate.set_serial_number(2**64 + 1)
+        assert certificate.get_serial_number() == 2**64 + 1
+        certificate.set_serial_number(2**128 + 1)
+        assert certificate.get_serial_number() == 2**128 + 1
 
     def _setBoundTest(self, which):
         """
