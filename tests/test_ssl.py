@@ -369,7 +369,7 @@ def interact_in_memory(client_conn, server_conn):
 
             # Give the side a chance to generate some more bytes, or succeed.
             try:
-                data = read.recv(2 ** 16)
+                data = read.recv(2**16)
             except WantReadError:
                 # It didn't succeed, so we'll hope it generated some output.
                 pass
@@ -3002,7 +3002,7 @@ class VeryLarge(bytes):
     """
 
     def __len__(self):
-        return 2 ** 31
+        return 2**31
 
 
 class TestConnectionSend(object):
@@ -3068,7 +3068,7 @@ class TestConnectionSend(object):
         assert client.recv(2) == b"xy"
 
     @pytest.mark.skipif(
-        sys.maxsize < 2 ** 31,
+        sys.maxsize < 2**31,
         reason="sys.maxsize < 2**31 - test requires 64 bit",
     )
     def test_buf_too_large(self):
@@ -3643,7 +3643,7 @@ class TestMemoryBIO(object):
 
         interact_in_memory(client, server)
 
-        size = 2 ** 15
+        size = 2**15
         sent = client.send(b"x" * size)
         # Sanity check.  We're trying to test what happens when the entire
         # input can't be sent.  If the entire input was sent, this test is

@@ -62,7 +62,7 @@ FILETYPE_PEM = _lib.SSL_FILETYPE_PEM
 FILETYPE_ASN1 = _lib.SSL_FILETYPE_ASN1
 
 # TODO This was an API mistake.  OpenSSL has no such constant.
-FILETYPE_TEXT = 2 ** 16 - 1
+FILETYPE_TEXT = 2**16 - 1
 
 TYPE_RSA = _lib.EVP_PKEY_RSA
 TYPE_DSA = _lib.EVP_PKEY_DSA
