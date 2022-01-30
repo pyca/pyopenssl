@@ -1,9 +1,8 @@
 import calendar
 import datetime
-
 from base64 import b16encode
+import functools
 from functools import partial
-from operator import __eq__, __ne__, __lt__, __le__, __gt__, __ge__
 
 from cryptography import utils, x509
 from cryptography.hazmat.primitives.asymmetric import dsa, rsa
@@ -528,6 +527,7 @@ def get_elliptic_curve(name):
     raise ValueError("unknown curve name", name)
 
 
+@functools.total_ordering
 class X509Name:
     """
     An X.509 Distinguished Name.
@@ -642,23 +642,17 @@ class X509Name:
             _lib.OPENSSL_free(result_buffer[0])
         return result
 
-    def _cmp(op):
-        def f(self, other):
-            if not isinstance(other, X509Name):
-                return NotImplemented
-            result = _lib.X509_NAME_cmp(self._name, other._name)
-            return op(result, 0)
+    def _cmp(self, other):
+        if not isinstance(other, X509Name):
+            return NotImplemented
 
-        return f
+        return _lib.X509_NAME_cmp(self._name, other._name)
 
-    __eq__ = _cmp(__eq__)
-    __ne__ = _cmp(__ne__)
+    def __eq__(self, other):
+        return self._cmp(other) == 0
 
-    __lt__ = _cmp(__lt__)
-    __le__ = _cmp(__le__)
-
-    __gt__ = _cmp(__gt__)
-    __ge__ = _cmp(__ge__)
+    def __lt__(self, other):
+        return self._cmp(other) < 0
 
     def __repr__(self):
         """
