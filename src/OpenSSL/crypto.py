@@ -1299,15 +1299,14 @@ class X509(object):
             raise TypeError("serial must be an integer")
 
         hex_serial = hex(serial)[2:]
-        if not isinstance(hex_serial, bytes):
-            hex_serial = hex_serial.encode("ascii")
+        hex_serial_bytes = hex_serial.encode("ascii")
 
         bignum_serial = _ffi.new("BIGNUM**")
 
         # BN_hex2bn stores the result in &bignum.  Unless it doesn't feel like
         # it.  If bignum is still NULL after this call, then the return value
         # is actually the result.  I hope.  -exarkun
-        small_serial = _lib.BN_hex2bn(bignum_serial, hex_serial)
+        small_serial = _lib.BN_hex2bn(bignum_serial, hex_serial_bytes)
 
         if bignum_serial[0] == _ffi.NULL:
             set_result = _lib.ASN1_INTEGER_set(
