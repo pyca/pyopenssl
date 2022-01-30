@@ -200,7 +200,7 @@ def _get_asn1_time(timestamp):
             return string_result
 
 
-class _X509NameInvalidator(object):
+class _X509NameInvalidator:
     def __init__(self):
         self._names = []
 
@@ -213,7 +213,7 @@ class _X509NameInvalidator(object):
             del name._name
 
 
-class PKey(object):
+class PKey:
     """
     A class representing an DSA or RSA public key or key pair.
     """
@@ -392,7 +392,7 @@ class PKey(object):
         return _lib.EVP_PKEY_bits(self._pkey)
 
 
-class _EllipticCurve(object):
+class _EllipticCurve:
     """
     A representation of a supported elliptic curve.
 
@@ -528,7 +528,7 @@ def get_elliptic_curve(name):
     raise ValueError("unknown curve name", name)
 
 
-class X509Name(object):
+class X509Name:
     """
     An X.509 Distinguished Name.
 
@@ -728,7 +728,7 @@ class X509Name(object):
         return result
 
 
-class X509Extension(object):
+class X509Extension:
     """
     An X.509 v3 certificate extension.
     """
@@ -880,7 +880,7 @@ class X509Extension(object):
         return _ffi.buffer(char_result, result_length)[:]
 
 
-class X509Req(object):
+class X509Req:
     """
     An X.509 certificate signing requests.
     """
@@ -1092,7 +1092,7 @@ class X509Req(object):
         return result
 
 
-class X509(object):
+class X509:
     """
     An X.509 certificate.
     """
@@ -1567,7 +1567,7 @@ class X509(object):
         return ext
 
 
-class X509StoreFlags(object):
+class X509StoreFlags:
     """
     Flags for X509 verification, used to change the behavior of
     :class:`X509Store`.
@@ -1590,7 +1590,7 @@ class X509StoreFlags(object):
     CHECK_SS_SIGNATURE = _lib.X509_V_FLAG_CHECK_SS_SIGNATURE
 
 
-class X509Store(object):
+class X509Store:
     """
     An X.509 store.
 
@@ -1756,7 +1756,7 @@ class X509StoreContextError(Exception):
         self.certificate = certificate
 
 
-class X509StoreContext(object):
+class X509StoreContext:
     """
     An X.509 store context.
 
@@ -2081,7 +2081,7 @@ def dump_privatekey(type, pkey, cipher=None, passphrase=None):
     return _bio_to_string(bio)
 
 
-class Revoked(object):
+class Revoked:
     """
     A certificate revocation.
     """
@@ -2254,7 +2254,7 @@ class Revoked(object):
         return _get_asn1_time(dt)
 
 
-class CRL(object):
+class CRL:
     """
     A certificate revocation list.
     """
@@ -2476,7 +2476,7 @@ class CRL(object):
         return dump_crl(type, self)
 
 
-class PKCS7(object):
+class PKCS7:
     def type_is_signed(self):
         """
         Check if this NID_pkcs7_signed object
@@ -2520,7 +2520,7 @@ class PKCS7(object):
         return _ffi.string(string_type)
 
 
-class PKCS12(object):
+class PKCS12:
     """
     A PKCS #12 archive.
     """
@@ -2701,7 +2701,7 @@ class PKCS12(object):
         return _bio_to_string(bio)
 
 
-class NetscapeSPKI(object):
+class NetscapeSPKI:
     """
     A Netscape SPKI object.
     """
@@ -2791,7 +2791,7 @@ class NetscapeSPKI(object):
         _openssl_assert(set_result == 1)
 
 
-class _PassphraseHelper(object):
+class _PassphraseHelper:
     def __init__(self, type, passphrase, more_args=False, truncate=False):
         if type != FILETYPE_PEM and passphrase is not None:
             raise ValueError(
