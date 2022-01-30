@@ -1398,6 +1398,19 @@ class TestX509Name:
         # other X509Name.
         assert_greater_than(x509_name(CN="def"), x509_name(CN="abc"))
 
+        def assert_raises(a, b):
+            with pytest.raises(TypeError):
+                a < b
+            with pytest.raises(TypeError):
+                a <= b
+            with pytest.raises(TypeError):
+                a > b
+            with pytest.raises(TypeError):
+                a >= b
+
+        # Only X509Name objects can be compared with lesser than / greater than
+        assert_raises(x509_name(), object())
+
     def test_hash(self):
         """
         `X509Name.hash` returns an integer hash based on the value of the name.
