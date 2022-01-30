@@ -642,17 +642,17 @@ class X509Name:
             _lib.OPENSSL_free(result_buffer[0])
         return result
 
-    def _cmp(self, other):
+    def __eq__(self, other):
         if not isinstance(other, X509Name):
             return NotImplemented
 
-        return _lib.X509_NAME_cmp(self._name, other._name)
-
-    def __eq__(self, other):
-        return self._cmp(other) == 0
+        return _lib.X509_NAME_cmp(self._name, other._name) == 0
 
     def __lt__(self, other):
-        return self._cmp(other) < 0
+        if not isinstance(other, X509Name):
+            return NotImplemented
+
+        return _lib.X509_NAME_cmp(self._name, other._name) < 0
 
     def __repr__(self):
         """
