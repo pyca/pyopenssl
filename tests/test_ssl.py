@@ -410,7 +410,7 @@ def handshake_in_memory(client_conn, server_conn):
     interact_in_memory(client_conn, server_conn)
 
 
-class TestVersion(object):
+class TestVersion:
     """
     Tests for version information exposed by `OpenSSL.SSL.SSLeay_version` and
     `OpenSSL.SSL.OPENSSL_VERSION_NUMBER`.
@@ -491,7 +491,7 @@ def context():
     return Context(SSLv23_METHOD)
 
 
-class TestContext(object):
+class TestContext:
     """
     Unit tests for `OpenSSL.SSL.Context`.
     """
@@ -1364,7 +1364,7 @@ class TestContext(object):
         )
         serverConnection = Connection(serverContext, None)
 
-        class VerifyCallback(object):
+        class VerifyCallback:
             def callback(self, connection, *args):
                 self.connection = connection
                 return 1
@@ -1776,7 +1776,7 @@ class TestContext(object):
         assert context.set_tlsext_use_srtp(b"SRTP_AES128_CM_SHA1_80") is None
 
 
-class TestServerNameCallback(object):
+class TestServerNameCallback:
     """
     Tests for `Context.set_tlsext_servername_callback` and its
     interaction with `Connection`.
@@ -1885,7 +1885,7 @@ class TestServerNameCallback(object):
         assert args == [(server, b"foo1.example.com")]
 
 
-class TestApplicationLayerProtoNegotiation(object):
+class TestApplicationLayerProtoNegotiation:
     """
     Tests for ALPN in PyOpenSSL.
     """
@@ -2165,7 +2165,7 @@ class TestApplicationLayerProtoNegotiation(object):
         assert select_args == [(server, [b"http/1.1", b"spdy/2"])]
 
 
-class TestSession(object):
+class TestSession:
     """
     Unit tests for :py:obj:`OpenSSL.SSL.Session`.
     """
@@ -2179,7 +2179,7 @@ class TestSession(object):
         assert isinstance(new_session, Session)
 
 
-class TestConnection(object):
+class TestConnection:
     """
     Unit tests for `OpenSSL.SSL.Connection`.
     """
@@ -2979,7 +2979,7 @@ class TestConnection(object):
         assert 2 == len(data)
 
 
-class TestConnectionGetCipherList(object):
+class TestConnectionGetCipherList:
     """
     Tests for `Connection.get_cipher_list`.
     """
@@ -3005,7 +3005,7 @@ class VeryLarge(bytes):
         return 2**31
 
 
-class TestConnectionSend(object):
+class TestConnectionSend:
     """
     Tests for `Connection.send`.
     """
@@ -3091,7 +3091,7 @@ def _make_memoryview(size):
     return memoryview(bytearray(size))
 
 
-class TestConnectionRecvInto(object):
+class TestConnectionRecvInto:
     """
     Tests for `Connection.recv_into`.
     """
@@ -3214,7 +3214,7 @@ class TestConnectionRecvInto(object):
         self._doesnt_overfill_test(_make_memoryview)
 
 
-class TestConnectionSendall(object):
+class TestConnectionSendall:
     """
     Tests for `Connection.sendall`.
     """
@@ -3296,7 +3296,7 @@ class TestConnectionSendall(object):
             assert err.value.args[0] == EPIPE
 
 
-class TestConnectionRenegotiate(object):
+class TestConnectionRenegotiate:
     """
     Tests for SSL renegotiation APIs.
     """
@@ -3340,7 +3340,7 @@ class TestConnectionRenegotiate(object):
             pass
 
 
-class TestError(object):
+class TestError:
     """
     Unit tests for `OpenSSL.SSL.Error`.
     """
@@ -3353,7 +3353,7 @@ class TestError(object):
         assert Error.__name__ == "Error"
 
 
-class TestConstants(object):
+class TestConstants:
     """
     Tests for the values of constants exposed in `OpenSSL.SSL`.
 
@@ -3470,7 +3470,7 @@ class TestConstants(object):
         assert 0x300 == SESS_CACHE_NO_INTERNAL
 
 
-class TestMemoryBIO(object):
+class TestMemoryBIO:
     """
     Tests for `OpenSSL.SSL.Connection` using a memory BIO.
     """
@@ -3894,7 +3894,7 @@ class TestMemoryBIO(object):
         self._check_client_ca_list(set_replaces_add_ca)
 
 
-class TestInfoConstants(object):
+class TestInfoConstants:
     """
     Tests for assorted constants exposed for use in info callbacks.
     """
@@ -3937,7 +3937,7 @@ class TestInfoConstants(object):
             assert const is None or isinstance(const, int)
 
 
-class TestRequires(object):
+class TestRequires:
     """
     Tests for the decorator factory used to conditionally raise
     NotImplementedError when older OpenSSLs are used.
@@ -3976,7 +3976,7 @@ class TestRequires(object):
         assert "Error text" in str(e.value)
 
 
-class TestOCSP(object):
+class TestOCSP:
     """
     Tests for PyOpenSSL's OCSP stapling support.
     """
@@ -4222,7 +4222,7 @@ class TestOCSP(object):
             handshake_in_memory(client, server)
 
 
-class TestDTLS(object):
+class TestDTLS:
     # The way you would expect DTLSv1_listen to work is:
     #
     # - it reads packets in a loop

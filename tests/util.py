@@ -30,7 +30,7 @@ def is_consistent_type(theType, name, *constructionArgs):
     return True
 
 
-class EqualityTestsMixin(object):
+class EqualityTestsMixin:
     """
     A mixin defining tests for the standard implementation of C{==} and C{!=}.
     """
@@ -126,7 +126,7 @@ class EqualityTestsMixin(object):
         operand if it is of an unrelated type.
         """
 
-        class Delegate(object):
+        class Delegate:
             def __eq__(self, other):
                 # Do something crazy and obvious.
                 return [self]
@@ -141,7 +141,7 @@ class EqualityTestsMixin(object):
         operand if it is of an unrelated type.
         """
 
-        class Delegate(object):
+        class Delegate:
             def __ne__(self, other):
                 # Do something crazy and obvious.
                 return [self]

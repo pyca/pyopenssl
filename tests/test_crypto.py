@@ -809,7 +809,7 @@ def x509_data():
     yield pkey, x509
 
 
-class TestX509Ext(object):
+class TestX509Ext:
     """
     Tests for `OpenSSL.crypto.X509Extension`.
     """
@@ -1008,7 +1008,7 @@ class TestX509Ext(object):
             )
 
 
-class TestPKey(object):
+class TestPKey:
     """
     Tests for `OpenSSL.crypto.PKey`.
     """
@@ -1222,7 +1222,7 @@ def x509_name(**attrs):
     return name
 
 
-class TestX509Name(object):
+class TestX509Name:
     """
     Unit tests for `OpenSSL.crypto.X509Name`.
     """
@@ -2224,7 +2224,7 @@ tgI5
         assert crypto_cert.version.value == cert.get_version()
 
 
-class TestX509Store(object):
+class TestX509Store:
     """
     Test for `OpenSSL.crypto.X509Store`.
     """
@@ -2295,7 +2295,7 @@ class TestX509Store(object):
     def test_load_locations_parameters(
         self, cafile, capath, call_cafile, call_capath, monkeypatch
     ):
-        class LibMock(object):
+        class LibMock:
             def load_locations(self, store, cafile, capath):
                 self.cafile = cafile
                 self.capath = capath
@@ -2326,7 +2326,7 @@ class TestX509Store(object):
             store.load_locations(cafile=str(invalid_ca_file))
 
 
-class TestPKCS12(object):
+class TestPKCS12:
     """
     Test for `OpenSSL.crypto.PKCS12` and `OpenSSL.crypto.load_pkcs12`.
     """
@@ -2802,7 +2802,7 @@ def _runopenssl(pem, *args):
     return output
 
 
-class TestLoadPublicKey(object):
+class TestLoadPublicKey:
     """
     Tests for :func:`load_publickey`.
     """
@@ -2842,7 +2842,7 @@ class TestLoadPublicKey(object):
         assert dumped_pem == cleartextPublicKeyPEM
 
 
-class TestFunction(object):
+class TestFunction:
     """
     Tests for free-functions in the `OpenSSL.crypto` module.
     """
@@ -3263,7 +3263,7 @@ class TestFunction(object):
             load_pkcs7_data(object(), b"foo")
 
 
-class TestLoadCertificate(object):
+class TestLoadCertificate:
     """
     Tests for `load_certificate_request`.
     """
@@ -3287,7 +3287,7 @@ class TestLoadCertificate(object):
             load_certificate(FILETYPE_ASN1, b"lol")
 
 
-class TestPKCS7(object):
+class TestPKCS7:
     """
     Tests for `PKCS7`.
     """
@@ -3387,7 +3387,7 @@ class TestNetscapeSPKI(_PKeyInteractionTestsMixin):
         assert isinstance(blob, bytes)
 
 
-class TestRevoked(object):
+class TestRevoked:
     """
     Tests for `OpenSSL.crypto.Revoked`.
     """
@@ -3497,7 +3497,7 @@ class TestRevoked(object):
             revoked.set_reason(b"blue")
 
 
-class TestCRL(object):
+class TestCRL:
     """
     Tests for `OpenSSL.crypto.CRL`.
     """
@@ -3858,7 +3858,7 @@ class TestCRL(object):
         assert isinstance(crypto_crl, x509.CertificateRevocationList)
 
 
-class TestX509StoreContext(object):
+class TestX509StoreContext:
     """
     Tests for `OpenSSL.crypto.X509StoreContext`.
     """
@@ -4226,7 +4226,7 @@ class TestX509StoreContext(object):
         assert exc.value.args[0][2] == "unable to get local issuer certificate"
 
 
-class TestSignVerify(object):
+class TestSignVerify:
     """
     Tests for `OpenSSL.crypto.sign` and `OpenSSL.crypto.verify`.
     """
@@ -4348,7 +4348,7 @@ class TestSignVerify(object):
         sign(priv_key, content, "sha256")
 
 
-class TestEllipticCurve(object):
+class TestEllipticCurve:
     """
     Tests for `_EllipticCurve`, `get_elliptic_curve`, and
     `get_elliptic_curves`.
@@ -4399,7 +4399,7 @@ class TestEllipticCurve(object):
         curve._to_EC_KEY()
 
 
-class EllipticCurveFactory(object):
+class EllipticCurveFactory:
     """
     A helper to get the names of two curves.
     """
@@ -4434,7 +4434,7 @@ class TestEllipticCurveEquality(EqualityTestsMixin):
         return get_elliptic_curve(self.curve_factory.another_curve_name)
 
 
-class TestEllipticCurveHash(object):
+class TestEllipticCurveHash:
     """
     Tests for `_EllipticCurve`'s implementation of hashing (thus use as
     an item in a `dict` or `set`).

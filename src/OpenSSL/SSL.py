@@ -293,7 +293,7 @@ class SysCallError(Error):
     pass
 
 
-class _CallbackExceptionHelper(object):
+class _CallbackExceptionHelper:
     """
     A base class for wrapper classes that allow for intelligent exception
     handling in OpenSSL callbacks.
@@ -657,7 +657,7 @@ _requires_keylog = _make_requires(
 )
 
 
-class Session(object):
+class Session:
     """
     A class representing an SSL session.  A session defines certain connection
     parameters which may be re-used to speed up the setup of subsequent
@@ -669,7 +669,7 @@ class Session(object):
     pass
 
 
-class Context(object):
+class Context:
     """
     :class:`OpenSSL.SSL.Context` instances define the parameters for setting
     up new SSL connections.
@@ -1588,7 +1588,7 @@ class Context(object):
         )
 
 
-class Connection(object):
+class Connection:
     _reverse_mapping = WeakValueDictionary()
 
     def __init__(self, context, socket=None):
