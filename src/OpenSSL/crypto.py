@@ -620,7 +620,7 @@ class X509Name:
                 _raise_current_error()
             except Error:
                 pass
-            return super(X509Name, self).__getattr__(name)
+            raise AttributeError("No such attribute")
 
         entry_index = _lib.X509_NAME_get_index_by_NID(self._name, nid, -1)
         if entry_index == -1:
