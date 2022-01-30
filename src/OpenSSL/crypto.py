@@ -1380,7 +1380,10 @@ class X509(object):
         :return: ``True`` if the certificate has expired, ``False`` otherwise.
         :rtype: bool
         """
-        time_string = self.get_notAfter().decode("utf-8")
+        time_string = self.get_notAfter()
+        if time_string is None:
+            raise ValueError("Unable to determine notAfter")
+        time_string = time_string.decode("utf-8")
         not_after = datetime.datetime.strptime(time_string, "%Y%m%d%H%M%SZ")
 
         return not_after < datetime.datetime.utcnow()

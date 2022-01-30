@@ -1920,6 +1920,14 @@ class TestX509(_PKeyInteractionTestsMixin):
         cert.gmtime_adj_notAfter(2)
         assert not cert.has_expired()
 
+    def test_has_expired_exception(self):
+        """
+        `X509.has_expired` throws ValueError if not-after time is not set
+        """
+        cert = X509()
+        with pytest.raises(ValueError):
+            cert.has_expired()
+
     def test_root_has_not_expired(self):
         """
         `X509.has_expired` returns `False` if the certificate's not-after time
