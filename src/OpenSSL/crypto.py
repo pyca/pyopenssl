@@ -3306,13 +3306,11 @@ def load_pkcs12(
         x509 = _lib.sk_X509_value(cacerts, i)
         pycacert = X509._from_raw_x509_ptr(x509)
         pycacerts.append(pycacert)
-    if not pycacerts:
-        pycacerts = None
 
     pkcs12 = PKCS12.__new__(PKCS12)
     pkcs12._pkey = pykey
     pkcs12._cert = pycert
-    pkcs12._cacerts = pycacerts
+    pkcs12._cacerts = pycacerts if pycacerts else None
     pkcs12._friendlyname = friendlyname
     return pkcs12
 
