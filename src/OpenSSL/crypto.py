@@ -33,6 +33,7 @@ __all__ = [
     "X509Req",
     "X509",
     "X509StoreFlags",
+    "X509StorePurposes",
     "X509Store",
     "X509StoreContextError",
     "X509StoreContext",
@@ -1583,6 +1584,28 @@ class X509StoreFlags:
     CHECK_SS_SIGNATURE = _lib.X509_V_FLAG_CHECK_SS_SIGNATURE
 
 
+class X509StorePurposes:
+    """
+    Flags for X509 verification, used to change the behavior of
+    :class:`X509Store`.
+
+    See `OpenSSL check purpose`_ for details.
+
+    .. _OpenSSL check purpose:
+        https://www.openssl.org/docs/manmaster/man3/X509_check_purpose.html
+    """
+
+    X509_PURPOSE_SSL_CLIENT = _lib.X509_PURPOSE_SSL_CLIENT
+    X509_PURPOSE_SSL_SERVER = _lib.X509_PURPOSE_SSL_SERVER
+    X509_PURPOSE_NS_SSL_SERVER = _lib.X509_PURPOSE_NS_SSL_SERVER
+    X509_PURPOSE_SMIME_SIGN = _lib.X509_PURPOSE_SMIME_SIGN
+    X509_PURPOSE_SMIME_ENCRYPT = _lib.X509_PURPOSE_SMIME_ENCRYPT
+    X509_PURPOSE_CRL_SIGN = _lib.X509_PURPOSE_CRL_SIGN
+    X509_PURPOSE_ANY = _lib.X509_PURPOSE_ANY
+    X509_PURPOSE_OCSP_HELPER = _lib.X509_PURPOSE_OCSP_HELPER
+    X509_PURPOSE_TIMESTAMP_SIGN = _lib.X509_PURPOSE_TIMESTAMP_SIGN
+
+
 class X509Store:
     """
     An X.509 store.
@@ -1685,6 +1708,22 @@ class X509Store:
         _lib.X509_VERIFY_PARAM_set_time(
             param, calendar.timegm(vfy_time.timetuple())
         )
+        _openssl_assert(_lib.X509_STORE_set1_param(self._store, param) != 0)
+
+    def set_purpose(self, purpose):
+        """
+        Set purpose of this store.
+
+        .. versionadded:: 22.1.0
+
+        :param int flags: The verification flags to set on this store.
+            See :class:`X509StorePurposes` for available constants.
+        :return: ``None`` if the verification flags were successfully set.
+        """
+
+        param = _lib.X509_VERIFY_PARAM_new()
+        param = _ffi.gc(param, _lib.X509_VERIFY_PARAM_free)
+        _lib.X509_VERIFY_PARAM_set_purpose(param, purpose)
         _openssl_assert(_lib.X509_STORE_set1_param(self._store, param) != 0)
 
     def load_locations(self, cafile, capath=None):
