@@ -79,19 +79,6 @@ _raise_current_error = partial(_exception_from_error_queue, Error)
 _openssl_assert = _make_assert(Error)
 
 
-def _get_backend():
-    """
-    Importing the backend from cryptography has the side effect of activating
-    the osrandom engine. This mutates the global state of OpenSSL in the
-    process and causes issues for various programs that use subinterpreters or
-    embed Python. By putting the import in this function we can avoid
-    triggering this side effect unless _get_backend is called.
-    """
-    from cryptography.hazmat.backends.openssl.backend import backend
-
-    return backend
-
-
 def _untested_error(where):
     """
     An OpenSSL API failed somehow.  Additionally, the failure which was
@@ -241,13 +228,12 @@ class PKey:
             load_der_public_key,
         )
 
-        backend = _get_backend()
         if self._only_public:
             der = dump_publickey(FILETYPE_ASN1, self)
-            return load_der_public_key(der, backend)
+            return load_der_public_key(der)
         else:
             der = dump_privatekey(FILETYPE_ASN1, self)
-            return load_der_private_key(der, None, backend)
+            return load_der_private_key(der, None)
 
     @classmethod
     def from_cryptography_key(cls, crypto_key):
@@ -897,8 +883,7 @@ class X509Req:
 
         der = dump_certificate_request(FILETYPE_ASN1, self)
 
-        backend = _get_backend()
-        return load_der_x509_csr(der, backend)
+        return load_der_x509_csr(der)
 
     @classmethod
     def from_cryptography(cls, crypto_req):
@@ -1118,8 +1103,7 @@ class X509:
         from cryptography.x509 import load_der_x509_certificate
 
         der = dump_certificate(FILETYPE_ASN1, self)
-        backend = _get_backend()
-        return load_der_x509_certificate(der, backend)
+        return load_der_x509_certificate(der)
 
     @classmethod
     def from_cryptography(cls, crypto_cert):
@@ -2267,9 +2251,7 @@ class CRL:
         from cryptography.x509 import load_der_x509_crl
 
         der = dump_crl(FILETYPE_ASN1, self)
-
-        backend = _get_backend()
-        return load_der_x509_crl(der, backend)
+        return load_der_x509_crl(der)
 
     @classmethod
     def from_cryptography(cls, crypto_crl):

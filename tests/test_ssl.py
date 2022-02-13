@@ -40,7 +40,6 @@ import pytest
 from pretend import raiser
 
 from cryptography import x509
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -447,9 +446,7 @@ def ca_file(tmpdir):
     """
     Create a valid PEM file with CA certificates and return the path.
     """
-    key = rsa.generate_private_key(
-        public_exponent=65537, key_size=2048, backend=default_backend()
-    )
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     public_key = key.public_key()
 
     builder = x509.CertificateBuilder()
@@ -469,9 +466,7 @@ def ca_file(tmpdir):
         critical=True,
     )
 
-    certificate = builder.sign(
-        private_key=key, algorithm=hashes.SHA256(), backend=default_backend()
-    )
+    certificate = builder.sign(private_key=key, algorithm=hashes.SHA256())
 
     ca_file = tmpdir.join("test.pem")
     ca_file.write_binary(

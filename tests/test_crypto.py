@@ -15,7 +15,6 @@ import sys
 import pytest
 
 from cryptography import x509
-from cryptography.hazmat.backends.openssl.backend import backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
@@ -1017,9 +1016,7 @@ class TestPKey:
         """
         PKey.from_cryptography_key creates a proper private PKey.
         """
-        key = serialization.load_pem_private_key(
-            intermediate_key_pem, None, backend
-        )
+        key = serialization.load_pem_private_key(intermediate_key_pem, None)
         pkey = PKey.from_cryptography_key(key)
 
         assert isinstance(pkey, PKey)
@@ -1031,7 +1028,7 @@ class TestPKey:
         """
         PKey.from_cryptography_key creates a proper public PKey.
         """
-        key = serialization.load_pem_public_key(cleartextPublicKeyPEM, backend)
+        key = serialization.load_pem_public_key(cleartextPublicKeyPEM)
         pkey = PKey.from_cryptography_key(key)
 
         assert isinstance(pkey, PKey)
@@ -1043,9 +1040,7 @@ class TestPKey:
         """
         PKey.from_cryptography_key raises TypeError with an unsupported type.
         """
-        key = serialization.load_pem_private_key(
-            ec_private_key_pem, None, backend
-        )
+        key = serialization.load_pem_private_key(ec_private_key_pem, None)
         with pytest.raises(TypeError):
             PKey.from_cryptography_key(key)
 
@@ -1699,9 +1694,7 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         assert request.verify(pkey)
 
     def test_convert_from_cryptography(self):
-        crypto_req = x509.load_pem_x509_csr(
-            cleartextCertificateRequestPEM, backend
-        )
+        crypto_req = x509.load_pem_x509_csr(cleartextCertificateRequestPEM)
         req = X509Req.from_cryptography(crypto_req)
         assert isinstance(req, X509Req)
 
@@ -2217,9 +2210,7 @@ tgI5
             cert.sign(object(), b"sha256")
 
     def test_convert_from_cryptography(self):
-        crypto_cert = x509.load_pem_x509_certificate(
-            intermediate_cert_pem, backend
-        )
+        crypto_cert = x509.load_pem_x509_certificate(intermediate_cert_pem)
         cert = X509.from_cryptography(crypto_cert)
 
         assert isinstance(cert, X509)
@@ -3561,7 +3552,7 @@ class TestCRL:
         dumped_crl = self._get_crl().export(
             self.cert, self.pkey, days=20, digest=b"sha256"
         )
-        crl = x509.load_pem_x509_crl(dumped_crl, backend)
+        crl = x509.load_pem_x509_crl(dumped_crl)
         revoked = crl.get_revoked_certificate_by_serial_number(0x03AB)
         assert revoked is not None
         assert crl.issuer == x509.Name(
@@ -3588,7 +3579,7 @@ class TestCRL:
         dumped_crl = self._get_crl().export(
             self.cert, self.pkey, FILETYPE_ASN1, digest=b"sha256"
         )
-        crl = x509.load_der_x509_crl(dumped_crl, backend)
+        crl = x509.load_der_x509_crl(dumped_crl)
         revoked = crl.get_revoked_certificate_by_serial_number(0x03AB)
         assert revoked is not None
         assert crl.issuer == x509.Name(
@@ -3857,7 +3848,7 @@ class TestCRL:
         assert err.value.certificate.get_subject().CN == "intermediate-service"
 
     def test_convert_from_cryptography(self):
-        crypto_crl = x509.load_pem_x509_crl(crlData, backend)
+        crypto_crl = x509.load_pem_x509_crl(crlData)
         crl = CRL.from_cryptography(crypto_crl)
         assert isinstance(crl, CRL)
 
