@@ -5,7 +5,13 @@ import functools
 from functools import partial
 
 from cryptography import utils, x509
-from cryptography.hazmat.primitives.asymmetric import dsa, rsa
+from cryptography.hazmat.primitives.asymmetric import (
+    dsa,
+    ec,
+    ed25519,
+    ed448,
+    rsa,
+)
 
 from OpenSSL._util import (
     ffi as _ffi,
@@ -254,6 +260,9 @@ class PKey:
                 rsa.RSAPrivateKey,
                 dsa.DSAPublicKey,
                 dsa.DSAPrivateKey,
+                ec.EllipticCurvePrivateKey,
+                ed25519.Ed25519PrivateKey,
+                ed448.Ed448PrivateKey,
             ),
         ):
             raise TypeError("Unsupported key type")
@@ -351,7 +360,7 @@ class PKey:
             raise TypeError("public key only")
 
         if _lib.EVP_PKEY_type(self.type()) != _lib.EVP_PKEY_RSA:
-            raise TypeError("key type unsupported")
+            raise TypeError("Only RSA keys can currently be checked.")
 
         rsa = _lib.EVP_PKEY_get1_RSA(self._pkey)
         rsa = _ffi.gc(rsa, _lib.RSA_free)
