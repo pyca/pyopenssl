@@ -1046,10 +1046,6 @@ class TestPKey:
         pkey = PKey.from_cryptography_key(key)
 
         assert isinstance(pkey, PKey)
-        # Perhaps this should just be removed instead
-        if hasattr(key, "key_size"):
-            assert pkey.bits() == key.key_size
-        # /remove #
         parsed_key = pkey.to_cryptography_key()
         assert isinstance(parsed_key, key_type)
         assert parsed_key.public_key().public_bytes(
@@ -1091,19 +1087,6 @@ class TestPKey:
 
         assert isinstance(key, rsa.RSAPublicKey)
         assert pkey.bits() == key.key_size
-
-    '''
-    This is now tested parametrically in roundtrip test.
-    def test_convert_private_pkey_to_cryptography_key(self):
-        """
-       PKey.to_cryptography_key creates a proper cryptography private key.
-        """
-        pkey = load_privatekey(FILETYPE_PEM, root_key_pem)
-        key = pkey.to_cryptography_key()
-
-        assert isinstance(key, rsa.RSAPrivateKey)
-        assert pkey.bits() == key.key_size
-    '''
 
     def test_type(self):
         """
