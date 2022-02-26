@@ -16,7 +16,7 @@ import pytest
 
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import ec, ed25519, ed448, rsa
 
 import flaky
 
@@ -782,6 +782,21 @@ MBsCAQACAS0CAQcCAQACAQ8CAQMCAQACAQACAQA=
 -----END RSA PRIVATE KEY-----
 """
 
+ed25519_private_key_pem = b"""-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VwBCIEIKlxBbhVsSURoLTmsu9uTqYH6oF7zpxmp1ZQCAPhDmI2
+-----END PRIVATE KEY-----
+"""
+
+ed448_private_key_pem = b"""-----BEGIN PRIVATE KEY-----
+MEcCAQAwBQYDK2VxBDsEOcqZ7a3k6JwrJbYO8CNTPT/d7dlWCo5vCf0EYDj79ZvA\nhD8u9EPHlYJw5Y8ZQdH4WmVEfpKA23xkdQ==
+-----END PRIVATE KEY-----
+"""
+
+x25519_private_key_pem = b"""-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VuBCIEIPAjVfPNTm25VxtBRg+JjjFx9tA3M8aaBdVhjb92iBts
+-----END PRIVATE KEY-----
+"""
+
 
 @pytest.fixture
 def x509_data():
@@ -1012,15 +1027,35 @@ class TestPKey:
     Tests for `OpenSSL.crypto.PKey`.
     """
 
-    def test_convert_from_cryptography_private_key(self):
+    @pytest.mark.parametrize(
+        ("key_string", "key_type"),
+        [
+            (intermediate_key_pem, rsa.RSAPrivateKey),
+            (ec_private_key_pem, ec.EllipticCurvePrivateKey),
+            (ed25519_private_key_pem, ed25519.Ed25519PrivateKey),
+            (ed448_private_key_pem, ed448.Ed448PrivateKey),
+        ],
+    )
+    def test_convert_roundtrip_cryptography_private_key(
+        self, key_string, key_type
+    ):
         """
         PKey.from_cryptography_key creates a proper private PKey.
+        PKey.to_cryptography_key creates a proper cryptography private key.
         """
-        key = serialization.load_pem_private_key(intermediate_key_pem, None)
+        key = serialization.load_pem_private_key(key_string, None)
         pkey = PKey.from_cryptography_key(key)
 
         assert isinstance(pkey, PKey)
-        assert pkey.bits() == key.key_size
+        parsed_key = pkey.to_cryptography_key()
+        assert isinstance(parsed_key, key_type)
+        assert parsed_key.public_key().public_bytes(
+            serialization.Encoding.PEM,
+            serialization.PublicFormat.SubjectPublicKeyInfo,
+        ) == key.public_key().public_bytes(
+            serialization.Encoding.PEM,
+            serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
         assert pkey._only_public is False
         assert pkey._initialized is True
 
@@ -1040,7 +1075,7 @@ class TestPKey:
         """
         PKey.from_cryptography_key raises TypeError with an unsupported type.
         """
-        key = serialization.load_pem_private_key(ec_private_key_pem, None)
+        key = serialization.load_pem_private_key(x25519_private_key_pem, None)
         with pytest.raises(TypeError):
             PKey.from_cryptography_key(key)
 
@@ -1052,16 +1087,6 @@ class TestPKey:
         key = pkey.to_cryptography_key()
 
         assert isinstance(key, rsa.RSAPublicKey)
-        assert pkey.bits() == key.key_size
-
-    def test_convert_private_pkey_to_cryptography_key(self):
-        """
-        PKey.to_cryptography_key creates a proper cryptography private key.
-        """
-        pkey = load_privatekey(FILETYPE_PEM, root_key_pem)
-        key = pkey.to_cryptography_key()
-
-        assert isinstance(key, rsa.RSAPrivateKey)
         assert pkey.bits() == key.key_size
 
     def test_type(self):
