@@ -259,7 +259,6 @@ class PKey:
                 rsa.RSAPublicKey,
                 rsa.RSAPrivateKey,
                 dsa.DSAPublicKey,
-                dsa.DSAPrivateKey,
                 ec.EllipticCurvePrivateKey,
                 ed25519.Ed25519PrivateKey,
                 ed448.Ed448PrivateKey,
