@@ -1041,6 +1041,7 @@ class TestPKey:
     ):
         """
         PKey.from_cryptography_key creates a proper private PKey.
+        PKey.to_cryptography_key creates a proper cryptography private key.
         """
         key = serialization.load_pem_private_key(key_string, None)
         pkey = PKey.from_cryptography_key(key)
