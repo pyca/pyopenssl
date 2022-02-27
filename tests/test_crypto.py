@@ -12,8 +12,8 @@ from warnings import simplefilter
 
 from OpenSSL._util import ffi as _ffi, lib as _lib
 from OpenSSL.crypto import (
-    CRL,
     Error,
+    CRL,
     FILETYPE_ASN1,
     FILETYPE_PEM,
     FILETYPE_TEXT,
