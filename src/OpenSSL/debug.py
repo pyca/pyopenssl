@@ -4,7 +4,9 @@ import ssl
 import sys
 
 import OpenSSL.SSL
+
 import cffi
+
 import cryptography
 
 from . import version

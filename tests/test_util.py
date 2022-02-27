@@ -1,6 +1,6 @@
-import pytest
-
 from OpenSSL._util import exception_from_error_queue, lib
+
+import pytest
 
 
 class TestErrors:

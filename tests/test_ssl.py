@@ -9,17 +9,17 @@ import datetime
 import gc
 import sys
 import uuid
-
-from gc import collect, get_referrers
 from errno import (
     EAFNOSUPPORT,
     ECONNREFUSED,
     EINPROGRESS,
-    EWOULDBLOCK,
     EPIPE,
     ESHUTDOWN,
+    EWOULDBLOCK,
 )
-from sys import platform, getfilesystemencoding
+from gc import collect, get_referrers
+from os import makedirs
+from os.path import join
 from socket import (
     AF_INET,
     AF_INET6,
@@ -28,16 +28,93 @@ from socket import (
     error,
     socket,
 )
-from os import makedirs
-from os.path import join
-from weakref import ref
+from sys import getfilesystemencoding, platform
 from warnings import simplefilter
+from weakref import ref
 
-import flaky
-
-import pytest
-
-from pretend import raiser
+from OpenSSL import SSL
+from OpenSSL.SSL import (
+    Connection,
+    Context,
+    DTLS_METHOD,
+    Error,
+    MODE_RELEASE_BUFFERS,
+    NO_OVERLAPPING_PROTOCOLS,
+    OPENSSL_VERSION_NUMBER,
+    OP_COOKIE_EXCHANGE,
+    OP_NO_COMPRESSION,
+    OP_NO_QUERY_MTU,
+    OP_NO_SSLv2,
+    OP_NO_SSLv3,
+    OP_NO_TICKET,
+    OP_SINGLE_DH_USE,
+    RECEIVED_SHUTDOWN,
+    SENT_SHUTDOWN,
+    SESS_CACHE_BOTH,
+    SESS_CACHE_CLIENT,
+    SESS_CACHE_NO_AUTO_CLEAR,
+    SESS_CACHE_NO_INTERNAL,
+    SESS_CACHE_NO_INTERNAL_LOOKUP,
+    SESS_CACHE_NO_INTERNAL_STORE,
+    SESS_CACHE_OFF,
+    SESS_CACHE_SERVER,
+    SSLEAY_BUILT_ON,
+    SSLEAY_CFLAGS,
+    SSLEAY_DIR,
+    SSLEAY_PLATFORM,
+    SSLEAY_VERSION,
+    SSL_CB_ACCEPT_EXIT,
+    SSL_CB_ACCEPT_LOOP,
+    SSL_CB_ALERT,
+    SSL_CB_CONNECT_EXIT,
+    SSL_CB_CONNECT_LOOP,
+    SSL_CB_EXIT,
+    SSL_CB_HANDSHAKE_DONE,
+    SSL_CB_HANDSHAKE_START,
+    SSL_CB_LOOP,
+    SSL_CB_READ,
+    SSL_CB_READ_ALERT,
+    SSL_CB_WRITE,
+    SSL_CB_WRITE_ALERT,
+    SSL_ST_ACCEPT,
+    SSL_ST_CONNECT,
+    SSL_ST_MASK,
+    SSLeay_version,
+    SSLv23_METHOD,
+    SSLv2_METHOD,
+    SSLv3_METHOD,
+    Session,
+    SysCallError,
+    TLS1_1_VERSION,
+    TLS1_2_VERSION,
+    TLS1_3_VERSION,
+    TLS_METHOD,
+    TLSv1_1_METHOD,
+    TLSv1_2_METHOD,
+    TLSv1_METHOD,
+    VERIFY_CLIENT_ONCE,
+    VERIFY_FAIL_IF_NO_PEER_CERT,
+    VERIFY_NONE,
+    VERIFY_PEER,
+    WantReadError,
+    WantWriteError,
+    ZeroReturnError,
+    _make_requires,
+)
+from OpenSSL._util import ffi as _ffi, lib as _lib
+from OpenSSL.crypto import (
+    FILETYPE_PEM,
+    PKey,
+    TYPE_RSA,
+    X509,
+    X509Extension,
+    X509Store,
+    dump_certificate,
+    dump_privatekey,
+    get_elliptic_curves,
+    load_certificate,
+    load_privatekey,
+)
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes
@@ -45,92 +122,11 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 
+import flaky
 
-from OpenSSL.crypto import TYPE_RSA, FILETYPE_PEM
-from OpenSSL.crypto import PKey, X509, X509Extension, X509Store
-from OpenSSL.crypto import dump_privatekey, load_privatekey
-from OpenSSL.crypto import dump_certificate, load_certificate
-from OpenSSL.crypto import get_elliptic_curves
+from pretend import raiser
 
-from OpenSSL.SSL import (
-    OPENSSL_VERSION_NUMBER,
-    SSLEAY_VERSION,
-    SSLEAY_CFLAGS,
-    TLS_METHOD,
-    TLS1_3_VERSION,
-    TLS1_2_VERSION,
-    TLS1_1_VERSION,
-    DTLS_METHOD,
-)
-from OpenSSL.SSL import SSLEAY_PLATFORM, SSLEAY_DIR, SSLEAY_BUILT_ON
-from OpenSSL.SSL import SENT_SHUTDOWN, RECEIVED_SHUTDOWN
-from OpenSSL.SSL import (
-    SSLv2_METHOD,
-    SSLv3_METHOD,
-    SSLv23_METHOD,
-    TLSv1_METHOD,
-    TLSv1_1_METHOD,
-    TLSv1_2_METHOD,
-)
-from OpenSSL.SSL import OP_SINGLE_DH_USE, OP_NO_SSLv2, OP_NO_SSLv3
-from OpenSSL.SSL import (
-    VERIFY_PEER,
-    VERIFY_FAIL_IF_NO_PEER_CERT,
-    VERIFY_CLIENT_ONCE,
-    VERIFY_NONE,
-)
-
-from OpenSSL import SSL
-from OpenSSL.SSL import (
-    SESS_CACHE_OFF,
-    SESS_CACHE_CLIENT,
-    SESS_CACHE_SERVER,
-    SESS_CACHE_BOTH,
-    SESS_CACHE_NO_AUTO_CLEAR,
-    SESS_CACHE_NO_INTERNAL_LOOKUP,
-    SESS_CACHE_NO_INTERNAL_STORE,
-    SESS_CACHE_NO_INTERNAL,
-)
-
-from OpenSSL.SSL import (
-    Error,
-    SysCallError,
-    WantReadError,
-    WantWriteError,
-    ZeroReturnError,
-)
-from OpenSSL.SSL import Context, Session, Connection, SSLeay_version
-from OpenSSL.SSL import _make_requires
-
-from OpenSSL._util import ffi as _ffi, lib as _lib
-
-from OpenSSL.SSL import (
-    OP_NO_QUERY_MTU,
-    OP_COOKIE_EXCHANGE,
-    OP_NO_TICKET,
-    OP_NO_COMPRESSION,
-    MODE_RELEASE_BUFFERS,
-    NO_OVERLAPPING_PROTOCOLS,
-)
-
-from OpenSSL.SSL import (
-    SSL_ST_CONNECT,
-    SSL_ST_ACCEPT,
-    SSL_ST_MASK,
-    SSL_CB_LOOP,
-    SSL_CB_EXIT,
-    SSL_CB_READ,
-    SSL_CB_WRITE,
-    SSL_CB_ALERT,
-    SSL_CB_READ_ALERT,
-    SSL_CB_WRITE_ALERT,
-    SSL_CB_ACCEPT_LOOP,
-    SSL_CB_ACCEPT_EXIT,
-    SSL_CB_CONNECT_LOOP,
-    SSL_CB_CONNECT_EXIT,
-    SSL_CB_HANDSHAKE_START,
-    SSL_CB_HANDSHAKE_DONE,
-)
+import pytest
 
 try:
     from OpenSSL.SSL import (
@@ -147,15 +143,15 @@ try:
 except ImportError:
     OP_NO_TLSv1_3 = None
 
-from .util import WARNING_TYPE_EXPECTED, NON_ASCII, is_consistent_type
 from .test_crypto import (
     client_cert_pem,
     client_key_pem,
-    server_cert_pem,
-    server_key_pem,
     root_cert_pem,
     root_key_pem,
+    server_cert_pem,
+    server_key_pem,
 )
+from .util import NON_ASCII, WARNING_TYPE_EXPECTED, is_consistent_type
 
 
 # openssl dhparam 2048 -out dh-2048.pem

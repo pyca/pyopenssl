@@ -1,10 +1,10 @@
 import os
 import socket
-from sys import platform
-from functools import wraps, partial
-from itertools import count, chain
-from weakref import WeakValueDictionary
 from errno import errorcode
+from functools import partial, wraps
+from itertools import chain, count
+from sys import platform
+from weakref import WeakValueDictionary
 
 from OpenSSL._util import (
     UNSPECIFIED as _UNSPECIFIED,
@@ -12,18 +12,17 @@ from OpenSSL._util import (
     ffi as _ffi,
     lib as _lib,
     make_assert as _make_assert,
+    no_zero_allocator as _no_zero_allocator,
     path_bytes as _path_bytes,
     text_to_bytes_and_warn as _text_to_bytes_and_warn,
-    no_zero_allocator as _no_zero_allocator,
 )
-
 from OpenSSL.crypto import (
     FILETYPE_PEM,
-    _PassphraseHelper,
     PKey,
-    X509Name,
     X509,
+    X509Name,
     X509Store,
+    _PassphraseHelper,
 )
 
 __all__ = [
