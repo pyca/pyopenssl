@@ -68,6 +68,9 @@ if __name__ == "__main__":
         author=find_meta("author"),
         author_email=find_meta("email"),
         url=URI,
+        project_urls={
+            'Source': 'https://github.com/pyca/pyopenssl',
+        },
         license=find_meta("license"),
         classifiers=[
             "Development Status :: 6 - Mature",
