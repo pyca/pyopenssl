@@ -69,7 +69,7 @@ if __name__ == "__main__":
         author_email=find_meta("email"),
         url=URI,
         project_urls={
-            'Source': 'https://github.com/pyca/pyopenssl',
+            "Source": "https://github.com/pyca/pyopenssl",
         },
         license=find_meta("license"),
         classifiers=[
