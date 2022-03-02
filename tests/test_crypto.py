@@ -10,6 +10,14 @@ from datetime import datetime, timedelta
 from subprocess import PIPE, Popen
 from warnings import simplefilter
 
+from cryptography import x509
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec, ed25519, ed448, rsa
+
+import flaky
+
+import pytest
+
 from OpenSSL._util import ffi as _ffi, lib as _lib
 from OpenSSL.crypto import (
     CRL,
@@ -49,14 +57,6 @@ from OpenSSL.crypto import (
     sign,
     verify,
 )
-
-from cryptography import x509
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec, ed25519, ed448, rsa
-
-import flaky
-
-import pytest
 
 from .util import (
     EqualityTestsMixin,

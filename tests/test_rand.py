@@ -5,9 +5,9 @@
 Unit tests for `OpenSSL.rand`.
 """
 
-from OpenSSL import rand
-
 import pytest
+
+from OpenSSL import rand
 
 
 class TestRand:

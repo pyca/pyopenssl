@@ -32,6 +32,18 @@ from sys import getfilesystemencoding, platform
 from warnings import simplefilter
 from weakref import ref
 
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.x509.oid import NameOID
+
+import flaky
+
+from pretend import raiser
+
+import pytest
+
 from OpenSSL import SSL
 from OpenSSL.SSL import (
     Connection,
@@ -115,18 +127,6 @@ from OpenSSL.crypto import (
     load_certificate,
     load_privatekey,
 )
-
-from cryptography import x509
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.x509.oid import NameOID
-
-import flaky
-
-from pretend import raiser
-
-import pytest
 
 try:
     from OpenSSL.SSL import (

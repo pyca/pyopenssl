@@ -4,6 +4,15 @@ import functools
 from base64 import b16encode
 from functools import partial
 
+from cryptography import utils, x509
+from cryptography.hazmat.primitives.asymmetric import (
+    dsa,
+    ec,
+    ed25519,
+    ed448,
+    rsa,
+)
+
 from OpenSSL._util import (
     UNSPECIFIED as _UNSPECIFIED,
     byte_string as _byte_string,
@@ -13,15 +22,6 @@ from OpenSSL._util import (
     make_assert as _make_assert,
     path_bytes as _path_bytes,
     text_to_bytes_and_warn as _text_to_bytes_and_warn,
-)
-
-from cryptography import utils, x509
-from cryptography.hazmat.primitives.asymmetric import (
-    dsa,
-    ec,
-    ed25519,
-    ed448,
-    rsa,
 )
 
 
