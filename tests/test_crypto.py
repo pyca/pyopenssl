@@ -4,15 +4,11 @@
 """
 Unit tests for :py:mod:`OpenSSL.crypto`.
 """
-
-from warnings import simplefilter
-
 import base64
-from subprocess import PIPE, Popen
-from datetime import datetime, timedelta
 import sys
-
-import pytest
+from datetime import datetime, timedelta
+from subprocess import PIPE, Popen
+from warnings import simplefilter
 
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
@@ -20,39 +16,53 @@ from cryptography.hazmat.primitives.asymmetric import ec, ed25519, ed448, rsa
 
 import flaky
 
-from OpenSSL.crypto import TYPE_RSA, TYPE_DSA, Error, PKey
-from OpenSSL.crypto import X509, X509Name
-from OpenSSL.crypto import (
-    X509Store,
-    X509StoreFlags,
-    X509StoreContext,
-    X509StoreContextError,
-)
-from OpenSSL.crypto import X509Req
-from OpenSSL.crypto import X509Extension
-from OpenSSL.crypto import load_certificate, load_privatekey
-from OpenSSL.crypto import load_publickey, dump_publickey
-from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, FILETYPE_TEXT
-from OpenSSL.crypto import dump_certificate, load_certificate_request
-from OpenSSL.crypto import dump_certificate_request, dump_privatekey
-from OpenSSL.crypto import PKCS7, load_pkcs7_data
-from OpenSSL.crypto import PKCS12, load_pkcs12
-from OpenSSL.crypto import CRL, Revoked, dump_crl, load_crl
-from OpenSSL.crypto import NetscapeSPKI
-from OpenSSL.crypto import (
-    sign,
-    verify,
-    get_elliptic_curve,
-    get_elliptic_curves,
-)
+import pytest
 
 from OpenSSL._util import ffi as _ffi, lib as _lib
+from OpenSSL.crypto import (
+    CRL,
+    Error,
+    FILETYPE_ASN1,
+    FILETYPE_PEM,
+    FILETYPE_TEXT,
+    NetscapeSPKI,
+    PKCS12,
+    PKCS7,
+    PKey,
+    Revoked,
+    TYPE_DSA,
+    TYPE_RSA,
+    X509,
+    X509Extension,
+    X509Name,
+    X509Req,
+    X509Store,
+    X509StoreContext,
+    X509StoreContextError,
+    X509StoreFlags,
+    dump_certificate,
+    dump_certificate_request,
+    dump_crl,
+    dump_privatekey,
+    dump_publickey,
+    get_elliptic_curve,
+    get_elliptic_curves,
+    load_certificate,
+    load_certificate_request,
+    load_crl,
+    load_pkcs12,
+    load_pkcs7_data,
+    load_privatekey,
+    load_publickey,
+    sign,
+    verify,
+)
 
 from .util import (
     EqualityTestsMixin,
-    is_consistent_type,
-    WARNING_TYPE_EXPECTED,
     NON_ASCII,
+    WARNING_TYPE_EXPECTED,
+    is_consistent_type,
 )
 
 

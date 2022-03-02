@@ -3,9 +3,11 @@ from __future__ import print_function
 import ssl
 import sys
 
-import OpenSSL.SSL
 import cffi
+
 import cryptography
+
+import OpenSSL.SSL
 
 from . import version
 
