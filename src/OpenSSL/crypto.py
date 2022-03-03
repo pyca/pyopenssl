@@ -3081,7 +3081,7 @@ def load_crl(type, buffer):
     :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)
     :param buffer: The buffer the CRL is stored in
 
-    :return: The PKey object
+    :return: The CRL object
     """
     if isinstance(buffer, str):
         buffer = buffer.encode("ascii")
