@@ -3239,19 +3239,3 @@ load_pkcs12 = utils.deprecated(
     ),
     DeprecationWarning,
 )
-
-
-# There are no direct unit tests for this initialization.  It is tested
-# indirectly since it is necessary for functions like dump_privatekey when
-# using encryption.
-#
-# Thus OpenSSL.test.test_crypto.FunctionTests.test_dump_privatekey_passphrase
-# and some other similar tests may fail without this (though they may not if
-# the Python runtime has already done some initialization of the underlying
-# OpenSSL library (and is linked against the same one that cryptography is
-# using)).
-_lib.OpenSSL_add_all_algorithms()
-
-# Set the default string mask to match OpenSSL upstream (since 2005) and
-# RFC5280 recommendations.
-_lib.ASN1_STRING_set_default_mask_asc(b"utf8only")
