@@ -10,6 +10,8 @@ The third digit is only for regressions.
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- Remove support for SSLv2 and SSLv3.
+
 Deprecations:
 ^^^^^^^^^^^^^
 

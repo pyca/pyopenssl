@@ -93,8 +93,6 @@ from OpenSSL.SSL import (
     SSL_ST_MASK,
     SSLeay_version,
     SSLv23_METHOD,
-    SSLv2_METHOD,
-    SSLv3_METHOD,
     Session,
     SysCallError,
     TLS1_1_VERSION,
@@ -591,7 +589,7 @@ class TestContext:
         for meth in methods:
             Context(meth)
 
-        maybe = [SSLv2_METHOD, SSLv3_METHOD, TLSv1_1_METHOD, TLSv1_2_METHOD]
+        maybe = [TLSv1_1_METHOD, TLSv1_2_METHOD]
         for meth in maybe:
             try:
                 Context(meth)
