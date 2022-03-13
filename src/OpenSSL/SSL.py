@@ -34,8 +34,6 @@ __all__ = [
     "SSLEAY_BUILT_ON",
     "SENT_SHUTDOWN",
     "RECEIVED_SHUTDOWN",
-    "SSLv2_METHOD",
-    "SSLv3_METHOD",
     "SSLv23_METHOD",
     "TLSv1_METHOD",
     "TLSv1_1_METHOD",
@@ -135,8 +133,6 @@ SSLEAY_BUILT_ON = _lib.SSLEAY_BUILT_ON
 SENT_SHUTDOWN = _lib.SSL_SENT_SHUTDOWN
 RECEIVED_SHUTDOWN = _lib.SSL_RECEIVED_SHUTDOWN
 
-SSLv2_METHOD = 1
-SSLv3_METHOD = 2
 SSLv23_METHOD = 3
 TLSv1_METHOD = 4
 TLSv1_1_METHOD = 5
@@ -680,31 +676,24 @@ class Context:
     """
 
     _methods = {
-        SSLv2_METHOD: "SSLv2_method",
-        SSLv3_METHOD: "SSLv3_method",
-        SSLv23_METHOD: "SSLv23_method",
-        TLSv1_METHOD: "TLSv1_method",
-        TLSv1_1_METHOD: "TLSv1_1_method",
-        TLSv1_2_METHOD: "TLSv1_2_method",
-        TLS_METHOD: "TLS_method",
-        TLS_SERVER_METHOD: "TLS_server_method",
-        TLS_CLIENT_METHOD: "TLS_client_method",
-        DTLS_METHOD: "DTLS_method",
-        DTLS_SERVER_METHOD: "DTLS_server_method",
-        DTLS_CLIENT_METHOD: "DTLS_client_method",
+        SSLv23_METHOD: (_lib.TLS_method, None),
+        TLSv1_METHOD: (_lib.TLS_method, TLS1_VERSION),
+        TLSv1_1_METHOD: (_lib.TLS_method, TLS1_1_VERSION),
+        TLSv1_2_METHOD: (_lib.TLS_method, TLS1_2_VERSION),
+        TLS_METHOD: (_lib.TLS_method, None),
+        TLS_SERVER_METHOD: (_lib.TLS_server_method, None),
+        TLS_CLIENT_METHOD: (_lib.TLS_client_method, None),
+        DTLS_METHOD: (_lib.DTLS_method, None),
+        DTLS_SERVER_METHOD: (_lib.DTLS_server_method, None),
+        DTLS_CLIENT_METHOD: (_lib.DTLS_client_method, None),
     }
-    _methods = dict(
-        (identifier, getattr(_lib, name))
-        for (identifier, name) in _methods.items()
-        if getattr(_lib, name, None) is not None
-    )
 
     def __init__(self, method):
         if not isinstance(method, int):
             raise TypeError("method must be an integer")
 
         try:
-            method_func = self._methods[method]
+            method_func, version = self._methods[method]
         except KeyError:
             raise ValueError("No such protocol")
 
@@ -734,6 +723,9 @@ class Context:
         self._cookie_verify_helper = None
 
         self.set_mode(_lib.SSL_MODE_ENABLE_PARTIAL_WRITE)
+        if version is not None:
+            self.set_min_proto_version(version)
+            self.set_max_proto_version(version)
 
     def set_min_proto_version(self, version):
         """
