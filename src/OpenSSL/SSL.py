@@ -2618,8 +2618,3 @@ class Connection:
             self._ssl, _lib.TLSEXT_STATUSTYPE_ocsp
         )
         _openssl_assert(rc == 1)
-
-
-# This is similar to the initialization calls at the end of OpenSSL/crypto.py
-# but is exercised mostly by the Context initializer.
-_lib.SSL_library_init()
