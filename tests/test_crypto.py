@@ -2077,8 +2077,8 @@ class TestX509(_PKeyInteractionTestsMixin):
             b"DNS:altnull.python.org\x00example.com, "
             b"email:null@python.org\x00user@example.org, "
             b"URI:http://null.python.org\x00http://example.org, "
-            b"IP Address:192.0.2.1, IP Address:2001:DB8:0:0:0:0:0:1\n"
-            == str(ext).encode("ascii")
+            b"IP Address:192.0.2.1, IP Address:2001:DB8:0:0:0:0:0:1"
+            == str(ext).encode("ascii").strip()
         )
 
     def test_invalid_digest_algorithm(self):
@@ -4090,7 +4090,11 @@ class TestX509StoreContext:
         with pytest.raises(X509StoreContextError) as exc:
             store_ctx.verify_certificate()
 
-        assert exc.value.args[0][2] == "self signed certificate"
+        # OpenSSL 1.1.x and 3.0.x have different error messages
+        assert exc.value.args[0][2] in (
+            "self signed certificate",
+            "self-signed certificate",
+        )
         assert exc.value.certificate.get_subject().CN == "Testing Root CA"
 
     def test_invalid_chain_no_root(self):

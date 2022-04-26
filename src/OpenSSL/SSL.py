@@ -1685,6 +1685,19 @@ class Connection:
             else:
                 # TODO: This is untested.
                 _raise_current_error()
+        elif error == _lib.SSL_ERROR_SSL and _lib.ERR_peek_error() != 0:
+            # In 3.0.x an unexpected EOF no longer triggers syscall error
+            # but we want to maintain compatibility so we check here and
+            # raise syscall if it is an EOF.
+            peeked_error = _lib.ERR_peek_error()
+            reason = _lib.ERR_GET_REASON(peeked_error)
+            # 294 is SSL_R_UNEXPECTED_EOF_WHILE_READING in OpenSSL 3.0.x
+            if reason == 294:
+                _lib.ERR_clear_error()
+                raise SysCallError(-1, "Unexpected EOF")
+            else:
+                # TODO: This is untested.
+                _raise_current_error()
         elif error == _lib.SSL_ERROR_NONE:
             pass
         else:
