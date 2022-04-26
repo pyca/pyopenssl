@@ -42,7 +42,6 @@ jobs:
           - {VERSION: "3.7", TOXENV: "py37-twistedTrunk"}
           # Meta
           - {VERSION: "3.9", TOXENV: "check-manifest"}
-          - {VERSION: "3.9", TOXENV: "pypi-readme"}
           - {VERSION: "3.9", TOXENV: "flake8"}
           - {VERSION: "3.9", TOXENV: "docs"}
     name: "${{ matrix.PYTHON.TOXENV }}"
@@ -73,7 +72,7 @@ jobs:
     name: "${{ matrix.TEST.TOXENV }} on ${{ matrix.TEST.CONTAINER }}"
     steps:
       - uses: actions/checkout@v3
-      - run: tox -v
+      - run: /venv/bin/tox -v
         env:
           TOXENV: ${{ matrix.TEST.TOXENV }}
           RUSTUP_HOME: /root/.rustup
