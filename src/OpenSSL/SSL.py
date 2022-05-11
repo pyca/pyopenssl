@@ -1688,14 +1688,21 @@ class Connection:
         elif error == _lib.SSL_ERROR_SSL and _lib.ERR_peek_error() != 0:
             # In 3.0.x an unexpected EOF no longer triggers syscall error
             # but we want to maintain compatibility so we check here and
-            # raise syscall if it is an EOF.
+            # raise syscall if it is an EOF. Since we're not actually sure
+            # what else could raise SSL_ERROR_SSL we check for the presence
+            # of the OpenSSL 3 constant SSL_R_UNEXPECTED_EOF_WHILE_READING
+            # and if it's not present we just raise an error, which matches
+            # the behavior before we added this elif section
             peeked_error = _lib.ERR_peek_error()
             reason = _lib.ERR_GET_REASON(peeked_error)
-            _openssl_assert(
-                reason == _lib.SSL_R_UNEXPECTED_EOF_WHILE_READING
-            )
-            _lib.ERR_clear_error()
-            raise SysCallError(-1, "Unexpected EOF")
+            if _lib.Cryptography_HAS_UNEXPECTED_EOF_WHILE_READING:
+                _openssl_assert(
+                    reason == _lib.SSL_R_UNEXPECTED_EOF_WHILE_READING
+                )
+                _lib.ERR_clear_error()
+                raise SysCallError(-1, "Unexpected EOF")
+            else:
+                _raise_current_error()
         elif error == _lib.SSL_ERROR_NONE:
             pass
         else:
