@@ -1691,14 +1691,11 @@ class Connection:
             # raise syscall if it is an EOF.
             peeked_error = _lib.ERR_peek_error()
             reason = _lib.ERR_GET_REASON(peeked_error)
-            try:
-                _openssl_assert(
-                    reason == _lib.SSL_R_UNEXPECTED_EOF_WHILE_READING
-                )
-                _lib.ERR_clear_error()
-                raise SysCallError(-1, "Unexpected EOF")
-            except AttributeError:
-                _raise_current_error()
+            _openssl_assert(
+                reason == _lib.SSL_R_UNEXPECTED_EOF_WHILE_READING
+            )
+            _lib.ERR_clear_error()
+            raise SysCallError(-1, "Unexpected EOF")
         elif error == _lib.SSL_ERROR_NONE:
             pass
         else:
