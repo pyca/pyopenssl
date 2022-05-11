@@ -517,7 +517,7 @@ class TestContext:
         """
         with pytest.raises(Error) as excinfo:
             context.set_cipher_list(b"imaginary-cipher")
-        assert excinfo.value.args[0][0] in (
+        assert excinfo.value.args[0][0] in [
             # 1.1.x
             (
                 "SSL routines",
@@ -530,7 +530,7 @@ class TestContext:
                 "",
                 "no cipher match",
             ),
-        )
+        ]
 
     def test_load_client_ca(self, context, ca_file):
         """
@@ -569,7 +569,7 @@ class TestContext:
         with pytest.raises(Error) as e:
             context.set_session_id(b"abc" * 1000)
 
-        assert e.value.args[0][0] in (
+        assert e.value.args[0][0] in [
             # 1.1.x
             (
                 "SSL routines",
@@ -582,7 +582,7 @@ class TestContext:
                 "",
                 "ssl session id context too long",
             ),
-        )
+        ]
 
     def test_set_session_id_unicode(self, context):
         """

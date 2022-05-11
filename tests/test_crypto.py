@@ -4091,10 +4091,10 @@ class TestX509StoreContext:
             store_ctx.verify_certificate()
 
         # OpenSSL 1.1.x and 3.0.x have different error messages
-        assert exc.value.args[0][2] in (
+        assert exc.value.args[0][2] in [
             "self signed certificate",
             "self-signed certificate",
-        )
+        ]
         assert exc.value.certificate.get_subject().CN == "Testing Root CA"
 
     def test_invalid_chain_no_root(self):
