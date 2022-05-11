@@ -625,6 +625,7 @@ class TestContext:
         """
         `Context.use_privatekey` takes an `OpenSSL.crypto.PKey` instance.
         """
+        # Mirrored at TestConnection.test_use_privatekey
         key = PKey()
         key.generate_key(TYPE_RSA, 1024)
         ctx = Context(SSLv23_METHOD)
@@ -709,6 +710,7 @@ class TestContext:
         `Context.use_certificate` sets the certificate which will be
         used to identify connections created using the context.
         """
+        # Mirrored at TestConnection.test_use_certificate
         # TODO
         # Hard to assert anything.  But we could set a privatekey then ask
         # OpenSSL if the cert and key agree using check_privatekey.  Then as
@@ -2205,6 +2207,31 @@ class TestConnection:
         """
         ctx = Context(SSLv23_METHOD)
         assert is_consistent_type(Connection, "Connection", ctx, None)
+
+    def test_use_privatekey(self):
+        """
+        `Connection.use_privatekey` takes an `OpenSSL.crypto.PKey` instance.
+        """
+        # Mirrored from TestContext.test_use_privatekey
+        key = PKey()
+        key.generate_key(TYPE_RSA, 1024)
+        ctx = Context(SSLv23_METHOD)
+        connection = Connection(ctx, None)
+        connection.use_privatekey(key)
+        with pytest.raises(TypeError):
+            connection.use_privatekey("")
+
+    def test_use_certificate(self):
+        """
+        `Connection.use_certificate` sets the certificate which will be
+        used to identify connections created using the context.
+        """
+        # Mirrored from TestContext.test_use_certificate
+        ctx = Context(SSLv23_METHOD)
+        connection = Connection(ctx, None)
+        connection.use_certificate(
+            load_certificate(FILETYPE_PEM, root_cert_pem)
+        )
 
     @pytest.mark.parametrize("bad_context", [object(), "context", None, 1])
     def test_wrong_args(self, bad_context):

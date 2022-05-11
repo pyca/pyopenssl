@@ -954,6 +954,7 @@ class Context:
         :param cert: The X509 object
         :return: None
         """
+        # Mirrored at Connection.use_certificate
         if not isinstance(cert, X509):
             raise TypeError("cert must be an X509 instance")
 
@@ -1015,6 +1016,7 @@ class Context:
         :param pkey: The PKey object
         :return: None
         """
+        # Mirrored at Connection.use_privatekey
         if not isinstance(pkey, PKey):
             raise TypeError("pkey must be a PKey instance")
 
@@ -1779,6 +1781,36 @@ class Connection:
         :return: The verify mode
         """
         return _lib.SSL_get_verify_mode(self._ssl)
+
+    def use_certificate(self, cert):
+        """
+        Load a certificate from a X509 object
+
+        :param cert: The X509 object
+        :return: None
+        """
+        # Mirrored from Context.use_certificate
+        if not isinstance(cert, X509):
+            raise TypeError("cert must be an X509 instance")
+
+        use_result = _lib.SSL_use_certificate(self._ssl, cert._x509)
+        if not use_result:
+            _raise_current_error()
+
+    def use_privatekey(self, pkey):
+        """
+        Load a private key from a PKey object
+
+        :param pkey: The PKey object
+        :return: None
+        """
+        # Mirrored from Context.use_privatekey
+        if not isinstance(pkey, PKey):
+            raise TypeError("pkey must be a PKey instance")
+
+        use_result = _lib.SSL_use_PrivateKey(self._ssl, pkey._pkey)
+        if not use_result:
+            self._context._raise_passphrase_exception()
 
     def set_ciphertext_mtu(self, mtu):
         """
