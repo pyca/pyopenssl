@@ -23,15 +23,14 @@ jobs:
           - {VERSION: "3.8", TOXENV: "py38-cryptographyMain"}
           - {VERSION: "3.9", TOXENV: "py39-cryptographyMain"}
           - {VERSION: "3.10", TOXENV: "py310-cryptographyMain"}
-          - {VERSION: "pypy-3.7", TOXENV: "pypy3-cryptographyMain"}
           - {VERSION: "pypy-3.8", TOXENV: "pypy3-cryptographyMain"}
+          - {VERSION: "pypy-3.9", TOXENV: "pypy3-cryptographyMain"}
           # -cryptographyMinimum
           - {VERSION: "3.6", TOXENV: "py36-cryptographyMinimum"}
           - {VERSION: "3.7", TOXENV: "py37-cryptographyMinimum"}
           - {VERSION: "3.8", TOXENV: "py38-cryptographyMinimum"}
           - {VERSION: "3.9", TOXENV: "py39-cryptographyMinimum"}
           - {VERSION: "3.10", TOXENV: "py310-cryptographyMinimum"}
-          - {VERSION: "pypy-3.7", TOXENV: "pypy3-cryptographyMinimum"}
           - {VERSION: "pypy-3.8", TOXENV: "pypy3-cryptographyMinimum"}
           # Cryptography wheels
           - {VERSION: "3.9", TOXENV: "py39-cryptographyMinimum-useWheel"}
@@ -42,7 +41,6 @@ jobs:
           - {VERSION: "3.7", TOXENV: "py37-twistedTrunk"}
           # Meta
           - {VERSION: "3.9", TOXENV: "check-manifest"}
-          - {VERSION: "3.9", TOXENV: "pypi-readme"}
           - {VERSION: "3.9", TOXENV: "flake8"}
           - {VERSION: "3.9", TOXENV: "docs"}
     name: "${{ matrix.PYTHON.TOXENV }}"
@@ -69,11 +67,11 @@ jobs:
         TEST:
           - {CONTAINER: "ubuntu-bionic", TOXENV: "py36"}
           # cryptographyMain used since there's no wheel
-          - {CONTAINER: "ubuntu-rolling", TOXENV: "py39-cryptographyMain"}
+          - {CONTAINER: "ubuntu-rolling", TOXENV: "py310-cryptographyMain"}
     name: "${{ matrix.TEST.TOXENV }} on ${{ matrix.TEST.CONTAINER }}"
     steps:
       - uses: actions/checkout@v3
-      - run: tox -v
+      - run: /venv/bin/tox -v
         env:
           TOXENV: ${{ matrix.TEST.TOXENV }}
           RUSTUP_HOME: /root/.rustup

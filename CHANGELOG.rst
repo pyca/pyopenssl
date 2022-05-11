@@ -11,6 +11,7 @@ Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Remove support for SSLv2 and SSLv3.
+- The minimum ``cryptography`` version is now 37.0.2.
 
 Deprecations:
 ^^^^^^^^^^^^^
