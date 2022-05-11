@@ -2647,9 +2647,10 @@ class TestConnection:
 
     def test_set_verify_callback_reference(self):
         """
-        The callback for certificate verification should only be forgotten if the context and all connections
-        created by it do not use it anymore.
+        The callback for certificate verification should only be forgotten if
+        the context and all connections created by it do not use it anymore.
         """
+
         def callback(conn, cert, errnum, depth, ok):  # pragma: no cover
             return ok
 
