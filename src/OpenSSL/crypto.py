@@ -1148,7 +1148,7 @@ class X509:
         if not isinstance(version, int):
             raise TypeError("version must be an integer")
 
-        _lib.X509_set_version(self._x509, version)
+        _openssl_assert(_lib.X509_set_version(self._x509, version) == 1)
 
     def get_version(self):
         """

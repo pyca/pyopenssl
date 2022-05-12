@@ -618,9 +618,10 @@ vrzEeLDRiiPl92dyyWmu
 -----END X509 CRL-----
 """
 
+# The signature on this CRL is invalid.
 crlDataUnsupportedExtension = b"""\
 -----BEGIN X509 CRL-----
-MIIGRzCCBS8CAQIwDQYJKoZIhvcNAQELBQAwJzELMAkGA1UEBhMCVVMxGDAWBgNV
+MIIGRzCCBS8CAQEwDQYJKoZIhvcNAQELBQAwJzELMAkGA1UEBhMCVVMxGDAWBgNV
 BAMMD2NyeXB0b2dyYXBoeS5pbxgPMjAxNTAxMDEwMDAwMDBaGA8yMDE2MDEwMTAw
 MDAwMFowggTOMBQCAQAYDzIwMTUwMTAxMDAwMDAwWjByAgEBGA8yMDE1MDEwMTAw
 MDAwMFowXDAYBgNVHRgEERgPMjAxNTAxMDEwMDAwMDBaMDQGA1UdHQQtMCukKTAn
@@ -1598,14 +1599,20 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         """
         `X509Req.set_version` sets the X.509 version of the certificate
         request. `X509Req.get_version` returns the X.509 version of the
-        certificate request. The initial value of the version is 0.
+        certificate request. The only defined version is 0. Others may or
+        may not be supported depending on backend.
         """
         request = X509Req()
         assert request.get_version() == 0
-        request.set_version(1)
-        assert request.get_version() == 1
-        request.set_version(3)
-        assert request.get_version() == 3
+        request.set_version(0)
+        assert request.get_version() == 0
+        try:
+            request.set_version(1)
+            assert request.get_version() == 1
+            request.set_version(3)
+            assert request.get_version() == 3
+        except Error:
+            pass
 
     def test_version_wrong_args(self):
         """
@@ -1793,8 +1800,8 @@ class TestX509(_PKeyInteractionTestsMixin):
         `X509.get_version` retrieves it.
         """
         cert = X509()
-        cert.set_version(1234)
-        assert cert.get_version() == 1234
+        cert.set_version(2)
+        assert cert.get_version() == 2
 
     def test_serial_number(self):
         """
