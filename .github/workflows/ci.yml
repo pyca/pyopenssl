@@ -42,6 +42,7 @@ jobs:
           # Meta
           - {VERSION: "3.9", TOXENV: "check-manifest"}
           - {VERSION: "3.9", TOXENV: "flake8"}
+          - {VERSION: "3.6", TOXENV: "py36-mypy"}
           - {VERSION: "3.9", TOXENV: "docs"}
     name: "${{ matrix.PYTHON.TOXENV }}"
     steps:
