@@ -80,6 +80,7 @@ __all__ = [
     "OP_COOKIE_EXCHANGE",
     "OP_NO_TICKET",
     "OP_NO_RENEGOTIATION",
+    "OP_IGNORE_UNEXPECTED_EOF",
     "OP_ALL",
     "VERIFY_PEER",
     "VERIFY_FAIL_IF_NO_PEER_CERT",
@@ -202,6 +203,11 @@ OP_NO_TICKET = _lib.SSL_OP_NO_TICKET
 
 try:
     OP_NO_RENEGOTIATION = _lib.SSL_OP_NO_RENEGOTIATION
+except AttributeError:
+    pass
+
+try:
+    OP_IGNORE_UNEXPECTED_EOF = _lib.SSL_OP_IGNORE_UNEXPECTED_EOF
 except AttributeError:
     pass
 
