@@ -974,7 +974,7 @@ class X509Req:
 
     def set_version(self, version: int) -> None:
         """
-        Set the version subfield (RFC 2459, section 4.1.2.1) of the certificate
+        Set the version subfield (RFC 2986, section 4.1) of the certificate
         request.
 
         :param int version: The version number.
