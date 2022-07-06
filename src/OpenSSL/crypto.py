@@ -1776,7 +1776,9 @@ class X509StoreContextError(Exception):
     :type certificate: :class:`X509`
     """
 
-    def __init__(self, message: str, errors: List[Any], certificate: X509) -> None:
+    def __init__(
+        self, message: str, errors: List[Any], certificate: X509
+    ) -> None:
         super(X509StoreContextError, self).__init__(message)
         self.errors = errors
         self.certificate = certificate
