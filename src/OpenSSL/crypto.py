@@ -1776,8 +1776,11 @@ class X509StoreContextError(Exception):
     :type certificate: :class:`X509`
     """
 
-    def __init__(self, message: Any, certificate: X509) -> None:
+    def __init__(
+        self, message: str, errors: List[Any], certificate: X509
+    ) -> None:
         super(X509StoreContextError, self).__init__(message)
+        self.errors = errors
         self.certificate = certificate
 
 
@@ -1878,21 +1881,22 @@ class X509StoreContext:
         When a call to native OpenSSL X509_verify_cert fails, additional
         information about the failure can be obtained from the store context.
         """
+        message = _ffi.string(
+            _lib.X509_verify_cert_error_string(
+                _lib.X509_STORE_CTX_get_error(self._store_ctx)
+            )
+        ).decode("utf-8")
         errors = [
             _lib.X509_STORE_CTX_get_error(self._store_ctx),
             _lib.X509_STORE_CTX_get_error_depth(self._store_ctx),
-            _ffi.string(
-                _lib.X509_verify_cert_error_string(
-                    _lib.X509_STORE_CTX_get_error(self._store_ctx)
-                )
-            ).decode("utf-8"),
+            message,
         ]
         # A context error should always be associated with a certificate, so we
         # expect this call to never return :class:`None`.
         _x509 = _lib.X509_STORE_CTX_get_current_cert(self._store_ctx)
         _cert = _lib.X509_dup(_x509)
         pycert = X509._from_raw_x509_ptr(_cert)
-        return X509StoreContextError(errors, pycert)
+        return X509StoreContextError(message, errors, pycert)
 
     def set_store(self, store: X509Store) -> None:
         """

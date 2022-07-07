@@ -12,6 +12,9 @@ Backward-incompatible changes:
 
 - Remove support for SSLv2 and SSLv3.
 - The minimum ``cryptography`` version is now 37.0.2.
+- The ``OpenSSL.crypto.X509StoreContextError`` exception has been refactored,
+  changing its internal attributes.
+  `#1133 <https://github.com/pyca/pyopenssl/pull/1133>`_
 
 Deprecations:
 ^^^^^^^^^^^^^

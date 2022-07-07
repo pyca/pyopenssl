@@ -3874,7 +3874,7 @@ class TestCRL:
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
         with pytest.raises(X509StoreContextError) as err:
             store_ctx.verify_certificate()
-        assert err.value.args[0][2] == "certificate revoked"
+        assert str(err.value) == "certificate revoked"
 
     def test_verify_with_missing_crl(self):
         """
@@ -3894,7 +3894,7 @@ class TestCRL:
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
         with pytest.raises(X509StoreContextError) as err:
             store_ctx.verify_certificate()
-        assert err.value.args[0][2] == "unable to get certificate CRL"
+        assert str(err.value) == "unable to get certificate CRL"
         assert err.value.certificate.get_subject().CN == "intermediate-service"
 
     def test_convert_from_cryptography(self):
@@ -4106,7 +4106,7 @@ class TestX509StoreContext:
             store_ctx.verify_certificate()
 
         # OpenSSL 1.1.x and 3.0.x have different error messages
-        assert exc.value.args[0][2] in [
+        assert str(exc.value) in [
             "self signed certificate",
             "self-signed certificate",
         ]
@@ -4124,7 +4124,7 @@ class TestX509StoreContext:
         with pytest.raises(X509StoreContextError) as exc:
             store_ctx.verify_certificate()
 
-        assert exc.value.args[0][2] == "unable to get issuer certificate"
+        assert str(exc.value) == "unable to get issuer certificate"
         assert exc.value.certificate.get_subject().CN == "intermediate"
 
     def test_invalid_chain_no_intermediate(self):
@@ -4139,7 +4139,7 @@ class TestX509StoreContext:
         with pytest.raises(X509StoreContextError) as exc:
             store_ctx.verify_certificate()
 
-        assert exc.value.args[0][2] == "unable to get local issuer certificate"
+        assert str(exc.value) == "unable to get local issuer certificate"
         assert exc.value.certificate.get_subject().CN == "intermediate-service"
 
     def test_modification_pre_verify(self):
@@ -4157,7 +4157,7 @@ class TestX509StoreContext:
         with pytest.raises(X509StoreContextError) as exc:
             store_ctx.verify_certificate()
 
-        assert exc.value.args[0][2] == "unable to get issuer certificate"
+        assert str(exc.value) == "unable to get issuer certificate"
         assert exc.value.certificate.get_subject().CN == "intermediate"
 
         store_ctx.set_store(store_good)
@@ -4182,7 +4182,7 @@ class TestX509StoreContext:
         with pytest.raises(X509StoreContextError) as exc:
             store_ctx.verify_certificate()
 
-        assert exc.value.args[0][2] == "certificate has expired"
+        assert str(exc.value) == "certificate has expired"
 
     def test_get_verified_chain(self):
         """
@@ -4216,7 +4216,7 @@ class TestX509StoreContext:
         with pytest.raises(X509StoreContextError) as exc:
             store_ctx.get_verified_chain()
 
-        assert exc.value.args[0][2] == "unable to get issuer certificate"
+        assert str(exc.value) == "unable to get issuer certificate"
         assert exc.value.certificate.get_subject().CN == "intermediate"
 
     @pytest.fixture
@@ -4281,7 +4281,7 @@ class TestX509StoreContext:
         with pytest.raises(X509StoreContextError) as exc:
             store_ctx.verify_certificate()
 
-        assert exc.value.args[0][2] == "unable to get local issuer certificate"
+        assert str(exc.value) == "unable to get local issuer certificate"
 
 
 class TestSignVerify:
