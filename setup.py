@@ -91,6 +91,7 @@ if __name__ == "__main__":
         python_requires=">=3.6",
         packages=find_packages(where="src"),
         package_dir={"": "src"},
+        package_data={"pyOpenSSL": ["py.typed"]},
         install_requires=[
             # Fix cryptographyMinimum in tox.ini when changing this!
             "cryptography>=35.0",
