@@ -2648,7 +2648,7 @@ class Connection:
         Get the protocol that was negotiated by ALPN.
 
         :returns: A bytestring of the protocol name.  If no protocol has been
-            negotiated yet, returns an empty string.
+            negotiated yet, returns an empty bytestring.
         """
         data = _ffi.new("unsigned char **")
         data_len = _ffi.new("unsigned int *")
