@@ -1206,10 +1206,11 @@ class TestPKey:
 
     def test_inconsistent_key(self):
         """
-        `PKey.check` returns `Error` if the key is not consistent.
+        Either `load_privatekey` or `PKey.check` returns `Error` if the key is
+        not consistent.
         """
-        key = load_privatekey(FILETYPE_PEM, inconsistentPrivateKeyPEM)
         with pytest.raises(Error):
+            key = load_privatekey(FILETYPE_PEM, inconsistentPrivateKeyPEM)
             key.check()
 
     def test_check_public_key(self):
@@ -1228,7 +1229,8 @@ class TestPKey:
 
     def test_check_pr_897(self):
         """
-        `PKey.check` raises `OpenSSL.crypto.Error` if provided with broken key
+        Either `load_privatekey` or `PKey.check` raises `OpenSSL.crypto.Error`
+        if provided with broken key
         """
         with pytest.raises(Error):
             pkey = load_privatekey(FILETYPE_PEM, rsa_p_not_prime_pem)
