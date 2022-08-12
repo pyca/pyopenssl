@@ -1230,8 +1230,8 @@ class TestPKey:
         """
         `PKey.check` raises `OpenSSL.crypto.Error` if provided with broken key
         """
-        pkey = load_privatekey(FILETYPE_PEM, rsa_p_not_prime_pem)
         with pytest.raises(Error):
+            pkey = load_privatekey(FILETYPE_PEM, rsa_p_not_prime_pem)
             pkey.check()
 
 
