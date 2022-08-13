@@ -3229,7 +3229,7 @@ utils.deprecated(
         "in cryptography."
     ),
     DeprecationWarning,
-    name = "load_pkcs7_data",
+    name="load_pkcs7_data",
 )
 
 
@@ -3328,5 +3328,5 @@ utils.deprecated(
         "in cryptography."
     ),
     DeprecationWarning,
-    name = "load_pkcs12",
+    name="load_pkcs12",
 )
