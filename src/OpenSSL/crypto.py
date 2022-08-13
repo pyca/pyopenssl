@@ -3221,7 +3221,7 @@ def load_pkcs7_data(type: int, buffer: Union[str, bytes]) -> PKCS7:
     return pypkcs7
 
 
-load_pkcs7_data = utils.deprecated(
+utils.deprecated(
     load_pkcs7_data,
     __name__,
     (
@@ -3229,6 +3229,7 @@ load_pkcs7_data = utils.deprecated(
         "in cryptography."
     ),
     DeprecationWarning,
+    name="load_pkcs7_data",
 )
 
 
@@ -3319,7 +3320,7 @@ def load_pkcs12(
     return pkcs12
 
 
-load_pkcs12 = utils.deprecated(
+utils.deprecated(
     load_pkcs12,
     __name__,
     (
@@ -3327,4 +3328,5 @@ load_pkcs12 = utils.deprecated(
         "in cryptography."
     ),
     DeprecationWarning,
+    name="load_pkcs12",
 )
