@@ -29,6 +29,7 @@ from socket import (
     socket,
 )
 from sys import getfilesystemencoding, platform
+from typing import Union
 from warnings import simplefilter
 from weakref import ref
 
@@ -621,18 +622,6 @@ class TestContext:
         """
         assert is_consistent_type(Context, "Context", TLSv1_METHOD)
 
-    def test_use_privatekey(self):
-        """
-        `Context.use_privatekey` takes an `OpenSSL.crypto.PKey` instance.
-        """
-        # Mirrored at TestConnection.test_use_privatekey
-        key = PKey()
-        key.generate_key(TYPE_RSA, 1024)
-        ctx = Context(SSLv23_METHOD)
-        ctx.use_privatekey(key)
-        with pytest.raises(TypeError):
-            ctx.use_privatekey("")
-
     def test_use_privatekey_file_missing(self, tmpfile):
         """
         `Context.use_privatekey_file` raises `OpenSSL.SSL.Error` when passed
@@ -685,38 +674,6 @@ class TestContext:
             tmpfile.decode(getfilesystemencoding()) + NON_ASCII,
             FILETYPE_PEM,
         )
-
-    def test_use_certificate_wrong_args(self):
-        """
-        `Context.use_certificate_wrong_args` raises `TypeError` when not passed
-        exactly one `OpenSSL.crypto.X509` instance as an argument.
-        """
-        ctx = Context(SSLv23_METHOD)
-        with pytest.raises(TypeError):
-            ctx.use_certificate("hello, world")
-
-    def test_use_certificate_uninitialized(self):
-        """
-        `Context.use_certificate` raises `OpenSSL.SSL.Error` when passed a
-        `OpenSSL.crypto.X509` instance which has not been initialized
-        (ie, which does not actually have any certificate data).
-        """
-        ctx = Context(SSLv23_METHOD)
-        with pytest.raises(Error):
-            ctx.use_certificate(X509())
-
-    def test_use_certificate(self):
-        """
-        `Context.use_certificate` sets the certificate which will be
-        used to identify connections created using the context.
-        """
-        # Mirrored at TestConnection.test_use_certificate
-        # TODO
-        # Hard to assert anything.  But we could set a privatekey then ask
-        # OpenSSL if the cert and key agree using check_privatekey.  Then as
-        # long as check_privatekey works right we're good...
-        ctx = Context(SSLv23_METHOD)
-        ctx.use_certificate(load_certificate(FILETYPE_PEM, root_cert_pem))
 
     def test_use_certificate_file_wrong_args(self):
         """
@@ -2182,6 +2139,70 @@ class TestSession:
         assert isinstance(new_session, Session)
 
 
+@pytest.fixture(params=["context", "connection"])
+def ctx_or_conn(request) -> Union[Context, Connection]:
+    ctx = Context(SSLv23_METHOD)
+    if request.param == "context":
+        return ctx
+    else:
+        return Connection(ctx, None)
+
+
+class TestContextConnection:
+    """
+    Unit test for methods that are exposed both by Connection and Context objects.
+    """
+    def test_use_privatekey(self, ctx_or_conn):
+        """
+        `use_privatekey` takes an `OpenSSL.crypto.PKey` instance.
+        """
+        key = PKey()
+        key.generate_key(TYPE_RSA, 1024)
+
+        ctx_or_conn.use_privatekey(key)
+        with pytest.raises(TypeError):
+            ctx_or_conn.use_privatekey("")
+
+    def test_use_privatekey_wrong_key(self, ctx_or_conn):
+        """
+        `use_privatekey` raises `OpenSSL.SSL.Error` when passed a
+        `OpenSSL.crypto.PKey` instance which has not been initialized.
+        """
+        key = PKey()
+        key.generate_key(TYPE_RSA, 1024)
+        ctx_or_conn.use_certificate(load_certificate(FILETYPE_PEM, root_cert_pem))
+        with pytest.raises(Error):
+            ctx_or_conn.use_privatekey(key)
+
+    def test_use_certificate(self, ctx_or_conn):
+        """
+        `use_certificate` sets the certificate which will be
+        used to identify connections created using the context.
+        """
+        # TODO
+        # Hard to assert anything.  But we could set a privatekey then ask
+        # OpenSSL if the cert and key agree using check_privatekey.  Then as
+        # long as check_privatekey works right we're good...
+        ctx_or_conn.use_certificate(load_certificate(FILETYPE_PEM, root_cert_pem))
+
+    def test_use_certificate_wrong_args(self, ctx_or_conn):
+        """
+        `use_certificate_wrong_args` raises `TypeError` when not passed
+        exactly one `OpenSSL.crypto.X509` instance as an argument.
+        """
+        with pytest.raises(TypeError):
+            ctx_or_conn.use_certificate("hello, world")
+
+    def test_use_certificate_uninitialized(self, ctx_or_conn):
+        """
+        `use_certificate` raises `OpenSSL.SSL.Error` when passed a
+        `OpenSSL.crypto.X509` instance which has not been initialized
+        (ie, which does not actually have any certificate data).
+        """
+        with pytest.raises(Error):
+            ctx_or_conn.use_certificate(X509())
+
+
 class TestConnection:
     """
     Unit tests for `OpenSSL.SSL.Connection`.
@@ -2207,31 +2228,6 @@ class TestConnection:
         """
         ctx = Context(SSLv23_METHOD)
         assert is_consistent_type(Connection, "Connection", ctx, None)
-
-    def test_use_privatekey(self):
-        """
-        `Connection.use_privatekey` takes an `OpenSSL.crypto.PKey` instance.
-        """
-        # Mirrored from TestContext.test_use_privatekey
-        key = PKey()
-        key.generate_key(TYPE_RSA, 1024)
-        ctx = Context(SSLv23_METHOD)
-        connection = Connection(ctx, None)
-        connection.use_privatekey(key)
-        with pytest.raises(TypeError):
-            connection.use_privatekey("")
-
-    def test_use_certificate(self):
-        """
-        `Connection.use_certificate` sets the certificate which will be
-        used to identify connections created using the context.
-        """
-        # Mirrored from TestContext.test_use_certificate
-        ctx = Context(SSLv23_METHOD)
-        connection = Connection(ctx, None)
-        connection.use_certificate(
-            load_certificate(FILETYPE_PEM, root_cert_pem)
-        )
 
     @pytest.mark.parametrize("bad_context", [object(), "context", None, 1])
     def test_wrong_args(self, bad_context):
