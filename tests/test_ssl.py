@@ -2152,6 +2152,7 @@ class TestContextConnection:
     """
     Unit test for methods that are exposed both by Connection and Context objects.
     """
+
     def test_use_privatekey(self, ctx_or_conn):
         """
         `use_privatekey` takes an `OpenSSL.crypto.PKey` instance.
@@ -2170,7 +2171,9 @@ class TestContextConnection:
         """
         key = PKey()
         key.generate_key(TYPE_RSA, 1024)
-        ctx_or_conn.use_certificate(load_certificate(FILETYPE_PEM, root_cert_pem))
+        ctx_or_conn.use_certificate(
+            load_certificate(FILETYPE_PEM, root_cert_pem)
+        )
         with pytest.raises(Error):
             ctx_or_conn.use_privatekey(key)
 
@@ -2183,7 +2186,9 @@ class TestContextConnection:
         # Hard to assert anything.  But we could set a privatekey then ask
         # OpenSSL if the cert and key agree using check_privatekey.  Then as
         # long as check_privatekey works right we're good...
-        ctx_or_conn.use_certificate(load_certificate(FILETYPE_PEM, root_cert_pem))
+        ctx_or_conn.use_certificate(
+            load_certificate(FILETYPE_PEM, root_cert_pem)
+        )
 
     def test_use_certificate_wrong_args(self, ctx_or_conn):
         """
