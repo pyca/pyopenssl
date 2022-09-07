@@ -2150,7 +2150,8 @@ def ctx_or_conn(request) -> Union[Context, Connection]:
 
 class TestContextConnection:
     """
-    Unit test for methods that are exposed both by Connection and Context objects.
+    Unit test for methods that are exposed both by Connection and Context
+    objects.
     """
 
     def test_use_privatekey(self, ctx_or_conn):
