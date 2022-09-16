@@ -29,6 +29,8 @@ Changes:
 - Add ``OpenSSL.SSL.Connection.set_verify`` and ``OpenSSL.SSL.Connection.get_verify_mode``
   to override the context object's verification flags.
   `#1073 <https://github.com/pyca/pyopenssl/pull/1073>`_
+- Add ``OpenSSL.SSL.Connection.use_certificate`` and ``OpenSSL.SSL.Connection.use_privatekey``
+  to set a certificate per connection (and not just per context) `#1121 <https://github.com/pyca/pyopenssl/pull/1121>`_.
 
 22.0.0 (2022-01-29)
 -------------------
