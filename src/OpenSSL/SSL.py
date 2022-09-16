@@ -32,6 +32,11 @@ __all__ = [
     "SSLEAY_PLATFORM",
     "SSLEAY_DIR",
     "SSLEAY_BUILT_ON",
+    "OPENSSL_VERSION",
+    "OPENSSL_CFLAGS",
+    "OPENSSL_PLATFORM",
+    "OPENSSL_DIR",
+    "OPENSSL_BUILT_ON",
     "SENT_SHUTDOWN",
     "RECEIVED_SHUTDOWN",
     "SSLv23_METHOD",
@@ -125,11 +130,11 @@ __all__ = [
 
 
 OPENSSL_VERSION_NUMBER = _lib.OPENSSL_VERSION_NUMBER
-SSLEAY_VERSION = _lib.SSLEAY_VERSION
-SSLEAY_CFLAGS = _lib.SSLEAY_CFLAGS
-SSLEAY_PLATFORM = _lib.SSLEAY_PLATFORM
-SSLEAY_DIR = _lib.SSLEAY_DIR
-SSLEAY_BUILT_ON = _lib.SSLEAY_BUILT_ON
+OPENSSL_VERSION = SSLEAY_VERSION = _lib.OPENSSL_VERSION
+OPENSSL_CFLAGS = SSLEAY_CFLAGS = _lib.OPENSSL_CFLAGS
+OPENSSL_PLATFORM = SSLEAY_PLATFORM = _lib.OPENSSL_PLATFORM
+OPENSSL_DIR = SSLEAY_DIR = _lib.OPENSSL_DIR
+OPENSSL_BUILT_ON = SSLEAY_BUILT_ON = _lib.OPENSSL_BUILT_ON
 
 SENT_SHUTDOWN = _lib.SSL_SENT_SHUTDOWN
 RECEIVED_SHUTDOWN = _lib.SSL_RECEIVED_SHUTDOWN
@@ -614,13 +619,16 @@ def _asFileDescriptor(obj):
     return fd
 
 
-def SSLeay_version(type):
+def OpenSSL_version(type):
     """
     Return a string describing the version of OpenSSL in use.
 
-    :param type: One of the :const:`SSLEAY_` constants defined in this module.
+    :param type: One of the :const:`OPENSSL_` constants defined in this module.
     """
-    return _ffi.string(_lib.SSLeay_version(type))
+    return _ffi.string(_lib.OpenSSL_version(type))
+
+
+SSLeay_version = OpenSSL_version
 
 
 def _make_requires(flag, error):
