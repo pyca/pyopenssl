@@ -19,6 +19,10 @@ Backward-incompatible changes:
 Deprecations:
 ^^^^^^^^^^^^^
 
+- ``OpenSSL.SSL.SSLeay_version`` is deprecated in favor of
+  ``OpenSSL.SSL.OpenSSL_version``. The constants ``OpenSSL.SSL.SSLEAY_*`` are
+  deprecated in favor of ``OpenSSL.SSL.OPENSSL_*``.
+
 Changes:
 ^^^^^^^^
 

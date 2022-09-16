@@ -98,14 +98,20 @@ Context, Connection.
     :py:const:`OP_NO_*` constant may be undefined.
 
 
-.. py:data:: SSLEAY_VERSION
-             SSLEAY_CFLAGS
-             SSLEAY_BUILT_ON
-             SSLEAY_PLATFORM
-             SSLEAY_DIR
+.. py:data:: OPENSSL_VERSION
+             OPENSSL_CFLAGS
+             OPENSSL_BUILT_ON
+             OPENSSL_PLATFORM
+             OPENSSL_DIR
 
-    Constants used with :py:meth:`SSLeay_version` to specify what OpenSSL version
-    information to retrieve.  See the man page for the :py:func:`SSLeay_version` C
+    .. versionchanged:: 22.1.0
+
+        Previously these were all named ``SSLEAY_*``. Those names are still
+        available for backwards compatibility, but the ``OPENSSL_*`` names are
+        preferred.
+
+    Constants used with :py:meth:`OpenSSL_version` to specify what OpenSSL version
+    information to retrieve.  See the man page for the :py:func:`OpenSSL_version` C
     API for details.
 
 
@@ -141,7 +147,7 @@ Context, Connection.
     .. versionadded:: 19.1
 
 
-.. autofunction:: SSLeay_version
+.. autofunction:: OpenSSL_version
 
 
 .. py:data:: ContextType
