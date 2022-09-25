@@ -100,6 +100,6 @@ if __name__ == "__main__":
         ],
         extras_require={
             "test": ["flaky", "pretend", "pytest>=3.0.1"],
-            "docs": ["sphinx", "sphinx_rtd_theme"],
+            "docs": ["sphinx!=5.2.0,!=5.2.0.post0", "sphinx_rtd_theme"],
         },
     )
