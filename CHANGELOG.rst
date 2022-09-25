@@ -17,14 +17,15 @@ Changes:
 ^^^^^^^^
 
 
-22.1.0 (UNRELEASED)
+22.1.0 (2022-09-25)
 -------------------
 
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Remove support for SSLv2 and SSLv3.
-- The minimum ``cryptography`` version is now 37.0.2.
+- The minimum ``cryptography`` version is now 38.0.x (and we now pin releases 
+  against ``cryptography`` major versions to prevent future breakage)
 - The ``OpenSSL.crypto.X509StoreContextError`` exception has been refactored,
   changing its internal attributes.
   `#1133 <https://github.com/pyca/pyopenssl/pull/1133>`_
