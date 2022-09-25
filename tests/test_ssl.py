@@ -217,6 +217,8 @@ def socket_pair():
     client.connect_ex((loopback_address(port), port.getsockname()[1]))
     client.setblocking(True)
     server = port.accept()[0]
+    
+    port.close()
 
     # Let's pass some unencrypted data to make sure our socket connection is
     # fine.  Just one byte, so we don't have to worry about buffers getting
