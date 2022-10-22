@@ -59,7 +59,7 @@ __all__ = [
     "OP_NO_TLSv1",
     "OP_NO_TLSv1_1",
     "OP_NO_TLSv1_2",
-    "OP_NO_TLSv1_3",
+    # "OP_NO_TLSv1_3", conditionally added below
     "MODE_RELEASE_BUFFERS",
     "OP_SINGLE_DH_USE",
     "OP_SINGLE_ECDH_USE",
@@ -84,8 +84,8 @@ __all__ = [
     "OP_NO_QUERY_MTU",
     "OP_COOKIE_EXCHANGE",
     "OP_NO_TICKET",
-    "OP_NO_RENEGOTIATION",
-    "OP_IGNORE_UNEXPECTED_EOF",
+    # "OP_NO_RENEGOTIATION", conditionally added below
+    # "OP_IGNORE_UNEXPECTED_EOF", conditionally added below
     "OP_ALL",
     "VERIFY_PEER",
     "VERIFY_FAIL_IF_NO_PEER_CERT",
@@ -172,6 +172,7 @@ OP_NO_TLSv1_1 = _lib.SSL_OP_NO_TLSv1_1
 OP_NO_TLSv1_2 = _lib.SSL_OP_NO_TLSv1_2
 try:
     OP_NO_TLSv1_3 = _lib.SSL_OP_NO_TLSv1_3
+    __all__ += ["OP_NO_TLSv1_3"]
 except AttributeError:
     pass
 
@@ -208,11 +209,13 @@ OP_NO_TICKET = _lib.SSL_OP_NO_TICKET
 
 try:
     OP_NO_RENEGOTIATION = _lib.SSL_OP_NO_RENEGOTIATION
+    __all__ += ["OP_NO_RENEGOTIATION"]
 except AttributeError:
     pass
 
 try:
     OP_IGNORE_UNEXPECTED_EOF = _lib.SSL_OP_IGNORE_UNEXPECTED_EOF
+    __all__ += ["OP_IGNORE_UNEXPECTED_EOF"]
 except AttributeError:
     pass
 
