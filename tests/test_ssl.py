@@ -7,6 +7,7 @@ Unit tests for :mod:`OpenSSL.SSL`.
 
 import datetime
 import gc
+import select
 import sys
 import uuid
 from errno import (
@@ -1297,20 +1298,20 @@ class TestContext:
         """
         serverSocket, clientSocket = socket_pair()
 
-        server = Connection(serverContext, serverSocket)
-        server.set_accept_state()
+        with serverSocket, clientSocket:
+            server = Connection(serverContext, serverSocket)
+            server.set_accept_state()
 
-        client = Connection(clientContext, clientSocket)
-        client.set_connect_state()
+            client = Connection(clientContext, clientSocket)
+            client.set_connect_state()
 
-        # Make them talk to each other.
-        # interact_in_memory(client, server)
-        for _ in range(3):
-            for s in [client, server]:
-                try:
-                    s.do_handshake()
-                except WantReadError:
-                    pass
+            # Make them talk to each other.
+            for _ in range(3):
+                for s in [client, server]:
+                    try:
+                        s.do_handshake()
+                    except WantReadError:
+                        select.select([client, server], [], [])
 
     def test_set_verify_callback_connection_argument(self):
         """
