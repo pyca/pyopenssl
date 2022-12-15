@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from subprocess import PIPE, Popen
 from warnings import simplefilter
 
+import OpenSSL.crypto
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec, ed25519, ed448, rsa
@@ -4285,6 +4286,18 @@ class TestX509StoreContext:
 
         assert str(exc.value) == "unable to get local issuer certificate"
 
+    def test_verify_with_partial_chain(self):
+        store = X509Store()
+        store.add_cert(self.intermediate_cert)
+
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        with pytest.raises(OpenSSL.crypto.X509StoreContextError):
+            store_ctx.verify_certificate()
+
+        # Now set the partial verification flag for verification.
+        store.set_flags(X509StoreFlags.PARTIAL_CHAIN)
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        assert store_ctx.verify_certificate() is None
 
 class TestSignVerify:
     """
