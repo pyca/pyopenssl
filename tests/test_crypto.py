@@ -4298,6 +4298,7 @@ class TestX509StoreContext:
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
         assert store_ctx.verify_certificate() is None
 
+
 class TestSignVerify:
     """
     Tests for `OpenSSL.crypto.sign` and `OpenSSL.crypto.verify`.
