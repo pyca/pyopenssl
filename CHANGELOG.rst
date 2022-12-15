@@ -18,6 +18,7 @@ Changes:
 
 - Add ``OpenSSL.SSL.X509StoreFlags.PARTIAL_CHAIN`` constant to allow for users
   to perform certificate verification on partial certificate chains.
+  `#1166 <https://github.com/pyca/pyopenssl/pull/1166>`_
 
 22.1.0 (2022-09-25)
 -------------------
