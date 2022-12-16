@@ -179,7 +179,7 @@ def _set_asn1_time(boundary: Any, when: bytes) -> None:
 
 def _new_asn1_time(when: bytes) -> Any:
     """
-    Behaves like _set_asn1_time bit returns a new ASN1_TIME object.
+    Behaves like _set_asn1_time but returns a new ASN1_TIME object.
 
     @param when: A string representation of the desired time value.
 
