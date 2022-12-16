@@ -3850,7 +3850,9 @@ class TestCRL:
             crl.add_revoked(revoked)
         crl.set_version(1)
         crl.set_lastUpdate(b"20140601000000Z")
-        crl.set_nextUpdate(b"20180601000000Z")
+        # The year 5000 is far into the future so that this CRL isn't
+        # considered to have expired.
+        crl.set_nextUpdate(b"50000601000000Z")
         crl.sign(issuer_cert, issuer_key, digest=b"sha512")
         return crl
 

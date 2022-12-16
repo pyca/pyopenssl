@@ -168,10 +168,33 @@ def _set_asn1_time(boundary: Any, when: bytes) -> None:
     """
     if not isinstance(when, bytes):
         raise TypeError("when must be a byte string")
+    if boundary == _ffi.NULL:
+        # ASN1_TIME_set_string validates the string without writing anything
+        # when the destination is NULL.
+        raise ValueError("boundary must not be NULL")
 
     set_result = _lib.ASN1_TIME_set_string(boundary, when)
     if set_result == 0:
         raise ValueError("Invalid string")
+
+
+def _new_asn1_time(when: bytes) -> Any:
+    """
+    Behaves like _set_asn1_time bit returns a new ASN1_TIME object.
+
+    @param when: A string representation of the desired time value.
+
+    @raise TypeError: If C{when} is not a L{bytes} string.
+    @raise ValueError: If C{when} does not represent a time in the required
+        format.
+    @raise RuntimeError: If the time value cannot be set for some other
+        (unspecified) reason.
+    """
+    ret = _lib.ASN1_TIME_new()
+    _openssl_assert(ret != _ffi.NULL)
+    ret = _ffi.gc(ret, _lib.ASN1_TIME_free)
+    _set_asn1_time(ret, when)
+    return ret
 
 
 def _get_asn1_time(timestamp: Any) -> Optional[bytes]:
@@ -2283,8 +2306,11 @@ class Revoked:
             as ASN.1 TIME.
         :return: ``None``
         """
-        dt = _lib.X509_REVOKED_get0_revocationDate(self._revoked)
-        return _set_asn1_time(dt, when)
+        revocationDate = _new_asn1_time(when)
+        ret = _lib.X509_REVOKED_set_revocationDate(
+            self._revoked, revocationDate
+        )
+        _openssl_assert(ret == 1)
 
     def get_rev_date(self) -> Optional[bytes]:
         """
@@ -2406,11 +2432,6 @@ class CRL:
         """
         _openssl_assert(_lib.X509_CRL_set_version(self._crl, version) != 0)
 
-    def _set_boundary_time(
-        self, which: Callable[..., Any], when: bytes
-    ) -> None:
-        return _set_asn1_time(which(self._crl), when)
-
     def set_lastUpdate(self, when: bytes) -> None:
         """
         Set when the CRL was last updated.
@@ -2424,7 +2445,9 @@ class CRL:
         :param bytes when: A timestamp string.
         :return: ``None``
         """
-        return self._set_boundary_time(_lib.X509_CRL_get0_lastUpdate, when)
+        lastUpdate = _new_asn1_time(when)
+        ret = _lib.X509_CRL_set1_lastUpdate(self._crl, lastUpdate)
+        _openssl_assert(ret == 1)
 
     def set_nextUpdate(self, when: bytes) -> None:
         """
@@ -2439,7 +2462,9 @@ class CRL:
         :param bytes when: A timestamp string.
         :return: ``None``
         """
-        return self._set_boundary_time(_lib.X509_CRL_get0_nextUpdate, when)
+        nextUpdate = _new_asn1_time(when)
+        ret = _lib.X509_CRL_set1_nextUpdate(self._crl, nextUpdate)
+        _openssl_assert(ret == 1)
 
     def sign(self, issuer_cert: X509, issuer_key: PKey, digest: bytes) -> None:
         """
