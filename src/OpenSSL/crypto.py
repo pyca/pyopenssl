@@ -2502,23 +2502,26 @@ class CRL:
         if digest_obj == _ffi.NULL:
             raise ValueError("No such digest method")
 
-        bio = _lib.BIO_new(_lib.BIO_s_mem())
-        _openssl_assert(bio != _ffi.NULL)
-
         # A scratch time object to give different values to different CRL
         # fields
         sometime = _lib.ASN1_TIME_new()
         _openssl_assert(sometime != _ffi.NULL)
+        sometime = _ffi.gc(sometime, _lib.ASN1_TIME_free)
 
-        _lib.X509_gmtime_adj(sometime, 0)
-        _lib.X509_CRL_set1_lastUpdate(self._crl, sometime)
+        ret = _lib.X509_gmtime_adj(sometime, 0)
+        _openssl_assert(ret != _ffi.NULL)
+        ret = _lib.X509_CRL_set1_lastUpdate(self._crl, sometime)
+        _openssl_assert(ret == 1)
 
-        _lib.X509_gmtime_adj(sometime, days * 24 * 60 * 60)
-        _lib.X509_CRL_set1_nextUpdate(self._crl, sometime)
+        ret = _lib.X509_gmtime_adj(sometime, days * 24 * 60 * 60)
+        _openssl_assert(ret != _ffi.NULL)
+        ret = _lib.X509_CRL_set1_nextUpdate(self._crl, sometime)
+        _openssl_assert(ret == 1)
 
-        _lib.X509_CRL_set_issuer_name(
+        ret = _lib.X509_CRL_set_issuer_name(
             self._crl, _lib.X509_get_subject_name(cert._x509)
         )
+        _openssl_assert(ret == 1)
 
         sign_result = _lib.X509_CRL_sign(self._crl, key._pkey, digest_obj)
         if not sign_result:
