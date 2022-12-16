@@ -168,10 +168,9 @@ def _set_asn1_time(boundary: Any, when: bytes) -> None:
     """
     if not isinstance(when, bytes):
         raise TypeError("when must be a byte string")
-    if boundary == _ffi.NULL:
-        # ASN1_TIME_set_string validates the string without writing anything
-        # when the destination is NULL.
-        raise ValueError("boundary must not be NULL")
+    # ASN1_TIME_set_string validates the string without writing anything
+    # when the destination is NULL.
+    _openssl_assert(boundary != _ffi.NULL)
 
     set_result = _lib.ASN1_TIME_set_string(boundary, when)
     if set_result == 0:
