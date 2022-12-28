@@ -97,6 +97,9 @@ TYPE_DSA: int = _lib.EVP_PKEY_DSA
 TYPE_DH: int = _lib.EVP_PKEY_DH
 TYPE_EC: int = _lib.EVP_PKEY_EC
 
+NID_sm2 = 1172
+EVP_PKEY_SM2 = NID_sm2
+
 
 class Error(Exception):
     """
@@ -3103,6 +3106,22 @@ def sign(pkey: PKey, data: Union[str, bytes], digest: str) -> bytes:
     digest_obj = _lib.EVP_get_digestbyname(_byte_string(digest))
     if digest_obj == _ffi.NULL:
         raise ValueError("No such digest method")
+
+    if (
+        _lib.OPENSSL_VERSION_NUMBER < 0x30000000
+        and _lib.EVP_PKEY_id(pkey._pkey) == _lib.EVP_PKEY_EC
+    ):
+        if (
+            _lib.EC_GROUP_get_curve_name(
+                _lib.EC_KEY_get0_group(_lib.EVP_PKEY_get1_EC_KEY(pkey._pkey))
+            )
+            == NID_sm2
+        ):
+            if hasattr(_lib, "EVP_PKEY_set_alias_type"):
+                _lib.EVP_PKEY_set_alias_type(pkey._pkey, EVP_PKEY_SM2)
+            else:
+                print("The SM2 Signing isn't enable in current OpenSSL 1.1.x")
+                return b""
 
     md_ctx = _lib.EVP_MD_CTX_new()
     md_ctx = _ffi.gc(md_ctx, _lib.EVP_MD_CTX_free)
