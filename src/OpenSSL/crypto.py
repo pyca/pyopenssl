@@ -784,7 +784,8 @@ class X509Extension:
         :param bool critical: A flag indicating whether this is a critical
             extension.
 
-        :param value: The OpenSSL textual representation of the extension's value.
+        :param value: The OpenSSL textual representation of the extension's
+            value.
         :type value: :py:data:`bytes`
 
         :param subject: Optional X509 certificate to use as subject.
