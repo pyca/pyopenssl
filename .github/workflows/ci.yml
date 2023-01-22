@@ -75,6 +75,7 @@ jobs:
     name: "${{ matrix.TEST.TOXENV }} on ${{ matrix.TEST.CONTAINER }}"
     steps:
       - uses: actions/checkout@v3
+      - run: /venv/bin/pip install tox
       - run: /venv/bin/tox -v
         env:
           TOXENV: ${{ matrix.TEST.TOXENV }}
