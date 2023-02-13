@@ -2524,7 +2524,7 @@ class TestPKCS12:
                 b"-passin",
                 b"pass:" + passwd,
                 *extra,
-            )
+            ).replace(b"\r\n", b"\n")
             assert recovered_key[-len(key) :] == key
         if cert:
             recovered_cert = _runopenssl(
@@ -2536,7 +2536,7 @@ class TestPKCS12:
                 b"pass:" + passwd,
                 b"-nokeys",
                 *extra,
-            )
+            ).replace(b"\r\n", b"\n")
             assert recovered_cert[-len(cert) :] == cert
         if ca:
             recovered_cert = _runopenssl(
@@ -2548,7 +2548,7 @@ class TestPKCS12:
                 b"pass:" + passwd,
                 b"-nokeys",
                 *extra,
-            )
+            ).replace(b"\r\n", b"\n")
             assert recovered_cert[-len(ca) :] == ca
 
     def verify_pkcs12_container(self, p12):

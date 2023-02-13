@@ -18,6 +18,7 @@ jobs:
           - {VERSION: "3.11", TOXENV: "py311"}
           - {VERSION: "pypy-3.7", TOXENV: "pypy3"}
           - {VERSION: "pypy-3.8", TOXENV: "pypy3"}
+          - {VERSION: "3.11", TOXENV: "py311-useWheel", OS: "windows-2022" }
           # -cryptographyMain
           - {VERSION: "3.6", TOXENV: "py36-cryptographyMain", OS: "ubuntu-20.04"}
           - {VERSION: "3.7", TOXENV: "py37-cryptographyMain"}
@@ -47,7 +48,7 @@ jobs:
           - {VERSION: "3.9", TOXENV: "flake8"}
           - {VERSION: "3.6", TOXENV: "py36-mypy", OS: "ubuntu-20.04"}
           - {VERSION: "3.9", TOXENV: "docs"}
-    name: "${{ matrix.PYTHON.TOXENV }}"
+    name: "${{ matrix.PYTHON.TOXENV }}${{ matrix.PYTHON.OS && format(' on {0}', matrix.PYTHON.OS) || '' }}"
     steps:
       - uses: actions/checkout@v3
       - name: Setup python

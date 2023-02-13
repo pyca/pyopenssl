@@ -1140,23 +1140,30 @@ class TestContext:
 
         self._load_verify_locations_test(None, capath)
 
-    def test_load_verify_directory_bytes_capath(self, tmpfile):
+    @pytest.mark.parametrize(
+        "pathtype",
+        [
+            "ascii_path",
+            pytest.param(
+                "unicode_path",
+                marks=pytest.mark.skipif(
+                    platform == "win32",
+                    reason="Unicode paths not supported on Windows",
+                ),
+            ),
+        ],
+    )
+    @pytest.mark.parametrize("argtype", ["bytes_arg", "unicode_arg"])
+    def test_load_verify_directory_capath(self, pathtype, argtype, tmpfile):
         """
         `Context.load_verify_locations` accepts a directory name as a `bytes`
         instance and uses the certificates within for verification purposes.
         """
-        self._load_verify_directory_locations_capath(
-            tmpfile + NON_ASCII.encode(getfilesystemencoding())
-        )
-
-    def test_load_verify_directory_unicode_capath(self, tmpfile):
-        """
-        `Context.load_verify_locations` accepts a directory name as a `unicode`
-        instance and uses the certificates within for verification purposes.
-        """
-        self._load_verify_directory_locations_capath(
-            tmpfile.decode(getfilesystemencoding()) + NON_ASCII
-        )
+        if pathtype == "unicode_path":
+            tmpfile += NON_ASCII.encode(getfilesystemencoding())
+        if argtype == "unicode_arg":
+            tmpfile = tmpfile.decode(getfilesystemencoding())
+        self._load_verify_directory_locations_capath(tmpfile)
 
     def test_load_verify_locations_wrong_args(self):
         """
@@ -2838,23 +2845,24 @@ class TestConnection:
         """
         client_socket, server_socket = socket_pair()
         # Fill up the client's send buffer so Connection won't be able to write
-        # anything.  Only write a single byte at a time so we can be sure we
+        # anything. Start by sending larger chunks (Windows Socket I/O is slow)
+        # and continue by writing a single byte at a time so we can be sure we
         # completely fill the buffer.  Even though the socket API is allowed to
         # signal a short write via its return value it seems this doesn't
         # always happen on all platforms (FreeBSD and OS X particular) for the
         # very last bit of available buffer space.
-        msg = b"x"
-        for i in range(1024 * 1024 * 64):
-            try:
-                client_socket.send(msg)
-            except error as e:
-                if e.errno == EWOULDBLOCK:
-                    break
-                raise
-        else:
-            pytest.fail(
-                "Failed to fill socket buffer, cannot test BIO want write"
-            )
+        for msg in [b"x" * 65536, b"x"]:
+            for i in range(1024 * 1024 * 64):
+                try:
+                    client_socket.send(msg)
+                except error as e:
+                    if e.errno == EWOULDBLOCK:
+                        break
+                    raise  # pragma: no cover
+            else:  # pragma: no cover
+                pytest.fail(
+                    "Failed to fill socket buffer, cannot test BIO want write"
+                )
 
         ctx = Context(SSLv23_METHOD)
         conn = Connection(ctx, client_socket)
@@ -3753,13 +3761,16 @@ class TestMemoryBIO:
         """
         If the connection is lost before an orderly SSL shutdown occurs,
         `OpenSSL.SSL.SysCallError` is raised with a message of
-        "Unexpected EOF".
+        "Unexpected EOF" (or WSAECONNRESET on Windows).
         """
         server_conn, client_conn = loopback()
         client_conn.sock_shutdown(SHUT_RDWR)
         with pytest.raises(SysCallError) as err:
             server_conn.recv(1024)
-        assert err.value.args == (-1, "Unexpected EOF")
+        if platform == "win32":
+            assert err.value.args == (10054, "WSAECONNRESET")
+        else:
+            assert err.value.args == (-1, "Unexpected EOF")
 
     def _check_client_ca_list(self, func):
         """

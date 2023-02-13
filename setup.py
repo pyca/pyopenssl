@@ -8,7 +8,6 @@
 Installation script for the OpenSSL package.
 """
 
-import codecs
 import os
 import re
 
@@ -21,10 +20,12 @@ META_PATH = os.path.join("src", "OpenSSL", "version.py")
 
 def read_file(*parts):
     """
-    Build an absolute path from *parts* and and return the contents of the
+    Build an absolute path from *parts* and return the contents of the
     resulting file.  Assume UTF-8 encoding.
     """
-    with codecs.open(os.path.join(HERE, *parts), "rb", "ascii") as f:
+    with open(
+        os.path.join(HERE, *parts), "r", encoding="utf-8", newline=None
+    ) as f:
         return f.read()
 
 
