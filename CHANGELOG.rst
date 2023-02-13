@@ -16,6 +16,9 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- Add ``OpenSSL.SSL.Connection.DTLSv1_get_timeout`` and ``OpenSSL.SSL.Connection.DTLSv1_handle_timeout``
+  to support DTLS timeouts `#1180 <https://github.com/pyca/pyopenssl/pull/1180>`_.
+
 23.0.0 (2023-01-01)
 -------------------
 
