@@ -1916,7 +1916,6 @@ class Connection:
         buf = _text_to_bytes_and_warn("buf", buf)
 
         with _ffi.from_buffer(buf) as data:
-
             left_to_send = len(buf)
             total_sent = 0
 

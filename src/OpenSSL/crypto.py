@@ -2556,7 +2556,6 @@ class CRL:
 
 
 class PKCS7:
-
     _pkcs7: Any
 
     def type_is_signed(self) -> bool:
@@ -2920,7 +2919,6 @@ class _PassphraseHelper:
 
     def raise_if_problem(self, exceptionType: Type[Exception] = Error) -> None:
         if self._problems:
-
             # Flush the OpenSSL error queue
             try:
                 _exception_from_error_queue(exceptionType)
