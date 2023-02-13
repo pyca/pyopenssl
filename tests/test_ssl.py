@@ -359,11 +359,10 @@ def interact_in_memory(client_conn, server_conn):
 
         # Copy stuff from each side's send buffer to the other side's
         # receive buffer.
-        for (read, write) in [
+        for read, write in [
             (client_conn, server_conn),
             (server_conn, client_conn),
         ]:
-
             # Give the side a chance to generate some more bytes, or succeed.
             try:
                 data = read.recv(2**16)
