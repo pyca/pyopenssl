@@ -2858,8 +2858,8 @@ class TestConnection:
                 except error as e:
                     if e.errno == EWOULDBLOCK:
                         break
-                    raise
-            else:
+                    raise  # pragma: no cover
+            else:  # pragma: no cover
                 pytest.fail(
                     "Failed to fill socket buffer, cannot test BIO want write"
                 )
