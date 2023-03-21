@@ -3029,6 +3029,23 @@ class TestConnection:
 
         assert server_protocol_version == client_protocol_version
 
+    def test_get_secure_renegotiation_support(self):
+        """
+        `Connection.get_secure_renegotiation_support()` returns a boolean
+        stating secure renegotiation support of the current connection.
+        """
+        server, client = loopback(
+            lambda s: loopback_server_factory(s, TLSv1_2_METHOD),
+            lambda s: loopback_client_factory(s, TLSv1_2_METHOD),
+        )
+        client_secure_renegotiation_support = client.get_secure_renegotiation_support()
+        server_secure_renegotiation_support = server.get_secure_renegotiation_support()
+
+        assert isinstance(server_secure_renegotiation_support, bool)
+        assert isinstance(client_secure_renegotiation_support, bool)
+
+        assert client_secure_renegotiation_support == server_secure_renegotiation_support
+
     def test_wantReadError(self):
         """
         `Connection.bio_read` raises `OpenSSL.SSL.WantReadError` if there are
