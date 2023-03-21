@@ -2734,10 +2734,11 @@ class Connection:
         """
         Retrieve the secure renegotiation flag of the current connection.
 
-        :returns: A boolean representing the support of secure renegotiation (rfc5746)
-            for the current connection. True means that secure renegotiation is advertised
-            and supported by server. False means that secure renegotiation is not supported
-            or that client renegotiation is not supported at all.
+        :returns: A boolean representing the support of secure renegotiation
+            (rfc5746) for the current connection. True means that secure
+            renegotiation is advertised and supported by server. False
+            means that secure renegotiation is not supported or that
+            client renegotiation is not supported at all.
         :rtype: :class:`bool`
         """
         support = _lib.SSL_get_secure_renegotiation_support(self._ssl)
