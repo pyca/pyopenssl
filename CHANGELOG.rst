@@ -4,7 +4,7 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
-23.1.0 (UNRELEASED)
+23.1.0 (2023-03-24)
 -------------------
 
 Backward-incompatible changes:
@@ -16,6 +16,7 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- ``cryptography`` maximum version has been increased to 40.0.x.
 - Add ``OpenSSL.SSL.Connection.DTLSv1_get_timeout`` and ``OpenSSL.SSL.Connection.DTLSv1_handle_timeout``
   to support DTLS timeouts `#1180 <https://github.com/pyca/pyopenssl/pull/1180>`_.
 
