@@ -16,6 +16,8 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- Added ``X509_V_*` constants to ``OpenSSL.SSL``.
+
 23.1.0 (2023-03-24)
 -------------------
 
