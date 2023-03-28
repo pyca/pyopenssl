@@ -20,7 +20,6 @@ jobs:
           - {VERSION: "pypy-3.9", TOXENV: "pypy3"}
           - {VERSION: "3.11", TOXENV: "py311-useWheel", OS: "windows-2022" }
           # -cryptographyMain
-          - {VERSION: "3.6", TOXENV: "py36-cryptographyMain", OS: "ubuntu-20.04"}
           - {VERSION: "3.7", TOXENV: "py37-cryptographyMain"}
           - {VERSION: "3.8", TOXENV: "py38-cryptographyMain"}
           - {VERSION: "3.9", TOXENV: "py39-cryptographyMain"}
