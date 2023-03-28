@@ -904,7 +904,14 @@ class X509Extension:
         """
         obj = _lib.X509_EXTENSION_get_object(self._extension)
         nid = _lib.OBJ_obj2nid(obj)
-        return _ffi.string(_lib.OBJ_nid2sn(nid))
+        # OpenSSL 3.1.0 has a bug where nid2sn returns NULL for NIDs that
+        # previously returned UNDEF. This is a workaround for that issue.
+        # https://github.com/openssl/openssl/commit/908ba3ed9adbb3df90f76
+        buf = _lib.OBJ_nid2sn(nid)
+        if buf != _ffi.NULL:
+            return _ffi.string(buf)
+        else:
+            return b"UNDEF"
 
     def get_data(self) -> bytes:
         """

@@ -15,8 +15,23 @@ Deprecations:
 
 Changes:
 ^^^^^^^^
-
 - Added ``X509_V_*` constants to ``OpenSSL.SSL``.
+
+=======
+23.1.1 (2023-03-28)
+-------------------
+
+Backward-incompatible changes:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Deprecations:
+^^^^^^^^^^^^^
+
+Changes:
+^^^^^^^^
+
+- Worked around an issue in OpenSSL 3.1.0 which caused `X509Extension.get_short_name` to raise an exception when no short name was known to OpenSSL.
+  `#1204 <https://github.com/pyca/pyopenssl/pull/1204>`_.
 
 23.1.0 (2023-03-24)
 -------------------
@@ -58,7 +73,7 @@ Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Remove support for SSLv2 and SSLv3.
-- The minimum ``cryptography`` version is now 38.0.x (and we now pin releases 
+- The minimum ``cryptography`` version is now 38.0.x (and we now pin releases
   against ``cryptography`` major versions to prevent future breakage)
 - The ``OpenSSL.crypto.X509StoreContextError`` exception has been refactored,
   changing its internal attributes.
