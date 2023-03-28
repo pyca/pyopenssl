@@ -1681,6 +1681,14 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         exts = request.get_extensions()
         assert len(exts) == 2
 
+    def test_undef_oid(self):
+        assert (
+            X509Extension(
+                b"1.2.3.4.5.6.7", False, b"DER:05:00"
+            ).get_short_name()
+            == b"UNDEF"
+        )
+
     def test_add_extensions_wrong_args(self):
         """
         `X509Req.add_extensions` raises `TypeError` if called with a
