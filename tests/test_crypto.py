@@ -1601,20 +1601,12 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         """
         `X509Req.set_version` sets the X.509 version of the certificate
         request. `X509Req.get_version` returns the X.509 version of the
-        certificate request. The only defined version is 0. Others may or
-        may not be supported depending on backend.
+        certificate request. The only defined version is 0.
         """
         request = X509Req()
         assert request.get_version() == 0
         request.set_version(0)
         assert request.get_version() == 0
-        try:
-            request.set_version(1)
-            assert request.get_version() == 1
-            request.set_version(3)
-            assert request.get_version() == 3
-        except Error:
-            pass
 
     def test_version_wrong_args(self):
         """
@@ -1624,6 +1616,8 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         request = X509Req()
         with pytest.raises(TypeError):
             request.set_version("foo")
+        with pytest.raises(ValueError):
+            request.set_version(2)
 
     def test_get_subject(self):
         """

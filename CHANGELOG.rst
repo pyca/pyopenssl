@@ -16,6 +16,8 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- Invalid versions are now rejected in ``OpenSSL.crypt.X509Req.set_version``.
+
 23.1.1 (2023-03-28)
 -------------------
 
