@@ -1010,6 +1010,12 @@ class X509Req:
         :param int version: The version number.
         :return: ``None``
         """
+        if not isinstance(version, int):
+            raise TypeError("version must be an int")
+        if version != 0:
+            raise ValueError(
+                "Invalid version. The only valid version for X509Req is 0."
+            )
         set_result = _lib.X509_REQ_set_version(self._req, version)
         _openssl_assert(set_result == 1)
 
