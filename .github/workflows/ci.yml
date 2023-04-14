@@ -41,7 +41,7 @@ jobs:
           # Random order
           - {VERSION: "3.9", TOXENV: "py39-randomorder"}
           # Downstreams
-          - {VERSION: "3.7", TOXENV: "py37-twistedTrunk"}
+          - {VERSION: "3.11", TOXENV: "py311-twistedTrunk"}
           # Meta
           - {VERSION: "3.9", TOXENV: "check-manifest"}
           - {VERSION: "3.9", TOXENV: "flake8"}
