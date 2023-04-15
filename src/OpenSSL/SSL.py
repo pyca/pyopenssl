@@ -1507,6 +1507,16 @@ class Context:
         pystore._store = store
         return pystore
 
+    def set_cert_store(self, store):
+        """
+        Set the certificate store for the context.
+        :param store: A X509Store object.
+        :return: None
+        """
+        rc = _lib.X509_STORE_up_ref(store._store)
+        _openssl_assert(rc == 1)
+        _lib.SSL_CTX_set_cert_store(self._context, store._store)
+
     def set_options(self, options):
         """
         Add options. Options set before are not cleared!

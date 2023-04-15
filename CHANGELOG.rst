@@ -19,6 +19,8 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- Added ``Context.set_cert_store`` `#1210 <https://github.com/pyca/pyopenssl/pull/1210>`_.
+
 23.2.0 (2023-05-30)
 -------------------
 
