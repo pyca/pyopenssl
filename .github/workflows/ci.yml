@@ -71,7 +71,7 @@ jobs:
         TEST:
           - {CONTAINER: "ubuntu-bionic", TOXENV: "py36"}
           # cryptographyMain used since there's no wheel
-          - {CONTAINER: "ubuntu-rolling", TOXENV: "py310-cryptographyMain"}
+          - {CONTAINER: "ubuntu-rolling", TOXENV: "py311-cryptographyMain"}
     name: "${{ matrix.TEST.TOXENV }} on ${{ matrix.TEST.CONTAINER }}"
     steps:
       - uses: actions/checkout@v3
