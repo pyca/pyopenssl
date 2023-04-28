@@ -41,7 +41,7 @@ jobs:
           # Random order
           - {VERSION: "3.9", TOXENV: "py39-randomorder"}
           # Downstreams
-          - {VERSION: "3.7", TOXENV: "py37-twistedTrunk"}
+          - {VERSION: "3.11", TOXENV: "py311-twistedTrunk"}
           # Meta
           - {VERSION: "3.9", TOXENV: "check-manifest"}
           - {VERSION: "3.9", TOXENV: "flake8"}
@@ -71,7 +71,7 @@ jobs:
         TEST:
           - {CONTAINER: "ubuntu-bionic", TOXENV: "py36"}
           # cryptographyMain used since there's no wheel
-          - {CONTAINER: "ubuntu-rolling", TOXENV: "py310-cryptographyMain"}
+          - {CONTAINER: "ubuntu-rolling", TOXENV: "py311-cryptographyMain"}
     name: "${{ matrix.TEST.TOXENV }} on ${{ matrix.TEST.CONTAINER }}"
     steps:
       - uses: actions/checkout@v3

@@ -10,12 +10,16 @@ The third digit is only for regressions.
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- Removed ``X509StoreFlags.NOTIFY_POLICY``.
+  `#1213 <https://github.com/pyca/pyopenssl/pull/1213>`_.
+
 Deprecations:
 ^^^^^^^^^^^^^
 
 Changes:
 ^^^^^^^^
 
+- Invalid versions are now rejected in ``OpenSSL.crypto.X509Req.set_version``.
 - Added ``X509_V_*` constants to ``OpenSSL.SSL``.
   `#1202 <https://github.com/pyca/pyopenssl/pull/1202>`_.
 
