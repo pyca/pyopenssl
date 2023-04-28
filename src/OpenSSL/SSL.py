@@ -266,9 +266,10 @@ class X509VerificationCodes:
     OK = _lib.X509_V_OK
 
     # cryptography v40.0.0 and .1 releases are missing the X509_V_ERR_* codes;
-    # previously they were exposed but not formally part of the public API. Once
-    # pyOpenSSL has minimal required cryptography version of 41 this code can be
-    # run unconditionally. See https://github.com/pyca/pyopenssl/issues/1206
+    # previously they were exposed but not formally part of the public API.
+    # Once pyOpenSSL has minimal required cryptography version of 41 this code
+    # can be run unconditionally. See
+    # https://github.com/pyca/pyopenssl/issues/1206
     if hasattr(_lib, "X509_V_ERR_CERT_SIGNATURE_FAILURE"):
         ERR_UNABLE_TO_GET_ISSUER_CERT = (
             _lib.X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT
