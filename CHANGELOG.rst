@@ -17,7 +17,7 @@ Changes:
 ^^^^^^^^
 
 - Added ``X509_V_*` constants to ``OpenSSL.SSL``.
-
+  `#1202 <https://github.com/pyca/pyopenssl/pull/1202>`_.
 
 23.1.1 (2023-03-28)
 -------------------
