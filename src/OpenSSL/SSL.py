@@ -6,8 +6,6 @@ from itertools import chain, count
 from sys import platform
 from weakref import WeakValueDictionary
 
-from cryptography import __version__ as _cryptography_version
-
 from OpenSSL._util import (
     UNSPECIFIED as _UNSPECIFIED,
     exception_from_error_queue as _exception_from_error_queue,
@@ -257,7 +255,7 @@ X509_V_OK = _lib.X509_V_OK
 # previously they were exposed but not formally part of the public API. Once
 # pyOpenSSL has minimal required cryptography version of 41 this code can be
 # run unconditionally. See https://github.com/pyca/pyopenssl/issues/1206
-if _cryptography_version not in ("40.0.0", "40.0.1"):
+if hasattr(_lib, "X509_V_ERR_CERT_SIGNATURE_FAILURE"):
     X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT = (
         _lib.X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT
     )
