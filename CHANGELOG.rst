@@ -20,6 +20,8 @@ Changes:
 ^^^^^^^^
 
 - Invalid versions are now rejected in ``OpenSSL.crypto.X509Req.set_version``.
+- Added ``X509VerificationCodes`` to ``OpenSSL.SSL``.
+  `#1202 <https://github.com/pyca/pyopenssl/pull/1202>`_.
 
 23.1.1 (2023-03-28)
 -------------------
