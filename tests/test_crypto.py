@@ -6,9 +6,9 @@ Unit tests for :py:mod:`OpenSSL.crypto`.
 """
 import base64
 import sys
+import warnings
 from datetime import datetime, timedelta
 from subprocess import PIPE, Popen
-from warnings import simplefilter
 
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
@@ -50,13 +50,14 @@ from OpenSSL.crypto import (
     load_certificate,
     load_certificate_request,
     load_crl,
-    load_pkcs12,
-    load_pkcs7_data,
     load_privatekey,
     load_publickey,
     sign,
     verify,
 )
+
+with pytest.warns(DeprecationWarning):
+    from OpenSSL.crypto import load_pkcs12, load_pkcs7_data
 
 from .util import (
     EqualityTestsMixin,
@@ -2604,7 +2605,7 @@ class TestPKCS12:
             b"pass:" + passwd,
         )
         with pytest.warns(DeprecationWarning) as w:
-            simplefilter("always")
+            warnings.simplefilter("always")
             p12 = load_pkcs12(p12_str, passphrase=b"whatever".decode("ascii"))
             msg = "{0} for passphrase is no longer accepted, use bytes".format(
                 WARNING_TYPE_EXPECTED
@@ -2823,7 +2824,7 @@ class TestPKCS12:
         p12 = self.gen_pkcs12(server_cert_pem, server_key_pem, root_cert_pem)
 
         with pytest.warns(DeprecationWarning) as w:
-            simplefilter("always")
+            warnings.simplefilter("always")
             dumped_p12 = p12.export(passphrase=b"randomtext".decode("ascii"))
             msg = "{0} for passphrase is no longer accepted, use bytes".format(
                 WARNING_TYPE_EXPECTED
@@ -3678,8 +3679,8 @@ class TestCRL:
         not emit a deprecation warning.
         """
         crl = self._get_crl()
-        with pytest.warns(None) as catcher:
-            simplefilter("always")
+        with warnings.catch_warnings(record=True) as catcher:
+            warnings.simplefilter("always")
         assert 0 == len(catcher)
         dumped_crl = crl.export(self.cert, self.pkey, digest=b"md5")
         text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
@@ -4368,14 +4369,14 @@ class TestSignVerify:
         cert = load_certificate(FILETYPE_PEM, root_cert_pem)
         for digest in ["md5", "sha1", "sha256"]:
             with pytest.warns(DeprecationWarning) as w:
-                simplefilter("always")
+                warnings.simplefilter("always")
                 sig = sign(priv_key, content, digest)
             assert "{0} for data is no longer accepted, use bytes".format(
                 WARNING_TYPE_EXPECTED
             ) == str(w[-1].message)
 
             with pytest.warns(DeprecationWarning) as w:
-                simplefilter("always")
+                warnings.simplefilter("always")
                 verify(cert, sig, content, digest)
             assert "{0} for data is no longer accepted, use bytes".format(
                 WARNING_TYPE_EXPECTED
