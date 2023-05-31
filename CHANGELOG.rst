@@ -4,7 +4,7 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
-23.2.0 (UNRELEASED)
+23.2.0 (2023-05-30)
 -------------------
 
 Backward-incompatible changes:
@@ -19,6 +19,7 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- ``cryptography`` maximum version has been increased to 41.0.x.
 - Invalid versions are now rejected in ``OpenSSL.crypto.X509Req.set_version``.
 - Added ``X509VerificationCodes`` to ``OpenSSL.SSL``.
   `#1202 <https://github.com/pyca/pyopenssl/pull/1202>`_.

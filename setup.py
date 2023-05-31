@@ -99,7 +99,7 @@ if __name__ == "__main__":
         install_requires=[
             # Fix cryptographyMinimum in tox.ini when changing this!
             # 40.0.0 and .1 are missing X509_V_* constants that we re-export.
-            "cryptography>=38.0.0,<41,!=40.0.0,!=40.0.1",
+            "cryptography>=38.0.0,<42,!=40.0.0,!=40.0.1",
         ],
         extras_require={
             "test": ["flaky", "pretend", "pytest>=3.0.1"],
