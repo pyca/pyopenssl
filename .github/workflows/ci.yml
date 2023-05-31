@@ -10,7 +10,6 @@ jobs:
       matrix:
         PYTHON:
           # Base builds
-          - {VERSION: "3.6", TOXENV: "py36", OS: "ubuntu-20.04" }
           - {VERSION: "3.7", TOXENV: "py37"}
           - {VERSION: "3.8", TOXENV: "py38"}
           - {VERSION: "3.9", TOXENV: "py39"}
@@ -28,7 +27,6 @@ jobs:
           - {VERSION: "pypy-3.8", TOXENV: "pypy3-cryptographyMain"}
           - {VERSION: "pypy-3.9", TOXENV: "pypy3-cryptographyMain"}
           # -cryptographyMinimum
-          - {VERSION: "3.6", TOXENV: "py36-cryptographyMinimum", OS: "ubuntu-20.04"}
           - {VERSION: "3.7", TOXENV: "py37-cryptographyMinimum"}
           - {VERSION: "3.8", TOXENV: "py38-cryptographyMinimum"}
           - {VERSION: "3.9", TOXENV: "py39-cryptographyMinimum"}
@@ -69,7 +67,6 @@ jobs:
     strategy:
       matrix:
         TEST:
-          - {CONTAINER: "ubuntu-bionic", TOXENV: "py36"}
           # cryptographyMain used since there's no wheel
           - {CONTAINER: "ubuntu-rolling", TOXENV: "py311-cryptographyMain"}
     name: "${{ matrix.TEST.TOXENV }} on ${{ matrix.TEST.CONTAINER }}"
