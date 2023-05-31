@@ -81,7 +81,6 @@ if __name__ == "__main__":
             "Operating System :: Microsoft :: Windows",
             "Operating System :: POSIX",
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.6",
             "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",
@@ -93,13 +92,11 @@ if __name__ == "__main__":
             "Topic :: Software Development :: Libraries :: Python Modules",
             "Topic :: System :: Networking",
         ],
-        python_requires=">=3.6",
+        python_requires=">=3.7",
         packages=find_packages(where="src"),
         package_dir={"": "src"},
         install_requires=[
-            # Fix cryptographyMinimum in tox.ini when changing this!
-            # 40.0.0 and .1 are missing X509_V_* constants that we re-export.
-            "cryptography>=38.0.0,<42,!=40.0.0,!=40.0.1",
+            "cryptography>=41.0.0,<42",
         ],
         extras_require={
             "test": ["flaky", "pretend", "pytest>=3.0.1"],
