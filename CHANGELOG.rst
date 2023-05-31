@@ -12,9 +12,13 @@ Backward-incompatible changes:
 
 - Dropped support for Python 3.6.
 - The minimum ``cryptography`` version is now 41.0.0.
+- Removed ``OpenSSL.crypto.loads_pkcs7`` and ``OpenSSL.crypto.loads_pkcs12`` which had been deprecated for 3 years.
 
 Deprecations:
 ^^^^^^^^^^^^^
+
+- Deprecated ``OpenSSL.crypto.PKCS12`` (which was intended to have been deprecated at the same time as ``OpenSSL.crypto.loads_pkcs12``).
+- Deprecated ``OpenSSL.crypto.NetscapeSPKI``.
 
 Changes:
 ^^^^^^^^

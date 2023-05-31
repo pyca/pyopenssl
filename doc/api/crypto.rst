@@ -68,10 +68,6 @@ Certificate revocation lists
 
 .. autofunction:: load_crl
 
-.. autofunction:: load_pkcs7_data
-
-.. autofunction:: load_pkcs12
-
 Signing and verifying signatures
 --------------------------------
 
@@ -159,20 +155,10 @@ PKey objects
 .. autoclass:: PKey
                :members:
 
-.. _openssl-pkcs7:
-
 .. py:data:: TYPE_RSA
              TYPE_DSA
 
     Key type constants.
-
-PKCS7 objects
--------------
-
-PKCS7 objects have the following methods:
-
-.. autoclass:: PKCS7
-               :members:
 
 .. _openssl-pkcs12:
 

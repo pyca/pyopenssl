@@ -63,7 +63,6 @@ __all__ = [
     "dump_privatekey",
     "Revoked",
     "CRL",
-    "PKCS7",
     "PKCS12",
     "NetscapeSPKI",
     "load_publickey",
@@ -74,8 +73,6 @@ __all__ = [
     "verify",
     "dump_crl",
     "load_crl",
-    "load_pkcs7_data",
-    "load_pkcs12",
 ]
 
 
@@ -2567,52 +2564,6 @@ class CRL:
         return dump_crl(type, self)
 
 
-class PKCS7:
-    _pkcs7: Any
-
-    def type_is_signed(self) -> bool:
-        """
-        Check if this NID_pkcs7_signed object
-
-        :return: True if the PKCS7 is of type signed
-        """
-        return bool(_lib.PKCS7_type_is_signed(self._pkcs7))
-
-    def type_is_enveloped(self) -> bool:
-        """
-        Check if this NID_pkcs7_enveloped object
-
-        :returns: True if the PKCS7 is of type enveloped
-        """
-        return bool(_lib.PKCS7_type_is_enveloped(self._pkcs7))
-
-    def type_is_signedAndEnveloped(self) -> bool:
-        """
-        Check if this NID_pkcs7_signedAndEnveloped object
-
-        :returns: True if the PKCS7 is of type signedAndEnveloped
-        """
-        return bool(_lib.PKCS7_type_is_signedAndEnveloped(self._pkcs7))
-
-    def type_is_data(self) -> bool:
-        """
-        Check if this NID_pkcs7_data object
-
-        :return: True if the PKCS7 is of type data
-        """
-        return bool(_lib.PKCS7_type_is_data(self._pkcs7))
-
-    def get_type_name(self) -> str:
-        """
-        Returns the type name of the PKCS7 structure
-
-        :return: A string with the typename
-        """
-        nid = _lib.OBJ_obj2nid(self._pkcs7.type)
-        string_type = _lib.OBJ_nid2sn(nid)
-        return _ffi.string(string_type)
-
-
 class PKCS12:
     """
     A PKCS #12 archive.
@@ -2800,6 +2751,18 @@ class PKCS12:
         return _bio_to_string(bio)
 
 
+utils.deprecated(
+    PKCS12,
+    __name__,
+    (
+        "PKCS#12 support in pyOpenSSL is deprecated. You should use the APIs "
+        "in cryptography."
+    ),
+    DeprecationWarning,
+    name="PKCS12",
+)
+
+
 class NetscapeSPKI:
     """
     A Netscape SPKI object.
@@ -2888,6 +2851,15 @@ class NetscapeSPKI:
         """
         set_result = _lib.NETSCAPE_SPKI_set_pubkey(self._spki, pkey._pkey)
         _openssl_assert(set_result == 1)
+
+
+utils.deprecated(
+    NetscapeSPKI,
+    __name__,
+    "NetscapeSPKI support in pyOpenSSL is deprecated.",
+    DeprecationWarning,
+    name="NetscapeSPKI",
+)
 
 
 class _PassphraseHelper:
@@ -3229,143 +3201,3 @@ def load_crl(type: int, buffer: Union[str, bytes]) -> CRL:
     result = CRL.__new__(CRL)
     result._crl = _ffi.gc(crl, _lib.X509_CRL_free)
     return result
-
-
-def load_pkcs7_data(type: int, buffer: Union[str, bytes]) -> PKCS7:
-    """
-    Load pkcs7 data from the string *buffer* encoded with the type
-    *type*.
-
-    :param type: The file type (one of FILETYPE_PEM or FILETYPE_ASN1)
-    :param buffer: The buffer with the pkcs7 data.
-    :return: The PKCS7 object
-    """
-    if isinstance(buffer, str):
-        buffer = buffer.encode("ascii")
-
-    bio = _new_mem_buf(buffer)
-
-    if type == FILETYPE_PEM:
-        pkcs7 = _lib.PEM_read_bio_PKCS7(bio, _ffi.NULL, _ffi.NULL, _ffi.NULL)
-    elif type == FILETYPE_ASN1:
-        pkcs7 = _lib.d2i_PKCS7_bio(bio, _ffi.NULL)
-    else:
-        raise ValueError("type argument must be FILETYPE_PEM or FILETYPE_ASN1")
-
-    if pkcs7 == _ffi.NULL:
-        _raise_current_error()
-
-    pypkcs7 = PKCS7.__new__(PKCS7)
-    pypkcs7._pkcs7 = _ffi.gc(pkcs7, _lib.PKCS7_free)
-    return pypkcs7
-
-
-utils.deprecated(
-    load_pkcs7_data,
-    __name__,
-    (
-        "PKCS#7 support in pyOpenSSL is deprecated. You should use the APIs "
-        "in cryptography."
-    ),
-    DeprecationWarning,
-    name="load_pkcs7_data",
-)
-
-
-def load_pkcs12(
-    buffer: Union[str, bytes], passphrase: Optional[bytes] = None
-) -> PKCS12:
-    """
-    Load pkcs12 data from the string *buffer*. If the pkcs12 structure is
-    encrypted, a *passphrase* must be included.  The MAC is always
-    checked and thus required.
-
-    See also the man page for the C function :py:func:`PKCS12_parse`.
-
-    :param buffer: The buffer the certificate is stored in
-    :param passphrase: (Optional) The password to decrypt the PKCS12 lump
-    :returns: The PKCS12 object
-    """
-    passphrase = _text_to_bytes_and_warn("passphrase", passphrase)
-
-    if isinstance(buffer, str):
-        buffer = buffer.encode("ascii")
-
-    bio = _new_mem_buf(buffer)
-
-    # Use null passphrase if passphrase is None or empty string. With PKCS#12
-    # password based encryption no password and a zero length password are two
-    # different things, but OpenSSL implementation will try both to figure out
-    # which one works.
-    if not passphrase:
-        passphrase = _ffi.NULL
-
-    p12 = _lib.d2i_PKCS12_bio(bio, _ffi.NULL)
-    if p12 == _ffi.NULL:
-        _raise_current_error()
-    p12 = _ffi.gc(p12, _lib.PKCS12_free)
-
-    pkey = _ffi.new("EVP_PKEY**")
-    cert = _ffi.new("X509**")
-    cacerts = _ffi.new("Cryptography_STACK_OF_X509**")
-
-    parse_result = _lib.PKCS12_parse(p12, passphrase, pkey, cert, cacerts)
-    if not parse_result:
-        _raise_current_error()
-
-    cacerts = _ffi.gc(cacerts[0], _lib.sk_X509_free)
-
-    # openssl 1.0.0 sometimes leaves an X509_check_private_key error in the
-    # queue for no particular reason.  This error isn't interesting to anyone
-    # outside this function.  It's not even interesting to us.  Get rid of it.
-    try:
-        _raise_current_error()
-    except Error:
-        pass
-
-    if pkey[0] == _ffi.NULL:
-        pykey = None
-    else:
-        pykey = PKey.__new__(PKey)
-        pykey._pkey = _ffi.gc(pkey[0], _lib.EVP_PKEY_free)
-
-    if cert[0] == _ffi.NULL:
-        pycert = None
-        friendlyname = None
-    else:
-        pycert = X509._from_raw_x509_ptr(cert[0])
-
-        friendlyname_length = _ffi.new("int*")
-        friendlyname_buffer = _lib.X509_alias_get0(
-            cert[0], friendlyname_length
-        )
-        friendlyname = _ffi.buffer(
-            friendlyname_buffer, friendlyname_length[0]
-        )[:]
-        if friendlyname_buffer == _ffi.NULL:
-            friendlyname = None
-
-    pycacerts = []
-    for i in range(_lib.sk_X509_num(cacerts)):
-        x509 = _lib.sk_X509_value(cacerts, i)
-        pycacert = X509._from_raw_x509_ptr(x509)
-        pycacerts.append(pycacert)
-
-    pkcs12 = PKCS12.__new__(PKCS12)
-    pkcs12._pkey = pykey
-    pkcs12._cert = pycert
-    pkcs12._cacerts = pycacerts if pycacerts else None
-    pkcs12._friendlyname = friendlyname
-    return pkcs12
-
-
-utils.deprecated(
-    load_pkcs12,
-    __name__,
-    (
-        "PKCS#12 support in pyOpenSSL is deprecated. You should use the APIs "
-        "in cryptography."
-    ),
-    DeprecationWarning,
-    name="load_pkcs12",
-)
