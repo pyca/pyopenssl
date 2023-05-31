@@ -2769,7 +2769,7 @@ class TestConnection:
         ctx = Context(TLSv1_2_METHOD)
         ctx.use_privatekey(key)
         ctx.use_certificate(cert)
-        ctx.set_session_id("unity-test")
+        ctx.set_session_id(b"unity-test")
 
         def makeServer(socket):
             server = Connection(ctx, socket)
