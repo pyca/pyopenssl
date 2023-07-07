@@ -2387,10 +2387,6 @@ class TestConnection:
         clientSSL.connect((loopback_address(port), port.getsockname()[1]))
         # XXX An assertion?  Or something?
 
-    @pytest.mark.skipif(
-        platform == "darwin",
-        reason="connect_ex sometimes causes a kernel panic on OS X 10.6.4",
-    )
     def test_connect_ex(self):
         """
         If there is a connection error, `Connection.connect_ex` returns the
