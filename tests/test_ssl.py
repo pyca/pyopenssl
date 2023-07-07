@@ -32,7 +32,6 @@ from socket import (
 )
 from sys import getfilesystemencoding, platform
 from typing import Union
-from warnings import simplefilter
 from weakref import ref
 
 from cryptography import x509
@@ -3125,7 +3124,6 @@ class TestConnectionSend:
         """
         server, client = loopback()
         with pytest.warns(DeprecationWarning) as w:
-            simplefilter("always")
             count = server.send(b"xy".decode("ascii"))
             assert "{0} for buf is no longer accepted, use bytes".format(
                 WARNING_TYPE_EXPECTED
@@ -3333,7 +3331,6 @@ class TestConnectionSendall:
         """
         server, client = loopback()
         with pytest.warns(DeprecationWarning) as w:
-            simplefilter("always")
             server.sendall(b"x".decode("ascii"))
             assert "{0} for buf is no longer accepted, use bytes".format(
                 WARNING_TYPE_EXPECTED
