@@ -1179,7 +1179,7 @@ class TestContext:
     @pytest.mark.skipif(
         not platform.startswith("linux"),
         reason="Loading fallback paths is a linux-specific behavior to "
-        "accommodate pyca/cryptography manylinux1 wheels",
+        "accommodate pyca/cryptography manylinux wheels",
     )
     def test_fallback_default_verify_paths(self, monkeypatch):
         """

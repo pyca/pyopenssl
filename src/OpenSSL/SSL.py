@@ -955,9 +955,9 @@ class Context:
             the ``openssl@1.1`` `Homebrew <https://brew.sh>`_ formula installed
             in the default location.
         *   Windows will not work.
-        *   manylinux1 cryptography wheels will work on most common Linux
+        *   manylinux cryptography wheels will work on most common Linux
             distributions in pyOpenSSL 17.1.0 and above.  pyOpenSSL detects the
-            manylinux1 wheel and attempts to load roots via a fallback path.
+            manylinux wheel and attempts to load roots via a fallback path.
 
         :return: None
         """
@@ -982,13 +982,13 @@ class Context:
             default_dir = _ffi.string(_lib.X509_get_default_cert_dir())
             default_file = _ffi.string(_lib.X509_get_default_cert_file())
             # Now we check to see if the default_dir and default_file are set
-            # to the exact values we use in our manylinux1 builds. If they are
+            # to the exact values we use in our manylinux builds. If they are
             # then we know to load the fallbacks
             if (
                 default_dir == _CRYPTOGRAPHY_MANYLINUX_CA_DIR
                 and default_file == _CRYPTOGRAPHY_MANYLINUX_CA_FILE
             ):
-                # This is manylinux1, let's load our fallback paths
+                # This is manylinux, let's load our fallback paths
                 self._fallback_default_verify_paths(
                     _CERTIFICATE_FILE_LOCATIONS, _CERTIFICATE_PATH_LOCATIONS
                 )
@@ -1007,7 +1007,7 @@ class Context:
     def _fallback_default_verify_paths(self, file_path, dir_path):
         """
         Default verify paths are based on the compiled version of OpenSSL.
-        However, when pyca/cryptography is compiled as a manylinux1 wheel
+        However, when pyca/cryptography is compiled as a manylinux wheel
         that compiled location can potentially be wrong. So, like Go, we
         will try a predefined set of paths and attempt to load roots
         from there.
