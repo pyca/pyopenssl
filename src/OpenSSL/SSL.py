@@ -217,6 +217,12 @@ try:
 except AttributeError:
     pass
 
+try:
+    OP_LEGACY_SERVER_CONNECT = _lib.SSL_OP_LEGACY_SERVER_CONNECT
+    __all__.append("OP_LEGACY_SERVER_CONNECT")
+except AttributeError:
+    pass
+
 OP_ALL = _lib.SSL_OP_ALL
 
 VERIFY_PEER = _lib.SSL_VERIFY_PEER
