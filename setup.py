@@ -45,18 +45,22 @@ def find_meta(meta):
 
 
 URI = find_meta("uri")
-LONG = (
-    read_file("README.rst")
-    + "\n\n"
-    + "Release Information\n"
-    + "===================\n\n"
-    + re.search(
+description_version = re.search(
         r"(\d{2}.\d.\d \(.*?\)\n.*?)\n\n\n----\n",
         read_file("CHANGELOG.rst"),
-        re.S,
-    ).group(1)
-    + "\n\n`Full changelog "
-    + "<{uri}en/stable/changelog.html>`_.\n\n"
+        re.S,)
+if description_version is not None:
+    description_version = description_version.group(1)
+else:
+    description_version = "No version found"
+LONG = (
+        read_file("README.rst")
+        + "\n\n"
+        + "Release Information\n"
+        + "===================\n\n"
+        + description_version
+        + "\n\n`Full changelog "
+        + "<{uri}en/stable/changelog.html>`_.\n\n"
 ).format(uri=URI)
 
 
