@@ -25,6 +25,9 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- Fix X509Extension __str__() method for unknown extension types
+  `#1239 <https://github.com/pyca/pyopenssl/pull/1239>`_.
+  
 23.2.0 (2023-05-30)
 -------------------
 
