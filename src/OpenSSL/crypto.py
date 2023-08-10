@@ -606,7 +606,7 @@ class X509Name:
 
         # Note: we really do not want str subclasses here, so we do not use
         # isinstance.
-        if type(name) is not str:
+        if type(name) is not str:  # noqa: E721
             raise TypeError(
                 "attribute name must be string, not '%.200s'"
                 % (type(value).__name__,)
