@@ -850,7 +850,10 @@ class Context:
         self._cookie_generate_helper = None
         self._cookie_verify_helper = None
 
-        self.set_mode(_lib.SSL_MODE_ENABLE_PARTIAL_WRITE | _lib.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER)
+        self.set_mode(
+            _lib.SSL_MODE_ENABLE_PARTIAL_WRITE
+            | _lib.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
+        )
         if version is not None:
             self.set_min_proto_version(version)
             self.set_max_proto_version(version)
