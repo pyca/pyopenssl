@@ -1,6 +1,7 @@
 import calendar
 import datetime
 import functools
+import typing
 from base64 import b16encode
 from functools import partial
 from os import PathLike
@@ -22,22 +23,35 @@ from cryptography import utils, x509
 from cryptography.hazmat.primitives.asymmetric import (
     dsa,
     ec,
-    ed25519,
     ed448,
+    ed25519,
     rsa,
 )
 
 from OpenSSL._util import (
     UNSPECIFIED as _UNSPECIFIED,
+)
+from OpenSSL._util import (
     byte_string as _byte_string,
+)
+from OpenSSL._util import (
     exception_from_error_queue as _exception_from_error_queue,
+)
+from OpenSSL._util import (
     ffi as _ffi,
+)
+from OpenSSL._util import (
     lib as _lib,
+)
+from OpenSSL._util import (
     make_assert as _make_assert,
+)
+from OpenSSL._util import (
     path_bytes as _path_bytes,
+)
+from OpenSSL._util import (
     text_to_bytes_and_warn as _text_to_bytes_and_warn,
 )
-
 
 __all__ = [
     "FILETYPE_PEM",
@@ -111,7 +125,7 @@ def _untested_error(where: str) -> NoReturn:
     encountered isn't one that's exercised by the test suite so future behavior
     of pyOpenSSL is now somewhat less predictable.
     """
-    raise RuntimeError("Unknown %s failure" % (where,))
+    raise RuntimeError(f"Unknown {where} failure")
 
 
 def _new_mem_buf(buffer: Optional[bytes] = None) -> Any:
@@ -448,7 +462,7 @@ class _EllipticCurve:
         circumstance.
         """
         if isinstance(other, _EllipticCurve):
-            return super(_EllipticCurve, self).__ne__(other)
+            return super().__ne__(other)
         return NotImplemented
 
     @classmethod
@@ -518,7 +532,7 @@ class _EllipticCurve:
         self.name = name
 
     def __repr__(self) -> str:
-        return "<Curve %r>" % (self.name,)
+        return f"<Curve {self.name!r}>"
 
     def _to_EC_KEY(self) -> Any:
         """
@@ -602,14 +616,15 @@ class X509Name:
 
     def __setattr__(self, name: str, value: Any) -> None:
         if name.startswith("_"):
-            return super(X509Name, self).__setattr__(name, value)
+            return super().__setattr__(name, value)
 
         # Note: we really do not want str subclasses here, so we do not use
         # isinstance.
         if type(name) is not str:  # noqa: E721
             raise TypeError(
-                "attribute name must be string, not '%.200s'"
-                % (type(value).__name__,)
+                "attribute name must be string, not '{:.200}'".format(
+                    type(value).__name__
+                )
             )
 
         nid = _lib.OBJ_txt2nid(_byte_string(name))
@@ -701,7 +716,7 @@ class X509Name:
         )
         _openssl_assert(format_result != _ffi.NULL)
 
-        return "<X509Name object '%s'>" % (
+        return "<X509Name object '{}'>".format(
             _ffi.string(result_buffer).decode("utf-8"),
         )
 
@@ -839,7 +854,7 @@ class X509Extension:
             _lib.X509_EXTENSION_get_object(self._extension)
         )
 
-    _prefixes = {
+    _prefixes: typing.ClassVar[typing.Dict[int, str]] = {
         _lib.GEN_EMAIL: "email",
         _lib.GEN_DNS: "DNS",
         _lib.GEN_URI: "URI",
@@ -1814,7 +1829,7 @@ class X509StoreContextError(Exception):
     def __init__(
         self, message: str, errors: List[Any], certificate: X509
     ) -> None:
-        super(X509StoreContextError, self).__init__(message)
+        super().__init__(message)
         self.errors = errors
         self.certificate = certificate
 
@@ -2166,7 +2181,7 @@ class Revoked:
     # which differs from crl_reasons of crypto/x509v3/v3_enum.c that matches
     # OCSP_crl_reason_str.  We use the latter, just like the command line
     # program.
-    _crl_reasons = [
+    _crl_reasons: typing.ClassVar[typing.List[bytes]] = [
         b"unspecified",
         b"keyCompromise",
         b"CACompromise",
@@ -2667,7 +2682,7 @@ class PKCS12:
             self._friendlyname = None
         elif not isinstance(name, bytes):
             raise TypeError(
-                "name must be a byte string or None (not %r)" % (name,)
+                f"name must be a byte string or None (not {name!r})"
             )
         self._friendlyname = name
 
