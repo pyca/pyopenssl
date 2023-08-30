@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # pyOpenSSL documentation build configuration file, created by
 # sphinx-quickstart on Sat Jul 16 07:12:22 2011.
@@ -15,7 +14,6 @@ import codecs
 import os
 import re
 import sys
-
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 
