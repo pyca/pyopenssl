@@ -47,7 +47,7 @@ jobs:
           - {VERSION: "3.9", TOXENV: "docs"}
     name: "${{ matrix.PYTHON.TOXENV }}${{ matrix.PYTHON.OS && format(' on {0}', matrix.PYTHON.OS) || '' }}"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup python
         uses: actions/setup-python@v4
         with:
@@ -71,7 +71,7 @@ jobs:
           - {CONTAINER: "ubuntu-rolling", TOXENV: "py311-cryptographyMain"}
     name: "${{ matrix.TEST.TOXENV }} on ${{ matrix.TEST.CONTAINER }}"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: /venv/bin/pip install tox
       - run: /venv/bin/tox -v
         env:
