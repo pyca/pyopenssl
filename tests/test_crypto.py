@@ -10,26 +10,25 @@ import warnings
 from datetime import datetime, timedelta, timezone
 from subprocess import PIPE, Popen
 
+import flaky
+import pytest
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec, ed25519, ed448, rsa
+from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, rsa
 
-import flaky
-
-import pytest
-
-from OpenSSL._util import ffi as _ffi, lib as _lib
+from OpenSSL._util import ffi as _ffi
+from OpenSSL._util import lib as _lib
 from OpenSSL.crypto import (
     CRL,
-    Error,
     FILETYPE_ASN1,
     FILETYPE_PEM,
     FILETYPE_TEXT,
-    PKey,
-    Revoked,
     TYPE_DSA,
     TYPE_RSA,
     X509,
+    Error,
+    PKey,
+    Revoked,
     X509Extension,
     X509Name,
     X509Req,
@@ -57,9 +56,9 @@ with pytest.warns(DeprecationWarning):
     from OpenSSL.crypto import PKCS12, NetscapeSPKI
 
 from .util import (
-    EqualityTestsMixin,
     NON_ASCII,
     WARNING_TYPE_EXPECTED,
+    EqualityTestsMixin,
     is_consistent_type,
 )
 
@@ -2581,7 +2580,7 @@ class TestPKCS12:
         with pytest.warns(DeprecationWarning) as w:
             warnings.simplefilter("always")
             dumped_p12 = p12.export(passphrase=b"randomtext".decode("ascii"))
-            msg = "{0} for passphrase is no longer accepted, use bytes".format(
+            msg = "{} for passphrase is no longer accepted, use bytes".format(
                 WARNING_TYPE_EXPECTED
             )
             assert msg == str(w[-1].message)
@@ -2607,7 +2606,7 @@ def _runopenssl(pem, *args):
     Run the command line openssl tool with the given arguments and write
     the given PEM to its stdin.  Not safe for quotes.
     """
-    proc = Popen([b"openssl"] + list(args), stdin=PIPE, stdout=PIPE)
+    proc = Popen([b"openssl", *list(args)], stdin=PIPE, stdout=PIPE)
     proc.stdin.write(pem)
     proc.stdin.close()
     output = proc.stdout.read()
@@ -3908,7 +3907,7 @@ class TestX509StoreContext:
 
     @staticmethod
     def _create_ca_file(base_path, hash_directory, cacert):
-        ca_hash = "{:08x}.0".format(cacert.subject_name_hash())
+        ca_hash = f"{cacert.subject_name_hash():08x}.0"
         cafile = base_path.join(hash_directory, ca_hash)
         cafile.write_binary(
             dump_certificate(FILETYPE_PEM, cacert), ensure=True
@@ -4041,14 +4040,14 @@ class TestSignVerify:
             with pytest.warns(DeprecationWarning) as w:
                 warnings.simplefilter("always")
                 sig = sign(priv_key, content, digest)
-            assert "{0} for data is no longer accepted, use bytes".format(
+            assert "{} for data is no longer accepted, use bytes".format(
                 WARNING_TYPE_EXPECTED
             ) == str(w[-1].message)
 
             with pytest.warns(DeprecationWarning) as w:
                 warnings.simplefilter("always")
                 verify(cert, sig, content, digest)
-            assert "{0} for data is no longer accepted, use bytes".format(
+            assert "{} for data is no longer accepted, use bytes".format(
                 WARNING_TYPE_EXPECTED
             ) == str(w[-1].message)
 
@@ -4132,7 +4131,7 @@ class TestEllipticCurve:
         """
         curves = get_elliptic_curves()
         curve = next(iter(curves))
-        assert "<Curve %r>" % (curve.name,) == repr(curve)
+        assert f"<Curve {curve.name!r}>" == repr(curve)
 
     def test_to_EC_KEY(self):
         """

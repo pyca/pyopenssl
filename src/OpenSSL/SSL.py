@@ -1,5 +1,6 @@
 import os
 import socket
+import typing
 from errno import errorcode
 from functools import partial, wraps
 from itertools import chain, count
@@ -8,18 +9,32 @@ from weakref import WeakValueDictionary
 
 from OpenSSL._util import (
     UNSPECIFIED as _UNSPECIFIED,
+)
+from OpenSSL._util import (
     exception_from_error_queue as _exception_from_error_queue,
+)
+from OpenSSL._util import (
     ffi as _ffi,
+)
+from OpenSSL._util import (
     lib as _lib,
+)
+from OpenSSL._util import (
     make_assert as _make_assert,
+)
+from OpenSSL._util import (
     no_zero_allocator as _no_zero_allocator,
+)
+from OpenSSL._util import (
     path_bytes as _path_bytes,
+)
+from OpenSSL._util import (
     text_to_bytes_and_warn as _text_to_bytes_and_warn,
 )
 from OpenSSL.crypto import (
     FILETYPE_PEM,
-    PKey,
     X509,
+    PKey,
     X509Name,
     X509Store,
     _PassphraseHelper,
@@ -803,7 +818,7 @@ class Context:
                    not be used.
     """
 
-    _methods = {
+    _methods: typing.ClassVar[typing.Dict] = {
         SSLv23_METHOD: (_lib.TLS_method, None),
         TLSv1_METHOD: (_lib.TLS_method, TLS1_VERSION),
         TLSv1_1_METHOD: (_lib.TLS_method, TLS1_1_VERSION),
@@ -1373,8 +1388,8 @@ class Context:
             for ca_name in certificate_authorities:
                 if not isinstance(ca_name, X509Name):
                     raise TypeError(
-                        "client CAs must be X509Name objects, not %s "
-                        "objects" % (type(ca_name).__name__,)
+                        "client CAs must be X509Name objects, not {} "
+                        "objects".format(type(ca_name).__name__)
                     )
                 copy = _lib.X509_NAME_dup(ca_name._name)
                 _openssl_assert(copy != _ffi.NULL)
@@ -1777,8 +1792,7 @@ class Connection:
         """
         if self._socket is None:
             raise AttributeError(
-                "'%s' object has no attribute '%s'"
-                % (self.__class__.__name__, name)
+                f"'{self.__class__.__name__}' object has no attribute '{name}'"
             )
         else:
             return getattr(self._socket, name)

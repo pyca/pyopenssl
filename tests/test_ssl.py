@@ -27,41 +27,46 @@ from socket import (
     AF_INET6,
     MSG_PEEK,
     SHUT_RDWR,
-    error,
     socket,
 )
 from sys import getfilesystemencoding, platform
 from typing import Union
 from weakref import ref
 
+import flaky
+import pytest
 from cryptography import x509
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
-
-import flaky
-
 from pretend import raiser
 
-import pytest
-
 from OpenSSL import SSL
+from OpenSSL._util import ffi as _ffi
+from OpenSSL._util import lib as _lib
+from OpenSSL.crypto import (
+    FILETYPE_PEM,
+    TYPE_RSA,
+    X509,
+    PKey,
+    X509Extension,
+    X509Store,
+    dump_certificate,
+    dump_privatekey,
+    get_elliptic_curves,
+    load_certificate,
+    load_privatekey,
+)
 from OpenSSL.SSL import (
-    Connection,
-    Context,
     DTLS_METHOD,
-    Error,
     MODE_RELEASE_BUFFERS,
     NO_OVERLAPPING_PROTOCOLS,
-    OPENSSL_VERSION_NUMBER,
     OP_COOKIE_EXCHANGE,
     OP_NO_COMPRESSION,
     OP_NO_QUERY_MTU,
-    OP_NO_SSLv2,
-    OP_NO_SSLv3,
     OP_NO_TICKET,
     OP_SINGLE_DH_USE,
+    OPENSSL_VERSION_NUMBER,
     RECEIVED_SHUTDOWN,
     SENT_SHUTDOWN,
     SESS_CACHE_BOTH,
@@ -72,11 +77,6 @@ from OpenSSL.SSL import (
     SESS_CACHE_NO_INTERNAL_STORE,
     SESS_CACHE_OFF,
     SESS_CACHE_SERVER,
-    SSLEAY_BUILT_ON,
-    SSLEAY_CFLAGS,
-    SSLEAY_DIR,
-    SSLEAY_PLATFORM,
-    SSLEAY_VERSION,
     SSL_CB_ACCEPT_EXIT,
     SSL_CB_ACCEPT_LOOP,
     SSL_CB_ALERT,
@@ -93,45 +93,41 @@ from OpenSSL.SSL import (
     SSL_ST_ACCEPT,
     SSL_ST_CONNECT,
     SSL_ST_MASK,
-    SSLeay_version,
-    SSLv23_METHOD,
-    Session,
-    SysCallError,
+    SSLEAY_BUILT_ON,
+    SSLEAY_CFLAGS,
+    SSLEAY_DIR,
+    SSLEAY_PLATFORM,
+    SSLEAY_VERSION,
     TLS1_1_VERSION,
     TLS1_2_VERSION,
     TLS1_3_VERSION,
     TLS_METHOD,
-    TLSv1_1_METHOD,
-    TLSv1_2_METHOD,
-    TLSv1_METHOD,
     VERIFY_CLIENT_ONCE,
     VERIFY_FAIL_IF_NO_PEER_CERT,
     VERIFY_NONE,
     VERIFY_PEER,
+    Connection,
+    Context,
+    Error,
+    OP_NO_SSLv2,
+    OP_NO_SSLv3,
+    Session,
+    SSLeay_version,
+    SSLv23_METHOD,
+    SysCallError,
+    TLSv1_1_METHOD,
+    TLSv1_2_METHOD,
+    TLSv1_METHOD,
     WantReadError,
     WantWriteError,
     ZeroReturnError,
     _make_requires,
 )
-from OpenSSL._util import ffi as _ffi, lib as _lib
-from OpenSSL.crypto import (
-    FILETYPE_PEM,
-    PKey,
-    TYPE_RSA,
-    X509,
-    X509Extension,
-    X509Store,
-    dump_certificate,
-    dump_privatekey,
-    get_elliptic_curves,
-    load_certificate,
-    load_privatekey,
-)
 
 try:
     from OpenSSL.SSL import (
-        SSL_ST_INIT,
         SSL_ST_BEFORE,
+        SSL_ST_INIT,
         SSL_ST_OK,
         SSL_ST_RENEGOTIATE,
     )
@@ -153,7 +149,6 @@ from .test_crypto import (
 )
 from .util import NON_ASCII, WARNING_TYPE_EXPECTED, is_consistent_type
 
-
 # openssl dhparam 2048 -out dh-2048.pem
 dhparam = """\
 -----BEGIN DH PARAMETERS-----
@@ -170,7 +165,7 @@ i5s5yYK7a/0eWxxRr2qraYaUj8RwDpH9CwIBAg==
 def socket_any_family():
     try:
         return socket(AF_INET)
-    except error as e:
+    except OSError as e:
         if e.errno == EAFNOSUPPORT:
             return socket(AF_INET6)
         raise
@@ -641,7 +636,7 @@ class TestContext:
         key = PKey()
         key.generate_key(TYPE_RSA, 1024)
 
-        with open(pemfile, "wt") as pem:
+        with open(pemfile, "w") as pem:
             pem.write(dump_privatekey(FILETYPE_PEM, key).decode("ascii"))
 
         ctx = Context(SSLv23_METHOD)
@@ -1723,7 +1718,7 @@ class TestContext:
         """
         context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
-            context.set_tlsext_use_srtp(str("SRTP_AES128_CM_SHA1_80"))
+            context.set_tlsext_use_srtp("SRTP_AES128_CM_SHA1_80")
 
     def test_set_tlsext_use_srtp_invalid_profile(self):
         """
@@ -1782,7 +1777,7 @@ class TestServerNameCallback:
         if callback is not None:
             referrers = get_referrers(callback)
             if len(referrers) > 1:  # pragma: nocover
-                pytest.fail("Some references remain: %r" % (referrers,))
+                pytest.fail(f"Some references remain: {referrers!r}")
 
     def test_no_servername(self):
         """
@@ -2370,7 +2365,7 @@ class TestConnection:
         # 2.6: https://github.com/pytest-dev/pytest/issues/988
         try:
             clientSSL.connect((loopback_address(client), 1))
-        except error as e:
+        except OSError as e:
             exc = e
         assert exc.args[0] == ECONNREFUSED
 
@@ -2708,7 +2703,7 @@ class TestConnection:
         if callback is not None:  # pragma: nocover
             referrers = get_referrers(callback)
             if len(referrers) > 1:
-                pytest.fail("Some references remain: %r" % (referrers,))
+                pytest.fail(f"Some references remain: {referrers!r}")
 
     def test_get_session_unconnected(self):
         """
@@ -2850,7 +2845,7 @@ class TestConnection:
             for i in range(1024 * 1024 * 64):
                 try:
                     client_socket.send(msg)
-                except error as e:
+                except OSError as e:
                     if e.errno == EWOULDBLOCK:
                         break
                     raise  # pragma: no cover
@@ -3121,7 +3116,7 @@ class TestConnectionSend:
         server, client = loopback()
         with pytest.warns(DeprecationWarning) as w:
             count = server.send(b"xy".decode("ascii"))
-            assert "{0} for buf is no longer accepted, use bytes".format(
+            assert "{} for buf is no longer accepted, use bytes".format(
                 WARNING_TYPE_EXPECTED
             ) == str(w[-1].message)
         assert count == 2
@@ -3328,7 +3323,7 @@ class TestConnectionSendall:
         server, client = loopback()
         with pytest.warns(DeprecationWarning) as w:
             server.sendall(b"x".decode("ascii"))
-            assert "{0} for buf is no longer accepted, use bytes".format(
+            assert "{} for buf is no longer accepted, use bytes".format(
                 WARNING_TYPE_EXPECTED
             ) == str(w[-1].message)
         assert client.recv(1) == b"x"
