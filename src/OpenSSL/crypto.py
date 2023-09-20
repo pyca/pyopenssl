@@ -1720,7 +1720,7 @@ class X509Store:
         res = _lib.X509_STORE_add_cert(self._store, cert._x509)
         _openssl_assert(res == 1)
 
-    def add_crl(self, crl: "CRL") -> None:
+    def add_crl(self, crl: "_CRLInternal") -> None:
         """
         Add a certificate revocation list to this store.
 
@@ -2404,7 +2404,7 @@ class CRL:
     @classmethod
     def from_cryptography(
         cls, crypto_crl: x509.CertificateRevocationList
-    ) -> "CRL":
+    ) -> "_CRLInternal":
         """
         Construct based on a ``cryptography`` *crypto_crl*.
 
@@ -2445,7 +2445,7 @@ class CRL:
             return tuple(results)
         return None
 
-    def add_revoked(self, revoked: Revoked) -> None:
+    def add_revoked(self, revoked: _RevokedInternal) -> None:
         """
         Add a revoked (by value not reference) to the CRL structure
 
@@ -3222,7 +3222,7 @@ utils.deprecated(
 )
 
 
-def dump_crl(type: int, crl: CRL) -> bytes:
+def dump_crl(type: int, crl: _CRLInternal) -> bytes:
     """
     Dump a certificate revocation list to a buffer.
 
@@ -3264,7 +3264,7 @@ utils.deprecated(
 )
 
 
-def load_crl(type: int, buffer: Union[str, bytes]) -> CRL:
+def load_crl(type: int, buffer: Union[str, bytes]) -> _CRLInternal:
     """
     Load Certificate Revocation List (CRL) data from a string *buffer*.
     *buffer* encoded with the type *type*.
