@@ -1720,7 +1720,9 @@ class X509Store:
         res = _lib.X509_STORE_add_cert(self._store, cert._x509)
         _openssl_assert(res == 1)
 
-    def add_crl(self, crl: "_CRLInternal") -> None:
+    def add_crl(
+        self, crl: Union["_CRLInternal", x509.CertificateRevocationList]
+    ) -> None:
         """
         Add a certificate revocation list to this store.
 
@@ -1730,11 +1732,29 @@ class X509Store:
 
         .. versionadded:: 16.1.0
 
-        :param CRL crl: The certificate revocation list to add to this store.
+        :param crl: The certificate revocation list to add to this store.
+        :type crl: ``Union[CRL, cryptography.x509.CertificateRevocationList]``
         :return: ``None`` if the certificate revocation list was added
             successfully.
         """
-        _openssl_assert(_lib.X509_STORE_add_crl(self._store, crl._crl) != 0)
+        if isinstance(crl, x509.CertificateRevocationList):
+            from cryptography.hazmat.primitives.serialization import Encoding
+
+            bio = _new_mem_buf(crl.public_bytes(Encoding.DER))
+            openssl_crl = _lib.d2i_X509_CRL_bio(bio, _ffi.NULL)
+            if openssl_crl == _ffi.NULL:
+                _raise_current_error()
+
+            crl = _ffi.gc(openssl_crl, _lib.X509_CRL_free)
+        elif isinstance(crl, _CRLInternal):
+            crl = crl._crl
+        else:
+            raise TypeError(
+                "CRL must be of type OpenSSL.crypto.CRL or "
+                "cryptography.x509.CertificateRevocationList"
+            )
+
+        _openssl_assert(_lib.X509_STORE_add_crl(self._store, crl) != 0)
 
     def set_flags(self, flags: int) -> None:
         """

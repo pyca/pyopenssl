@@ -13,7 +13,7 @@ from subprocess import PIPE, Popen
 import flaky
 import pytest
 from cryptography import x509
-from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, rsa
 
 from OpenSSL._util import ffi as _ffi
@@ -3505,7 +3505,8 @@ class TestCRL:
         buf = dump_crl(FILETYPE_PEM, crl)
         assert buf == crlData
 
-    def _make_test_crl(self, issuer_cert, issuer_key, certs=()):
+    @staticmethod
+    def _make_test_crl(issuer_cert, issuer_key, certs=()):
         """
         Create a CRL.
 
@@ -3531,7 +3532,55 @@ class TestCRL:
         crl.sign(issuer_cert, issuer_key, digest=b"sha512")
         return crl
 
-    def test_verify_with_revoked(self):
+    @staticmethod
+    def _make_test_crl_cryptography(issuer_cert, issuer_key, certs=()):
+        """
+        Create a CRL using cryptography's API.
+
+        :param list[X509] certs: A list of certificates to revoke.
+        :rtype: ``cryptography.x509.CertificateRevocationList``
+        """
+        from cryptography.x509.extensions import CRLReason, ReasonFlags
+
+        builder = x509.CertificateRevocationListBuilder()
+        builder = builder.issuer_name(
+            X509.to_cryptography(issuer_cert).subject
+        )
+        for cert in certs:
+            revoked = (
+                x509.RevokedCertificateBuilder()
+                .serial_number(cert.get_serial_number())
+                .revocation_date(datetime(2014, 6, 1, 0, 0, 0))
+                .add_extension(CRLReason(ReasonFlags.unspecified), False)
+                .build()
+            )
+            builder = builder.add_revoked_certificate(revoked)
+
+        builder = builder.last_update(datetime(2014, 6, 1, 0, 0, 0))
+        # The year 5000 is far into the future so that this CRL isn't
+        # considered to have expired.
+        builder = builder.next_update(datetime(5000, 6, 1, 0, 0, 0))
+
+        crl = builder.sign(
+            private_key=PKey.to_cryptography_key(issuer_key),
+            algorithm=hashes.SHA512(),
+        )
+        return crl
+
+    @pytest.mark.parametrize(
+        "create_crl",
+        [
+            pytest.param(
+                _make_test_crl.__func__,
+                id="pyOpenSSL CRL",
+            ),
+            pytest.param(
+                _make_test_crl_cryptography.__func__,
+                id="cryptography CRL",
+            ),
+        ],
+    )
+    def test_verify_with_revoked(self, create_crl):
         """
         `verify_certificate` raises error when an intermediate certificate is
         revoked.
@@ -3539,10 +3588,10 @@ class TestCRL:
         store = X509Store()
         store.add_cert(self.root_cert)
         store.add_cert(self.intermediate_cert)
-        root_crl = self._make_test_crl(
+        root_crl = create_crl(
             self.root_cert, self.root_key, certs=[self.intermediate_cert]
         )
-        intermediate_crl = self._make_test_crl(
+        intermediate_crl = create_crl(
             self.intermediate_cert, self.intermediate_key, certs=[]
         )
         store.add_crl(root_crl)
@@ -3555,7 +3604,20 @@ class TestCRL:
             store_ctx.verify_certificate()
         assert str(err.value) == "certificate revoked"
 
-    def test_verify_with_missing_crl(self):
+    @pytest.mark.parametrize(
+        "create_crl",
+        [
+            pytest.param(
+                _make_test_crl.__func__,
+                id="pyOpenSSL CRL",
+            ),
+            pytest.param(
+                _make_test_crl_cryptography.__func__,
+                id="cryptography CRL",
+            ),
+        ],
+    )
+    def test_verify_with_missing_crl(self, create_crl):
         """
         `verify_certificate` raises error when an intermediate certificate's
         CRL is missing.
@@ -3563,7 +3625,7 @@ class TestCRL:
         store = X509Store()
         store.add_cert(self.root_cert)
         store.add_cert(self.intermediate_cert)
-        root_crl = self._make_test_crl(
+        root_crl = create_crl(
             self.root_cert, self.root_key, certs=[self.intermediate_cert]
         )
         store.add_crl(root_crl)
