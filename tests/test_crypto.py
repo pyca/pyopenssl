@@ -19,7 +19,6 @@ from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, rsa
 from OpenSSL._util import ffi as _ffi
 from OpenSSL._util import lib as _lib
 from OpenSSL.crypto import (
-    CRL,
     FILETYPE_ASN1,
     FILETYPE_PEM,
     FILETYPE_TEXT,
@@ -28,7 +27,6 @@ from OpenSSL.crypto import (
     X509,
     Error,
     PKey,
-    Revoked,
     X509Extension,
     X509Name,
     X509Req,
@@ -38,14 +36,12 @@ from OpenSSL.crypto import (
     X509StoreFlags,
     dump_certificate,
     dump_certificate_request,
-    dump_crl,
     dump_privatekey,
     dump_publickey,
     get_elliptic_curve,
     get_elliptic_curves,
     load_certificate,
     load_certificate_request,
-    load_crl,
     load_privatekey,
     load_publickey,
     sign,
@@ -53,7 +49,14 @@ from OpenSSL.crypto import (
 )
 
 with pytest.warns(DeprecationWarning):
-    from OpenSSL.crypto import PKCS12, NetscapeSPKI
+    from OpenSSL.crypto import (
+        CRL,
+        PKCS12,
+        NetscapeSPKI,
+        Revoked,
+        dump_crl,
+        load_crl,
+    )
 
 from .util import (
     NON_ASCII,

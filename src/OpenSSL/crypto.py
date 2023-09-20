@@ -2349,6 +2349,19 @@ class Revoked:
         return _get_asn1_time(dt)
 
 
+_RevokedInternal = Revoked
+utils.deprecated(
+    Revoked,
+    __name__,
+    (
+        "CRL support in pyOpenSSL is deprecated. You should use the APIs "
+        "in cryptography."
+    ),
+    DeprecationWarning,
+    name="Revoked",
+)
+
+
 class CRL:
     """
     A certificate revocation list.
@@ -2368,7 +2381,7 @@ class CRL:
         """
         from cryptography.x509 import load_der_x509_crl
 
-        der = dump_crl(FILETYPE_ASN1, self)
+        der = _dump_crl_internal(FILETYPE_ASN1, self)
         return load_der_x509_crl(der)
 
     @classmethod
@@ -2391,9 +2404,9 @@ class CRL:
         from cryptography.hazmat.primitives.serialization import Encoding
 
         der = crypto_crl.public_bytes(Encoding.DER)
-        return load_crl(FILETYPE_ASN1, der)
+        return _load_crl_internal(FILETYPE_ASN1, der)
 
-    def get_revoked(self) -> Optional[Tuple[Revoked, ...]]:
+    def get_revoked(self) -> Optional[Tuple[_RevokedInternal, ...]]:
         """
         Return the revocations in this certificate revocation list.
 
@@ -2408,7 +2421,7 @@ class CRL:
         for i in range(_lib.sk_X509_REVOKED_num(revoked_stack)):
             revoked = _lib.sk_X509_REVOKED_value(revoked_stack, i)
             revoked_copy = _lib.X509_REVOKED_dup(revoked)
-            pyrev = Revoked.__new__(Revoked)
+            pyrev = _RevokedInternal.__new__(_RevokedInternal)
             pyrev._revoked = _ffi.gc(revoked_copy, _lib.X509_REVOKED_free)
             results.append(pyrev)
         if results:
@@ -2578,7 +2591,20 @@ class CRL:
         if not sign_result:
             _raise_current_error()
 
-        return dump_crl(type, self)
+        return _dump_crl_internal(type, self)
+
+
+_CRLInternal = CRL
+utils.deprecated(
+    CRL,
+    __name__,
+    (
+        "CRL support in pyOpenSSL is deprecated. You should use the APIs "
+        "in cryptography."
+    ),
+    DeprecationWarning,
+    name="CRL",
+)
 
 
 class PKCS12:
@@ -3190,6 +3216,19 @@ def dump_crl(type: int, crl: CRL) -> bytes:
     return _bio_to_string(bio)
 
 
+_dump_crl_internal = dump_crl
+utils.deprecated(
+    dump_crl,
+    __name__,
+    (
+        "CRL support in pyOpenSSL is deprecated. You should use the APIs "
+        "in cryptography."
+    ),
+    DeprecationWarning,
+    name="dump_crl",
+)
+
+
 def load_crl(type: int, buffer: Union[str, bytes]) -> CRL:
     """
     Load Certificate Revocation List (CRL) data from a string *buffer*.
@@ -3215,6 +3254,19 @@ def load_crl(type: int, buffer: Union[str, bytes]) -> CRL:
     if crl == _ffi.NULL:
         _raise_current_error()
 
-    result = CRL.__new__(CRL)
+    result = _CRLInternal.__new__(_CRLInternal)
     result._crl = _ffi.gc(crl, _lib.X509_CRL_free)
     return result
+
+
+_load_crl_internal = load_crl
+utils.deprecated(
+    load_crl,
+    __name__,
+    (
+        "CRL support in pyOpenSSL is deprecated. You should use the APIs "
+        "in cryptography."
+    ),
+    DeprecationWarning,
+    name="load_crl",
+)

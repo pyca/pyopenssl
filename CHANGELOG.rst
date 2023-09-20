@@ -19,8 +19,11 @@ Backward-incompatible changes:
 Deprecations:
 ^^^^^^^^^^^^^
 
-- Deprecated ``OpenSSL.crypto.PKCS12`` (which was intended to have been deprecated at the same time as ``OpenSSL.crypto.loads_pkcs12``).
+- Deprecated ``OpenSSL.crypto.PKCS12`` (which was intended to have been deprecated at the same time as ``OpenSSL.crypto.load_pkcs12``).
 - Deprecated ``OpenSSL.crypto.NetscapeSPKI``.
+- Deprecated ``OpenSSL.crypto.CRL``
+- Deprecated ``OpenSSL.crypto.Revoked``
+- Deprecated ``OpenSSL.crypto.load_crl`` and ``OpenSSL.crypto.dump_crl``
 
 Changes:
 ^^^^^^^^
