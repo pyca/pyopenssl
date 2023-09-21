@@ -369,10 +369,13 @@ class PKey:
             if bits <= 0:
                 raise ValueError("Invalid number of bits")
 
-            # TODO Check error return
-            exponent = _lib.BN_new()
-            exponent = _ffi.gc(exponent, _lib.BN_free)
-            _lib.BN_set_word(exponent, _lib.RSA_F4)
+            exponent = _ffi.gc(_lib.BN_new(), _lib.BN_free)
+            exponent_ptr = _ffi.new("BIGNUM**")
+            exponent_ptr[0] = exponent
+            # Convert the RSA_F4 integer into its hex representation in bytes
+            rsa_f4 = bytes(hex(_lib.RSA_F4)[2:], encoding="ascii")
+            if not _lib.BN_hex2bn(exponent_ptr, rsa_f4):
+                raise RuntimeError("Failed to set exponent")
 
             rsa = _lib.RSA_new()
 
