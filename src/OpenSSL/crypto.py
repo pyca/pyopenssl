@@ -3149,6 +3149,15 @@ def sign(pkey: PKey, data: Union[str, bytes], digest: str) -> bytes:
     return _ffi.buffer(signature_buffer, signature_length[0])[:]
 
 
+utils.deprecated(
+    sign,
+    __name__,
+    "sign() is deprecated. Use the equivilant APIs in cryptography.",
+    DeprecationWarning,
+    name="sign",
+)
+
+
 def verify(
     cert: X509, signature: bytes, data: Union[str, bytes], digest: str
 ) -> None:
@@ -3185,6 +3194,15 @@ def verify(
 
     if verify_result != 1:
         _raise_current_error()
+
+
+utils.deprecated(
+    verify,
+    __name__,
+    "verify() is deprecated. Use the equivilant APIs in cryptography.",
+    DeprecationWarning,
+    name="verify",
+)
 
 
 def dump_crl(type: int, crl: CRL) -> bytes:
