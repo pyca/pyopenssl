@@ -49,7 +49,6 @@ from OpenSSL.crypto import (
     TYPE_RSA,
     X509,
     PKey,
-    X509Extension,
     X509Store,
     dump_certificate,
     dump_privatekey,
@@ -57,6 +56,10 @@ from OpenSSL.crypto import (
     load_certificate,
     load_privatekey,
 )
+
+with pytest.warns(DeprecationWarning):
+    from OpenSSL.crypto import X509Extension
+
 from OpenSSL.SSL import (
     DTLS_METHOD,
     MODE_RELEASE_BUFFERS,

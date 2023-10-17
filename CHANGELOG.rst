@@ -25,6 +25,7 @@ Deprecations:
 - Deprecated ``OpenSSL.crypto.Revoked``
 - Deprecated ``OpenSSL.crypto.load_crl`` and ``OpenSSL.crypto.dump_crl``
 - Deprecated ``OpenSSL.crypto.sign`` and ``OpenSSL.crypto.verify``
+- Deprecated ``OpenSSL.crypto.X509Extension``
 
 Changes:
 ^^^^^^^^

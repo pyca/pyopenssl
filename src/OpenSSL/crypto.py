@@ -941,6 +941,19 @@ class X509Extension:
         return _ffi.buffer(char_result, result_length)[:]
 
 
+_X509ExtensionInternal = X509Extension
+utils.deprecated(
+    X509Extension,
+    __name__,
+    (
+        "X509Extension support in pyOpenSSL is deprecated. You should use the "
+        "APIs in cryptography."
+    ),
+    DeprecationWarning,
+    name="X509Extension",
+)
+
+
 class X509Req:
     """
     An X.509 certificate signing requests.
@@ -1063,7 +1076,9 @@ class X509Req:
 
         return name
 
-    def add_extensions(self, extensions: Iterable[X509Extension]) -> None:
+    def add_extensions(
+        self, extensions: Iterable[_X509ExtensionInternal]
+    ) -> None:
         """
         Add extensions to the certificate signing request.
 
@@ -1077,7 +1092,7 @@ class X509Req:
         stack = _ffi.gc(stack, _lib.sk_X509_EXTENSION_free)
 
         for ext in extensions:
-            if not isinstance(ext, X509Extension):
+            if not isinstance(ext, _X509ExtensionInternal):
                 raise ValueError("One of the elements is not an X509Extension")
 
             # TODO push can fail (here and elsewhere)
@@ -1086,7 +1101,7 @@ class X509Req:
         add_result = _lib.X509_REQ_add_extensions(self._req, stack)
         _openssl_assert(add_result == 1)
 
-    def get_extensions(self) -> List[X509Extension]:
+    def get_extensions(self) -> List[_X509ExtensionInternal]:
         """
         Get X.509 extensions in the certificate signing request.
 
@@ -1106,7 +1121,7 @@ class X509Req:
         )
 
         for i in range(_lib.sk_X509_EXTENSION_num(native_exts_obj)):
-            ext = X509Extension.__new__(X509Extension)
+            ext = _X509ExtensionInternal.__new__(_X509ExtensionInternal)
             extension = _lib.X509_EXTENSION_dup(
                 _lib.sk_X509_EXTENSION_value(native_exts_obj, i)
             )
@@ -1600,7 +1615,9 @@ class X509:
         """
         return _lib.X509_get_ext_count(self._x509)
 
-    def add_extensions(self, extensions: Iterable[X509Extension]) -> None:
+    def add_extensions(
+        self, extensions: Iterable[_X509ExtensionInternal]
+    ) -> None:
         """
         Add extensions to the certificate.
 
@@ -1609,14 +1626,14 @@ class X509:
         :return: ``None``
         """
         for ext in extensions:
-            if not isinstance(ext, X509Extension):
+            if not isinstance(ext, _X509ExtensionInternal):
                 raise ValueError("One of the elements is not an X509Extension")
 
             add_result = _lib.X509_add_ext(self._x509, ext._extension, -1)
             if not add_result:
                 _raise_current_error()
 
-    def get_extension(self, index: int) -> X509Extension:
+    def get_extension(self, index: int) -> _X509ExtensionInternal:
         """
         Get a specific extension of the certificate by index.
 
@@ -1630,7 +1647,7 @@ class X509:
 
         .. versionadded:: 0.12
         """
-        ext = X509Extension.__new__(X509Extension)
+        ext = _X509ExtensionInternal.__new__(_X509ExtensionInternal)
         ext._extension = _lib.X509_get_ext(self._x509, index)
         if ext._extension == _ffi.NULL:
             raise IndexError("extension index out of bounds")

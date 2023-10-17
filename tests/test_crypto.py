@@ -27,7 +27,6 @@ from OpenSSL.crypto import (
     X509,
     Error,
     PKey,
-    X509Extension,
     X509Name,
     X509Req,
     X509Store,
@@ -54,6 +53,7 @@ with pytest.warns(DeprecationWarning):
         PKCS12,
         NetscapeSPKI,
         Revoked,
+        X509Extension,
         dump_crl,
         load_crl,
     )
