@@ -1713,6 +1713,12 @@ class TestContext:
         store = context.get_cert_store()
         assert isinstance(store, X509Store)
 
+    def test_set_cert_store(self):
+        context = Context(SSLv23_METHOD)
+        store = X509Store()
+        context.set_cert_store(store)
+        assert store._store == context.get_cert_store()._store
+
     def test_set_tlsext_use_srtp_not_bytes(self):
         """
         `Context.set_tlsext_use_srtp' enables negotiating SRTP keying material.
