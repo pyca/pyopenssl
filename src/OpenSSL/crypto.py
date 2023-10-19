@@ -108,6 +108,8 @@ TYPE_DSA: int = _lib.EVP_PKEY_DSA
 TYPE_DH: int = _lib.EVP_PKEY_DH
 TYPE_EC: int = _lib.EVP_PKEY_EC
 
+X509V3_EXT_ERROR_UNKNOWN = 1 << 16
+
 
 class Error(Exception):
     """
@@ -890,7 +892,9 @@ class X509Extension:
             return self._subjectAltNameString()
 
         bio = _new_mem_buf()
-        print_result = _lib.X509V3_EXT_print(bio, self._extension, 0, 0)
+        print_result = _lib.X509V3_EXT_print(
+            bio, self._extension, X509V3_EXT_ERROR_UNKNOWN, 0
+        )
         _openssl_assert(print_result != 0)
 
         return _bio_to_string(bio).decode("utf-8")

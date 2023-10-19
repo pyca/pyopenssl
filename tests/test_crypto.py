@@ -1635,6 +1635,10 @@ class TestX509Req(_PKeyInteractionTestsMixin):
             ).get_short_name()
             == b"UNDEF"
         )
+        assert (
+            str(X509Extension(b"1.2.3.4.5.6.7", False, b"DER:05:00"))
+            == "<Not Supported>"
+        )
 
     def test_add_extensions_wrong_args(self):
         """
