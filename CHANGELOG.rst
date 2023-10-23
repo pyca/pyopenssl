@@ -30,6 +30,10 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- Changed ``OpenSSL.crypto.X509Store.add_crl`` to also accept
+  ``cryptography``'s ``X509.CertificateRevocationList`` arguments in addition
+  to the now deprecated ``OpenSSL.crypto.CRL`` arguments.
+
 23.2.0 (2023-05-30)
 -------------------
 
