@@ -27,6 +27,7 @@ from socket import (
     AF_INET6,
     MSG_PEEK,
     SHUT_RDWR,
+    gaierror,
     socket,
 )
 from sys import getfilesystemencoding, platform
@@ -1269,7 +1270,10 @@ class TestContext:
         )
 
         client = socket_any_family()
-        client.connect(("encrypted.google.com", 443))
+        try:
+            client.connect(("encrypted.google.com", 443))
+        except gaierror:
+            pytest.skip("cannot connect to encrypted.google.com")
         clientSSL = Connection(context, client)
         clientSSL.set_connect_state()
         clientSSL.set_tlsext_host_name(b"encrypted.google.com")

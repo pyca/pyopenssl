@@ -33,6 +33,8 @@ Changes:
 - Changed ``OpenSSL.crypto.X509Store.add_crl`` to also accept
   ``cryptography``'s ``X509.CertificateRevocationList`` arguments in addition
   to the now deprecated ``OpenSSL.crypto.CRL`` arguments.
+- Fixed ``test_set_default_verify_paths`` test so that it is skipped if no
+  network connection is available.
 
 23.2.0 (2023-05-30)
 -------------------
