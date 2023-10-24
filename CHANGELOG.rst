@@ -11,7 +11,7 @@ Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Dropped support for Python 3.6.
-- The minimum ``cryptography`` version is now 41.0.0.
+- The minimum ``cryptography`` version is now 41.0.5.
 - Removed ``OpenSSL.crypto.loads_pkcs7`` and ``OpenSSL.crypto.loads_pkcs12`` which had been deprecated for 3 years.
 - Added ``OpenSSL.SSL.OP_LEGACY_SERVER_CONNECT`` to allow legacy insecure renegotiation between OpenSSL and unpatched servers.
   `#1234 <https://github.com/pyca/pyopenssl/pull/1234>`_.
