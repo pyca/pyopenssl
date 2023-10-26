@@ -17,7 +17,7 @@ __all__ = [
     "__version__",
 ]
 
-__version__ = "23.3.0.dev"
+__version__ = "23.3.0"
 
 __title__ = "pyOpenSSL"
 __uri__ = "https://pyopenssl.org/"
