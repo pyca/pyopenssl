@@ -1,7 +1,3 @@
-[tool.black]
-line-length = 79
-target-version = ["py37"]
-
 [tool.ruff]
 select = ['E', 'F', 'I', 'W', 'UP', 'RUF']
 line-length = 79
