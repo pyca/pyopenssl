@@ -1895,15 +1895,9 @@ class X509StoreContext:
         certificate: X509,
         chain: Optional[Sequence[X509]] = None,
     ) -> None:
-        store_ctx = _lib.X509_STORE_CTX_new()
-        self._store_ctx = _ffi.gc(store_ctx, _lib.X509_STORE_CTX_free)
         self._store = store
         self._cert = certificate
         self._chain = self._build_certificate_stack(chain)
-        # Make the store context available for use after instantiating this
-        # class by initializing it now. Per testing, subsequent calls to
-        # :meth:`_init` have no adverse affect.
-        self._init()
 
     @staticmethod
     def _build_certificate_stack(
@@ -1935,28 +1929,8 @@ class X509StoreContext:
 
         return stack
 
-    def _init(self) -> None:
-        """
-        Set up the store context for a subsequent verification operation.
-
-        Calling this method more than once without first calling
-        :meth:`_cleanup` will leak memory.
-        """
-        ret = _lib.X509_STORE_CTX_init(
-            self._store_ctx, self._store._store, self._cert._x509, self._chain
-        )
-        if ret <= 0:
-            _raise_current_error()
-
-    def _cleanup(self) -> None:
-        """
-        Internally cleans up the store context.
-
-        The store context can then be reused with a new call to :meth:`_init`.
-        """
-        _lib.X509_STORE_CTX_cleanup(self._store_ctx)
-
-    def _exception_from_context(self) -> X509StoreContextError:
+    @staticmethod
+    def _exception_from_context(store_ctx: Any) -> X509StoreContextError:
         """
         Convert an OpenSSL native context error failure into a Python
         exception.
@@ -1966,20 +1940,44 @@ class X509StoreContext:
         """
         message = _ffi.string(
             _lib.X509_verify_cert_error_string(
-                _lib.X509_STORE_CTX_get_error(self._store_ctx)
+                _lib.X509_STORE_CTX_get_error(store_ctx)
             )
         ).decode("utf-8")
         errors = [
-            _lib.X509_STORE_CTX_get_error(self._store_ctx),
-            _lib.X509_STORE_CTX_get_error_depth(self._store_ctx),
+            _lib.X509_STORE_CTX_get_error(store_ctx),
+            _lib.X509_STORE_CTX_get_error_depth(store_ctx),
             message,
         ]
         # A context error should always be associated with a certificate, so we
         # expect this call to never return :class:`None`.
-        _x509 = _lib.X509_STORE_CTX_get_current_cert(self._store_ctx)
+        _x509 = _lib.X509_STORE_CTX_get_current_cert(store_ctx)
         _cert = _lib.X509_dup(_x509)
         pycert = X509._from_raw_x509_ptr(_cert)
         return X509StoreContextError(message, errors, pycert)
+
+    def _verify_certificate(self) -> Any:
+        """
+        Verifies the certificate and runs an X509_STORE_CTX containing the
+        results.
+
+        :raises X509StoreContextError: If an error occurred when validating a
+          certificate in the context. Sets ``certificate`` attribute to
+          indicate which certificate caused the error.
+        """
+        store_ctx = _lib.X509_STORE_CTX_new()
+        _openssl_assert(store_ctx != _ffi.NULL)
+        store_ctx = _ffi.gc(store_ctx, _lib.X509_STORE_CTX_free)
+
+        ret = _lib.X509_STORE_CTX_init(
+            store_ctx, self._store._store, self._cert._x509, self._chain
+        )
+        _openssl_assert(ret == 1)
+
+        ret = _lib.X509_verify_cert(store_ctx)
+        if ret <= 0:
+            raise self._exception_from_context(store_ctx)
+
+        return store_ctx
 
     def set_store(self, store: X509Store) -> None:
         """
@@ -2002,19 +2000,7 @@ class X509StoreContext:
           certificate in the context. Sets ``certificate`` attribute to
           indicate which certificate caused the error.
         """
-        # Always re-initialize the store context in case
-        # :meth:`verify_certificate` is called multiple times.
-        #
-        # :meth:`_init` is called in :meth:`__init__` so _cleanup is called
-        # before _init to ensure memory is not leaked.
-        self._cleanup()
-        self._init()
-        try:
-            ret = _lib.X509_verify_cert(self._store_ctx)
-            if ret <= 0:
-                raise self._exception_from_context()
-        finally:
-            self._cleanup()
+        self._verify_certificate()
 
     def get_verified_chain(self) -> List[X509]:
         """
@@ -2027,34 +2013,22 @@ class X509StoreContext:
 
         .. versionadded:: 20.0
         """
-        # Always re-initialize the store context in case
-        # :meth:`verify_certificate` is called multiple times.
-        #
-        # :meth:`_init` is called in :meth:`__init__` so _cleanup is called
-        # before _init to ensure memory is not leaked.
-        self._cleanup()
-        self._init()
-        try:
-            ret = _lib.X509_verify_cert(self._store_ctx)
-            if ret <= 0:
-                raise self._exception_from_context()
+        store_ctx = self._verify_certificate()
 
-            # Note: X509_STORE_CTX_get1_chain returns a deep copy of the chain.
-            cert_stack = _lib.X509_STORE_CTX_get1_chain(self._store_ctx)
-            _openssl_assert(cert_stack != _ffi.NULL)
+        # Note: X509_STORE_CTX_get1_chain returns a deep copy of the chain.
+        cert_stack = _lib.X509_STORE_CTX_get1_chain(store_ctx)
+        _openssl_assert(cert_stack != _ffi.NULL)
 
-            result = []
-            for i in range(_lib.sk_X509_num(cert_stack)):
-                cert = _lib.sk_X509_value(cert_stack, i)
-                _openssl_assert(cert != _ffi.NULL)
-                pycert = X509._from_raw_x509_ptr(cert)
-                result.append(pycert)
+        result = []
+        for i in range(_lib.sk_X509_num(cert_stack)):
+            cert = _lib.sk_X509_value(cert_stack, i)
+            _openssl_assert(cert != _ffi.NULL)
+            pycert = X509._from_raw_x509_ptr(cert)
+            result.append(pycert)
 
-            # Free the stack but not the members which are freed by the X509 class.
-            _lib.sk_X509_free(cert_stack)
-            return result
-        finally:
-            self._cleanup()
+        # Free the stack but not the members which are freed by the X509 class.
+        _lib.sk_X509_free(cert_stack)
+        return result
 
 
 def load_certificate(type: int, buffer: bytes) -> X509:
