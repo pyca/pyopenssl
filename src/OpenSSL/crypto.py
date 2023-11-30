@@ -2015,10 +2015,12 @@ class X509StoreContext:
         # before _init to ensure memory is not leaked.
         self._cleanup()
         self._init()
-        ret = _lib.X509_verify_cert(self._store_ctx)
-        self._cleanup()
-        if ret <= 0:
-            raise self._exception_from_context()
+        try:
+            ret = _lib.X509_verify_cert(self._store_ctx)
+            if ret <= 0:
+                raise self._exception_from_context()
+        finally:
+            self._cleanup()
 
     def get_verified_chain(self) -> List[X509]:
         """
@@ -2038,26 +2040,27 @@ class X509StoreContext:
         # before _init to ensure memory is not leaked.
         self._cleanup()
         self._init()
-        ret = _lib.X509_verify_cert(self._store_ctx)
-        if ret <= 0:
+        try:
+            ret = _lib.X509_verify_cert(self._store_ctx)
+            if ret <= 0:
+                raise self._exception_from_context()
+
+            # Note: X509_STORE_CTX_get1_chain returns a deep copy of the chain.
+            cert_stack = _lib.X509_STORE_CTX_get1_chain(self._store_ctx)
+            _openssl_assert(cert_stack != _ffi.NULL)
+
+            result = []
+            for i in range(_lib.sk_X509_num(cert_stack)):
+                cert = _lib.sk_X509_value(cert_stack, i)
+                _openssl_assert(cert != _ffi.NULL)
+                pycert = X509._from_raw_x509_ptr(cert)
+                result.append(pycert)
+
+            # Free the stack but not the members which are freed by the X509 class.
+            _lib.sk_X509_free(cert_stack)
+            return result
+        finally:
             self._cleanup()
-            raise self._exception_from_context()
-
-        # Note: X509_STORE_CTX_get1_chain returns a deep copy of the chain.
-        cert_stack = _lib.X509_STORE_CTX_get1_chain(self._store_ctx)
-        _openssl_assert(cert_stack != _ffi.NULL)
-
-        result = []
-        for i in range(_lib.sk_X509_num(cert_stack)):
-            cert = _lib.sk_X509_value(cert_stack, i)
-            _openssl_assert(cert != _ffi.NULL)
-            pycert = X509._from_raw_x509_ptr(cert)
-            result.append(pycert)
-
-        # Free the stack but not the members which are freed by the X509 class.
-        _lib.sk_X509_free(cert_stack)
-        self._cleanup()
-        return result
 
 
 def load_certificate(type: int, buffer: bytes) -> X509:
