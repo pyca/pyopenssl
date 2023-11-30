@@ -7,7 +7,7 @@ To install pyOpenSSL::
 
 If you are installing in order to *develop* on pyOpenSSL, move to the root directory of a pyOpenSSL checkout, and run::
 
-  $ pip install -e .
+  $ pip install -e .[test]
 
 
 .. warning::
