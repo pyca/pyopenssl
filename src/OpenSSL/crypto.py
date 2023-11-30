@@ -1881,12 +1881,6 @@ class X509StoreContext:
     of a certificate in a described context. For describing such a context, see
     :class:`X509Store`.
 
-    :ivar _store_ctx: The underlying X509_STORE_CTX structure used by this
-        instance.  It is dynamically allocated and automatically garbage
-        collected.
-    :ivar _store: See the ``store`` ``__init__`` parameter.
-    :ivar _cert: See the ``certificate`` ``__init__`` parameter.
-    :ivar _chain: See the ``chain`` ``__init__`` parameter.
     :param X509Store store: The certificates which will be trusted for the
         purposes of any verifications.
     :param X509 certificate: The certificate to be verified.
