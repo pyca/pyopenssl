@@ -1,3 +1,48 @@
+[tool.coverage.run]
+branch = true
+source = ["OpenSSL", "tests/"]
+
+[tool.coverage.paths]
+source = [
+    "src/OpenSSL",
+    ".tox/*/lib/python*/site-packages/OpenSSL",
+    ".tox/pypy/site-packages/OpenSSL",
+]
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.mypy]
+warn_unused_configs = true
+follow_imports = "skip"
+strict = true
+exclude = ['SSL\.py$']
+
+[[tool.mypy.overrides]]
+module = "OpenSSL.crypto"
+warn_return_any = false
+disallow_any_expr = false
+
+[[tool.mypy.overrides]]
+module = "OpenSSL.rand"
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = "OpenSSL._util"
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = "cryptography.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "cffi.*"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+addopts = "-r s --strict-markers"
+testpaths = ["tests"]
+
 [tool.ruff]
 select = ['E', 'F', 'I', 'W', 'UP', 'RUF']
 line-length = 79
