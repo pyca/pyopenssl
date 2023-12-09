@@ -2674,6 +2674,25 @@ class Connection:
         result = _lib.SSL_set_session(self._ssl, session._session)
         _openssl_assert(result == 1)
 
+    def session_reused(self):
+        """
+        Query, whether a reused session was negotiated during the handshake.
+
+        During the negotiation, a client can propose to reuse a session.
+        The server then looks up the session in its cache.
+        If both client and server agree on the session,
+        it will be reused and a flag is being set that can be queried by the
+        application.
+
+        Retruns `0` when a new session was negotiated.
+        Returns `1` when a the session was reused.
+
+        :returns: int
+
+        .. versionadded:: NEXT
+        """
+        return _lib.SSL_session_reused(self._ssl)
+
     def _get_finished_message(self, function):
         """
         Helper to implement :meth:`get_finished` and
