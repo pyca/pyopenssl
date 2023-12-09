@@ -2806,7 +2806,8 @@ class TestConnection:
             return client
 
         originalServer, originalClient = loopback(
-            server_factory=makeServer, client_factory=makeClient)
+            server_factory=makeServer, client_factory=makeClient
+        )
         originalSession = originalClient.get_session()
 
         assert originalServer.session_reused() == 0
@@ -2867,7 +2868,8 @@ class TestConnection:
             return client
 
         originalServer, originalClient = loopback(
-            server_factory=makeServer, client_factory=makeClient)
+            server_factory=makeServer, client_factory=makeClient
+        )
         originalSession = originalClient.get_session()
 
         assert originalServer.session_reused() == 0
