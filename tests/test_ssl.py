@@ -4380,7 +4380,7 @@ class TestDTLS:
     # Arbitrary number larger than any conceivable handshake volley.
     LARGE_BUFFER = 65536
 
-    def test_it_works_at_all(self):
+    def _test_handshake_and_data(self, srtp_profile):
         s_ctx = Context(DTLS_METHOD)
 
         def generate_cookie(ssl):
@@ -4394,11 +4394,15 @@ class TestDTLS:
         s_ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
         s_ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
         s_ctx.set_options(OP_NO_QUERY_MTU)
+        if srtp_profile is not None:
+            s_ctx.set_tlsext_use_srtp(srtp_profile)
         s = Connection(s_ctx)
         s.set_accept_state()
 
         c_ctx = Context(DTLS_METHOD)
         c_ctx.set_options(OP_NO_QUERY_MTU)
+        if srtp_profile is not None:
+            c_ctx.set_tlsext_use_srtp(srtp_profile)
         c = Connection(c_ctx)
         c.set_connect_state()
 
@@ -4480,6 +4484,14 @@ class TestDTLS:
         pump()
         assert s.read(100) == b"goodbye"
 
+        # Check whether SRTP was negotiated
+        if srtp_profile is not None:
+            assert s.get_selected_srtp_profile() == srtp_profile
+            assert c.get_selected_srtp_profile() == srtp_profile
+        else:
+            assert s.get_selected_srtp_profile() == b""
+            assert c.get_selected_srtp_profile() == b""
+
         # Check that the MTU set/query functions are doing *something*
         c.set_ciphertext_mtu(1000)
         try:
@@ -4491,6 +4503,12 @@ class TestDTLS:
             assert 0 < c.get_cleartext_mtu() < 500
         except NotImplementedError:  # OpenSSL 1.1.0 and earlier
             pass
+
+    def test_it_works_at_all(self):
+        self._test_handshake_and_data(srtp_profile=None)
+
+    def test_it_works_with_srtp(self):
+        self._test_handshake_and_data(srtp_profile=b"SRTP_AES128_CM_SHA1_80")
 
     def test_timeout(self, monkeypatch):
         c_ctx = Context(DTLS_METHOD)
