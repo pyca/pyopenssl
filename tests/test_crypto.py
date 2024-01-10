@@ -770,7 +770,7 @@ def x509_data():
     """
     # Basic setup stuff to generate a certificate
     pkey = PKey()
-    pkey.generate_key(TYPE_RSA, 512)
+    pkey.generate_key(TYPE_RSA, 2048)
     req = X509Req()
     req.set_pubkey(pkey)
     # Authority good you have.
@@ -1123,7 +1123,7 @@ class TestPKey:
         `PKey.generate_key` generates an RSA key when passed `TYPE_RSA` as a
         type and a reasonable number of bits.
         """
-        bits = 512
+        bits = 2048
         key = PKey()
         key.generate_key(TYPE_RSA, bits)
         assert key.type() == TYPE_RSA
@@ -1152,7 +1152,7 @@ class TestPKey:
         generate new keys.
         """
         key = PKey()
-        for type, bits in [(TYPE_RSA, 512), (TYPE_DSA, 576)]:
+        for type, bits in [(TYPE_RSA, 2048), (TYPE_DSA, 576)]:
             key.generate_key(type, bits)
             assert key.type() == type
             assert key.bits() == bits
@@ -1173,7 +1173,7 @@ class TestPKey:
         """
         # A trick to get a public-only key
         key = PKey()
-        key.generate_key(TYPE_RSA, 512)
+        key.generate_key(TYPE_RSA, 2048)
         cert = X509()
         cert.set_pubkey(key)
         pub = cert.get_pubkey()
@@ -1487,7 +1487,7 @@ class _PKeyInteractionTestsMixin:
         """
         request = self.signable()
         key = PKey()
-        key.generate_key(TYPE_RSA, 512)
+        key.generate_key(TYPE_RSA, 2048)
         request.set_pubkey(key)
         pub = request.get_pubkey()
         with pytest.raises(ValueError):
@@ -1500,7 +1500,7 @@ class _PKeyInteractionTestsMixin:
         """
         request = self.signable()
         key = PKey()
-        key.generate_key(TYPE_RSA, 512)
+        key.generate_key(TYPE_RSA, 2048)
         with pytest.raises(ValueError):
             request.sign(key, BAD_DIGEST)
 
@@ -1512,7 +1512,7 @@ class _PKeyInteractionTestsMixin:
         """
         request = self.signable()
         key = PKey()
-        key.generate_key(TYPE_RSA, 512)
+        key.generate_key(TYPE_RSA, 2048)
         request.set_pubkey(key)
         request.sign(key, GOOD_DIGEST)
         # If the type has a verify method, cover that too.
@@ -1521,7 +1521,7 @@ class _PKeyInteractionTestsMixin:
             assert request.verify(pub)
             # Make another key that won't verify.
             key = PKey()
-            key.generate_key(TYPE_RSA, 512)
+            key.generate_key(TYPE_RSA, 2048)
             with pytest.raises(Error):
                 request.verify(key)
 
@@ -2773,7 +2773,7 @@ class TestFunction:
         argument but no `passphrase` argument.
         """
         key = PKey()
-        key.generate_key(TYPE_RSA, 512)
+        key.generate_key(TYPE_RSA, 2048)
         with pytest.raises(TypeError):
             dump_privatekey(FILETYPE_PEM, key, cipher=GOOD_CIPHER)
 
@@ -2797,7 +2797,7 @@ class TestFunction:
         cipher name.
         """
         key = PKey()
-        key.generate_key(TYPE_RSA, 512)
+        key.generate_key(TYPE_RSA, 2048)
         with pytest.raises(ValueError):
             dump_privatekey(FILETYPE_PEM, key, BAD_CIPHER, "passphrase")
 
@@ -2807,7 +2807,7 @@ class TestFunction:
         is neither a `str` nor a callable.
         """
         key = PKey()
-        key.generate_key(TYPE_RSA, 512)
+        key.generate_key(TYPE_RSA, 2048)
         with pytest.raises(TypeError):
             dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, object())
 
@@ -2817,7 +2817,7 @@ class TestFunction:
         filetype.
         """
         key = PKey()
-        key.generate_key(TYPE_RSA, 512)
+        key.generate_key(TYPE_RSA, 2048)
         with pytest.raises(ValueError):
             dump_privatekey(100, key)
 
