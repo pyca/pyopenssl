@@ -35,6 +35,8 @@ Changes:
   to the now deprecated ``OpenSSL.crypto.CRL`` arguments.
 - Fixed ``test_set_default_verify_paths`` test so that it is skipped if no
   network connection is available.
+- Added ``OpenSSL.SSL.Connection.get_selected_srtp_profile`` to determine which SRTP profile was negotiated.
+  `#1279 <https://github.com/pyca/pyopenssl/pull/1279>`_.
 
 23.2.0 (2023-05-30)
 -------------------
