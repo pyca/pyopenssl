@@ -3162,7 +3162,7 @@ def sign(pkey: PKey, data: Union[str, bytes], digest: str) -> bytes:
 utils.deprecated(
     sign,
     __name__,
-    "sign() is deprecated. Use the equivilant APIs in cryptography.",
+    "sign() is deprecated. Use the equivalent APIs in cryptography.",
     DeprecationWarning,
     name="sign",
 )
@@ -3209,7 +3209,7 @@ def verify(
 utils.deprecated(
     verify,
     __name__,
-    "verify() is deprecated. Use the equivilant APIs in cryptography.",
+    "verify() is deprecated. Use the equivalent APIs in cryptography.",
     DeprecationWarning,
     name="verify",
 )
