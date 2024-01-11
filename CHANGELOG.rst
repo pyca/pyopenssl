@@ -4,6 +4,12 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
+
+- Added ``OpenSSL.SSL.Connection.session_reused()`` to query whether the
+  current session was reused during the last handshake.
+  [`#1275 <https://github.com/pyca/pyopenssl/issues/1275>`_]
+
+
 23.3.0 (2023-10-25)
 -------------------
 

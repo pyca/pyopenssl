@@ -236,6 +236,9 @@ def socket_pair():
 
 
 def handshake(client, server):
+    """
+    Wait until the TLS handshake is done on both client and server side.
+    """
     conns = [client, server]
     while conns:
         for conn in conns:
@@ -2755,35 +2758,72 @@ class TestConnection:
         with pytest.raises(TypeError):
             connection.set_session(object())
 
-    def test_client_set_session(self):
+    def test_session_reused(self):
+        """
+        `Connection.session_reused`, returns 0 for new connections..
+        """
+        ctx = Context(TLSv1_2_METHOD)
+        connection = Connection(ctx, None)
+
+        assert connection.session_reused() == 0
+
+    def test_client_set_session_tls1_2(self):
         """
         `Connection.set_session`, when used prior to a connection being
         established, accepts a `Session` instance and causes an attempt to
         re-use the session it represents when the SSL handshake is performed.
+
+        `Connection.session_reused` is used to query the reuse status.
         """
         key = load_privatekey(FILETYPE_PEM, server_key_pem)
         cert = load_certificate(FILETYPE_PEM, server_cert_pem)
-        ctx = Context(TLSv1_2_METHOD)
-        ctx.use_privatekey(key)
-        ctx.use_certificate(cert)
-        ctx.set_session_id(b"unity-test")
+        server_ctx = Context(TLSv1_2_METHOD)
+        server_ctx.use_privatekey(key)
+        server_ctx.use_certificate(cert)
+        # !!!!
+        # I have no idea why it works when server-side cache is disabled.
+        # I guess that this might be because server and client are in the
+        # same process.
+        server_ctx.set_session_cache_mode(SSL.SESS_CACHE_OFF)
+        server_ctx.set_session_id(b"unity-test")
+        server_ctx.set_min_proto_version(TLS1_2_VERSION)
+        # Session is reused even when client cache is disabled.
+        client_ctx = Context(TLSv1_2_METHOD)
+        client_ctx.set_session_cache_mode(SSL.SESS_CACHE_OFF)
+        client_ctx.set_min_proto_version(TLS1_2_VERSION)
+        originalSession = None
 
         def makeServer(socket):
-            server = Connection(ctx, socket)
+            server = Connection(server_ctx, socket)
             server.set_accept_state()
             return server
 
-        originalServer, originalClient = loopback(server_factory=makeServer)
+        def makeClient(socket):
+            client = Connection(client_ctx, socket)
+            client.set_connect_state()
+            if originalSession is not None:
+                client.set_session(originalSession)
+            return client
+
+        originalServer, originalClient = loopback(
+            server_factory=makeServer, client_factory=makeClient
+        )
         originalSession = originalClient.get_session()
 
-        def makeClient(socket):
-            client = loopback_client_factory(socket)
-            client.set_session(originalSession)
-            return client
+        assert originalServer.session_reused() == 0
+        assert originalClient.session_reused() == 0
 
         resumedServer, resumedClient = loopback(
             server_factory=makeServer, client_factory=makeClient
         )
+
+        # The session on the original connections are not reused.
+        assert originalServer.session_reused() == 0
+        assert originalClient.session_reused() == 0
+
+        # The sessions on the new connections are reused.
+        assert resumedServer.session_reused() == 1
+        assert resumedClient.session_reused() == 1
 
         # This is a proxy: in general, we have no access to any unique
         # identifier for the session (new enough versions of OpenSSL expose
@@ -2792,6 +2832,69 @@ class TestConnection:
         # session is re-used.  As long as the master key for the two
         # connections is the same, the session was re-used!
         assert originalServer.master_key() == resumedServer.master_key()
+        assert originalClient.master_key() == resumedClient.master_key()
+
+    def test_client_set_session_tls1_3(self):
+        """
+        Test run for `Connection.set_session` and `Connection.session_reused`
+        when TLS 1.3 is used.
+        """
+        key = load_privatekey(FILETYPE_PEM, server_key_pem)
+        cert = load_certificate(FILETYPE_PEM, server_cert_pem)
+        server_ctx = Context(TLS_METHOD)
+        server_ctx.use_privatekey(key)
+        server_ctx.use_certificate(cert)
+
+        # Session is reused even when server cache is disabled.
+        server_ctx.set_session_cache_mode(SESS_CACHE_SERVER)
+        server_ctx.set_session_id(b"unity-test")
+        server_ctx.set_min_proto_version(TLS1_3_VERSION)
+        server_ctx.set_options(OP_NO_TICKET)
+
+        client_ctx = Context(TLS_METHOD)
+        client_ctx.set_options(OP_NO_TICKET)
+        originalSession = None
+
+        def makeServer(socket):
+            server = Connection(server_ctx, socket)
+            server.set_accept_state()
+            return server
+
+        def makeClient(socket):
+            client = Connection(client_ctx, socket)
+            client.set_connect_state()
+            if originalSession is not None:
+                client.set_session(originalSession)
+            return client
+
+        originalServer, originalClient = loopback(
+            server_factory=makeServer, client_factory=makeClient
+        )
+        originalSession = originalClient.get_session()
+
+        assert originalServer.session_reused() == 0
+        assert originalClient.session_reused() == 0
+
+        resumedServer, resumedClient = loopback(
+            server_factory=makeServer, client_factory=makeClient
+        )
+
+        # The session on the original connections are not reused.
+        assert originalServer.session_reused() == 0
+        assert originalClient.session_reused() == 0
+
+        # The sessions on the new connections are reused.
+        assert resumedServer.session_reused() == 1
+        assert resumedClient.session_reused() == 1
+
+        # This is a proxy: in general, we have no access to any unique
+        # identifier for the session (new enough versions of OpenSSL expose
+        # a hash which could be usable, but "new enough" is very, very new).
+        # Instead, exploit the fact that the master key is re-used if the
+        # session is re-used.  As long as the master key for the two
+        # connections is the same, the session was re-used!
+        assert originalServer.master_key() == resumedServer.master_key()
+        assert originalClient.master_key() == resumedClient.master_key()
 
     def test_set_session_wrong_method(self):
         """
