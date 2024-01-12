@@ -4,6 +4,21 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
+24.0.0 (UNRELEASED)
+-------------------
+
+Backward-incompatible changes:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Deprecations:
+^^^^^^^^^^^^^
+
+Changes:
+^^^^^^^^
+
+- Added ``OpenSSL.SSL.Connection.get_selected_srtp_profile`` to determine which SRTP profile was negotiated.
+  `#1279 <https://github.com/pyca/pyopenssl/pull/1279>`_.
+
 23.3.0 (2023-10-25)
 -------------------
 
@@ -35,8 +50,6 @@ Changes:
   to the now deprecated ``OpenSSL.crypto.CRL`` arguments.
 - Fixed ``test_set_default_verify_paths`` test so that it is skipped if no
   network connection is available.
-- Added ``OpenSSL.SSL.Connection.get_selected_srtp_profile`` to determine which SRTP profile was negotiated.
-  `#1279 <https://github.com/pyca/pyopenssl/pull/1279>`_.
 
 23.2.0 (2023-05-30)
 -------------------
