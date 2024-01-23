@@ -4,7 +4,7 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
-24.0.0 (UNRELEASED)
+24.0.0 (2024-01-22)
 -------------------
 
 Backward-incompatible changes:
