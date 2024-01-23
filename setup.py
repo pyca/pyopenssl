@@ -96,7 +96,7 @@ if __name__ == "__main__":
         packages=find_packages(where="src"),
         package_dir={"": "src"},
         install_requires=[
-            "cryptography>=41.0.3,<42",
+            "cryptography>=42.0.0",
         ],
         extras_require={
             "test": ["flaky", "pretend", "pytest>=3.0.1"],
