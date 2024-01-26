@@ -190,7 +190,7 @@ def join_bytes_or_unicode(prefix, suffix):
     The return type is the same as the type of ``prefix``.
     """
     # If the types are the same, nothing special is necessary.
-    if type(prefix) == type(suffix):
+    if type(prefix) is type(suffix):
         return join(prefix, suffix)
 
     # Otherwise, coerce suffix to the type of prefix.
