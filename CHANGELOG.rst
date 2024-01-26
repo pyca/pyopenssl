@@ -4,6 +4,22 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
+24.1.0 (UNRELEASED)
+-------------------
+
+Backward-incompatible changes:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Removed the deprecated ``OpenSSL.crypto.PKCS12`` and
+  ``OpenSSL.crypto.NetscapeSPKI``. ``OpenSSL.crypto.PKCS12`` may be replaced
+  by the PKCS#12 APIs in the ``cryptography`` package.
+
+Deprecations:
+^^^^^^^^^^^^^
+
+Changes:
+^^^^^^^^
+
 24.0.0 (2024-01-22)
 -------------------
 
