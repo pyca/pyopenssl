@@ -1343,6 +1343,26 @@ class Context:
         """
         _lib.SSL_CTX_set_tmp_ecdh(self._context, curve._to_EC_KEY())
 
+    def set_ciphersuites(self, cipher_list: bytes) -> None:
+        """
+        Set the list of ciphers to be used to configure the available TLSv1.3
+        ciphersuites for this context.
+
+        See the OpenSSL manual for more information (e.g.
+        :manpage:`ciphers(1)`).
+
+        :param bytes cipher_list: An OpenSSL cipher string.
+        :return: None
+        """
+        cipher_list = _text_to_bytes_and_warn("cipher_list", cipher_list)
+
+        if not isinstance(cipher_list, bytes):
+            raise TypeError("cipher_list must be a byte string.")
+
+        _openssl_assert(
+            _lib.SSL_CTX_set_ciphersuites(self._context, cipher_list) == 1
+        )
+
     def set_cipher_list(self, cipher_list: bytes) -> None:
         """
         Set the list of ciphers to be used in this context.
