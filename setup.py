@@ -96,7 +96,7 @@ if __name__ == "__main__":
             "cryptography>=41.0.5,<43",
         ],
         extras_require={
-            "test": ["flaky", "pretend", "pytest>=3.0.1"],
+            "test": ["pytest-rerunfailures", "pretend", "pytest>=3.0.1"],
             "docs": [
                 "sphinx!=5.2.0,!=5.2.0.post0,!=7.2.5",
                 "sphinx_rtd_theme",

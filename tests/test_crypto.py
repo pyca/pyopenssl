@@ -10,7 +10,6 @@ import warnings
 from datetime import datetime, timedelta, timezone
 from subprocess import PIPE, Popen
 
-import flaky
 import pytest
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
@@ -1864,7 +1863,7 @@ class TestX509(_PKeyInteractionTestsMixin):
         with pytest.raises(TypeError):
             cert.gmtime_adj_notBefore(None)
 
-    @flaky.flaky
+    @pytest.mark.flaky(reruns=2)
     def test_gmtime_adj_notBefore(self):
         """
         `X509.gmtime_adj_notBefore` changes the not-before timestamp to be the
@@ -1890,7 +1889,7 @@ class TestX509(_PKeyInteractionTestsMixin):
         with pytest.raises(TypeError):
             cert.gmtime_adj_notAfter(None)
 
-    @flaky.flaky
+    @pytest.mark.flaky(reruns=2)
     def test_gmtime_adj_notAfter(self):
         """
         `X509.gmtime_adj_notAfter` changes the not-after timestamp
