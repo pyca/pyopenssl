@@ -4,6 +4,7 @@
 """
 Unit tests for :py:mod:`OpenSSL.crypto`.
 """
+
 import base64
 import sys
 import warnings
