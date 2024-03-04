@@ -34,7 +34,6 @@ from sys import getfilesystemencoding, platform
 from typing import Union
 from weakref import ref
 
-import flaky
 import pytest
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
@@ -510,7 +509,7 @@ class TestContext:
         with pytest.raises(TypeError):
             context.set_cipher_list(object())
 
-    @flaky.flaky
+    @pytest.mark.flaky(reruns=2)
     def test_set_cipher_list_no_cipher_match(self, context):
         """
         `Context.set_cipher_list` raises `OpenSSL.SSL.Error` with a
