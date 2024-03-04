@@ -223,11 +223,8 @@ try:
 except AttributeError:
     pass
 
-try:
-    OP_LEGACY_SERVER_CONNECT = _lib.SSL_OP_LEGACY_SERVER_CONNECT
-    __all__.append("OP_LEGACY_SERVER_CONNECT")
-except AttributeError:
-    pass
+OP_LEGACY_SERVER_CONNECT = _lib.SSL_OP_LEGACY_SERVER_CONNECT
+__all__.append("OP_LEGACY_SERVER_CONNECT")
 
 OP_ALL = _lib.SSL_OP_ALL
 
@@ -855,8 +852,10 @@ class Context:
         self._ocsp_data = None
         self._cookie_generate_helper = None
         self._cookie_verify_helper = None
-
-        self.set_mode(_lib.SSL_MODE_ENABLE_PARTIAL_WRITE)
+        self.set_mode(
+            _lib.SSL_MODE_ENABLE_PARTIAL_WRITE
+            | _lib.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
+        )
         if version is not None:
             self.set_min_proto_version(version)
             self.set_max_proto_version(version)

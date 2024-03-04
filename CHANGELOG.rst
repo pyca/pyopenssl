@@ -4,6 +4,23 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
+24.1.0 (UNRELEASED)
+-------------------
+
+Backward-incompatible changes:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- ``pyOpenSSL`` now sets ``SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER`` by default, matching CPython's behavior. `#1287 <https://github.com/pyca/pyopenssl/pull/1287>`_.
+- The minimum ``cryptography`` version is now 42.0.0.
+
+Deprecations:
+^^^^^^^^^^^^^
+
+Changes:
+^^^^^^^^
+
+
+
 24.0.0 (2024-01-22)
 -------------------
 
