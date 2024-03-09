@@ -160,30 +160,12 @@ PKey objects
 
     Key type constants.
 
-.. _openssl-pkcs12:
-
-PKCS12 objects
---------------
-
-.. autoclass:: PKCS12
-               :members:
-
 .. _openssl-509ext:
 
 X509Extension objects
 ---------------------
 
 .. autoclass:: X509Extension
-               :members:
-               :special-members:
-               :exclude-members: __weakref__
-
-.. _openssl-netscape-spki:
-
-NetscapeSPKI objects
---------------------
-
-.. autoclass:: NetscapeSPKI
                :members:
                :special-members:
                :exclude-members: __weakref__
