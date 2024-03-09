@@ -1379,8 +1379,8 @@ class Context:
             for ca_name in certificate_authorities:
                 if not isinstance(ca_name, X509Name):
                     raise TypeError(
-                        "client CAs must be X509Name objects, not {} "
-                        "objects".format(type(ca_name).__name__)
+                        f"client CAs must be X509Name objects, not "
+                        f"{type(ca_name).__name__} objects"
                     )
                 copy = _lib.X509_NAME_dup(ca_name._name)
                 _openssl_assert(copy != _ffi.NULL)

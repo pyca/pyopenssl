@@ -3122,8 +3122,9 @@ class TestConnectionSend:
         server, client = loopback()
         with pytest.warns(DeprecationWarning) as w:
             count = server.send(b"xy".decode("ascii"))
-            assert "{} for buf is no longer accepted, use bytes".format(
-                WARNING_TYPE_EXPECTED
+            assert (
+                f"{WARNING_TYPE_EXPECTED} for buf is no longer accepted, "
+                f"use bytes"
             ) == str(w[-1].message)
         assert count == 2
         assert client.recv(2) == b"xy"
@@ -3329,8 +3330,9 @@ class TestConnectionSendall:
         server, client = loopback()
         with pytest.warns(DeprecationWarning) as w:
             server.sendall(b"x".decode("ascii"))
-            assert "{} for buf is no longer accepted, use bytes".format(
-                WARNING_TYPE_EXPECTED
+            assert (
+                f"{WARNING_TYPE_EXPECTED} for buf is no longer accepted, "
+                f"use bytes"
             ) == str(w[-1].message)
         assert client.recv(1) == b"x"
 

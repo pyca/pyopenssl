@@ -3791,15 +3791,17 @@ class TestSignVerify:
             with pytest.warns(DeprecationWarning) as w:
                 warnings.simplefilter("always")
                 sig = sign(priv_key, content, digest)
-            assert "{} for data is no longer accepted, use bytes".format(
-                WARNING_TYPE_EXPECTED
+            assert (
+                f"{WARNING_TYPE_EXPECTED} for data is no longer accepted, "
+                f"use bytes"
             ) == str(w[-1].message)
 
             with pytest.warns(DeprecationWarning) as w:
                 warnings.simplefilter("always")
                 verify(cert, sig, content, digest)
-            assert "{} for data is no longer accepted, use bytes".format(
-                WARNING_TYPE_EXPECTED
+            assert (
+                f"{WARNING_TYPE_EXPECTED} for data is no longer accepted, "
+                f"use bytes"
             ) == str(w[-1].message)
 
     def test_sign_verify_ecdsa(self):

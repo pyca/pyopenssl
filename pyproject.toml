@@ -44,8 +44,8 @@ addopts = "-r s --strict-markers"
 testpaths = ["tests"]
 
 [tool.ruff]
-select = ['E', 'F', 'I', 'W', 'UP', 'RUF']
+lint.select = ['E', 'F', 'I', 'W', 'UP', 'RUF']
 line-length = 79
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["OpenSSL", "tests"]
