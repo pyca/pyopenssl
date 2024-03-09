@@ -620,9 +620,8 @@ class X509Name:
         # isinstance.
         if type(name) is not str:  # noqa: E721
             raise TypeError(
-                "attribute name must be string, not '{:.200}'".format(
-                    type(value).__name__
-                )
+                f"attribute name must be string, not "
+                f"'{type(value).__name__:.200}'"
             )
 
         nid = _lib.OBJ_txt2nid(_byte_string(name))
