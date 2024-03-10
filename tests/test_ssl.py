@@ -488,6 +488,24 @@ class TestContext:
 
     @pytest.mark.parametrize(
         "cipher_string",
+        [
+            b"hello world:TLS_AES_128_GCM_SHA256",
+            "hello world:TLS_AES_128_GCM_SHA256",
+        ],
+    )
+    def test_set_ciphersuites(self, context, cipher_string):
+        """
+        `Context.set_ciphersuites` accepts both byte and unicode strings
+        for naming the ciphers which connections created with the context
+        object will be able to choose from.
+        """
+        context.set_ciphersuites(cipher_string)
+        conn = Connection(context, None)
+
+        assert "TLS_AES_128_GCM_SHA256" in conn.get_cipher_list()
+
+    @pytest.mark.parametrize(
+        "cipher_string",
         [b"hello world:AES128-SHA", "hello world:AES128-SHA"],
     )
     def test_set_cipher_list(self, context, cipher_string):
@@ -501,13 +519,16 @@ class TestContext:
 
         assert "AES128-SHA" in conn.get_cipher_list()
 
-    def test_set_cipher_list_wrong_type(self, context):
+    @pytest.mark.parametrize(
+        "set_cipher_method", ["set_cipher_list", "set_ciphersuites"]
+    )
+    def test_set_cipher_wrong_type(self, context, set_cipher_method):
         """
-        `Context.set_cipher_list` raises `TypeError` when passed a non-string
-        argument.
+        `Context.set_cipher_list` and `Context.set_ciphersuites`
+        raises `TypeError` when passed a non-string argument.
         """
         with pytest.raises(TypeError):
-            context.set_cipher_list(object())
+            getattr(context, set_cipher_method)(object())
 
     @pytest.mark.flaky(reruns=2)
     def test_set_cipher_list_no_cipher_match(self, context):
