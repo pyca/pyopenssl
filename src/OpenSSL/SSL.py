@@ -1359,6 +1359,28 @@ class Context:
                 ],
             )
 
+    def set_sigalgs_list(self, sigalgs_list):
+        """
+        Set the list of signature algorithms to be used in this context.
+
+        See the OpenSSL manual for more information (e.g.
+        :manpage:`SSL_CTX_set1_sigalgs_list(3)`).
+
+        :param bytes sigalgs_list: An OpenSSL signature algorithms list.
+        :return: None
+        """
+        sigalgs_list = _text_to_bytes_and_warn("sigalgs_list", sigalgs_list)
+
+        if not isinstance(sigalgs_list, bytes):
+            raise TypeError("sigalgs_list must be a byte string.")
+
+        if not _lib.Cryptography_HAS_SIGALGS:
+            return
+
+        _openssl_assert(
+            _lib.SSL_CTX_set1_sigalgs_list(self._context, sigalgs_list) == 1
+        )
+
     def set_client_ca_list(self, certificate_authorities):
         """
         Set the list of preferred client certificate signers for this server
@@ -2352,6 +2374,28 @@ class Connection:
                 break
             ciphers.append(_ffi.string(result).decode("utf-8"))
         return ciphers
+
+    def get_sigalgs(self):
+        """
+        Retrieve list of signature algorithms used by the Connection object.
+        Must be used after handshake only.
+        See :manpage:`SSL_get_sigalgs(3)`.
+
+        :return: A list of SignatureScheme (int) as defined by RFC 8446.
+        """
+        sigalgs = []
+        if not _lib.Cryptography_HAS_SIGALGS:
+            return sigalgs
+
+        rsign = _ffi.new("unsigned char *")
+        rhash = _ffi.new("unsigned char *")
+        for i in count():
+            result = _lib.SSL_get_sigalgs(self._ssl, i, _ffi.NULL, _ffi.NULL,
+                                          _ffi.NULL, rsign, rhash)
+            if result == 0:
+                break
+            sigalgs.append(rsign[0] + (rhash[0] << 8))
+        return sigalgs
 
     def get_client_ca_list(self):
         """
