@@ -89,7 +89,16 @@ __all__ = [
 
 
 _Key = Union[
-    dsa.DSAPrivateKey, dsa.DSAPublicKey, rsa.RSAPrivateKey, rsa.RSAPublicKey
+    dsa.DSAPrivateKey,
+    dsa.DSAPublicKey,
+    ec.EllipticCurvePrivateKey,
+    ec.EllipticCurvePublicKey,
+    ed25519.Ed25519PrivateKey,
+    ed25519.Ed25519PublicKey,
+    ed448.Ed448PrivateKey,
+    ed448.Ed448PublicKey,
+    rsa.RSAPrivateKey,
+    rsa.RSAPublicKey,
 ]
 StrOrBytesPath = Union[str, bytes, PathLike]
 PassphraseCallableT = Union[bytes, Callable[..., bytes]]
@@ -310,13 +319,16 @@ class PKey:
         if not isinstance(
             crypto_key,
             (
-                rsa.RSAPublicKey,
-                rsa.RSAPrivateKey,
-                dsa.DSAPublicKey,
                 dsa.DSAPrivateKey,
+                dsa.DSAPublicKey,
                 ec.EllipticCurvePrivateKey,
+                ec.EllipticCurvePublicKey,
                 ed25519.Ed25519PrivateKey,
+                ed25519.Ed25519PublicKey,
                 ed448.Ed448PrivateKey,
+                ed448.Ed448PublicKey,
+                rsa.RSAPrivateKey,
+                rsa.RSAPublicKey,
             ),
         ):
             raise TypeError("Unsupported key type")
@@ -328,7 +340,16 @@ class PKey:
             PublicFormat,
         )
 
-        if isinstance(crypto_key, (rsa.RSAPublicKey, dsa.DSAPublicKey)):
+        if isinstance(
+            crypto_key,
+            (
+                dsa.DSAPublicKey,
+                ec.EllipticCurvePublicKey,
+                ed25519.Ed25519PublicKey,
+                ed448.Ed448PublicKey,
+                rsa.RSAPublicKey,
+            ),
+        ):
             return load_publickey(
                 FILETYPE_ASN1,
                 crypto_key.public_bytes(

@@ -14,7 +14,13 @@ from subprocess import PIPE, Popen
 import pytest
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, rsa
+from cryptography.hazmat.primitives.asymmetric import (
+    dsa,
+    ec,
+    ed448,
+    ed25519,
+    rsa,
+)
 
 from OpenSSL._util import ffi as _ffi
 from OpenSSL._util import lib as _lib
@@ -714,6 +720,11 @@ cka6W6btJiocdrdolfcukSoTEk+hRANCAAQkvPNu7Pa1GcsWU4v7ptNfqCJVq8Cx
 zo0MUVPQgwJ3aJtNM1QMOQUayCrRwfklg+D/rFSUwEUqtZh7fJDiFqz3
 -----END PRIVATE KEY-----
 """
+ec_public_key_pem = b"""-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEJLzzbuz2tRnLFlOL+6bTX6giVavA
+sc6NDFFT0IMCd2ibTTNUDDkFGsgq0cH5JYPg/6xUlMBFKrWYe3yQ4has9w==
+-----END PUBLIC KEY-----
+"""
 
 ec_root_key_pem = b"""-----BEGIN EC PRIVATE KEY-----
 MIGlAgEBBDEAz/HOBFPYLB0jLWeTpJn4Yc4m/C4mdWymVHBjOmnwiPHKT326iYN/
@@ -744,14 +755,100 @@ MBsCAQACAS0CAQcCAQACAQ8CAQMCAQACAQACAQA=
 -----END RSA PRIVATE KEY-----
 """
 
+dsa_private_key_pem = b"""-----BEGIN PRIVATE KEY-----
+MIICZAIBADCCAjkGByqGSM44BAEwggIsAoIBAQD7UzdlshSCIIuntch43VmfCX1+
+WQDTvGw83sRZcN+B7nwFn4dm2PU8cby17oCjX7buBvalVqofnUokrSIDA6Rozm/f
+2wpGR9oVpd0xh9cI50pw1G3RZ4lcNWTP8C8O20eIzJoCH1KElcWLCHLAa3XoGOMv
+p4XnbVgMdc9/ydt4qttzIVPV4cZoVObzixoKCgwHyVPDxe0JaCe2cIwxyQY0IwAI
+PfaUWEAo+bf7pOosdnatJYm9MkKe8bEgKGQcUl9S8FXLhRejMo+oobcRjuBHTAmY
+fuV1iGlLrkFNrc2O6M1CRZhOoddoy53IeHcSjfzKET1biE3tCOUdHjUnABqfAiEA
+1llvauVKMLvFCDatVKRY+zNGJaa5dwff4qDtodz6sa8CggEAd+btod0di21mqFaf
+vc1ddmLK74PddMseT8DmoN/YduJaGLAOOVJ61rdG+KPXIar+8X5yqXfzP0MiYGkE
+A+xpNIImC3rzHElYNa8imA7ud8f+oC5jQijp0GhzVIS4UW83rZwakX7LITNE9Oj9
+FkETH1ZskHpp5BNlNoaSIW2+T7n/a+lq+tN60gP3f6FPBv5obB0pjqh+OAzEil/4
+Ys0dtCB0022cCUCqThMhWewlE2W2JioDLV5QkD91NMQNQwljDONNcs94AaWeVONK
+RaBQXlFsJPHzS8uKpsFeusFTrHIeEJW/8GQp/tfXP1ajEdg5EGxOhXFkem4ZMIus
+YFTbWwQiAiBFtgi8aNV0Jz2o8T+cxjVqVEgGdYNQqmpzqqBsM5AEOw==
+-----END PRIVATE KEY-----
+"""
+dsa_public_key_pem = b"""-----BEGIN PUBLIC KEY-----
+MIIDRjCCAjkGByqGSM44BAEwggIsAoIBAQD7UzdlshSCIIuntch43VmfCX1+WQDT
+vGw83sRZcN+B7nwFn4dm2PU8cby17oCjX7buBvalVqofnUokrSIDA6Rozm/f2wpG
+R9oVpd0xh9cI50pw1G3RZ4lcNWTP8C8O20eIzJoCH1KElcWLCHLAa3XoGOMvp4Xn
+bVgMdc9/ydt4qttzIVPV4cZoVObzixoKCgwHyVPDxe0JaCe2cIwxyQY0IwAIPfaU
+WEAo+bf7pOosdnatJYm9MkKe8bEgKGQcUl9S8FXLhRejMo+oobcRjuBHTAmYfuV1
+iGlLrkFNrc2O6M1CRZhOoddoy53IeHcSjfzKET1biE3tCOUdHjUnABqfAiEA1llv
+auVKMLvFCDatVKRY+zNGJaa5dwff4qDtodz6sa8CggEAd+btod0di21mqFafvc1d
+dmLK74PddMseT8DmoN/YduJaGLAOOVJ61rdG+KPXIar+8X5yqXfzP0MiYGkEA+xp
+NIImC3rzHElYNa8imA7ud8f+oC5jQijp0GhzVIS4UW83rZwakX7LITNE9Oj9FkET
+H1ZskHpp5BNlNoaSIW2+T7n/a+lq+tN60gP3f6FPBv5obB0pjqh+OAzEil/4Ys0d
+tCB0022cCUCqThMhWewlE2W2JioDLV5QkD91NMQNQwljDONNcs94AaWeVONKRaBQ
+XlFsJPHzS8uKpsFeusFTrHIeEJW/8GQp/tfXP1ajEdg5EGxOhXFkem4ZMIusYFTb
+WwOCAQUAAoIBAEe6z5ud1k4EDD9mLP7UYALWrgc1NXUlDynoYkjr+T/NVf1eaMdq
+0vFbGcEmz05UPUNXOhDH0szUDxQam3IE9C27ZO4SOquc0/rIhPY6i75SJW13P+cg
+gdXhDMTW5JOlyV6CPUoCWKOtn1ds3pTDuuWlZ89UzOWQUbC1si6vvz43zDyhfu6U
+owgIusPxowErm2sH66+MPa8fYxVX7ZJL0mEfubejrloAbo5unYI/bUYIhx4mtpP/
+h/isFRifEAwG3yX6F9X/ZOYL53Z93EFPLJGRGMmQbkmXRA6lyvHdsC+OC/OCvPjW
+WfTXW9NHtUqpEks+OXBkyV971Hk5NvdLLr8=
+-----END PUBLIC KEY-----
+"""
+
 ed25519_private_key_pem = b"""-----BEGIN PRIVATE KEY-----
 MC4CAQAwBQYDK2VwBCIEIKlxBbhVsSURoLTmsu9uTqYH6oF7zpxmp1ZQCAPhDmI2
 -----END PRIVATE KEY-----
+"""
+ed25519_public_key_pem = b"""-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAq+FrpdwI1oTPytx8kGzuLVc+78zJE7hjYG4E9hwXoKI=
+-----END PUBLIC KEY-----
 """
 
 ed448_private_key_pem = b"""-----BEGIN PRIVATE KEY-----
 MEcCAQAwBQYDK2VxBDsEOcqZ7a3k6JwrJbYO8CNTPT/d7dlWCo5vCf0EYDj79ZvA\nhD8u9EPHlYJw5Y8ZQdH4WmVEfpKA23xkdQ==
 -----END PRIVATE KEY-----
+"""
+ed448_public_key_pem = b"""-----BEGIN PUBLIC KEY-----
+MEMwBQYDK2VxAzoAKFfWGCuqIaxgR9GmEXLRciYDyEjTnF56kr0sOVfwHEj+bHSU\neMJTZJR8qFSg8hNsHY1iZh9PIXcA
+-----END PUBLIC KEY-----
+"""
+
+rsa_private_key_pem = b"""-----BEGIN PRIVATE KEY-----
+MIIEuwIBADANBgkqhkiG9w0BAQEFAASCBKUwggShAgEAAoIBAQDZ5FaSaXKn/RTF
+xyNr+GRvYnMvLz5XxSDD4JzVRKXxKGFzKKXMJAeXJkvPlho7Ta/HgMNXhMPAe8TT
+wcIRnHJqAfmSOnka1ks3Kl6EGQBTevKzyJy8MaUhzZsL4FUUgWUETFQQT8Dwcghf
+JobV0k+bWT4mrKHzIquw5y+NTsaZl4jSB1labhImsU16Vj66fHp7w9+c501tOxQO
+M4CQNWioGm8tgPT/43QUs9e+L2HFBI+cDQbEC68l+7VM8YY8NZ/fGypoML2QMVnU
+Y6zneoOLJTMUulOubrL+J6DkuuhxBsIOcyxMnqwgKm4pUGlPxfPSS7+Mo3JC969k
+wgUHerXZAgMBAAECgf9qAzz/VMCQwnV1UxkhxH/8zgYgYL+fERFuPC/ZWv7wOicv
+xAjm9KC8zVb44fLE586CCc7IN+zNK9y0gB9eAGr/04RhEvWgbmoqF6wdtdNyynuE
+Ut4oQKn7AUc1uPAeCfM4slw0Pie98YSS/9ZhwH/eh3C10iwWA1aiLWeDrnryPuJN
+mNB0d/ZsaL+arhR/nU2sJixx5LDI6AG0GJrw3DBHEKb4vZPIUM3wZNs7qnuG5W17
+JbZDQYnkApByZu2UMWI2YUkpJC246mFPWSWMa6sAl7sTWTkUIR21lJiqyTGG3ljY
+C2QjHoHrrzs+pwtlLBa1a4FgbaJmnL+VzWD/FQECgYEA8r3Y2oGcY5cQPb00TE0t
+ekXAXiHz9sX76nzE6BMZ8cwP/cVoWtIABpdaimKUoFML8CdjOi9Ti9OoNVGWm4Pk
+fT/GOUdysXWIw2Z/VOLM47nDwJb3fWwxsxph+x3gWJG/Vct/1NxmCCEendM63dy7
+/uR8RgX+0nxvn6Y6auQfpnkCgYEA5csHboa14Favx8aHTlITWOm46ugzdbARdfWz
+13Ewb7m4mm/3gKtA/m+yGdQFwmtBVkmwtdCeDj0aKH3Sfvg9WCQK1x/dUkPMr//r
+oGUGeJU9r3ZKVJTeSJ0lKX4h3u3+1TdpnAgtuWGI4AK9fEdulfHKArxyIdbsdwRr
+ljaBMmECgYATpEcCz1APQu7+f+vWbLxMU46QT2EFS9npjHUGbl1AEooMt8eM6cc0
+wVSDNBzgqDekFBvUXnX9L4BB6DsulEqN0/Y/NkfSkjch0I5nGP8JQkPTtqOKE5Il
+8vGQt0crA4ge8huC5t6es8ddb/UodK8FnglsRRnsgEMsAPBjK9hfyQKBgDHD23Mr
+R14zR9Q7AXiLu9bonvx4lxRosg9ay7zfrX60uO7xSqeZ7vRrWiXPzgOB2N+IC/YE
+HQa2YuDcBucqeZaKD7LxGqxDNKP1B6Fv34vjvj0uoABbURxms/Kdd1ZhMmwYmQ2K
+k+Ru5AancUPl8GQWvgoDp6/+bK2Fzor0eNxhAoGBANcJ6mGvgw3px/H2MPBjRBsf
+tUbZ39UH3c4siLa2Rry/Pm0Fgly8CUmu1IcFQDITKbyhaGPuHGtXglBOZqXid0VL
+01ReWISyKwWyuRjUuscdq2m684hXHYZCq2eJroqon1nMq4C0aqr696ra0cgCfbK3
+5yscAByxKd+64JZziDkZ
+-----END PRIVATE KEY-----
+"""
+rsa_public_key_pem = b"""-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2eRWkmlyp/0Uxccja/hk
+b2JzLy8+V8Ugw+Cc1USl8ShhcyilzCQHlyZLz5YaO02vx4DDV4TDwHvE08HCEZxy
+agH5kjp5GtZLNypehBkAU3rys8icvDGlIc2bC+BVFIFlBExUEE/A8HIIXyaG1dJP
+m1k+Jqyh8yKrsOcvjU7GmZeI0gdZWm4SJrFNelY+unx6e8PfnOdNbTsUDjOAkDVo
+qBpvLYD0/+N0FLPXvi9hxQSPnA0GxAuvJfu1TPGGPDWf3xsqaDC9kDFZ1GOs53qD
+iyUzFLpTrm6y/ieg5LrocQbCDnMsTJ6sICpuKVBpT8Xz0ku/jKNyQvevZMIFB3q1
+2QIDAQAB
+-----END PUBLIC KEY-----
 """
 
 x25519_private_key_pem = b"""-----BEGIN PRIVATE KEY-----
@@ -992,10 +1089,11 @@ class TestPKey:
     @pytest.mark.parametrize(
         ("key_string", "key_type"),
         [
-            (intermediate_key_pem, rsa.RSAPrivateKey),
+            (dsa_private_key_pem, dsa.DSAPrivateKey),
             (ec_private_key_pem, ec.EllipticCurvePrivateKey),
             (ed25519_private_key_pem, ed25519.Ed25519PrivateKey),
             (ed448_private_key_pem, ed448.Ed448PrivateKey),
+            (rsa_private_key_pem, rsa.RSAPrivateKey),
         ],
     )
     def test_convert_roundtrip_cryptography_private_key(
@@ -1006,6 +1104,7 @@ class TestPKey:
         PKey.to_cryptography_key creates a proper cryptography private key.
         """
         key = serialization.load_pem_private_key(key_string, None)
+        assert isinstance(key, key_type)
         pkey = PKey.from_cryptography_key(key)
 
         assert isinstance(pkey, PKey)
@@ -1019,6 +1118,40 @@ class TestPKey:
             serialization.PublicFormat.SubjectPublicKeyInfo,
         )
         assert pkey._only_public is False
+        assert pkey._initialized is True
+
+    @pytest.mark.parametrize(
+        ("key_string", "key_type"),
+        [
+            (dsa_public_key_pem, dsa.DSAPublicKey),
+            (ec_public_key_pem, ec.EllipticCurvePublicKey),
+            (ed25519_public_key_pem, ed25519.Ed25519PublicKey),
+            (ed448_public_key_pem, ed448.Ed448PublicKey),
+            (rsa_public_key_pem, rsa.RSAPublicKey),
+        ],
+    )
+    def test_convert_roundtrip_cryptography_public_key(
+        self, key_string, key_type
+    ):
+        """
+        PKey.from_cryptography_key creates a proper public PKey.
+        PKey.to_cryptography_key creates a proper cryptography public key.
+        """
+        key = serialization.load_pem_public_key(key_string, None)
+        assert isinstance(key, key_type)
+        pkey = PKey.from_cryptography_key(key)
+
+        assert isinstance(pkey, PKey)
+        parsed_key = pkey.to_cryptography_key()
+        assert isinstance(parsed_key, key_type)
+        assert parsed_key.public_bytes(
+            serialization.Encoding.PEM,
+            serialization.PublicFormat.SubjectPublicKeyInfo,
+        ) == key.public_bytes(
+            serialization.Encoding.PEM,
+            serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        assert pkey._only_public is True
         assert pkey._initialized is True
 
     def test_convert_from_cryptography_public_key(self):
