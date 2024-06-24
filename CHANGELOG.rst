@@ -4,6 +4,23 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
+24.2.0 (UNRELEASED)
+-------------------
+
+Backward-incompatible changes:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Deprecations:
+^^^^^^^^^^^^^
+
+Changes:
+^^^^^^^^
+
+- Added type hints for the ``SSL`` module.
+  `#1308 <https://github.com/pyca/pyopenssl/pull/1308>`_.
+- Changed ``OpenSSL.crypto.PKey.from_cryptography_key`` to accept public and private EC, ED25519, ED448 keys.
+  `#1310 <https://github.com/pyca/pyopenssl/pull/1310>`_.
+
 24.1.0 (2024-03-09)
 -------------------
 
