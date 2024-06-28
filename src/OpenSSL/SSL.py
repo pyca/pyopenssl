@@ -2221,7 +2221,6 @@ class Connection:
         Renegotiate the session.
 
         :return: True if the renegotiation can be started, False otherwise
-        :rtype: bool
         """
         if not self.renegotiate_pending():
             _openssl_assert(_lib.SSL_renegotiate(self._ssl) == 1)
@@ -2245,7 +2244,6 @@ class Connection:
         a renegotiation is finished.
 
         :return: Whether there's a renegotiation in progress
-        :rtype: bool
         """
         return _lib.SSL_renegotiate_pending(self._ssl) == 1
 
@@ -2254,7 +2252,6 @@ class Connection:
         Find out the total number of renegotiations.
 
         :return: The number of renegotiations.
-        :rtype: int
         """
         return _lib.SSL_total_renegotiations(self._ssl)
 
@@ -2483,7 +2480,6 @@ class Connection:
         Retrieve a verbose string detailing the state of the Connection.
 
         :return: A string representing the state
-        :rtype: bytes
         """
         return _ffi.string(_lib.SSL_state_string_long(self._ssl))
 
@@ -2724,7 +2720,6 @@ class Connection:
 
         :return: :data:`None` if the desired message has not yet been
             received, otherwise the contents of the message.
-        :rtype: :class:`bytes` or :class:`NoneType`
         """
         # The OpenSSL documentation says nothing about what might happen if the
         # count argument given is zero.  Specifically, it doesn't say whether
@@ -2754,7 +2749,6 @@ class Connection:
 
         :return: The contents of the message or :obj:`None` if the TLS
             handshake has not yet completed.
-        :rtype: :class:`bytes` or :class:`NoneType`
 
         .. versionadded:: 0.15
         """
@@ -2766,7 +2760,6 @@ class Connection:
 
         :return: The contents of the message or :obj:`None` if the TLS
             handshake has not yet completed.
-        :rtype: :class:`bytes` or :class:`NoneType`
 
         .. versionadded:: 0.15
         """
@@ -2778,7 +2771,6 @@ class Connection:
 
         :returns: The name of the currently used cipher or :obj:`None`
             if no connection has been established.
-        :rtype: :class:`str` or :class:`NoneType`
 
         .. versionadded:: 0.15
         """
@@ -2795,7 +2787,6 @@ class Connection:
 
         :returns: The number of secret bits of the currently used cipher
             or :obj:`None` if no connection has been established.
-        :rtype: :class:`int` or :class:`NoneType`
 
         .. versionadded:: 0.15
         """
@@ -2811,7 +2802,6 @@ class Connection:
 
         :returns: The protocol name of the currently used cipher
             or :obj:`None` if no connection has been established.
-        :rtype: :class:`str` or :class:`NoneType`
 
         .. versionadded:: 0.15
         """
@@ -2829,7 +2819,6 @@ class Connection:
         :returns: The TLS version of the current connection, for example
             the value for TLS 1.2 would be ``TLSv1.2``or ``Unknown``
             for connections that were not successfully established.
-        :rtype: :class:`str`
         """
         version = _ffi.string(_lib.SSL_get_version(self._ssl))
         return version.decode("utf-8")
@@ -2840,7 +2829,6 @@ class Connection:
 
         :returns: The TLS version of the current connection.  For example,
             it will return ``0x769`` for connections made over TLS version 1.
-        :rtype: :class:`int`
         """
         version = _lib.SSL_version(self._ssl)
         return version

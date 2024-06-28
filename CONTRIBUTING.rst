@@ -39,20 +39,19 @@ Documentation
 
 When introducing new functionality, please remember to write documentation.
 
-- New functions and methods should have a docstring describing what they do, what parameters they takes, what types those parameters are, and what they return.
+- New functions and methods should have a docstring describing what they do, what parameters they takes, and what they return. They should also come with `type hints`_.
 
   .. code-block:: python
 
-     def dump_publickey(type, pkey):
+     def dump_publickey(type: int, pkey: PKey) -> bytes:
          """
          Dump a public key to a buffer.
 
          :param type: The file type (one of :data:`FILETYPE_PEM` or
              :data:`FILETYPE_ASN1`).
-         :param PKey pkey: The PKey to dump.
+         :param pkey: The PKey to dump.
 
          :return: The buffer with the dumped key in it.
-         :rtype: bytes
          """
 
 
@@ -110,6 +109,7 @@ Feel free to cross-check this information with Keybase_.
 .. _Keybase: https://keybase.io/hynek
 .. _pyca/pyopenssl: https://github.com/pyca/pyopenssl
 .. _PEP 8: https://www.python.org/dev/peps/pep-0008/
+.. _`type hints`: https://docs.python.org/3/library/typing.html
 .. _cryptography code review process: https://cryptography.io/en/latest/development/reviewing-patches/
 .. _freenode: https://freenode.net
 .. _mailing list: https://mail.python.org/mailman/listinfo/cryptography-dev
