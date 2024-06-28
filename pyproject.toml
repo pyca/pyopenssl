@@ -10,25 +10,18 @@ source = [
 ]
 
 [tool.coverage.report]
+exclude_also = [
+    "assert False",
+]
 show_missing = true
 
 [tool.mypy]
 warn_unused_configs = true
 follow_imports = "skip"
 strict = true
-exclude = ['SSL\.py$']
 
 [[tool.mypy.overrides]]
-module = "OpenSSL.crypto"
-warn_return_any = false
-disallow_any_expr = false
-
-[[tool.mypy.overrides]]
-module = "OpenSSL.rand"
-warn_return_any = false
-
-[[tool.mypy.overrides]]
-module = "OpenSSL._util"
+module = "OpenSSL.*"
 warn_return_any = false
 
 [[tool.mypy.overrides]]
