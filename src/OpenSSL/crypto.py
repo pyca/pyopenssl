@@ -639,7 +639,7 @@ class X509Name:
 
         # Note: we really do not want str subclasses here, so we do not use
         # isinstance.
-        if type(name) is not str:  # noqa: E721
+        if type(name) is not str:
             raise TypeError(
                 f"attribute name must be string, not "
                 f"'{type(value).__name__:.200}'"
