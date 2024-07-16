@@ -993,7 +993,7 @@ class X509Req:
         """
         from cryptography.x509 import load_der_x509_csr
 
-        der = dump_certificate_request(FILETYPE_ASN1, self)
+        der = _dump_certificate_request_internal(FILETYPE_ASN1, self)
 
         return load_der_x509_csr(der)
 
@@ -1017,7 +1017,7 @@ class X509Req:
         from cryptography.hazmat.primitives.serialization import Encoding
 
         der = crypto_req.public_bytes(Encoding.DER)
-        return load_certificate_request(FILETYPE_ASN1, der)
+        return _load_certificate_request_internal(FILETYPE_ASN1, der)
 
     def set_pubkey(self, pkey: PKey) -> None:
         """
@@ -1191,6 +1191,20 @@ class X509Req:
             _raise_current_error()
 
         return result
+
+
+_X509ReqInternal = X509Req
+
+utils.deprecated(
+    X509Req,
+    __name__,
+    (
+        "CSR support in pyOpenSSL is deprecated. You should use the APIs "
+        "in cryptography."
+    ),
+    DeprecationWarning,
+    name="X509Req",
+)
 
 
 class X509:
@@ -2816,6 +2830,20 @@ def dump_certificate_request(type: int, req: X509Req) -> bytes:
     return _bio_to_string(bio)
 
 
+_dump_certificate_request_internal = dump_certificate_request
+
+utils.deprecated(
+    dump_certificate_request,
+    __name__,
+    (
+        "CSR support in pyOpenSSL is deprecated. You should use the APIs "
+        "in cryptography."
+    ),
+    DeprecationWarning,
+    name="dump_certificate_request",
+)
+
+
 def load_certificate_request(type: int, buffer: bytes) -> X509Req:
     """
     Load a certificate request (X509Req) from the string *buffer* encoded with
@@ -2839,9 +2867,23 @@ def load_certificate_request(type: int, buffer: bytes) -> X509Req:
 
     _openssl_assert(req != _ffi.NULL)
 
-    x509req = X509Req.__new__(X509Req)
+    x509req = _X509ReqInternal.__new__(_X509ReqInternal)
     x509req._req = _ffi.gc(req, _lib.X509_REQ_free)
     return x509req
+
+
+_load_certificate_request_internal = load_certificate_request
+
+utils.deprecated(
+    load_certificate_request,
+    __name__,
+    (
+        "CSR support in pyOpenSSL is deprecated. You should use the APIs "
+        "in cryptography."
+    ),
+    DeprecationWarning,
+    name="load_certificate_request",
+)
 
 
 def sign(pkey: PKey, data: Union[str, bytes], digest: str) -> bytes:

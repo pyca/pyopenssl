@@ -13,6 +13,8 @@ Backward-incompatible changes:
 Deprecations:
 ^^^^^^^^^^^^^
 
+- Deprecated ``OpenSSL.crypto.X509Req``, ``OpenSSL.crypto.load_certificate_request``, ``OpenSSL.crypto.dump_certificate_request``. Instead, :class:`cryptography.x509.CertificateSigningRequest`, :class:`cryptography.x509.CertificateSigningRequestBuilder`, :func:`cryptography.x509.load_der_x509_csr`, or :func:`cryptography.x509.load_pem_x509_csr` should be used.
+
 Changes:
 ^^^^^^^^
 
