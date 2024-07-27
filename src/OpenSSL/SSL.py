@@ -805,11 +805,6 @@ def _make_requires(flag: int, error: str) -> Callable[[_T], _T]:
     return _requires_decorator
 
 
-_requires_alpn = _make_requires(
-    _lib.Cryptography_HAS_ALPN, "ALPN not available"
-)
-
-
 _requires_keylog = _make_requires(
     getattr(_lib, "Cryptography_HAS_KEYLOG", 0), "Key logging not available"
 )
@@ -1646,7 +1641,6 @@ class Context:
             _lib.SSL_CTX_set_tlsext_use_srtp(self._context, profiles) == 0
         )
 
-    @_requires_alpn
     def set_alpn_protos(self, protos: List[bytes]) -> None:
         """
         Specify the protocols that the client is prepared to speak after the
@@ -1684,7 +1678,6 @@ class Context:
             == 0
         )
 
-    @_requires_alpn
     def set_alpn_select_callback(self, callback: _ALPNSelectCallback) -> None:
         """
         Specify a callback function that will be called on the server when a
@@ -2882,7 +2875,6 @@ class Connection:
         version = _lib.SSL_version(self._ssl)
         return version
 
-    @_requires_alpn
     def set_alpn_protos(self, protos: List[bytes]) -> None:
         """
         Specify the client's ALPN protocol list.
@@ -2917,7 +2909,6 @@ class Connection:
             _lib.SSL_set_alpn_protos(self._ssl, input_str, len(protostr)) == 0
         )
 
-    @_requires_alpn
     def get_alpn_proto_negotiated(self) -> bytes:
         """
         Get the protocol that was negotiated by ALPN.
