@@ -4,6 +4,21 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
+24.3.0 (UNRELEASED)
+-------------------
+
+Backward-incompatible changes:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Deprecations:
+^^^^^^^^^^^^^
+
+- Deprecated ``OpenSSL.rand`` - callers should use ``os.urandom()`` instead.
+
+Changes:
+^^^^^^^^
+
+
 24.2.1 (2024-07-20)
 -------------------
 
