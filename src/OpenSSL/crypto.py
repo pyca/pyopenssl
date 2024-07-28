@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import calendar
 import datetime
 import functools
@@ -9,13 +11,8 @@ from typing import (
     Any,
     Callable,
     Iterable,
-    List,
     NoReturn,
-    Optional,
     Sequence,
-    Set,
-    Tuple,
-    Type,
     Union,
 )
 
@@ -135,7 +132,7 @@ def _untested_error(where: str) -> NoReturn:
     raise RuntimeError(f"Unknown {where} failure")
 
 
-def _new_mem_buf(buffer: Optional[bytes] = None) -> Any:
+def _new_mem_buf(buffer: bytes | None = None) -> Any:
     """
     Allocate a new OpenSSL memory BIO.
 
@@ -214,7 +211,7 @@ def _new_asn1_time(when: bytes) -> Any:
     return ret
 
 
-def _get_asn1_time(timestamp: Any) -> Optional[bytes]:
+def _get_asn1_time(timestamp: Any) -> bytes | None:
     """
     Retrieve the time value of an ASN1 time object.
 
@@ -257,9 +254,9 @@ def _get_asn1_time(timestamp: Any) -> Optional[bytes]:
 
 class _X509NameInvalidator:
     def __init__(self) -> None:
-        self._names: List[X509Name] = []
+        self._names: list[X509Name] = []
 
-    def add(self, name: "X509Name") -> None:
+    def add(self, name: X509Name) -> None:
         self._names.append(name)
 
     def clear(self) -> None:
@@ -305,7 +302,7 @@ class PKey:
             return load_der_private_key(der, None)
 
     @classmethod
-    def from_cryptography_key(cls, crypto_key: _Key) -> "PKey":
+    def from_cryptography_key(cls, crypto_key: _Key) -> PKey:
         """
         Construct based on a ``cryptography`` *crypto_key*.
 
@@ -485,7 +482,7 @@ class _EllipticCurve:
         return NotImplemented
 
     @classmethod
-    def _load_elliptic_curves(cls, lib: Any) -> Set["_EllipticCurve"]:
+    def _load_elliptic_curves(cls, lib: Any) -> set[_EllipticCurve]:
         """
         Get the curves supported by OpenSSL.
 
@@ -503,7 +500,7 @@ class _EllipticCurve:
         return set(cls.from_nid(lib, c.nid) for c in builtin_curves)
 
     @classmethod
-    def _get_elliptic_curves(cls, lib: Any) -> Set["_EllipticCurve"]:
+    def _get_elliptic_curves(cls, lib: Any) -> set[_EllipticCurve]:
         """
         Get, cache, and return the curves supported by OpenSSL.
 
@@ -517,7 +514,7 @@ class _EllipticCurve:
         return cls._curves
 
     @classmethod
-    def from_nid(cls, lib: Any, nid: int) -> "_EllipticCurve":
+    def from_nid(cls, lib: Any, nid: int) -> _EllipticCurve:
         """
         Instantiate a new :py:class:`_EllipticCurve` associated with the given
         OpenSSL NID.
@@ -564,7 +561,7 @@ class _EllipticCurve:
         return _ffi.gc(key, _lib.EC_KEY_free)
 
 
-def get_elliptic_curves() -> Set["_EllipticCurve"]:
+def get_elliptic_curves() -> set[_EllipticCurve]:
     """
     Return a set of objects representing the elliptic curves supported in the
     OpenSSL build in use.
@@ -623,7 +620,7 @@ class X509Name:
     :ivar emailAddress: The e-mail address of the entity.
     """
 
-    def __init__(self, name: "X509Name") -> None:
+    def __init__(self, name: X509Name) -> None:
         """
         Create a new X509Name, copying the given X509Name instance.
 
@@ -672,7 +669,7 @@ class X509Name:
         if not add_result:
             _raise_current_error()
 
-    def __getattr__(self, name: str) -> Optional[str]:
+    def __getattr__(self, name: str) -> str | None:
         """
         Find attribute. An X509Name object has the following attributes:
         countryName (alias C), stateOrProvince (alias ST), locality (alias L),
@@ -765,7 +762,7 @@ class X509Name:
         _lib.OPENSSL_free(result_buffer[0])
         return string_result
 
-    def get_components(self) -> List[Tuple[bytes, bytes]]:
+    def get_components(self) -> list[tuple[bytes, bytes]]:
         """
         Returns the components of this name, as a sequence of 2-tuples.
 
@@ -802,8 +799,8 @@ class X509Extension:
         type_name: bytes,
         critical: bool,
         value: bytes,
-        subject: Optional["X509"] = None,
-        issuer: Optional["X509"] = None,
+        subject: X509 | None = None,
+        issuer: X509 | None = None,
     ) -> None:
         """
         Initializes an X509 extension.
@@ -872,7 +869,7 @@ class X509Extension:
             _lib.X509_EXTENSION_get_object(self._extension)
         )
 
-    _prefixes: typing.ClassVar[typing.Dict[int, str]] = {
+    _prefixes: typing.ClassVar[dict[int, str]] = {
         _lib.GEN_EMAIL: "email",
         _lib.GEN_DNS: "DNS",
         _lib.GEN_URI: "URI",
@@ -1000,7 +997,7 @@ class X509Req:
     @classmethod
     def from_cryptography(
         cls, crypto_req: x509.CertificateSigningRequest
-    ) -> "X509Req":
+    ) -> X509Req:
         """
         Construct based on a ``cryptography`` *crypto_req*.
 
@@ -1119,7 +1116,7 @@ class X509Req:
         add_result = _lib.X509_REQ_add_extensions(self._req, stack)
         _openssl_assert(add_result == 1)
 
-    def get_extensions(self) -> List[_X509ExtensionInternal]:
+    def get_extensions(self) -> list[_X509ExtensionInternal]:
         """
         Get X.509 extensions in the certificate signing request.
 
@@ -1221,7 +1218,7 @@ class X509:
         self._subject_invalidator = _X509NameInvalidator()
 
     @classmethod
-    def _from_raw_x509_ptr(cls, x509: Any) -> "X509":
+    def _from_raw_x509_ptr(cls, x509: Any) -> X509:
         cert = cls.__new__(cls)
         cert._x509 = _ffi.gc(x509, _lib.X509_free)
         cert._issuer_invalidator = _X509NameInvalidator()
@@ -1242,7 +1239,7 @@ class X509:
         return load_der_x509_certificate(der)
 
     @classmethod
-    def from_cryptography(cls, crypto_cert: x509.Certificate) -> "X509":
+    def from_cryptography(cls, crypto_cert: x509.Certificate) -> X509:
         """
         Construct based on a ``cryptography`` *crypto_cert*.
 
@@ -1505,10 +1502,10 @@ class X509:
         utcnow = datetime.datetime.now(UTC).replace(tzinfo=None)
         return not_after < utcnow
 
-    def _get_boundary_time(self, which: Any) -> Optional[bytes]:
+    def _get_boundary_time(self, which: Any) -> bytes | None:
         return _get_asn1_time(which(self._x509))
 
-    def get_notBefore(self) -> Optional[bytes]:
+    def get_notBefore(self) -> bytes | None:
         """
         Get the timestamp at which the certificate starts being valid.
 
@@ -1539,7 +1536,7 @@ class X509:
         """
         return self._set_boundary_time(_lib.X509_getm_notBefore, when)
 
-    def get_notAfter(self) -> Optional[bytes]:
+    def get_notAfter(self) -> bytes | None:
         """
         Get the timestamp at which the certificate stops being valid.
 
@@ -1755,7 +1752,7 @@ class X509Store:
         _openssl_assert(res == 1)
 
     def add_crl(
-        self, crl: Union["_CRLInternal", x509.CertificateRevocationList]
+        self, crl: _CRLInternal | x509.CertificateRevocationList
     ) -> None:
         """
         Add a certificate revocation list to this store.
@@ -1839,7 +1836,7 @@ class X509Store:
         _openssl_assert(_lib.X509_STORE_set1_param(self._store, param) != 0)
 
     def load_locations(
-        self, cafile: StrOrBytesPath, capath: Optional[StrOrBytesPath] = None
+        self, cafile: StrOrBytesPath, capath: StrOrBytesPath | None = None
     ) -> None:
         """
         Let X509Store know where we can find trusted certificates for the
@@ -1898,7 +1895,7 @@ class X509StoreContextError(Exception):
     """
 
     def __init__(
-        self, message: str, errors: List[Any], certificate: X509
+        self, message: str, errors: list[Any], certificate: X509
     ) -> None:
         super().__init__(message)
         self.errors = errors
@@ -1925,7 +1922,7 @@ class X509StoreContext:
         self,
         store: X509Store,
         certificate: X509,
-        chain: Optional[Sequence[X509]] = None,
+        chain: Sequence[X509] | None = None,
     ) -> None:
         self._store = store
         self._cert = certificate
@@ -1933,7 +1930,7 @@ class X509StoreContext:
 
     @staticmethod
     def _build_certificate_stack(
-        certificates: Optional[Sequence[X509]],
+        certificates: Sequence[X509] | None,
     ) -> None:
         def cleanup(s: Any) -> None:
             # Equivalent to sk_X509_pop_free, but we don't
@@ -2034,7 +2031,7 @@ class X509StoreContext:
         """
         self._verify_certificate()
 
-    def get_verified_chain(self) -> List[X509]:
+    def get_verified_chain(self) -> list[X509]:
         """
         Verify a certificate in a context and return the complete validated
         chain.
@@ -2148,8 +2145,8 @@ def dump_publickey(type: int, pkey: PKey) -> bytes:
 def dump_privatekey(
     type: int,
     pkey: PKey,
-    cipher: Optional[str] = None,
-    passphrase: Optional[PassphraseCallableT] = None,
+    cipher: str | None = None,
+    passphrase: PassphraseCallableT | None = None,
 ) -> bytes:
     """
     Dump the private key *pkey* into a buffer string encoded with the type
@@ -2223,7 +2220,7 @@ class Revoked:
     # which differs from crl_reasons of crypto/x509v3/v3_enum.c that matches
     # OCSP_crl_reason_str.  We use the latter, just like the command line
     # program.
-    _crl_reasons: typing.ClassVar[typing.List[bytes]] = [
+    _crl_reasons: typing.ClassVar[list[bytes]] = [
         b"unspecified",
         b"keyCompromise",
         b"CACompromise",
@@ -2289,7 +2286,7 @@ class Revoked:
                 _lib.X509_REVOKED_delete_ext(self._revoked, i)
                 break
 
-    def set_reason(self, reason: Optional[bytes]) -> None:
+    def set_reason(self, reason: bytes | None) -> None:
         """
         Set the reason of this revocation.
 
@@ -2326,7 +2323,7 @@ class Revoked:
             )
             _openssl_assert(add_result == 1)
 
-    def get_reason(self) -> Optional[bytes]:
+    def get_reason(self) -> bytes | None:
         """
         Get the reason of this revocation.
 
@@ -2354,7 +2351,7 @@ class Revoked:
                 return _bio_to_string(bio)
         return None
 
-    def all_reasons(self) -> List[bytes]:
+    def all_reasons(self) -> list[bytes]:
         """
         Return a list of all the supported reason strings.
 
@@ -2380,7 +2377,7 @@ class Revoked:
         )
         _openssl_assert(ret == 1)
 
-    def get_rev_date(self) -> Optional[bytes]:
+    def get_rev_date(self) -> bytes | None:
         """
         Get the revocation timestamp.
 
@@ -2429,7 +2426,7 @@ class CRL:
     @classmethod
     def from_cryptography(
         cls, crypto_crl: x509.CertificateRevocationList
-    ) -> "_CRLInternal":
+    ) -> _CRLInternal:
         """
         Construct based on a ``cryptography`` *crypto_crl*.
 
@@ -2448,7 +2445,7 @@ class CRL:
         der = crypto_crl.public_bytes(Encoding.DER)
         return _load_crl_internal(FILETYPE_ASN1, der)
 
-    def get_revoked(self) -> Optional[Tuple[_RevokedInternal, ...]]:
+    def get_revoked(self) -> tuple[_RevokedInternal, ...] | None:
         """
         Return the revocations in this certificate revocation list.
 
@@ -2653,7 +2650,7 @@ class _PassphraseHelper:
     def __init__(
         self,
         type: int,
-        passphrase: Optional[PassphraseCallableT],
+        passphrase: PassphraseCallableT | None,
         more_args: bool = False,
         truncate: bool = False,
     ) -> None:
@@ -2664,7 +2661,7 @@ class _PassphraseHelper:
         self._passphrase = passphrase
         self._more_args = more_args
         self._truncate = truncate
-        self._problems: List[Exception] = []
+        self._problems: list[Exception] = []
 
     @property
     def callback(self) -> Any:
@@ -2688,7 +2685,7 @@ class _PassphraseHelper:
                 "Last argument must be a byte string or a callable."
             )
 
-    def raise_if_problem(self, exceptionType: Type[Exception] = Error) -> None:
+    def raise_if_problem(self, exceptionType: type[Exception] = Error) -> None:
         if self._problems:
             # Flush the OpenSSL error queue
             try:
@@ -2727,7 +2724,7 @@ class _PassphraseHelper:
             return 0
 
 
-def load_publickey(type: int, buffer: Union[str, bytes]) -> PKey:
+def load_publickey(type: int, buffer: str | bytes) -> PKey:
     """
     Load a public key from a buffer.
 
@@ -2763,8 +2760,8 @@ def load_publickey(type: int, buffer: Union[str, bytes]) -> PKey:
 
 def load_privatekey(
     type: int,
-    buffer: Union[str, bytes],
-    passphrase: Optional[PassphraseCallableT] = None,
+    buffer: str | bytes,
+    passphrase: PassphraseCallableT | None = None,
 ) -> PKey:
     """
     Load a private key (PKey) from the string *buffer* encoded with the type
@@ -2886,7 +2883,7 @@ utils.deprecated(
 )
 
 
-def sign(pkey: PKey, data: Union[str, bytes], digest: str) -> bytes:
+def sign(pkey: PKey, data: str | bytes, digest: str) -> bytes:
     """
     Sign a data string using the given key and message digest.
 
@@ -2931,7 +2928,7 @@ utils.deprecated(
 
 
 def verify(
-    cert: X509, signature: bytes, data: Union[str, bytes], digest: str
+    cert: X509, signature: bytes, data: str | bytes, digest: str
 ) -> None:
     """
     Verify the signature for a data string.
@@ -3019,7 +3016,7 @@ utils.deprecated(
 )
 
 
-def load_crl(type: int, buffer: Union[str, bytes]) -> _CRLInternal:
+def load_crl(type: int, buffer: str | bytes) -> _CRLInternal:
     """
     Load Certificate Revocation List (CRL) data from a string *buffer*.
     *buffer* encoded with the type *type*.

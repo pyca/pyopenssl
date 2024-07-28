@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import socket
 import typing
@@ -5,7 +7,7 @@ from errno import errorcode
 from functools import partial, wraps
 from itertools import chain, count
 from sys import platform
-from typing import Any, Callable, List, Optional, Sequence, Tuple, TypeVar
+from typing import Any, Callable, List, Optional, Sequence, TypeVar
 from weakref import WeakValueDictionary
 
 from OpenSSL._util import (
@@ -464,7 +466,7 @@ class _CallbackExceptionHelper:
     """
 
     def __init__(self) -> None:
-        self._problems: List[Exception] = []
+        self._problems: list[Exception] = []
 
     def raise_if_problem(self) -> None:
         """
@@ -834,7 +836,7 @@ class Context:
     """
 
     _methods: typing.ClassVar[
-        typing.Dict[int, typing.Tuple[Callable[[], Any], Optional[int]]]
+        dict[int, tuple[Callable[[], Any], int | None]]
     ] = {
         SSLv23_METHOD: (_lib.TLS_method, None),
         TLSv1_METHOD: (_lib.TLS_method, TLS1_VERSION),
@@ -865,30 +867,28 @@ class Context:
         context = _ffi.gc(context, _lib.SSL_CTX_free)
 
         self._context = context
-        self._passphrase_helper: Optional[_PassphraseHelper] = None
-        self._passphrase_callback: Optional[_PassphraseCallback[Any]] = None
-        self._passphrase_userdata: Optional[Any] = None
-        self._verify_helper: Optional[_VerifyHelper] = None
-        self._verify_callback: Optional[_VerifyCallback] = None
+        self._passphrase_helper: _PassphraseHelper | None = None
+        self._passphrase_callback: _PassphraseCallback[Any] | None = None
+        self._passphrase_userdata: Any | None = None
+        self._verify_helper: _VerifyHelper | None = None
+        self._verify_callback: _VerifyCallback | None = None
         self._info_callback = None
         self._keylog_callback = None
         self._tlsext_servername_callback = None
         self._app_data = None
-        self._alpn_select_helper: Optional[_ALPNSelectHelper] = None
-        self._alpn_select_callback: Optional[_ALPNSelectCallback] = None
-        self._ocsp_helper: typing.Union[
-            _OCSPClientCallbackHelper, _OCSPServerCallbackHelper, None
-        ] = None
-        self._ocsp_callback: typing.Union[
-            _OCSPClientCallback[Any], _OCSPServerCallback[Any], None
-        ] = None
-        self._ocsp_data: Optional[Any] = None
-        self._cookie_generate_helper: Optional[
-            _CookieGenerateCallbackHelper
-        ] = None
-        self._cookie_verify_helper: Optional[_CookieVerifyCallbackHelper] = (
+        self._alpn_select_helper: _ALPNSelectHelper | None = None
+        self._alpn_select_callback: _ALPNSelectCallback | None = None
+        self._ocsp_helper: (
+            _OCSPClientCallbackHelper | _OCSPServerCallbackHelper | None
+        ) = None
+        self._ocsp_callback: (
+            _OCSPClientCallback[Any] | _OCSPServerCallback[Any] | None
+        ) = None
+        self._ocsp_data: Any | None = None
+        self._cookie_generate_helper: _CookieGenerateCallbackHelper | None = (
             None
         )
+        self._cookie_verify_helper: _CookieVerifyCallbackHelper | None = None
 
         self.set_mode(_lib.SSL_MODE_ENABLE_PARTIAL_WRITE)
         if version is not None:
@@ -923,8 +923,8 @@ class Context:
 
     def load_verify_locations(
         self,
-        cafile: Optional[_StrOrBytesPath],
-        capath: Optional[_StrOrBytesPath] = None,
+        cafile: _StrOrBytesPath | None,
+        capath: _StrOrBytesPath | None = None,
     ) -> None:
         """
         Let SSL know where we can find trusted certificates for the certificate
@@ -971,7 +971,7 @@ class Context:
     def set_passwd_cb(
         self,
         callback: _PassphraseCallback[_T],
-        userdata: Optional[_T] = None,
+        userdata: _T | None = None,
     ) -> None:
         """
         Set the passphrase callback.  This function will be called
@@ -1061,7 +1061,7 @@ class Context:
         )
 
     def _fallback_default_verify_paths(
-        self, file_path: List[str], dir_path: List[str]
+        self, file_path: list[str], dir_path: list[str]
     ) -> None:
         """
         Default verify paths are based on the compiled version of OpenSSL.
@@ -1270,7 +1270,7 @@ class Context:
         return _lib.SSL_CTX_get_session_cache_mode(self._context)
 
     def set_verify(
-        self, mode: int, callback: Optional[_VerifyCallback] = None
+        self, mode: int, callback: _VerifyCallback | None = None
     ) -> None:
         """
         Set the verification flags for this Context object to *mode* and
@@ -1491,7 +1491,7 @@ class Context:
         return _lib.SSL_CTX_get_timeout(self._context)
 
     def set_info_callback(
-        self, callback: Callable[["Connection", int, int], None]
+        self, callback: Callable[[Connection, int, int], None]
     ) -> None:
         """
         Set the information callback to *callback*. This function will be
@@ -1516,7 +1516,7 @@ class Context:
 
     @_requires_keylog
     def set_keylog_callback(
-        self, callback: Callable[["Connection", bytes], None]
+        self, callback: Callable[[Connection, bytes], None]
     ) -> None:
         """
         Set the TLS key logging callback to *callback*. This function will be
@@ -1558,7 +1558,7 @@ class Context:
         """
         self._app_data = data
 
-    def get_cert_store(self) -> Optional[X509Store]:
+    def get_cert_store(self) -> X509Store | None:
         """
         Get the certificate store for the context.  This can be used to add
         "trusted" certificates without using the
@@ -1602,7 +1602,7 @@ class Context:
         return _lib.SSL_CTX_set_mode(self._context, mode)
 
     def set_tlsext_servername_callback(
-        self, callback: Callable[["Connection"], None]
+        self, callback: Callable[[Connection], None]
     ) -> None:
         """
         Specify a callback function to be called when clients specify a server
@@ -1641,7 +1641,7 @@ class Context:
             _lib.SSL_CTX_set_tlsext_use_srtp(self._context, profiles) == 0
         )
 
-    def set_alpn_protos(self, protos: List[bytes]) -> None:
+    def set_alpn_protos(self, protos: list[bytes]) -> None:
         """
         Specify the protocols that the client is prepared to speak after the
         TLS connection has been negotiated using Application Layer Protocol
@@ -1700,10 +1700,8 @@ class Context:
 
     def _set_ocsp_callback(
         self,
-        helper: typing.Union[
-            _OCSPClientCallbackHelper, _OCSPServerCallbackHelper
-        ],
-        data: Optional[Any],
+        helper: _OCSPClientCallbackHelper | _OCSPServerCallbackHelper,
+        data: Any | None,
     ) -> None:
         """
         This internal helper does the common work for
@@ -1727,7 +1725,7 @@ class Context:
     def set_ocsp_server_callback(
         self,
         callback: _OCSPServerCallback[_T],
-        data: Optional[_T] = None,
+        data: _T | None = None,
     ) -> None:
         """
         Set a callback to provide OCSP data to be stapled to the TLS handshake
@@ -1749,7 +1747,7 @@ class Context:
     def set_ocsp_client_callback(
         self,
         callback: _OCSPClientCallback[_T],
-        data: Optional[_T] = None,
+        data: _T | None = None,
     ) -> None:
         """
         Set a callback to validate OCSP data stapled to the TLS handshake on
@@ -1790,12 +1788,12 @@ class Context:
 
 
 class Connection:
-    _reverse_mapping: typing.MutableMapping[Any, "Connection"] = (
+    _reverse_mapping: typing.MutableMapping[Any, Connection] = (
         WeakValueDictionary()
     )
 
     def __init__(
-        self, context: Context, socket: Optional[socket.socket] = None
+        self, context: Context, socket: socket.socket | None = None
     ) -> None:
         """
         Create a new Connection object, using the given OpenSSL.SSL.Context
@@ -1941,7 +1939,7 @@ class Connection:
         _lib.SSL_set_SSL_CTX(self._ssl, context._context)
         self._context = context
 
-    def get_servername(self) -> Optional[bytes]:
+    def get_servername(self) -> bytes | None:
         """
         Retrieve the servername extension value if provided in the client hello
         message, or None if there wasn't one.
@@ -1959,7 +1957,7 @@ class Connection:
         return _ffi.string(name)
 
     def set_verify(
-        self, mode: int, callback: Optional[_VerifyCallback] = None
+        self, mode: int, callback: _VerifyCallback | None = None
     ) -> None:
         """
         Override the Context object's verification flags for this specific
@@ -2130,7 +2128,7 @@ class Connection:
 
             return total_sent
 
-    def recv(self, bufsiz: int, flags: Optional[int] = None) -> bytes:
+    def recv(self, bufsiz: int, flags: int | None = None) -> bytes:
         """
         Receive data on the connection.
 
@@ -2152,8 +2150,8 @@ class Connection:
     def recv_into(
         self,
         buffer: Any,  # collections.abc.Buffer once we use Python 3.12+
-        nbytes: Optional[int] = None,
-        flags: Optional[int] = None,
+        nbytes: int | None = None,
+        flags: int | None = None,
     ) -> int:
         """
         Receive data on the connection and copy it directly into the provided
@@ -2319,7 +2317,7 @@ class Connection:
         self.set_connect_state()
         return connect_ex(addr)
 
-    def accept(self) -> Tuple["Connection", Any]:
+    def accept(self) -> tuple[Connection, Any]:
         """
         Call the :meth:`accept` method of the underlying socket and set up SSL
         on the returned socket, using the Context object supplied to this
@@ -2360,7 +2358,7 @@ class Connection:
         if result < 0:
             self._raise_ssl_error(self._ssl, result)
 
-    def DTLSv1_get_timeout(self) -> Optional[int]:
+    def DTLSv1_get_timeout(self) -> int | None:
         """
         Determine when the DTLS SSL object next needs to perform internal
         processing due to the passage of time.
@@ -2423,7 +2421,7 @@ class Connection:
         else:
             return False
 
-    def get_cipher_list(self) -> List[str]:
+    def get_cipher_list(self) -> list[str]:
         """
         Retrieve the list of ciphers used by the Connection object.
 
@@ -2437,7 +2435,7 @@ class Connection:
             ciphers.append(_ffi.string(result).decode("utf-8"))
         return ciphers
 
-    def get_client_ca_list(self) -> List[X509Name]:
+    def get_client_ca_list(self) -> list[X509Name]:
         """
         Get CAs whose certificates are suggested for client authentication.
 
@@ -2523,7 +2521,7 @@ class Connection:
         """
         return _ffi.string(_lib.SSL_state_string_long(self._ssl))
 
-    def server_random(self) -> Optional[bytes]:
+    def server_random(self) -> bytes | None:
         """
         Retrieve the random value used with the server hello message.
 
@@ -2538,7 +2536,7 @@ class Connection:
         _lib.SSL_get_server_random(self._ssl, outp, length)
         return _ffi.buffer(outp, length)[:]
 
-    def client_random(self) -> Optional[bytes]:
+    def client_random(self) -> bytes | None:
         """
         Retrieve the random value used with the client hello message.
 
@@ -2554,7 +2552,7 @@ class Connection:
         _lib.SSL_get_client_random(self._ssl, outp, length)
         return _ffi.buffer(outp, length)[:]
 
-    def master_key(self) -> Optional[bytes]:
+    def master_key(self) -> bytes | None:
         """
         Retrieve the value of the master key for this session.
 
@@ -2571,7 +2569,7 @@ class Connection:
         return _ffi.buffer(outp, length)[:]
 
     def export_keying_material(
-        self, label: bytes, olen: int, context: Optional[bytes] = None
+        self, label: bytes, olen: int, context: bytes | None = None
     ) -> bytes:
         """
         Obtain keying material for application use.
@@ -2611,7 +2609,7 @@ class Connection:
         """
         return self._socket.shutdown(*args, **kwargs)  # type: ignore[return-value, union-attr]
 
-    def get_certificate(self) -> Optional[X509]:
+    def get_certificate(self) -> X509 | None:
         """
         Retrieve the local certificate (if any)
 
@@ -2623,7 +2621,7 @@ class Connection:
             return X509._from_raw_x509_ptr(cert)
         return None
 
-    def get_peer_certificate(self) -> Optional[X509]:
+    def get_peer_certificate(self) -> X509 | None:
         """
         Retrieve the other side's certificate (if any)
 
@@ -2635,7 +2633,7 @@ class Connection:
         return None
 
     @staticmethod
-    def _cert_stack_to_list(cert_stack: Any) -> List[X509]:
+    def _cert_stack_to_list(cert_stack: Any) -> list[X509]:
         """
         Internal helper to convert a STACK_OF(X509) to a list of X509
         instances.
@@ -2650,7 +2648,7 @@ class Connection:
             result.append(pycert)
         return result
 
-    def get_peer_cert_chain(self) -> Optional[List[X509]]:
+    def get_peer_cert_chain(self) -> list[X509] | None:
         """
         Retrieve the other side's certificate (if any)
 
@@ -2663,7 +2661,7 @@ class Connection:
 
         return self._cert_stack_to_list(cert_stack)
 
-    def get_verified_chain(self) -> Optional[List[X509]]:
+    def get_verified_chain(self) -> list[X509] | None:
         """
         Retrieve the verified certificate chain of the peer including the
         peer's end entity certificate. It must be called after a session has
@@ -2718,7 +2716,7 @@ class Connection:
         """
         _lib.SSL_set_connect_state(self._ssl)
 
-    def get_session(self) -> Optional[Session]:
+    def get_session(self) -> Session | None:
         """
         Returns the Session currently used.
 
@@ -2752,7 +2750,7 @@ class Connection:
 
     def _get_finished_message(
         self, function: Callable[[Any, Any, int], int]
-    ) -> Optional[bytes]:
+    ) -> bytes | None:
         """
         Helper to implement :meth:`get_finished` and
         :meth:`get_peer_finished`.
@@ -2785,7 +2783,7 @@ class Connection:
         function(self._ssl, buf, size)
         return _ffi.buffer(buf, size)[:]
 
-    def get_finished(self) -> Optional[bytes]:
+    def get_finished(self) -> bytes | None:
         """
         Obtain the latest TLS Finished message that we sent.
 
@@ -2796,7 +2794,7 @@ class Connection:
         """
         return self._get_finished_message(_lib.SSL_get_finished)
 
-    def get_peer_finished(self) -> Optional[bytes]:
+    def get_peer_finished(self) -> bytes | None:
         """
         Obtain the latest TLS Finished message that we received from the peer.
 
@@ -2807,7 +2805,7 @@ class Connection:
         """
         return self._get_finished_message(_lib.SSL_get_peer_finished)
 
-    def get_cipher_name(self) -> Optional[str]:
+    def get_cipher_name(self) -> str | None:
         """
         Obtain the name of the currently used cipher.
 
@@ -2823,7 +2821,7 @@ class Connection:
             name = _ffi.string(_lib.SSL_CIPHER_get_name(cipher))
             return name.decode("utf-8")
 
-    def get_cipher_bits(self) -> Optional[int]:
+    def get_cipher_bits(self) -> int | None:
         """
         Obtain the number of secret bits of the currently used cipher.
 
@@ -2838,7 +2836,7 @@ class Connection:
         else:
             return _lib.SSL_CIPHER_get_bits(cipher, _ffi.NULL)
 
-    def get_cipher_version(self) -> Optional[str]:
+    def get_cipher_version(self) -> str | None:
         """
         Obtain the protocol version of the currently used cipher.
 
@@ -2875,7 +2873,7 @@ class Connection:
         version = _lib.SSL_version(self._ssl)
         return version
 
-    def set_alpn_protos(self, protos: List[bytes]) -> None:
+    def set_alpn_protos(self, protos: list[bytes]) -> None:
         """
         Specify the client's ALPN protocol list.
 
