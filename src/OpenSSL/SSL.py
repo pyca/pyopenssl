@@ -3,12 +3,15 @@ from __future__ import annotations
 import os
 import socket
 import typing
+import warnings
 from errno import errorcode
 from functools import partial, wraps
 from itertools import chain, count
 from sys import platform
 from typing import Any, Callable, List, Optional, Sequence, TypeVar
 from weakref import WeakValueDictionary
+
+from cryptography.hazmat.primitives.asymmetric import ec
 
 from OpenSSL._util import (
     StrOrBytesPath as _StrOrBytesPath,
@@ -1358,17 +1361,44 @@ class Context:
         res = _lib.SSL_CTX_set_tmp_dh(self._context, dh)
         _openssl_assert(res == 1)
 
-    def set_tmp_ecdh(self, curve: _EllipticCurve) -> None:
+    def set_tmp_ecdh(self, curve: _EllipticCurve | ec.EllipticCurve) -> None:
         """
         Select a curve to use for ECDHE key exchange.
 
-        :param curve: A curve object to use as returned by either
+        :param curve: A curve instance from cryptography
+            (:class:`~cryptogragraphy.hazmat.primitives.asymmetric.ec.EllipticCurve`).
+            Alternatively (deprecated) a curve object from either
             :meth:`OpenSSL.crypto.get_elliptic_curve` or
             :meth:`OpenSSL.crypto.get_elliptic_curves`.
 
         :return: None
         """
-        _lib.SSL_CTX_set_tmp_ecdh(self._context, curve._to_EC_KEY())
+
+        if isinstance(curve, _EllipticCurve):
+            warnings.warn(
+                (
+                    "Passing pyOpenSSL elliptic curves to set_tmp_ecdh is "
+                    "deprecated. You should use cryptography's elliptic curve "
+                    "types instead."
+                ),
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            _lib.SSL_CTX_set_tmp_ecdh(self._context, curve._to_EC_KEY())
+        else:
+            name = curve.name
+            if name == "secp192r1":
+                name = "prime192v1"
+            elif name == "secp256r1":
+                name = "prime256v1"
+            nid = _lib.OBJ_txt2nid(name.encode())
+            if nid == _lib.NID_undef:
+                _raise_current_error()
+
+            ec = _lib.EC_KEY_new_by_curve_name(nid)
+            _openssl_assert(ec != _ffi.NULL)
+            ec = _ffi.gc(ec, _lib.EC_KEY_free)
+            _lib.SSL_CTX_set_tmp_ecdh(self._context, ec)
 
     def set_cipher_list(self, cipher_list: bytes) -> None:
         """

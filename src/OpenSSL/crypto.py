@@ -576,6 +576,20 @@ def get_elliptic_curves() -> set[_EllipticCurve]:
     return _EllipticCurve._get_elliptic_curves(_lib)
 
 
+_get_elliptic_curves_internal = get_elliptic_curves
+
+utils.deprecated(
+    get_elliptic_curves,
+    __name__,
+    (
+        "get_elliptic_curves is deprecated. You should use the APIs in "
+        "cryptography instead."
+    ),
+    DeprecationWarning,
+    name="get_elliptic_curves",
+)
+
+
 def get_elliptic_curve(name: str) -> _EllipticCurve:
     """
     Return a single curve object selected by name.
@@ -588,10 +602,22 @@ def get_elliptic_curve(name: str) -> _EllipticCurve:
 
     If the named curve is not supported then :py:class:`ValueError` is raised.
     """
-    for curve in get_elliptic_curves():
+    for curve in _get_elliptic_curves_internal():
         if curve.name == name:
             return curve
     raise ValueError("unknown curve name", name)
+
+
+utils.deprecated(
+    get_elliptic_curve,
+    __name__,
+    (
+        "get_elliptic_curve is deprecated. You should use the APIs in "
+        "cryptography instead."
+    ),
+    DeprecationWarning,
+    name="get_elliptic_curve",
+)
 
 
 @functools.total_ordering

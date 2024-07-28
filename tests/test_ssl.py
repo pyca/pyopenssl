@@ -37,7 +37,7 @@ from weakref import ref
 import pytest
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from cryptography.x509.oid import NameOID
 from pretend import raiser
 
@@ -1685,6 +1685,14 @@ class TestContext:
                 continue
             # The only easily "assertable" thing is that it does not raise an
             # exception.
+            with pytest.deprecated_call():
+                context.set_tmp_ecdh(curve)
+
+        for name in dir(ec.EllipticCurveOID):
+            if name.startswith("_"):
+                continue
+            oid = getattr(ec.EllipticCurveOID, name)
+            curve = ec.get_curve_for_oid(oid)
             context.set_tmp_ecdh(curve)
 
     def test_set_session_cache_mode_wrong_args(self):
