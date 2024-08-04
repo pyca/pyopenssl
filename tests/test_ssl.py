@@ -1790,8 +1790,7 @@ class TestServerNameCallback:
         callback = tracker()
         if callback is not None:
             referrers = get_referrers(callback)
-            if len(referrers) > 1:  # pragma: nocover
-                pytest.fail(f"Some references remain: {referrers!r}")
+            assert len(referrers) == 1
 
     def test_no_servername(self):
         """
@@ -2719,8 +2718,7 @@ class TestConnection:
         callback = tracker()
         if callback is not None:  # pragma: nocover
             referrers = get_referrers(callback)
-            if len(referrers) > 1:
-                pytest.fail(f"Some references remain: {referrers!r}")
+            assert len(referrers) == 1
 
     def test_get_session_unconnected(self):
         """
