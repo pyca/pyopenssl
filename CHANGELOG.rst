@@ -14,6 +14,7 @@ Deprecations:
 ^^^^^^^^^^^^^
 
 - Deprecated ``OpenSSL.rand`` - callers should use ``os.urandom()`` instead.
+- Deprecated ``OpenSSL.crypto.get_elliptic_curves`` and ``OpenSSL.crypto.get_elliptic_curve``, as well as passing the reult of them to ``OpenSSL.SSL.Context.set_tmp_ecdh``, users should instead pass curves from ``cryptography``.
 
 Changes:
 ^^^^^^^^
