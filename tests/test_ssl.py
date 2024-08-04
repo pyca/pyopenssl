@@ -2586,7 +2586,7 @@ class TestConnection:
         serverContext.use_privatekey(skey)
         serverContext.use_certificate(scert)
         serverContext.add_extra_chain_cert(icert)
-        serverContext.add_extra_chain_cert(cacert)
+        serverContext.add_extra_chain_cert(cacert.to_cryptography())
         server = Connection(serverContext, None)
         server.set_accept_state()
 
@@ -2630,7 +2630,7 @@ class TestConnection:
         serverContext = Context(SSLv23_METHOD)
         serverContext.use_privatekey(skey)
         serverContext.use_certificate(scert)
-        serverContext.add_extra_chain_cert(icert)
+        serverContext.add_extra_chain_cert(icert.to_cryptography())
         serverContext.add_extra_chain_cert(cacert)
         server = Connection(serverContext, None)
         server.set_accept_state()

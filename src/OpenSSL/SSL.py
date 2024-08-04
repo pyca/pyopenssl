@@ -1151,7 +1151,7 @@ class Context:
         if not use_result:
             _raise_current_error()
 
-    def add_extra_chain_cert(self, certobj: X509) -> None:
+    def add_extra_chain_cert(self, certobj: X509 | x509.Certificate) -> None:
         """
         Add certificate to chain
 
@@ -1159,7 +1159,16 @@ class Context:
         :return: None
         """
         if not isinstance(certobj, X509):
-            raise TypeError("certobj must be an X509 instance")
+            certobj = X509.from_cryptography(certobj)
+        else:
+            warnings.warn(
+                (
+                    "Passing pyOpenSSL X509 objects is deprecated. You "
+                    "should use a cryptography.x509.Certificate instead."
+                ),
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         copy = _lib.X509_dup(certobj._x509)
         add_result = _lib.SSL_CTX_add_extra_chain_cert(self._context, copy)
