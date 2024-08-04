@@ -4506,15 +4506,9 @@ class TestDTLS:
 
         # Check that the MTU set/query functions are doing *something*
         c.set_ciphertext_mtu(1000)
-        try:
-            assert 500 < c.get_cleartext_mtu() < 1000
-        except NotImplementedError:  # OpenSSL 1.1.0 and earlier
-            pass
+        assert 500 < c.get_cleartext_mtu() < 1000
         c.set_ciphertext_mtu(500)
-        try:
-            assert 0 < c.get_cleartext_mtu() < 500
-        except NotImplementedError:  # OpenSSL 1.1.0 and earlier
-            pass
+        assert 0 < c.get_cleartext_mtu() < 500
 
     def test_it_works_at_all(self):
         self._test_handshake_and_data(srtp_profile=None)
