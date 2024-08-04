@@ -150,20 +150,10 @@ Context, Connection.
 .. autofunction:: OpenSSL_version
 
 
-.. py:data:: ContextType
-
-    See :py:class:`Context`.
-
-
 .. autoclass:: Context
    :noindex:
 
 .. autoclass:: Session
-
-
-.. py:data:: ConnectionType
-
-    See :py:class:`Connection`.
 
 
 .. py:class:: Connection(context, socket)
