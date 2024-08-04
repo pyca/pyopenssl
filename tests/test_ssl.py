@@ -2208,6 +2208,9 @@ class TestContextConnection:
         ctx_or_conn.use_certificate(
             load_certificate(FILETYPE_PEM, root_cert_pem)
         )
+        ctx_or_conn.use_certificate(
+            load_certificate(FILETYPE_PEM, root_cert_pem).to_cryptography()
+        )
 
     def test_use_certificate_wrong_args(self, ctx_or_conn):
         """
