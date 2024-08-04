@@ -4050,9 +4050,6 @@ class TestEllipticCurveEquality(EqualityTestsMixin):
 
     curve_factory = EllipticCurveFactory()
 
-    if curve_factory.curve_name is None:
-        skip = "There are no curves available there can be no curve objects."
-
     def anInstance(self):
         """
         Get the curve object for an arbitrary curve supported by the system.
@@ -4074,9 +4071,6 @@ class TestEllipticCurveHash:
     """
 
     curve_factory = EllipticCurveFactory()
-
-    if curve_factory.curve_name is None:
-        skip = "There are no curves available there can be no curve objects."
 
     def test_contains(self):
         """
