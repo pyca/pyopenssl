@@ -11,7 +11,6 @@ from typing import (
     Any,
     Callable,
     Iterable,
-    NoReturn,
     Sequence,
     Union,
 )
@@ -123,15 +122,6 @@ _raise_current_error = partial(_exception_from_error_queue, Error)
 _openssl_assert = _make_assert(Error)
 
 
-def _untested_error(where: str) -> NoReturn:
-    """
-    An OpenSSL API failed somehow.  Additionally, the failure which was
-    encountered isn't one that's exercised by the test suite so future behavior
-    of pyOpenSSL is now somewhat less predictable.
-    """
-    raise RuntimeError(f"Unknown {where} failure")
-
-
 def _new_mem_buf(buffer: bytes | None = None) -> Any:
     """
     Allocate a new OpenSSL memory BIO.
@@ -231,25 +221,13 @@ def _get_asn1_time(timestamp: Any) -> bytes | None:
     else:
         generalized_timestamp = _ffi.new("ASN1_GENERALIZEDTIME**")
         _lib.ASN1_TIME_to_generalizedtime(timestamp, generalized_timestamp)
-        if generalized_timestamp[0] == _ffi.NULL:
-            # This may happen:
-            #   - if timestamp was not an ASN1_TIME
-            #   - if allocating memory for the ASN1_GENERALIZEDTIME failed
-            #   - if a copy of the time data from timestamp cannot be made for
-            #     the newly allocated ASN1_GENERALIZEDTIME
-            #
-            # These are difficult to test.  cffi enforces the ASN1_TIME type.
-            # Memory allocation failures are a pain to trigger
-            # deterministically.
-            _untested_error("ASN1_TIME_to_generalizedtime")
-        else:
-            string_timestamp = _ffi.cast(
-                "ASN1_STRING*", generalized_timestamp[0]
-            )
-            string_data = _lib.ASN1_STRING_get0_data(string_timestamp)
-            string_result = _ffi.string(string_data)
-            _lib.ASN1_GENERALIZEDTIME_free(generalized_timestamp[0])
-            return string_result
+        _openssl_assert(generalized_timestamp[0] != _ffi.NULL)
+
+        string_timestamp = _ffi.cast("ASN1_STRING*", generalized_timestamp[0])
+        string_data = _lib.ASN1_STRING_get0_data(string_timestamp)
+        string_result = _ffi.string(string_data)
+        _lib.ASN1_GENERALIZEDTIME_free(generalized_timestamp[0])
+        return string_result
 
 
 class _X509NameInvalidator:
