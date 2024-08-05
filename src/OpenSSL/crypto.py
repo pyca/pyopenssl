@@ -1420,27 +1420,16 @@ class X509:
 
         bignum_serial = _ffi.new("BIGNUM**")
 
-        # BN_hex2bn stores the result in &bignum.  Unless it doesn't feel like
-        # it.  If bignum is still NULL after this call, then the return value
-        # is actually the result.  I hope.  -exarkun
-        small_serial = _lib.BN_hex2bn(bignum_serial, hex_serial_bytes)
+        # BN_hex2bn stores the result in &bignum.
+        result = _lib.BN_hex2bn(bignum_serial, hex_serial_bytes)
+        _openssl_assert(result != _ffi.NULL)
 
-        if bignum_serial[0] == _ffi.NULL:
-            set_result = _lib.ASN1_INTEGER_set(
-                _lib.X509_get_serialNumber(self._x509), small_serial
-            )
-            if set_result:
-                # TODO Not tested
-                _raise_current_error()
-        else:
-            asn1_serial = _lib.BN_to_ASN1_INTEGER(bignum_serial[0], _ffi.NULL)
-            _lib.BN_free(bignum_serial[0])
-            if asn1_serial == _ffi.NULL:
-                # TODO Not tested
-                _raise_current_error()
-            asn1_serial = _ffi.gc(asn1_serial, _lib.ASN1_INTEGER_free)
-            set_result = _lib.X509_set_serialNumber(self._x509, asn1_serial)
-            _openssl_assert(set_result == 1)
+        asn1_serial = _lib.BN_to_ASN1_INTEGER(bignum_serial[0], _ffi.NULL)
+        _lib.BN_free(bignum_serial[0])
+        _openssl_assert(asn1_serial != _ffi.NULL)
+        asn1_serial = _ffi.gc(asn1_serial, _lib.ASN1_INTEGER_free)
+        set_result = _lib.X509_set_serialNumber(self._x509, asn1_serial)
+        _openssl_assert(set_result == 1)
 
     def get_serial_number(self) -> int:
         """
