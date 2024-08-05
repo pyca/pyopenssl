@@ -1,0 +1,21 @@
+name: Upload Coverage
+description: Upload coverage files
+
+runs:
+  using: "composite"
+
+  steps:
+    - run: |
+        COVERAGE_UUID=$(python3 -c "import uuid; print(uuid.uuid4())")
+        echo "COVERAGE_UUID=${COVERAGE_UUID}" >> $GITHUB_OUTPUT
+        if [ -f .coverage ]; then
+          mv .coverage .coverage.${COVERAGE_UUID}
+        fi
+      id: coverage-uuid
+      shell: bash
+    - uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
+      with:
+        name: coverage-data-${{ steps.coverage-uuid.outputs.COVERAGE_UUID }}
+        path: |
+          .coverage.*
+        if-no-files-found: ignore
