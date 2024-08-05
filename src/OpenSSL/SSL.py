@@ -82,6 +82,7 @@ __all__ = [
     "OP_NO_TLSv1",
     "OP_NO_TLSv1_1",
     "OP_NO_TLSv1_2",
+    "OP_NO_TLSv1_3",
     "MODE_RELEASE_BUFFERS",
     "OP_SINGLE_DH_USE",
     "OP_SINGLE_ECDH_USE",
@@ -188,11 +189,7 @@ OP_NO_SSLv3: int = _lib.SSL_OP_NO_SSLv3
 OP_NO_TLSv1: int = _lib.SSL_OP_NO_TLSv1
 OP_NO_TLSv1_1: int = _lib.SSL_OP_NO_TLSv1_1
 OP_NO_TLSv1_2: int = _lib.SSL_OP_NO_TLSv1_2
-try:
-    OP_NO_TLSv1_3: int = _lib.SSL_OP_NO_TLSv1_3
-    __all__.append("OP_NO_TLSv1_3")
-except AttributeError:
-    pass
+OP_NO_TLSv1_3: int = _lib.SSL_OP_NO_TLSv1_3
 
 MODE_RELEASE_BUFFERS: int = _lib.SSL_MODE_RELEASE_BUFFERS
 
