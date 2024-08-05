@@ -598,18 +598,9 @@ class TestContext:
         `SSLv3_METHOD`, `SSLv23_METHOD`, `TLSv1_METHOD`, `TLSv1_1_METHOD`,
         or `TLSv1_2_METHOD`.
         """
-        methods = [SSLv23_METHOD, TLSv1_METHOD]
+        methods = [SSLv23_METHOD, TLSv1_METHOD, TLSv1_1_METHOD, TLSv1_2_METHOD]
         for meth in methods:
             Context(meth)
-
-        maybe = [TLSv1_1_METHOD, TLSv1_2_METHOD]
-        for meth in maybe:
-            try:
-                Context(meth)
-            except (Error, ValueError):
-                # Some versions of OpenSSL have SSLv2 / TLSv1.1 / TLSv1.2, some
-                # don't.  Difficult to say in advance.
-                pass
 
         with pytest.raises(TypeError):
             Context("")
