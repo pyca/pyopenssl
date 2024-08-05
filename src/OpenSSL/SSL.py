@@ -1492,7 +1492,9 @@ class Context:
 
         _lib.SSL_CTX_set_client_CA_list(self._context, name_stack)
 
-    def add_client_ca(self, certificate_authority: X509) -> None:
+    def add_client_ca(
+        self, certificate_authority: X509 | x509.Certificate
+    ) -> None:
         """
         Add the CA certificate to the list of preferred signers for this
         context.
@@ -1506,7 +1508,18 @@ class Context:
         .. versionadded:: 0.10
         """
         if not isinstance(certificate_authority, X509):
-            raise TypeError("certificate_authority must be an X509 instance")
+            certificate_authority = X509.from_cryptography(
+                certificate_authority
+            )
+        else:
+            warnings.warn(
+                (
+                    "Passing pyOpenSSL X509 objects is deprecated. You "
+                    "should use a cryptography.x509.Certificate instead."
+                ),
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         add_result = _lib.SSL_CTX_add_client_CA(
             self._context, certificate_authority._x509

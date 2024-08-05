@@ -3922,7 +3922,7 @@ class TestMemoryBIO:
 
         def multiple_ca(ctx):
             ctx.add_client_ca(cacert)
-            ctx.add_client_ca(secert)
+            ctx.add_client_ca(secert.to_cryptography())
             return [cadesc, sedesc]
 
         self._check_client_ca_list(multiple_ca)
@@ -3962,7 +3962,7 @@ class TestMemoryBIO:
         sedesc = secert.get_subject()
 
         def set_replaces_add_ca(ctx):
-            ctx.add_client_ca(clcert)
+            ctx.add_client_ca(clcert.to_cryptography())
             ctx.set_client_ca_list([cadesc])
             ctx.add_client_ca(secert)
             return [cadesc, sedesc]

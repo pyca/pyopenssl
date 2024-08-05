@@ -15,7 +15,7 @@ Deprecations:
 
 - Deprecated ``OpenSSL.rand`` - callers should use ``os.urandom()`` instead.
 - Deprecated ``OpenSSL.crypto.get_elliptic_curves`` and ``OpenSSL.crypto.get_elliptic_curve``, as well as passing the reult of them to ``OpenSSL.SSL.Context.set_tmp_ecdh``, users should instead pass curves from ``cryptography``.
-- Deprecated passing ``X509`` objects to ``OpenSSL.SSL.Context.use_certificate``, ``OpenSSL.SSL.Connection.use_certificate``, and ``OpenSSL.SSL.Context.add_extra_chain_cert``, users should instead pass ``cryptography.x509.Certificate`` instances. This is in preparation for deprecating pyOpenSSL's ``X509`` entirely.
+- Deprecated passing ``X509`` objects to ``OpenSSL.SSL.Context.use_certificate``, ``OpenSSL.SSL.Connection.use_certificate``, ``OpenSSL.SSL.Context.add_extra_chain_cert``, and ``OpenSSL.SSL.Context.add_client_ca``, users should instead pass ``cryptography.x509.Certificate`` instances. This is in preparation for deprecating pyOpenSSL's ``X509`` entirely.
 
 Changes:
 ^^^^^^^^
