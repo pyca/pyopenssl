@@ -1665,8 +1665,7 @@ class X509:
                 raise ValueError("One of the elements is not an X509Extension")
 
             add_result = _lib.X509_add_ext(self._x509, ext._extension, -1)
-            if not add_result:
-                _raise_current_error()
+            _openssl_assert(add_result == 1)
 
     def get_extension(self, index: int) -> _X509ExtensionInternal:
         """
@@ -1777,9 +1776,7 @@ class X509Store:
 
             bio = _new_mem_buf(crl.public_bytes(Encoding.DER))
             openssl_crl = _lib.d2i_X509_CRL_bio(bio, _ffi.NULL)
-            if openssl_crl == _ffi.NULL:
-                _raise_current_error()
-
+            _openssl_assert(openssl_crl != _ffi.NULL)
             crl = _ffi.gc(openssl_crl, _lib.X509_CRL_free)
         elif isinstance(crl, _CRLInternal):
             crl = crl._crl
