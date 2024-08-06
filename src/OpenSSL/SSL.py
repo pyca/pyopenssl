@@ -46,6 +46,7 @@ from OpenSSL.crypto import (
     X509Store,
     _EllipticCurve,
     _PassphraseHelper,
+    _PrivateKey,
 )
 
 __all__ = [
@@ -1204,7 +1205,7 @@ class Context:
         if not use_result:
             self._raise_passphrase_exception()
 
-    def use_privatekey(self, pkey: PKey) -> None:
+    def use_privatekey(self, pkey: _PrivateKey | PKey) -> None:
         """
         Load a private key from a PKey object
 
@@ -1213,7 +1214,16 @@ class Context:
         """
         # Mirrored at Connection.use_privatekey
         if not isinstance(pkey, PKey):
-            raise TypeError("pkey must be a PKey instance")
+            pkey = PKey.from_cryptography_key(pkey)
+        else:
+            warnings.warn(
+                (
+                    "Passing pyOpenSSL PKey objects is deprecated. You "
+                    "should use a cryptography private key instead."
+                ),
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         use_result = _lib.SSL_CTX_use_PrivateKey(self._context, pkey._pkey)
         if not use_result:
@@ -2070,7 +2080,7 @@ class Connection:
         if not use_result:
             _raise_current_error()
 
-    def use_privatekey(self, pkey: PKey) -> None:
+    def use_privatekey(self, pkey: _PrivateKey | PKey) -> None:
         """
         Load a private key from a PKey object
 
@@ -2079,7 +2089,16 @@ class Connection:
         """
         # Mirrored from Context.use_privatekey
         if not isinstance(pkey, PKey):
-            raise TypeError("pkey must be a PKey instance")
+            pkey = PKey.from_cryptography_key(pkey)
+        else:
+            warnings.warn(
+                (
+                    "Passing pyOpenSSL PKey objects is deprecated. You "
+                    "should use a cryptography private key instead."
+                ),
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         use_result = _lib.SSL_use_PrivateKey(self._ssl, pkey._pkey)
         if not use_result:

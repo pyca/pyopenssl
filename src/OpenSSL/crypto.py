@@ -84,18 +84,21 @@ __all__ = [
 ]
 
 
-_Key = Union[
+_PrivateKey = Union[
     dsa.DSAPrivateKey,
-    dsa.DSAPublicKey,
     ec.EllipticCurvePrivateKey,
-    ec.EllipticCurvePublicKey,
     ed25519.Ed25519PrivateKey,
-    ed25519.Ed25519PublicKey,
     ed448.Ed448PrivateKey,
-    ed448.Ed448PublicKey,
     rsa.RSAPrivateKey,
+]
+_PublicKey = Union[
+    dsa.DSAPublicKey,
+    ec.EllipticCurvePublicKey,
+    ed25519.Ed25519PublicKey,
+    ed448.Ed448PublicKey,
     rsa.RSAPublicKey,
 ]
+_Key = Union[_PrivateKey, _PublicKey]
 StrOrBytesPath = Union[str, bytes, PathLike]
 PassphraseCallableT = Union[bytes, Callable[..., bytes]]
 
