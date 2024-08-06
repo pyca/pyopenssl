@@ -727,6 +727,11 @@ class TestContext:
         context.use_certificate(cert)
         assert None is context.check_privatekey()
 
+        context = Context(SSLv23_METHOD)
+        context.use_privatekey(key.to_cryptography_key())
+        context.use_certificate(cert)
+        assert None is context.check_privatekey()
+
     def test_check_privatekey_invalid(self):
         """
         `Context.check_privatekey` raises `Error` if the `Context` instance
@@ -737,6 +742,12 @@ class TestContext:
         cert = load_certificate(FILETYPE_PEM, server_cert_pem)
         context = Context(SSLv23_METHOD)
         context.use_privatekey(key)
+        context.use_certificate(cert)
+        with pytest.raises(Error):
+            context.check_privatekey()
+
+        context = Context(SSLv23_METHOD)
+        context.use_privatekey(key.to_cryptography_key())
         context.use_certificate(cert)
         with pytest.raises(Error):
             context.check_privatekey()
@@ -2162,6 +2173,8 @@ class TestContextConnection:
         ctx_or_conn.use_privatekey(key)
         with pytest.raises(TypeError):
             ctx_or_conn.use_privatekey("")
+
+        ctx_or_conn.use_privatekey(key.to_cryptography_key())
 
     def test_use_privatekey_wrong_key(self, ctx_or_conn):
         """
