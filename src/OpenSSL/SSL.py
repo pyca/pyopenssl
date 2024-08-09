@@ -2696,16 +2696,43 @@ class Connection:
         """
         return self._socket.shutdown(*args, **kwargs)  # type: ignore[return-value, union-attr]
 
-    def get_certificate(self) -> X509 | None:
+    @typing.overload
+    def get_certificate(
+        self, *, as_cryptography: typing.Literal[True]
+    ) -> x509.Certificate | None:
+        pass
+
+    @typing.overload
+    def get_certificate(
+        self, *, as_cryptography: typing.Literal[False] = False
+    ) -> X509 | None:
+        pass
+
+    @typing.overload
+    def get_certificate(
+        self, *, as_cryptography: bool = False
+    ) -> X509 | x509.Certificate | None:
+        pass
+
+    def get_certificate(
+        self, *, as_cryptography: bool = False
+    ) -> X509 | x509.Certificate | None:
         """
         Retrieve the local certificate (if any)
+
+        :param bool as_cryptography: Controls whether a
+            ``cryptography.x509.Certificate`` or an ``OpenSSL.crypto.X509``
+            object should be returned.
 
         :return: The local certificate
         """
         cert = _lib.SSL_get_certificate(self._ssl)
         if cert != _ffi.NULL:
             _lib.X509_up_ref(cert)
-            return X509._from_raw_x509_ptr(cert)
+            pycert = X509._from_raw_x509_ptr(cert)
+            if as_cryptography:
+                return pycert.to_cryptography()
+            return pycert
         return None
 
     def get_peer_certificate(self) -> X509 | None:

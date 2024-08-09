@@ -2556,6 +2556,13 @@ class TestConnection:
         assert cert is not None
         assert "Server Certificate" == cert.get_subject().CN
 
+        cryptography_cert = client.get_certificate(as_cryptography=True)
+        assert cryptography_cert is not None
+        assert (
+            cryptography_cert.subject.rfc4514_string()
+            == "CN=Server Certificate"
+        )
+
     def test_get_certificate_none(self):
         """
         `Connection.get_certificate` returns the local certificate.
