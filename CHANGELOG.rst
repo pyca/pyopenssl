@@ -21,7 +21,7 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-* ``OpenSSL.SSL.Connection.get_certificate`` now takes an ``as_cryptography`` keyword-argument. When ``True`` is passed then a ``cryptography.x509.Certificate`` is returned, instead of an ``OpenSSL.crypto.X509``. In the future, passing ``False`` (the default) will be deprecated.
+* ``OpenSSL.SSL.Connection.get_certificate`` and ``OpenSSL.SSL.Connection.get_peer_certificate`` now take an ``as_cryptography`` keyword-argument. When ``True`` is passed then a ``cryptography.x509.Certificate`` is returned, instead of an ``OpenSSL.crypto.X509``. In the future, passing ``False`` (the default) will be deprecated.
 
 
 24.2.1 (2024-07-20)
