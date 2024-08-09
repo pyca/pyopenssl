@@ -2781,9 +2781,47 @@ class Connection:
             result.append(pycert)
         return result
 
-    def get_peer_cert_chain(self) -> list[X509] | None:
+    @staticmethod
+    def _cert_stack_to_cryptography_list(
+        cert_stack: Any,
+    ) -> list[x509.Certificate]:
+        """
+        Internal helper to convert a STACK_OF(X509) to a list of X509
+        instances.
+        """
+        result = []
+        for i in range(_lib.sk_X509_num(cert_stack)):
+            cert = _lib.sk_X509_value(cert_stack, i)
+            _openssl_assert(cert != _ffi.NULL)
+            res = _lib.X509_up_ref(cert)
+            _openssl_assert(res >= 1)
+            pycert = X509._from_raw_x509_ptr(cert)
+            result.append(pycert.to_cryptography())
+        return result
+
+    @typing.overload
+    def get_peer_cert_chain(
+        self, *, as_cryptography: typing.Literal[True]
+    ) -> list[x509.Certificate] | None:
+        pass
+
+    @typing.overload
+    def get_peer_cert_chain(
+        self, *, as_cryptography: typing.Literal[False] = False
+    ) -> list[X509] | None:
+        pass
+
+    def get_peer_cert_chain(
+        self,
+        *,
+        as_cryptography: typing.Literal[True] | typing.Literal[False] = False,
+    ) -> list[X509] | list[x509.Certificate] | None:
         """
         Retrieve the other side's certificate (if any)
+
+        :param bool as_cryptography: Controls whether a list of
+            ``cryptography.x509.Certificate`` or ``OpenSSL.crypto.X509``
+            object should be returned.
 
         :return: A list of X509 instances giving the peer's certificate chain,
                  or None if it does not have one.
@@ -2792,6 +2830,8 @@ class Connection:
         if cert_stack == _ffi.NULL:
             return None
 
+        if as_cryptography:
+            return self._cert_stack_to_cryptography_list(cert_stack)
         return self._cert_stack_to_list(cert_stack)
 
     def get_verified_chain(self) -> list[X509] | None:
