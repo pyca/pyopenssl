@@ -1073,6 +1073,14 @@ class TestContext:
         cert = clientSSL.get_peer_certificate()
         assert cert.get_subject().CN == "Testing Root CA"
 
+        cryptography_cert = clientSSL.get_peer_certificate(
+            as_cryptography=True
+        )
+        assert (
+            cryptography_cert.subject.rfc4514_string()
+            == "CN=Testing Root CA,O=Testing,L=Chicago,ST=IL,C=US"
+        )
+
     def _load_verify_cafile(self, cafile):
         """
         Verify that if path to a file containing a certificate is passed to
