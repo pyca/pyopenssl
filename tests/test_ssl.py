@@ -1525,8 +1525,7 @@ class TestContext:
         it with a client which trusts cacert and requires verification to
         succeed.
         """
-        chain = _create_certificate_chain()
-        [(cakey, cacert), (ikey, icert), (skey, scert)] = chain
+        [(_, cacert), (_, icert), (skey, scert)] = _create_certificate_chain()
 
         makedirs(certdir)
 
@@ -2470,7 +2469,7 @@ class TestConnection:
         If the underlying socket is closed, `Connection.shutdown` propagates
         the write error from the low level write call.
         """
-        server, client = loopback()
+        server, _ = loopback()
         server.sock_shutdown(2)
         with pytest.raises(SysCallError) as exc:
             server.shutdown()
@@ -2554,8 +2553,7 @@ class TestConnection:
         """
         `Connection.get_certificate` returns the local certificate.
         """
-        chain = _create_certificate_chain()
-        [(cakey, cacert), (ikey, icert), (skey, scert)] = chain
+        [_, _, (_, scert)] = _create_certificate_chain()
 
         context = Context(SSLv23_METHOD)
         context.use_certificate(scert)
@@ -2587,8 +2585,7 @@ class TestConnection:
         `Connection.get_peer_cert_chain` returns a list of certificates
         which the connected server returned for the certification verification.
         """
-        chain = _create_certificate_chain()
-        [(cakey, cacert), (ikey, icert), (skey, scert)] = chain
+        [(_, cacert), (_, icert), (skey, scert)] = _create_certificate_chain()
 
         serverContext = Context(SSLv23_METHOD)
         serverContext.use_privatekey(skey)
@@ -2647,8 +2644,7 @@ class TestConnection:
         `Connection.get_verified_chain` returns a list of certificates
         which the connected server returned for the certification verification.
         """
-        chain = _create_certificate_chain()
-        [(cakey, cacert), (ikey, icert), (skey, scert)] = chain
+        [(_, cacert), (_, icert), (skey, scert)] = _create_certificate_chain()
 
         serverContext = Context(SSLv23_METHOD)
         serverContext.use_privatekey(skey)
@@ -2759,7 +2755,7 @@ class TestConnection:
         On the server side of a connection, `Connection.get_session` returns a
         `Session` instance representing the SSL session for that connection.
         """
-        server, client = loopback()
+        server, _ = loopback()
         session = server.get_session()
         assert isinstance(session, Session)
 
@@ -2769,7 +2765,7 @@ class TestConnection:
         returns a `Session` instance representing the SSL session for
         that connection.
         """
-        server, client = loopback()
+        _, client = loopback()
         session = client.get_session()
         assert isinstance(session, Session)
 
@@ -2813,7 +2809,7 @@ class TestConnection:
             client.set_session(originalSession)
             return client
 
-        resumedServer, resumedClient = loopback(
+        resumedServer, _ = loopback(
             server_factory=makeServer, client_factory=makeClient
         )
 
@@ -2851,7 +2847,7 @@ class TestConnection:
             client.set_connect_state()
             return client
 
-        originalServer, originalClient = loopback(
+        _, originalClient = loopback(
             server_factory=makeServer, client_factory=makeOriginalClient
         )
         originalSession = originalClient.get_session()
@@ -2872,7 +2868,7 @@ class TestConnection:
         `OpenSSL.SSL.WantWriteError` if writing to the connection's BIO
         fail indicating a should-write state.
         """
-        client_socket, server_socket = socket_pair()
+        client_socket, _ = socket_pair()
         # Fill up the client's send buffer so Connection won't be able to write
         # anything. Start by sending larger chunks (Windows Socket I/O is slow)
         # and continue by writing a single byte at a time so we can be sure we
@@ -2926,7 +2922,7 @@ class TestConnection:
         from client, or server. Finished messages are send during
         TLS handshake.
         """
-        server, client = loopback()
+        server, _ = loopback()
 
         assert server.get_finished() is not None
         assert len(server.get_finished()) > 0
@@ -2937,7 +2933,7 @@ class TestConnection:
         message received from client, or server. Finished messages are send
         during TLS handshake.
         """
-        server, client = loopback()
+        server, _ = loopback()
 
         assert server.get_peer_finished() is not None
         assert len(server.get_peer_finished()) > 0
@@ -3402,7 +3398,7 @@ class TestConnectionSendall:
         If the underlying socket is closed, `Connection.sendall` propagates the
         write error from the low level write call.
         """
-        server, client = loopback()
+        server, _ = loopback()
         server.sock_shutdown(2)
         with pytest.raises(SysCallError) as err:
             server.sendall(b"hello, world")
