@@ -2834,12 +2834,32 @@ class Connection:
             return self._cert_stack_to_cryptography_list(cert_stack)
         return self._cert_stack_to_list(cert_stack)
 
-    def get_verified_chain(self) -> list[X509] | None:
+    @typing.overload
+    def get_verified_chain(
+        self, *, as_cryptography: typing.Literal[True]
+    ) -> list[x509.Certificate] | None:
+        pass
+
+    @typing.overload
+    def get_verified_chain(
+        self, *, as_cryptography: typing.Literal[False] = False
+    ) -> list[X509] | None:
+        pass
+
+    def get_verified_chain(
+        self,
+        *,
+        as_cryptography: typing.Literal[True] | typing.Literal[False] = False,
+    ) -> list[X509] | list[x509.Certificate] | None:
         """
         Retrieve the verified certificate chain of the peer including the
         peer's end entity certificate. It must be called after a session has
         been successfully established. If peer verification was not successful
         the chain may be incomplete, invalid, or None.
+
+        :param bool as_cryptography: Controls whether a list of
+            ``cryptography.x509.Certificate`` or ``OpenSSL.crypto.X509``
+            object should be returned.
 
         :return: A list of X509 instances giving the peer's verified
                  certificate chain, or None if it does not have one.
@@ -2851,6 +2871,8 @@ class Connection:
         if cert_stack == _ffi.NULL:
             return None
 
+        if as_cryptography:
+            return self._cert_stack_to_cryptography_list(cert_stack)
         return self._cert_stack_to_list(cert_stack)
 
     def want_read(self) -> bool:

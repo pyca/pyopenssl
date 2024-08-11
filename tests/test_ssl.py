@@ -2671,6 +2671,21 @@ class TestConnection:
         assert "Intermediate Certificate" == chain[1].get_subject().CN
         assert "Authority Certificate" == chain[2].get_subject().CN
 
+        cryptography_chain = client.get_verified_chain(as_cryptography=True)
+        assert len(cryptography_chain) == 3
+        assert (
+            cryptography_chain[0].subject.rfc4514_string()
+            == "CN=Server Certificate"
+        )
+        assert (
+            cryptography_chain[1].subject.rfc4514_string()
+            == "CN=Intermediate Certificate"
+        )
+        assert (
+            cryptography_chain[2].subject.rfc4514_string()
+            == "CN=Authority Certificate"
+        )
+
     def test_get_verified_chain_none(self):
         """
         `Connection.get_verified_chain` returns `None` if the peer sends
