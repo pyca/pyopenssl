@@ -4,6 +4,7 @@ import calendar
 import datetime
 import functools
 import typing
+import warnings
 from base64 import b16encode
 from functools import partial
 from os import PathLike
@@ -1108,6 +1109,16 @@ class X509Req:
         :type extensions: iterable of :py:class:`X509Extension`
         :return: ``None``
         """
+        warnings.warn(
+            (
+                "This API is deprecated and will be removed in a future "
+                "version of pyOpenSSL. You should use pyca/cryptography's "
+                "X.509 APIs instead."
+            ),
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
         stack = _lib.sk_X509_EXTENSION_new_null()
         _openssl_assert(stack != _ffi.NULL)
 
@@ -1132,6 +1143,16 @@ class X509Req:
 
         .. versionadded:: 0.15
         """
+        warnings.warn(
+            (
+                "This API is deprecated and will be removed in a future "
+                "version of pyOpenSSL. You should use pyca/cryptography's "
+                "X.509 APIs instead."
+            ),
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
         exts = []
         native_exts_obj = _lib.X509_REQ_get_extensions(self._req)
         native_exts_obj = _ffi.gc(
@@ -1652,6 +1673,16 @@ class X509:
         :type extensions: An iterable of :py:class:`X509Extension` objects.
         :return: ``None``
         """
+        warnings.warn(
+            (
+                "This API is deprecated and will be removed in a future "
+                "version of pyOpenSSL. You should use pyca/cryptography's "
+                "X.509 APIs instead."
+            ),
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
         for ext in extensions:
             if not isinstance(ext, _X509ExtensionInternal):
                 raise ValueError("One of the elements is not an X509Extension")
@@ -1673,6 +1704,16 @@ class X509:
 
         .. versionadded:: 0.12
         """
+        warnings.warn(
+            (
+                "This API is deprecated and will be removed in a future "
+                "version of pyOpenSSL. You should use pyca/cryptography's "
+                "X.509 APIs instead."
+            ),
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
         ext = _X509ExtensionInternal.__new__(_X509ExtensionInternal)
         ext._extension = _lib.X509_get_ext(self._x509, index)
         if ext._extension == _ffi.NULL:
