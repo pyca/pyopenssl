@@ -19,3 +19,4 @@ runs:
         path: |
           .coverage.*
         if-no-files-found: ignore
+        include-hidden-files: true
