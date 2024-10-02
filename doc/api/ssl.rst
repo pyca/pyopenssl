@@ -154,6 +154,7 @@ Context, Connection.
    :noindex:
 
 .. autoclass:: Session
+   :noindex:
 
 
 .. py:class:: Connection(context, socket)
@@ -247,8 +248,10 @@ Context objects have the following methods:
 Session objects
 ---------------
 
-Session objects have no methods.
+Session objects have the following methods:
 
+.. autoclass:: OpenSSL.SSL.Session
+               :members:
 
 .. _openssl-connection:
 
