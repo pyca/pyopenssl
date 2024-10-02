@@ -22,6 +22,7 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+* Added ``OpenSSL.SSL.Session.i2d`` to convert session objects to ASN1. Updated ``OpenSSL.SSL.Session`` constructor to support conversion from ASN1. `#1373 <https://github.com/pyca/pyopenssl/pull/1373>`_.
 * ``OpenSSL.SSL.Connection.get_certificate``, ``OpenSSL.SSL.Connection.get_peer_certificate``, ``OpenSSL.SSL.Connection.get_peer_cert_chain``, and ``OpenSSL.SSL.Connection.get_verified_chain`` now take an ``as_cryptography`` keyword-argument. When ``True`` is passed then ``cryptography.x509.Certificate`` are returned, instead of ``OpenSSL.crypto.X509``. In the future, passing ``False`` (the default) will be deprecated.
 
 
