@@ -15,8 +15,6 @@ import os
 import re
 import sys
 
-import sphinx_rtd_theme
-
 HERE = os.path.abspath(os.path.dirname(__file__))
 
 
