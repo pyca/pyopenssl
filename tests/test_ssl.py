@@ -2163,13 +2163,12 @@ class TestSession:
             Session(b"abc" * 1000)
 
         assert e.value.args[0][0] in [
-            # TODO
             # 1.1.x
-            # (
-            #     "SSL routines",
-            #     "SSL_CTX_set_session_id_context",
-            #     "ssl session id context too long",
-            # ),
+            (
+                "asn1 encoding routines",
+                "asn1_check_tlen",
+                "wrong tag",
+            ),
             # 3.0.x
             (
                 "asn1 encoding routines",
@@ -2179,13 +2178,12 @@ class TestSession:
         ]
 
         assert e.value.args[0][1] in [
-            # TODO
             # 1.1.x
-            # (
-            #     "SSL routines",
-            #     "SSL_CTX_set_session_id_context",
-            #     "ssl session id context too long",
-            # ),
+            (
+                "asn1 encoding routines",
+                "asn1_item_embed_d2i",
+                "nested asn1 error",
+            ),
             # 3.0.x
             (
                 "asn1 encoding routines",
