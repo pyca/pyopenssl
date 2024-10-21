@@ -820,6 +820,8 @@ class Session:
     parameters which may be re-used to speed up the setup of subsequent
     connections.
 
+    :param data: An optional bytes object of an ASN1 encoded Session.
+
     .. versionadded:: 0.14
     """
 
@@ -841,6 +843,12 @@ class Session:
         self._session = _ffi.gc(session, _lib.SSL_SESSION_free)
 
     def i2d(self) -> bytes:
+        """
+        Convert the Session object to an ASN1 encoded bytes object.
+
+        :return A bytes object representing the ASN1 encoded session.
+        """
+
         if self._session is None:
             raise ValueError("Not a valid session")
 
