@@ -825,7 +825,7 @@ class Session:
 
     _session: Any = None
 
-    def __init__(self, data: Optional[bytes] = None) -> None:
+    def __init__(self, data: bytes | None = None) -> None:
         if data is None:
             return
 
