@@ -56,10 +56,6 @@ from OpenSSL.crypto import (
     load_certificate,
     load_privatekey,
 )
-
-with pytest.warns(DeprecationWarning):
-    from OpenSSL.crypto import X509Extension
-
 from OpenSSL.SSL import (
     DTLS_METHOD,
     MODE_RELEASE_BUFFERS,
@@ -248,55 +244,81 @@ def _create_certificate_chain():
         2. A new intermediate certificate signed by cacert (icert)
         3. A new server certificate signed by icert (scert)
     """
-    caext = X509Extension(b"basicConstraints", False, b"CA:true")
-    not_after_date = datetime.date.today() + datetime.timedelta(days=365)
-    not_after = not_after_date.strftime("%Y%m%d%H%M%SZ").encode("ascii")
+    not_before = datetime.datetime(2000, 1, 1, 0, 0, 0)
+    not_after = datetime.datetime.now() + datetime.timedelta(days=365)
 
     # Step 1
-    cakey = PKey()
-    cakey.generate_key(TYPE_RSA, 2048)
-    cacert = X509()
-    cacert.set_version(2)
-    cacert.get_subject().commonName = "Authority Certificate"
-    cacert.set_issuer(cacert.get_subject())
-    cacert.set_pubkey(cakey)
-    cacert.set_notBefore(b"20000101000000Z")
-    cacert.set_notAfter(not_after)
-    cacert.add_extensions([caext])
-    cacert.set_serial_number(0)
-    cacert.sign(cakey, "sha256")
+    cakey = rsa.generate_private_key(key_size=2048, public_exponent=65537)
+    casubject = x509.Name(
+        [x509.NameAttribute(x509.NameOID.COMMON_NAME, "Authority Certificate")]
+    )
+    cacert = (
+        x509.CertificateBuilder()
+        .subject_name(casubject)
+        .issuer_name(casubject)
+        .public_key(cakey.public_key())
+        .not_valid_before(not_before)
+        .not_valid_after(not_after)
+        .add_extension(
+            x509.BasicConstraints(ca=True, path_length=None), critical=False
+        )
+        .serial_number(1)
+        .sign(cakey, hashes.SHA256())
+    )
 
     # Step 2
-    ikey = PKey()
-    ikey.generate_key(TYPE_RSA, 2048)
-    icert = X509()
-    icert.set_version(2)
-    icert.get_subject().commonName = "Intermediate Certificate"
-    icert.set_issuer(cacert.get_subject())
-    icert.set_pubkey(ikey)
-    icert.set_notBefore(b"20000101000000Z")
-    icert.set_notAfter(not_after)
-    icert.add_extensions([caext])
-    icert.set_serial_number(0)
-    icert.sign(cakey, "sha256")
+    ikey = rsa.generate_private_key(key_size=2048, public_exponent=65537)
+    icert = (
+        x509.CertificateBuilder()
+        .subject_name(
+            x509.Name(
+                [
+                    x509.NameAttribute(
+                        x509.NameOID.COMMON_NAME, "Intermediate Certificate"
+                    )
+                ]
+            )
+        )
+        .issuer_name(cacert.subject)
+        .public_key(ikey.public_key())
+        .not_valid_before(not_before)
+        .not_valid_after(not_after)
+        .add_extension(
+            x509.BasicConstraints(ca=True, path_length=None), critical=False
+        )
+        .serial_number(1)
+        .sign(cakey, hashes.SHA256())
+    )
 
     # Step 3
-    skey = PKey()
-    skey.generate_key(TYPE_RSA, 2048)
-    scert = X509()
-    scert.set_version(2)
-    scert.get_subject().commonName = "Server Certificate"
-    scert.set_issuer(icert.get_subject())
-    scert.set_pubkey(skey)
-    scert.set_notBefore(b"20000101000000Z")
-    scert.set_notAfter(not_after)
-    scert.add_extensions(
-        [X509Extension(b"basicConstraints", True, b"CA:false")]
+    skey = rsa.generate_private_key(key_size=2048, public_exponent=65537)
+    scert = (
+        x509.CertificateBuilder()
+        .subject_name(
+            x509.Name(
+                [
+                    x509.NameAttribute(
+                        x509.NameOID.COMMON_NAME, "Server Certificate"
+                    )
+                ]
+            )
+        )
+        .issuer_name(icert.subject)
+        .public_key(skey.public_key())
+        .not_valid_before(not_before)
+        .not_valid_after(not_after)
+        .add_extension(
+            x509.BasicConstraints(ca=False, path_length=None), critical=True
+        )
+        .serial_number(1)
+        .sign(ikey, hashes.SHA256())
     )
-    scert.set_serial_number(0)
-    scert.sign(ikey, "sha256")
 
-    return [(cakey, cacert), (ikey, icert), (skey, scert)]
+    return [
+        (PKey.from_cryptography_key(cakey), X509.from_cryptography(cacert)),
+        (PKey.from_cryptography_key(ikey), X509.from_cryptography(icert)),
+        (PKey.from_cryptography_key(skey), X509.from_cryptography(scert)),
+    ]
 
 
 def loopback_client_factory(socket, version=SSLv23_METHOD):
