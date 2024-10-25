@@ -44,8 +44,6 @@ jobs:
           - {VERSION: "3.9", TOXENV: "py39-useWheel"}
           # Random order
           - {VERSION: "3.9", TOXENV: "py39-randomorder"}
-          # Downstreams
-          - {VERSION: "3.11", TOXENV: "py311-twistedTrunk"}
           # Meta
           - {VERSION: "3.9", TOXENV: "check-manifest"}
           - {VERSION: "3.11", TOXENV: "lint"}
@@ -82,9 +80,31 @@ jobs:
           RUSTUP_HOME: /root/.rustup
       - uses: ./.github/actions/upload-coverage
 
+  linux-downstream:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        DOWNSTREAM:
+          - twisted
+          - certbot
+          - certbot-josepy
+        PYTHON:
+          - 3.12
+    name: "Downstream tests for ${{ matrix.DOWNSTREAM }}"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.PYTHON }}
+      - run: ./.github/downstream.d/${{ matrix.DOWNSTREAM }}.sh install
+      - run: pip install .
+      - run: ./.github/downstream.d/${{ matrix.DOWNSTREAM }}.sh run
+
   all-green:
     runs-on: ubuntu-latest
-    needs: [linux, linux-docker]
+    needs: [linux, linux-docker, linux-downstream]
     if: ${{ always() }}
     timeout-minutes: 3
     steps:
