@@ -2088,35 +2088,46 @@ class TestX509(_PKeyInteractionTestsMixin):
             )
         )
 
-    def _extcert(self, pkey, extensions):
-        cert = X509()
-        # Certificates with extensions must be X.509v3, which is encoded with a
-        # version of two.
-        cert.set_version(2)
-        cert.set_pubkey(pkey)
-        cert.get_subject().commonName = "Unit Tests"
-        cert.get_issuer().commonName = "Unit Tests"
-        when = datetime.now().strftime("%Y%m%d%H%M%SZ").encode("ascii")
-        cert.set_notBefore(when)
-        cert.set_notAfter(when)
-
-        cert.add_extensions(extensions)
-        cert.sign(pkey, "sha256")
-        return load_certificate(
-            FILETYPE_PEM, dump_certificate(FILETYPE_PEM, cert)
+    def _extcert(self, key, extensions):
+        subject = x509.Name(
+            [x509.NameAttribute(x509.NameOID.COMMON_NAME, "Unit Tests")]
         )
+        when = datetime.now()
+        builder = (
+            x509.CertificateBuilder()
+            .public_key(key.public_key())
+            .subject_name(subject)
+            .issuer_name(subject)
+            .not_valid_before(when)
+            .not_valid_after(when)
+            .serial_number(1)
+        )
+        for i, ext in enumerate(extensions):
+            builder = builder.add_extension(ext, critical=i % 2 == 0)
+
+        return X509.from_cryptography(builder.sign(key, hashes.SHA256()))
 
     def test_extension_count(self):
         """
         `X509.get_extension_count` returns the number of extensions
         that are present in the certificate.
         """
-        pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
-        ca = X509Extension(b"basicConstraints", True, b"CA:FALSE")
-        key = X509Extension(b"keyUsage", True, b"digitalSignature")
-        subjectAltName = X509Extension(
-            b"subjectAltName", True, b"DNS:example.com"
+        pkey = load_privatekey(
+            FILETYPE_PEM, client_key_pem
+        ).to_cryptography_key()
+        ca = x509.BasicConstraints(ca=False, path_length=None)
+        key = x509.KeyUsage(
+            digital_signature=True,
+            content_commitment=False,
+            key_encipherment=False,
+            data_encipherment=False,
+            key_agreement=False,
+            key_cert_sign=False,
+            crl_sign=False,
+            encipher_only=False,
+            decipher_only=False,
         )
+        san = x509.SubjectAlternativeName([x509.DNSName("example.com")])
 
         # Try a certificate with no extensions at all.
         c = self._extcert(pkey, [])
@@ -2127,7 +2138,7 @@ class TestX509(_PKeyInteractionTestsMixin):
         assert c.get_extension_count() == 1
 
         # And a certificate with several
-        c = self._extcert(pkey, [ca, key, subjectAltName])
+        c = self._extcert(pkey, [ca, key, san])
         assert c.get_extension_count() == 3
 
     def test_get_extension(self):
@@ -2135,14 +2146,24 @@ class TestX509(_PKeyInteractionTestsMixin):
         `X509.get_extension` takes an integer and returns an
         `X509Extension` corresponding to the extension at that index.
         """
-        pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
-        ca = X509Extension(b"basicConstraints", True, b"CA:FALSE")
-        key = X509Extension(b"keyUsage", True, b"digitalSignature")
-        subjectAltName = X509Extension(
-            b"subjectAltName", False, b"DNS:example.com"
+        pkey = load_privatekey(
+            FILETYPE_PEM, client_key_pem
+        ).to_cryptography_key()
+        ca = x509.BasicConstraints(ca=False, path_length=None)
+        key = x509.KeyUsage(
+            digital_signature=True,
+            content_commitment=False,
+            key_encipherment=False,
+            data_encipherment=False,
+            key_agreement=False,
+            key_cert_sign=False,
+            crl_sign=False,
+            encipher_only=False,
+            decipher_only=False,
         )
+        san = x509.SubjectAlternativeName([x509.DNSName("example.com")])
 
-        cert = self._extcert(pkey, [ca, key, subjectAltName])
+        cert = self._extcert(pkey, [ca, key, san])
 
         ext = cert.get_extension(0)
         assert isinstance(ext, X509Extension)
@@ -2151,12 +2172,12 @@ class TestX509(_PKeyInteractionTestsMixin):
 
         ext = cert.get_extension(1)
         assert isinstance(ext, X509Extension)
-        assert ext.get_critical()
+        assert not ext.get_critical()
         assert ext.get_short_name() == b"keyUsage"
 
         ext = cert.get_extension(2)
         assert isinstance(ext, X509Extension)
-        assert not ext.get_critical()
+        assert ext.get_critical()
         assert ext.get_short_name() == b"subjectAltName"
 
         with pytest.raises(IndexError):
