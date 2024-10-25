@@ -5,9 +5,8 @@ import datetime
 import functools
 import sys
 import typing
-import warnings
 from base64 import b16encode
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 from functools import partial
 from typing import (
     Any,
@@ -63,7 +62,6 @@ __all__ = [
     "X509",
     "Error",
     "PKey",
-    "X509Extension",
     "X509Name",
     "X509Req",
     "X509Store",
@@ -777,180 +775,6 @@ class X509Name:
 
 
 @deprecated(
-    "X509Extension support in pyOpenSSL is deprecated. You should use the "
-    "APIs in cryptography."
-)
-class X509Extension:
-    """
-    An X.509 v3 certificate extension.
-
-    .. deprecated:: 23.3.0
-       Use cryptography's X509 APIs instead.
-    """
-
-    def __init__(
-        self,
-        type_name: bytes,
-        critical: bool,
-        value: bytes,
-        subject: X509 | None = None,
-        issuer: X509 | None = None,
-    ) -> None:
-        """
-        Initializes an X509 extension.
-
-        :param type_name: The name of the type of extension_ to create.
-        :type type_name: :py:data:`bytes`
-
-        :param bool critical: A flag indicating whether this is a critical
-            extension.
-
-        :param value: The OpenSSL textual representation of the extension's
-            value.
-        :type value: :py:data:`bytes`
-
-        :param subject: Optional X509 certificate to use as subject.
-        :type subject: :py:class:`X509`
-
-        :param issuer: Optional X509 certificate to use as issuer.
-        :type issuer: :py:class:`X509`
-
-        .. _extension: https://www.openssl.org/docs/manmaster/man5/
-            x509v3_config.html#STANDARD-EXTENSIONS
-        """
-        ctx = _ffi.new("X509V3_CTX*")
-
-        # A context is necessary for any extension which uses the r2i
-        # conversion method.  That is, X509V3_EXT_nconf may segfault if passed
-        # a NULL ctx. Start off by initializing most of the fields to NULL.
-        _lib.X509V3_set_ctx(ctx, _ffi.NULL, _ffi.NULL, _ffi.NULL, _ffi.NULL, 0)
-
-        # We have no configuration database - but perhaps we should (some
-        # extensions may require it).
-        _lib.X509V3_set_ctx_nodb(ctx)
-
-        # Initialize the subject and issuer, if appropriate.  ctx is a local,
-        # and as far as I can tell none of the X509V3_* APIs invoked here steal
-        # any references, so no need to mess with reference counts or
-        # duplicates.
-        if issuer is not None:
-            if not isinstance(issuer, X509):
-                raise TypeError("issuer must be an X509 instance")
-            ctx.issuer_cert = issuer._x509
-        if subject is not None:
-            if not isinstance(subject, X509):
-                raise TypeError("subject must be an X509 instance")
-            ctx.subject_cert = subject._x509
-
-        if critical:
-            # There are other OpenSSL APIs which would let us pass in critical
-            # separately, but they're harder to use, and since value is already
-            # a pile of crappy junk smuggling a ton of utterly important
-            # structured data, what's the point of trying to avoid nasty stuff
-            # with strings? (However, X509V3_EXT_i2d in particular seems like
-            # it would be a better API to invoke.  I do not know where to get
-            # the ext_struc it desires for its last parameter, though.)
-            value = b"critical," + value
-
-        extension = _lib.X509V3_EXT_nconf(_ffi.NULL, ctx, type_name, value)
-        if extension == _ffi.NULL:
-            _raise_current_error()
-        self._extension = _ffi.gc(extension, _lib.X509_EXTENSION_free)
-
-    @property
-    def _nid(self) -> Any:
-        return _lib.OBJ_obj2nid(
-            _lib.X509_EXTENSION_get_object(self._extension)
-        )
-
-    _prefixes: typing.ClassVar[dict[int, str]] = {
-        _lib.GEN_EMAIL: "email",
-        _lib.GEN_DNS: "DNS",
-        _lib.GEN_URI: "URI",
-    }
-
-    def _subjectAltNameString(self) -> str:
-        names = _ffi.cast(
-            "GENERAL_NAMES*", _lib.X509V3_EXT_d2i(self._extension)
-        )
-
-        names = _ffi.gc(names, _lib.GENERAL_NAMES_free)
-        parts = []
-        for i in range(_lib.sk_GENERAL_NAME_num(names)):
-            name = _lib.sk_GENERAL_NAME_value(names, i)
-            try:
-                label = self._prefixes[name.type]
-            except KeyError:
-                bio = _new_mem_buf()
-                _lib.GENERAL_NAME_print(bio, name)
-                parts.append(_bio_to_string(bio).decode("utf-8"))
-            else:
-                value = _ffi.buffer(name.d.ia5.data, name.d.ia5.length)[
-                    :
-                ].decode("utf-8")
-                parts.append(label + ":" + value)
-        return ", ".join(parts)
-
-    def __str__(self) -> str:
-        """
-        :return: a nice text representation of the extension
-        """
-        if _lib.NID_subject_alt_name == self._nid:
-            return self._subjectAltNameString()
-
-        bio = _new_mem_buf()
-        print_result = _lib.X509V3_EXT_print(bio, self._extension, 0, 0)
-        _openssl_assert(print_result != 0)
-
-        return _bio_to_string(bio).decode("utf-8")
-
-    def get_critical(self) -> bool:
-        """
-        Returns the critical field of this X.509 extension.
-
-        :return: The critical field.
-        """
-        return _lib.X509_EXTENSION_get_critical(self._extension)
-
-    def get_short_name(self) -> bytes:
-        """
-        Returns the short type name of this X.509 extension.
-
-        The result is a byte string such as :py:const:`b"basicConstraints"`.
-
-        :return: The short type name.
-        :rtype: :py:data:`bytes`
-
-        .. versionadded:: 0.12
-        """
-        obj = _lib.X509_EXTENSION_get_object(self._extension)
-        nid = _lib.OBJ_obj2nid(obj)
-        # OpenSSL 3.1.0 has a bug where nid2sn returns NULL for NIDs that
-        # previously returned UNDEF. This is a workaround for that issue.
-        # https://github.com/openssl/openssl/commit/908ba3ed9adbb3df90f76
-        buf = _lib.OBJ_nid2sn(nid)
-        if buf != _ffi.NULL:
-            return _ffi.string(buf)
-        else:
-            return b"UNDEF"
-
-    def get_data(self) -> bytes:
-        """
-        Returns the data of the X509 extension, encoded as ASN.1.
-
-        :return: The ASN.1 encoded data of this X509 extension.
-        :rtype: :py:data:`bytes`
-
-        .. versionadded:: 0.12
-        """
-        octet_result = _lib.X509_EXTENSION_get_data(self._extension)
-        string_result = _ffi.cast("ASN1_STRING*", octet_result)
-        char_result = _lib.ASN1_STRING_get0_data(string_result)
-        result_length = _lib.ASN1_STRING_length(string_result)
-        return _ffi.buffer(char_result, result_length)[:]
-
-
-@deprecated(
     "CSR support in pyOpenSSL is deprecated. You should use the APIs "
     "in cryptography."
 )
@@ -1078,77 +902,6 @@ class X509Req:
         name._owner = self
 
         return name
-
-    def add_extensions(self, extensions: Iterable[X509Extension]) -> None:
-        """
-        Add extensions to the certificate signing request.
-
-        :param extensions: The X.509 extensions to add.
-        :type extensions: iterable of :py:class:`X509Extension`
-        :return: ``None``
-        """
-        warnings.warn(
-            (
-                "This API is deprecated and will be removed in a future "
-                "version of pyOpenSSL. You should use pyca/cryptography's "
-                "X.509 APIs instead."
-            ),
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        stack = _lib.sk_X509_EXTENSION_new_null()
-        _openssl_assert(stack != _ffi.NULL)
-
-        stack = _ffi.gc(stack, _lib.sk_X509_EXTENSION_free)
-
-        for ext in extensions:
-            if not isinstance(ext, X509Extension):
-                raise ValueError("One of the elements is not an X509Extension")
-
-            # TODO push can fail (here and elsewhere)
-            _lib.sk_X509_EXTENSION_push(stack, ext._extension)
-
-        add_result = _lib.X509_REQ_add_extensions(self._req, stack)
-        _openssl_assert(add_result == 1)
-
-    def get_extensions(self) -> list[X509Extension]:
-        """
-        Get X.509 extensions in the certificate signing request.
-
-        :return: The X.509 extensions in this request.
-        :rtype: :py:class:`list` of :py:class:`X509Extension` objects.
-
-        .. versionadded:: 0.15
-        """
-        warnings.warn(
-            (
-                "This API is deprecated and will be removed in a future "
-                "version of pyOpenSSL. You should use pyca/cryptography's "
-                "X.509 APIs instead."
-            ),
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        exts = []
-        native_exts_obj = _lib.X509_REQ_get_extensions(self._req)
-        native_exts_obj = _ffi.gc(
-            native_exts_obj,
-            lambda x: _lib.sk_X509_EXTENSION_pop_free(
-                x,
-                _ffi.addressof(_lib._original_lib, "X509_EXTENSION_free"),
-            ),
-        )
-
-        for i in range(_lib.sk_X509_EXTENSION_num(native_exts_obj)):
-            ext = X509Extension.__new__(X509Extension)
-            extension = _lib.X509_EXTENSION_dup(
-                _lib.sk_X509_EXTENSION_value(native_exts_obj, i)
-            )
-            ext._extension = _ffi.gc(extension, _lib.X509_EXTENSION_free)
-            exts.append(ext)
-        return exts
 
     def sign(self, pkey: PKey, digest: str) -> None:
         """
@@ -1626,64 +1379,6 @@ class X509:
         .. versionadded:: 0.12
         """
         return _lib.X509_get_ext_count(self._x509)
-
-    def add_extensions(self, extensions: Iterable[X509Extension]) -> None:
-        """
-        Add extensions to the certificate.
-
-        :param extensions: The extensions to add.
-        :type extensions: An iterable of :py:class:`X509Extension` objects.
-        :return: ``None``
-        """
-        warnings.warn(
-            (
-                "This API is deprecated and will be removed in a future "
-                "version of pyOpenSSL. You should use pyca/cryptography's "
-                "X.509 APIs instead."
-            ),
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        for ext in extensions:
-            if not isinstance(ext, X509Extension):
-                raise ValueError("One of the elements is not an X509Extension")
-
-            add_result = _lib.X509_add_ext(self._x509, ext._extension, -1)
-            _openssl_assert(add_result == 1)
-
-    def get_extension(self, index: int) -> X509Extension:
-        """
-        Get a specific extension of the certificate by index.
-
-        Extensions on a certificate are kept in order. The index
-        parameter selects which extension will be returned.
-
-        :param int index: The index of the extension to retrieve.
-        :return: The extension at the specified index.
-        :rtype: :py:class:`X509Extension`
-        :raises IndexError: If the extension index was out of bounds.
-
-        .. versionadded:: 0.12
-        """
-        warnings.warn(
-            (
-                "This API is deprecated and will be removed in a future "
-                "version of pyOpenSSL. You should use pyca/cryptography's "
-                "X.509 APIs instead."
-            ),
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        ext = X509Extension.__new__(X509Extension)
-        ext._extension = _lib.X509_get_ext(self._x509, index)
-        if ext._extension == _ffi.NULL:
-            raise IndexError("extension index out of bounds")
-
-        extension = _lib.X509_EXTENSION_dup(ext._extension)
-        ext._extension = _ffi.gc(extension, _lib.X509_EXTENSION_free)
-        return ext
 
 
 class X509StoreFlags:

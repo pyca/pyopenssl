@@ -10,6 +10,8 @@ UNRELEASED
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- Removed deprecated ``OpenSSL.crypto.X509Extension``, ``OpenSSL.crypto.X509Req.add_extension``, ``OpenSSL.crypto.X509Req.get_extensions``, ``OpenSSL.crypto.X509.add_extension``, ``OpenSSL.crypto.X509.get_extensions``. ``cryptography.x509`` should be used instead.
+
 Deprecations:
 ^^^^^^^^^^^^^
 
