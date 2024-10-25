@@ -7,7 +7,6 @@ Unit tests for :py:mod:`OpenSSL.crypto`.
 
 import base64
 import sys
-import warnings
 from datetime import datetime, timedelta, timezone
 from subprocess import PIPE, Popen
 
@@ -49,22 +48,15 @@ from OpenSSL.crypto import (
     load_certificate_request,
     load_privatekey,
     load_publickey,
-    sign,
-    verify,
 )
 
 with pytest.warns(DeprecationWarning):
     from OpenSSL.crypto import (
-        CRL,
-        Revoked,
         X509Extension,
-        dump_crl,
-        load_crl,
     )
 
 from .util import (
     NON_ASCII,
-    WARNING_TYPE_EXPECTED,
     EqualityTestsMixin,
     is_consistent_type,
 )
@@ -2958,116 +2950,6 @@ class TestLoadCertificate:
             load_certificate(FILETYPE_ASN1, b"lol")
 
 
-class TestRevoked:
-    """
-    Tests for `OpenSSL.crypto.Revoked`.
-    """
-
-    def test_ignores_unsupported_revoked_cert_extension_get_reason(self):
-        """
-        The get_reason method on the Revoked class checks to see if the
-        extension is NID_crl_reason and should skip it otherwise. This test
-        loads a CRL with extensions it should ignore.
-        """
-        crl = load_crl(FILETYPE_PEM, crlDataUnsupportedExtension)
-        revoked = crl.get_revoked()
-        reason = revoked[1].get_reason()
-        assert reason == b"Unspecified"
-
-    def test_ignores_unsupported_revoked_cert_extension_set_new_reason(self):
-        crl = load_crl(FILETYPE_PEM, crlDataUnsupportedExtension)
-        revoked = crl.get_revoked()
-        revoked[1].set_reason(None)
-        reason = revoked[1].get_reason()
-        assert reason is None
-
-    def test_construction(self):
-        """
-        Confirm we can create `OpenSSL.crypto.Revoked`.  Check that it is
-        empty.
-        """
-        revoked = Revoked()
-        assert isinstance(revoked, Revoked)
-        assert type(revoked) is Revoked
-        assert revoked.get_serial() == b"00"
-        assert revoked.get_rev_date() is None
-        assert revoked.get_reason() is None
-
-    def test_serial(self):
-        """
-        Confirm we can set and get serial numbers from
-        `OpenSSL.crypto.Revoked`.  Confirm errors are handled with grace.
-        """
-        revoked = Revoked()
-        ret = revoked.set_serial(b"10b")
-        assert ret is None
-        ser = revoked.get_serial()
-        assert ser == b"010B"
-
-        revoked.set_serial(b"31ppp")  # a type error would be nice
-        ser = revoked.get_serial()
-        assert ser == b"31"
-
-        with pytest.raises(ValueError):
-            revoked.set_serial(b"pqrst")
-        with pytest.raises(TypeError):
-            revoked.set_serial(100)
-
-    def test_date(self):
-        """
-        Confirm we can set and get revocation dates from
-        `OpenSSL.crypto.Revoked`.  Confirm errors are handled with grace.
-        """
-        revoked = Revoked()
-        date = revoked.get_rev_date()
-        assert date is None
-
-        now = datetime.now().strftime("%Y%m%d%H%M%SZ").encode("ascii")
-        ret = revoked.set_rev_date(now)
-        assert ret is None
-        date = revoked.get_rev_date()
-        assert date == now
-
-    def test_reason(self):
-        """
-        Confirm we can set and get revocation reasons from
-        `OpenSSL.crypto.Revoked`.  The "get" need to work as "set".
-        Likewise, each reason of all_reasons() must work.
-        """
-        revoked = Revoked()
-        for r in revoked.all_reasons():
-            for x in range(2):
-                ret = revoked.set_reason(r)
-                assert ret is None
-                reason = revoked.get_reason()
-                assert reason.lower().replace(b" ", b"") == r.lower().replace(
-                    b" ", b""
-                )
-                r = reason  # again with the resp of get
-
-        revoked.set_reason(None)
-        assert revoked.get_reason() is None
-
-    @pytest.mark.parametrize("reason", [object(), 1.0, "foo"])
-    def test_set_reason_wrong_args(self, reason):
-        """
-        `Revoked.set_reason` raises `TypeError` if called with an argument
-        which is neither `None` nor a byte string.
-        """
-        revoked = Revoked()
-        with pytest.raises(TypeError):
-            revoked.set_reason(reason)
-
-    def test_set_reason_invalid_reason(self):
-        """
-        Calling `OpenSSL.crypto.Revoked.set_reason` with an argument which
-        isn't a valid reason results in `ValueError` being raised.
-        """
-        revoked = Revoked()
-        with pytest.raises(ValueError):
-            revoked.set_reason(b"blue")
-
-
 class TestCRL:
     """
     Tests for `OpenSSL.crypto.CRL`.
@@ -3086,291 +2968,6 @@ class TestCRL:
     intermediate_server_key = load_privatekey(
         FILETYPE_PEM, intermediate_server_key_pem
     )
-
-    def test_construction(self):
-        """
-        Confirm we can create `OpenSSL.crypto.CRL`.  Check
-        that it is empty
-        """
-        crl = CRL()
-        assert isinstance(crl, CRL)
-        assert crl.get_revoked() is None
-
-    def _get_crl(self):
-        """
-        Get a new ``CRL`` with a revocation.
-        """
-        crl = CRL()
-        revoked = Revoked()
-        now = datetime.now().strftime("%Y%m%d%H%M%SZ").encode("ascii")
-        revoked.set_rev_date(now)
-        revoked.set_serial(b"3ab")
-        revoked.set_reason(b"sUpErSeDEd")
-        crl.add_revoked(revoked)
-        return crl
-
-    def test_export_pem(self):
-        """
-        If not passed a format, ``CRL.export`` returns a "PEM" format string
-        representing a serial number, a revoked reason, and certificate issuer
-        information.
-        """
-        # PEM format
-        dumped_crl = self._get_crl().export(
-            self.cert, self.pkey, days=20, digest=b"sha256"
-        )
-        crl = x509.load_pem_x509_crl(dumped_crl)
-        revoked = crl.get_revoked_certificate_by_serial_number(0x03AB)
-        assert revoked is not None
-        assert crl.issuer == x509.Name(
-            [
-                x509.NameAttribute(x509.NameOID.COUNTRY_NAME, "US"),
-                x509.NameAttribute(x509.NameOID.STATE_OR_PROVINCE_NAME, "IL"),
-                x509.NameAttribute(x509.NameOID.LOCALITY_NAME, "Chicago"),
-                x509.NameAttribute(x509.NameOID.ORGANIZATION_NAME, "Testing"),
-                x509.NameAttribute(
-                    x509.NameOID.COMMON_NAME, "Testing Root CA"
-                ),
-            ]
-        )
-
-    def test_export_der(self):
-        """
-        If passed ``FILETYPE_ASN1`` for the format, ``CRL.export`` returns a
-        "DER" format string representing a serial number, a revoked reason, and
-        certificate issuer information.
-        """
-        crl = self._get_crl()
-
-        # DER format
-        dumped_crl = self._get_crl().export(
-            self.cert, self.pkey, FILETYPE_ASN1, digest=b"sha256"
-        )
-        crl = x509.load_der_x509_crl(dumped_crl)
-        revoked = crl.get_revoked_certificate_by_serial_number(0x03AB)
-        assert revoked is not None
-        assert crl.issuer == x509.Name(
-            [
-                x509.NameAttribute(x509.NameOID.COUNTRY_NAME, "US"),
-                x509.NameAttribute(x509.NameOID.STATE_OR_PROVINCE_NAME, "IL"),
-                x509.NameAttribute(x509.NameOID.LOCALITY_NAME, "Chicago"),
-                x509.NameAttribute(x509.NameOID.ORGANIZATION_NAME, "Testing"),
-                x509.NameAttribute(
-                    x509.NameOID.COMMON_NAME, "Testing Root CA"
-                ),
-            ]
-        )
-
-    def test_export_text(self):
-        """
-        If passed ``FILETYPE_TEXT`` for the format, ``CRL.export`` returns a
-        text format string like the one produced by the openssl command line
-        tool.
-        """
-        crl = self._get_crl()
-
-        # text format
-        dumped_text = crl.export(
-            self.cert, self.pkey, type=FILETYPE_TEXT, digest=b"sha256"
-        )
-        assert len(dumped_text) > 500
-
-    def test_export_custom_digest(self):
-        """
-        If passed the name of a digest function, ``CRL.export`` uses a
-        signature algorithm based on that digest function.
-        """
-        crl = self._get_crl()
-        dumped_crl = crl.export(self.cert, self.pkey, digest=b"sha384")
-        text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
-        text.index(b"Signature Algorithm: sha384")
-
-    def test_export_md5_digest(self):
-        """
-        If passed md5 as the digest function, ``CRL.export`` uses md5 and does
-        not emit a deprecation warning.
-        """
-        crl = self._get_crl()
-        with warnings.catch_warnings(record=True) as catcher:
-            warnings.simplefilter("always")
-        assert 0 == len(catcher)
-        dumped_crl = crl.export(self.cert, self.pkey, digest=b"md5")
-        text = _runopenssl(dumped_crl, b"crl", b"-noout", b"-text")
-        text.index(b"Signature Algorithm: md5")
-
-    def test_export_default_digest(self):
-        """
-        If not passed the name of a digest function, ``CRL.export`` raises a
-        ``TypeError``.
-        """
-        crl = self._get_crl()
-        with pytest.raises(TypeError):
-            crl.export(self.cert, self.pkey)
-
-    def test_export_invalid(self):
-        """
-        If `CRL.export` is used with an uninitialized `X509` instance,
-        `OpenSSL.crypto.Error` is raised.
-        """
-        crl = CRL()
-        with pytest.raises(Error):
-            crl.export(X509(), PKey(), digest=b"sha256")
-
-    def test_add_revoked_keyword(self):
-        """
-        `OpenSSL.CRL.add_revoked` accepts its single argument as the
-        ``revoked`` keyword argument.
-        """
-        crl = CRL()
-        revoked = Revoked()
-        revoked.set_serial(b"01")
-        revoked.set_rev_date(b"20160310020145Z")
-        crl.add_revoked(revoked=revoked)
-        assert isinstance(crl.get_revoked()[0], Revoked)
-
-    def test_export_wrong_args(self):
-        """
-        Calling `OpenSSL.CRL.export` with arguments other than the certificate,
-        private key, integer file type, and integer number of days it
-        expects, results in a `TypeError` being raised.
-        """
-        crl = CRL()
-        with pytest.raises(TypeError):
-            crl.export(None, self.pkey, FILETYPE_PEM, 10)
-        with pytest.raises(TypeError):
-            crl.export(self.cert, None, FILETYPE_PEM, 10)
-        with pytest.raises(TypeError):
-            crl.export(self.cert, self.pkey, None, 10)
-        with pytest.raises(TypeError):
-            crl.export(self.cert, FILETYPE_PEM, None)
-
-    def test_export_unknown_filetype(self):
-        """
-        Calling `OpenSSL.CRL.export` with a file type other than
-        `FILETYPE_PEM`, `FILETYPE_ASN1`, or
-        `FILETYPE_TEXT` results in a `ValueError` being raised.
-        """
-        crl = CRL()
-        with pytest.raises(ValueError):
-            crl.export(self.cert, self.pkey, 100, 10, digest=b"sha256")
-
-    def test_export_unknown_digest(self):
-        """
-        Calling `OpenSSL.CRL.export` with an unsupported digest results
-        in a `ValueError` being raised.
-        """
-        crl = CRL()
-        with pytest.raises(ValueError):
-            crl.export(
-                self.cert, self.pkey, FILETYPE_PEM, 10, b"strange-digest"
-            )
-
-    def test_get_revoked(self):
-        """
-        Use python to create a simple CRL with two revocations. Get back the
-        `Revoked` using `OpenSSL.CRL.get_revoked` and verify them.
-        """
-        crl = CRL()
-
-        revoked = Revoked()
-        now = datetime.now().strftime("%Y%m%d%H%M%SZ").encode("ascii")
-        revoked.set_rev_date(now)
-        revoked.set_serial(b"3ab")
-        crl.add_revoked(revoked)
-        revoked.set_serial(b"100")
-        revoked.set_reason(b"sUpErSeDEd")
-        crl.add_revoked(revoked)
-
-        revs = crl.get_revoked()
-        assert len(revs) == 2
-        assert type(revs[0]) is Revoked
-        assert type(revs[1]) is Revoked
-        assert revs[0].get_serial() == b"03AB"
-        assert revs[1].get_serial() == b"0100"
-        assert revs[0].get_rev_date() == now
-        assert revs[1].get_rev_date() == now
-
-    def test_load_crl(self):
-        """
-        Load a known CRL and inspect its revocations.  Both EM and DER formats
-        are loaded.
-        """
-        crl = load_crl(FILETYPE_PEM, crlData)
-        revs = crl.get_revoked()
-        assert len(revs) == 2
-        assert revs[0].get_serial() == b"03AB"
-        assert revs[0].get_reason() is None
-        assert revs[1].get_serial() == b"0100"
-        assert revs[1].get_reason() == b"Superseded"
-
-        der = _runopenssl(crlData, b"crl", b"-outform", b"DER")
-        crl = load_crl(FILETYPE_ASN1, der)
-        revs = crl.get_revoked()
-        assert len(revs) == 2
-        assert revs[0].get_serial() == b"03AB"
-        assert revs[0].get_reason() is None
-        assert revs[1].get_serial() == b"0100"
-        assert revs[1].get_reason() == b"Superseded"
-
-    def test_load_crl_bad_filetype(self):
-        """
-        Calling `OpenSSL.crypto.load_crl` with an unknown file type raises a
-        `ValueError`.
-        """
-        with pytest.raises(ValueError):
-            load_crl(100, crlData)
-
-    def test_load_crl_bad_data(self):
-        """
-        Calling `OpenSSL.crypto.load_crl` with file data which can't be loaded
-        raises a `OpenSSL.crypto.Error`.
-        """
-        with pytest.raises(Error):
-            load_crl(FILETYPE_PEM, b"hello, world")
-
-    def test_get_issuer(self):
-        """
-        Load a known CRL and assert its issuer's common name is what we expect
-        from the encoded crlData string.
-        """
-        crl = load_crl(FILETYPE_PEM, crlData)
-        assert isinstance(crl.get_issuer(), X509Name)
-        assert crl.get_issuer().CN == "Testing Root CA"
-
-    def test_dump_crl(self):
-        """
-        The dumped CRL matches the original input.
-        """
-        crl = load_crl(FILETYPE_PEM, crlData)
-        buf = dump_crl(FILETYPE_PEM, crl)
-        assert buf == crlData
-
-    @staticmethod
-    def _make_test_crl(issuer_cert, issuer_key, certs=()):
-        """
-        Create a CRL.
-
-        :param list[X509] certs: A list of certificates to revoke.
-        :rtype: CRL
-        """
-        crl = CRL()
-        for cert in certs:
-            revoked = Revoked()
-            # FIXME: This string splicing is an unfortunate implementation
-            # detail that has been reported in
-            # https://github.com/pyca/pyopenssl/issues/258
-            serial = hex(cert.get_serial_number())[2:].encode("utf-8")
-            revoked.set_serial(serial)
-            revoked.set_reason(b"unspecified")
-            revoked.set_rev_date(b"20140601000000Z")
-            crl.add_revoked(revoked)
-        crl.set_version(1)
-        crl.set_lastUpdate(b"20140601000000Z")
-        # The year 5000 is far into the future so that this CRL isn't
-        # considered to have expired.
-        crl.set_nextUpdate(b"50000601000000Z")
-        crl.sign(issuer_cert, issuer_key, digest=b"sha512")
-        return crl
 
     @staticmethod
     def _make_test_crl_cryptography(issuer_cert, issuer_key, certs=()):
@@ -3407,20 +3004,7 @@ class TestCRL:
         )
         return crl
 
-    @pytest.mark.parametrize(
-        "create_crl",
-        [
-            pytest.param(
-                _make_test_crl.__func__,
-                id="pyOpenSSL CRL",
-            ),
-            pytest.param(
-                _make_test_crl_cryptography.__func__,
-                id="cryptography CRL",
-            ),
-        ],
-    )
-    def test_verify_with_revoked(self, create_crl):
+    def test_verify_with_revoked(self):
         """
         `verify_certificate` raises error when an intermediate certificate is
         revoked.
@@ -3428,10 +3012,10 @@ class TestCRL:
         store = X509Store()
         store.add_cert(self.root_cert)
         store.add_cert(self.intermediate_cert)
-        root_crl = create_crl(
+        root_crl = self._make_test_crl_cryptography(
             self.root_cert, self.root_key, certs=[self.intermediate_cert]
         )
-        intermediate_crl = create_crl(
+        intermediate_crl = self._make_test_crl_cryptography(
             self.intermediate_cert, self.intermediate_key, certs=[]
         )
         store.add_crl(root_crl)
@@ -3444,20 +3028,7 @@ class TestCRL:
             store_ctx.verify_certificate()
         assert str(err.value) == "certificate revoked"
 
-    @pytest.mark.parametrize(
-        "create_crl",
-        [
-            pytest.param(
-                _make_test_crl.__func__,
-                id="pyOpenSSL CRL",
-            ),
-            pytest.param(
-                _make_test_crl_cryptography.__func__,
-                id="cryptography CRL",
-            ),
-        ],
-    )
-    def test_verify_with_missing_crl(self, create_crl):
+    def test_verify_with_missing_crl(self):
         """
         `verify_certificate` raises error when an intermediate certificate's
         CRL is missing.
@@ -3465,7 +3036,7 @@ class TestCRL:
         store = X509Store()
         store.add_cert(self.root_cert)
         store.add_cert(self.intermediate_cert)
-        root_crl = create_crl(
+        root_crl = self._make_test_crl_cryptography(
             self.root_cert, self.root_key, certs=[self.intermediate_cert]
         )
         store.add_crl(root_crl)
@@ -3477,20 +3048,6 @@ class TestCRL:
             store_ctx.verify_certificate()
         assert str(err.value) == "unable to get certificate CRL"
         assert err.value.certificate.get_subject().CN == "intermediate-service"
-
-    def test_convert_from_cryptography(self):
-        crypto_crl = x509.load_pem_x509_crl(crlData)
-        crl = CRL.from_cryptography(crypto_crl)
-        assert isinstance(crl, CRL)
-
-    def test_convert_from_cryptography_unsupported_type(self):
-        with pytest.raises(TypeError):
-            CRL.from_cryptography(object())
-
-    def test_convert_to_cryptography_key(self):
-        crl = load_crl(FILETYPE_PEM, crlData)
-        crypto_crl = crl.to_cryptography()
-        assert isinstance(crypto_crl, x509.CertificateRevocationList)
 
 
 class TestX509StoreContext:
@@ -3876,130 +3433,6 @@ class TestX509StoreContext:
         store.set_flags(X509StoreFlags.PARTIAL_CHAIN)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
         assert store_ctx.verify_certificate() is None
-
-
-class TestSignVerify:
-    """
-    Tests for `OpenSSL.crypto.sign` and `OpenSSL.crypto.verify`.
-    """
-
-    def test_sign_verify(self):
-        """
-        `sign` generates a cryptographic signature which `verify` can check.
-        """
-        content = (
-            b"It was a bright cold day in April, and the clocks were striking "
-            b"thirteen. Winston Smith, his chin nuzzled into his breast in an "
-            b"effort to escape the vile wind, slipped quickly through the "
-            b"glass doors of Victory Mansions, though not quickly enough to "
-            b"prevent a swirl of gritty dust from entering along with him."
-        )
-
-        # sign the content with this private key
-        priv_key = load_privatekey(FILETYPE_PEM, root_key_pem)
-        # verify the content with this cert
-        good_cert = load_certificate(FILETYPE_PEM, root_cert_pem)
-        # certificate unrelated to priv_key, used to trigger an error
-        bad_cert = load_certificate(FILETYPE_PEM, server_cert_pem)
-
-        for digest in ["md5", "sha1", "sha256"]:
-            sig = sign(priv_key, content, digest)
-
-            # Verify the signature of content, will throw an exception if
-            # error.
-            verify(good_cert, sig, content, digest)
-
-            # This should fail because the certificate doesn't match the
-            # private key that was used to sign the content.
-            with pytest.raises(Error):
-                verify(bad_cert, sig, content, digest)
-
-            # This should fail because we've "tainted" the content after
-            # signing it.
-            with pytest.raises(Error):
-                verify(good_cert, sig, content + b"tainted", digest)
-
-        # test that unknown digest types fail
-        with pytest.raises(ValueError):
-            sign(priv_key, content, "strange-digest")
-        with pytest.raises(ValueError):
-            verify(good_cert, sig, content, "strange-digest")
-
-    def test_sign_verify_with_text(self):
-        """
-        `sign` generates a cryptographic signature which
-        `verify` can check. Deprecation warnings raised because using
-        text instead of bytes as content
-        """
-        content = (
-            b"It was a bright cold day in April, and the clocks were striking "
-            b"thirteen. Winston Smith, his chin nuzzled into his breast in an "
-            b"effort to escape the vile wind, slipped quickly through the "
-            b"glass doors of Victory Mansions, though not quickly enough to "
-            b"prevent a swirl of gritty dust from entering along with him."
-        ).decode("ascii")
-
-        priv_key = load_privatekey(FILETYPE_PEM, root_key_pem)
-        cert = load_certificate(FILETYPE_PEM, root_cert_pem)
-        for digest in ["md5", "sha1", "sha256"]:
-            with pytest.warns(DeprecationWarning) as w:
-                warnings.simplefilter("always")
-                sig = sign(priv_key, content, digest)
-            assert (
-                f"{WARNING_TYPE_EXPECTED} for data is no longer accepted, "
-                f"use bytes"
-            ) == str(w[-1].message)
-
-            with pytest.warns(DeprecationWarning) as w:
-                warnings.simplefilter("always")
-                verify(cert, sig, content, digest)
-            assert (
-                f"{WARNING_TYPE_EXPECTED} for data is no longer accepted, "
-                f"use bytes"
-            ) == str(w[-1].message)
-
-    def test_sign_verify_ecdsa(self):
-        """
-        `sign` generates a cryptographic signature which `verify` can check.
-        ECDSA Signatures in the X9.62 format may have variable length,
-        different from the length of the private key.
-        """
-        content = (
-            b"It was a bright cold day in April, and the clocks were striking "
-            b"thirteen. Winston Smith, his chin nuzzled into his breast in an "
-            b"effort to escape the vile wind, slipped quickly through the "
-            b"glass doors of Victory Mansions, though not quickly enough to "
-            b"prevent a swirl of gritty dust from entering along with him."
-        )
-        priv_key = load_privatekey(FILETYPE_PEM, ec_root_key_pem)
-        cert = load_certificate(FILETYPE_PEM, ec_root_cert_pem)
-        sig = sign(priv_key, content, "sha256")
-        verify(cert, sig, content, "sha256")
-
-    def test_sign_nulls(self):
-        """
-        `sign` produces a signature for a string with embedded nulls.
-        """
-        content = b"Watch out!  \0  Did you see it?"
-        priv_key = load_privatekey(FILETYPE_PEM, root_key_pem)
-        good_cert = load_certificate(FILETYPE_PEM, root_cert_pem)
-        sig = sign(priv_key, content, "sha256")
-        verify(good_cert, sig, content, "sha256")
-
-    def test_sign_with_large_key(self):
-        """
-        `sign` produces a signature for a string when using a long key.
-        """
-        content = (
-            b"It was a bright cold day in April, and the clocks were striking "
-            b"thirteen. Winston Smith, his chin nuzzled into his breast in an "
-            b"effort to escape the vile wind, slipped quickly through the "
-            b"glass doors of Victory Mansions, though not quickly enough to "
-            b"prevent a swirl of gritty dust from entering along with him."
-        )
-
-        priv_key = load_privatekey(FILETYPE_PEM, large_key_pem)
-        sign(priv_key, content, "sha256")
 
 
 class TestEllipticCurve:

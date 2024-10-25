@@ -63,20 +63,6 @@ Public keys
 
 .. autofunction:: load_publickey
 
-Certificate revocation lists
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autofunction:: dump_crl
-
-.. autofunction:: load_crl
-
-Signing and verifying signatures
---------------------------------
-
-.. autofunction:: sign
-
-.. autofunction:: verify
-
 
 .. _openssl-x509:
 
@@ -171,24 +157,6 @@ X509Extension objects
                :members:
                :special-members:
                :exclude-members: __weakref__
-
-.. _crl:
-
-CRL objects
------------
-
-.. autoclass:: CRL
-               :members:
-               :special-members:
-               :exclude-members: __weakref__
-
-.. _revoked:
-
-Revoked objects
----------------
-
-.. autoclass:: Revoked
-               :members:
 
 Exceptions
 ----------
