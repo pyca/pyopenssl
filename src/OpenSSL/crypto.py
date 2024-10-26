@@ -800,6 +800,9 @@ class X509Name:
 class X509Extension:
     """
     An X.509 v3 certificate extension.
+
+    .. deprecated:: 23.3.0
+       Use cryptography's X509 APIs instead.
     """
 
     def __init__(
@@ -980,6 +983,9 @@ utils.deprecated(
 class X509Req:
     """
     An X.509 certificate signing requests.
+
+    .. deprecated:: 24.2.0
+       Use `cryptography.x509.CertificateSigningRequest` instead.
     """
 
     def __init__(self) -> None:
@@ -2248,6 +2254,9 @@ def dump_privatekey(
 class Revoked:
     """
     A certificate revocation.
+
+    .. deprecated:: 23.3.0
+       Use cryptography's X509 APIs instead.
     """
 
     # https://www.openssl.org/docs/manmaster/man5/x509v3_config.html#CRL-distribution-points
@@ -2438,6 +2447,9 @@ utils.deprecated(
 class CRL:
     """
     A certificate revocation list.
+
+    .. deprecated:: 23.3.0
+       Use cryptography's X509 APIs instead.
     """
 
     def __init__(self) -> None:
@@ -2841,6 +2853,10 @@ def dump_certificate_request(type: int, req: X509Req) -> bytes:
     :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)
     :param req: The certificate request to dump
     :return: The buffer with the dumped certificate request in
+
+
+    .. deprecated:: 24.2.0
+       Use `cryptography.x509.CertificateSigningRequest` instead.
     """
     bio = _new_mem_buf()
 
@@ -2883,6 +2899,10 @@ def load_certificate_request(type: int, buffer: bytes) -> X509Req:
     :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)
     :param buffer: The buffer the certificate request is stored in
     :return: The X509Req object
+
+    .. deprecated:: 24.2.0
+       Use `cryptography.x509.load_der_x509_csr` or
+       `cryptography.x509.load_pem_x509_csr` instead.
     """
     if isinstance(buffer, str):
         buffer = buffer.encode("ascii")
@@ -2927,6 +2947,8 @@ def sign(pkey: PKey, data: str | bytes, digest: str) -> bytes:
     :return: signature
 
     .. versionadded:: 0.11
+    .. deprecated:: 23.3.0
+       Use cryptography's X509 APIs instead.
     """
     data = _text_to_bytes_and_warn("data", data)
 
@@ -2975,6 +2997,8 @@ def verify(
     :return: ``None`` if the signature is correct, raise exception otherwise.
 
     .. versionadded:: 0.11
+    .. deprecated:: 23.3.0
+       Use cryptography's X509 APIs instead.
     """
     data = _text_to_bytes_and_warn("data", data)
 
@@ -3018,6 +3042,9 @@ def dump_crl(type: int, crl: _CRLInternal) -> bytes:
 
     :return: The buffer with the CRL.
     :rtype: bytes
+
+    .. deprecated:: 23.3.0
+       Use cryptography's X509 APIs instead.
     """
     bio = _new_mem_buf()
 
@@ -3059,6 +3086,9 @@ def load_crl(type: int, buffer: str | bytes) -> _CRLInternal:
     :param buffer: The buffer the CRL is stored in
 
     :return: The CRL object
+
+    .. deprecated:: 23.3.0
+       Use cryptography's X509 APIs instead.
     """
     if isinstance(buffer, str):
         buffer = buffer.encode("ascii")

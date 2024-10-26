@@ -6,7 +6,9 @@
 .. py:module:: OpenSSL.crypto
    :synopsis: Generic cryptographic module
 
-.. note::
+.. danger::
+
+    **This module is pending deprecation, use pyca/cryptography instead.**
 
     `pyca/cryptography`_ is likely a better choice than using this module.
     It contains a complete set of cryptographic primitives as well as a significantly better and more powerful X509 API.
