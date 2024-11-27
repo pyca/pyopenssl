@@ -4,7 +4,7 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
-24.3.0 (UNRELEASED)
+24.3.0 (2024-11-27)
 -------------------
 
 Backward-incompatible changes:
@@ -25,6 +25,7 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+* ``cryptography`` maximum version has been increased to 44.0.x.
 * ``OpenSSL.SSL.Connection.get_certificate``, ``OpenSSL.SSL.Connection.get_peer_certificate``, ``OpenSSL.SSL.Connection.get_peer_cert_chain``, and ``OpenSSL.SSL.Connection.get_verified_chain`` now take an ``as_cryptography`` keyword-argument. When ``True`` is passed then ``cryptography.x509.Certificate`` are returned, instead of ``OpenSSL.crypto.X509``. In the future, passing ``False`` (the default) will be deprecated.
 
 

@@ -42,6 +42,8 @@ testpaths = ["tests"]
 [tool.ruff]
 lint.select = ['E', 'F', 'I', 'W', 'UP', 'RUF']
 line-length = 79
+# Remove if/when we move setup.py python-requires metadata to pyproject.toml
+target-version = "py37"
 
 [tool.ruff.lint.isort]
 known-first-party = ["OpenSSL", "tests"]

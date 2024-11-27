@@ -6,13 +6,12 @@ import functools
 import typing
 import warnings
 from base64 import b16encode
+from collections.abc import Iterable, Sequence
 from functools import partial
 from os import PathLike
 from typing import (
     Any,
     Callable,
-    Iterable,
-    Sequence,
     Union,
 )
 

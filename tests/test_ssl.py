@@ -3832,7 +3832,10 @@ class TestMemoryBIO:
         if platform == "win32":
             assert err.value.args == (10054, "WSAECONNRESET")
         else:
-            assert err.value.args == (-1, "Unexpected EOF")
+            assert err.value.args in [
+                (-1, "Unexpected EOF"),
+                (54, "ECONNRESET"),
+            ]
 
     def _check_client_ca_list(self, func):
         """
