@@ -94,7 +94,7 @@ if __name__ == "__main__":
         packages=find_packages(where="src"),
         package_dir={"": "src"},
         install_requires=[
-            "cryptography>=41.0.5,<44",
+            "cryptography>=41.0.5,<45",
         ],
         extras_require={
             "test": ["pytest-rerunfailures", "pretend", "pytest>=3.0.1"],

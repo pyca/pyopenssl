@@ -4,11 +4,12 @@ import os
 import socket
 import typing
 import warnings
+from collections.abc import Sequence
 from errno import errorcode
 from functools import partial, wraps
 from itertools import chain, count
 from sys import platform
-from typing import Any, Callable, List, Optional, Sequence, TypeVar
+from typing import Any, Callable, Optional, TypeVar
 from weakref import WeakValueDictionary
 
 from cryptography import x509
@@ -288,7 +289,7 @@ NO_OVERLAPPING_PROTOCOLS = _NoOverlappingProtocols()
 _ALPNSelectCallback = Callable[
     [
         "Connection",
-        typing.Union[List[bytes], _NoOverlappingProtocols],
+        typing.Union[typing.List[bytes], _NoOverlappingProtocols],
     ],
     None,
 ]
@@ -766,7 +767,7 @@ def _asFileDescriptor(obj: Any) -> int:
         raise TypeError("argument must be an int, or have a fileno() method.")
     elif fd < 0:
         raise ValueError(
-            "file descriptor cannot be a negative integer (%i)" % (fd,)
+            f"file descriptor cannot be a negative integer ({fd:i})"
         )
 
     return fd
@@ -1952,18 +1953,16 @@ class Connection:
             # TODO: This is untested.
             raise WantX509LookupError()
         elif error == _lib.SSL_ERROR_SYSCALL:
-            if _lib.ERR_peek_error() == 0:
-                if result < 0:
-                    if platform == "win32":
-                        errno = _ffi.getwinerror()[0]
-                    else:
-                        errno = _ffi.errno
-
-                    if errno != 0:
-                        raise SysCallError(errno, errorcode.get(errno))
+            if platform == "win32":
+                errno = _ffi.getwinerror()[0]
+            else:
+                errno = _ffi.errno
+            if _lib.ERR_peek_error() == 0 or errno != 0:
+                if result < 0 and errno != 0:
+                    raise SysCallError(errno, errorcode.get(errno))
                 raise SysCallError(-1, "Unexpected EOF")
             else:
-                # TODO: This is untested.
+                # TODO: This is untested, but I think twisted hits it?
                 _raise_current_error()
         elif error == _lib.SSL_ERROR_SSL and _lib.ERR_peek_error() != 0:
             # In 3.0.x an unexpected EOF no longer triggers syscall error

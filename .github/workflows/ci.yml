@@ -7,6 +7,7 @@ jobs:
   linux:
     runs-on: ${{ matrix.PYTHON.OS || 'ubuntu-22.04' }}
     strategy:
+      fail-fast: false
       matrix:
         PYTHON:
           # Base builds
@@ -66,6 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/pyca/cryptography-runner-${{ matrix.TEST.CONTAINER }}
     strategy:
+      fail-fast: false
       matrix:
         TEST:
           # cryptographyMain used since there's no wheel
