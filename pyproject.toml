@@ -37,6 +37,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 addopts = "-r s --strict-markers"
+filterwarnings = ["ignore"]
 testpaths = ["tests"]
 
 [tool.ruff]
