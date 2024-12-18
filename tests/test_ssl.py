@@ -321,17 +321,21 @@ def _create_certificate_chain():
     ]
 
 
-def loopback_client_factory(socket, version=SSLv23_METHOD):
+def loopback_client_factory(socket, version=SSLv23_METHOD, session_data=None):
     client = Connection(Context(version), socket)
+    if session_data is not None:
+        client.set_session(Session(session_data))
     client.set_connect_state()
     return client
 
 
-def loopback_server_factory(socket, version=SSLv23_METHOD):
+def loopback_server_factory(socket, version=SSLv23_METHOD, session_data=None):
     ctx = Context(version)
     ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
     ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
     server = Connection(ctx, socket)
+    if session_data is not None:
+        server.set_session(Session(session_data))
     server.set_accept_state()
     return server
 
@@ -2175,6 +2179,94 @@ class TestSession:
         """
         new_session = Session()
         assert isinstance(new_session, Session)
+
+    def test_d2i_fail(self):
+        with pytest.raises(Error) as e:
+            Session(b"abc" * 1000)
+
+        assert e.value.args[0][0] in [
+            # 1.1.x
+            (
+                "asn1 encoding routines",
+                "asn1_check_tlen",
+                "wrong tag",
+            ),
+            # 3.0.x
+            (
+                "asn1 encoding routines",
+                "",
+                "wrong tag",
+            ),
+        ]
+
+        assert e.value.args[0][1] in [
+            # 1.1.x
+            (
+                "asn1 encoding routines",
+                "asn1_item_embed_d2i",
+                "nested asn1 error",
+            ),
+            # 3.0.x
+            (
+                "asn1 encoding routines",
+                "",
+                "nested asn1 error",
+            ),
+        ]
+
+    def test_session_success(self):
+        session_id = (
+            b"\x51\x6d\x1d\x18\xc3\xb5\x86\x81\xc6\x79\x89\x2c\x89\x3e\x56\x33"
+            b"\xa7\x9c\xcd\x9b\x87\xbb\xb3\xdc\xf6\x76\x70\xf9\xc0\xdd\xf4\xef"
+        )
+
+        master_key = (
+            b"\x0f\xb2\x51\xe3\x15\x60\x2d\xef\x6e\x6d\xd2\x94\x2d\xe5\x37\x96"
+            b"\x72\xfa\xce\xb0\x39\xcc\x8d\xdf\xab\x32\xcc\x75\x0c\x66\xf9\xfd"
+            b"\xef\xbc\xc6\x2a\x8f\x9c\x35\x16\xfd\x4d\x38\xd9\xf9\xeb\x1d\xe4"
+        )
+
+        session_data = (
+            # sequence length=0x71
+            b"\x30\x71"
+            # integer (version)
+            b"\x02\x01\x01"
+            # integer (SSL version)
+            b"\x02\x02\x03\x03"
+            # octet-string (cipher suite)
+            b"\x04\x02\xc0\x30"
+            # octet-string length=0x20 (session id)
+            b"\x04\x20"
+            + session_id
+            # octet-string length=0x30 (master secret)
+            + b"\x04\x30"
+            + master_key
+            # application (1), integer (time)
+            + b"\xa1\x06\x02\x04"
+            b"\x66\xec\x4c\x2d"
+            # application (2), integer (timeout)
+            b"\xa2\x04\x02\x02"
+            b"\x02\x58"
+            # application (4), octet-string (session id context)
+            b"\xa4\x02\x04"
+            b"\x00"
+        )
+        serverSocket, clientSocket = socket_pair()
+
+        client = loopback_client_factory(
+            clientSocket, session_data=session_data
+        )
+        server = loopback_server_factory(
+            serverSocket, session_data=session_data
+        )
+
+        assert client.master_key() == master_key
+        assert server.master_key() == master_key
+
+        handshake(client, server)
+
+        client.send(b"hello world")
+        assert b"hello world" == server.recv(len(b"hello world"))
 
 
 @pytest.fixture(params=["context", "connection"])
