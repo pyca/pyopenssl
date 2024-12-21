@@ -11,6 +11,7 @@ Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Removed the deprecated ``OpenSSL.crypto.CRL``, ``OpenSSL.crypto.Revoked``, ``OpenSSL.crypto.dump_crl``, and ``OpenSSL.crypto.load_crl``. ``cryptography.x509``'s CRL functionality should be used instead.
+- Removed deprecated ``OpenSSL.crypto.X509Extension``, ``OpenSSL.crypto.X509Req.add_extension``, ``OpenSSL.crypto.X509Req.get_extensions``, ``OpenSSL.crypto.X509.add_extension``, ``OpenSSL.crypto.X509.get_extensions``. ``cryptography.x509`` should be used instead.
 - Removed the deprecated ``OpenSSL.crypto.sign`` and ``OpenSSL.crypto.verify``. ``cryptography.hazmat.primitives.asymmetric``'s signature APIs should be used instead.
 
 Deprecations:
