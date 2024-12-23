@@ -4,6 +4,21 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
+24.4.0 (UNRELEASED)
+-------------------
+
+Backward-incompatible changes:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Deprecations:
+^^^^^^^^^^^^^
+
+Changes:
+^^^^^^^^
+
+* Added ``OpenSSL.SSL.Session.i2d`` to convert session objects to ASN1. Updated ``OpenSSL.SSL.Session`` constructor to support conversion from ASN1. `#1373 <https://github.com/pyca/pyopenssl/pull/1373>`_.
+* ``cryptography`` minimum version is now 44.0.x.
+
 24.3.0 (2024-11-27)
 -------------------
 

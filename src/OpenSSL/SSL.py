@@ -821,10 +821,51 @@ class Session:
     parameters which may be re-used to speed up the setup of subsequent
     connections.
 
+    :param data: An optional bytes object of an ASN1 encoded Session.
+
     .. versionadded:: 0.14
     """
 
-    _session: Any
+    _session: Any = None
+
+    def __init__(self, data: bytes | None = None) -> None:
+        if data is None:
+            return
+
+        p = _ffi.new("unsigned char[]", data)
+        pp = _ffi.new("unsigned char **")
+        pp[0] = p
+        length = _ffi.cast("long", len(data))
+
+        session = _lib.d2i_SSL_SESSION(_ffi.NULL, pp, length)
+        if session == _ffi.NULL:
+            _raise_current_error()
+
+        self._session = _ffi.gc(session, _lib.SSL_SESSION_free)
+
+    def i2d(self) -> bytes:
+        """
+        Convert the Session object to an ASN1 encoded bytes object.
+
+        :return A bytes object representing the ASN1 encoded session.
+        """
+
+        if self._session is None:
+            raise ValueError("Not a valid session")
+
+        length = _lib.i2d_SSL_SESSION(self._session, _ffi.NULL)
+        if length == 0:
+            raise ValueError("Not a valid session")
+
+        pp = _ffi.new("unsigned char **")
+        p = _ffi.new("unsigned char[]", length)
+        pp[0] = p
+
+        length = _lib.i2d_SSL_SESSION(self._session, pp)
+        if length == 0:
+            raise ValueError("Not a valid session")
+
+        return _ffi.buffer(p, length)[:]
 
 
 class Context:
