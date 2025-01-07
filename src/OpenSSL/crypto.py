@@ -264,10 +264,10 @@ class PKey:
 
         if self._only_public:
             der = dump_publickey(FILETYPE_ASN1, self)
-            return load_der_public_key(der)
+            return typing.cast(_Key, load_der_public_key(der))
         else:
             der = dump_privatekey(FILETYPE_ASN1, self)
-            return load_der_private_key(der, None)
+            return typing.cast(_Key, load_der_private_key(der, password=None))
 
     @classmethod
     def from_cryptography_key(cls, crypto_key: _Key) -> PKey:
