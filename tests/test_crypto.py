@@ -36,6 +36,7 @@ from OpenSSL.crypto import (
     X509,
     Error,
     PKey,
+    X509Extension,
     X509Name,
     X509Req,
     X509Store,
@@ -56,11 +57,6 @@ from OpenSSL.crypto import (
     load_privatekey,
     load_publickey,
 )
-
-with pytest.warns(DeprecationWarning):
-    from OpenSSL.crypto import (
-        X509Extension,
-    )
 
 from .util import (
     NON_ASCII,
