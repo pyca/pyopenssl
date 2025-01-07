@@ -10,7 +10,7 @@ U{Twisted<http://twistedmatrix.com/>}.
 NON_ASCII = b"\xe2\x98\x83".decode("utf-8")
 
 
-def is_consistent_type(theType, name, *constructionArgs):
+def is_consistent_type(theType, name, *constructionArgs) -> bool:
     """
     Perform various assertions about *theType* to ensure that it is a
     well-defined type.  This is useful for extension types, where it's
