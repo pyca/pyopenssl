@@ -8,7 +8,6 @@ import warnings
 from base64 import b16encode
 from collections.abc import Iterable, Sequence
 from functools import partial
-from os import PathLike
 from typing import (
     Any,
     Callable,
@@ -24,6 +23,7 @@ from cryptography.hazmat.primitives.asymmetric import (
     rsa,
 )
 
+from OpenSSL._util import StrOrBytesPath
 from OpenSSL._util import (
     byte_string as _byte_string,
 )
@@ -87,7 +87,6 @@ _PublicKey = Union[
     rsa.RSAPublicKey,
 ]
 _Key = Union[_PrivateKey, _PublicKey]
-StrOrBytesPath = Union[str, bytes, PathLike]
 PassphraseCallableT = Union[bytes, Callable[..., bytes]]
 
 

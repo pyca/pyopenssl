@@ -289,9 +289,9 @@ NO_OVERLAPPING_PROTOCOLS = _NoOverlappingProtocols()
 _ALPNSelectCallback = Callable[
     [
         "Connection",
-        typing.Union[typing.List[bytes], _NoOverlappingProtocols],
+        typing.List[bytes],
     ],
-    None,
+    typing.Union[bytes, _NoOverlappingProtocols],
 ]
 _CookieGenerateCallback = Callable[["Connection"], bytes]
 _CookieVerifyCallback = Callable[["Connection", bytes], bool]
@@ -1889,7 +1889,7 @@ class Connection:
         # Negotiation. These strings get copied at some point but it's well
         # after the callback returns, so we have to hang them somewhere to
         # avoid them getting freed.
-        self._alpn_select_callback_args = None
+        self._alpn_select_callback_args: Any = None
 
         # Reference the verify_callback of the Context. This ensures that if
         # set_verify is called again after the SSL object has been created we
