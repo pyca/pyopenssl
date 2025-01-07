@@ -2457,7 +2457,9 @@ class TestX509Store:
         monkeypatch,
     ) -> None:
         class LibMock:
-            def load_locations(self, store, cafile, capath):
+            def load_locations(
+                self, store: object, cafile: object, capath: object
+            ) -> int:
                 self.cafile = cafile
                 self.capath = capath
                 return 1
@@ -2489,12 +2491,14 @@ class TestX509Store:
             store.load_locations(cafile=str(invalid_ca_file))
 
 
-def _runopenssl(pem, *args):
+def _runopenssl(pem: bytes, *args: bytes) -> bytes:
     """
     Run the command line openssl tool with the given arguments and write
     the given PEM to its stdin.  Not safe for quotes.
     """
     proc = Popen([b"openssl", *list(args)], stdin=PIPE, stdout=PIPE)
+    assert proc.stdin is not None
+    assert proc.stdout is not None
     proc.stdin.write(pem)
     proc.stdin.close()
     output = proc.stdout.read()
@@ -2562,7 +2566,9 @@ class TestFunction:
         """
         with pytest.raises(TypeError):
             load_privatekey(
-                FILETYPE_PEM, encryptedPrivateKeyPEMPassphrase, object()
+                FILETYPE_PEM,
+                encryptedPrivateKeyPEMPassphrase,
+                object(),  # type: ignore[arg-type]
             )
 
     def test_load_privatekey_wrongPassphrase(self) -> None:
@@ -2576,14 +2582,14 @@ class TestFunction:
 
     def test_load_privatekey_passphraseWrongType(self) -> None:
         """
-        `load_privatekey` raises `ValueError` when it is passeda passphrase
+        `load_privatekey` raises `ValueError` when it is passed a passphrase
         with a private key encoded in a format, that doesn't support
         encryption.
         """
         key = load_privatekey(FILETYPE_PEM, root_key_pem)
         blob = dump_privatekey(FILETYPE_ASN1, key)
         with pytest.raises(ValueError):
-            load_privatekey(FILETYPE_ASN1, blob, "secret")
+            load_privatekey(FILETYPE_ASN1, blob, b"secret")
 
     def test_load_privatekey_passphrase(self) -> None:
         """
@@ -2603,7 +2609,7 @@ class TestFunction:
         raised by `load_privatekey`.
         """
 
-        def cb(ignored):
+        def cb(ignored: object) -> bytes:
             raise ArithmeticError
 
         with pytest.raises(ArithmeticError):
@@ -2615,10 +2621,11 @@ class TestFunction:
         is passed an encrypted PEM and a passphrase callback which returns an
         incorrect passphrase.
         """
-        called = []
+        called = False
 
-        def cb(*a):
-            called.append(None)
+        def cb(*a: object) -> bytes:
+            nonlocal called
+            called = True
             return b"quack"
 
         with pytest.raises(Error) as err:
@@ -2634,7 +2641,7 @@ class TestFunction:
         """
         called = []
 
-        def cb(writing):
+        def cb(writing: bool) -> bytes:
             called.append(writing)
             return encryptedPrivateKeyPEMPassphrase
 
@@ -2649,7 +2656,9 @@ class TestFunction:
         """
         with pytest.raises(ValueError):
             load_privatekey(
-                FILETYPE_PEM, encryptedPrivateKeyPEM, lambda *args: 3
+                FILETYPE_PEM,
+                encryptedPrivateKeyPEM,
+                lambda *args: 3,  # type: ignore[arg-type]
             )
 
     def test_dump_privatekey_wrong_args(self) -> None:
@@ -2674,7 +2683,7 @@ class TestFunction:
 
     def test_dump_privatekey_invalid_pkey(self) -> None:
         with pytest.raises(TypeError):
-            dump_privatekey(FILETYPE_TEXT, object())
+            dump_privatekey(FILETYPE_TEXT, object())  # type: ignore[arg-type]
 
     def test_dump_privatekey_unknown_cipher(self) -> None:
         """
@@ -2684,7 +2693,7 @@ class TestFunction:
         key = PKey()
         key.generate_key(TYPE_RSA, 2048)
         with pytest.raises(ValueError):
-            dump_privatekey(FILETYPE_PEM, key, BAD_CIPHER, "passphrase")
+            dump_privatekey(FILETYPE_PEM, key, BAD_CIPHER, b"passphrase")
 
     def test_dump_privatekey_invalid_passphrase_type(self) -> None:
         """
@@ -2694,7 +2703,7 @@ class TestFunction:
         key = PKey()
         key.generate_key(TYPE_RSA, 2048)
         with pytest.raises(TypeError):
-            dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, object())
+            dump_privatekey(FILETYPE_PEM, key, GOOD_CIPHER, object())  # type: ignore[arg-type]
 
     def test_dump_privatekey_invalid_filetype(self) -> None:
         """
@@ -2712,8 +2721,8 @@ class TestFunction:
         provided by the callback is too long, not silently truncate it.
         """
 
-        def cb(ignored):
-            return "a" * 1025
+        def cb(ignored: object) -> bytes:
+            return b"a" * 1025
 
         with pytest.raises(ValueError):
             load_privatekey(FILETYPE_PEM, encryptedPrivateKeyPEM, cb)
@@ -2739,7 +2748,7 @@ class TestFunction:
         """
         key = load_privatekey(FILETYPE_PEM, root_key_pem)
         with pytest.raises(ValueError):
-            dump_privatekey(FILETYPE_ASN1, key, GOOD_CIPHER, "secret")
+            dump_privatekey(FILETYPE_ASN1, key, GOOD_CIPHER, b"secret")
 
     def test_dump_certificate(self) -> None:
         """
@@ -2765,7 +2774,7 @@ class TestFunction:
         """
         cert = load_certificate(FILETYPE_PEM, root_cert_pem)
         with pytest.raises(ValueError):
-            dump_certificate(object(), cert)
+            dump_certificate(object(), cert)  # type: ignore[arg-type]
 
     def test_dump_privatekey_pem(self) -> None:
         """
@@ -2856,7 +2865,7 @@ class TestFunction:
         passphrase = b"foo"
         called = []
 
-        def cb(writing):
+        def cb(writing: bool) -> bytes:
             called.append(writing)
             return passphrase
 
@@ -2875,7 +2884,7 @@ class TestFunction:
         by the passphrase callback.
         """
 
-        def cb(ignored):
+        def cb(ignored: object) -> bytes:
             raise ArithmeticError
 
         key = load_privatekey(FILETYPE_PEM, root_key_pem)
@@ -2888,8 +2897,8 @@ class TestFunction:
         provided by the callback is too long, not silently truncate it.
         """
 
-        def cb(ignored):
-            return "a" * 1025
+        def cb(ignored: object) -> bytes:
+            return b"a" * 1025
 
         key = load_privatekey(FILETYPE_PEM, root_key_pem)
         with pytest.raises(ValueError):
@@ -2945,9 +2954,9 @@ class TestLoadCertificate:
         `FILETYPE_PEM` nor `FILETYPE_ASN1` then `ValueError` is raised.
         """
         with pytest.raises(ValueError):
-            load_certificate_request(object(), b"")
+            load_certificate_request(object(), b"")  # type: ignore[arg-type]
         with pytest.raises(ValueError):
-            load_certificate(object(), b"")
+            load_certificate(object(), b"")  # type: ignore[arg-type]
 
     def test_bad_certificate(self) -> None:
         """
@@ -2978,7 +2987,9 @@ class TestCRL:
     )
 
     @staticmethod
-    def _make_test_crl_cryptography(issuer_cert, issuer_key, certs=()):
+    def _make_test_crl_cryptography(
+        issuer_cert: X509, issuer_key: PKey, certs: list[X509] = []
+    ) -> x509.CertificateRevocationList:
         """
         Create a CRL using cryptography's API.
 
@@ -2988,9 +2999,7 @@ class TestCRL:
         from cryptography.x509.extensions import CRLReason, ReasonFlags
 
         builder = x509.CertificateRevocationListBuilder()
-        builder = builder.issuer_name(
-            X509.to_cryptography(issuer_cert).subject
-        )
+        builder = builder.issuer_name(issuer_cert.to_cryptography().subject)
         for cert in certs:
             revoked = (
                 x509.RevokedCertificateBuilder()
@@ -3007,7 +3016,7 @@ class TestCRL:
         builder = builder.next_update(datetime(5000, 6, 1, 0, 0, 0))
 
         crl = builder.sign(
-            private_key=PKey.to_cryptography_key(issuer_key),
+            private_key=issuer_key.to_cryptography_key(),
             algorithm=hashes.SHA512(),
         )
         return crl
@@ -3078,7 +3087,7 @@ class TestX509StoreContext:
         store.add_cert(self.root_cert)
         store.add_cert(self.intermediate_cert)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        assert store_ctx.verify_certificate() is None
+        assert store_ctx.verify_certificate() is None  # type: ignore[func-returns-value]
 
     def test_reuse(self) -> None:
         """
@@ -3089,8 +3098,8 @@ class TestX509StoreContext:
         store.add_cert(self.root_cert)
         store.add_cert(self.intermediate_cert)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        assert store_ctx.verify_certificate() is None
-        assert store_ctx.verify_certificate() is None
+        assert store_ctx.verify_certificate() is None  # type: ignore[func-returns-value]
+        assert store_ctx.verify_certificate() is None  # type: ignore[func-returns-value]
 
     @pytest.mark.parametrize(
         "root_cert, chain, verified_cert",
@@ -3116,12 +3125,12 @@ class TestX509StoreContext:
         ],
     )
     def test_verify_success_with_chain(
-        self, root_cert, chain, verified_cert
+        self, root_cert: X509, chain: list[X509], verified_cert: X509
     ) -> None:
         store = X509Store()
         store.add_cert(root_cert)
         store_ctx = X509StoreContext(store, verified_cert, chain=chain)
-        assert store_ctx.verify_certificate() is None
+        assert store_ctx.verify_certificate() is None  # type: ignore[func-returns-value]
 
     def test_valid_untrusted_chain_reuse(self) -> None:
         """
@@ -3136,8 +3145,8 @@ class TestX509StoreContext:
         store_ctx = X509StoreContext(
             store, self.intermediate_server_cert, chain=chain
         )
-        assert store_ctx.verify_certificate() is None
-        assert store_ctx.verify_certificate() is None
+        assert store_ctx.verify_certificate() is None  # type: ignore[func-returns-value]
+        assert store_ctx.verify_certificate() is None  # type: ignore[func-returns-value]
 
     def test_chain_reference(self) -> None:
         """
@@ -3153,7 +3162,7 @@ class TestX509StoreContext:
         )
 
         del chain
-        assert store_ctx.verify_certificate() is None
+        assert store_ctx.verify_certificate() is None  # type: ignore[func-returns-value]
 
     @pytest.mark.parametrize(
         "root_cert, chain, verified_cert",
@@ -3185,7 +3194,7 @@ class TestX509StoreContext:
         ],
     )
     def test_verify_fail_with_chain(
-        self, root_cert, chain, verified_cert
+        self, root_cert: X509, chain: list[X509], verified_cert: X509
     ) -> None:
         store = X509Store()
         if root_cert:
@@ -3211,7 +3220,9 @@ class TestX509StoreContext:
             ),
         ],
     )
-    def test_untrusted_chain_wrong_args(self, chain, expected_error) -> None:
+    def test_untrusted_chain_wrong_args(
+        self, chain: list[X509], expected_error: type[Exception]
+    ) -> None:
         """
         Creating ``X509StoreContext`` with wrong chain raises an exception.
         """
@@ -3245,7 +3256,7 @@ class TestX509StoreContext:
         store = X509Store()
         store.add_cert(self.root_cert)
         store_ctx = X509StoreContext(store, self.root_cert)
-        assert store_ctx.verify_certificate() is None
+        assert store_ctx.verify_certificate() is None  # type: ignore[func-returns-value]
 
     def test_untrusted_self_signed(self) -> None:
         """
@@ -3313,7 +3324,7 @@ class TestX509StoreContext:
         assert exc.value.certificate.get_subject().CN == "intermediate"
 
         store_ctx.set_store(store_good)
-        assert store_ctx.verify_certificate() is None
+        assert store_ctx.verify_certificate() is None  # type: ignore[func-returns-value]
 
     def test_verify_with_time(self) -> None:
         """
@@ -3325,6 +3336,7 @@ class TestX509StoreContext:
         store.add_cert(self.intermediate_cert)
 
         expire_time = self.intermediate_server_cert.get_notAfter()
+        assert expire_time is not None
         expire_datetime = datetime.strptime(
             expire_time.decode("utf-8"), "%Y%m%d%H%M%SZ"
         )
@@ -3393,14 +3405,18 @@ class TestX509StoreContext:
         cafile.write_bytes(dump_certificate(FILETYPE_PEM, cacert))
         return cafile
 
-    def test_verify_with_ca_file_location(self, root_ca_file) -> None:
+    def test_verify_with_ca_file_location(
+        self, root_ca_file: pathlib.Path
+    ) -> None:
         store = X509Store()
         store.load_locations(str(root_ca_file))
 
         store_ctx = X509StoreContext(store, self.intermediate_cert)
         store_ctx.verify_certificate()
 
-    def test_verify_with_ca_path_location(self, root_ca_file) -> None:
+    def test_verify_with_ca_path_location(
+        self, root_ca_file: pathlib.Path
+    ) -> None:
         store = X509Store()
         store.load_locations(None, str(root_ca_file.parent))
 
@@ -3408,8 +3424,10 @@ class TestX509StoreContext:
         store_ctx.verify_certificate()
 
     def test_verify_with_cafile_and_capath(
-        self, root_ca_file, intermediate_ca_file
-    ):
+        self,
+        root_ca_file: pathlib.Path,
+        intermediate_ca_file: pathlib.Path,
+    ) -> None:
         store = X509Store()
         store.load_locations(
             cafile=str(root_ca_file), capath=str(intermediate_ca_file.parent)
@@ -3419,8 +3437,8 @@ class TestX509StoreContext:
         store_ctx.verify_certificate()
 
     def test_verify_with_multiple_ca_files(
-        self, root_ca_file, intermediate_ca_file
-    ):
+        self, root_ca_file: pathlib.Path, intermediate_ca_file: pathlib.Path
+    ) -> None:
         store = X509Store()
         store.load_locations(str(root_ca_file))
         store.load_locations(str(intermediate_ca_file))
@@ -3451,7 +3469,7 @@ class TestX509StoreContext:
         # Now set the partial verification flag for verification.
         store.set_flags(X509StoreFlags.PARTIAL_CHAIN)
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
-        assert store_ctx.verify_certificate() is None
+        assert store_ctx.verify_certificate() is None  # type: ignore[func-returns-value]
 
 
 class TestEllipticCurve:
