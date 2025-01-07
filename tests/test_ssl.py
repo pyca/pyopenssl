@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import datetime
 import gc
+import pathlib
 import select
 import sys
 import time
@@ -466,7 +467,7 @@ class TestVersion:
 
 
 @pytest.fixture
-def ca_file(tmpdir):
+def ca_file(tmp_path: pathlib.Path) -> bytes:
     """
     Create a valid PEM file with CA certificates and return the path.
     """
@@ -492,8 +493,8 @@ def ca_file(tmpdir):
 
     certificate = builder.sign(private_key=key, algorithm=hashes.SHA256())
 
-    ca_file = tmpdir.join("test.pem")
-    ca_file.write_binary(
+    ca_file = tmp_path / "test.pem"
+    ca_file.write_bytes(
         certificate.public_bytes(
             encoding=serialization.Encoding.PEM,
         )
@@ -568,12 +569,14 @@ class TestContext:
         """
         context.load_client_ca(ca_file)
 
-    def test_load_client_ca_invalid(self, context, tmpdir) -> None:
+    def test_load_client_ca_invalid(
+        self, context, tmp_path: pathlib.Path
+    ) -> None:
         """
         `Context.load_client_ca` raises an Error if the ca file is invalid.
         """
-        ca_file = tmpdir.join("test.pem")
-        ca_file.write("")
+        ca_file = tmp_path / "test.pem"
+        ca_file.write_text("")
 
         with pytest.raises(Error) as e:
             context.load_client_ca(str(ca_file).encode("ascii"))
@@ -1511,7 +1514,7 @@ class TestContext:
         else:
             self._handshake_test(serverContext, clientContext)
 
-    def test_add_extra_chain_cert(self, tmpdir) -> None:
+    def test_add_extra_chain_cert(self, tmp_path: pathlib.Path) -> None:
         """
         `Context.add_extra_chain_cert` accepts an `X509`
         instance to add to the certificate chain.
@@ -1533,11 +1536,11 @@ class TestContext:
             (icert, "i.pem"),
             (scert, "s.pem"),
         ]:
-            with tmpdir.join(name).open("w") as f:
+            with (tmp_path / name).open("w") as f:
                 f.write(dump_certificate(FILETYPE_PEM, cert).decode("ascii"))
 
         for key, name in [(cakey, "ca.key"), (ikey, "i.key"), (skey, "s.key")]:
-            with tmpdir.join(name).open("w") as f:
+            with (tmp_path / name).open("w") as f:
                 f.write(dump_privatekey(FILETYPE_PEM, key).decode("ascii"))
 
         # Create the server context
@@ -1552,7 +1555,7 @@ class TestContext:
         clientContext.set_verify(
             VERIFY_PEER | VERIFY_FAIL_IF_NO_PEER_CERT, verify_cb
         )
-        clientContext.load_verify_locations(str(tmpdir.join("ca.pem")))
+        clientContext.load_verify_locations(str(tmp_path / "ca.pem"))
 
         # Try it out.
         self._handshake_test(serverContext, clientContext)

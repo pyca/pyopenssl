@@ -8,6 +8,7 @@ Unit tests for :py:mod:`OpenSSL.crypto`.
 from __future__ import annotations
 
 import base64
+import pathlib
 import sys
 import typing
 from datetime import datetime, timedelta, timezone
@@ -2477,9 +2478,11 @@ class TestX509Store:
         with pytest.raises(Error):
             store.load_locations(None, None)
 
-    def test_load_locations_raises_error_on_failure(self, tmpdir) -> None:
-        invalid_ca_file = tmpdir.join("invalid.pem")
-        invalid_ca_file.write("This is not a certificate")
+    def test_load_locations_raises_error_on_failure(
+        self, tmp_path: pathlib.Path
+    ) -> None:
+        invalid_ca_file = tmp_path / "invalid.pem"
+        invalid_ca_file.write_text("This is not a certificate")
 
         store = X509Store()
         with pytest.raises(Error):
@@ -3369,22 +3372,25 @@ class TestX509StoreContext:
         assert exc.value.certificate.get_subject().CN == "intermediate"
 
     @pytest.fixture
-    def root_ca_file(self, tmpdir):
-        return self._create_ca_file(tmpdir, "root_ca_hash_dir", self.root_cert)
+    def root_ca_file(self, tmp_path: pathlib.Path) -> pathlib.Path:
+        return self._create_ca_file(
+            tmp_path, "root_ca_hash_dir", self.root_cert
+        )
 
     @pytest.fixture
-    def intermediate_ca_file(self, tmpdir):
+    def intermediate_ca_file(self, tmp_path: pathlib.Path) -> pathlib.Path:
         return self._create_ca_file(
-            tmpdir, "intermediate_ca_hash_dir", self.intermediate_cert
+            tmp_path, "intermediate_ca_hash_dir", self.intermediate_cert
         )
 
     @staticmethod
-    def _create_ca_file(base_path, hash_directory: str, cacert: X509):
+    def _create_ca_file(
+        base_path: pathlib.Path, hash_directory: str, cacert: X509
+    ) -> pathlib.Path:
         ca_hash = f"{cacert.subject_name_hash():08x}.0"
-        cafile = base_path.join(hash_directory, ca_hash)
-        cafile.write_binary(
-            dump_certificate(FILETYPE_PEM, cacert), ensure=True
-        )
+        cafile = base_path / hash_directory / ca_hash
+        cafile.parent.mkdir(parents=True, exist_ok=True)
+        cafile.write_bytes(dump_certificate(FILETYPE_PEM, cacert))
         return cafile
 
     def test_verify_with_ca_file_location(self, root_ca_file) -> None:
@@ -3396,7 +3402,7 @@ class TestX509StoreContext:
 
     def test_verify_with_ca_path_location(self, root_ca_file) -> None:
         store = X509Store()
-        store.load_locations(None, str(root_ca_file.dirname))
+        store.load_locations(None, str(root_ca_file.parent))
 
         store_ctx = X509StoreContext(store, self.intermediate_cert)
         store_ctx.verify_certificate()
@@ -3406,7 +3412,7 @@ class TestX509StoreContext:
     ):
         store = X509Store()
         store.load_locations(
-            cafile=str(root_ca_file), capath=str(intermediate_ca_file.dirname)
+            cafile=str(root_ca_file), capath=str(intermediate_ca_file.parent)
         )
 
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
@@ -3422,9 +3428,11 @@ class TestX509StoreContext:
         store_ctx = X509StoreContext(store, self.intermediate_server_cert)
         store_ctx.verify_certificate()
 
-    def test_verify_failure_with_empty_ca_directory(self, tmpdir) -> None:
+    def test_verify_failure_with_empty_ca_directory(
+        self, tmp_path: pathlib.Path
+    ) -> None:
         store = X509Store()
-        store.load_locations(None, str(tmpdir))
+        store.load_locations(None, str(tmp_path))
 
         store_ctx = X509StoreContext(store, self.intermediate_cert)
         with pytest.raises(X509StoreContextError) as exc:
