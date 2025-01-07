@@ -7,13 +7,14 @@ from tempfile import mktemp
 import pytest
 
 
-def pytest_report_header(config):
+def pytest_report_header(config: pytest.Config) -> str:
     import cryptography
 
     import OpenSSL.SSL
 
     return (
-        f"OpenSSL: {OpenSSL.SSL.SSLeay_version(OpenSSL.SSL.SSLEAY_VERSION)}\n"
+        f"OpenSSL: "
+        f"{OpenSSL.SSL.SSLeay_version(OpenSSL.SSL.SSLEAY_VERSION)!r}\n"
         f"cryptography: {cryptography.__version__}"
     )
 

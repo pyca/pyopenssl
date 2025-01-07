@@ -13,14 +13,11 @@ source = [
 ]
 
 [tool.coverage.report]
-exclude_also = [
-    "assert False",
-]
+exclude_also = ["assert False"]
 show_missing = true
 
 [tool.mypy]
 warn_unused_configs = true
-follow_imports = "skip"
 strict = true
 
 [[tool.mypy.overrides]]
