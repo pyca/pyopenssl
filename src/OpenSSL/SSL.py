@@ -1645,7 +1645,7 @@ class Context:
         pystore._store = store
         return pystore
 
-    def set_options(self, options: int) -> None:
+    def set_options(self, options: int) -> int:
         """
         Add options. Options set before are not cleared!
         This method should be used with the :const:`OP_*` constants.
@@ -1658,7 +1658,7 @@ class Context:
 
         return _lib.SSL_CTX_set_options(self._context, options)
 
-    def set_mode(self, mode: int) -> None:
+    def set_mode(self, mode: int) -> int:
         """
         Add modes via bitmask. Modes set before are not cleared!  This method
         should be used with the :const:`MODE_*` constants.
