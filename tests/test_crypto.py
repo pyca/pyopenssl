@@ -1605,22 +1605,16 @@ class TestX509Name:
             setattr(name, "O", b"x" * 512)
 
 
-class _PKeyInteractionTestsMixin:
+class TestX509Req:
     """
-    Tests which involve another thing and a PKey.
+    Tests for `OpenSSL.crypto.X509Req`.
     """
-
-    def signable(self):
-        """
-        Return something with `set_pubkey` and `sign` methods.
-        """
-        raise NotImplementedError()
 
     def test_sign_with_ungenerated(self) -> None:
         """
         `X509Req.sign` raises `ValueError` when passed a `PKey` with no parts.
         """
-        request = self.signable()
+        request = X509Req()
         key = PKey()
         with pytest.raises(ValueError):
             request.sign(key, GOOD_DIGEST)
@@ -1630,7 +1624,7 @@ class _PKeyInteractionTestsMixin:
         `X509Req.sign` raises `ValueError` when passed a `PKey` with no private
         part as the signing key.
         """
-        request = self.signable()
+        request = X509Req()
         key = PKey()
         key.generate_key(TYPE_RSA, 2048)
         request.set_pubkey(key)
@@ -1643,7 +1637,7 @@ class _PKeyInteractionTestsMixin:
         `X509Req.sign` raises `ValueError` when passed a digest name which is
         not known.
         """
-        request = self.signable()
+        request = X509Req()
         key = PKey()
         key.generate_key(TYPE_RSA, 2048)
         with pytest.raises(ValueError):
@@ -1655,7 +1649,7 @@ class _PKeyInteractionTestsMixin:
         valid digest function. `X509Req.verify` can be used to check
         the signature.
         """
-        request = self.signable()
+        request = X509Req()
         key = PKey()
         key.generate_key(TYPE_RSA, 2048)
         request.set_pubkey(key)
@@ -1669,18 +1663,6 @@ class _PKeyInteractionTestsMixin:
             key.generate_key(TYPE_RSA, 2048)
             with pytest.raises(Error):
                 request.verify(key)
-
-
-class TestX509Req(_PKeyInteractionTestsMixin):
-    """
-    Tests for `OpenSSL.crypto.X509Req`.
-    """
-
-    def signable(self):
-        """
-        Create and return a new `X509Req`.
-        """
-        return X509Req()
 
     def test_construction(self) -> None:
         """
@@ -1848,23 +1830,57 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         assert isinstance(crypto_req, x509.CertificateSigningRequest)
 
 
-class TestX509(_PKeyInteractionTestsMixin):
+class TestX509:
     """
     Tests for `OpenSSL.crypto.X509`.
     """
 
     pemData = root_cert_pem + root_key_pem
 
-    def signable(self):
+    def test_sign_with_ungenerated(self) -> None:
         """
-        Create and return a new `X509`.
+        `X509.sign` raises `ValueError` when passed a `PKey` with no parts.
         """
-        certificate = X509()
-        # Fill in placeholder validity values. signable only expects to call
-        # set_pubkey and sign.
-        certificate.gmtime_adj_notBefore(-24 * 60 * 60)
-        certificate.gmtime_adj_notAfter(24 * 60 * 60)
-        return certificate
+        cert = X509()
+        key = PKey()
+        with pytest.raises(ValueError):
+            cert.sign(key, GOOD_DIGEST)
+
+    def test_sign_with_public_key(self) -> None:
+        """
+        `X509.sign` raises `ValueError` when passed a `PKey` with no private
+        part as the signing key.
+        """
+        cert = X509()
+        key = PKey()
+        key.generate_key(TYPE_RSA, 2048)
+        cert.set_pubkey(key)
+        pub = cert.get_pubkey()
+        with pytest.raises(ValueError):
+            cert.sign(pub, GOOD_DIGEST)
+
+    def test_sign_with_unknown_digest(self) -> None:
+        """
+        `X509.sign` raises `ValueError` when passed a digest name which is
+        not known.
+        """
+        cert = X509()
+        key = PKey()
+        key.generate_key(TYPE_RSA, 2048)
+        with pytest.raises(ValueError):
+            cert.sign(key, BAD_DIGEST)
+
+    def test_sign(self) -> None:
+        """
+        `X509.sign` succeeds when passed a private key object and a
+        valid digest function. `X509Req.verify` can be used to check
+        the signature.
+        """
+        cert = X509()
+        key = PKey()
+        key.generate_key(TYPE_RSA, 2048)
+        cert.set_pubkey(key)
+        cert.sign(key, GOOD_DIGEST)
 
     def test_construction(self) -> None:
         """
@@ -1912,47 +1928,44 @@ class TestX509(_PKeyInteractionTestsMixin):
         certificate.set_serial_number(2**128 + 1)
         assert certificate.get_serial_number() == 2**128 + 1
 
-    def _setBoundTest(self, which):
+    def _setBoundTest(
+        self,
+        get: typing.Callable[[X509], bytes | None],
+        set: typing.Callable[[X509, bytes], None],
+    ) -> None:
         """
         `X509.set_notBefore` takes a string in the format of an
         ASN1 GENERALIZEDTIME and sets the beginning of the certificate's
         validity period to it.
         """
         certificate = X509()
-        set = getattr(certificate, "set_not" + which)
-        get = getattr(certificate, "get_not" + which)
 
         # Starts with no value.
-        assert get() is None
+        assert get(certificate) is None
 
         # GMT (Or is it UTC?) -exarkun
         when = b"20040203040506Z"
-        set(when)
-        assert get() == when
+        set(certificate, when)
+        assert get(certificate) == when
 
         # A plus two hours and thirty minutes offset
         when = b"20040203040506+0530"
-        set(when)
-        assert get() == when
+        set(certificate, when)
+        assert get(certificate) == when
 
         # A minus one hour fifteen minutes offset
         when = b"20040203040506-0115"
-        set(when)
-        assert get() == when
+        set(certificate, when)
+        assert (
+            get(
+                certificate,
+            )
+            == when
+        )
 
         # An invalid string results in a ValueError
         with pytest.raises(ValueError):
-            set(b"foo bar")
-
-        # The wrong number of arguments results in a TypeError.
-        with pytest.raises(TypeError):
-            set()
-        with pytest.raises(TypeError):
-            set(b"20040203040506Z", b"20040203040506Z")
-        with pytest.raises(TypeError):
-            get(b"foo bar")
-
-    # XXX ASN1_TIME (not GENERALIZEDTIME)
+            set(certificate, b"foo bar")
 
     def test_set_notBefore(self) -> None:
         """
@@ -1960,7 +1973,9 @@ class TestX509(_PKeyInteractionTestsMixin):
         ASN1 GENERALIZEDTIME and sets the beginning of the certificate's
         validity period to it.
         """
-        self._setBoundTest("Before")
+        self._setBoundTest(
+            lambda c: c.get_notBefore(), lambda c, v: c.set_notBefore(v)
+        )
 
     def test_set_notAfter(self) -> None:
         """
@@ -1968,7 +1983,9 @@ class TestX509(_PKeyInteractionTestsMixin):
         GENERALIZEDTIME and sets the end of the certificate's validity period
         to it.
         """
-        self._setBoundTest("After")
+        self._setBoundTest(
+            lambda c: c.get_notAfter(), lambda c, v: c.set_notAfter(v)
+        )
 
     def test_get_notBefore(self) -> None:
         """
@@ -2463,7 +2480,7 @@ class TestX509Store:
         capath: str | bytes | None,
         call_cafile: object,
         call_capath: object,
-        monkeypatch,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         class LibMock:
             def load_locations(
@@ -3244,7 +3261,7 @@ class TestX509StoreContext:
             X509StoreContext(store, self.intermediate_server_cert, chain=chain)
 
     def test_failure_building_untrusted_chain_raises(
-        self, monkeypatch
+        self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """
         Creating ``X509StoreContext`` raises ``OpenSSL.crypto.Error`` when
@@ -3625,30 +3642,36 @@ class TestEllipticCurveEquality:
         The result of comparison using C{==} is delegated to the right-hand
         operand if it is of an unrelated type.
         """
+        called = False
 
         class Delegate:
-            def __eq__(self, other):
-                # Do something crazy and obvious.
-                return [self]
+            def __eq__(self, other: object) -> bool:
+                nonlocal called
+                called = True
+                return False
 
         a = self.anInstance()
         b = Delegate()
-        assert (a == b) == [b]  # type: ignore[comparison-overlap]
+        assert not (a == b)
+        assert called
 
     def test_delegateNe(self) -> None:
         """
         The result of comparison using C{!=} is delegated to the right-hand
         operand if it is of an unrelated type.
         """
+        called = False
 
         class Delegate:
-            def __ne__(self, other):
-                # Do something crazy and obvious.
-                return [self]
+            def __ne__(self, other: object) -> bool:
+                nonlocal called
+                called = True
+                return False
 
         a = self.anInstance()
         b = Delegate()
-        assert (a != b) == [b]  # type: ignore[comparison-overlap]
+        assert not (a != b)  # type: ignore[comparison-overlap]
+        assert called
 
 
 class TestEllipticCurveHash:
