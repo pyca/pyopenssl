@@ -143,7 +143,7 @@ from .test_crypto import (
     server_cert_pem,
     server_key_pem,
 )
-from .util import NON_ASCII, WARNING_TYPE_EXPECTED, is_consistent_type
+from .util import NON_ASCII, WARNING_TYPE_EXPECTED
 
 # openssl dhparam 2048 -out dh-2048.pem
 dhparam = """\
@@ -638,12 +638,6 @@ class TestContext:
             Context("")  # type: ignore[arg-type]
         with pytest.raises(ValueError):
             Context(13)
-
-    def test_type(self) -> None:
-        """
-        `Context` can be used to create instances of that type.
-        """
-        assert is_consistent_type(Context, "Context", TLSv1_METHOD)
 
     def test_use_privatekey_file_missing(self, tmpfile) -> None:
         """
@@ -2292,13 +2286,6 @@ class TestConnection:
     # XXX recv -> TypeError
     # XXX send -> TypeError
     # XXX bio_write -> TypeError
-
-    def test_type(self) -> None:
-        """
-        `Connection` can be used to create instances of that type.
-        """
-        ctx = Context(SSLv23_METHOD)
-        assert is_consistent_type(Connection, "Connection", ctx, None)
 
     @pytest.mark.parametrize("bad_context", [object(), "context", None, 1])
     def test_wrong_args(self, bad_context) -> None:

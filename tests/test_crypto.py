@@ -42,7 +42,9 @@ from OpenSSL.crypto import (
     X509StoreContext,
     X509StoreContextError,
     X509StoreFlags,
+    _EllipticCurve,
     _Key,
+    _PrivateKey,
     dump_certificate,
     dump_certificate_request,
     dump_privatekey,
@@ -62,8 +64,6 @@ with pytest.warns(DeprecationWarning):
 
 from .util import (
     NON_ASCII,
-    EqualityTestsMixin,
-    is_consistent_type,
 )
 
 
@@ -896,18 +896,6 @@ class TestX509Ext:
             == "CA:FALSE"
         )
 
-    def test_type(self) -> None:
-        """
-        `X509Extension` can be used to create instances of that type.
-        """
-        assert is_consistent_type(
-            X509Extension,
-            "X509Extension",
-            b"basicConstraints",
-            True,
-            b"CA:true",
-        )
-
     def test_construction(self) -> None:
         """
         `X509Extension` accepts an extension type name, a critical flag,
@@ -1107,11 +1095,31 @@ class TestPKey:
         """
         key = serialization.load_pem_private_key(key_string, None)
         assert isinstance(key, key_type)
+        assert isinstance(
+            key,
+            (
+                dsa.DSAPrivateKey,
+                ec.EllipticCurvePrivateKey,
+                ed25519.Ed25519PrivateKey,
+                ed448.Ed448PrivateKey,
+                rsa.RSAPrivateKey,
+            ),
+        )
         pkey = PKey.from_cryptography_key(key)
 
         assert isinstance(pkey, PKey)
         parsed_key = pkey.to_cryptography_key()
         assert isinstance(parsed_key, key_type)
+        assert isinstance(
+            parsed_key,
+            (
+                dsa.DSAPrivateKey,
+                ec.EllipticCurvePrivateKey,
+                ed25519.Ed25519PrivateKey,
+                ed448.Ed448PrivateKey,
+                rsa.RSAPrivateKey,
+            ),
+        )
         assert parsed_key.public_key().public_bytes(
             serialization.Encoding.PEM,
             serialization.PublicFormat.SubjectPublicKeyInfo,
@@ -1141,11 +1149,31 @@ class TestPKey:
         """
         key = serialization.load_pem_public_key(key_string, None)
         assert isinstance(key, key_type)
+        assert isinstance(
+            key,
+            (
+                dsa.DSAPublicKey,
+                ec.EllipticCurvePublicKey,
+                ed25519.Ed25519PublicKey,
+                ed448.Ed448PublicKey,
+                rsa.RSAPublicKey,
+            ),
+        )
         pkey = PKey.from_cryptography_key(key)
 
         assert isinstance(pkey, PKey)
         parsed_key = pkey.to_cryptography_key()
         assert isinstance(parsed_key, key_type)
+        assert isinstance(
+            parsed_key,
+            (
+                dsa.DSAPublicKey,
+                ec.EllipticCurvePublicKey,
+                ed25519.Ed25519PublicKey,
+                ed448.Ed448PublicKey,
+                rsa.RSAPublicKey,
+            ),
+        )
         assert parsed_key.public_bytes(
             serialization.Encoding.PEM,
             serialization.PublicFormat.SubjectPublicKeyInfo,
@@ -1161,6 +1189,7 @@ class TestPKey:
         PKey.from_cryptography_key creates a proper public PKey.
         """
         key = serialization.load_pem_public_key(cleartextPublicKeyPEM)
+        assert isinstance(key, rsa.RSAPublicKey)
         pkey = PKey.from_cryptography_key(key)
 
         assert isinstance(pkey, PKey)
@@ -1174,7 +1203,7 @@ class TestPKey:
         """
         key = serialization.load_pem_private_key(x25519_private_key_pem, None)
         with pytest.raises(TypeError):
-            PKey.from_cryptography_key(key)
+            PKey.from_cryptography_key(key)  # type: ignore[arg-type]
 
     def test_convert_public_pkey_to_cryptography_key(self) -> None:
         """
@@ -1185,12 +1214,6 @@ class TestPKey:
 
         assert isinstance(key, rsa.RSAPublicKey)
         assert pkey.bits() == key.key_size
-
-    def test_type(self) -> None:
-        """
-        `PKey` can be used to create instances of that type.
-        """
-        assert is_consistent_type(PKey, "PKey")
 
     def test_construction(self) -> None:
         """
@@ -1659,12 +1682,6 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         """
         return X509Req()
 
-    def test_type(self) -> None:
-        """
-        `X509Req` can be used to create instances of that type.
-        """
-        assert is_consistent_type(X509Req, "X509Req")
-
     def test_construction(self) -> None:
         """
         `X509Req` takes no arguments and returns an `X509Req` instance.
@@ -1821,7 +1838,7 @@ class TestX509Req(_PKeyInteractionTestsMixin):
 
     def test_convert_from_cryptography_unsupported_type(self) -> None:
         with pytest.raises(TypeError):
-            X509Req.from_cryptography(object())
+            X509Req.from_cryptography(object())  # type: ignore[arg-type]
 
     def test_convert_to_cryptography_key(self) -> None:
         req = load_certificate_request(
@@ -1848,12 +1865,6 @@ class TestX509(_PKeyInteractionTestsMixin):
         certificate.gmtime_adj_notBefore(-24 * 60 * 60)
         certificate.gmtime_adj_notAfter(24 * 60 * 60)
         return certificate
-
-    def test_type(self) -> None:
-        """
-        `X509` can be used to create instances of that type.
-        """
-        assert is_consistent_type(X509, "X509")
 
     def test_construction(self) -> None:
         """
@@ -2081,7 +2092,9 @@ class TestX509(_PKeyInteractionTestsMixin):
             )
         )
 
-    def _extcert(self, key: _Key, extensions: list[x509.Extension]) -> X509:
+    def _extcert(
+        self, key: _PrivateKey, extensions: list[x509.ExtensionType]
+    ) -> X509:
         subject = x509.Name(
             [x509.NameAttribute(x509.NameOID.COMMON_NAME, "Unit Tests")]
         )
@@ -2108,6 +2121,7 @@ class TestX509(_PKeyInteractionTestsMixin):
         pkey = load_privatekey(
             FILETYPE_PEM, client_key_pem
         ).to_cryptography_key()
+        assert isinstance(pkey, rsa.RSAPrivateKey)
         ca = x509.BasicConstraints(ca=False, path_length=None)
         key = x509.KeyUsage(
             digital_signature=True,
@@ -2142,6 +2156,7 @@ class TestX509(_PKeyInteractionTestsMixin):
         pkey = load_privatekey(
             FILETYPE_PEM, client_key_pem
         ).to_cryptography_key()
+        assert isinstance(pkey, rsa.RSAPrivateKey)
         ca = x509.BasicConstraints(ca=False, path_length=None)
         key = x509.KeyUsage(
             digital_signature=True,
@@ -2370,7 +2385,7 @@ tgI5
 
     def test_convert_from_cryptography_unsupported_type(self) -> None:
         with pytest.raises(TypeError):
-            X509.from_cryptography(object())
+            X509.from_cryptography(object())  # type: ignore[arg-type]
 
     def test_convert_to_cryptography_key(self) -> None:
         cert = load_certificate(FILETYPE_PEM, intermediate_cert_pem)
@@ -2384,12 +2399,6 @@ class TestX509Store:
     """
     Test for `OpenSSL.crypto.X509Store`.
     """
-
-    def test_type(self) -> None:
-        """
-        `X509Store` is a type object.
-        """
-        assert is_consistent_type(X509Store, "X509Store")
 
     def test_add_cert(self) -> None:
         """
@@ -3015,8 +3024,10 @@ class TestCRL:
         # considered to have expired.
         builder = builder.next_update(datetime(5000, 6, 1, 0, 0, 0))
 
+        key = issuer_key.to_cryptography_key()
+        assert isinstance(key, rsa.RSAPrivateKey)
         crl = builder.sign(
-            private_key=issuer_key.to_cryptography_key(),
+            key,
             algorithm=hashes.SHA512(),
         )
         return crl
@@ -3523,36 +3534,121 @@ class TestEllipticCurve:
         curve._to_EC_KEY()
 
 
-class EllipticCurveFactory:
-    """
-    A helper to get the names of two curves.
-    """
-
-    def __init__(self):
-        curves = iter(get_elliptic_curves())
-        self.curve_name = next(curves).name
-        self.another_curve_name = next(curves).name
-
-
-class TestEllipticCurveEquality(EqualityTestsMixin):
+class TestEllipticCurveEquality:
     """
     Tests `_EllipticCurve`'s implementation of ``==`` and ``!=``.
     """
 
-    curve_factory = EllipticCurveFactory()
-
-    def anInstance(self):
+    def anInstance(self) -> _EllipticCurve:
         """
         Get the curve object for an arbitrary curve supported by the system.
         """
-        return get_elliptic_curve(self.curve_factory.curve_name)
+        return next(iter(get_elliptic_curves()))
 
-    def anotherInstance(self):
+    def anotherInstance(self) -> _EllipticCurve:
         """
         Get the curve object for an arbitrary curve supported by the system -
         but not the one returned by C{anInstance}.
         """
-        return get_elliptic_curve(self.curve_factory.another_curve_name)
+        return list(get_elliptic_curves())[1]
+
+    def test_identicalEq(self) -> None:
+        """
+        An object compares equal to itself using the C{==} operator.
+        """
+        o = self.anInstance()
+        assert o == o
+
+    def test_identicalNe(self) -> None:
+        """
+        An object doesn't compare not equal to itself using the C{!=} operator.
+        """
+        o = self.anInstance()
+        assert not (o != o)
+
+    def test_sameEq(self) -> None:
+        """
+        Two objects that are equal to each other compare equal to each other
+        using the C{==} operator.
+        """
+        a = self.anInstance()
+        b = self.anInstance()
+        assert a == b
+
+    def test_sameNe(self) -> None:
+        """
+        Two objects that are equal to each other do not compare not equal to
+        each other using the C{!=} operator.
+        """
+        a = self.anInstance()
+        b = self.anInstance()
+        assert not (a != b)
+
+    def test_differentEq(self) -> None:
+        """
+        Two objects that are not equal to each other do not compare equal to
+        each other using the C{==} operator.
+        """
+        a = self.anInstance()
+        b = self.anotherInstance()
+        assert not (a == b)
+
+    def test_differentNe(self) -> None:
+        """
+        Two objects that are not equal to each other compare not equal to each
+        other using the C{!=} operator.
+        """
+        a = self.anInstance()
+        b = self.anotherInstance()
+        assert a != b
+
+    def test_anotherTypeEq(self) -> None:
+        """
+        The object does not compare equal to an object of an unrelated type
+        (which does not implement the comparison) using the C{==} operator.
+        """
+        a = self.anInstance()
+        b = object()
+        assert not (a == b)
+
+    def test_anotherTypeNe(self) -> None:
+        """
+        The object compares not equal to an object of an unrelated type (which
+        does not implement the comparison) using the C{!=} operator.
+        """
+        a = self.anInstance()
+        b = object()
+        assert a != b
+
+    def test_delegatedEq(self) -> None:
+        """
+        The result of comparison using C{==} is delegated to the right-hand
+        operand if it is of an unrelated type.
+        """
+
+        class Delegate:
+            def __eq__(self, other):
+                # Do something crazy and obvious.
+                return [self]
+
+        a = self.anInstance()
+        b = Delegate()
+        assert (a == b) == [b]  # type: ignore[comparison-overlap]
+
+    def test_delegateNe(self) -> None:
+        """
+        The result of comparison using C{!=} is delegated to the right-hand
+        operand if it is of an unrelated type.
+        """
+
+        class Delegate:
+            def __ne__(self, other):
+                # Do something crazy and obvious.
+                return [self]
+
+        a = self.anInstance()
+        b = Delegate()
+        assert (a != b) == [b]  # type: ignore[comparison-overlap]
 
 
 class TestEllipticCurveHash:
@@ -3561,14 +3657,12 @@ class TestEllipticCurveHash:
     an item in a `dict` or `set`).
     """
 
-    curve_factory = EllipticCurveFactory()
-
     def test_contains(self) -> None:
         """
         The ``in`` operator reports that a `set` containing a curve does
         contain that curve.
         """
-        curve = get_elliptic_curve(self.curve_factory.curve_name)
+        curve = next(iter(get_elliptic_curves()))
         curves = set([curve])
         assert curve in curves
 
@@ -3577,8 +3671,8 @@ class TestEllipticCurveHash:
         The ``in`` operator reports that a `set` not containing a curve
         does not contain that curve.
         """
-        curve = get_elliptic_curve(self.curve_factory.curve_name)
-        curves = set(
-            [get_elliptic_curve(self.curve_factory.another_curve_name)]
-        )
+        all_curves = list(get_elliptic_curves())
+
+        curve = all_curves[0]
+        curves = set([all_curves[1]])
         assert curve not in curves
