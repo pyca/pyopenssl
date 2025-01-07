@@ -5,8 +5,11 @@
 Unit tests for :py:mod:`OpenSSL.crypto`.
 """
 
+from __future__ import annotations
+
 import base64
 import sys
+import typing
 from datetime import datetime, timedelta, timezone
 from subprocess import PIPE, Popen
 
@@ -38,6 +41,7 @@ from OpenSSL.crypto import (
     X509StoreContext,
     X509StoreContextError,
     X509StoreFlags,
+    _Key,
     dump_certificate,
     dump_certificate_request,
     dump_privatekey,
@@ -62,11 +66,11 @@ from .util import (
 )
 
 
-def normalize_privatekey_pem(pem):
+def normalize_privatekey_pem(pem: bytes) -> bytes:
     return dump_privatekey(FILETYPE_PEM, load_privatekey(FILETYPE_PEM, pem))
 
 
-def utcnow():
+def utcnow() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
@@ -850,7 +854,7 @@ MC4CAQAwBQYDK2VuBCIEIPAjVfPNTm25VxtBRg+JjjFx9tA3M8aaBdVhjb92iBts
 
 
 @pytest.fixture
-def x509_data():
+def x509_data() -> tuple[PKey, X509]:
     """
     Create a new private key and start a certificate request (for a test
     to finish in one way or another).
@@ -871,7 +875,7 @@ def x509_data():
     expire = datetime.now() + timedelta(days=100)
     x509.set_notBefore(now.strftime("%Y%m%d%H%M%SZ").encode())
     x509.set_notAfter(expire.strftime("%Y%m%d%H%M%SZ").encode())
-    yield pkey, x509
+    return pkey, x509
 
 
 class TestX509Ext:
@@ -931,7 +935,9 @@ class TestX509Ext:
             ),
         ],
     )
-    def test_invalid_extension(self, type_name, critical, value) -> None:
+    def test_invalid_extension(
+        self, type_name: bytes, critical: bool, value: bytes
+    ) -> None:
         """
         `X509Extension` raises something if it is passed a bad
         extension name or value.
@@ -940,7 +946,7 @@ class TestX509Ext:
             X509Extension(type_name, critical, value)
 
     @pytest.mark.parametrize("critical_flag", [True, False])
-    def test_get_critical(self, critical_flag) -> None:
+    def test_get_critical(self, critical_flag: bool) -> None:
         """
         `X509ExtensionType.get_critical` returns the value of the
         extension's critical flag.
@@ -952,7 +958,7 @@ class TestX509Ext:
         "short_name, value",
         [(b"basicConstraints", b"CA:true"), (b"nsComment", b"foo bar")],
     )
-    def test_get_short_name(self, short_name, value) -> None:
+    def test_get_short_name(self, short_name: bytes, value: bytes) -> None:
         """
         `X509ExtensionType.get_short_name` returns a string giving the
         short type name of the extension.
@@ -969,7 +975,7 @@ class TestX509Ext:
         # Expect to get back the DER encoded form of CA:true.
         assert ext.get_data() == b"0\x03\x01\x01\xff"
 
-    def test_unused_subject(self, x509_data) -> None:
+    def test_unused_subject(self, x509_data: tuple[PKey, X509]) -> None:
         """
         The `subject` parameter to `X509Extension` may be provided for an
         extension which does not use it and is ignored in this case.
@@ -985,7 +991,7 @@ class TestX509Ext:
         assert b"X509v3 Basic Constraints:" in text
         assert b"CA:TRUE" in text
 
-    def test_subject(self, x509_data) -> None:
+    def test_subject(self, x509_data: tuple[PKey, X509]) -> None:
         """
         If an extension requires a subject, the `subject` parameter to
         `X509Extension` provides its value.
@@ -1008,17 +1014,20 @@ class TestX509Ext:
             X509Extension(b"subjectKeyIdentifier", False, b"hash")
 
     @pytest.mark.parametrize("bad_obj", [True, object(), "hello", []])
-    def test_invalid_subject(self, bad_obj) -> None:
+    def test_invalid_subject(self, bad_obj: object) -> None:
         """
         If the `subject` parameter is given a value which is not an
         `X509` instance, `TypeError` is raised.
         """
         with pytest.raises(TypeError):
             X509Extension(
-                "basicConstraints", False, "CA:TRUE", subject=bad_obj
+                b"basicConstraints",
+                False,
+                b"CA:TRUE",
+                subject=bad_obj,  # type: ignore[arg-type]
             )
 
-    def test_unused_issuer(self, x509_data) -> None:
+    def test_unused_issuer(self, x509_data: tuple[PKey, X509]) -> None:
         """
         The `issuer` parameter to `X509Extension` may be provided for an
         extension which does not use it and is ignored in this case.
@@ -1033,7 +1042,7 @@ class TestX509Ext:
         assert b"X509v3 Basic Constraints:" in text
         assert b"CA:TRUE" in text
 
-    def test_issuer(self, x509_data) -> None:
+    def test_issuer(self, x509_data: tuple[PKey, X509]) -> None:
         """
         If an extension requires an issuer, the `issuer` parameter to
         `X509Extension` provides its value.
@@ -1059,17 +1068,17 @@ class TestX509Ext:
             )
 
     @pytest.mark.parametrize("bad_obj", [True, object(), "hello", []])
-    def test_invalid_issuer(self, bad_obj) -> None:
+    def test_invalid_issuer(self, bad_obj: object) -> None:
         """
         If the `issuer` parameter is given a value which is not an
         `X509` instance, `TypeError` is raised.
         """
         with pytest.raises(TypeError):
             X509Extension(
-                "basicConstraints",
+                b"basicConstraints",
                 False,
-                "keyid:always,issuer:always",
-                issuer=bad_obj,
+                b"keyid:always,issuer:always",
+                issuer=bad_obj,  # type: ignore[arg-type]
             )
 
 
@@ -1089,8 +1098,8 @@ class TestPKey:
         ],
     )
     def test_convert_roundtrip_cryptography_private_key(
-        self, key_string, key_type
-    ):
+        self, key_string: bytes, key_type: type[_Key]
+    ) -> None:
         """
         PKey.from_cryptography_key creates a proper private PKey.
         PKey.to_cryptography_key creates a proper cryptography private key.
@@ -1123,8 +1132,8 @@ class TestPKey:
         ],
     )
     def test_convert_roundtrip_cryptography_public_key(
-        self, key_string, key_type
-    ):
+        self, key_string: bytes, key_type: type[_Key]
+    ) -> None:
         """
         PKey.from_cryptography_key creates a proper public PKey.
         PKey.to_cryptography_key creates a proper cryptography public key.
@@ -1210,7 +1219,7 @@ class TestPKey:
         """
         key = PKey()
         with pytest.raises(TypeError):
-            key.generate_key("foo", "bar")
+            key.generate_key("foo", "bar")  # type: ignore[arg-type]
         with pytest.raises(Error):
             key.generate_key(-1, 0)
 
@@ -1220,26 +1229,7 @@ class TestPKey:
             key.generate_key(TYPE_RSA, 0)
 
         with pytest.raises(TypeError):
-            key.generate_key(TYPE_RSA, object())
-
-        # XXX RSA generation for small values of bits is fairly buggy in a wide
-        # range of OpenSSL versions.  I need to figure out what the safe lower
-        # bound for a reasonable number of OpenSSL versions is and explicitly
-        # check for that in the wrapper.  The failure behavior is typically an
-        # infinite loop inside OpenSSL.
-
-        # with pytest.raises(Error):
-        #     key.generate_key(TYPE_RSA, 2)
-
-        # XXX DSA generation seems happy with any number of bits.  The DSS
-        # says bits must be between 512 and 1024 inclusive.  OpenSSL's DSA
-        # generator doesn't seem to care about the upper limit at all.  For
-        # the lower limit, it uses 512 if anything smaller is specified.
-        # So, it doesn't seem possible to make generate_key fail for
-        # TYPE_DSA with a bits argument which is at least an int.
-
-        # with pytest.raises(Error):
-        #     key.generate_key(TYPE_DSA, -7)
+            key.generate_key(TYPE_RSA, object())  # type: ignore[arg-type]
 
     def test_rsa_generation(self) -> None:
         """
@@ -1313,20 +1303,18 @@ class TestPKey:
             pkey.check()
 
 
-def x509_name(**attrs):
+def x509_name(**attrs: str) -> X509Name:
     """
     Return a new X509Name with the given attributes.
     """
     # XXX There's no other way to get a new X509Name yet.
     name = X509().get_subject()
-    attrs = list(attrs.items())
 
     # Make the order stable - order matters!
-    def key(attr):
+    def key(attr: tuple[str, str]) -> str:
         return attr[1]
 
-    attrs.sort(key=key)
-    for k, v in attrs:
+    for k, v in sorted(attrs.items(), key=key):
         setattr(name, k, v)
     return name
 
@@ -1360,9 +1348,9 @@ class TestX509Name:
         # passed to setattr, so we can't test it on PyPy.  Apparently CPython
         # does this sometimes as well.
         with pytest.raises(TypeError):
-            setattr(name, None, "hello")
+            setattr(name, None, "hello")  # type: ignore[arg-type]
         with pytest.raises(TypeError):
-            setattr(name, 30, "hello")
+            setattr(name, 30, "hello")  # type: ignore[arg-type]
 
     def test_set_invalid_attribute(self) -> None:
         """
@@ -1433,19 +1421,24 @@ class TestX509Name:
         `X509Name` instances should compare based on their NIDs.
         """
 
-        def _equality(a, b, assert_true, assert_false):
+        def _equality(
+            a: X509Name,
+            b: object,
+            assert_true: typing.Callable[[bool], None],
+            assert_false: typing.Callable[[bool], None],
+        ) -> None:
             assert_true(a == b)
             assert_false(a != b)
             assert_true(b == a)
             assert_false(b != a)
 
-        def assert_true(x):
+        def assert_true(x: bool) -> None:
             assert x
 
-        def assert_false(x):
+        def assert_false(x: bool) -> None:
             assert not x
 
-        def assert_equal(a, b):
+        def assert_equal(a: X509Name, b: object) -> None:
             _equality(a, b, assert_true, assert_false)
 
         # Instances compare equal to themselves.
@@ -1469,7 +1462,7 @@ class TestX509Name:
             x509_name(commonName="foo", OU="bar"),
         )
 
-        def assert_not_equal(a, b):
+        def assert_not_equal(a: X509Name, b: object) -> None:
             _equality(a, b, assert_false, assert_true)
 
         # Instances with different values for the same NID should not compare
@@ -1481,7 +1474,12 @@ class TestX509Name:
 
         assert_not_equal(x509_name(), object())
 
-        def _inequality(a, b, assert_true, assert_false):
+        def _inequality(
+            a: X509Name,
+            b: X509Name,
+            assert_true: typing.Callable[[bool], None],
+            assert_false: typing.Callable[[bool], None],
+        ) -> None:
             assert_true(a < b)
             assert_true(a <= b)
             assert_true(b > a)
@@ -1491,7 +1489,7 @@ class TestX509Name:
             assert_false(b < a)
             assert_false(b <= a)
 
-        def assert_less_than(a, b):
+        def assert_less_than(a: X509Name, b: X509Name) -> None:
             _inequality(a, b, assert_true, assert_false)
 
         # An X509Name with a NID with a value which sorts less than the value
@@ -1499,7 +1497,7 @@ class TestX509Name:
         # X509Name.
         assert_less_than(x509_name(CN="abc"), x509_name(CN="def"))
 
-        def assert_greater_than(a, b):
+        def assert_greater_than(a: X509Name, b: X509Name) -> None:
             _inequality(a, b, assert_false, assert_true)
 
         # An X509Name with a NID with a value which sorts greater than the
@@ -1507,7 +1505,7 @@ class TestX509Name:
         # other X509Name.
         assert_greater_than(x509_name(CN="def"), x509_name(CN="abc"))
 
-        def assert_raises(a, b):
+        def assert_raises(a: X509Name, b: object) -> None:
             with pytest.raises(TypeError):
                 a < b
             with pytest.raises(TypeError):
@@ -1691,7 +1689,7 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         """
         request = X509Req()
         with pytest.raises(TypeError):
-            request.set_version("foo")
+            request.set_version("foo")  # type: ignore[arg-type]
         with pytest.raises(ValueError):
             request.set_version(2)
 
@@ -1767,9 +1765,9 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         """
         request = X509Req()
         with pytest.raises(TypeError):
-            request.add_extensions(object())
+            request.add_extensions(object())  # type: ignore[arg-type]
         with pytest.raises(ValueError):
-            request.add_extensions([object()])
+            request.add_extensions([object()])  # type: ignore[list-item]
 
     def test_verify_wrong_args(self) -> None:
         """
@@ -1778,7 +1776,7 @@ class TestX509Req(_PKeyInteractionTestsMixin):
         """
         request = X509Req()
         with pytest.raises(TypeError):
-            request.verify(object())
+            request.verify(object())  # type: ignore[arg-type]
 
     def test_verify_uninitialized_key(self) -> None:
         """
@@ -1872,7 +1870,7 @@ class TestX509(_PKeyInteractionTestsMixin):
         """
         cert = X509()
         with pytest.raises(TypeError):
-            cert.set_version(None)
+            cert.set_version(None)  # type: ignore[arg-type]
 
     def test_version(self) -> None:
         """
@@ -1891,7 +1889,7 @@ class TestX509(_PKeyInteractionTestsMixin):
         """
         certificate = X509()
         with pytest.raises(TypeError):
-            certificate.set_serial_number("1")
+            certificate.set_serial_number("1")  # type: ignore[arg-type]
         assert certificate.get_serial_number() == 0
         certificate.set_serial_number(1)
         assert certificate.get_serial_number() == 1
@@ -1985,7 +1983,7 @@ class TestX509(_PKeyInteractionTestsMixin):
         """
         cert = X509()
         with pytest.raises(TypeError):
-            cert.gmtime_adj_notBefore(None)
+            cert.gmtime_adj_notBefore(None)  # type: ignore[arg-type]
 
     @pytest.mark.flaky(reruns=2)
     def test_gmtime_adj_notBefore(self) -> None:
@@ -1998,8 +1996,10 @@ class TestX509(_PKeyInteractionTestsMixin):
             seconds=100
         )
         cert.gmtime_adj_notBefore(100)
+        not_before_str = cert.get_notBefore()
+        assert not_before_str is not None
         not_before = datetime.strptime(
-            cert.get_notBefore().decode(), "%Y%m%d%H%M%SZ"
+            not_before_str.decode(), "%Y%m%d%H%M%SZ"
         )
         not_before_max = utcnow() + timedelta(seconds=100)
         assert not_before_min <= not_before <= not_before_max
@@ -2011,7 +2011,7 @@ class TestX509(_PKeyInteractionTestsMixin):
         """
         cert = X509()
         with pytest.raises(TypeError):
-            cert.gmtime_adj_notAfter(None)
+            cert.gmtime_adj_notAfter(None)  # type: ignore[arg-type]
 
     @pytest.mark.flaky(reruns=2)
     def test_gmtime_adj_notAfter(self) -> None:
@@ -2024,9 +2024,9 @@ class TestX509(_PKeyInteractionTestsMixin):
             seconds=100
         )
         cert.gmtime_adj_notAfter(100)
-        not_after = datetime.strptime(
-            cert.get_notAfter().decode(), "%Y%m%d%H%M%SZ"
-        )
+        not_after_str = cert.get_notAfter()
+        assert not_after_str is not None
+        not_after = datetime.strptime(not_after_str.decode(), "%Y%m%d%H%M%SZ")
         not_after_max = utcnow() + timedelta(seconds=100)
         assert not_after_min <= not_after <= not_after_max
 
@@ -2080,7 +2080,7 @@ class TestX509(_PKeyInteractionTestsMixin):
             )
         )
 
-    def _extcert(self, key, extensions):
+    def _extcert(self, key: _Key, extensions: list[x509.Extension]) -> X509:
         subject = x509.Name(
             [x509.NameAttribute(x509.NameOID.COMMON_NAME, "Unit Tests")]
         )
@@ -2177,7 +2177,7 @@ class TestX509(_PKeyInteractionTestsMixin):
         with pytest.raises(IndexError):
             cert.get_extension(4)
         with pytest.raises(TypeError):
-            cert.get_extension("hello")
+            cert.get_extension("hello")  # type: ignore[arg-type]
 
     def test_nullbyte_subjectAltName(self) -> None:
         """
@@ -2228,7 +2228,7 @@ class TestX509(_PKeyInteractionTestsMixin):
         """
         cert = X509()
         with pytest.raises(TypeError):
-            cert.set_subject(None)
+            cert.set_subject(None)  # type: ignore[arg-type]
 
     def test_set_subject(self) -> None:
         """
@@ -2268,7 +2268,7 @@ class TestX509(_PKeyInteractionTestsMixin):
         """
         cert = X509()
         with pytest.raises(TypeError):
-            cert.set_issuer(None)
+            cert.set_issuer(None)  # type: ignore[arg-type]
 
     def test_set_issuer(self) -> None:
         """
@@ -2301,7 +2301,7 @@ class TestX509(_PKeyInteractionTestsMixin):
         """
         cert = X509()
         with pytest.raises(TypeError):
-            cert.set_pubkey(object())
+            cert.set_pubkey(object())  # type: ignore[arg-type]
 
     def test_subject_name_hash(self) -> None:
         """
@@ -2358,7 +2358,7 @@ tgI5
         """
         cert = X509()
         with pytest.raises(TypeError):
-            cert.sign(object(), b"sha256")
+            cert.sign(object(), b"sha256")  # type: ignore[arg-type]
 
     def test_convert_from_cryptography(self) -> None:
         crypto_cert = x509.load_pem_x509_certificate(intermediate_cert_pem)
@@ -2399,14 +2399,14 @@ class TestX509Store:
         store.add_cert(cert)
 
     @pytest.mark.parametrize("cert", [None, 1.0, "cert", object()])
-    def test_add_cert_wrong_args(self, cert) -> None:
+    def test_add_cert_wrong_args(self, cert: object) -> None:
         """
         `X509Store.add_cert` raises `TypeError` if passed a non-X509 object
         as its first argument.
         """
         store = X509Store()
         with pytest.raises(TypeError):
-            store.add_cert(cert)
+            store.add_cert(cert)  # type: ignore[arg-type]
 
     def test_add_cert_accepts_duplicate(self) -> None:
         """
@@ -2448,8 +2448,13 @@ class TestX509Store:
         ],
     )
     def test_load_locations_parameters(
-        self, cafile, capath, call_cafile, call_capath, monkeypatch
-    ):
+        self,
+        cafile: str | bytes | None,
+        capath: str | bytes | None,
+        call_cafile: object,
+        call_capath: object,
+        monkeypatch,
+    ) -> None:
         class LibMock:
             def load_locations(self, store, cafile, capath):
                 self.cafile = cafile
@@ -3374,7 +3379,7 @@ class TestX509StoreContext:
         )
 
     @staticmethod
-    def _create_ca_file(base_path, hash_directory, cacert):
+    def _create_ca_file(base_path, hash_directory: str, cacert: X509):
         ca_hash = f"{cacert.subject_name_hash():08x}.0"
         cafile = base_path.join(hash_directory, ca_hash)
         cafile.write_binary(

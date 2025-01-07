@@ -1410,12 +1410,12 @@ class X509:
             ]
         )
 
-    def subject_name_hash(self) -> bytes:
+    def subject_name_hash(self) -> int:
         """
         Return the hash of the X509 subject.
 
         :return: The hash of the subject.
-        :rtype: :py:class:`bytes`
+        :rtype: :py:class:`int`
         """
         return _lib.X509_subject_name_hash(self._x509)
 
@@ -1858,7 +1858,9 @@ class X509Store:
         _openssl_assert(_lib.X509_STORE_set1_param(self._store, param) != 0)
 
     def load_locations(
-        self, cafile: StrOrBytesPath, capath: StrOrBytesPath | None = None
+        self,
+        cafile: StrOrBytesPath | None,
+        capath: StrOrBytesPath | None = None,
     ) -> None:
         """
         Let X509Store know where we can find trusted certificates for the

@@ -5,6 +5,8 @@
 Unit tests for :mod:`OpenSSL.SSL`.
 """
 
+from __future__ import annotations
+
 import datetime
 import gc
 import select
@@ -31,7 +33,6 @@ from socket import (
     socket,
 )
 from sys import getfilesystemencoding, platform
-from typing import Union
 from weakref import ref
 
 import pytest
@@ -2180,7 +2181,7 @@ class TestSession:
 
 
 @pytest.fixture(params=["context", "connection"])
-def ctx_or_conn(request) -> Union[Context, Connection]:
+def ctx_or_conn(request) -> Context | Connection:
     ctx = Context(SSLv23_METHOD)
     if request.param == "context":
         return ctx
