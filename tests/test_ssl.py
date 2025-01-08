@@ -125,16 +125,6 @@ from OpenSSL.SSL import (
     _make_requires,
 )
 
-try:
-    from OpenSSL.SSL import (
-        SSL_ST_BEFORE,
-        SSL_ST_INIT,
-        SSL_ST_OK,
-        SSL_ST_RENEGOTIATE,
-    )
-except ImportError:
-    SSL_ST_INIT = SSL_ST_BEFORE = SSL_ST_OK = SSL_ST_RENEGOTIATE = None
-
 from .test_crypto import (
     client_cert_pem,
     client_key_pem,
@@ -4092,15 +4082,6 @@ class TestInfoConstants:
             SSL_CB_HANDSHAKE_DONE,
         ]:
             assert isinstance(const, int)
-
-        # These constants don't exist on OpenSSL 1.1.0
-        for const in [
-            SSL_ST_INIT,
-            SSL_ST_BEFORE,
-            SSL_ST_OK,
-            SSL_ST_RENEGOTIATE,
-        ]:
-            assert const is None or isinstance(const, int)
 
 
 class TestRequires:
