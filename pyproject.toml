@@ -32,6 +32,10 @@ ignore_missing_imports = true
 module = "cffi.*"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = ["pretend"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 addopts = "-r s --strict-markers"
 testpaths = ["tests"]
