@@ -229,7 +229,7 @@ def handshake(client: Connection, server: Connection) -> None:
                 conns.remove(conn)
 
 
-def _create_certificate_chain():
+def _create_certificate_chain() -> list[tuple[PKey, X509]]:
     """
     Construct and return a chain of certificates.
 
@@ -359,7 +359,7 @@ def loopback(
 
 def interact_in_memory(
     client_conn: Connection, server_conn: Connection
-) -> None:
+) -> tuple[Connection, bytes]:
     """
     Try to read application bytes from each of the two `Connection` objects.
     Copy bytes back and forth between their send/receive buffers for as long
@@ -494,7 +494,7 @@ def ca_file(tmp_path: pathlib.Path) -> bytes:
 
 
 @pytest.fixture
-def context():
+def context() -> Context:
     """
     A simple "best TLS you can get" context. TLS 1.2+ in any reasonable OpenSSL
     """
@@ -510,7 +510,9 @@ class TestContext:
         "cipher_string",
         [b"hello world:AES128-SHA", "hello world:AES128-SHA"],
     )
-    def test_set_cipher_list(self, context, cipher_string) -> None:
+    def test_set_cipher_list(
+        self, context: Context, cipher_string: bytes
+    ) -> None:
         """
         `Context.set_cipher_list` accepts both byte and unicode strings
         for naming the ciphers which connections created with the context
@@ -521,16 +523,16 @@ class TestContext:
 
         assert "AES128-SHA" in conn.get_cipher_list()
 
-    def test_set_cipher_list_wrong_type(self, context) -> None:
+    def test_set_cipher_list_wrong_type(self, context: Context) -> None:
         """
         `Context.set_cipher_list` raises `TypeError` when passed a non-string
         argument.
         """
         with pytest.raises(TypeError):
-            context.set_cipher_list(object())
+            context.set_cipher_list(object())  # type: ignore[arg-type]
 
     @pytest.mark.flaky(reruns=2)
-    def test_set_cipher_list_no_cipher_match(self, context) -> None:
+    def test_set_cipher_list_no_cipher_match(self, context: Context) -> None:
         """
         `Context.set_cipher_list` raises `OpenSSL.SSL.Error` with a
         `"no cipher match"` reason string regardless of the TLS
@@ -553,14 +555,14 @@ class TestContext:
             ),
         ]
 
-    def test_load_client_ca(self, context, ca_file) -> None:
+    def test_load_client_ca(self, context: Context, ca_file: bytes) -> None:
         """
         `Context.load_client_ca` works as far as we can tell.
         """
         context.load_client_ca(ca_file)
 
     def test_load_client_ca_invalid(
-        self, context, tmp_path: pathlib.Path
+        self, context: Context, tmp_path: pathlib.Path
     ) -> None:
         """
         `Context.load_client_ca` raises an Error if the ca file is invalid.
@@ -573,19 +575,21 @@ class TestContext:
 
         assert "PEM routines" == e.value.args[0][0][0]
 
-    def test_load_client_ca_unicode(self, context, ca_file) -> None:
+    def test_load_client_ca_unicode(
+        self, context: Context, ca_file: bytes
+    ) -> None:
         """
         Passing the path as unicode raises a warning but works.
         """
         pytest.deprecated_call(context.load_client_ca, ca_file.decode("ascii"))
 
-    def test_set_session_id(self, context) -> None:
+    def test_set_session_id(self, context: Context) -> None:
         """
         `Context.set_session_id` works as far as we can tell.
         """
         context.set_session_id(b"abc")
 
-    def test_set_session_id_fail(self, context) -> None:
+    def test_set_session_id_fail(self, context: Context) -> None:
         """
         `Context.set_session_id` errors are propagated.
         """
@@ -607,7 +611,7 @@ class TestContext:
             ),
         ]
 
-    def test_set_session_id_unicode(self, context) -> None:
+    def test_set_session_id_unicode(self, context: Context) -> None:
         """
         `Context.set_session_id` raises a warning if a unicode string is
         passed.
@@ -629,7 +633,7 @@ class TestContext:
         with pytest.raises(ValueError):
             Context(13)
 
-    def test_use_privatekey_file_missing(self, tmpfile) -> None:
+    def test_use_privatekey_file_missing(self, tmpfile: bytes) -> None:
         """
         `Context.use_privatekey_file` raises `OpenSSL.SSL.Error` when passed
         the name of a file which does not exist.
@@ -638,7 +642,9 @@ class TestContext:
         with pytest.raises(Error):
             ctx.use_privatekey_file(tmpfile)
 
-    def _use_privatekey_file_test(self, pemfile, filetype):
+    def _use_privatekey_file_test(
+        self, pemfile: bytes | str, filetype: int
+    ) -> None:
         """
         Verify that calling ``Context.use_privatekey_file`` with the given
         arguments does not raise an exception.
@@ -653,16 +659,18 @@ class TestContext:
         ctx.use_privatekey_file(pemfile, filetype)
 
     @pytest.mark.parametrize("filetype", [object(), "", None, 1.0])
-    def test_wrong_privatekey_file_wrong_args(self, tmpfile, filetype) -> None:
+    def test_wrong_privatekey_file_wrong_args(
+        self, tmpfile: bytes, filetype: object
+    ) -> None:
         """
         `Context.use_privatekey_file` raises `TypeError` when called with
         a `filetype` which is not a valid file encoding.
         """
         ctx = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
-            ctx.use_privatekey_file(tmpfile, filetype)
+            ctx.use_privatekey_file(tmpfile, filetype)  # type: ignore[arg-type]
 
-    def test_use_privatekey_file_bytes(self, tmpfile) -> None:
+    def test_use_privatekey_file_bytes(self, tmpfile: bytes) -> None:
         """
         A private key can be specified from a file by passing a ``bytes``
         instance giving the file name to ``Context.use_privatekey_file``.
@@ -672,7 +680,7 @@ class TestContext:
             FILETYPE_PEM,
         )
 
-    def test_use_privatekey_file_unicode(self, tmpfile) -> None:
+    def test_use_privatekey_file_unicode(self, tmpfile: bytes) -> None:
         """
         A private key can be specified from a file by passing a ``unicode``
         instance giving the file name to ``Context.use_privatekey_file``.
@@ -695,7 +703,7 @@ class TestContext:
         with pytest.raises(TypeError):
             ctx.use_certificate_file(object(), FILETYPE_PEM)  # type: ignore[arg-type]
 
-    def test_use_certificate_file_missing(self, tmpfile) -> None:
+    def test_use_certificate_file_missing(self, tmpfile: bytes) -> None:
         """
         `Context.use_certificate_file` raises `OpenSSL.SSL.Error` if passed
         the name of a file which does not exist.
@@ -704,7 +712,9 @@ class TestContext:
         with pytest.raises(Error):
             ctx.use_certificate_file(tmpfile)
 
-    def _use_certificate_file_test(self, certificate_file):
+    def _use_certificate_file_test(
+        self, certificate_file: bytes | str
+    ) -> None:
         """
         Verify that calling ``Context.use_certificate_file`` with the given
         filename doesn't raise an exception.
@@ -719,7 +729,7 @@ class TestContext:
         ctx = Context(SSLv23_METHOD)
         ctx.use_certificate_file(certificate_file)
 
-    def test_use_certificate_file_bytes(self, tmpfile) -> None:
+    def test_use_certificate_file_bytes(self, tmpfile: bytes) -> None:
         """
         `Context.use_certificate_file` sets the certificate (given as a
         `bytes` filename) which will be used to identify connections created
@@ -728,7 +738,7 @@ class TestContext:
         filename = tmpfile + NON_ASCII.encode(getfilesystemencoding())
         self._use_certificate_file_test(filename)
 
-    def test_use_certificate_file_unicode(self, tmpfile) -> None:
+    def test_use_certificate_file_unicode(self, tmpfile: bytes) -> None:
         """
         `Context.use_certificate_file` sets the certificate (given as a
         `bytes` filename) which will be used to identify connections created
@@ -747,12 +757,14 @@ class TestContext:
         context = Context(SSLv23_METHOD)
         context.use_privatekey(key)
         context.use_certificate(cert)
-        assert None is context.check_privatekey()
+        assert context.check_privatekey() is None  # type: ignore[func-returns-value]
 
         context = Context(SSLv23_METHOD)
-        context.use_privatekey(key.to_cryptography_key())
+        cryptography_key = key.to_cryptography_key()
+        assert isinstance(cryptography_key, rsa.RSAPrivateKey)
+        context.use_privatekey(cryptography_key)
         context.use_certificate(cert)
-        assert None is context.check_privatekey()
+        assert context.check_privatekey() is None  # type: ignore[func-returns-value]
 
     def test_check_privatekey_invalid(self) -> None:
         """
@@ -769,7 +781,9 @@ class TestContext:
             context.check_privatekey()
 
         context = Context(SSLv23_METHOD)
-        context.use_privatekey(key.to_cryptography_key())
+        cryptography_key = key.to_cryptography_key()
+        assert isinstance(cryptography_key, rsa.RSAPrivateKey)
+        context.use_privatekey(cryptography_key)
         context.use_certificate(cert)
         with pytest.raises(Error):
             context.check_privatekey()
@@ -791,7 +805,7 @@ class TestContext:
         """
         context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
-            context.set_options(None)
+            context.set_options(None)  # type: ignore[arg-type]
 
     def test_set_options(self) -> None:
         """
@@ -808,7 +822,7 @@ class TestContext:
         """
         context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
-            context.set_mode(None)
+            context.set_mode(None)  # type: ignore[arg-type]
 
     def test_set_mode(self) -> None:
         """
@@ -825,7 +839,7 @@ class TestContext:
         """
         context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
-            context.set_timeout(None)
+            context.set_timeout(None)  # type: ignore[arg-type]
 
     def test_timeout(self) -> None:
         """
@@ -844,7 +858,7 @@ class TestContext:
         """
         context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
-            context.set_verify_depth(None)
+            context.set_verify_depth(None)  # type: ignore[arg-type]
 
     def test_verify_depth(self) -> None:
         """
@@ -856,7 +870,7 @@ class TestContext:
         context.set_verify_depth(11)
         assert context.get_verify_depth() == 11
 
-    def _write_encrypted_pem(self, passphrase, tmpfile):
+    def _write_encrypted_pem(self, passphrase: bytes, tmpfile: bytes) -> bytes:
         """
         Write a new private key out to a new file, encrypted using the given
         passphrase.  Return the path to the new file.
@@ -875,9 +889,9 @@ class TestContext:
         """
         context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
-            context.set_passwd_cb(None)
+            context.set_passwd_cb(None)  # type: ignore[arg-type]
 
-    def test_set_passwd_cb(self, tmpfile) -> None:
+    def test_set_passwd_cb(self, tmpfile: bytes) -> None:
         """
         `Context.set_passwd_cb` accepts a callable which will be invoked when
         a private key is loaded from an encrypted PEM.
@@ -898,7 +912,7 @@ class TestContext:
         assert isinstance(calledWith[0][1], int)
         assert calledWith[0][2] is None
 
-    def test_passwd_callback_exception(self, tmpfile) -> None:
+    def test_passwd_callback_exception(self, tmpfile: bytes) -> None:
         """
         `Context.use_privatekey_file` propagates any exception raised
         by the passphrase callback.
@@ -913,7 +927,7 @@ class TestContext:
         with pytest.raises(RuntimeError):
             context.use_privatekey_file(pemFile)
 
-    def test_passwd_callback_false(self, tmpfile) -> None:
+    def test_passwd_callback_false(self, tmpfile: bytes) -> None:
         """
         `Context.use_privatekey_file` raises `OpenSSL.SSL.Error` if the
         passphrase callback returns a false value.
@@ -928,7 +942,7 @@ class TestContext:
         with pytest.raises(Error):
             context.use_privatekey_file(pemFile)
 
-    def test_passwd_callback_non_string(self, tmpfile) -> None:
+    def test_passwd_callback_non_string(self, tmpfile: bytes) -> None:
         """
         `Context.use_privatekey_file` raises `OpenSSL.SSL.Error` if the
         passphrase callback returns a true non-string value.
@@ -944,7 +958,7 @@ class TestContext:
         with pytest.raises(ValueError):
             context.use_privatekey_file(pemFile)
 
-    def test_passwd_callback_too_long(self, tmpfile) -> None:
+    def test_passwd_callback_too_long(self, tmpfile: bytes) -> None:
         """
         If the passphrase returned by the passphrase callback returns a string
         longer than the indicated maximum length, it is truncated.
@@ -1055,7 +1069,9 @@ class TestContext:
         client_context.set_max_proto_version(0)
         self._handshake_test(server_context, client_context)
 
-    def _load_verify_locations_test(self, *args):
+    def _load_verify_locations_test(
+        self, cafile: bytes | str | None, capath: bytes | str | None = None
+    ) -> None:
         """
         Create a client context which will verify the peer certificate and call
         its `load_verify_locations` method with the given arguments.
@@ -1064,7 +1080,7 @@ class TestContext:
         (server, client) = socket_pair()
 
         clientContext = Context(SSLv23_METHOD)
-        clientContext.load_verify_locations(*args)
+        clientContext.load_verify_locations(cafile, capath)
         # Require that the server certificate verify properly or the
         # connection will fail.
         clientContext.set_verify(
@@ -1099,12 +1115,13 @@ class TestContext:
         cryptography_cert = clientSSL.get_peer_certificate(
             as_cryptography=True
         )
+        assert cryptography_cert is not None
         assert (
             cryptography_cert.subject.rfc4514_string()
             == "CN=Testing Root CA,O=Testing,L=Chicago,ST=IL,C=US"
         )
 
-    def _load_verify_cafile(self, cafile):
+    def _load_verify_cafile(self, cafile: str | bytes) -> None:
         """
         Verify that if path to a file containing a certificate is passed to
         `Context.load_verify_locations` for the ``cafile`` parameter, that
@@ -1116,7 +1133,7 @@ class TestContext:
 
         self._load_verify_locations_test(cafile)
 
-    def test_load_verify_bytes_cafile(self, tmpfile) -> None:
+    def test_load_verify_bytes_cafile(self, tmpfile: bytes) -> None:
         """
         `Context.load_verify_locations` accepts a file name as a `bytes`
         instance and uses the certificates within for verification purposes.
@@ -1124,7 +1141,7 @@ class TestContext:
         cafile = tmpfile + NON_ASCII.encode(getfilesystemencoding())
         self._load_verify_cafile(cafile)
 
-    def test_load_verify_unicode_cafile(self, tmpfile) -> None:
+    def test_load_verify_unicode_cafile(self, tmpfile: bytes) -> None:
         """
         `Context.load_verify_locations` accepts a file name as a `unicode`
         instance and uses the certificates within for verification purposes.
@@ -1133,7 +1150,7 @@ class TestContext:
             tmpfile.decode(getfilesystemencoding()) + NON_ASCII
         )
 
-    def test_load_verify_invalid_file(self, tmpfile) -> None:
+    def test_load_verify_invalid_file(self, tmpfile: bytes) -> None:
         """
         `Context.load_verify_locations` raises `Error` when passed a
         non-existent cafile.
@@ -1142,7 +1159,7 @@ class TestContext:
         with pytest.raises(Error):
             clientContext.load_verify_locations(tmpfile)
 
-    def _load_verify_directory_locations_capath(self, capath):
+    def _load_verify_directory_locations_capath(self, capath: bytes) -> None:
         """
         Verify that if path to a directory containing certificate files is
         passed to ``Context.load_verify_locations`` for the ``capath``
@@ -1175,7 +1192,7 @@ class TestContext:
     )
     @pytest.mark.parametrize("argtype", ["bytes_arg", "unicode_arg"])
     def test_load_verify_directory_capath(
-        self, pathtype, argtype, tmpfile
+        self, pathtype: str, argtype: str, tmpfile: bytes
     ) -> None:
         """
         `Context.load_verify_locations` accepts a directory name as a `bytes`
@@ -1194,16 +1211,18 @@ class TestContext:
         """
         context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
-            context.load_verify_locations(object())
+            context.load_verify_locations(object())  # type: ignore[arg-type]
         with pytest.raises(TypeError):
-            context.load_verify_locations(object(), object())
+            context.load_verify_locations(object(), object())  # type: ignore[arg-type]
 
     @pytest.mark.skipif(
         not platform.startswith("linux"),
         reason="Loading fallback paths is a linux-specific behavior to "
         "accommodate pyca/cryptography manylinux wheels",
     )
-    def test_fallback_default_verify_paths(self, monkeypatch) -> None:
+    def test_fallback_default_verify_paths(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """
         Test that we load certificates successfully on linux from the fallback
         path. To do this we set the _CRYPTOGRAPHY_MANYLINUX_CA_FILE and
@@ -1234,7 +1253,7 @@ class TestContext:
         num = _lib.sk_X509_OBJECT_num(sk_obj)
         assert num != 0
 
-    def test_check_env_vars(self, monkeypatch) -> None:
+    def test_check_env_vars(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """
         Test that we return True/False appropriately if the env vars are set.
         """
@@ -1247,7 +1266,9 @@ class TestContext:
         assert context._check_env_vars_set(dir_var, file_var) is True
         assert context._check_env_vars_set(dir_var, file_var) is True
 
-    def test_verify_no_fallback_if_env_vars_set(self, monkeypatch) -> None:
+    def test_verify_no_fallback_if_env_vars_set(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """
         Test that we don't use the fallback path if env vars are set.
         """
@@ -1291,7 +1312,7 @@ class TestContext:
         context.set_default_verify_paths()
         context.set_verify(
             VERIFY_PEER,
-            lambda conn, cert, errno, depth, preverify_ok: preverify_ok,
+            lambda conn, cert, errno, depth, preverify_ok: bool(preverify_ok),
         )
 
         client = socket_any_family()
@@ -1322,7 +1343,7 @@ class TestContext:
         """
         context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
-            context.add_extra_chain_cert(object())
+            context.add_extra_chain_cert(object())  # type: ignore[arg-type]
 
     def _handshake_test(
         self, serverContext: Context, clientContext: Context
@@ -1476,7 +1497,7 @@ class TestContext:
                         pass
 
     @pytest.mark.parametrize("mode", [SSL.VERIFY_PEER, SSL.VERIFY_NONE])
-    def test_set_verify_default_callback(self, mode) -> None:
+    def test_set_verify_default_callback(self, mode: int) -> None:
         """
         If the verify callback is omitted, the preverify value is used.
         """
@@ -1544,7 +1565,7 @@ class TestContext:
         # Try it out.
         self._handshake_test(serverContext, clientContext)
 
-    def _use_certificate_chain_file_test(self, certdir):
+    def _use_certificate_chain_file_test(self, certdir: str | bytes) -> None:
         """
         Verify that `Context.use_certificate_chain_file` reads a
         certificate chain from a specified file.
@@ -1582,7 +1603,7 @@ class TestContext:
 
         self._handshake_test(serverContext, clientContext)
 
-    def test_use_certificate_chain_file_bytes(self, tmpfile) -> None:
+    def test_use_certificate_chain_file_bytes(self, tmpfile: bytes) -> None:
         """
         ``Context.use_certificate_chain_file`` accepts the name of a file (as
         an instance of ``bytes``) to specify additional certificates to use to
@@ -1592,7 +1613,7 @@ class TestContext:
             tmpfile + NON_ASCII.encode(getfilesystemencoding())
         )
 
-    def test_use_certificate_chain_file_unicode(self, tmpfile) -> None:
+    def test_use_certificate_chain_file_unicode(self, tmpfile: bytes) -> None:
         """
         ``Context.use_certificate_chain_file`` accepts the name of a file (as
         an instance of ``unicode``) to specify additional certificates to use
@@ -1609,9 +1630,11 @@ class TestContext:
         """
         context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
-            context.use_certificate_chain_file(object())
+            context.use_certificate_chain_file(object())  # type: ignore[arg-type]
 
-    def test_use_certificate_chain_file_missing_file(self, tmpfile) -> None:
+    def test_use_certificate_chain_file_missing_file(
+        self, tmpfile: bytes
+    ) -> None:
         """
         `Context.use_certificate_chain_file` raises `OpenSSL.SSL.Error` when
         passed a bad chain file name (for example, the name of a file which
@@ -1632,24 +1655,24 @@ class TestContext:
         assert context.get_verify_mode() == (VERIFY_PEER | VERIFY_CLIENT_ONCE)
 
     @pytest.mark.parametrize("mode", [None, 1.0, object(), "mode"])
-    def test_set_verify_wrong_mode_arg(self, mode) -> None:
+    def test_set_verify_wrong_mode_arg(self, mode: object) -> None:
         """
         `Context.set_verify` raises `TypeError` if the first argument is
         not an integer.
         """
         context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
-            context.set_verify(mode=mode)
+            context.set_verify(mode=mode)  # type: ignore[arg-type]
 
     @pytest.mark.parametrize("callback", [1.0, "mode", ("foo", "bar")])
-    def test_set_verify_wrong_callable_arg(self, callback) -> None:
+    def test_set_verify_wrong_callable_arg(self, callback: object) -> None:
         """
         `Context.set_verify` raises `TypeError` if the second argument
         is not callable.
         """
         context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
-            context.set_verify(mode=VERIFY_PEER, callback=callback)
+            context.set_verify(mode=VERIFY_PEER, callback=callback)  # type: ignore[arg-type]
 
     def test_load_tmp_dh_wrong_args(self) -> None:
         """
@@ -1658,7 +1681,7 @@ class TestContext:
         """
         context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
-            context.load_tmp_dh(object())
+            context.load_tmp_dh(object())  # type: ignore[arg-type]
 
     def test_load_tmp_dh_missing_file(self) -> None:
         """
@@ -1669,7 +1692,7 @@ class TestContext:
         with pytest.raises(Error):
             context.load_tmp_dh(b"hello")
 
-    def _load_tmp_dh_test(self, dhfilename):
+    def _load_tmp_dh_test(self, dhfilename: bytes | str) -> None:
         """
         Verify that calling ``Context.load_tmp_dh`` with the given filename
         does not raise an exception.
@@ -1680,7 +1703,7 @@ class TestContext:
 
         context.load_tmp_dh(dhfilename)
 
-    def test_load_tmp_dh_bytes(self, tmpfile) -> None:
+    def test_load_tmp_dh_bytes(self, tmpfile: bytes) -> None:
         """
         `Context.load_tmp_dh` loads Diffie-Hellman parameters from the
         specified file (given as ``bytes``).
@@ -1689,7 +1712,7 @@ class TestContext:
             tmpfile + NON_ASCII.encode(getfilesystemencoding()),
         )
 
-    def test_load_tmp_dh_unicode(self, tmpfile) -> None:
+    def test_load_tmp_dh_unicode(self, tmpfile: bytes) -> None:
         """
         `Context.load_tmp_dh` loads Diffie-Hellman parameters from the
         specified file (given as ``unicode``).
@@ -1719,8 +1742,8 @@ class TestContext:
             if name.startswith("_"):
                 continue
             oid = getattr(ec.EllipticCurveOID, name)
-            curve = ec.get_curve_for_oid(oid)
-            context.set_tmp_ecdh(curve)
+            cryptography_curve = ec.get_curve_for_oid(oid)
+            context.set_tmp_ecdh(cryptography_curve())
 
     def test_set_session_cache_mode_wrong_args(self) -> None:
         """
@@ -1730,7 +1753,7 @@ class TestContext:
         """
         context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
-            context.set_session_cache_mode(object())
+            context.set_session_cache_mode(object())  # type: ignore[arg-type]
 
     def test_session_cache_mode(self) -> None:
         """
@@ -1759,7 +1782,7 @@ class TestContext:
         """
         context = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
-            context.set_tlsext_use_srtp("SRTP_AES128_CM_SHA1_80")
+            context.set_tlsext_use_srtp("SRTP_AES128_CM_SHA1_80")  # type: ignore[arg-type]
 
     def test_set_tlsext_use_srtp_invalid_profile(self) -> None:
         """
@@ -1778,7 +1801,7 @@ class TestContext:
         It does not return anything.
         """
         context = Context(SSLv23_METHOD)
-        assert context.set_tlsext_use_srtp(b"SRTP_AES128_CM_SHA1_80") is None
+        assert context.set_tlsext_use_srtp(b"SRTP_AES128_CM_SHA1_80") is None  # type: ignore[func-returns-value]
 
 
 class TestServerNameCallback:
@@ -2198,7 +2221,7 @@ class TestContextConnection:
     objects.
     """
 
-    def test_use_privatekey(self, ctx_or_conn) -> None:
+    def test_use_privatekey(self, ctx_or_conn: Context | Connection) -> None:
         """
         `use_privatekey` takes an `OpenSSL.crypto.PKey` instance.
         """
@@ -2207,11 +2230,15 @@ class TestContextConnection:
 
         ctx_or_conn.use_privatekey(key)
         with pytest.raises(TypeError):
-            ctx_or_conn.use_privatekey("")
+            ctx_or_conn.use_privatekey("")  # type: ignore[arg-type]
 
-        ctx_or_conn.use_privatekey(key.to_cryptography_key())
+        cryptography_key = key.to_cryptography_key()
+        assert isinstance(cryptography_key, rsa.RSAPrivateKey)
+        ctx_or_conn.use_privatekey(cryptography_key)
 
-    def test_use_privatekey_wrong_key(self, ctx_or_conn) -> None:
+    def test_use_privatekey_wrong_key(
+        self, ctx_or_conn: Context | Connection
+    ) -> None:
         """
         `use_privatekey` raises `OpenSSL.SSL.Error` when passed a
         `OpenSSL.crypto.PKey` instance which has not been initialized.
@@ -2224,7 +2251,7 @@ class TestContextConnection:
         with pytest.raises(Error):
             ctx_or_conn.use_privatekey(key)
 
-    def test_use_certificate(self, ctx_or_conn) -> None:
+    def test_use_certificate(self, ctx_or_conn: Context | Connection) -> None:
         """
         `use_certificate` sets the certificate which will be
         used to identify connections created using the context.
@@ -2240,15 +2267,19 @@ class TestContextConnection:
             load_certificate(FILETYPE_PEM, root_cert_pem).to_cryptography()
         )
 
-    def test_use_certificate_wrong_args(self, ctx_or_conn) -> None:
+    def test_use_certificate_wrong_args(
+        self, ctx_or_conn: Context | Connection
+    ) -> None:
         """
         `use_certificate_wrong_args` raises `TypeError` when not passed
         exactly one `OpenSSL.crypto.X509` instance as an argument.
         """
         with pytest.raises(TypeError):
-            ctx_or_conn.use_certificate("hello, world")
+            ctx_or_conn.use_certificate("hello, world")  # type: ignore[arg-type]
 
-    def test_use_certificate_uninitialized(self, ctx_or_conn) -> None:
+    def test_use_certificate_uninitialized(
+        self, ctx_or_conn: Context | Connection
+    ) -> None:
         """
         `use_certificate` raises `OpenSSL.SSL.Error` when passed a
         `OpenSSL.crypto.X509` instance which has not been initialized
@@ -2278,16 +2309,16 @@ class TestConnection:
     # XXX bio_write -> TypeError
 
     @pytest.mark.parametrize("bad_context", [object(), "context", None, 1])
-    def test_wrong_args(self, bad_context) -> None:
+    def test_wrong_args(self, bad_context: object) -> None:
         """
         `Connection.__init__` raises `TypeError` if called with a non-`Context`
         instance argument.
         """
         with pytest.raises(TypeError):
-            Connection(bad_context)
+            Connection(bad_context)  # type: ignore[arg-type]
 
     @pytest.mark.parametrize("bad_bio", [object(), None, 1, [1, 2, 3]])
-    def test_bio_write_wrong_args(self, bad_bio) -> None:
+    def test_bio_write_wrong_args(self, bad_bio: object) -> None:
         """
         `Connection.bio_write` raises `TypeError` if called with a non-bytes
         (or text) argument.
@@ -2295,7 +2326,7 @@ class TestConnection:
         context = Context(SSLv23_METHOD)
         connection = Connection(context, None)
         with pytest.raises(TypeError):
-            connection.bio_write(bad_bio)
+            connection.bio_write(bad_bio)  # type: ignore[arg-type]
 
     def test_bio_write(self) -> None:
         """

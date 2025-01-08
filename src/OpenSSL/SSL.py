@@ -1272,7 +1272,7 @@ class Context:
             == 1
         )
 
-    def set_session_cache_mode(self, mode: int) -> None:
+    def set_session_cache_mode(self, mode: int) -> int:
         """
         Set the behavior of the session cache used by all connections using
         this Context.  The previously set mode is returned.  See
