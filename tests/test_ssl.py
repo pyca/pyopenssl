@@ -52,6 +52,7 @@ from OpenSSL.crypto import (
     TYPE_RSA,
     X509,
     PKey,
+    X509Name,
     X509Store,
     dump_certificate,
     dump_privatekey,
@@ -3144,7 +3145,7 @@ class TestConnection:
             conn.bio_read(1024)
 
     @pytest.mark.parametrize("bufsize", [1.0, None, object(), "bufsize"])
-    def test_bio_read_wrong_args(self, bufsize) -> None:
+    def test_bio_read_wrong_args(self, bufsize: object) -> None:
         """
         `Connection.bio_read` raises `TypeError` if passed a non-integer
         argument.
@@ -3152,7 +3153,7 @@ class TestConnection:
         ctx = Context(SSLv23_METHOD)
         conn = Connection(ctx, None)
         with pytest.raises(TypeError):
-            conn.bio_read(bufsize)
+            conn.bio_read(bufsize)  # type: ignore[arg-type]
 
     def test_buffer_size(self) -> None:
         """
@@ -3287,7 +3288,9 @@ class TestConnectionRecvInto:
     Tests for `Connection.recv_into`.
     """
 
-    def _no_length_test(self, factory):
+    def _no_length_test(
+        self, factory: typing.Callable[[int], typing.Any]
+    ) -> None:
         """
         Assert that when the given buffer is passed to `Connection.recv_into`,
         whatever bytes are available to be received that fit into that buffer
@@ -3308,7 +3311,9 @@ class TestConnectionRecvInto:
         """
         self._no_length_test(bytearray)
 
-    def _respects_length_test(self, factory):
+    def _respects_length_test(
+        self, factory: typing.Callable[[int], typing.Any]
+    ) -> None:
         """
         Assert that when the given buffer is passed to `Connection.recv_into`
         along with a value for `nbytes` that is less than the size of that
@@ -3330,7 +3335,9 @@ class TestConnectionRecvInto:
         """
         self._respects_length_test(bytearray)
 
-    def _doesnt_overfill_test(self, factory):
+    def _doesnt_overfill_test(
+        self, factory: typing.Callable[[int], typing.Any]
+    ) -> None:
         """
         Assert that if there are more bytes available to be read from the
         receive buffer than would fit into the buffer passed to
@@ -3881,7 +3888,9 @@ class TestMemoryBIO:
                 (54, "ECONNRESET"),
             ]
 
-    def _check_client_ca_list(self, func):
+    def _check_client_ca_list(
+        self, func: typing.Callable[[Context], list[X509Name]]
+    ) -> None:
         """
         Verify the return value of the `get_client_ca_list` method for
         server and client connections.
@@ -3912,9 +3921,9 @@ class TestMemoryBIO:
         """
         ctx = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
-            ctx.set_client_ca_list("spam")
+            ctx.set_client_ca_list("spam")  # type: ignore[arg-type]
         with pytest.raises(TypeError):
-            ctx.set_client_ca_list(["spam"])
+            ctx.set_client_ca_list(["spam"])  # type: ignore[list-item]
 
     def test_set_empty_ca_list(self) -> None:
         """
@@ -4016,7 +4025,7 @@ class TestMemoryBIO:
         """
         ctx = Context(SSLv23_METHOD)
         with pytest.raises(TypeError):
-            ctx.add_client_ca("spam")
+            ctx.add_client_ca("spam")  # type: ignore[arg-type]
 
     def test_one_add_client_ca(self) -> None:
         """
@@ -4142,7 +4151,7 @@ class TestRequires:
         results = []
 
         @feature_guard
-        def inner():
+        def inner() -> bool:
             results.append(True)
             return True
 
@@ -4157,7 +4166,7 @@ class TestRequires:
         feature_guard = _make_requires(False, "Error text")
 
         @feature_guard
-        def inner():  # pragma: nocover
+        def inner() -> None:  # pragma: nocover
             pytest.fail("Should not be called")
 
         with pytest.raises(NotImplementedError) as e:
@@ -4180,7 +4189,7 @@ class TestOCSP:
         self,
         callback: typing.Callable[[Connection, bytes, T | None], bool],
         data: T | None,
-        request_ocsp=True,
+        request_ocsp: bool = True,
     ) -> Connection:
         """
         Builds a client connection suitable for using OCSP.
@@ -4586,6 +4595,7 @@ class TestDTLS:
                     s_listening = False
                     s_handshaking = True
                     # Write the duplicate ClientHello. See giant comment above.
+                    assert latest_client_hello is not None
                     s.bio_write(latest_client_hello)
 
             if s_handshaking:
