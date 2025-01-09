@@ -25,14 +25,6 @@ module = "OpenSSL.*"
 warn_return_any = false
 
 [[tool.mypy.overrides]]
-module = "cryptography.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "cffi.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
 module = ["pretend"]
 ignore_missing_imports = true
 
