@@ -3,6 +3,7 @@ from __future__ import annotations
 import calendar
 import datetime
 import functools
+import sys
 import typing
 import warnings
 from base64 import b16encode
@@ -13,6 +14,16 @@ from typing import (
     Callable,
     Union,
 )
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+elif sys.version_info < (3, 8):
+    _T = typing.TypeVar("T")
+
+    def deprecated(msg: str, **kwargs: object) -> Callable[[_T], _T]:
+        return lambda f: f
+else:
+    from typing_extensions import deprecated
 
 from cryptography import utils, x509
 from cryptography.hazmat.primitives.asymmetric import (
@@ -529,6 +540,10 @@ class _EllipticCurve:
         return _ffi.gc(key, _lib.EC_KEY_free)
 
 
+@deprecated(
+    "get_elliptic_curves is deprecated. You should use the APIs in "
+    "cryptography instead."
+)
 def get_elliptic_curves() -> set[_EllipticCurve]:
     """
     Return a set of objects representing the elliptic curves supported in the
@@ -544,20 +559,10 @@ def get_elliptic_curves() -> set[_EllipticCurve]:
     return _EllipticCurve._get_elliptic_curves(_lib)
 
 
-_get_elliptic_curves_internal = get_elliptic_curves
-
-utils.deprecated(
-    get_elliptic_curves,
-    __name__,
-    (
-        "get_elliptic_curves is deprecated. You should use the APIs in "
-        "cryptography instead."
-    ),
-    DeprecationWarning,
-    name="get_elliptic_curves",
+@deprecated(
+    "get_elliptic_curve is deprecated. You should use the APIs in "
+    "cryptography instead."
 )
-
-
 def get_elliptic_curve(name: str) -> _EllipticCurve:
     """
     Return a single curve object selected by name.
@@ -570,22 +575,10 @@ def get_elliptic_curve(name: str) -> _EllipticCurve:
 
     If the named curve is not supported then :py:class:`ValueError` is raised.
     """
-    for curve in _get_elliptic_curves_internal():
+    for curve in get_elliptic_curves():
         if curve.name == name:
             return curve
     raise ValueError("unknown curve name", name)
-
-
-utils.deprecated(
-    get_elliptic_curve,
-    __name__,
-    (
-        "get_elliptic_curve is deprecated. You should use the APIs in "
-        "cryptography instead."
-    ),
-    DeprecationWarning,
-    name="get_elliptic_curve",
-)
 
 
 @functools.total_ordering
@@ -783,6 +776,10 @@ class X509Name:
         return result
 
 
+@deprecated(
+    "X509Extension support in pyOpenSSL is deprecated. You should use the "
+    "APIs in cryptography."
+)
 class X509Extension:
     """
     An X.509 v3 certificate extension.
@@ -953,19 +950,10 @@ class X509Extension:
         return _ffi.buffer(char_result, result_length)[:]
 
 
-_X509ExtensionInternal = X509Extension
-utils.deprecated(
-    X509Extension,
-    __name__,
-    (
-        "X509Extension support in pyOpenSSL is deprecated. You should use the "
-        "APIs in cryptography."
-    ),
-    DeprecationWarning,
-    name="X509Extension",
+@deprecated(
+    "CSR support in pyOpenSSL is deprecated. You should use the APIs "
+    "in cryptography."
 )
-
-
 class X509Req:
     """
     An X.509 certificate signing requests.
@@ -1091,9 +1079,7 @@ class X509Req:
 
         return name
 
-    def add_extensions(
-        self, extensions: Iterable[_X509ExtensionInternal]
-    ) -> None:
+    def add_extensions(self, extensions: Iterable[X509Extension]) -> None:
         """
         Add extensions to the certificate signing request.
 
@@ -1117,7 +1103,7 @@ class X509Req:
         stack = _ffi.gc(stack, _lib.sk_X509_EXTENSION_free)
 
         for ext in extensions:
-            if not isinstance(ext, _X509ExtensionInternal):
+            if not isinstance(ext, X509Extension):
                 raise ValueError("One of the elements is not an X509Extension")
 
             # TODO push can fail (here and elsewhere)
@@ -1126,7 +1112,7 @@ class X509Req:
         add_result = _lib.X509_REQ_add_extensions(self._req, stack)
         _openssl_assert(add_result == 1)
 
-    def get_extensions(self) -> list[_X509ExtensionInternal]:
+    def get_extensions(self) -> list[X509Extension]:
         """
         Get X.509 extensions in the certificate signing request.
 
@@ -1156,7 +1142,7 @@ class X509Req:
         )
 
         for i in range(_lib.sk_X509_EXTENSION_num(native_exts_obj)):
-            ext = _X509ExtensionInternal.__new__(_X509ExtensionInternal)
+            ext = X509Extension.__new__(X509Extension)
             extension = _lib.X509_EXTENSION_dup(
                 _lib.sk_X509_EXTENSION_value(native_exts_obj, i)
             )
@@ -1208,20 +1194,6 @@ class X509Req:
             _raise_current_error()
 
         return result
-
-
-_X509ReqInternal = X509Req
-
-utils.deprecated(
-    X509Req,
-    __name__,
-    (
-        "CSR support in pyOpenSSL is deprecated. You should use the APIs "
-        "in cryptography."
-    ),
-    DeprecationWarning,
-    name="X509Req",
-)
 
 
 class X509:
@@ -1655,9 +1627,7 @@ class X509:
         """
         return _lib.X509_get_ext_count(self._x509)
 
-    def add_extensions(
-        self, extensions: Iterable[_X509ExtensionInternal]
-    ) -> None:
+    def add_extensions(self, extensions: Iterable[X509Extension]) -> None:
         """
         Add extensions to the certificate.
 
@@ -1676,13 +1646,13 @@ class X509:
         )
 
         for ext in extensions:
-            if not isinstance(ext, _X509ExtensionInternal):
+            if not isinstance(ext, X509Extension):
                 raise ValueError("One of the elements is not an X509Extension")
 
             add_result = _lib.X509_add_ext(self._x509, ext._extension, -1)
             _openssl_assert(add_result == 1)
 
-    def get_extension(self, index: int) -> _X509ExtensionInternal:
+    def get_extension(self, index: int) -> X509Extension:
         """
         Get a specific extension of the certificate by index.
 
@@ -1706,7 +1676,7 @@ class X509:
             stacklevel=2,
         )
 
-        ext = _X509ExtensionInternal.__new__(_X509ExtensionInternal)
+        ext = X509Extension.__new__(X509Extension)
         ext._extension = _lib.X509_get_ext(self._x509, index)
         if ext._extension == _ffi.NULL:
             raise IndexError("extension index out of bounds")
@@ -2461,7 +2431,7 @@ def load_certificate_request(type: int, buffer: bytes) -> X509Req:
 
     _openssl_assert(req != _ffi.NULL)
 
-    x509req = _X509ReqInternal.__new__(_X509ReqInternal)
+    x509req = X509Req.__new__(X509Req)
     x509req._req = _ffi.gc(req, _lib.X509_REQ_free)
     return x509req
 
