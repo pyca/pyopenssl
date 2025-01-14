@@ -66,6 +66,7 @@ __all__ = [
     "X509Extension",
     "X509Name",
     "X509Req",
+    "X509Purpose",
     "X509Store",
     "X509StoreContext",
     "X509StoreContextError",
@@ -1709,6 +1710,28 @@ class X509StoreFlags:
     PARTIAL_CHAIN: int = _lib.X509_V_FLAG_PARTIAL_CHAIN
 
 
+class X509Purpose:
+    """
+    Enumeration of X509 purposes, e.g. used to set the purpose of a
+    :class:`X509Store`.
+
+    See `OpenSSL check purpose`_ for details.
+
+    .. _OpenSSL check purpose:
+        https://www.openssl.org/docs/manmaster/man3/X509_check_purpose.html
+    """
+
+    X509_PURPOSE_SSL_CLIENT = _lib.X509_PURPOSE_SSL_CLIENT
+    X509_PURPOSE_SSL_SERVER = _lib.X509_PURPOSE_SSL_SERVER
+    X509_PURPOSE_NS_SSL_SERVER = _lib.X509_PURPOSE_NS_SSL_SERVER
+    X509_PURPOSE_SMIME_SIGN = _lib.X509_PURPOSE_SMIME_SIGN
+    X509_PURPOSE_SMIME_ENCRYPT = _lib.X509_PURPOSE_SMIME_ENCRYPT
+    X509_PURPOSE_CRL_SIGN = _lib.X509_PURPOSE_CRL_SIGN
+    X509_PURPOSE_ANY = _lib.X509_PURPOSE_ANY
+    X509_PURPOSE_OCSP_HELPER = _lib.X509_PURPOSE_OCSP_HELPER
+    X509_PURPOSE_TIMESTAMP_SIGN = _lib.X509_PURPOSE_TIMESTAMP_SIGN
+
+
 class X509Store:
     """
     An X.509 store.
@@ -1826,6 +1849,18 @@ class X509Store:
             param, calendar.timegm(vfy_time.timetuple())
         )
         _openssl_assert(_lib.X509_STORE_set1_param(self._store, param) != 0)
+
+    def set_purpose(self, purpose):
+        """
+        Set purpose of this store.
+
+        .. versionadded:: 26.0.0
+
+        :param int flags: The verification flags to set on this store.
+            See :class:`X509StorePurposes` for available constants.
+        :return: ``None`` if the verification flags were successfully set.
+        """
+        _openssl_assert(_lib.X509_STORE_set_purpose(self._store, purpose) != 0)
 
     def load_locations(
         self,
