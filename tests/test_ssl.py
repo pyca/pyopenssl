@@ -1283,14 +1283,8 @@ class TestContext:
         monkeypatch.setattr(
             _lib, "SSL_CTX_set_default_verify_paths", lambda x: 1
         )
-        dir_env_var = _ffi.string(_lib.X509_get_default_cert_dir_env()).decode(
-            "ascii"
-        )
-        file_env_var = _ffi.string(
-            _lib.X509_get_default_cert_file_env()
-        ).decode("ascii")
-        monkeypatch.setenv(dir_env_var, "value")
-        monkeypatch.setenv(file_env_var, "value")
+        monkeypatch.setenv("SSL_CERT_DIR", "value")
+        monkeypatch.setenv("SSL_CERT_FILE", "value")
         context.set_default_verify_paths()
 
         monkeypatch.setattr(
