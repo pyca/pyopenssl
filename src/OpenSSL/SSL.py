@@ -1031,13 +1031,7 @@ class Context:
         # First we'll check to see if any env vars have been set. If so,
         # we won't try to do anything else because the user has set the path
         # themselves.
-        dir_env_var = _ffi.string(_lib.X509_get_default_cert_dir_env()).decode(
-            "ascii"
-        )
-        file_env_var = _ffi.string(
-            _lib.X509_get_default_cert_file_env()
-        ).decode("ascii")
-        if not self._check_env_vars_set(dir_env_var, file_env_var):
+        if not self._check_env_vars_set("SSL_CERT_DIR", "SSL_CERT_FILE"):
             default_dir = _ffi.string(_lib.X509_get_default_cert_dir())
             default_file = _ffi.string(_lib.X509_get_default_cert_file())
             # Now we check to see if the default_dir and default_file are set
