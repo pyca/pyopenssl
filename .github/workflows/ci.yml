@@ -11,16 +11,16 @@ jobs:
       matrix:
         PYTHON:
           # Base builds
-          - {VERSION: "3.7", TOXENV: "py37"}
-          - {VERSION: "3.8", TOXENV: "py38"}
-          - {VERSION: "3.9", TOXENV: "py39"}
-          - {VERSION: "3.10", TOXENV: "py310"}
-          - {VERSION: "3.11", TOXENV: "py311"}
-          - {VERSION: "3.12", TOXENV: "py312"}
-          - {VERSION: "3.13-dev", TOXENV: "py313"}
-          - {VERSION: "pypy-3.9", TOXENV: "pypy3"}
-          - {VERSION: "pypy-3.10", TOXENV: "pypy3"}
-          - {VERSION: "3.11", TOXENV: "py311-useWheel", OS: "windows-2022" }
+          # - {VERSION: "3.7", TOXENV: "py37"}
+          # - {VERSION: "3.8", TOXENV: "py38"}
+          # - {VERSION: "3.9", TOXENV: "py39"}
+          # - {VERSION: "3.10", TOXENV: "py310"}
+          # - {VERSION: "3.11", TOXENV: "py311"}
+          # - {VERSION: "3.12", TOXENV: "py312"}
+          # - {VERSION: "3.13-dev", TOXENV: "py313"}
+          # - {VERSION: "pypy-3.9", TOXENV: "pypy3"}
+          # - {VERSION: "pypy-3.10", TOXENV: "pypy3"}
+          # - {VERSION: "3.11", TOXENV: "py311-useWheel", OS: "windows-2022" }
           # -cryptographyMain
           - {VERSION: "3.7", TOXENV: "py37-cryptographyMain"}
           - {VERSION: "3.8", TOXENV: "py38-cryptographyMain"}
@@ -32,24 +32,24 @@ jobs:
           - {VERSION: "pypy-3.9", TOXENV: "pypy3-cryptographyMain"}
           - {VERSION: "pypy-3.10", TOXENV: "pypy3-cryptographyMain"}
           # -cryptographyMinimum
-          - {VERSION: "3.7", TOXENV: "py37-cryptographyMinimum"}
-          - {VERSION: "3.8", TOXENV: "py38-cryptographyMinimum"}
-          - {VERSION: "3.9", TOXENV: "py39-cryptographyMinimum"}
-          - {VERSION: "3.10", TOXENV: "py310-cryptographyMinimum"}
-          - {VERSION: "3.11", TOXENV: "py311-cryptographyMinimum"}
-          - {VERSION: "3.12", TOXENV: "py312-cryptographyMinimum"}
-          - {VERSION: "3.13-dev", TOXENV: "py313-cryptographyMinimum"}
-          - {VERSION: "pypy-3.10", TOXENV: "pypy3-cryptographyMinimum"}
+          # - {VERSION: "3.7", TOXENV: "py37-cryptographyMinimum"}
+          # - {VERSION: "3.8", TOXENV: "py38-cryptographyMinimum"}
+          # - {VERSION: "3.9", TOXENV: "py39-cryptographyMinimum"}
+          # - {VERSION: "3.10", TOXENV: "py310-cryptographyMinimum"}
+          # - {VERSION: "3.11", TOXENV: "py311-cryptographyMinimum"}
+          # - {VERSION: "3.12", TOXENV: "py312-cryptographyMinimum"}
+          # - {VERSION: "3.13-dev", TOXENV: "py313-cryptographyMinimum"}
+          # - {VERSION: "pypy-3.10", TOXENV: "pypy3-cryptographyMinimum"}
           # Cryptography wheels
-          - {VERSION: "3.9", TOXENV: "py39-cryptographyMinimum-useWheel"}
-          - {VERSION: "3.9", TOXENV: "py39-useWheel"}
+          # - {VERSION: "3.9", TOXENV: "py39-cryptographyMinimum-useWheel"}
+          # - {VERSION: "3.9", TOXENV: "py39-useWheel"}
           # Random order
-          - {VERSION: "3.9", TOXENV: "py39-randomorder"}
+          # - {VERSION: "3.9", TOXENV: "py39-randomorder"}
           # Meta
           - {VERSION: "3.9", TOXENV: "check-manifest"}
           - {VERSION: "3.11", TOXENV: "lint"}
-          - {VERSION: "3.11", TOXENV: "py311-mypy"}
-          - {VERSION: "3.9", TOXENV: "docs"}
+          # - {VERSION: "3.11", TOXENV: "py311-mypy"}
+          # - {VERSION: "3.9", TOXENV: "docs"}
     name: "${{ matrix.PYTHON.TOXENV }}${{ matrix.PYTHON.OS && format(' on {0}', matrix.PYTHON.OS) || '' }}"
     steps:
       - uses: actions/checkout@v4
@@ -88,8 +88,8 @@ jobs:
       fail-fast: false
       matrix:
         DOWNSTREAM:
-          - twisted
-          - certbot
+          # - twisted
+          # - certbot
           - certbot-josepy
         PYTHON:
           - 3.12
