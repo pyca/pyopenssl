@@ -1260,6 +1260,32 @@ class TestContext:
         num = _lib.sk_X509_OBJECT_num(sk_obj)
         assert num != 0
 
+    @pytest.mark.skipif(
+        not sys.platform == "win32",
+        reason=(
+            "Loading certificates from the Windows store only works on Windows"
+        ),
+    )
+    def test_default_verify_paths_windows_cert_store(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """
+        Test that we load certificates successfully on Windows from the system
+        stores. To do this we disable SSL_CTX_SET_default_verify_paths so that
+        it won't load any other certificates.
+        """
+        context = Context(SSLv23_METHOD)
+        monkeypatch.setattr(
+            _lib, "SSL_CTX_set_default_verify_paths", lambda x: 1
+        )
+        context.set_default_verify_paths()
+        store = context.get_cert_store()
+        assert store is not None
+        sk_obj = _lib.X509_STORE_get0_objects(store._store)
+        assert sk_obj != _ffi.NULL
+        num = _lib.sk_X509_OBJECT_num(sk_obj)
+        assert num != 0
+
     def test_check_env_vars(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """
         Test that we return True/False appropriately if the env vars are set.

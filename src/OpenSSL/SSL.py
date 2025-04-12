@@ -12,6 +12,9 @@ from sys import platform
 from typing import Any, Callable, Optional, TypeVar
 from weakref import WeakValueDictionary
 
+if platform == "win32":
+    import ssl
+
 from cryptography import x509
 from cryptography.hazmat.primitives.asymmetric import ec
 
@@ -40,6 +43,7 @@ from OpenSSL._util import (
     text_to_bytes_and_warn as _text_to_bytes_and_warn,
 )
 from OpenSSL.crypto import (
+    FILETYPE_ASN1,
     FILETYPE_PEM,
     X509,
     PKey,
@@ -48,6 +52,7 @@ from OpenSSL.crypto import (
     _EllipticCurve,
     _PassphraseHelper,
     _PrivateKey,
+    load_certificate,
 )
 
 __all__ = [
@@ -1013,7 +1018,6 @@ class Context:
         *   macOS will only load certificates using this method if the user has
             the ``openssl@1.1`` `Homebrew <https://brew.sh>`_ formula installed
             in the default location.
-        *   Windows will not work.
         *   manylinux cryptography wheels will work on most common Linux
             distributions in pyOpenSSL 17.1.0 and above.  pyOpenSSL detects the
             manylinux wheel and attempts to load roots via a fallback path.
@@ -1032,6 +1036,46 @@ class Context:
         # we won't try to do anything else because the user has set the path
         # themselves.
         if not self._check_env_vars_set("SSL_CERT_DIR", "SSL_CERT_FILE"):
+            # On Windows, fallback to the system store
+            if platform == "win32":
+                store = self.get_cert_store()
+                if store:
+                    # "ROOT" is the "Trusted Root Certification Authorities",
+                    # "CA" is the "Intermediate Certification Authorities"
+                    # The Python SSL module loads both, so do the same
+                    for store_name in ("ROOT", "CA"):
+                        for (
+                            cert_bytes,
+                            encoding_type,
+                            trust,
+                            # mypy does not like that this attribute does not
+                            # exist except on win32, even though it is guarded
+                            # above
+                        ) in ssl.enum_certificates(store_name):  # type: ignore[attr-defined]
+                            if encoding_type == "x509_asn":
+                                # Must be trusted for all purposes (True) or
+                                # for server authentication
+                                if (
+                                    trust is True
+                                    or "1.3.6.1.5.5.7.3.1" in trust
+                                ):
+                                    try:
+                                        store.add_cert(
+                                            load_certificate(
+                                                FILETYPE_ASN1, cert_bytes
+                                            )
+                                        )
+                                    except Error:
+                                        warnings.warn(
+                                            "Unable to load system "
+                                            "certificate: {e!s}"
+                                        )
+                            else:
+                                warnings.warn(
+                                    "Unrecognised certificate type ({type}) "
+                                    "when importing from system certificate "
+                                    "store."
+                                )
             default_dir = _ffi.string(_lib.X509_get_default_cert_dir())
             default_file = _ffi.string(_lib.X509_get_default_cert_file())
             # Now we check to see if the default_dir and default_file are set
