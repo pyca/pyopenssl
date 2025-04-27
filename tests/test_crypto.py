@@ -38,6 +38,7 @@ from OpenSSL.crypto import (
     PKey,
     X509Extension,
     X509Name,
+    X509Purpose,
     X509Req,
     X509Store,
     X509StoreContext,
@@ -3007,6 +3008,7 @@ class TestCRL:
     intermediate_server_key = load_privatekey(
         FILETYPE_PEM, intermediate_server_key_pem
     )
+    server_cert = load_certificate(FILETYPE_PEM, server_cert_pem)
 
     @staticmethod
     def _make_test_crl_cryptography(
@@ -3069,7 +3071,33 @@ class TestCRL:
             store_ctx.verify_certificate()
         assert str(err.value) == "certificate revoked"
 
-    def test_verify_with_missing_crl(self) -> None:
+    def test_verify_with_correct_purpose(self):
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        store.add_cert(self.intermediate_cert)
+        store.set_purpose(X509Purpose.X509_PURPOSE_SSL_SERVER)
+
+        store_ctx = X509StoreContext(store, self.server_cert)
+        store_ctx.verify_certificate()
+
+        # The intermediate server certificate has no EKU and so it is fit
+        # for any purpose
+        store_ctx = X509StoreContext(store, self.intermediate_server_cert)
+        store_ctx.verify_certificate()
+
+    def test_verify_with_incorrect_purpose(self):
+        store = X509Store()
+        store.add_cert(self.root_cert)
+        store.add_cert(self.intermediate_cert)
+        store.set_purpose(X509Purpose.X509_PURPOSE_SSL_CLIENT)
+
+        store_ctx = X509StoreContext(store, self.server_cert)
+        with pytest.raises(X509StoreContextError) as err:
+            store_ctx.verify_certificate()
+
+        assert err.value.args[0] == "unsupported certificate purpose"
+
+    def test_verify_with_missing_crl(self):
         """
         `verify_certificate` raises error when an intermediate certificate's
         CRL is missing.
