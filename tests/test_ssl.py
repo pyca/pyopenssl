@@ -1819,7 +1819,7 @@ class TestContext:
         It does not return anything.
         """
         context = Context(SSLv23_METHOD)
-        assert context.set_tlsext_use_srtp(b"SRTP_AES128_CM_SHA1_80") is None  # type: ignore[func-returns-value]
+        assert context.set_tlsext_use_srtp(b"SRTP_AES128_CM_SHA1_80") is None
 
 
 class TestServerNameCallback:
