@@ -48,7 +48,7 @@ jobs:
           # Meta
           - {VERSION: "3.9", TOXENV: "check-manifest"}
           - {VERSION: "3.11", TOXENV: "lint"}
-          - {VERSION: "3.11", TOXENV: "py311-mypy"}
+          - {VERSION: "3.13", TOXENV: "py313-mypy"}
           - {VERSION: "3.9", TOXENV: "docs"}
     name: "${{ matrix.PYTHON.TOXENV }}${{ matrix.PYTHON.OS && format(' on {0}', matrix.PYTHON.OS) || '' }}"
     steps:
