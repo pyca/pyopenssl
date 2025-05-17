@@ -4,8 +4,8 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
-UNRELEASED
-----------
+25.1.0 (2025-05-17)
+-------------------
 
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -19,6 +19,8 @@ Deprecations:
 
 Changes:
 ^^^^^^^^
+
+* ``cryptography`` maximum version has been increased to 45.0.x.
 
 
 25.0.0 (2025-01-12)
