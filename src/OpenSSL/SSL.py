@@ -840,13 +840,9 @@ def _require_not_used(f: F) -> F:
     @wraps(f)
     def inner(self: Context, *args: Any, **kwargs: Any) -> Any:
         if self._used:
-            warnings.warn(
-                (
-                    "Attempting to mutate a Context after a Connection was "
-                    "created. In the future, this will raise an exception"
-                ),
-                DeprecationWarning,
-                stacklevel=2,
+            raise ValueError(
+                "Context has already been used to create a Connection, it "
+                "cannot be mutated again"
             )
         return f(self, *args, **kwargs)
 
