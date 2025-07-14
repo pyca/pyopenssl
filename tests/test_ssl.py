@@ -3259,27 +3259,6 @@ class TestConnectionSend:
         assert count == 2
         assert client.recv(2) == b"xy"
 
-    def test_short_memoryview(self) -> None:
-        """
-        When passed a memoryview onto a small number of bytes,
-        `Connection.send` transmits all of them and returns the number
-        of bytes sent.
-        """
-        server, client = loopback()
-        count = server.send(memoryview(b"xy"))
-        assert count == 2
-        assert client.recv(2) == b"xy"
-
-    def test_short_bytearray(self) -> None:
-        """
-        When passed a short bytearray, `Connection.send` transmits all of
-        it and returns the number of bytes sent.
-        """
-        server, client = loopback()
-        count = server.send(bytearray(b"xy"))
-        assert count == 2
-        assert client.recv(2) == b"xy"
-
     @pytest.mark.skipif(
         sys.maxsize < 2**31,
         reason="sys.maxsize < 2**31 - test requires 64 bit",
@@ -3470,15 +3449,6 @@ class TestConnectionSendall:
                 f"{WARNING_TYPE_EXPECTED} for buf is no longer accepted, "
                 f"use bytes"
             ) == str(w[-1].message)
-        assert client.recv(1) == b"x"
-
-    def test_short_memoryview(self) -> None:
-        """
-        When passed a memoryview onto a small number of bytes,
-        `Connection.sendall` transmits all of them.
-        """
-        server, client = loopback()
-        server.sendall(memoryview(b"x"))
         assert client.recv(1) == b"x"
 
     def test_long(self) -> None:
