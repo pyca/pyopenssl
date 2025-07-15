@@ -2356,6 +2356,7 @@ class TestConnection:
         context = Context(SSLv23_METHOD)
         connection = Connection(context, None)
         connection.bio_write(b"xy")
+        connection.bio_write(bytearray(b"za"))
         with pytest.warns(DeprecationWarning):
             connection.bio_write("deprecated")  # type: ignore[arg-type]
 
