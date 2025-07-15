@@ -1469,6 +1469,9 @@ class Context:
         See the OpenSSL manual for more information (e.g.
         :manpage:`ciphers(1)`).
 
+        Note this API does not change the cipher suites used in TLS 1.3
+        Use `set_tls13_ciphersuites` for that.
+
         :param bytes cipher_list: An OpenSSL cipher string.
         :return: None
         """
@@ -1500,6 +1503,29 @@ class Context:
                     ),
                 ],
             )
+
+    @_require_not_used
+    def set_tls13_ciphersuites(self, ciphersuites: bytes) -> None:
+        """
+        Set the list of TLS 1.3 ciphers to be used in this context.
+        OpenSSL maintains a separate list of TLS 1.3+ ciphers to
+        ciphers for TLS 1.2 and lowers.
+
+        See the OpenSSL manual for more information (e.g.
+        :manpage:`ciphers(1)`).
+
+        :param bytes ciphersuites: An OpenSSL cipher string containing
+            TLS 1.3+ ciphersuites.
+        :return: None
+
+        .. versionadded:: 25.2.0
+        """
+        if not isinstance(ciphersuites, bytes):
+            raise TypeError("ciphersuites must be a byte string.")
+
+        _openssl_assert(
+            _lib.SSL_CTX_set_ciphersuites(self._context, ciphersuites) == 1
+        )
 
     @_require_not_used
     def set_client_ca_list(
