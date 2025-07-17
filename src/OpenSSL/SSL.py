@@ -276,6 +276,7 @@ SSL_CB_CONNECT_EXIT: int = _lib.SSL_CB_CONNECT_EXIT
 SSL_CB_HANDSHAKE_START: int = _lib.SSL_CB_HANDSHAKE_START
 SSL_CB_HANDSHAKE_DONE: int = _lib.SSL_CB_HANDSHAKE_DONE
 
+_Buffer = typing.Union[bytes, bytearray, memoryview]
 _T = TypeVar("_T")
 
 
@@ -2210,7 +2211,7 @@ class Connection:
         """
         return _lib.SSL_pending(self._ssl)
 
-    def send(self, buf: bytes, flags: int = 0) -> int:
+    def send(self, buf: _Buffer, flags: int = 0) -> int:
         """
         Send data on the connection. NOTE: If you get one of the WantRead,
         WantWrite or WantX509Lookup exceptions on this, you have to call the
@@ -2238,7 +2239,7 @@ class Connection:
 
     write = send
 
-    def sendall(self, buf: bytes, flags: int = 0) -> int:
+    def sendall(self, buf: _Buffer, flags: int = 0) -> int:
         """
         Send "all" data on the connection. This calls send() repeatedly until
         all data is sent. If an error occurs, it's impossible to tell how much
@@ -2370,7 +2371,7 @@ class Connection:
 
         return _ffi.buffer(buf, result)[:]
 
-    def bio_write(self, buf: bytes) -> int:
+    def bio_write(self, buf: _Buffer) -> int:
         """
         If the Connection was created with a memory BIO, this method can be
         used to add bytes to the read end of that memory BIO.  The Connection
