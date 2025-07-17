@@ -19,6 +19,7 @@ show_missing = true
 [tool.mypy]
 warn_unused_configs = true
 strict = true
+strict_bytes = true
 
 [[tool.mypy.overrides]]
 module = "OpenSSL.*"
