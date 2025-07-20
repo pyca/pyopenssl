@@ -426,7 +426,9 @@ def get_ssl_error_reason(ssl_error: SSL.Error) -> typing.Optional[str]:
             if isinstance(error_details, list) and len(error_details) > 0:
                 first_error_tuple = error_details[0]
                 if isinstance(first_error_tuple, tuple) and len(first_error_tuple) >= 3:
-                    return first_error_tuple[2]
+                    reason = first_error_tuple[2]
+                    if isinstance(reason, str):
+                        return reason
         return None
 
 def create_ssl_nonblocking_connection(mode: int) -> tuple[socket, socket, Connection, Connection]:
@@ -2472,7 +2474,7 @@ class TestConnection:
         context = Context(SSLv23_METHOD)
         connection = Connection(context, None)
         connection.bio_write(b"xy")
-        connection.bio_write(bytearray(b"za"))
+        connection.bio_write(bytearray(b"za"))  # type: ignore[arg-type]
         with pytest.warns(DeprecationWarning):
             connection.bio_write("deprecated")  # type: ignore[arg-type]
 
@@ -3113,69 +3115,63 @@ class TestConnection:
 
     # XXX want_read
 
-    def _badwriteretry(self, mode) -> bool:
+    def _badwriteretry(self, mode: int) -> bool:
         """
-        `Connection` methods which generate output raise
-        `OpenSSL.SSL.WantWriteError` if writing to the connection's BIO
-        fail indicating a should-write state.
+        Tries to force a "bad write retry" error over an SSL connection by using a moving buffer
+        Returns True if a bad write retry error occurs.
         """
         client_socket, server_socket, client, server = create_ssl_nonblocking_connection(mode)
-
+        result = False  # Default return value
         written = 0
 
-        import os
-        print("Client PID:")
-        print(os.getpid())
-        
-        # Fill up the client's raw send buffer so the SSL connection won't be able to write
-        # anything. Start by sending larger chunks
-        # and continue by writing smaller chunks so we can be sure we
-        # completely fill the buffer. 
-        msg = 'test'
-        for msg in [b"x" * 65536, b"x" * 16]:
-            for i in range(1024 * 1024 * 64):
-                try:
-                    written = client_socket.send(msg)
-                    print(f"Sent {written} bytes to fill buffer")
-                except OSError as e:
-                    if e.errno == EWOULDBLOCK:
-                        break
-                    raise
-            else:
-                pytest.fail(
-                    "Failed to fill socket buffer, cannot test bad write error"
-                )
-
-        # Now, attempt to send application data over the *established* SSL connection.
-        # Since the underlying raw socket's buffer is full, this should cause a WantWriteError.
-        print("Attempting to send data over SSL connection with full buffer...")
-        msg2 = b"Y" * 65536 #b"This data should trigger WantWriteError due to full buffer."
-
         try:
-            written = client.send(msg2)
-        except SSL.WantWriteError as e:
-            print(f"Raised OpenSSL.SSL.WantWriteError as expected: {e} {written} bytes")
+            # Fill up the client's raw send buffer so the SSL connection won't be able to write
+            # anything. Start by sending larger chunks
+            # and continue by writing smaller chunks so we can be sure we
+            # completely fill the buffer. 
+            for msg in [b"x" * 65536, b"x" * 16]:
+                for i in range(1024 * 1024 * 64):
+                    try:
+                        written = client_socket.send(msg)
+                        print(f"Sent {written} bytes to fill buffer")
+                    except OSError as e:
+                        if e.errno == EWOULDBLOCK:
+                            break
+                        raise
+                else:
+                    pytest.fail(
+                        "Failed to fill socket buffer, cannot test bad write error"
+                    )
+
+            # Now, attempt to send application data over the *established* SSL connection.
+            # Since the underlying raw socket's buffer is full, this should cause a WantWriteError.
+            print("Attempting to send data over SSL connection with full buffer...")
+            msg2 = b"Y" * 65536
+
             try:
-                # do a retry write which should fail unless SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER is set
-                # because we are passing a new buffer that has the same size as the previous but a different location
-                msg3 = b"Z" * 65536
-                written = client.send(msg3)
-                print(f"Retry succeeded unexpectedly: {written} bytes")
+                written = client.send(msg2)
+            except SSL.WantWriteError as e:
+                print(f"Raised OpenSSL.SSL.WantWriteError as expected: {e} {written} bytes")
+                try:
+                    # do a retry write which should fail unless SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER is set
+                    msg3 = b"Z" * 65536
+                    written = client.send(msg3)
+                    print(f"Retry succeeded unexpectedly: {written} bytes")
+                    result = False  # Unexpected success
+                except SSL.Error as e:
+                    reason = get_ssl_error_reason(e)
+                    if reason == "bad write retry":
+                        print(f"Got expected SSL error on retry: {e}")
+                        result = True  # Expected behavior
+                    else:
+                        print(f"Got unexpected SSL error on retry: {e}")
+                        result = False  # Unexpected error
+
             except SSL.Error as e:
                 reason = get_ssl_error_reason(e)
-                if reason == "bad write retry":
-                    print(f"Got expected SSL error on retry: {e}")
-                    return True
-                else:
-                    print(f"Got unexpected SSL error on retry: {e}")
-                    return False
-                #print(f"Got expected SSL error on retry: {e} {written} bytes")
-
-        except SSL.Error as e:
-            reason = get_ssl_error_reason(e)
-            pytest.fail(f"Got unexpected SSL error on retry: {e} {reason}")
-        except Exception as e:
-            pytest.fail(f"Unexpected exception during send: {e}")
+                pytest.fail(f"Got unexpected SSL error on retry: {e} {reason}")
+            except Exception as e:
+                pytest.fail(f"Unexpected exception during send: {e}")
 
         finally:
             # Cleanup: shut down SSL connections and close raw sockets
@@ -3191,6 +3187,8 @@ class TestConnection:
                     client_socket.close()
                 if server_socket:
                     server_socket.close()
+        
+        return result  # Return the result after cleanup
 
     def test_moving_write_buffer_should_pass(self) -> None:
         """
@@ -3491,7 +3489,7 @@ class TestConnectionSend:
         of bytes sent.
         """
         server, client = loopback()
-        count = server.send(memoryview(b"xy"))
+        count = server.send(memoryview(b"xy")) # type: ignore[arg-type]
         assert count == 2
         assert client.recv(2) == b"xy"
 
@@ -3501,7 +3499,7 @@ class TestConnectionSend:
         it and returns the number of bytes sent.
         """
         server, client = loopback()
-        count = server.send(bytearray(b"xy"))
+        count = server.send(bytearray(b"xy")) # type: ignore[arg-type]
         assert count == 2
         assert client.recv(2) == b"xy"
 
@@ -3703,7 +3701,7 @@ class TestConnectionSendall:
         `Connection.sendall` transmits all of them.
         """
         server, client = loopback()
-        server.sendall(memoryview(b"x"))
+        server.sendall(memoryview(b"x")) # type: ignore[arg-type]
         assert client.recv(1) == b"x"
 
     def test_long(self) -> None:
