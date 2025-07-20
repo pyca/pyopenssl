@@ -31,9 +31,9 @@ from socket import (
     AF_INET6,
     MSG_PEEK,
     SHUT_RDWR,
-    SOL_SOCKET,
-    SO_SNDBUF,
     SO_RCVBUF,
+    SO_SNDBUF,
+    SOL_SOCKET,
     gaierror,
     socket,
 )
@@ -421,21 +421,27 @@ def get_ssl_error_reason(ssl_error: SSL.Error) -> str | None:
     Extracts the reason string from the first error tuple in an SSL.Error.
     Returns None if the expected error structure is not found.
     """
-    if ssl_error.args and isinstance(ssl_error.args, tuple) and \
-            len(ssl_error.args) > 0:
+    if (
+        ssl_error.args
+        and isinstance(ssl_error.args, tuple)
+        and len(ssl_error.args) > 0
+    ):
         error_details = ssl_error.args[0]  # list of error tuples
         if isinstance(error_details, list) and len(error_details) > 0:
             first_error_tuple = error_details[0]
-            if isinstance(first_error_tuple, tuple) and \
-                    len(first_error_tuple) >= 3:
+            if (
+                isinstance(first_error_tuple, tuple)
+                and len(first_error_tuple) >= 3
+            ):
                 reason = first_error_tuple[2]
                 if isinstance(reason, str):
                     return reason
     return None
 
 
-def create_ssl_nonblocking_connection(mode: int) \
-        -> tuple[socket, socket, Connection, Connection]:
+def create_ssl_nonblocking_connection(
+    mode: int,
+) -> tuple[socket, socket, Connection, Connection]:
     """
     Create a pair of sockets and set up an SSL connection between them.
     """
@@ -462,8 +468,8 @@ def create_ssl_nonblocking_connection(mode: int) \
     # these modes are set by default when ctx is initialized
     # clear them so we can run tests with or without them
     ctx.clear_mode(
-        _lib.SSL_MODE_ENABLE_PARTIAL_WRITE |
-        _lib.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
+        _lib.SSL_MODE_ENABLE_PARTIAL_WRITE
+        | _lib.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
     )
 
     ctx.set_mode(mode)
@@ -526,7 +532,7 @@ def create_ssl_nonblocking_connection(mode: int) \
                 [client_socket, server_socket],
                 [client_socket, server_socket],
                 [client_socket, server_socket],
-                1.0  # 1 second timeout
+                1.0,  # 1 second timeout
             )
 
             if ready_err:
@@ -3131,8 +3137,9 @@ class TestConnection:
         by using a moving buffer. Returns True if a bad write retry
         error occurs.
         """
-        client_socket, server_socket, client, server \
-            = create_ssl_nonblocking_connection(mode)
+        client_socket, server_socket, client, server = (
+            create_ssl_nonblocking_connection(mode)
+        )
         result = False  # Default return value
         written = 0
 
@@ -3221,8 +3228,10 @@ class TestConnection:
         result = self._badwriteretry(mode)
 
         if result:
-            pytest.fail("Using SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER failed to \
-                        prevent bad write rety")
+            pytest.fail(
+                "Using SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER failed to \
+                        prevent bad write rety"
+            )
 
     def test_moving_write_buffer_should_fail(self) -> None:
         """
@@ -3236,8 +3245,10 @@ class TestConnection:
         result = self._badwriteretry(mode)
 
         if not result:
-            pytest.fail("Using SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER failed to \
-                        prevent bad write rety")
+            pytest.fail(
+                "Using SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER failed to \
+                        prevent bad write rety"
+            )
 
     def test_get_finished_before_connect(self) -> None:
         """
