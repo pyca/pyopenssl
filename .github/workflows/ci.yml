@@ -22,7 +22,6 @@ jobs:
           - {VERSION: "pypy-3.10", TOXENV: "pypy3"}
           - {VERSION: "3.11", TOXENV: "py311-useWheel", OS: "windows-2022" }
           # -cryptographyMain
-          - {VERSION: "3.7", TOXENV: "py37-cryptographyMain"}
           - {VERSION: "3.8", TOXENV: "py38-cryptographyMain"}
           - {VERSION: "3.9", TOXENV: "py39-cryptographyMain"}
           - {VERSION: "3.10", TOXENV: "py310-cryptographyMain"}
