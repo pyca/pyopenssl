@@ -1718,14 +1718,12 @@ class Context:
         return _lib.SSL_CTX_set_mode(self._context, mode)
     
     #@_require_not_used
-    def clear_mode(self) -> int:
+    def clear_mode(self, mode_to_clear: int) -> int:
         """
         Modes previously set cannot be overwritten without being cleared first.  
-        This method should be used to clear prior to re-settting.
+        This method should be used to clear existing modes
         """
-
-        mode = 0xFFFFFFFF
-        return _lib.SSL_CTX_clear_mode(self._context, mode)
+        return _lib.SSL_CTX_clear_mode(self._context, mode_to_clear)
 
     @_require_not_used
     def set_tlsext_servername_callback(

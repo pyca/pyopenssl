@@ -455,7 +455,11 @@ def create_ssl_nonblocking_connection(mode: int) -> tuple[socket, socket, Connec
         # Create a context with the necessary modes
         ctx = Context(SSLv23_METHOD)
         
-        ctx.clear_mode()
+        # these modes are set by default when ctx is initialized
+        # clear them so we can run tests with or without them
+        ctx.clear_mode(_lib.SSL_MODE_ENABLE_PARTIAL_WRITE
+            | _lib.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER)
+        
         ctx.set_mode(mode)
         ctx.use_privatekey(key)
         ctx.use_certificate(cert)
@@ -3489,7 +3493,7 @@ class TestConnectionSend:
         of bytes sent.
         """
         server, client = loopback()
-        count = server.send(memoryview(b"xy")) # type: ignore[arg-type]
+        count = server.send(memoryview(b"xy"))
         assert count == 2
         assert client.recv(2) == b"xy"
 
@@ -3499,7 +3503,7 @@ class TestConnectionSend:
         it and returns the number of bytes sent.
         """
         server, client = loopback()
-        count = server.send(bytearray(b"xy")) # type: ignore[arg-type]
+        count = server.send(bytearray(b"xy"))
         assert count == 2
         assert client.recv(2) == b"xy"
 
@@ -3701,7 +3705,7 @@ class TestConnectionSendall:
         `Connection.sendall` transmits all of them.
         """
         server, client = loopback()
-        server.sendall(memoryview(b"x")) # type: ignore[arg-type]
+        server.sendall(memoryview(b"x"))
         assert client.recv(1) == b"x"
 
     def test_long(self) -> None:
