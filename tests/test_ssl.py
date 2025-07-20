@@ -31,6 +31,9 @@ from socket import (
     AF_INET6,
     MSG_PEEK,
     SHUT_RDWR,
+    SOL_SOCKET,
+    SO_SNDBUF,
+    SO_RCVBUF,
     gaierror,
     socket,
 )
@@ -411,6 +414,119 @@ def handshake_in_memory(
             pass
 
     interact_in_memory(client_conn, server_conn)
+
+
+def get_ssl_error_reason(ssl_error: SSL.Error) -> typing.Optional[str]:
+        """
+        Extracts the reason string from the first error tuple in an OpenSSL.SSL.Error.
+        Returns None if the expected error structure is not found.
+        """
+        if ssl_error.args and isinstance(ssl_error.args, tuple) and len(ssl_error.args) > 0:
+            error_details = ssl_error.args[0] # This should be the list of error tuples
+            if isinstance(error_details, list) and len(error_details) > 0:
+                first_error_tuple = error_details[0]
+                if isinstance(first_error_tuple, tuple) and len(first_error_tuple) >= 3:
+                    return first_error_tuple[2]
+        return None
+
+def create_ssl_nonblocking_connection(mode: int) -> tuple[socket, socket, Connection, Connection]:
+        """
+        Create a pair of sockets and set up an SSL connection between them.
+        """
+        # Create a private key and a certificate to use for the server
+        key = PKey()
+        key.generate_key(TYPE_RSA, 2048)
+        cert = X509()
+        cert.set_version(2)
+        cert.get_subject().C = b"US"
+        cert.get_subject().ST = b"California"
+        cert.get_subject().L = b"Palo Alto"
+        cert.get_subject().O = b"pyOpenSSL"
+        cert.get_subject().CN = b"localhost"
+        cert.set_serial_number(1)
+        cert.gmtime_adj_notBefore(0)
+        cert.gmtime_adj_notAfter(60 * 60)
+        cert.set_issuer(cert.get_subject())
+        cert.set_pubkey(key)
+        cert.sign(key, "sha1")
+
+        # Create a context with the necessary modes
+        ctx = Context(SSLv23_METHOD)
+        
+        ctx.clear_mode()
+        ctx.set_mode(mode)
+        ctx.use_privatekey(key)
+        ctx.use_certificate(cert)
+
+        # Create connections with real sockets
+        client_socket, server_socket = socket_pair()
+
+        # Create Connection objects from the sockets
+        client = Connection(ctx, client_socket)
+        server = Connection(ctx, server_socket)
+
+        # Set the buffers to be very small so we can easily fill them
+        client_socket.setsockopt(SOL_SOCKET, SO_SNDBUF, 256) 
+        server_socket.setsockopt(SOL_SOCKET, SO_RCVBUF, 128)
+
+        # Manually set the connection state
+        client.set_connect_state()
+        server.set_accept_state()
+
+        # Perform the handshake with proper completion detection
+        client_handshake_done = False
+        server_handshake_done = False
+        max_handshake_attempts = 100  # Prevent infinite loops
+        attempts = 0
+        
+        while not (client_handshake_done and server_handshake_done) and attempts < max_handshake_attempts:
+            attempts += 1
+            
+            # Try client handshake
+            if not client_handshake_done:
+                try:
+                    client.do_handshake()
+                    client_handshake_done = True
+                except SSL.WantReadError:
+                    # Client needs to read data
+                    pass
+                except SSL.WantWriteError:
+                    # Client needs to write data
+                    pass
+            
+            # Try server handshake
+            if not server_handshake_done:
+                try:
+                    server.do_handshake()
+                    server_handshake_done = True
+                except SSL.WantReadError:
+                    # Server needs to read data
+                    pass
+                except SSL.WantWriteError:
+                    # Server needs to write data
+                    pass
+            
+            # If neither handshake is complete, wait for socket activity
+            if not (client_handshake_done and server_handshake_done):
+                # Use select to wait for socket activity
+                ready_read, ready_write, ready_error = select.select(
+                    [client_socket, server_socket], 
+                    [client_socket, server_socket], 
+                    [client_socket, server_socket], 
+                    1.0  # 1 second timeout
+                )
+                
+                if ready_error:
+                    raise Exception(f"Socket error during handshake: {ready_error}")
+                
+                if not (ready_read or ready_write):
+                    # Timeout occurred, but continue trying
+                    continue
+        
+        if not (client_handshake_done and server_handshake_done):
+            raise Exception("SSL handshake failed to complete")
+        return client_socket,server_socket,client,server
+    
 
 
 class TestVersion:
@@ -2996,6 +3112,115 @@ class TestConnection:
             conn.do_handshake()
 
     # XXX want_read
+
+    def _badwriteretry(self, mode) -> bool:
+        """
+        `Connection` methods which generate output raise
+        `OpenSSL.SSL.WantWriteError` if writing to the connection's BIO
+        fail indicating a should-write state.
+        """
+        client_socket, server_socket, client, server = create_ssl_nonblocking_connection(mode)
+
+        written = 0
+
+        import os
+        print("Client PID:")
+        print(os.getpid())
+        
+        # Fill up the client's raw send buffer so the SSL connection won't be able to write
+        # anything. Start by sending larger chunks
+        # and continue by writing smaller chunks so we can be sure we
+        # completely fill the buffer. 
+        msg = 'test'
+        for msg in [b"x" * 65536, b"x" * 16]:
+            for i in range(1024 * 1024 * 64):
+                try:
+                    written = client_socket.send(msg)
+                    print(f"Sent {written} bytes to fill buffer")
+                except OSError as e:
+                    if e.errno == EWOULDBLOCK:
+                        break
+                    raise
+            else:
+                pytest.fail(
+                    "Failed to fill socket buffer, cannot test bad write error"
+                )
+
+        # Now, attempt to send application data over the *established* SSL connection.
+        # Since the underlying raw socket's buffer is full, this should cause a WantWriteError.
+        print("Attempting to send data over SSL connection with full buffer...")
+        msg2 = b"Y" * 65536 #b"This data should trigger WantWriteError due to full buffer."
+
+        try:
+            written = client.send(msg2)
+        except SSL.WantWriteError as e:
+            print(f"Raised OpenSSL.SSL.WantWriteError as expected: {e} {written} bytes")
+            try:
+                # do a retry write which should fail unless SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER is set
+                # because we are passing a new buffer that has the same size as the previous but a different location
+                msg3 = b"Z" * 65536
+                written = client.send(msg3)
+                print(f"Retry succeeded unexpectedly: {written} bytes")
+            except SSL.Error as e:
+                reason = get_ssl_error_reason(e)
+                if reason == "bad write retry":
+                    print(f"Got expected SSL error on retry: {e}")
+                    return True
+                else:
+                    print(f"Got unexpected SSL error on retry: {e}")
+                    return False
+                #print(f"Got expected SSL error on retry: {e} {written} bytes")
+
+        except SSL.Error as e:
+            reason = get_ssl_error_reason(e)
+            pytest.fail(f"Got unexpected SSL error on retry: {e} {reason}")
+        except Exception as e:
+            pytest.fail(f"Unexpected exception during send: {e}")
+
+        finally:
+            # Cleanup: shut down SSL connections and close raw sockets
+            try:
+                if client:
+                    client.shutdown()
+                if server:
+                    server.shutdown()
+            except Exception as e:
+                print(f"Error during SSL shutdown: {e}")
+            finally:
+                if client_socket:
+                    client_socket.close()
+                if server_socket:
+                    server_socket.close()
+
+    def test_moving_write_buffer_should_pass(self) -> None:
+        """
+        After an `OpenSSL.SSL.WantWriteError` if the SSL connection processed some data
+        the connection may expect a retry with the same buffer. Using mode SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER makes
+        possible to use a different buffer location provided the length is the same.
+        """
+        mode = (
+            _lib.SSL_MODE_ENABLE_PARTIAL_WRITE
+            | _lib.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
+        )
+        result = self._badwriteretry(mode)
+
+        if result:
+            pytest.fail("Using SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER failed to prevent bad write rety")
+
+    def test_moving_write_buffer_should_fail(self) -> None:
+        """
+        After an `OpenSSL.SSL.WantWriteError` if the SSL connection processed some data
+        the connection may expect a retry with the same buffer. Failure to use mode SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
+        should generate a bad write retry error if a different buffer is presented for the retry.
+        """
+        mode = 0
+        result = self._badwriteretry(mode)
+
+        if not result:
+            pytest.fail("Using SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER failed to prevent bad write rety")
+
+    # XXX want_read
+
 
     def test_get_finished_before_connect(self) -> None:
         """

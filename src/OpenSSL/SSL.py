@@ -1716,6 +1716,16 @@ class Context:
             raise TypeError("mode must be an integer")
 
         return _lib.SSL_CTX_set_mode(self._context, mode)
+    
+    #@_require_not_used
+    def clear_mode(self) -> int:
+        """
+        Modes previously set cannot be overwritten without being cleared first.  
+        This method should be used to clear prior to re-settting.
+        """
+
+        mode = 0xFFFFFFFF
+        return _lib.SSL_CTX_clear_mode(self._context, mode)
 
     @_require_not_used
     def set_tlsext_servername_callback(
