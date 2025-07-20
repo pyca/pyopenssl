@@ -1717,7 +1717,7 @@ class Context:
 
         return _lib.SSL_CTX_set_mode(self._context, mode)
 
-    #@_require_not_used
+    @_require_not_used
     def clear_mode(self, mode_to_clear: int) -> int:
         """
         Modes previously set cannot be overwritten without being
