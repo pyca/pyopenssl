@@ -416,7 +416,7 @@ def handshake_in_memory(
     interact_in_memory(client_conn, server_conn)
 
 
-def get_ssl_error_reason(ssl_error: SSL.Error) -> typing.Optional[str]:
+def get_ssl_error_reason(ssl_error: SSL.Error) -> str | None:
     """
     Extracts the reason string from the first error tuple in an SSL.Error.
     Returns None if the expected error structure is not found.
@@ -447,7 +447,7 @@ def create_ssl_nonblocking_connection(mode: int) \
     cert.get_subject().C = b"US"
     cert.get_subject().ST = b"California"
     cert.get_subject().L = b"Palo Alto"
-    cert.get_subject().O = b"pyOpenSSL"  # noqa: E741
+    cert.get_subject().O = b"pyOpenSSL"
     cert.get_subject().CN = b"localhost"
     cert.set_serial_number(1)
     cert.gmtime_adj_notBefore(0)
@@ -2484,7 +2484,7 @@ class TestConnection:
         context = Context(SSLv23_METHOD)
         connection = Connection(context, None)
         connection.bio_write(b"xy")
-        connection.bio_write(bytearray(b"za"))  # type: ignore[arg-type]
+        connection.bio_write(bytearray(b"za"))
         with pytest.warns(DeprecationWarning):
             connection.bio_write("deprecated")  # type: ignore[arg-type]
 
