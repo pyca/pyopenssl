@@ -3175,7 +3175,7 @@ class TestConnection:
                     pytest.fail("Retry succeeded unexpectedly")
                 except SSL.Error as e:
                     reason = get_ssl_error_reason(e)
-                    if reason == "Bad write retry":
+                    if reason == "bad write retry":
                         # Got SSL error on retry (expected if not using \
                         # SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER)
                         result = True
