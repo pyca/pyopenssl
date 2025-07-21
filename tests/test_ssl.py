@@ -3132,6 +3132,8 @@ class TestConnection:
     # XXX want_read
 
     def _badwriteretry(self, mode: int) -> bool:
+        import time
+
         """
         Tries to force a "bad write retry" error over an SSL connection
         by using a moving buffer. Returns True if a bad write retry
@@ -3153,6 +3155,7 @@ class TestConnection:
                     try:
                         written = client_socket.send(msg)
                         print(f"Sent {written} bytes to fill buffer")
+                        time.sleep(0.01)
                     except OSError as e:
                         if e.errno == EWOULDBLOCK:
                             break
@@ -3165,21 +3168,185 @@ class TestConnection:
 
             # Now, attempt to send application data over the established
             # SSL connection. Since the underlying raw socket's buffer is full,
-            # this should cause a WantWriteError.
-            msg2 = b"Y" * 65536
+            # this should cause a WantWriteError. Start with small messages
+            # and increase size until we get WantWriteError. This ensures we
+            # find the minimum size that triggers the error reliably.
+            test_sizes = [
+                64,
+                128,
+                256,
+                512,
+                1024,
+                2048,
+                4096,
+                8192,
+                16384,
+                32768,
+                65536,
+            ]
+            initial_want_write_triggered = False
+            successful_size = None
 
-            try:
-                written = client.send(msg2)
-            except SSL.WantWriteError:
+            for size in test_sizes:
+                msg2 = b"Y" * size
+                try:
+                    written = client.send(msg2)
+                    print(
+                        f"Write succeeded with size {size}. "
+                        f"wrote {written} bytes - trying larger size"
+                    )
+                    successful_size = size
+                    continue  # Try next larger size
+                except SSL.WantWriteError:
+                    print(
+                        f"Got WantWriteError with message size {size} "
+                        "(this is what we want)"
+                    )
+                    initial_want_write_triggered = True
+                    successful_size = size
+                    break
+
+            if not initial_want_write_triggered:
+                if successful_size:
+                    print(
+                        f"All sizes succeeded up to {successful_size}. "
+                        "The buffer may not be full enough"
+                    )
+                    pytest.fail(
+                        "Could not trigger WantWriteError even with largest "
+                        f"message size {test_sizes[-1]}"
+                    )
+                else:
+                    pytest.fail("Could not send any message size")
+
+            if initial_want_write_triggered:
+                # We got the WantWriteError we wanted, proceed with the test
+                # Start reading from the server connection to drain the buffer
+                # Since we filled the buffer with raw data, we need to read
+                # from the raw server socket, not the SSL connection.
+                total_read = 0
+                read_chunks = []
+
+                try:
+                    # First, try to read any SSL data that might be available
+                    try:
+                        ssl_data = server.recv(65536)
+                        if ssl_data:
+                            read_chunks.append(ssl_data)
+                            total_read += len(ssl_data)
+                            print(
+                                f"Read {len(ssl_data)} bytes of "
+                                "SSL data from server"
+                            )
+                            time.sleep(0.01)  # Small delay after SSL read
+                    except (SSL.WantReadError, SSL.Error) as ssl_error:
+                        print(
+                            f"No SSL data available or SSL error: {ssl_error}"
+                        )
+
+                    # Now read raw data from the underlying server socket
+                    # to drain buffer
+                    server_socket.setblocking(False)  # Ensure non-blocking
+                    consecutive_empty_reads = 0
+
+                    while (
+                        total_read < 1024 * 1024
+                    ):  # Read up to 1MB or until no more data
+                        try:
+                            data = server_socket.recv(
+                                65536
+                            )  # Read raw data from underlying socket
+                            if not data:
+                                consecutive_empty_reads += 1
+                                if consecutive_empty_reads >= 3:
+                                    print(
+                                        "Multiple empty reads, assuming "
+                                        "no more data"
+                                    )
+                                    break
+                                time.sleep(
+                                    0.05
+                                )  # Wait a bit for more data to arrive
+                                continue
+
+                            consecutive_empty_reads = (
+                                0  # Reset counter on successful read
+                            )
+                            read_chunks.append(data)
+                            total_read += len(data)
+                            print(
+                                f"Read {len(data)} bytes of raw data from "
+                                f"server socket (total: {total_read})"
+                            )
+
+                            # Add small delay between reads to allow network
+                            # buffers to settle
+                            time.sleep(0.01)
+
+                        except OSError as e:
+                            if e.errno == EWOULDBLOCK:
+                                # No more data available right now, wait a bit
+                                consecutive_empty_reads += 1
+                                if consecutive_empty_reads >= 5:
+                                    print(
+                                        "No more raw data available from "
+                                        "server socket after retries"
+                                    )
+                                    break
+                                print(
+                                    "No data available, waiting... "
+                                    f"(attempt {consecutive_empty_reads})"
+                                )
+                                time.sleep(
+                                    0.1
+                                )  # Wait longer when buffer is empty
+                                continue
+                            else:
+                                print(
+                                    "OSError while reading from server"
+                                    f"socket: {e}"
+                                )
+                                break
+
+                    print(
+                        "Finished reading from server. "
+                        f"Total bytes read: {total_read}"
+                    )
+
+                    # Give additional time for network stack to process
+                    # the drained data
+                    print("Allowing network buffers to settle...")
+                    time.sleep(0.2)
+
+                except Exception as read_exception:
+                    print(
+                        "Exception while reading from "
+                        f"server: {read_exception}"
+                    )
+
                 try:
                     # After a WantWriteError if the connection has partially
                     # written the last buffer it will expect a retry write.
-                    # This next write should fail but for two different reasons
-                    # depending on whether SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
-                    # was set
-                    msg3 = b"Z" * 65536
+                    # This next write should succeed only if
+                    # SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER was set as we will
+                    # use a DIFFERENT message from the first one to test moving
+                    # buffer behavior. If SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
+                    # is NOT set, this should give "bad write retry"
+                    msg3 = (b"Z" * successful_size)
+                    # Same size, different content -
+                    # this is the "moving buffer".
+                    # By setting different content we guarantee a different
+                    # buffer. If we set the same content Python will typically
+                    # optimize to use ths same buffer as before
+                    print(
+                        "Attempting retry with different buffer "
+                        f"(same size {successful_size})"
+                    )
+
                     written = client.send(msg3)
-                    pytest.fail("Retry succeeded unexpectedly")
+                    print(f"Retry succeeded with {written} bytes written")
+                    result = False
+                    # pytest.fail("Retry succeeded unexpectedly")
                 except SSL.Error as e:
                     reason = get_ssl_error_reason(e)
                     if reason == "bad write retry":
@@ -3189,13 +3356,21 @@ class TestConnection:
                     else:
                         # when using SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
                         # we expect this to fail for a WantWriteError
-                        result = False
+                        pytest.fail("Retry failed with out bad write error")
 
-            except SSL.Error as e:
-                reason = get_ssl_error_reason(e)
-                pytest.fail(f"Got unexpected SSL error on retry: {e} {reason}")
-            except Exception as e:
-                pytest.fail(f"Unexpected exception during send: {e}")
+            else:
+                # This shouldn't happen given our logic above,
+                # but handle it gracefully
+                pytest.fail(
+                    "Unexpected state: no WantWriteError triggered "
+                    "and no successful size found"
+                )
+
+        except SSL.Error as e:
+            reason = get_ssl_error_reason(e)
+            pytest.fail(f"Got unexpected SSL error: {e} {reason}")
+        except Exception as e:
+            pytest.fail(f"Unexpected exception during send: {e}")
 
         finally:
             # Cleanup: shut down SSL connections and close raw sockets
