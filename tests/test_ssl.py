@@ -3230,7 +3230,7 @@ class TestConnection:
         if result:
             pytest.fail(
                 "Using SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER failed to \
-                        prevent bad write rety"
+                        prevent bad write retry"
             )
 
     def test_moving_write_buffer_should_fail(self) -> None:
