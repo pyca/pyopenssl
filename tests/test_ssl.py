@@ -3247,7 +3247,7 @@ class TestConnection:
         if not result:
             pytest.fail(
                 "Use of a moving buffer without \
-                    SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER should have \
+                    SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER should trigger \
                     a bad write retry error"
             )
 
