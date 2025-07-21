@@ -3332,7 +3332,7 @@ class TestConnection:
                     # use a DIFFERENT message from the first one to test moving
                     # buffer behavior. If SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
                     # is NOT set, this should give "bad write retry"
-                    msg3 = (b"Z" * successful_size)
+                    msg3 = b"Z" * successful_size
                     # Same size, different content -
                     # this is the "moving buffer".
                     # By setting different content we guarantee a different
