@@ -3215,8 +3215,8 @@ class TestConnection:
         return initial_want_write_triggered, successful_size
 
     def _drain_server_buffers(
-            self, server: Connection,
-            server_socket: socket) -> None:
+        self, server: Connection, server_socket: socket
+    ) -> None:
         """Reads from server SSL and raw sockets to drain any pending data."""
         print("--- Phase 3: Draining server buffers ---")
         total_read = 0
@@ -3334,7 +3334,7 @@ class TestConnection:
         client: Connection,
         server: Connection,
         client_socket: socket,
-        server_socket: socket
+        server_socket: socket,
     ) -> None:
         """Helper to safely shut down SSL connections and close sockets."""
         print("--- Cleanup: Shutting down connections ---")
