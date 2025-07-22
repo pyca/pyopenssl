@@ -3109,12 +3109,13 @@ class TestConnection:
         # signal a short write via its return value it seems this doesn't
         # always happen on all platforms (FreeBSD and OS X particular) for the
         # very last bit of available buffer space.
-        for msg in [b"x" * 65536, b"x"]:
+        for msg in [b"x" * 65536, b"x" * 16, b"x"]:
             for i in range(1024 * 1024 * 64):
                 try:
                     client_socket.send(msg)
                 except OSError as e:
                     if e.errno == EWOULDBLOCK:
+                        time.sleep(0.1)
                         break
                     raise  # pragma: no cover
             else:  # pragma: no cover
@@ -3298,11 +3299,10 @@ class TestConnection:
     ) -> bool:
         """
         Attempts a retry write with a moving buffer and checks for
-        'bad write retry' error. Assumes successful_size is an int.
+        'bad write retry' error.
         Returns True if 'bad write retry' occurs, False otherwise.
         """
         print("--- Phase 4: Performing moving buffer retry test ---")
-        # Assert added for MyPy as discussed previously
         assert successful_size > -1, (
             "successful_size must be greater than -1 for a WantWriteError "
             "to be triggered"
@@ -3317,12 +3317,12 @@ class TestConnection:
         try:
             client.send(msg3)
             print(f"Retry succeeded with {successful_size} bytes written.")
-            return False  # Retry succeeded unexpectedly
+            return False  # Retry succeeded
         except SSL.Error as e:
             reason = get_ssl_error_reason(e)
             if reason == "bad write retry":
                 print(f"Got expected SSL error: {e} ({reason}).")
-                return True  # Expected error
+                return True  # Bad write retry
             else:
                 pytest.fail(
                     f"Retry failed with unexpected SSL error: {e} ({reason})."
@@ -3389,10 +3389,6 @@ class TestConnection:
                 pytest.fail(
                     "Unexpected state: WantWriteError was not triggered."
                 )
-
-        except SSL.Error as e:
-            reason = get_ssl_error_reason(e)
-            pytest.fail(f"Got unexpected SSL error: {e} ({reason}).")
         except Exception as e:
             pytest.fail(f"Unexpected exception during test: {e}.")
         finally:
