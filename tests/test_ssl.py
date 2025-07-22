@@ -3144,21 +3144,18 @@ class TestConnection:
             ):  # Large loop count to ensure buffer fill
                 try:
                     client_socket.send(msg)
-                    # print(f"Sent {written} bytes to fill buffer")
                     time.sleep(0.01)
                 except OSError as e:
                     if e.errno == EWOULDBLOCK:
                         print("Client socket buffer filled (EWOULDBLOCK hit).")
                         return  # Buffer successfully filled, exit function
-                    raise  # Re-raise other unexpected OSErrors
+                    raise  # pragma: no cover # Re-raise unexpected OSErrors
             else:  # If the inner loop completes without hitting EWOULDBLOCK
                 pytest.fail(
                     "Failed to fill socket buffer, cannot test bad write error"
-                )
+                )  # pragma: no cover
 
-    def _attempt_want_write_error(
-        self, client: Connection
-    ) -> tuple[bool, int]:
+    def _attempt_want_write_error(self, client: Connection) -> int:
         """
         Attempts to send application data over SSL to trigger WantWriteError.
         Returns (True, successful_size) if triggered,
@@ -3185,10 +3182,6 @@ class TestConnection:
             msg2 = b"Y" * size
             try:
                 client.send(msg2)
-                print(
-                    f"Write succeeded with size {size}, trying larger size..."
-                )
-                successful_size = size
                 # Continue loop to try larger sizes until an error is hit
             except SSL.WantWriteError:
                 print(
@@ -3199,21 +3192,12 @@ class TestConnection:
                 successful_size = size * 2  # double it to be really sure
                 break  # Exit loop as desired error was triggered
 
-        # Logic from the original 'if not initial_want_write_triggered' block
         if not initial_want_write_triggered:
-            if successful_size > -1:
-                print(
-                    f"All sizes succeeded up to {successful_size}. "
-                    "The buffer may not be full enough."
-                )
-                pytest.fail(
-                    "Could not trigger WantWriteError even with largest "
-                    f"message size {test_sizes[-1]}"
-                )
-            else:
-                pytest.fail("Could not send any message size.")
+            pytest.fail(
+                "Could not induce WantWriteError with any message size."
+            )  # pragma: no cover
 
-        return initial_want_write_triggered, successful_size
+        return successful_size
 
     def _drain_server_buffers(
         self, server: Connection, server_socket: socket
@@ -3226,14 +3210,7 @@ class TestConnection:
         try:
             # First, try to read any SSL data that might be available
             try:
-                ssl_data = server.recv(65536)
-                if ssl_data:
-                    read_chunks.append(ssl_data)
-                    total_read += len(ssl_data)
-                    print(
-                        f"Read {len(ssl_data)} bytes of SSL data from server."
-                    )
-                    time.sleep(0.01)  # Small delay after SSL read
+                server.recv(65536)
             except (SSL.WantReadError, SSL.Error) as ssl_error:
                 print(f"No SSL data available or SSL error: {ssl_error}")
 
@@ -3247,17 +3224,6 @@ class TestConnection:
             ):  # Read up to 1MB or until no more data
                 try:
                     data = server_socket.recv(65536)  # Read raw data
-                    if not data:
-                        consecutive_empty_reads += 1
-                        if consecutive_empty_reads >= 3:
-                            print(
-                                "Multiple empty reads, assuming no more data."
-                            )
-                            break
-                        time.sleep(0.05)  # Wait a bit for more data to arrive
-                        continue
-
-                    consecutive_empty_reads = 0  # Reset counter
                     read_chunks.append(data)
                     total_read += len(data)
                     print(
@@ -3281,7 +3247,7 @@ class TestConnection:
                         )
                         time.sleep(0.1)  # Wait longer when buffer is empty
                         continue
-                    else:
+                    else:  # pragma: no cover
                         print(f"OSError while reading from server socket: {e}")
                         break
 
@@ -3291,7 +3257,7 @@ class TestConnection:
             print("Allowing network buffers to settle...")
             time.sleep(0.1)
 
-        except Exception as read_exception:
+        except Exception as read_exception:  # pragma: no cover
             print(f"Exception while reading from server: {read_exception}")
 
     def _perform_moving_buffer_test(
@@ -3326,7 +3292,7 @@ class TestConnection:
             else:
                 pytest.fail(
                     f"Retry failed with unexpected SSL error: {e} ({reason})."
-                )
+                )  # pragma: no cover
         # If any other exception occurs, it will propagate up
 
     def _shutdown_connections(
@@ -3370,26 +3336,14 @@ class TestConnection:
             # --- Main Test Flow ---
             self._fill_client_buffer(client_socket)
 
-            initial_want_write_triggered, successful_size = (
-                self._attempt_want_write_error(client)
-            )
+            successful_size = self._attempt_want_write_error(client)
 
-            if initial_want_write_triggered:
-                # If WantWriteError was successfully triggered, proceed with
-                # draining and retry
-                self._drain_server_buffers(server, server_socket)
-                result = self._perform_moving_buffer_test(
-                    client, successful_size
-                )
-            else:
-                # This branch should ideally be unreachable because
-                # _attempt_want_write_error already calls pytest.fail if
-                # initial_want_write_triggered is False. Keeping it here for
-                # explicit flow, but it implies a logic error if reached.
-                pytest.fail(
-                    "Unexpected state: WantWriteError was not triggered."
-                )
-        except Exception as e:
+            # if WantWriteError was not triggered the test fails in
+            # _attempt_want_write_error().
+            # proceed with draining and retry
+            self._drain_server_buffers(server, server_socket)
+            result = self._perform_moving_buffer_test(client, successful_size)
+        except Exception as e:  # pragma: no cover
             pytest.fail(f"Unexpected exception during test: {e}.")
         finally:
             self._shutdown_connections(
@@ -3411,11 +3365,10 @@ class TestConnection:
         )
         result = self._badwriteretry(mode)
 
-        if result:
-            pytest.fail(
-                "Using SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER failed to \
-                        prevent bad write retry"
-            )
+        assert result is False, (
+            "Using SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER failed to prevent bad "
+            "write retry. A bad write retry occurred when it should not have."
+        )
 
     def test_moving_write_buffer_should_fail(self) -> None:
         """
@@ -3428,12 +3381,11 @@ class TestConnection:
         mode = 0
         result = self._badwriteretry(mode)
 
-        if not result:
-            pytest.fail(
-                "Use of a moving buffer without \
-                    SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER should trigger \
-                    a bad write retry error"
-            )
+        assert result is True, (
+            "Use of a moving buffer without "
+            "SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER should trigger "
+            "a bad write retry error."
+        )
 
     def test_get_finished_before_connect(self) -> None:
         """
