@@ -3131,7 +3131,7 @@ class TestConnection:
 
     # XXX want_read
 
-    def _fill_client_buffer(self, client_socket) -> None:
+    def _fill_client_buffer(self, client_socket: socket) -> None:
         """
         Attempts to fill the client's raw send buffer until
         EWOULDBLOCK is hit.
@@ -3156,8 +3156,8 @@ class TestConnection:
                 )
 
     def _attempt_want_write_error(
-        self, client
-    ) -> typing.Tuple[bool, typing.Optional[int]]:
+        self, client: Connection
+    ) -> tuple[bool, int]:
         """
         Attempts to send application data over SSL to trigger WantWriteError.
         Returns (True, successful_size) if triggered,
@@ -3178,7 +3178,7 @@ class TestConnection:
             65536,
         ]
         initial_want_write_triggered = False
-        successful_size: typing.Optional[int] = None
+        successful_size = -1
 
         for size in test_sizes:
             msg2 = b"Y" * size
@@ -3200,7 +3200,7 @@ class TestConnection:
 
         # Logic from the original 'if not initial_want_write_triggered' block
         if not initial_want_write_triggered:
-            if successful_size is not None:
+            if successful_size > -1:
                 print(
                     f"All sizes succeeded up to {successful_size}. "
                     "The buffer may not be full enough."
@@ -3214,7 +3214,9 @@ class TestConnection:
 
         return initial_want_write_triggered, successful_size
 
-    def _drain_server_buffers(self, server, server_socket) -> None:
+    def _drain_server_buffers(
+            self, server: Connection,
+            server_socket: socket) -> None:
         """Reads from server SSL and raw sockets to drain any pending data."""
         print("--- Phase 3: Draining server buffers ---")
         total_read = 0
@@ -3292,7 +3294,7 @@ class TestConnection:
             print(f"Exception while reading from server: {read_exception}")
 
     def _perform_moving_buffer_test(
-        self, client, successful_size: int
+        self, client: Connection, successful_size: int
     ) -> bool:
         """
         Attempts a retry write with a moving buffer and checks for
@@ -3301,9 +3303,9 @@ class TestConnection:
         """
         print("--- Phase 4: Performing moving buffer retry test ---")
         # Assert added for MyPy as discussed previously
-        assert successful_size is not None, (
-            "successful_size must be an int here as WantWriteError "
-            "was triggered"
+        assert successful_size > -1, (
+            "successful_size must be greater than -1 for a WantWriteError "
+            "to be triggered"
         )
         msg3 = b"Z" * successful_size
 
@@ -3328,7 +3330,11 @@ class TestConnection:
         # If any other exception occurs, it will propagate up
 
     def _shutdown_connections(
-        self, client, server, client_socket, server_socket
+        self,
+        client: Connection,
+        server: Connection,
+        client_socket: socket,
+        server_socket: socket
     ) -> None:
         """Helper to safely shut down SSL connections and close sockets."""
         print("--- Cleanup: Shutting down connections ---")
