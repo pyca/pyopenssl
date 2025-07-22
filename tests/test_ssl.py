@@ -3157,7 +3157,7 @@ class TestConnection:
     def _attempt_want_write_error(self, client: Connection) -> int:
         """
         Attempts to send application data over SSL to trigger WantWriteError.
-        Returns (True, successful_size) if triggered,
+        Returns successful_size if triggered,
         otherwise calls pytest.fail.
         """
         print("--- Phase 2: Attempting to trigger WantWriteError ---")
