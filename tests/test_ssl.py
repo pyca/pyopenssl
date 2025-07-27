@@ -445,43 +445,59 @@ def create_ssl_nonblocking_connection(
     """
     Create a pair of sockets and set up an SSL connection between them.
     """
-    # Create a private key and a certificate to use for the server
-    key = PKey()
-    key.generate_key(TYPE_RSA, 2048)
-    cert = X509()
-    cert.set_version(2)
-    cert.get_subject().C = b"US"
-    cert.get_subject().ST = b"California"
-    cert.get_subject().L = b"Palo Alto"
-    cert.get_subject().O = b"pyOpenSSL"
-    cert.get_subject().CN = b"localhost"
-    cert.set_serial_number(1)
-    cert.gmtime_adj_notBefore(0)
-    cert.gmtime_adj_notAfter(60 * 60)
-    cert.set_issuer(cert.get_subject())
-    cert.set_pubkey(key)
-    cert.sign(key, "sha1")
+    chain = _create_certificate_chain()
 
-    # Create a context with the necessary modes
-    ctx = Context(SSLv23_METHOD)
+    # Extract the server's key and certificate from the chain ---
+    # The chain is [ (root_key, root_cert),
+    # (intermediate_key, intermediate_cert), (server_key, server_cert) ]
+    server_key, server_cert = chain[
+        2
+    ]  # Index 2 gets the last tuple: (skey, scert)
+
+    # Set up the server's SSL context ---
+    server_ctx = Context(SSLv23_METHOD)
+    server_ctx.use_privatekey(server_key)  # Use the server_key from the chain
+    server_ctx.use_certificate(
+        server_cert
+    )  # Use the server_cert from the chain
+    server_ctx.add_extra_chain_cert(
+        chain[1][1]
+    )  # Add the intermediate cert to the server's extra chain
+
+    # Set up client context
+    client_ctx = Context(SSLv23_METHOD)
 
     # these modes are set by default when ctx is initialized
     # clear them so we can run tests with or without them
-    ctx.clear_mode(
+    client_ctx.clear_mode(
         _lib.SSL_MODE_ENABLE_PARTIAL_WRITE
         | _lib.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
     )
+    client_ctx.set_mode(mode)
 
-    ctx.set_mode(mode)
-    ctx.use_privatekey(key)
-    ctx.use_certificate(cert)
+    # Get the certificate store from the context
+    cert_store = client_ctx.get_cert_store()
+
+    # Assert that cert_store is not None to satisfy mypy
+    assert cert_store is not None, (
+        "Expected X509Store, but got None from get_cert_store()"
+    )
+
+    # Add the Root CA certificate to the store
+    cert_store.add_cert(
+        chain[0][1]
+    )  # chain[0][1] is the pyOpenSSL X509 object for the root CA
+    # Enable peer verification so the client actually checks the server's cert
+    client_ctx.set_verify(
+        SSL.VERIFY_PEER, lambda conn, cert, errnum, depth, ok: bool(ok)
+    )
 
     # Create connections with real sockets
     client_socket, server_socket = socket_pair()
 
     # Create Connection objects from the sockets
-    client = Connection(ctx, client_socket)
-    server = Connection(ctx, server_socket)
+    client = Connection(client_ctx, client_socket)
+    server = Connection(server_ctx, server_socket)
 
     # Set the buffers to be very small so we can easily fill them
     client_socket.setsockopt(SOL_SOCKET, SO_SNDBUF, 256)
@@ -3109,12 +3125,13 @@ class TestConnection:
         # signal a short write via its return value it seems this doesn't
         # always happen on all platforms (FreeBSD and OS X particular) for the
         # very last bit of available buffer space.
-        for msg in [b"x" * 65536, b"x"]:
+        for msg in [b"x" * 65536, b"x" * 16, b"x"]:
             for i in range(1024 * 1024 * 64):
                 try:
                     client_socket.send(msg)
                 except OSError as e:
                     if e.errno == EWOULDBLOCK:
+                        time.sleep(0.1)
                         break
                     raise  # pragma: no cover
             else:  # pragma: no cover
@@ -3286,7 +3303,7 @@ class TestConnection:
         except SSL.Error as e:
             reason = get_ssl_error_reason(e)
             if reason == "bad write retry":
-                print(f"Got expected SSL error: {e} ({reason}).")
+                print(f"Got SSL error: {e} ({reason}).")
                 return True  # Bad write retry
             else:
                 pytest.fail(
