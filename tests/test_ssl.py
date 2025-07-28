@@ -3125,13 +3125,12 @@ class TestConnection:
         # signal a short write via its return value it seems this doesn't
         # always happen on all platforms (FreeBSD and OS X particular) for the
         # very last bit of available buffer space.
-        for msg in [b"x" * 65536, b"x" * 16, b"x"]:
+        for msg in [b"x" * 65536, b"x"]:
             for i in range(1024 * 1024 * 64):
                 try:
                     client_socket.send(msg)
                 except OSError as e:
                     if e.errno == EWOULDBLOCK:
-                        time.sleep(0.1)
                         break
                     raise  # pragma: no cover
             else:  # pragma: no cover
