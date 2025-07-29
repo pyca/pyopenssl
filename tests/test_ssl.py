@@ -512,6 +512,20 @@ class TestContext:
 
         assert "AES128-SHA" in conn.get_cipher_list()
 
+    def test_set_tls13_ciphersuites(self, context: Context) -> None:
+        """
+        `Context.set_tls13_ciphersuites` accepts both byte and unicode strings
+        for naming the ciphers which connections created with the context
+        object will be able to choose from.
+        """
+        context.set_tls13_ciphersuites(b"TLS_AES_128_GCM_SHA256")
+        conn = Connection(context, None)
+
+        # OpenSSL has different APIs for *setting* TLS <=1.2 and >= 1.3
+        # but only one API for retrieving them
+        assert "TLS_AES_128_GCM_SHA256" in conn.get_cipher_list()
+        assert "TLS_AES_256_GCM_SHA384" not in conn.get_cipher_list()
+
     def test_set_cipher_list_wrong_type(self, context: Context) -> None:
         """
         `Context.set_cipher_list` raises `TypeError` when passed a non-string

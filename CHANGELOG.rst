@@ -3,6 +3,19 @@ Changelog
 
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
+UNRELEASED
+----------
+
+Backward-incompatible changes:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Deprecations:
+^^^^^^^^^^^^^
+
+Changes:
+^^^^^^^^
+
+- Added ``OpenSSL.SSL.Context.set_tls13_ciphersuites`` that allows the allowed TLS 1.3 ciphers.
 
 25.1.0 (2025-05-17)
 -------------------
