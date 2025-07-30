@@ -915,7 +915,10 @@ class Context:
         )
         self._cookie_verify_helper: _CookieVerifyCallbackHelper | None = None
 
-        self.set_mode(_lib.SSL_MODE_ENABLE_PARTIAL_WRITE)
+        self.set_mode(
+            _lib.SSL_MODE_ENABLE_PARTIAL_WRITE
+            | _lib.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
+        )
         if version is not None:
             self.set_min_proto_version(version)
             self.set_max_proto_version(version)
@@ -1739,6 +1742,14 @@ class Context:
             raise TypeError("mode must be an integer")
 
         return _lib.SSL_CTX_set_mode(self._context, mode)
+
+    @_require_not_used
+    def clear_mode(self, mode_to_clear: int) -> int:
+        """
+        Modes previously set cannot be overwritten without being
+        cleared first. This method should be used to clear existing modes.
+        """
+        return _lib.SSL_CTX_clear_mode(self._context, mode_to_clear)
 
     @_require_not_used
     def set_tlsext_servername_callback(
