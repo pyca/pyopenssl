@@ -448,7 +448,9 @@ def create_ssl_nonblocking_connection(
     """
     Create a pair of sockets and set up an SSL connection between them.
     mode: The mode to set if not None.
-    Returns the raw sockets and the SSL Connection objects.
+    request_send_buffer_size: requested size of the send buffer
+    Returns the raw sockets, the SSL Connection objects
+    and the actual send/receive buffer sizes.
     """
     chain = _create_certificate_chain()
 
@@ -509,8 +511,8 @@ def create_ssl_nonblocking_connection(
     client = Connection(client_ctx, client_socket)
     server = Connection(server_ctx, server_socket)
 
-    # Set the buffers to be small so we can easily fill them
-    # although the OS may not respect the values.
+    # Allow caller to request small buffer sizes so they can be easily filled.
+    # Note the OS may not respect the requested values.
     # Make the receive buffer smaller than the send buffer.
     requested_receive_buffer_size = request_send_buffer_size // 2
     client_socket.setsockopt(SOL_SOCKET, SO_SNDBUF, request_send_buffer_size)
@@ -519,7 +521,6 @@ def create_ssl_nonblocking_connection(
         f"Attempted SO_SNDBUF: {request_send_buffer_size}, "
         f"Actual SO_SNDBUF: {actual_sndbuf}"
     )
-
     server_socket.setsockopt(
         SOL_SOCKET, SO_RCVBUF, requested_receive_buffer_size
     )
@@ -529,63 +530,12 @@ def create_ssl_nonblocking_connection(
         f"Actual SO_RCVBUF: {actual_rcvbuf}"
     )
 
-    # Manually set the connection state
+    # set the connection state
     client.set_connect_state()
     server.set_accept_state()
 
-    # Perform the handshake with proper completion detection
-    client_handshake_done = False
-    server_handshake_done = False
-    max_handshake_attempts = 100  # Prevent infinite loops
-    attempts = 0
-    while (
-        not (client_handshake_done and server_handshake_done)
-        and attempts < max_handshake_attempts
-    ):
-        attempts += 1
-        # Try client handshake
-        if not client_handshake_done:
-            try:
-                client.do_handshake()
-                client_handshake_done = True
-            except SSL.WantReadError:
-                # Client needs to read data
-                pass
-            except SSL.WantWriteError:
-                # Client needs to write data
-                pass
+    handshake(client, server)
 
-        # Try server handshake
-        if not server_handshake_done:
-            try:
-                server.do_handshake()
-                server_handshake_done = True
-            except SSL.WantReadError:
-                # Server needs to read data
-                pass
-            except SSL.WantWriteError:
-                # Server needs to write data
-                pass
-
-        # If neither handshake is complete, wait for socket activity
-        if not (client_handshake_done and server_handshake_done):
-            # Use select to wait for socket activity
-            ready_read, ready_write, ready_err = select.select(
-                [client_socket, server_socket],
-                [client_socket, server_socket],
-                [client_socket, server_socket],
-                1.0,  # 1 second timeout
-            )
-
-            if ready_err:
-                raise Exception(f"Socket error during handshake: {ready_err}")
-
-            if not (ready_read or ready_write):
-                # Timeout occurred, but continue trying
-                continue
-
-    if not (client_handshake_done and server_handshake_done):
-        raise Exception("SSL handshake failed to complete")
     return (
         client_socket,
         server_socket,
