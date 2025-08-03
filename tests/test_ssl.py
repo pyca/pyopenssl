@@ -326,7 +326,7 @@ def loopback(
 ) -> tuple[Connection, Connection]:
     """
     Create a connected socket pair and force two connected SSL sockets
-    to talk to each other via memory BIOs.
+    to talk to each other.
     """
     if server_factory is None:
         server_factory = loopback_server_factory
