@@ -3277,7 +3277,7 @@ class TestConnection:
         SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER and replaces with the given mode.
         Returns True if a bad write retry error occurs.
         """
-        request_buffer_size = 4096  # Size of the send buffer we'll request
+        request_buffer_size = 65536  # Size of the send buffer we'll request
         client_socket, server_socket, client, server, sndbuf, rcvbuf = (
             create_ssl_nonblocking_connection(modeflag, request_buffer_size)
         )
