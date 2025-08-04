@@ -521,6 +521,7 @@ def create_ssl_nonblocking_connection(
         f"Attempted SO_SNDBUF: {request_send_buffer_size}, "
         f"Actual SO_SNDBUF: {actual_sndbuf}"
     )
+
     server_socket.setsockopt(
         SOL_SOCKET, SO_RCVBUF, requested_receive_buffer_size
     )
@@ -3312,8 +3313,9 @@ class TestConnection:
         SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER and replaces with the given mode.
         Returns True if a bad write retry error occurs.
         """
+        request_buffer_size = 4096  # Size of the send buffer we'll request
         client_socket, server_socket, client, server, sndbuf, rcvbuf = (
-            create_ssl_nonblocking_connection(modeflag, 2048)
+            create_ssl_nonblocking_connection(modeflag, request_buffer_size)
         )
         result = False  # Default return value
         # set buffer size to the minimum of send and receive buffers
