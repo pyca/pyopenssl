@@ -3138,68 +3138,50 @@ class TestConnection:
     ) -> None:
         """Reads from server SSL and raw sockets to drain any pending data."""
         logger.debug("--- Phase 2: Draining server buffers ---")
-        total_read = 0
-        read_chunks = []
+        total_ssl_read = 0
+        consecutive_empty_ssl_reads = 0
 
-        try:
-            # First, try to read any SSL data that might be available
+        while total_ssl_read < 1024 * 1024:
             try:
-                server.recv(65536)
-            except (
-                SSL.WantReadError,
-                SSL.Error,
-            ) as ssl_error:  # pragma: no cover
-                logger.debug(
-                    f"No SSL data available or SSL error: {ssl_error}"
-                )
-
-            # Now read raw data from the underlying server socket to
-            # drain buffer
-            server_socket.setblocking(False)  # Ensure non-blocking
-            consecutive_empty_reads = 0
-
-            while (
-                total_read < 1024 * 1024
-            ):  # Read up to 1MB or until no more data
-                try:
-                    data = server_socket.recv(65536)
-                    read_chunks.append(data)
-                    total_read += len(data)
+                data = server.recv(65536)
+                if not data:  # Peer closed or empty read for some reason
                     logger.debug(
-                        f"Read {len(data)} bytes of data from "
-                        f"server socket (total: {total_read})."
+                        "SSL peer closed or empty data, stopping SSL drain."
                     )
-                    time.sleep(0.01)  # Small delay between reads
+                    break
+                total_ssl_read += len(data)
+                logger.debug(
+                    f"Read {len(data)} bytes of SSL application data "
+                    f"(total: {total_ssl_read})."
+                )
+                # Reset counter on successful read
+                consecutive_empty_ssl_reads = 0
 
-                except OSError as e:
-                    if e.errno == EWOULDBLOCK:
-                        consecutive_empty_reads += 1
-                        if consecutive_empty_reads >= 10:
-                            logger.debug(
-                                "No more data available from server socket "
-                                f"after {consecutive_empty_reads} retries."
-                            )
-                            break
-                        logger.debug(
-                            "No data available, waiting... "
-                            f"(attempt {consecutive_empty_reads})."
-                        )
-                        time.sleep(0.1)  # Wait longer when buffer is empty
-                        continue
-                    else:  # pragma: no cover
-                        logger.error(
-                            f"OSError while reading from server socket: {e}"
-                        )
-                        break
+            except SSL.WantReadError:
+                consecutive_empty_ssl_reads += 1
+                if consecutive_empty_ssl_reads >= 10:
+                    logger.debug(
+                        "No more SSL application data available after "
+                        f"{consecutive_empty_ssl_reads} retries."
+                    )
+                    break
+                logger.debug(
+                    "No SSL data available, waiting... "
+                    f"(attempt {consecutive_empty_ssl_reads})."
+                )
+                time.sleep(0.01)  # Small delay for non-blocking SSL reads
 
-            logger.debug(
-                f"Finished reading from server. Bytes read: {total_read}. "
-            )
-            # Allow network buffers to settle
-            time.sleep(0.1)
+            except SSL.Error as ssl_error:
+                logger.debug(f"SSL error during drain: {ssl_error}")
+                break  # Stop on SSL protocol errors
+            except Exception as e:  # Catch other potential errors
+                logger.error(f"Unexpected error during SSL drain: {e}")
+                break
 
-        except Exception as read_exception:  # pragma: no cover
-            logger.error(f"Exception reading from server: {read_exception}")
+        logger.debug(f"Finished draining SSL. Bytes read: {total_ssl_read}.")
+
+        # Allow network buffers to settle
+        time.sleep(0.1)
 
     def _perform_moving_buffer_test(
         self, client: Connection, buffer_size: int, want_bad_retry: bool
