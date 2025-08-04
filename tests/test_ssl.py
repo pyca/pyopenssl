@@ -452,24 +452,8 @@ def create_ssl_nonblocking_connection(
     Returns the raw sockets, the SSL Connection objects
     and the actual send/receive buffer sizes.
     """
-    chain = _create_certificate_chain()
 
-    # Extract the server's key and certificate from the chain ---
-    # The chain is [ (root_key, root_cert),
-    # (intermediate_key, intermediate_cert), (server_key, server_cert) ]
-    server_key, server_cert = chain[
-        2
-    ]  # Index 2 gets the last tuple: (skey, scert)
-
-    # Set up the server's SSL context ---
-    server_ctx = Context(SSLv23_METHOD)
-    server_ctx.use_privatekey(server_key)  # Use the server_key from the chain
-    server_ctx.use_certificate(
-        server_cert
-    )  # Use the server_cert from the chain
-    server_ctx.add_extra_chain_cert(
-        chain[1][1]
-    )  # Add the intermediate cert to the server's extra chain
+    client_socket, server_socket = socket_pair()
 
     # Set up client context
     client_ctx = Context(SSLv23_METHOD)
@@ -487,29 +471,9 @@ def create_ssl_nonblocking_connection(
         # Set the new mode to the requested value
         client_ctx.set_mode(mode)
 
-    # Get the certificate store from the context
-    cert_store = client_ctx.get_cert_store()
-
-    # Assert that cert_store is not None to satisfy mypy
-    assert cert_store is not None, (
-        "Expected X509Store, but got None from get_cert_store()"
-    )
-
-    # Add the Root CA certificate to the store
-    cert_store.add_cert(
-        chain[0][1]
-    )  # chain[0][1] is the pyOpenSSL X509 object for the root CA
-    # Enable peer verification so the client actually checks the server's cert
-    client_ctx.set_verify(
-        SSL.VERIFY_PEER, lambda conn, cert, errnum, depth, ok: bool(ok)
-    )
-
-    # Create connections with real sockets
-    client_socket, server_socket = socket_pair()
-
-    # Create Connection objects from the sockets
+    # create the SSL connections
     client = Connection(client_ctx, client_socket)
-    server = Connection(server_ctx, server_socket)
+    server = loopback_server_factory(server_socket)
 
     # Allow caller to request small buffer sizes so they can be easily filled.
     # Note the OS may not respect the requested values.
@@ -533,7 +497,7 @@ def create_ssl_nonblocking_connection(
 
     # set the connection state
     client.set_connect_state()
-    server.set_accept_state()
+    # loopback_server_factory already sets the accept state on the server
 
     handshake(client, server)
 
