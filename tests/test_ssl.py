@@ -3169,7 +3169,7 @@ class TestConnection:
                 time.sleep(0.01)  # Small delay for non-blocking SSL reads
 
         logger.debug(
-            f"Finished reading from server. Bytes read: {total_ssl_read}. "
+            f"Finished reading from server. Bytes read: {total_ssl_read}."
         )
 
     def _perform_moving_buffer_test(
