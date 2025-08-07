@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import datetime
 import gc
+import logging
 import os
 import pathlib
 import select
@@ -31,6 +32,9 @@ from socket import (
     AF_INET6,
     MSG_PEEK,
     SHUT_RDWR,
+    SO_RCVBUF,
+    SO_SNDBUF,
+    SOL_SOCKET,
     gaierror,
     socket,
 )
@@ -136,6 +140,8 @@ from .test_crypto import (
     server_key_pem,
 )
 from .util import NON_ASCII, WARNING_TYPE_EXPECTED
+
+logger = logging.getLogger(__name__)
 
 # openssl dhparam 2048 -out dh-2048.pem
 dhparam = """\
@@ -411,6 +417,98 @@ def handshake_in_memory(
             pass
 
     interact_in_memory(client_conn, server_conn)
+
+
+def get_ssl_error_reason(ssl_error: SSL.Error) -> str | None:
+    """
+    Extracts the reason string from the first error tuple in an SSL.Error.
+    Returns None if the expected error structure is not found.
+    """
+    if (
+        ssl_error.args
+        and isinstance(ssl_error.args, tuple)
+        and len(ssl_error.args) > 0
+    ):
+        error_details = ssl_error.args[0]  # list of error tuples
+        if isinstance(error_details, list) and len(error_details) > 0:
+            first_error_tuple = error_details[0]
+            if (
+                isinstance(first_error_tuple, tuple)
+                and len(first_error_tuple) >= 3
+            ):
+                reason = first_error_tuple[2]
+                if isinstance(reason, str):
+                    return reason
+    return None
+
+
+def create_ssl_nonblocking_connection(
+    mode: int | None, request_send_buffer_size: int
+) -> tuple[socket, socket, Connection, Connection, int, int]:
+    """
+    Create a pair of sockets and set up an SSL connection between them.
+    mode: The mode to set if not None.
+    request_send_buffer_size: requested size of the send buffer
+    Returns the raw sockets, the SSL Connection objects
+    and the actual send/receive buffer sizes.
+    """
+
+    client_socket, server_socket = socket_pair()
+
+    # Set up client context
+    client_ctx = Context(SSLv23_METHOD)
+
+    # SSL_MODE_ENABLE_PARTIAL_WRITE and
+    # SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER modes
+    # are set by default when ctx is initialized.
+    # Clear them if requested so tests can
+    # be run without them if so desired.
+    if mode is not None:
+        client_ctx.clear_mode(
+            _lib.SSL_MODE_ENABLE_PARTIAL_WRITE
+            | _lib.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
+        )
+        # Set the new mode to the requested value
+        client_ctx.set_mode(mode)
+
+    # create the SSL connections
+    client = Connection(client_ctx, client_socket)
+    server = loopback_server_factory(server_socket)
+
+    # Allow caller to request small buffer sizes so they can be easily filled.
+    # Note the OS may not respect the requested values.
+    # Make the receive buffer smaller than the send buffer.
+    requested_receive_buffer_size = request_send_buffer_size // 2
+    client_socket.setsockopt(SOL_SOCKET, SO_SNDBUF, request_send_buffer_size)
+    actual_sndbuf = client_socket.getsockopt(SOL_SOCKET, SO_SNDBUF)
+    logger.debug(
+        f"Attempted SO_SNDBUF: {request_send_buffer_size}, "
+        f"Actual SO_SNDBUF: {actual_sndbuf}"
+    )
+
+    server_socket.setsockopt(
+        SOL_SOCKET, SO_RCVBUF, requested_receive_buffer_size
+    )
+    actual_rcvbuf = server_socket.getsockopt(SOL_SOCKET, SO_RCVBUF)
+    logger.debug(
+        f"Attempted SO_RCVBUF: {requested_receive_buffer_size}, "
+        f"Actual SO_RCVBUF: {actual_rcvbuf}"
+    )
+
+    # set the connection state
+    client.set_connect_state()
+    # loopback_server_factory already sets the accept state on the server
+
+    handshake(client, server)
+
+    return (
+        client_socket,
+        server_socket,
+        client,
+        server,
+        actual_sndbuf,
+        actual_rcvbuf,
+    )
 
 
 class TestVersion:
@@ -3010,6 +3108,225 @@ class TestConnection:
             conn.do_handshake()
 
     # XXX want_read
+
+    def _attempt_want_write_error(
+        self, client: Connection, buffer_size: int
+    ) -> bytes:
+        """
+        Attempts to send application data over SSL to trigger WantWriteError.
+        Returns successful_size if triggered,
+        otherwise calls pytest.fail.
+        """
+        logger.debug("--- Phase 1: Attempting to trigger WantWriteError ---")
+        initial_want_write_triggered = False
+        max_num_of_attempts = 100000
+
+        for i in range(max_num_of_attempts):
+            msg = b"Y" * buffer_size
+            try:
+                client.send(msg)
+                logger.debug(
+                    "_attempt_want_write_error() trying "
+                    f"to send {i + 1}th message"
+                )
+            except SSL.WantWriteError:
+                logger.debug(
+                    f"After {i + 1} attempt(s) successfully induced a "
+                    f"WantWriteError with message size {buffer_size}. "
+                    "Buffer location in _attempt_want_write_error() "
+                    f"is {id(msg):#x}"
+                )
+                initial_want_write_triggered = True
+                break  # Exit loop as desired error was triggered
+
+        assert initial_want_write_triggered, "Could not induce WantWriteError"
+
+        return msg
+
+    def _drain_server_buffers(
+        self, server: Connection, server_socket: socket
+    ) -> None:
+        """Reads from server SSL and raw sockets to drain any pending data."""
+        logger.debug("--- Phase 2: Draining server buffers ---")
+
+        total_ssl_read = 0
+        consecutive_empty_ssl_reads = 0
+
+        while total_ssl_read < 1024 * 1024:
+            try:
+                data = server.recv(65536)
+                if not data:  # Peer closed or empty read for some reason
+                    logger.debug(
+                        "SSL peer closed or empty data, stopping SSL drain."
+                    )
+                    break
+                total_ssl_read += len(data)
+                logger.debug(
+                    f"Read {len(data)} bytes of SSL application data "
+                    f"(total: {total_ssl_read})."
+                )
+                # Reset counter on successful read
+                consecutive_empty_ssl_reads = 0
+
+            except SSL.WantReadError:
+                consecutive_empty_ssl_reads += 1
+                if consecutive_empty_ssl_reads >= 10:
+                    logger.debug(
+                        "No more SSL application data available after "
+                        f"{consecutive_empty_ssl_reads} retries."
+                    )
+                    break
+                logger.debug(
+                    "No SSL data available, waiting... "
+                    f"(attempt {consecutive_empty_ssl_reads})."
+                )
+                time.sleep(0.01)  # Small delay for non-blocking SSL reads
+
+        logger.debug(
+            f"Finished reading from server. Bytes read: {total_ssl_read}."
+        )
+
+    def _perform_moving_buffer_test(
+        self, client: Connection, buffer_size: int, want_bad_retry: bool
+    ) -> bool:
+        """
+        Attempts a retry write with a moving buffer and checks for
+        'bad write retry' error.
+        Returns True if 'bad write retry' occurs, False otherwise.
+        """
+        logger.debug("Phase 3: Performing moving buffer retry test")
+
+        # Attempt retry with different buffer but same size
+        msg2 = b"Z" * buffer_size
+        logger.debug(f"buffer location for msg2 is {id(msg2):#x}")
+        try:
+            bytes_written = client.send(msg2)
+            assert not want_bad_retry, (
+                "_perform_moving_buffer_test() failed as retry succeeded "
+                f"unexpectedly with {bytes_written} bytes written."
+            )
+            return False  # Retry succeeded
+        except SSL.Error as e:
+            reason = get_ssl_error_reason(e)
+            assert reason == "bad write retry", (
+                f"Retry failed with unexpected SSL error: {e!r}({reason})."
+            )
+            logger.debug(f"Got SSL error: {e!r} ({reason}).")
+            return True  # Bad write retry
+
+    def _shutdown_connections(
+        self,
+        client: Connection,
+        server: Connection,
+        client_socket: socket,
+        server_socket: socket,
+    ) -> None:
+        """Helper to safely shut down SSL connections and close sockets."""
+        logger.debug("--- Cleanup: Shutting down connections ---")
+        try:
+            if client:
+                client.shutdown()
+        except Exception:
+            # An exception is usually thrown so it is caught and ignored.
+            pass
+        try:
+            if server:
+                server.shutdown()
+        except Exception:  # pragma: no cover
+            pass
+        finally:
+            if client_socket:
+                client_socket.close()
+            if server_socket:
+                server_socket.close()
+
+    def _badwriteretry(
+        self,
+        want_bad_retry: bool,
+        modeflag: int | None,
+    ) -> bool:
+        """
+        Tests for a "bad write retry" error over an SSL connection
+        by using a moving buffer which is allowed by default with
+        SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER. If this mode is unset
+        we expect a bad write retry error when using a moving buffer.
+        want_bad_retry: If True, the caller expects a bad write retry error.
+        mode: If not None, unsets the defaults that include
+        SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER and replaces with the given mode.
+        Returns True if a bad write retry error occurs.
+        """
+        request_buffer_size = 65536  # Size of the send buffer we'll request
+        client_socket, server_socket, client, server, sndbuf, rcvbuf = (
+            create_ssl_nonblocking_connection(modeflag, request_buffer_size)
+        )
+        result = False  # Default return value
+        # set buffer size to half the minimum of send and receive buffers
+        buffer_size = min(sndbuf, rcvbuf) // 2
+
+        # --- Main Test Flow ---
+        # _attempt_want_write_error() terminates the test
+        # if WantWriteError is not triggered
+        # The function also returns the message that triggered
+        # the WantWriteError so that when we attempt a retry
+        # we can ensure a different buffer location is allocated
+        # to a the new message we will send for the retry.
+        _ = self._attempt_want_write_error(client, buffer_size)
+
+        # proceed with draining so that a retry has a chance to succeed
+        self._drain_server_buffers(server, server_socket)
+
+        # now attempt the moving buffer retry
+        result = self._perform_moving_buffer_test(
+            client, buffer_size, want_bad_retry
+        )
+        self._shutdown_connections(
+            client, server, client_socket, server_socket
+        )
+        return result
+
+    def test_moving_write_buffer_should_pass(self) -> None:
+        """
+        After an `OpenSSL.SSL.WantWriteError` if the SSL connection processed
+        some data, the connection may expect a retry with the same buffer.
+        SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER is applied by default. This
+        makes it possible to use a different buffer location
+        for retries provided the length remains the same.
+        """
+        # Setting modeflag to None preserves the default mode
+        modeflag = None
+        want_bad_retry = False
+        result = self._badwriteretry(want_bad_retry, modeflag)
+
+        assert result is False, (
+            "Using SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER failed to prevent bad "
+            "write retry. A bad write retry occurred when it should not have."
+        )
+
+    def test_moving_write_buffer_should_fail(self) -> None:
+        """
+        After an `OpenSSL.SSL.WantWriteError` if the SSL connection processed
+        some data, the connection may expect a retry with the same buffer.
+        Failure to use mode SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
+        should generate a bad write retry error if a different
+        buffer is presented.
+        """
+        # We want to trigger a bad write retry error for this test to succeed
+        # Without SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
+        # it should not be possible to retry with a different buffer
+        # location
+        want_bad_retry = True
+
+        # passing a replacement mode value will ensure that
+        # SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER is unset while the
+        # default mode SSL_MODE_ENABLE_PARTIAL_WRITE remains.
+        mode = _lib.SSL_MODE_ENABLE_PARTIAL_WRITE
+        result = self._badwriteretry(want_bad_retry, mode)
+
+        assert result is True, (
+            "Use of a moving buffer without "
+            "SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER should trigger "
+            "a bad write retry error."
+        )
 
     def test_get_finished_before_connect(self) -> None:
         """
