@@ -3124,12 +3124,8 @@ class TestConnection:
                 )
                 initial_want_write_triggered = True
                 break  # Exit loop as desired error was triggered
-            except Exception as e:  # pragma: no cover
-                error_string = str(e)
-                logger.debug(f"Attempt {i} failed with error: {error_string}")
 
-        if not initial_want_write_triggered:
-            pytest.fail("Could not induce WantWriteError")  # pragma: no cover
+        assert initial_want_write_triggered, "Could not induce WantWriteError"
 
         return msg
 
@@ -3138,6 +3134,7 @@ class TestConnection:
     ) -> None:
         """Reads from server SSL and raw sockets to drain any pending data."""
         logger.debug("--- Phase 2: Draining server buffers ---")
+
         total_ssl_read = 0
         consecutive_empty_ssl_reads = 0
 
@@ -3171,17 +3168,9 @@ class TestConnection:
                 )
                 time.sleep(0.01)  # Small delay for non-blocking SSL reads
 
-            except SSL.Error as ssl_error:
-                logger.debug(f"SSL error during drain: {ssl_error}")
-                break  # Stop on SSL protocol errors
-            except Exception as e:  # Catch other potential errors
-                logger.error(f"Unexpected error during SSL drain: {e}")
-                break
-
-        logger.debug(f"Finished draining SSL. Bytes read: {total_ssl_read}.")
-
-        # Allow network buffers to settle
-        time.sleep(0.1)
+        logger.debug(
+            f"Finished reading from server. Bytes read: {total_ssl_read}. "
+        )
 
     def _perform_moving_buffer_test(
         self, client: Connection, buffer_size: int, want_bad_retry: bool
@@ -3195,27 +3184,21 @@ class TestConnection:
 
         # Attempt retry with different buffer but same size
         msg2 = b"Z" * buffer_size
-        logger.debug(f"buffer location for msg3 is {id(msg2):#x}")
+        logger.debug(f"buffer location for msg2 is {id(msg2):#x}")
         try:
             bytes_written = client.send(msg2)
-            if want_bad_retry:
-                logger.debug(
-                    "_perform_moving_buffer_test() failed as retry succeeded "
-                    f"unexpectedly with {bytes_written} bytes written."
-                )  # pragma: no cover
+            assert not want_bad_retry, (
+                "_perform_moving_buffer_test() failed as retry succeeded "
+                f"unexpectedly with {bytes_written} bytes written."
+            )
             return False  # Retry succeeded
         except SSL.Error as e:
             reason = get_ssl_error_reason(e)
-            if reason == "bad write retry":
-                logger.debug(f"Got SSL error: {e!r} ({reason}).")
-                return True  # Bad write retry
-            else:
-                logger.debug(f"Got SSL error: {e!r} ({reason}).")
-                pytest.fail(
-                    f"Retry failed with unexpected SSL error: {e!r} "
-                    f"({reason})."
-                )  # pragma: no cover
-        # If any other exception occurs, it will propagate up
+            assert reason == "bad write retry", (
+                f"Retry failed with unexpected SSL error: {e!r}({reason})."
+            )
+            logger.debug(f"Got SSL error: {e!r} ({reason}).")
+            return True  # Bad write retry
 
     def _shutdown_connections(
         self,
@@ -3242,7 +3225,6 @@ class TestConnection:
                 client_socket.close()
             if server_socket:
                 server_socket.close()
-        # Connections closed.
 
     def _badwriteretry(
         self,
@@ -3264,7 +3246,7 @@ class TestConnection:
             create_ssl_nonblocking_connection(modeflag, request_buffer_size)
         )
         result = False  # Default return value
-        # set buffer size to the minimum of send and receive buffers
+        # set buffer size to half the minimum of send and receive buffers
         buffer_size = min(sndbuf, rcvbuf) // 2
 
         # --- Main Test Flow ---
@@ -3286,7 +3268,6 @@ class TestConnection:
         self._shutdown_connections(
             client, server, client_socket, server_socket
         )
-
         return result
 
     def test_moving_write_buffer_should_pass(self) -> None:
