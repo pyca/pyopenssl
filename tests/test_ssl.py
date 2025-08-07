@@ -3267,29 +3267,25 @@ class TestConnection:
         # set buffer size to the minimum of send and receive buffers
         buffer_size = min(sndbuf, rcvbuf) // 2
 
-        try:
-            # --- Main Test Flow ---
-            # _attempt_want_write_error() terminates the test
-            # if WantWriteError is not triggered
-            # The function also returns the message that triggered
-            # the WantWriteError so that when we attempt a retry
-            # we can ensure a different buffer location is allocated
-            # to a the new message we will send for the retry.
-            _ = self._attempt_want_write_error(client, buffer_size)
+        # --- Main Test Flow ---
+        # _attempt_want_write_error() terminates the test
+        # if WantWriteError is not triggered
+        # The function also returns the message that triggered
+        # the WantWriteError so that when we attempt a retry
+        # we can ensure a different buffer location is allocated
+        # to a the new message we will send for the retry.
+        _ = self._attempt_want_write_error(client, buffer_size)
 
-            # proceed with draining so that a retry has a chance to succeed
-            self._drain_server_buffers(server, server_socket)
+        # proceed with draining so that a retry has a chance to succeed
+        self._drain_server_buffers(server, server_socket)
 
-            # now attempt the moving buffer retry
-            result = self._perform_moving_buffer_test(
-                client, buffer_size, want_bad_retry
-            )
-        except Exception as e:  # pragma: no cover
-            pytest.fail(f"Unexpected exception during test: {e}.")
-        finally:
-            self._shutdown_connections(
-                client, server, client_socket, server_socket
-            )
+        # now attempt the moving buffer retry
+        result = self._perform_moving_buffer_test(
+            client, buffer_size, want_bad_retry
+        )
+        self._shutdown_connections(
+            client, server, client_socket, server_socket
+        )
 
         return result
 
