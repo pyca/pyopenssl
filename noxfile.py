@@ -1,0 +1,89 @@
+import nox
+
+@nox.session
+@nox.session(name="tests-cryptography-main")
+@nox.session(name="tests-cryptography-minimum")
+@nox.session(name="tests-wheel")
+@nox.session(name="tests-cryptography-minimum-wheel")
+@nox.session(name="tests-random-order")
+def tests(session):
+    cryptography_version = None
+    use_wheel = False
+    random_order = False
+
+    if "cryptography-main" in session.name:
+        cryptography_version = "main"
+    elif "cryptography-minimum" in session.name:
+        cryptography_version = "minimum"
+
+    if "wheel" in session.name:
+        use_wheel = True
+
+    if "random-order" in session.name:
+        random_order = True
+
+    session.env.update(
+        {
+            "PYTHONPATH": "",
+            "PIP_NO_BINARY": "" if use_wheel else "cryptography",
+        }
+    )
+
+    deps = ["coverage>=4.2"]
+
+    if cryptography_version == "minimum":
+        deps.append("cryptography==41.0.5")
+
+    if random_order:
+        deps.append("pytest-randomly")
+
+    session.install(*deps)
+    session.install("-e", ".[test]")
+
+    if cryptography_version == "main":
+        session.run(
+            "pip",
+            "install",
+            "-U",
+            "git+https://github.com/pyca/cryptography.git",
+        )
+
+    session.run("openssl", "version", external=True)
+    session.run("coverage", "run", "--parallel", "-m", "OpenSSL.debug")
+    session.run(
+        "coverage", "run", "--parallel", "-m", "pytest", "-v", *session.posargs
+    )
+
+
+@nox.session
+def lint(session):
+    session.install("ruff")
+    session.run("ruff", "check", ".")
+    session.run("ruff", "format", "--check", ".")
+
+
+@nox.session
+def mypy(session):
+    session.install("-e", ".[test]")
+    session.install("mypy")
+    session.run("mypy", "src/", "tests/")
+
+
+@nox.session(name="check-manifest")
+def check_manifest(session):
+    session.install("check-manifest")
+    session.run("check-manifest")
+
+
+@nox.session
+def docs(session):
+    session.install("-e", ".[docs]")
+    session.run(
+        "sphinx-build",
+        "-W",
+        "-b",
+        "html",
+        "doc",
+        "doc/_build/html",
+        *session.posargs,
+    )
