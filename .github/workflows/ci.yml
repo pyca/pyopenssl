@@ -11,55 +11,54 @@ jobs:
       matrix:
         PYTHON:
           # Base builds
-          - {VERSION: "3.7", TOXENV: "py37"}
-          - {VERSION: "3.8", TOXENV: "py38"}
-          - {VERSION: "3.9", TOXENV: "py39"}
-          - {VERSION: "3.10", TOXENV: "py310"}
-          - {VERSION: "3.11", TOXENV: "py311"}
-          - {VERSION: "3.12", TOXENV: "py312"}
-          - {VERSION: "3.13-dev", TOXENV: "py313"}
-          - {VERSION: "pypy-3.9", TOXENV: "pypy3"}
-          - {VERSION: "pypy-3.10", TOXENV: "pypy3"}
-          - {VERSION: "3.11", TOXENV: "py311-useWheel", OS: "windows-2022" }
-          # -cryptographyMain
-          - {VERSION: "3.8", TOXENV: "py38-cryptographyMain"}
-          - {VERSION: "3.9", TOXENV: "py39-cryptographyMain"}
-          - {VERSION: "3.10", TOXENV: "py310-cryptographyMain"}
-          - {VERSION: "3.11", TOXENV: "py311-cryptographyMain"}
-          - {VERSION: "3.12", TOXENV: "py312-cryptographyMain"}
-          - {VERSION: "3.13-dev", TOXENV: "py313-cryptographyMain"}
-          - {VERSION: "pypy-3.9", TOXENV: "pypy3-cryptographyMain"}
-          - {VERSION: "pypy-3.10", TOXENV: "pypy3-cryptographyMain"}
-          # -cryptographyMinimum
-          - {VERSION: "3.7", TOXENV: "py37-cryptographyMinimum"}
-          - {VERSION: "3.8", TOXENV: "py38-cryptographyMinimum"}
-          - {VERSION: "3.9", TOXENV: "py39-cryptographyMinimum"}
-          - {VERSION: "3.10", TOXENV: "py310-cryptographyMinimum"}
-          - {VERSION: "3.11", TOXENV: "py311-cryptographyMinimum"}
-          - {VERSION: "3.12", TOXENV: "py312-cryptographyMinimum"}
-          - {VERSION: "3.13-dev", TOXENV: "py313-cryptographyMinimum"}
-          - {VERSION: "pypy-3.10", TOXENV: "pypy3-cryptographyMinimum"}
+          - {VERSION: "3.7", NOXSESSION: "tests"}
+          - {VERSION: "3.8", NOXSESSION: "tests"}
+          - {VERSION: "3.9", NOXSESSION: "tests"}
+          - {VERSION: "3.10", NOXSESSION: "tests"}
+          - {VERSION: "3.11", NOXSESSION: "tests"}
+          - {VERSION: "3.12", NOXSESSION: "tests"}
+          - {VERSION: "3.13-dev", NOXSESSION: "tests"}
+          - {VERSION: "pypy-3.9", NOXSESSION: "tests"}
+          - {VERSION: "pypy-3.10", NOXSESSION: "tests"}
+          - {VERSION: "3.11", NOXSESSION: "tests-wheel", OS: "windows-2022"}
+          # -cryptography-main
+          - {VERSION: "3.8", NOXSESSION: "tests-cryptography-main"}
+          - {VERSION: "3.9", NOXSESSION: "tests-cryptography-main"}
+          - {VERSION: "3.10", NOXSESSION: "tests-cryptography-main"}
+          - {VERSION: "3.11", NOXSESSION: "tests-cryptography-main"}
+          - {VERSION: "3.12", NOXSESSION: "tests-cryptography-main"}
+          - {VERSION: "3.13-dev", NOXSESSION: "tests-cryptography-main"}
+          - {VERSION: "pypy-3.9", NOXSESSION: "tests-cryptography-main"}
+          - {VERSION: "pypy-3.10", NOXSESSION: "tests-cryptography-main"}
+          # -cryptography-minimum
+          - {VERSION: "3.7", NOXSESSION: "tests-cryptography-minimum"}
+          - {VERSION: "3.8", NOXSESSION: "tests-cryptography-minimum"}
+          - {VERSION: "3.9", NOXSESSION: "tests-cryptography-minimum"}
+          - {VERSION: "3.10", NOXSESSION: "tests-cryptography-minimum"}
+          - {VERSION: "3.11", NOXSESSION: "tests-cryptography-minimum"}
+          - {VERSION: "3.12", NOXSESSION: "tests-cryptography-minimum"}
+          - {VERSION: "3.13-dev", NOXSESSION: "tests-cryptography-minimum"}
+          - {VERSION: "pypy-3.10", NOXSESSION: "tests-cryptography-minimum"}
           # Cryptography wheels
-          - {VERSION: "3.9", TOXENV: "py39-cryptographyMinimum-useWheel"}
-          - {VERSION: "3.9", TOXENV: "py39-useWheel"}
+          - {VERSION: "3.9", NOXSESSION: "tests-cryptography-minimum-wheel"}
+          - {VERSION: "3.9", NOXSESSION: "tests-wheel"}
           # Random order
-          - {VERSION: "3.9", TOXENV: "py39-randomorder"}
+          - {VERSION: "3.9", NOXSESSION: "tests-random-order"}
           # Meta
-          - {VERSION: "3.9", TOXENV: "check-manifest"}
-          - {VERSION: "3.11", TOXENV: "lint"}
-          - {VERSION: "3.13", TOXENV: "py313-mypy"}
-          - {VERSION: "3.9", TOXENV: "docs"}
-    name: "${{ matrix.PYTHON.TOXENV }}${{ matrix.PYTHON.OS && format(' on {0}', matrix.PYTHON.OS) || '' }}"
+          - {VERSION: "3.9", NOXSESSION: "check-manifest"}
+          - {VERSION: "3.11", NOXSESSION: "lint"}
+          - {VERSION: "3.13", NOXSESSION: "mypy"}
+          - {VERSION: "3.9", NOXSESSION: "docs"}
     steps:
       - uses: actions/checkout@v4
       - name: Setup python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.PYTHON.VERSION }}
-      - run: python -m pip install tox
-      - run: tox -v
+      - run: python -m pip install nox
+      - run: nox
         env:
-          TOXENV: ${{ matrix.PYTHON.TOXENV }}
+          NOXSESSION: ${{ matrix.PYTHON.NOXSESSION }}
       - uses: ./.github/actions/upload-coverage
 
   linux-docker:
@@ -69,16 +68,16 @@ jobs:
       fail-fast: false
       matrix:
         TEST:
-          # cryptographyMain used since there's no wheel
-          - {CONTAINER: "ubuntu-rolling", TOXENV: "py313-cryptographyMain"}
-    name: "${{ matrix.TEST.TOXENV }} on ${{ matrix.TEST.CONTAINER }}"
+          # cryptography-main used since there's no wheel
+          - {CONTAINER: "ubuntu-rolling", NOXSESSION: "tests-cryptography-main"}
+    name: "${{ matrix.TEST.NOXSESSION }} on ${{ matrix.TEST.CONTAINER }}"
     steps:
       - uses: actions/checkout@v4
-      - run: /venv/bin/pip install tox
-      - run: /venv/bin/tox -v
+      - run: /venv/bin/pip install nox
+      - run: /venv/bin/nox
         env:
-          TOXENV: ${{ matrix.TEST.TOXENV }}
           RUSTUP_HOME: /root/.rustup
+          NOXSESSION: ${{ matrix.TEST.NOXSESSION }}
       - uses: ./.github/actions/upload-coverage
 
   linux-downstream:

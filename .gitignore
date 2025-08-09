@@ -4,7 +4,7 @@ dist
 *.pyc
 *.pyo
 __pycache__
-.tox
+.nox
 doc/_build/
 .coverage*
 .eggs
