@@ -6,10 +6,10 @@ source = ["OpenSSL", "tests/"]
 [tool.coverage.paths]
 source = [
     "src/OpenSSL",
-    "*.tox/*/lib/python*/site-packages/OpenSSL",
-    "*.tox/*/lib/pypy*/site-packages/OpenSSL",
-    "*.tox/pypy/site-packages/OpenSSL",
-    "*.tox\\*\\Lib\\site-packages\\OpenSSL",
+    "*.nox/*/lib/python*/site-packages/OpenSSL",
+    "*.nox/*/lib/pypy*/site-packages/OpenSSL",
+    "*.nox/pypy/site-packages/OpenSSL",
+    "*.nox\\*\\Lib\\site-packages\\OpenSSL",
 ]
 
 [tool.coverage.report]

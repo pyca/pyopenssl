@@ -1,4 +1,4 @@
-include             LICENSE MANIFEST.in *.rst tox.ini .coveragerc src/OpenSSL/py.typed
+include             LICENSE MANIFEST.in *.rst noxfile.py .coveragerc src/OpenSSL/py.typed
 exclude             .readthedocs.yml mypy.ini
 recursive-include   tests           *.py
 recursive-include   doc             *
