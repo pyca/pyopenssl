@@ -3209,12 +3209,14 @@ class TestConnection:
     ) -> None:
         """Helper to safely shut down SSL connections and close sockets."""
         logger.debug("--- Cleanup: Shutting down connections ---")
-        try:
-            if client:
+        if client:
+            with contextlib.suppress(OpenSSL.SSL.Error):
+                # When closing connections in the test teardown stage, we don't care
+                # about possible TLS-level problems as the test was specifically
+                # emulating corner case situations pre-shutdown. We just attempt
+                # releasing resources if possible and disregard any possibly related
+                # problems that may occur at this point.
                 client.shutdown()
-        except Exception:
-            # An exception is usually thrown so it is caught and ignored.
-            pass
         try:
             if server:
                 server.shutdown()
