@@ -3245,9 +3245,7 @@ class TestConnection:
     )
     def test_moving_buffer_behavior(
         self,
-        ssl_connection_setup: tuple[
-            Connection, Connection, int, bool
-        ],
+        ssl_connection_setup: tuple[Connection, Connection, int, bool],
     ) -> None:
         """Tests for possible "bad write retry" errors over an SSL connection.
         If an SSL connection partially processes some data,
