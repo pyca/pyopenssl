@@ -142,8 +142,6 @@ from .test_crypto import (
 )
 from .util import NON_ASCII, WARNING_TYPE_EXPECTED
 
-logger = logging.getLogger(__name__)
-
 # openssl dhparam 2048 -out dh-2048.pem
 dhparam = """\
 -----BEGIN DH PARAMETERS-----
@@ -482,19 +480,11 @@ def create_ssl_nonblocking_connection(
     requested_receive_buffer_size = request_send_buffer_size // 2
     client_socket.setsockopt(SOL_SOCKET, SO_SNDBUF, request_send_buffer_size)
     actual_sndbuf = client_socket.getsockopt(SOL_SOCKET, SO_SNDBUF)
-    logger.debug(
-        f"Attempted SO_SNDBUF: {request_send_buffer_size}, "
-        f"Actual SO_SNDBUF: {actual_sndbuf}"
-    )
 
     server_socket.setsockopt(
         SOL_SOCKET, SO_RCVBUF, requested_receive_buffer_size
     )
     actual_rcvbuf = server_socket.getsockopt(SOL_SOCKET, SO_RCVBUF)
-    logger.debug(
-        f"Attempted SO_RCVBUF: {requested_receive_buffer_size}, "
-        f"Actual SO_RCVBUF: {actual_rcvbuf}"
-    )
 
     # set the connection state
     client.set_connect_state()
@@ -3135,9 +3125,7 @@ class TestConnection:
         )
         return msg
 
-    def _drain_server_buffers(
-        self, server: Connection
-    ) -> None:
+    def _drain_server_buffers(self, server: Connection) -> None:
         """Reads from server SSL and raw sockets to drain any pending data."""
         total_ssl_read = 0
         consecutive_empty_ssl_reads = 0
@@ -3168,11 +3156,8 @@ class TestConnection:
         'bad write retry' error.
         Returns True if 'bad write retry' occurs, False otherwise.
         """
-        logger.debug("Phase 3: Performing moving buffer retry test")
-
         # Attempt retry with different buffer but same size
         msg2 = b"Z" * buffer_size
-        logger.debug(f"buffer location for msg2 is {id(msg2):#x}")
         try:
             bytes_written = client.send(msg2)
             assert not want_bad_retry, (
@@ -3185,7 +3170,6 @@ class TestConnection:
             assert reason == "bad write retry", (
                 f"Retry failed with unexpected SSL error: {e!r}({reason})."
             )
-            logger.debug(f"Got SSL error: {e!r} ({reason}).")
             return True  # Bad write retry
 
     def _shutdown_connections(
@@ -3220,8 +3204,8 @@ class TestConnection:
         request_buffer_size = request.param.get("request_buffer_size")
         modeflag = request.param.get("modeflag")
 
-        client, server, sndbuf, rcvbuf = (
-            create_ssl_nonblocking_connection(modeflag, request_buffer_size)
+        client, server, sndbuf, rcvbuf = create_ssl_nonblocking_connection(
+            modeflag, request_buffer_size
         )
         # Use a buffer size that is half the size
         # of the allocated socket buffers
@@ -3236,9 +3220,7 @@ class TestConnection:
         )
 
         # Teardown: Clean up the connections after the test finishes
-        self._shutdown_connections(
-            client, server
-        )
+        self._shutdown_connections(client, server)
 
     @pytest.mark.parametrize(
         "ssl_connection_setup",
@@ -3258,11 +3240,11 @@ class TestConnection:
     )
     def test_moving_buffer_behavior(self, ssl_connection_setup):
         """Tests for possible "bad write retry" errors over an SSL connection.
-        If an SSL connection partially processes some data, 
-        and then hits an `OpenSSL.SSL.WantWriteError`, 
-        the connection may expect a retry. When PyOpenSSL creates 
-        a new connection object, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER is 
-        applied by default. This mode allows for data to be sent from a 
+        If an SSL connection partially processes some data,
+        and then hits an `OpenSSL.SSL.WantWriteError`,
+        the connection may expect a retry. When PyOpenSSL creates
+        a new connection object, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER is
+        applied by default. This mode allows for data to be sent from a
         different buffer location, something that may happen if Python moves a
         mutable object such as a bytearray as part of its memory management.
         If the mode is turned off, OpenSSL will reject the resend with
