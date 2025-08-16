@@ -10,7 +10,6 @@ from __future__ import annotations
 import contextlib
 import datetime
 import gc
-import logging
 import os
 import pathlib
 import select
@@ -3192,7 +3191,13 @@ class TestConnection:
                 server.shutdown()
 
     @pytest.fixture
-    def ssl_connection_setup(self, request):
+    def ssl_connection_setup(
+        self, request: pytest.FixtureRequest
+    ) -> typing.Generator[
+        tuple[SSL.SSLSocket, SSL.SSLSocket, int, typing.Optional[bool]],
+        None,
+        None,
+    ]:
         """
         Sets up a non-blocking SSL connection for testing
         bad_write_retry errors.
