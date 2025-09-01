@@ -3470,6 +3470,33 @@ class TestConnection:
         data = conn.bio_read(2)
         assert 2 == len(data)
 
+    def test_connection_set_info_callback(self) -> None:
+        (server_sock, client_sock) = socket_pair()
+
+        context = Context(SSLv23_METHOD)
+        context.use_certificate(load_certificate(FILETYPE_PEM, root_cert_pem))
+        context.use_privatekey(load_privatekey(FILETYPE_PEM, root_key_pem))
+        server = Connection(context, server_sock)
+        server.set_accept_state()
+
+        client = Connection(Context(SSLv23_METHOD), client_sock)
+        client.set_connect_state()
+
+        called = []
+
+        def info(conn: Connection, where: int, ret: int) -> None:
+            assert conn is client
+            called.append(where)
+
+        client.set_info_callback(info)
+
+        handshake(client, server)
+
+        # Verify that the callback was actually called during handshake
+        assert len(called) > 0
+        assert SSL_CB_HANDSHAKE_START in called
+        assert SSL_CB_HANDSHAKE_DONE in called
+
 
 class TestConnectionGetCipherList:
     """
