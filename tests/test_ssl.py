@@ -3434,6 +3434,29 @@ class TestConnection:
 
         assert server_protocol_version == client_protocol_version
 
+    def test_get_group_name_before_connect(self) -> None:
+        """
+        `Connection.get_group_name()` returns `None` if no connection
+        has been established.
+        """
+        ctx = Context(TLS_METHOD)
+        conn = Connection(ctx, None)
+        assert conn.get_group_name() is None
+
+    def test_get_group_name(self) -> None:
+        """
+        `Connection.get_group_name()` returns a string giving the
+        name of the connection's negotiated key exchange group.
+        """
+        server, client = loopback()
+        client_group_name = client.get_group_name()
+        server_group_name = server.get_group_name()
+
+        assert isinstance(client_group_name, str)
+        assert isinstance(server_group_name, str)
+
+        assert client_group_name == server_group_name
+
     def test_wantReadError(self) -> None:
         """
         `Connection.bio_read` raises `OpenSSL.SSL.WantReadError` if there are

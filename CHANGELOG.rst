@@ -15,6 +15,7 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- Added ``OpenSSL.SSL.Connection.get_group_name`` to determine which group name was negotiated.
 - Added ``OpenSSL.SSL.Context.set_tls13_ciphersuites`` that allows the allowed TLS 1.3 ciphers.
 
 25.2.0 (UNRELEASED)

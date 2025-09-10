@@ -3222,6 +3222,18 @@ class Connection:
 
         return _ffi.string(profile.name)
 
+    def get_group_name(self) -> str | None:
+        """
+        Get the name of the negotiated group for the key exchange.
+
+        :return: A string giving the group name or :data:`None`.
+        """
+        group_name = _lib.SSL_get0_group_name(self._ssl)
+        if group_name == _ffi.NULL:
+            return None
+
+        return _ffi.string(group_name).decode("utf-8")
+
     def request_ocsp(self) -> None:
         """
         Called to request that the server sends stapled OCSP data, if
