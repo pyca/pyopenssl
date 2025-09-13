@@ -3,19 +3,6 @@ Changelog
 
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
-UNRELEASED
-----------
-
-Backward-incompatible changes:
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Deprecations:
-^^^^^^^^^^^^^
-
-Changes:
-^^^^^^^^
-
-- Added ``OpenSSL.SSL.Context.set_tls13_ciphersuites`` that allows the allowed TLS 1.3 ciphers.
 
 25.2.0 (UNRELEASED)
 -------------------
@@ -23,8 +10,7 @@ Changes:
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-pyOpenSSL now sets SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER by default, matching CPython's behavior. #1287.
-The minimum cryptography version is now 42.0.0.
+- The minimum ``cryptography`` version is now 45.0.7.
 
 Deprecations:
 ^^^^^^^^^^^^^
@@ -32,6 +18,9 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- pyOpenSSL now sets ``SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER`` by default, matching CPython's behavior.
+- Added ``OpenSSL.SSL.Context.set_tls13_ciphersuites`` that allows the allowed TLS 1.3 ciphers.
+- Added ``OpenSSL.SSL.Connection.set_info_callback``
 
 25.1.0 (2025-05-17)
 -------------------

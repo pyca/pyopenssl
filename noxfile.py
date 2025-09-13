@@ -3,7 +3,7 @@ import nox
 nox.options.reuse_existing_virtualenvs = True
 nox.options.default_venv_backend = "uv|virtualenv"
 
-MINIMUM_CRYPTOGRAPHY_VERSION = "41.0.5"
+MINIMUM_CRYPTOGRAPHY_VERSION = "45.0.7"
 
 
 @nox.session

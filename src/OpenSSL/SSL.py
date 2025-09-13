@@ -3213,3 +3213,27 @@ class Connection:
             self._ssl, _lib.TLSEXT_STATUSTYPE_ocsp
         )
         _openssl_assert(rc == 1)
+
+    def set_info_callback(
+        self, callback: Callable[[Connection, int, int], None]
+    ) -> None:
+        """
+        Set the information callback to *callback*. This function will be
+        called from time to time during SSL handshakes.
+
+        :param callback: The Python callback to use.  This should take three
+            arguments: a Connection object and two integers.  The first integer
+            specifies where in the SSL handshake the function was called, and
+            the other the return code from a (possibly failed) internal
+            function call.
+        :return: None
+        """
+
+        @wraps(callback)
+        def wrapper(ssl, where, return_code):  # type: ignore[no-untyped-def]
+            callback(Connection._reverse_mapping[ssl], where, return_code)
+
+        self._info_callback = _ffi.callback(
+            "void (*)(const SSL *, int, int)", wrapper
+        )
+        _lib.SSL_set_info_callback(self._ssl, self._info_callback)
