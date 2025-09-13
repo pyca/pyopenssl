@@ -815,6 +815,10 @@ _requires_keylog = _make_requires(
     getattr(_lib, "Cryptography_HAS_KEYLOG", 0), "Key logging not available"
 )
 
+_requires_ssl_get0_group_name = _make_requires(
+    getattr(_lib, "Cryptography_HAS_SSL_GET0_GROUP_NAME", 0),
+    "Getting group name is not supported by the linked OpenSSL version"
+)
 
 class Session:
     """
@@ -3222,6 +3226,7 @@ class Connection:
 
         return _ffi.string(profile.name)
 
+    @_requires_ssl_get0_group_name
     def get_group_name(self) -> str | None:
         """
         Get the name of the negotiated group for the key exchange.
