@@ -1486,26 +1486,6 @@ class Context:
         _openssl_assert(
             _lib.SSL_CTX_set_cipher_list(self._context, cipher_list) == 1
         )
-        # In OpenSSL 1.1.1 setting the cipher list will always return TLS 1.3
-        # ciphers even if you pass an invalid cipher. Applications (like
-        # Twisted) have tests that depend on an error being raised if an
-        # invalid cipher string is passed, but without the following check
-        # for the TLS 1.3 specific cipher suites it would never error.
-        tmpconn = Connection(self, None)
-        if tmpconn.get_cipher_list() == [
-            "TLS_AES_256_GCM_SHA384",
-            "TLS_CHACHA20_POLY1305_SHA256",
-            "TLS_AES_128_GCM_SHA256",
-        ]:
-            raise Error(
-                [
-                    (
-                        "SSL routines",
-                        "SSL_CTX_set_cipher_list",
-                        "no cipher match",
-                    ),
-                ],
-            )
 
     @_require_not_used
     def set_tls13_ciphersuites(self, ciphersuites: bytes) -> None:
