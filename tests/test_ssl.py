@@ -3449,13 +3449,13 @@ class TestConnection:
         name of the connection's negotiated key exchange group.
         """
         server, client = loopback()
-        client_group_name = client.get_group_name()
         server_group_name = server.get_group_name()
+        client_group_name = client.get_group_name()
 
-        assert isinstance(client_group_name, str)
         assert isinstance(server_group_name, str)
+        assert isinstance(client_group_name, str)
 
-        assert client_group_name == server_group_name
+        assert server_group_name == client_group_name
 
     def test_wantReadError(self) -> None:
         """
