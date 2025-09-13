@@ -1490,26 +1490,6 @@ class Context:
         _openssl_assert(
             _lib.SSL_CTX_set_cipher_list(self._context, cipher_list) == 1
         )
-        # In OpenSSL 1.1.1 setting the cipher list will always return TLS 1.3
-        # ciphers even if you pass an invalid cipher. Applications (like
-        # Twisted) have tests that depend on an error being raised if an
-        # invalid cipher string is passed, but without the following check
-        # for the TLS 1.3 specific cipher suites it would never error.
-        tmpconn = Connection(self, None)
-        if tmpconn.get_cipher_list() == [
-            "TLS_AES_256_GCM_SHA384",
-            "TLS_CHACHA20_POLY1305_SHA256",
-            "TLS_AES_128_GCM_SHA256",
-        ]:
-            raise Error(
-                [
-                    (
-                        "SSL routines",
-                        "SSL_CTX_set_cipher_list",
-                        "no cipher match",
-                    ),
-                ],
-            )
 
     @_require_not_used
     def set_tls13_ciphersuites(self, ciphersuites: bytes) -> None:
@@ -3250,3 +3230,27 @@ class Connection:
             self._ssl, _lib.TLSEXT_STATUSTYPE_ocsp
         )
         _openssl_assert(rc == 1)
+
+    def set_info_callback(
+        self, callback: Callable[[Connection, int, int], None]
+    ) -> None:
+        """
+        Set the information callback to *callback*. This function will be
+        called from time to time during SSL handshakes.
+
+        :param callback: The Python callback to use.  This should take three
+            arguments: a Connection object and two integers.  The first integer
+            specifies where in the SSL handshake the function was called, and
+            the other the return code from a (possibly failed) internal
+            function call.
+        :return: None
+        """
+
+        @wraps(callback)
+        def wrapper(ssl, where, return_code):  # type: ignore[no-untyped-def]
+            callback(Connection._reverse_mapping[ssl], where, return_code)
+
+        self._info_callback = _ffi.callback(
+            "void (*)(const SSL *, int, int)", wrapper
+        )
+        _lib.SSL_set_info_callback(self._ssl, self._info_callback)
