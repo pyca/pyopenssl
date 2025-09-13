@@ -14,7 +14,7 @@ else:
 
 binding = Binding()
 ffi = binding.ffi
-lib = binding.lib
+lib: Any = binding.lib
 
 
 # This is a special CFFI allocator that does not bother to zero its memory
