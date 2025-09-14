@@ -5,7 +5,7 @@ on:
 
 jobs:
   linux:
-    runs-on: ${{ matrix.PYTHON.OS || 'ubuntu-22.04' }}
+    runs-on: ${{ matrix.PYTHON.OS || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       matrix:
@@ -20,7 +20,7 @@ jobs:
           - {VERSION: "3.13-dev", NOXSESSION: "tests"}
           - {VERSION: "pypy-3.9", NOXSESSION: "tests"}
           - {VERSION: "pypy-3.10", NOXSESSION: "tests"}
-          - {VERSION: "3.11", NOXSESSION: "tests-wheel", OS: "windows-2022"}
+          - {VERSION: "3.11", NOXSESSION: "tests-wheel", OS: "windows-latest"}
           # -cryptography-main
           - {VERSION: "3.8", NOXSESSION: "tests-cryptography-main"}
           - {VERSION: "3.9", NOXSESSION: "tests-cryptography-main"}
