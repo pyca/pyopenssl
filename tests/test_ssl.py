@@ -3454,6 +3454,23 @@ class TestConnection:
         not getattr(_lib, "Cryptography_HAS_SSL_GET0_GROUP_NAME", None),
         reason="SSL_get0_group_name unavailable",
     )
+    def test_group_name_null_case(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """
+        `Connection.get_group_name()` returns `None` when SSL_get0_group_name
+        returns NULL.
+        """
+        monkeypatch.setattr(_lib, "SSL_get0_group_name", lambda ssl: _ffi.NULL)
+
+        server, client = loopback()
+        assert server.get_group_name() is None
+        assert client.get_group_name() is None
+
+    @pytest.mark.skipif(
+        not getattr(_lib, "Cryptography_HAS_SSL_GET0_GROUP_NAME", None),
+        reason="SSL_get0_group_name unavailable",
+    )
     def test_get_group_name(self) -> None:
         """
         `Connection.get_group_name()` returns a string giving the
