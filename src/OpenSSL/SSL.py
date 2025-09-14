@@ -817,8 +817,9 @@ _requires_keylog = _make_requires(
 
 _requires_ssl_get0_group_name = _make_requires(
     getattr(_lib, "Cryptography_HAS_SSL_GET0_GROUP_NAME", 0),
-    "Getting group name is not supported by the linked OpenSSL version"
+    "Getting group name is not supported by the linked OpenSSL version",
 )
+
 
 class Session:
     """
