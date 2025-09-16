@@ -10,6 +10,8 @@ The third digit is only for regressions.
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- The minimum ``cryptography`` version is now 46.0.0.
+
 Deprecations:
 ^^^^^^^^^^^^^
 
