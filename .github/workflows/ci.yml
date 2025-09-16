@@ -19,8 +19,7 @@ jobs:
           - {VERSION: "3.12", NOXSESSION: "tests"}
           - {VERSION: "3.13", NOXSESSION: "tests"}
           - {VERSION: "3.14-dev", NOXSESSION: "tests"}
-          - {VERSION: "pypy-3.9", NOXSESSION: "tests"}
-          - {VERSION: "pypy-3.10", NOXSESSION: "tests"}
+          - {VERSION: "pypy-3.11", NOXSESSION: "tests"}
           - {VERSION: "3.11", NOXSESSION: "tests-wheel", OS: "windows-latest"}
           # -cryptography-main
           - {VERSION: "3.8", NOXSESSION: "tests-cryptography-main"}
@@ -29,8 +28,7 @@ jobs:
           - {VERSION: "3.11", NOXSESSION: "tests-cryptography-main"}
           - {VERSION: "3.12", NOXSESSION: "tests-cryptography-main"}
           - {VERSION: "3.13", NOXSESSION: "tests-cryptography-main"}
-          - {VERSION: "pypy-3.9", NOXSESSION: "tests-cryptography-main"}
-          - {VERSION: "pypy-3.10", NOXSESSION: "tests-cryptography-main"}
+          - {VERSION: "pypy-3.11", NOXSESSION: "tests-cryptography-main"}
           # -cryptography-minimum
           - {VERSION: "3.7", NOXSESSION: "tests-cryptography-minimum", OS: "ubuntu-22.04"}
           - {VERSION: "3.8", NOXSESSION: "tests-cryptography-minimum"}
@@ -39,7 +37,7 @@ jobs:
           - {VERSION: "3.11", NOXSESSION: "tests-cryptography-minimum"}
           - {VERSION: "3.12", NOXSESSION: "tests-cryptography-minimum"}
           - {VERSION: "3.13", NOXSESSION: "tests-cryptography-minimum"}
-          - {VERSION: "pypy-3.10", NOXSESSION: "tests-cryptography-minimum"}
+          - {VERSION: "pypy-3.11", NOXSESSION: "tests-cryptography-minimum"}
           # Cryptography wheels
           - {VERSION: "3.9", NOXSESSION: "tests-cryptography-minimum-wheel"}
           - {VERSION: "3.9", NOXSESSION: "tests-wheel"}
