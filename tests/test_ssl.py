@@ -3437,6 +3437,54 @@ class TestConnection:
 
         assert server_protocol_version == client_protocol_version
 
+    @pytest.mark.skipif(
+        not getattr(_lib, "Cryptography_HAS_SSL_GET0_GROUP_NAME", None),
+        reason="SSL_get0_group_name unavailable",
+    )
+    def test_get_group_name_before_connect(self) -> None:
+        """
+        `Connection.get_group_name()` returns `None` if no connection
+        has been established.
+        """
+        ctx = Context(TLS_METHOD)
+        conn = Connection(ctx, None)
+        assert conn.get_group_name() is None
+
+    @pytest.mark.skipif(
+        not getattr(_lib, "Cryptography_HAS_SSL_GET0_GROUP_NAME", None),
+        reason="SSL_get0_group_name unavailable",
+    )
+    def test_group_name_null_case(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """
+        `Connection.get_group_name()` returns `None` when SSL_get0_group_name
+        returns NULL.
+        """
+        monkeypatch.setattr(_lib, "SSL_get0_group_name", lambda ssl: _ffi.NULL)
+
+        server, client = loopback()
+        assert server.get_group_name() is None
+        assert client.get_group_name() is None
+
+    @pytest.mark.skipif(
+        not getattr(_lib, "Cryptography_HAS_SSL_GET0_GROUP_NAME", None),
+        reason="SSL_get0_group_name unavailable",
+    )
+    def test_get_group_name(self) -> None:
+        """
+        `Connection.get_group_name()` returns a string giving the
+        name of the connection's negotiated key exchange group.
+        """
+        server, client = loopback()
+        server_group_name = server.get_group_name()
+        client_group_name = client.get_group_name()
+
+        assert isinstance(server_group_name, str)
+        assert isinstance(client_group_name, str)
+
+        assert server_group_name == client_group_name
+
     def test_wantReadError(self) -> None:
         """
         `Connection.bio_read` raises `OpenSSL.SSL.WantReadError` if there are

@@ -815,6 +815,11 @@ _requires_keylog = _make_requires(
     getattr(_lib, "Cryptography_HAS_KEYLOG", 0), "Key logging not available"
 )
 
+_requires_ssl_get0_group_name = _make_requires(
+    getattr(_lib, "Cryptography_HAS_SSL_GET0_GROUP_NAME", 0),
+    "Getting group name is not supported by the linked OpenSSL version",
+)
+
 
 class Session:
     """
@@ -3201,6 +3206,26 @@ class Connection:
             return b""
 
         return _ffi.string(profile.name)
+
+    @_requires_ssl_get0_group_name
+    def get_group_name(self) -> str | None:
+        """
+        Get the name of the negotiated group for the key exchange.
+
+        :return: A string giving the group name or :data:`None`.
+        """
+        # Do not remove this guard.
+        # SSL_get0_group_name crashes with a segfault if called without
+        # an established connection (should return NULL but doesn't).
+        session = _lib.SSL_get_session(self._ssl)
+        if session == _ffi.NULL:
+            return None
+
+        group_name = _lib.SSL_get0_group_name(self._ssl)
+        if group_name == _ffi.NULL:
+            return None
+
+        return _ffi.string(group_name).decode("utf-8")
 
     def request_ocsp(self) -> None:
         """
