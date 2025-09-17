@@ -3214,9 +3214,13 @@ class Connection:
 
         :return: A string giving the group name or :data:`None`.
         """
+        # Do not remove this guard.
+        # SSL_get0_group_name crashes with a segfault if called without
+        # an established connection (should return NULL but doesn't).
         session = _lib.SSL_get_session(self._ssl)
         if session == _ffi.NULL:
             return None
+
         group_name = _lib.SSL_get0_group_name(self._ssl)
         if group_name == _ffi.NULL:
             return None
