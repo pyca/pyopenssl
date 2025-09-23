@@ -14,7 +14,7 @@ Other OpenSSL wrappers for Python at the time were also limited, though in diffe
 Later it was maintained by `Jean-Paul Calderone`_ who among other things managed to make pyOpenSSL a pure Python project which the current maintainers are *very* grateful for.
 
 Over the time the standard library's ``ssl`` module improved, never reaching the completeness of pyOpenSSL's API coverage.
-pyOpenSSL remains the only choice for full-featured TLS code in Python versions 3.7+ and PyPy_.
+pyOpenSSL remains the only choice for full-featured TLS code in Python versions 3.8+ and PyPy_.
 
 
 Development

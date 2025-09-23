@@ -10,11 +10,16 @@ The third digit is only for regressions.
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- Dropped support for Python 3.7.
+- The minimum ``cryptography`` version is now 46.0.0.
+
 Deprecations:
 ^^^^^^^^^^^^^
 
 Changes:
 ^^^^^^^^
+
+- Added ``OpenSSL.SSL.Connection.get_group_name`` to determine which group name was negotiated.
 
 25.3.0 (2025-09-16)
 -------------------
