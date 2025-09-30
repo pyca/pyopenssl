@@ -1046,7 +1046,7 @@ class Context:
         binary wheels that cryptography (pyOpenSSL's primary dependency) ships:
 
         *   macOS will only load certificates using this method if the user has
-            the ``openssl@1.1`` `Homebrew <https://brew.sh>`_ formula installed
+            the ``openssl@3`` `Homebrew <https://brew.sh>`_ formula installed
             in the default location.
         *   Windows will not work.
         *   manylinux cryptography wheels will work on most common Linux
