@@ -820,6 +820,14 @@ _requires_ssl_get0_group_name = _make_requires(
     "Getting group name is not supported by the linked OpenSSL version",
 )
 
+_requires_client_hello_cb = _make_requires(
+    getattr(_lib, "Cryptography_HAS_CLIENT_HELLO_CB", 0),
+    (
+        "SSL client hello callback is not supported by the "
+        "linked cryptographic library"
+    ),
+)
+
 
 class Session:
     """
@@ -905,6 +913,7 @@ class Context:
         self._info_callback = None
         self._keylog_callback = None
         self._tlsext_servername_callback = None
+        self._client_hello_callback = None
         self._app_data = None
         self._alpn_select_helper: _ALPNSelectHelper | None = None
         self._alpn_select_callback: _ALPNSelectCallback | None = None
@@ -1760,6 +1769,33 @@ class Context:
         )
         _lib.SSL_CTX_set_tlsext_servername_callback(
             self._context, self._tlsext_servername_callback
+        )
+
+    @_requires_client_hello_cb
+    @_require_not_used
+    def set_ssl_ctx_client_hello_callback(
+        self, callback: Callable[[Connection], None]
+    ) -> None:
+        """
+        Specify a callback function to be called when the ClientHello
+        is received.
+
+        :param callback: The callback function.  It will be invoked with one
+            argument, the Connection instance.
+
+        .. versionadded:: 0.13
+        """
+
+        @wraps(callback)
+        def wrapper(ssl, alert, arg):  # type: ignore[no-untyped-def]
+            callback(Connection._reverse_mapping[ssl])
+            return 1
+
+        self._client_hello_callback = _ffi.callback(
+            "int (*)(SSL *, int *, void *)", wrapper
+        )
+        _lib.SSL_CTX_set_client_hello_cb(
+            self._context, self._client_hello_callback, _ffi.NULL
         )
 
     @_require_not_used
@@ -3262,3 +3298,50 @@ class Connection:
             "void (*)(const SSL *, int, int)", wrapper
         )
         _lib.SSL_set_info_callback(self._ssl, self._info_callback)
+
+    @_requires_client_hello_cb
+    def get_client_hello_extension(self, type: int) -> bytes:
+        """
+        Returns the client extension with the specified type. If the extensions
+        cannot be found an empty byte string is returned.
+
+        :param type: The type of extension to retrieve as integer.
+        :return: A byte array containing the extension or an empty byte array
+            if the extension is absent.
+        """
+        out = _ffi.new("const unsigned char **")
+        outlen = _ffi.new("size_t *")
+        _lib.SSL_client_hello_get0_ext(self._ssl, type, out, outlen)
+
+        if not outlen:
+            return b""
+
+        return _ffi.buffer(out[0], outlen[0])[:]
+
+    @_requires_client_hello_cb
+    def get_client_hello_extensions_present(self) -> list[int]:
+        """
+        Returns a list of the types of the client hello extensions
+        that are present in the ClientHello message.
+        """
+        # SSL_client_hello_get1_extensions_present returns a new array
+        # allocated by OpenSSL_malloc
+        data = _ffi.new("int **")
+        data_len = _ffi.new("size_t *")
+        rc = _lib.SSL_client_hello_get1_extensions_present(
+            self._ssl, data, data_len
+        )
+
+        _openssl_assert(rc == 1)
+
+        if not data_len:
+            return []
+
+        # OpenSSL returns the number of items and FFI wants the numbers of
+        # types, so multiply it by the size of each item (int)
+        data_gc = _ffi.gc(data[0], _lib.OPENSSL_free)
+
+        buf = _ffi.buffer(data_gc, data_len[0] * _ffi.sizeof("int"))
+        retarray = _ffi.from_buffer("int[]", buf)
+
+        return list(retarray)
