@@ -148,16 +148,6 @@ PKey objects
 
     Key type constants.
 
-.. _openssl-509ext:
-
-X509Extension objects
----------------------
-
-.. autoclass:: X509Extension
-               :members:
-               :special-members:
-               :exclude-members: __weakref__
-
 Exceptions
 ----------
 
