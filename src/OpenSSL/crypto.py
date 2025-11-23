@@ -885,9 +885,11 @@ class X509Extension:
                 _lib.GENERAL_NAME_print(bio, name)
                 parts.append(_bio_to_string(bio).decode("utf-8"))
             else:
-                value = _ffi.buffer(name.d.ia5.data, name.d.ia5.length)[
-                    :
-                ].decode("utf-8")
+                asn1_string = _ffi.cast("ASN1_STRING*", name.d.ia5)
+                value = _ffi.buffer(
+                    _lib.ASN1_STRING_get0_data(asn1_string),
+                    _lib.ASN1_STRING_length(asn1_string),
+                )[:].decode("utf-8")
                 parts.append(label + ":" + value)
         return ", ".join(parts)
 
