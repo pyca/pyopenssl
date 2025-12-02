@@ -21,6 +21,7 @@ jobs:
           - {VERSION: "3.14t", NOXSESSION: "tests"}
           - {VERSION: "pypy-3.11", NOXSESSION: "tests"}
           - {VERSION: "3.11", NOXSESSION: "tests-wheel", OS: "windows-latest"}
+          - {VERSION: "3.14t", NOXSESSION: "tests-wheel", OS: "windows-latest"}
           # -cryptography-main
           - {VERSION: "3.8", NOXSESSION: "tests-cryptography-main"}
           - {VERSION: "3.9", NOXSESSION: "tests-cryptography-main"}
