@@ -53,7 +53,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.1
       - name: Setup python
-        uses: actions/setup-python@v6.1.0
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ matrix.PYTHON.VERSION }}
       - run: python -m pip install nox
@@ -96,7 +96,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.1
       - name: Setup python
-        uses: actions/setup-python@v6.1.0
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ matrix.PYTHON }}
       - run: ./.github/downstream.d/${{ matrix.DOWNSTREAM }}.sh install
@@ -119,7 +119,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Setup python
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: '3.12'
         timeout-minutes: 3
