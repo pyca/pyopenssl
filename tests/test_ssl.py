@@ -37,6 +37,7 @@ from socket import (
     SOL_SOCKET,
     gaierror,
     socket,
+    socketpair,
 )
 from sys import getfilesystemencoding, platform
 from weakref import ref
@@ -3070,7 +3071,14 @@ class TestConnection:
         `OpenSSL.SSL.WantWriteError` if writing to the connection's BIO
         fail indicating a should-write state.
         """
-        client_socket, _ = socket_pair()
+        # Use Unix domain sockets rather than TCP loopback. On macOS,
+        # TCP loopback aggressively auto-tunes buffer sizes and drains
+        # the send buffer into the peer's receive buffer nearly
+        # instantly, so the send buffer won't stay full long enough
+        # for do_handshake() to observe it.
+        client_socket, peer = socketpair()
+        client_socket.setblocking(False)
+        peer.setblocking(False)
         # Fill up the client's send buffer so Connection won't be able to write
         # anything. Start by sending larger chunks (Windows Socket I/O is slow)
         # and continue by writing a single byte at a time so we can be sure we
