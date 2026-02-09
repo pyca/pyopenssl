@@ -671,7 +671,8 @@ class TestContext:
         """
         Passing the path as unicode raises a warning but works.
         """
-        pytest.deprecated_call(context.load_client_ca, ca_file.decode("ascii"))
+        with pytest.deprecated_call():
+            context.load_client_ca(ca_file.decode("ascii"))  # type: ignore[arg-type]
 
     def test_set_session_id(self, context: Context) -> None:
         """
@@ -706,7 +707,8 @@ class TestContext:
         `Context.set_session_id` raises a warning if a unicode string is
         passed.
         """
-        pytest.deprecated_call(context.set_session_id, "abc")
+        with pytest.deprecated_call():
+            context.set_session_id("abc")  # type: ignore[arg-type]
 
     def test_method(self) -> None:
         """
