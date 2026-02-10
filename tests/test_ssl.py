@@ -3495,6 +3495,93 @@ class TestConnection:
 
         assert server_group_name == client_group_name
 
+    @pytest.mark.skipif(
+        not getattr(_lib, "Cryptography_HAS_SSL_GET0_GROUP_NAME", None),
+        reason="SSL_get0_group_name unavailable",
+    )
+    def test_set_groups_context(self) -> None:
+        """
+        `Context.set_groups` forces the use of a specific curve/groups list.
+        """
+
+        def loopback_x448_client_factory(
+            socket: socket, version: int = SSLv23_METHOD
+        ) -> Connection:
+            context = Context(version)
+            context.set_groups(b"X448")
+            client = Connection(context, socket)
+            client.set_connect_state()
+            return client
+
+        server, client = loopback(client_factory=loopback_x448_client_factory)
+        server_group_name = server.get_group_name()
+        client_group_name = client.get_group_name()
+
+        assert isinstance(server_group_name, str)
+        assert isinstance(client_group_name, str)
+
+        assert server_group_name.lower() == "x448"
+        assert client_group_name.lower() == "x448"
+
+    @pytest.mark.skipif(
+        not getattr(_lib, "Cryptography_HAS_SSL_GET0_GROUP_NAME", None),
+        reason="SSL_get0_group_name unavailable",
+    )
+    def test_set_groups_session(self) -> None:
+        """
+        `Connection.set_groups` forces the use of a specific curve/groups list.
+        """
+
+        def loopback_x448_server_factory(
+            socket: socket, version: int = SSLv23_METHOD
+        ) -> Connection:
+            connection = loopback_server_factory(socket, version)
+            connection.set_groups(b"X448")
+            return connection
+
+        server, client = loopback(server_factory=loopback_x448_server_factory)
+        server_group_name = server.get_group_name()
+        client_group_name = client.get_group_name()
+
+        assert isinstance(server_group_name, str)
+        assert isinstance(client_group_name, str)
+
+        assert server_group_name.lower() == "x448"
+        assert client_group_name.lower() == "x448"
+
+    def test_set_groups_mismatch(self) -> None:
+        """
+        Forces different group lists on client and server so that a connection
+        should not be possible.
+        """
+
+        def loopback_x25519_client_factory(
+            socket: socket, version: int = SSLv23_METHOD
+        ) -> Connection:
+            connection = loopback_client_factory(socket, version)
+            connection.set_groups(b"X25519")
+            return connection
+
+        def loopback_x448_server_factory(
+            socket: socket, version: int = SSLv23_METHOD
+        ) -> Connection:
+            ctx = Context(version)
+            ctx.set_groups(b"X448")
+
+            ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
+            ctx.use_certificate(
+                load_certificate(FILETYPE_PEM, server_cert_pem)
+            )
+            server = Connection(ctx, socket)
+            server.set_accept_state()
+            return server
+
+        with pytest.raises(SSL.Error):
+            loopback(
+                client_factory=loopback_x25519_client_factory,
+                server_factory=loopback_x448_server_factory,
+            )
+
     def test_wantReadError(self) -> None:
         """
         `Connection.bio_read` raises `OpenSSL.SSL.WantReadError` if there are

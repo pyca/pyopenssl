@@ -18,6 +18,7 @@ Deprecations:
 
 Changes:
 ^^^^^^^^
+- Added ``OpenSSL.SSL.Context.set_groups`` and ``OpenSSL.SSL.Connection.set_groups`` to set allowed groups/curves.
 
 - Added ``OpenSSL.SSL.Connection.get_group_name`` to determine which group name was negotiated.
 
