@@ -37,6 +37,7 @@ from socket import (
     SOL_SOCKET,
     gaierror,
     socket,
+    socketpair,
 )
 from sys import getfilesystemencoding, platform
 from weakref import ref
@@ -670,7 +671,8 @@ class TestContext:
         """
         Passing the path as unicode raises a warning but works.
         """
-        pytest.deprecated_call(context.load_client_ca, ca_file.decode("ascii"))
+        with pytest.deprecated_call():
+            context.load_client_ca(ca_file.decode("ascii"))  # type: ignore[arg-type]
 
     def test_set_session_id(self, context: Context) -> None:
         """
@@ -705,7 +707,8 @@ class TestContext:
         `Context.set_session_id` raises a warning if a unicode string is
         passed.
         """
-        pytest.deprecated_call(context.set_session_id, "abc")
+        with pytest.deprecated_call():
+            context.set_session_id("abc")  # type: ignore[arg-type]
 
     def test_method(self) -> None:
         """
@@ -3070,7 +3073,14 @@ class TestConnection:
         `OpenSSL.SSL.WantWriteError` if writing to the connection's BIO
         fail indicating a should-write state.
         """
-        client_socket, _ = socket_pair()
+        # Use Unix domain sockets rather than TCP loopback. On macOS,
+        # TCP loopback aggressively auto-tunes buffer sizes and drains
+        # the send buffer into the peer's receive buffer nearly
+        # instantly, so the send buffer won't stay full long enough
+        # for do_handshake() to observe it.
+        client_socket, peer = socketpair()
+        client_socket.setblocking(False)
+        peer.setblocking(False)
         # Fill up the client's send buffer so Connection won't be able to write
         # anything. Start by sending larger chunks (Windows Socket I/O is slow)
         # and continue by writing a single byte at a time so we can be sure we
