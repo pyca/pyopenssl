@@ -4,6 +4,21 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
+26.3.0 (UNRELEASED)
+-------------------
+
+Backward-incompatible changes:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Deprecations:
+^^^^^^^^^^^^^
+
+Changes:
+^^^^^^^^
+
+- Added ``OpenSSL.SSL.Context.set_groups`` and ``OpenSSL.SSL.Connection.set_groups`` to set allowed groups/curves.
+- The minimum ``cryptography`` version is now 47.0.0.
+
 26.0.0 (2026-03-15)
 -------------------
 
