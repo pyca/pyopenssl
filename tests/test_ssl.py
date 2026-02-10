@@ -67,7 +67,6 @@ from OpenSSL.crypto import (
 )
 from OpenSSL.SSL import (
     DTLS_METHOD,
-    MODE_RELEASE_BUFFERS,
     NO_OVERLAPPING_PROTOCOLS,
     OP_COOKIE_EXCHANGE,
     OP_NO_COMPRESSION,
@@ -132,6 +131,7 @@ from OpenSSL.SSL import (
     _NoOverlappingProtocols,
 )
 
+from . import conftest
 from .test_crypto import (
     client_cert_pem,
     client_key_pem,
@@ -643,6 +643,12 @@ class TestContext:
                 "",
                 "no cipher match",
             ),
+            # aws-lc
+            (
+                "SSL routines",
+                "OPENSSL_internal",
+                "NO_CIPHER_MATCH",
+            ),
         ]
 
     def test_load_client_ca(self, context: Context, ca_file: bytes) -> None:
@@ -699,6 +705,12 @@ class TestContext:
                 "SSL routines",
                 "",
                 "ssl session id context too long",
+            ),
+            # aws-lc
+            (
+                "SSL routines",
+                "OPENSSL_internal",
+                "SSL_SESSION_ID_CONTEXT_TOO_LONG",
             ),
         ]
 
@@ -922,7 +934,8 @@ class TestContext:
         newly set mode.
         """
         context = Context(SSLv23_METHOD)
-        assert MODE_RELEASE_BUFFERS & context.set_mode(MODE_RELEASE_BUFFERS)
+        mode = _lib.SSL_MODE_ENABLE_PARTIAL_WRITE
+        assert mode & context.set_mode(mode)
 
     def test_set_timeout_wrong_args(self) -> None:
         """
@@ -969,7 +982,7 @@ class TestContext:
         """
         key = PKey()
         key.generate_key(TYPE_RSA, 1024)
-        pem = dump_privatekey(FILETYPE_PEM, key, "blowfish", passphrase)
+        pem = dump_privatekey(FILETYPE_PEM, key, "aes-256-cbc", passphrase)
         with open(tmpfile, "w") as fObj:
             fObj.write(pem.decode("ascii"))
         return tmpfile
@@ -1163,7 +1176,7 @@ class TestContext:
         client_context = Context(TLS_METHOD)
         client_context.set_max_proto_version(low_version)
 
-        with pytest.raises(Error, match="unsupported protocol"):
+        with pytest.raises(Error, match=r"(?i)unsupported.protocol"):
             self._handshake_test(server_context, client_context)
 
         client_context = Context(TLS_METHOD)
@@ -1632,7 +1645,9 @@ class TestContext:
         if mode == SSL.VERIFY_PEER:
             with pytest.raises(Exception) as exc:
                 self._handshake_test(serverContext, clientContext)
-            assert "certificate verify failed" in str(exc.value)
+            assert "certificate verify failed" in str(
+                exc.value
+            ) or "CERTIFICATE_VERIFY_FAILED" in str(exc.value)
         else:
             self._handshake_test(serverContext, clientContext)
 
@@ -1861,8 +1876,26 @@ class TestContext:
             with pytest.deprecated_call():
                 context.set_tmp_ecdh(curve)
 
+        awslc_unsupported_curves = {
+            "BRAINPOOLP256R1",
+            "BRAINPOOLP384R1",
+            "BRAINPOOLP512R1",
+            "SECP192R1",
+            "SECT163K1",
+            "SECT163R2",
+            "SECT233K1",
+            "SECT233R1",
+            "SECT283K1",
+            "SECT283R1",
+            "SECT409K1",
+            "SECT409R1",
+            "SECT571K1",
+            "SECT571R1",
+        }
         for name in dir(ec.EllipticCurveOID):
             if name.startswith("_"):
+                continue
+            if conftest.is_awslc and name in awslc_unsupported_curves:
                 continue
             oid = getattr(ec.EllipticCurveOID, name)
             cryptography_curve = ec.get_curve_for_oid(oid)
@@ -2699,10 +2732,12 @@ class TestConnection:
         assert tls_server.get_state_string() in [
             b"before/accept initialization",
             b"before SSL initialization",
+            b"TLS server start_accept",
         ]
         assert tls_client.get_state_string() in [
             b"before/connect initialization",
             b"before SSL initialization",
+            b"TLS client start_connect",
         ]
 
     def test_app_data(self) -> None:
@@ -3179,9 +3214,10 @@ class TestConnection:
             return False  # Retry succeeded
         except SSL.Error as e:
             reason = get_ssl_error_reason(e)
-            assert reason == "bad write retry", (
-                f"Retry failed with unexpected SSL error: {e!r}({reason})."
-            )
+            assert reason in (
+                "bad write retry",
+                "BAD_WRITE_RETRY",
+            ), f"Retry failed with unexpected SSL error: {e!r}({reason})."
             return True  # Bad write retry
 
     def _shutdown_connections(
@@ -3895,6 +3931,10 @@ class TestConnectionRenegotiate:
         connection = Connection(Context(SSLv23_METHOD), None)
         assert connection.total_renegotiations() == 0
 
+    @pytest.mark.skipif(
+        conftest.is_awslc,
+        reason="aws-lc doesn't support renegotiation",
+    )
     def test_renegotiate(self) -> None:
         """
         Go through a complete renegotiation cycle.
@@ -3987,6 +4027,10 @@ class TestConstants:
         reason=(
             "OP_NO_COMPRESSION unavailable - OpenSSL version may be too old"
         ),
+    )
+    @pytest.mark.skipif(
+        conftest.is_awslc,
+        reason="aws-lc defines OP_NO_COMPRESSION as 0",
     )
     def test_op_no_compression(self) -> None:
         """
@@ -5050,9 +5094,17 @@ class TestDTLS:
         c.set_ciphertext_mtu(500)
         assert 0 < c.get_cleartext_mtu() < 500
 
+    @pytest.mark.skipif(
+        OP_COOKIE_EXCHANGE is None,
+        reason="DTLS cookie exchange not supported",
+    )
     def test_it_works_at_all(self) -> None:
         self._test_handshake_and_data(srtp_profile=None)
 
+    @pytest.mark.skipif(
+        OP_COOKIE_EXCHANGE is None,
+        reason="DTLS cookie exchange not supported",
+    )
     def test_it_works_with_srtp(self) -> None:
         self._test_handshake_and_data(srtp_profile=b"SRTP_AES128_CM_SHA1_80")
 

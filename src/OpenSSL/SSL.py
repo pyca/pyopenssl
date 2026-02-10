@@ -64,7 +64,6 @@ __all__ = [
     "OPENSSL_VERSION_NUMBER",
     "OP_ALL",
     "OP_CIPHER_SERVER_PREFERENCE",
-    "OP_COOKIE_EXCHANGE",
     "OP_DONT_INSERT_EMPTY_FRAGMENTS",
     "OP_EPHEMERAL_RSA",
     "OP_MICROSOFT_BIG_SSLV3_BUFFER",
@@ -221,7 +220,11 @@ OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG: int = (
 OP_NO_COMPRESSION: int = _lib.SSL_OP_NO_COMPRESSION
 
 OP_NO_QUERY_MTU: int = _lib.SSL_OP_NO_QUERY_MTU
-OP_COOKIE_EXCHANGE: int = _lib.SSL_OP_COOKIE_EXCHANGE
+try:
+    OP_COOKIE_EXCHANGE: int | None = _lib.SSL_OP_COOKIE_EXCHANGE
+    __all__.append("OP_COOKIE_EXCHANGE")
+except AttributeError:
+    OP_COOKIE_EXCHANGE = None
 OP_NO_TICKET: int = _lib.SSL_OP_NO_TICKET
 
 try:
@@ -818,6 +821,11 @@ _requires_keylog = _make_requires(
 _requires_ssl_get0_group_name = _make_requires(
     getattr(_lib, "Cryptography_HAS_SSL_GET0_GROUP_NAME", 0),
     "Getting group name is not supported by the linked OpenSSL version",
+)
+
+_requires_ssl_cookie = _make_requires(
+    getattr(_lib, "Cryptography_HAS_SSL_COOKIE", 0),
+    "DTLS cookie support is not available",
 )
 
 
@@ -1910,6 +1918,7 @@ class Context:
         self._set_ocsp_callback(helper, data)
 
     @_require_not_used
+    @_requires_ssl_cookie
     def set_cookie_generate_callback(
         self, callback: _CookieGenerateCallback
     ) -> None:
@@ -1920,6 +1929,7 @@ class Context:
         )
 
     @_require_not_used
+    @_requires_ssl_cookie
     def set_cookie_verify_callback(
         self, callback: _CookieVerifyCallback
     ) -> None:
