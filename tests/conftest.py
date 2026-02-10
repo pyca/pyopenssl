@@ -6,6 +6,10 @@ from tempfile import mktemp
 
 import pytest
 
+from OpenSSL.SSL import OPENSSL_VERSION, SSLeay_version
+
+is_awslc = b"AWS-LC" in SSLeay_version(OPENSSL_VERSION)
+
 
 def pytest_report_header(config: pytest.Config) -> str:
     import cryptography
