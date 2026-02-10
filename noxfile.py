@@ -28,12 +28,6 @@ def tests(session: nox.Session) -> None:
     if "random-order" in session.name:
         random_order = True
 
-    session.env.update(
-        {
-            "PIP_NO_BINARY": "" if use_wheel else "cryptography",
-        }
-    )
-
     deps = ["coverage>=4.2"]
 
     if cryptography_version == "minimum":
@@ -42,8 +36,13 @@ def tests(session: nox.Session) -> None:
     if random_order:
         deps.append("pytest-randomly")
 
+    extra_install_args = []
+    if not use_wheel:
+        extra_install_args.append("--no-binary")
+        extra_install_args.append("cryptography")
+
     session.install(*deps)
-    session.install("-e", ".[test]")
+    session.install("-e", ".[test]", *extra_install_args)
     if cryptography_version == "main":
         session.install("git+https://github.com/pyca/cryptography.git")
 
