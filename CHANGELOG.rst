@@ -20,6 +20,7 @@ Changes:
 ^^^^^^^^
 
 - Added ``OpenSSL.SSL.Connection.get_group_name`` to determine which group name was negotiated.
+- ``Context.set_tlsext_servername_callback`` now handles exceptions raised in the callback by calling ``sys.excepthook`` and returning a fatal TLS alert. Previously, exceptions were silently swallowed and the handshake would proceed as if the callback had succeeded.
 
 25.3.0 (2025-09-16)
 -------------------

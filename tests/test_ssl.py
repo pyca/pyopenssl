@@ -2034,6 +2034,56 @@ class TestServerNameCallback:
 
         assert args == [(server, b"foo1.example.com")]
 
+    def test_servername_callback_exception(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """
+        When the callback passed to `Context.set_tlsext_servername_callback`
+        raises an exception, ``sys.excepthook`` is called with the exception
+        and the handshake fails with an ``Error``.
+        """
+        exc = TypeError("server name callback failed")
+
+        def servername(conn: Connection) -> None:
+            raise exc
+
+        excepthook_calls: list[
+            tuple[type[BaseException], BaseException, object]
+        ] = []
+
+        def custom_excepthook(
+            exc_type: type[BaseException],
+            exc_value: BaseException,
+            exc_tb: object,
+        ) -> None:
+            excepthook_calls.append((exc_type, exc_value, exc_tb))
+
+        context = Context(SSLv23_METHOD)
+        context.set_tlsext_servername_callback(servername)
+
+        # Necessary to actually accept the connection
+        context.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
+        context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem)
+        )
+
+        # Do a little connection to trigger the logic
+        server = Connection(context, None)
+        server.set_accept_state()
+
+        client = Connection(Context(SSLv23_METHOD), None)
+        client.set_connect_state()
+        client.set_tlsext_host_name(b"foo1.example.com")
+
+        monkeypatch.setattr(sys, "excepthook", custom_excepthook)
+        with pytest.raises(Error):
+            interact_in_memory(server, client)
+
+        assert len(excepthook_calls) == 1
+        assert excepthook_calls[0][0] is TypeError
+        assert excepthook_calls[0][1] is exc
+        assert excepthook_calls[0][2] is not None
+
 
 class TestApplicationLayerProtoNegotiation:
     """
