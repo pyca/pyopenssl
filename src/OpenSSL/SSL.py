@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import socket
+import sys
 import typing
 import warnings
 from collections.abc import Sequence
@@ -1752,7 +1753,11 @@ class Context:
 
         @wraps(callback)
         def wrapper(ssl, alert, arg):  # type: ignore[no-untyped-def]
-            callback(Connection._reverse_mapping[ssl])
+            try:
+                callback(Connection._reverse_mapping[ssl])
+            except Exception:
+                sys.excepthook(*sys.exc_info())
+                return _lib.SSL_TLSEXT_ERR_ALERT_FATAL
             return 0
 
         self._tlsext_servername_callback = _ffi.callback(
