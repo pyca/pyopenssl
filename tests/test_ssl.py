@@ -5106,6 +5106,44 @@ class TestDTLS:
     def test_it_works_with_srtp(self) -> None:
         self._test_handshake_and_data(srtp_profile=b"SRTP_AES128_CM_SHA1_80")
 
+    def test_cookie_generate_too_long(self) -> None:
+        s_ctx = Context(DTLS_METHOD)
+
+        def generate_cookie(ssl: Connection) -> bytes:
+            return b"\x00" * 256
+
+        def verify_cookie(ssl: Connection, cookie: bytes) -> bool:
+            return True
+
+        s_ctx.set_cookie_generate_callback(generate_cookie)
+        s_ctx.set_cookie_verify_callback(verify_cookie)
+        s_ctx.use_privatekey(load_privatekey(FILETYPE_PEM, server_key_pem))
+        s_ctx.use_certificate(load_certificate(FILETYPE_PEM, server_cert_pem))
+        s_ctx.set_options(OP_NO_QUERY_MTU)
+        s = Connection(s_ctx)
+        s.set_accept_state()
+
+        c_ctx = Context(DTLS_METHOD)
+        c_ctx.set_options(OP_NO_QUERY_MTU)
+        c = Connection(c_ctx)
+        c.set_connect_state()
+
+        c.set_ciphertext_mtu(1500)
+        s.set_ciphertext_mtu(1500)
+
+        # Client sends ClientHello
+        try:
+            c.do_handshake()
+        except SSL.WantReadError:
+            pass
+        chunk = c.bio_read(self.LARGE_BUFFER)
+        s.bio_write(chunk)
+
+        # Server tries DTLSv1_listen, which triggers cookie generation.
+        # The oversized cookie should raise ValueError.
+        with pytest.raises(ValueError, match="Cookie too long"):
+            s.DTLSv1_listen()
+
     def test_timeout(self, monkeypatch: pytest.MonkeyPatch) -> None:
         c_ctx = Context(DTLS_METHOD)
         c = Connection(c_ctx)

@@ -19,6 +19,7 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- Properly raise an error if a DTLS cookie callback returned a cookie longer than ``DTLS1_COOKIE_LENGTH`` bytes. Previously this would result in a buffer-overflow.
 - Added ``OpenSSL.SSL.Connection.get_group_name`` to determine which group name was negotiated.
 - ``Context.set_tlsext_servername_callback`` now handles exceptions raised in the callback by calling ``sys.excepthook`` and returning a fatal TLS alert. Previously, exceptions were silently swallowed and the handshake would proceed as if the callback had succeeded.
 
