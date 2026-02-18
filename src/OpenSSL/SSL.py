@@ -717,11 +717,18 @@ class _CookieGenerateCallbackHelper(_CallbackExceptionHelper):
     def __init__(self, callback: _CookieGenerateCallback) -> None:
         _CallbackExceptionHelper.__init__(self)
 
+        max_cookie_len = getattr(_lib, "DTLS1_COOKIE_LENGTH", 255)
+
         @wraps(callback)
         def wrapper(ssl, out, outlen):  # type: ignore[no-untyped-def]
             try:
                 conn = Connection._reverse_mapping[ssl]
                 cookie = callback(conn)
+                if len(cookie) > max_cookie_len:
+                    raise ValueError(
+                        f"Cookie too long (got {len(cookie)} bytes, "
+                        f"max {max_cookie_len})"
+                    )
                 out[0 : len(cookie)] = cookie
                 outlen[0] = len(cookie)
                 return 1
