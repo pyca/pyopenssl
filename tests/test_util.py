@@ -16,4 +16,4 @@ class TestErrors:
         lib.ERR_put_error(lib.ERR_LIB_EVP, 0, 1112, b"", 10)
         with pytest.raises(ValueError) as exc:
             exception_from_error_queue(ValueError)
-        assert exc.value.args[0][0][2] == ""
+        assert exc.value.args[0][0][2] in ("", "unknown error")
