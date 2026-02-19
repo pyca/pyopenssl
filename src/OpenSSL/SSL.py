@@ -1524,6 +1524,19 @@ class Context:
         )
 
     @_require_not_used
+    def set_groups(self, groups: bytes) -> None:
+        """
+        Set the supported groups/curves in this SSL Session.
+        """
+        if not isinstance(groups, bytes):
+            raise TypeError("groups must be a byte string.")
+
+        # We use the newer name (groups) in our public API and
+        # use the legacy/more compatible name in the internal API
+        rc = _lib.SSL_CTX_set1_curves_list(self._context, groups)
+        _openssl_assert(rc == 1)
+
+    @_require_not_used
     def set_client_ca_list(
         self, certificate_authorities: Sequence[X509Name]
     ) -> None:
@@ -3238,6 +3251,18 @@ class Connection:
             return None
 
         return _ffi.string(group_name).decode("utf-8")
+
+    def set_groups(self, groups: bytes) -> None:
+        """
+        Set the supported groups/curves in this SSL Session.
+        """
+        if not isinstance(groups, bytes):
+            raise TypeError("groups must be a byte string.")
+
+        # We use the newer name (groups) in our public API and
+        # use the legacy/more compatible name in the internal API
+        rc = _lib.SSL_set1_curves_list(self._ssl, groups)
+        _openssl_assert(rc == 1)
 
     def request_ocsp(self) -> None:
         """

@@ -18,6 +18,7 @@ Deprecations:
 
 Changes:
 ^^^^^^^^
+- Added ``OpenSSL.SSL.Context.set_groups`` and ``OpenSSL.SSL.Connection.set_groups`` to set allowed groups/curves.
 
 - Properly raise an error if a DTLS cookie callback returned a cookie longer than ``DTLS1_COOKIE_LENGTH`` bytes. Previously this would result in a buffer-overflow.
 - Added ``OpenSSL.SSL.Connection.get_group_name`` to determine which group name was negotiated.

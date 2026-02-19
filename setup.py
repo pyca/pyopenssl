@@ -93,7 +93,7 @@ if __name__ == "__main__":
         packages=find_packages(where="src"),
         package_dir={"": "src"},
         install_requires=[
-            "cryptography>=46.0.0,<47",
+            "cryptography>=47.0.0,<48",
             (
                 "typing-extensions>=4.9; "
                 "python_version < '3.13' and python_version >= '3.8'"
