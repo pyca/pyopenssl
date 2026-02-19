@@ -2296,7 +2296,14 @@ class Connection:
                 result = _lib.SSL_write(
                     self._ssl, data + total_sent, min(left_to_send, 2147483647)
                 )
-                self._raise_ssl_error(self._ssl, result)
+                try:
+                    self._raise_ssl_error(self._ssl, result)
+                except (WantReadError, WantWriteError):
+                    # NOTE: The use of SSL_MODE_ENABLE_PARTIAL_WRITE
+                    # NOTE: above guarantees that in case of failure
+                    # NOTE: no bytes have been written so we don't need
+                    # NOTE: to update the counters, just need to retry.
+                    continue
                 total_sent += result
                 left_to_send -= result
 
