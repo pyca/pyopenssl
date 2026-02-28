@@ -45,6 +45,8 @@ jobs:
           - {VERSION: "3.9", NOXSESSION: "tests-wheel"}
           # Random order
           - {VERSION: "3.9", NOXSESSION: "tests-random-order"}
+          # aws-lc
+          - {VERSION: "3.14", NOXSESSION: "tests-cryptography-main", OPENSSL: {TYPE: "aws-lc", VERSION: "v1.67.0"}}
           # Meta
           - {VERSION: "3.9", NOXSESSION: "check-manifest"}
           - {VERSION: "3.11", NOXSESSION: "lint"}
@@ -56,6 +58,16 @@ jobs:
         uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ matrix.PYTHON.VERSION }}
+      - name: Build custom OpenSSL
+        if: matrix.PYTHON.OPENSSL
+        run: |
+          cargo install bindgen-cli
+
+          git clone --depth 1 --branch ${{ matrix.PYTHON.OPENSSL.VERSION }} https://github.com/aws/aws-lc.git
+          cmake -GNinja -B aws-lc/build -S aws-lc -DCMAKE_INSTALL_PREFIX="${HOME}/ossl" -DBUILD_TESTING=OFF
+          ninja -C aws-lc/build install
+          rm -rf aws-lc/
+          echo "OPENSSL_DIR=${HOME}/ossl" >> $GITHUB_ENV
       - run: python -m pip install nox
       - run: nox
         env:

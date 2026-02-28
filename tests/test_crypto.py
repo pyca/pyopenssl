@@ -58,6 +58,7 @@ from OpenSSL.crypto import (
     load_publickey,
 )
 
+from . import conftest
 from .util import (
     NON_ASCII,
 )
@@ -71,7 +72,7 @@ def utcnow() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
-GOOD_CIPHER = "blowfish"
+GOOD_CIPHER = "aes-256-cbc"
 BAD_CIPHER = "zippers"
 
 GOOD_DIGEST = "SHA256"
@@ -1023,8 +1024,22 @@ class TestPKey:
         [
             (dsa_private_key_pem, dsa.DSAPrivateKey),
             (ec_private_key_pem, ec.EllipticCurvePrivateKey),
-            (ed25519_private_key_pem, ed25519.Ed25519PrivateKey),
-            (ed448_private_key_pem, ed448.Ed448PrivateKey),
+            pytest.param(
+                ed25519_private_key_pem,
+                ed25519.Ed25519PrivateKey,
+                marks=pytest.mark.skipif(
+                    conftest.is_awslc,
+                    reason="aws-lc doesn't support Ed25519 via PEM",
+                ),
+            ),
+            pytest.param(
+                ed448_private_key_pem,
+                ed448.Ed448PrivateKey,
+                marks=pytest.mark.skipif(
+                    conftest.is_awslc,
+                    reason="aws-lc doesn't support Ed448 via PEM",
+                ),
+            ),
             (rsa_private_key_pem, rsa.RSAPrivateKey),
         ],
     )
@@ -1077,8 +1092,22 @@ class TestPKey:
         [
             (dsa_public_key_pem, dsa.DSAPublicKey),
             (ec_public_key_pem, ec.EllipticCurvePublicKey),
-            (ed25519_public_key_pem, ed25519.Ed25519PublicKey),
-            (ed448_public_key_pem, ed448.Ed448PublicKey),
+            pytest.param(
+                ed25519_public_key_pem,
+                ed25519.Ed25519PublicKey,
+                marks=pytest.mark.skipif(
+                    conftest.is_awslc,
+                    reason="aws-lc doesn't support Ed25519 via PEM",
+                ),
+            ),
+            pytest.param(
+                ed448_public_key_pem,
+                ed448.Ed448PublicKey,
+                marks=pytest.mark.skipif(
+                    conftest.is_awslc,
+                    reason="aws-lc doesn't support Ed448 via PEM",
+                ),
+            ),
             (rsa_public_key_pem, rsa.RSAPublicKey),
         ],
     )
@@ -1822,6 +1851,8 @@ class TestX509:
         key = PKey()
         key.generate_key(TYPE_RSA, 2048)
         cert.set_pubkey(key)
+        cert.gmtime_adj_notBefore(0)
+        cert.gmtime_adj_notAfter(24 * 60 * 60)
         cert.sign(key, GOOD_DIGEST)
 
     def test_construction(self) -> None:
@@ -1890,20 +1921,21 @@ class TestX509:
         set(certificate, when)
         assert get(certificate) == when
 
-        # A plus two hours and thirty minutes offset
-        when = b"20040203040506+0530"
-        set(certificate, when)
-        assert get(certificate) == when
+        if not conftest.is_awslc:
+            # A plus two hours and thirty minutes offset
+            when = b"20040203040506+0530"
+            set(certificate, when)
+            assert get(certificate) == when
 
-        # A minus one hour fifteen minutes offset
-        when = b"20040203040506-0115"
-        set(certificate, when)
-        assert (
-            get(
-                certificate,
+            # A minus one hour fifteen minutes offset
+            when = b"20040203040506-0115"
+            set(certificate, when)
+            assert (
+                get(
+                    certificate,
+                )
+                == when
             )
-            == when
-        )
 
         # An invalid string results in a ValueError
         with pytest.raises(ValueError):
