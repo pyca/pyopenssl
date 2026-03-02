@@ -2366,6 +2366,60 @@ class TestApplicationLayerProtoNegotiation:
             interact_in_memory(server, client)
         assert select_args == [(server, [b"http/1.1", b"spdy/2"])]
 
+    @pytest.mark.skipif(
+        not getattr(_lib, "Cryptography_HAS_CLIENT_HELLO_CB", None),
+        reason="Client hello callback unavailable in crypto library",
+    )
+    def test_client_hello_callback(self) -> None:
+        """
+        We can handle exceptions in the ALPN select callback.
+        """
+        client_hello_extensions = {}
+
+        def client_hello_callback(conn: Connection) -> None:
+            for ext in conn.get_client_hello_extensions_present():
+                client_hello_extensions[ext] = conn.get_client_hello_extension(
+                    ext
+                )
+
+        client_context = Context(SSLv23_METHOD)
+        client_context.set_alpn_protos([b"http/1.1", b"spdy/2"])
+
+        server_context = Context(SSLv23_METHOD)
+        server_context.set_ssl_ctx_client_hello_callback(client_hello_callback)
+
+        # Necessary to actually accept the connection
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem)
+        )
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem)
+        )
+
+        # Do a little connection to trigger the logic
+        server = Connection(server_context, None)
+        server.set_accept_state()
+
+        client = Connection(client_context, None)
+        client.set_tlsext_host_name(b"unitest.example.com")
+        client.set_connect_state()
+
+        interact_in_memory(server, client)
+
+        # Servername indication has extensions number 0
+        # ALPN has extension number 16
+        assert 0 in client_hello_extensions
+        assert 16 in client_hello_extensions
+
+        # OpenSSL does not expose good APIs to parse hello extensions. Instead
+        # of implementing parsing them just for the unit test we hardcode the
+        # string we expect to see
+        assert (
+            client_hello_extensions[0]
+            == b"\x00\x16\x00\x00\x13unitest.example.com"
+        )
+        assert client_hello_extensions[16] == b"\x00\x10\x08http/1.1\x06spdy/2"
+
 
 class TestSession:
     """
