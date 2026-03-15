@@ -4,7 +4,7 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
-25.4.0 (UNRELEASED)
+26.0.0 (2026-03-15)
 -------------------
 
 Backward-incompatible changes:
@@ -19,9 +19,10 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
-- Properly raise an error if a DTLS cookie callback returned a cookie longer than ``DTLS1_COOKIE_LENGTH`` bytes. Previously this would result in a buffer-overflow.
+- Added support for using aws-lc instead of OpenSSL.
+- Properly raise an error if a DTLS cookie callback returned a cookie longer than ``DTLS1_COOKIE_LENGTH`` bytes. Previously this would result in a buffer-overflow. Credit to **dark_haxor** for reporting the issue. **CVE-2026-27459**
 - Added ``OpenSSL.SSL.Connection.get_group_name`` to determine which group name was negotiated.
-- ``Context.set_tlsext_servername_callback`` now handles exceptions raised in the callback by calling ``sys.excepthook`` and returning a fatal TLS alert. Previously, exceptions were silently swallowed and the handshake would proceed as if the callback had succeeded.
+- ``Context.set_tlsext_servername_callback`` now handles exceptions raised in the callback by calling ``sys.excepthook`` and returning a fatal TLS alert. Previously, exceptions were silently swallowed and the handshake would proceed as if the callback had succeeded. Credit to **Leury Castillo** for reporting this issue. **CVE-2026-27448**
 
 25.3.0 (2025-09-16)
 -------------------
