@@ -1995,16 +1995,17 @@ class TestX509:
         current time plus the number of seconds passed in.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        not_before_min = utcnow().replace(microsecond=0) + timedelta(
-            seconds=100
-        )
+        utc_now = utcnow().replace(microsecond=0)
+        # -1 second tolerance for clock adjustments
+        not_before_min = utc_now + timedelta(seconds=99)
         cert.gmtime_adj_notBefore(100)
         not_before_str = cert.get_notBefore()
         assert not_before_str is not None
         not_before = datetime.strptime(
             not_before_str.decode(), "%Y%m%d%H%M%SZ"
         )
-        not_before_max = utcnow() + timedelta(seconds=100)
+        # +1 second tolerance for clock adjustments
+        not_before_max = utc_now + timedelta(seconds=101)
         assert not_before_min <= not_before <= not_before_max
 
     def test_gmtime_adj_notAfter_wrong_args(self) -> None:
@@ -2023,14 +2024,15 @@ class TestX509:
         to be the current time plus the number of seconds passed in.
         """
         cert = load_certificate(FILETYPE_PEM, self.pemData)
-        not_after_min = utcnow().replace(microsecond=0) + timedelta(
-            seconds=100
-        )
+        utc_now = utcnow().replace(microsecond=0)
+        # -1 second tolerance for clock adjustments
+        not_after_min = utc_now + timedelta(seconds=99)
         cert.gmtime_adj_notAfter(100)
         not_after_str = cert.get_notAfter()
         assert not_after_str is not None
         not_after = datetime.strptime(not_after_str.decode(), "%Y%m%d%H%M%SZ")
-        not_after_max = utcnow() + timedelta(seconds=100)
+        # +1 second tolerance for clock adjustments
+        not_after_max = utc_now + timedelta(seconds=101)
         assert not_after_min <= not_after <= not_after_max
 
     def test_has_expired(self) -> None:
