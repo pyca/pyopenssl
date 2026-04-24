@@ -4686,7 +4686,11 @@ class TestOCSP:
     Tests for PyOpenSSL's OCSP stapling support.
     """
 
-    sample_ocsp_data = b"this is totally ocsp data"
+    # Minimal valid DER-encoded OCSPResponse with status "unauthorized"
+    # (SEQUENCE { ENUMERATED 6 }). Required by OpenSSL 4.0+, which parses
+    # the bytes via d2i_OCSP_RESPONSE before stapling and silently drops
+    # unparseable input.
+    sample_ocsp_data = b"\x30\x03\x0a\x01\x06"
 
     def _client_connection(
         self,
