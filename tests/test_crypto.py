@@ -1403,6 +1403,14 @@ class TestX509Name:
         name.emailAddress = "quux@example.com"
         assert copy.emailAddress == "bar@example.com"
 
+    def test_null_bytes_preserved(self) -> None:
+        """
+        Null bytes in X509Name field values are round-tripped correctly.
+        """
+        name = x509_name()
+        name.CN = "a\x00b"
+        assert name.CN == "a\x00b"
+
     def test_repr(self) -> None:
         """
         `repr` passed an `X509Name` instance should return a string containing

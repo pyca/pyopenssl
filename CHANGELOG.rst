@@ -4,6 +4,21 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
+26.1.0 (2026-04-24)
+-------------------
+
+Backward-incompatible changes:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Deprecations:
+^^^^^^^^^^^^^
+
+Changes:
+^^^^^^^^
+
+- Maximum supported ``cryptography`` version is now 47.x.
+- Fixed ``X509Name`` field setters to correctly pass the value length to OpenSSL. Previously, values containing NUL bytes would be silently truncated, causing a divergence between the stored ASN.1 value and the value visible from Python. Credit to **BudongJW** for reporting the issue. **CVE-2026-40475**
+
 26.0.0 (2026-03-15)
 -------------------
 
