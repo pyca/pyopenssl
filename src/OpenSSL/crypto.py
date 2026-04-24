@@ -651,7 +651,7 @@ class X509Name:
             value = value.encode("utf-8")
 
         add_result = _lib.X509_NAME_add_entry_by_NID(
-            self._name, nid, _lib.MBSTRING_UTF8, value, -1, -1, 0
+            self._name, nid, _lib.MBSTRING_UTF8, value, len(value), -1, 0
         )
         if not add_result:
             _raise_current_error()
