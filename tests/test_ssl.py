@@ -2572,6 +2572,25 @@ class TestConnection:
             connection.set_context(1)  # type: ignore[arg-type]
         assert ctx is connection.get_context()
 
+    def test_set_options_wrong_args(self) -> None:
+        """
+        `Connection.set_options` raises `TypeError` if called with
+        a non-`int` argument.
+        """
+        context = Context(SSLv23_METHOD)
+        connection = Connection(context, None)
+        with pytest.raises(TypeError):
+            connection.set_options(None)  # type: ignore[arg-type]
+
+    def test_set_options(self) -> None:
+        """
+        `Connection.set_options` returns the new options value.
+        """
+        context = Context(SSLv23_METHOD)
+        connection = Connection(context, None)
+        options = connection.set_options(OP_NO_SSLv2)
+        assert options & OP_NO_SSLv2 == OP_NO_SSLv2
+
     def test_set_context(self) -> None:
         """
         `Connection.set_context` specifies a new `Context` instance to be

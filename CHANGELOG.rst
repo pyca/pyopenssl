@@ -4,6 +4,20 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
+UNRELEASED
+----------
+
+Backward-incompatible changes:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Deprecations:
+^^^^^^^^^^^^^
+
+Changes:
+^^^^^^^^
+
+- Added ``OpenSSL.SSL.Connection.set_options`` to set options on a per-connection basis.
+
 26.1.0 (2026-04-24)
 -------------------
 

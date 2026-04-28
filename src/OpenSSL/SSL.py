@@ -2105,6 +2105,19 @@ class Connection:
         self._context = context
         self._context._used = True
 
+    def set_options(self, options: int) -> int:
+        """
+        Add options. Options set before are not cleared!
+        This method should be used with the :const:`OP_*` constants.
+
+        :param options: The options to add.
+        :return: The new option bitmask.
+        """
+        if not isinstance(options, int):
+            raise TypeError("options must be an integer")
+
+        return _lib.SSL_set_options(self._ssl, options)
+
     def get_servername(self) -> bytes | None:
         """
         Retrieve the servername extension value if provided in the client hello
