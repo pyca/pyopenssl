@@ -11,6 +11,7 @@ Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Removed deprecated ``OpenSSL.crypto.X509Extension``, ``OpenSSL.crypto.X509Req.add_extension``, ``OpenSSL.crypto.X509Req.get_extensions``, ``OpenSSL.crypto.X509.add_extension``, ``OpenSSL.crypto.X509.get_extensions``. ``cryptography.x509`` should be used instead.
+- It is now an error to calling any mutating method on ``OpenSSL.SSL.Context`` after it has been used to create a ``Connection``. This was previously deprecated and has always been unsafe.
 
 Deprecations:
 ^^^^^^^^^^^^^
