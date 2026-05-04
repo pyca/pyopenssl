@@ -4,8 +4,8 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
-UNRELEASED
-----------
+26.2.0 (2026-05-04)
+-------------------
 
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -19,6 +19,7 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- Maximum supported ``cryptography`` version is now 48.x.
 - Added ``OpenSSL.SSL.Connection.set_options`` to set options on a per-connection basis.
 
 26.1.0 (2026-04-24)
