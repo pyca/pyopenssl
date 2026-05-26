@@ -261,6 +261,77 @@ Connection objects have the following methods:
                :members:
 
 
+In addition to the methods documented above, :py:class:`Connection`
+forwards undefined attribute access through :py:meth:`object.__getattr__`
+to the underlying socket passed to its constructor. This makes the
+standard :py:class:`socket.socket` server-side helpers available
+directly on a TLS connection. The most frequently used ones are
+listed here for discoverability — they behave exactly like their
+:py:class:`socket.socket` counterparts and are documented in
+the standard library:
+
+.. py:method:: Connection.bind(address)
+
+    Forwarded to :py:meth:`socket.socket.bind` on the wrapped socket.
+    Most server-side TLS code starts by binding the connection (or its
+    underlying socket) to a listening address.
+
+.. py:method:: Connection.listen([backlog])
+
+    Forwarded to :py:meth:`socket.socket.listen` on the wrapped socket.
+
+.. py:method:: Connection.fileno()
+
+    Forwarded to :py:meth:`socket.socket.fileno` on the wrapped socket.
+
+.. py:method:: Connection.getsockname()
+
+    Forwarded to :py:meth:`socket.socket.getsockname` on the wrapped
+    socket.
+
+.. py:method:: Connection.getpeername()
+
+    Forwarded to :py:meth:`socket.socket.getpeername` on the wrapped
+    socket.
+
+.. py:method:: Connection.setsockopt(level, optname, value)
+
+    Forwarded to :py:meth:`socket.socket.setsockopt` on the wrapped
+    socket.
+
+.. py:method:: Connection.getsockopt(level, optname[, buflen])
+
+    Forwarded to :py:meth:`socket.socket.getsockopt` on the wrapped
+    socket.
+
+.. py:method:: Connection.gettimeout()
+
+    Forwarded to :py:meth:`socket.socket.gettimeout` on the wrapped
+    socket.
+
+.. py:method:: Connection.settimeout(value)
+
+    Forwarded to :py:meth:`socket.socket.settimeout` on the wrapped
+    socket.
+
+.. py:method:: Connection.setblocking(flag)
+
+    Forwarded to :py:meth:`socket.socket.setblocking` on the wrapped
+    socket.
+
+.. py:method:: Connection.getblocking()
+
+    Forwarded to :py:meth:`socket.socket.getblocking` on the wrapped
+    socket.
+
+Any other attribute defined on the wrapped :py:class:`socket.socket`
+is also accessible the same way. Server-side code generally prefers
+binding the underlying socket directly and handing the bound socket
+to :py:class:`Connection`; binding through the :py:class:`Connection`
+proxy is supported for historical reasons (see Cheroot and other
+pre-2018 callers) but adds no functionality.
+
+
 .. Rubric:: Footnotes
 
 .. [#connection-context-socket] Actually, all that is required is an object that
