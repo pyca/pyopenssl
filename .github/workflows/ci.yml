@@ -45,7 +45,7 @@ jobs:
           # Random order
           - {VERSION: "3.9", NOXSESSION: "tests-random-order"}
           # aws-lc
-          - {VERSION: "3.14", NOXSESSION: "tests-cryptography-main", OPENSSL: {TYPE: "aws-lc", VERSION: "v1.70.0"}}
+          - {VERSION: "3.14", NOXSESSION: "tests-cryptography-main", OPENSSL: {TYPE: "aws-lc", VERSION: "v1.73.0"}}
           # Meta
           - {VERSION: "3.9", NOXSESSION: "check-manifest"}
           - {VERSION: "3.11", NOXSESSION: "lint"}
