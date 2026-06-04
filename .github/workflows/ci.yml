@@ -3,6 +3,9 @@ on:
   pull_request: {}
   push: {}
 
+permissions:
+  contents: read
+
 jobs:
   linux:
     runs-on: ${{ matrix.PYTHON.OS || 'ubuntu-latest' }}
@@ -52,15 +55,17 @@ jobs:
           - {VERSION: "3.13", NOXSESSION: "mypy"}
           - {VERSION: "3.9", NOXSESSION: "docs"}
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
       - name: Setup python
-        uses: actions/setup-python@v6.2.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ matrix.PYTHON.VERSION }}
       - name: Cache custom OpenSSL
         if: matrix.PYTHON.OPENSSL
         id: ossl-cache
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ~/ossl
           key: ossl-${{ matrix.PYTHON.OPENSSL.TYPE }}-${{ matrix.PYTHON.OPENSSL.VERSION }}
@@ -93,7 +98,9 @@ jobs:
           - {CONTAINER: "ubuntu-rolling", NOXSESSION: "tests-cryptography-main"}
     name: "${{ matrix.TEST.NOXSESSION }} on ${{ matrix.TEST.CONTAINER }}"
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
       - run: /venv/bin/pip install nox
       - run: /venv/bin/nox
         env:
@@ -114,9 +121,11 @@ jobs:
           - 3.12
     name: "Downstream tests for ${{ matrix.DOWNSTREAM }}"
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
       - name: Setup python
-        uses: actions/setup-python@v6.2.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ matrix.PYTHON }}
       - run: ./.github/downstream.d/${{ matrix.DOWNSTREAM }}.sh install
@@ -134,7 +143,7 @@ jobs:
         with:
           jobs: ${{ toJSON(needs) }}
 
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v5.0.1
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         timeout-minutes: 3
         with:
           persist-credentials: false
