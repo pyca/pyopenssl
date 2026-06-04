@@ -52,7 +52,7 @@ jobs:
           - {VERSION: "3.13", NOXSESSION: "mypy"}
           - {VERSION: "3.9", NOXSESSION: "docs"}
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
       - name: Setup python
         uses: actions/setup-python@v6.2.0
         with:
@@ -93,7 +93,7 @@ jobs:
           - {CONTAINER: "ubuntu-rolling", NOXSESSION: "tests-cryptography-main"}
     name: "${{ matrix.TEST.NOXSESSION }} on ${{ matrix.TEST.CONTAINER }}"
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
       - run: /venv/bin/pip install nox
       - run: /venv/bin/nox
         env:
@@ -114,7 +114,7 @@ jobs:
           - 3.12
     name: "Downstream tests for ${{ matrix.DOWNSTREAM }}"
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
       - name: Setup python
         uses: actions/setup-python@v6.2.0
         with:
@@ -134,7 +134,7 @@ jobs:
         with:
           jobs: ${{ toJSON(needs) }}
 
-      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v5.0.1
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v5.0.1
         timeout-minutes: 3
         with:
           persist-credentials: false
