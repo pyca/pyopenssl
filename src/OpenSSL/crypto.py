@@ -275,7 +275,7 @@ class PKey:
             der = dump_publickey(FILETYPE_ASN1, self)
             return typing.cast(_Key, load_der_public_key(der))
         else:
-            der = dump_privatekey(FILETYPE_ASN1, self)
+            der = _dump_privatekey_internal(FILETYPE_ASN1, self)
             return typing.cast(_Key, load_der_private_key(der, password=None))
 
     @classmethod
@@ -336,6 +336,10 @@ class PKey:
             )
             return load_privatekey(FILETYPE_ASN1, der)
 
+    @deprecated(
+        "PKey.generate_key is deprecated. You should use the key "
+        "generation APIs in cryptography instead."
+    )
     def generate_key(self, type: int, bits: int) -> None:
         """
         Generate a key pair of the given type, with the given number of bits.
@@ -392,6 +396,10 @@ class PKey:
 
         self._initialized = True
 
+    @deprecated(
+        "PKey.check is deprecated. You should use the APIs in "
+        "cryptography instead."
+    )
     def check(self) -> bool:
         """
         Check the consistency of an RSA private key.
@@ -1851,6 +1859,10 @@ def dump_privatekey(
 
     :return: The buffer with the dumped key in
     :rtype: bytes
+
+    .. deprecated:: 26.3.0
+       Use the serialization APIs on ``cryptography`` private key types
+       instead.
     """
     bio = _new_mem_buf()
 
@@ -1898,6 +1910,20 @@ def dump_privatekey(
     _openssl_assert(result_code != 0)
 
     return _bio_to_string(bio)
+
+
+_dump_privatekey_internal = dump_privatekey
+
+utils.deprecated(
+    dump_privatekey,
+    __name__,
+    (
+        "dump_privatekey is deprecated. You should use the APIs in "
+        "cryptography."
+    ),
+    DeprecationWarning,
+    name="dump_privatekey",
+)
 
 
 class _PassphraseHelper:
