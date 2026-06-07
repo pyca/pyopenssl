@@ -1,7 +1,6 @@
 //! Shared helpers: OpenSSL error queue handling, warnings, and
 //! miscellaneous conversions.
 
-use libc::c_ulong;
 use openssl_sys as ffi;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyList, PyTuple};
@@ -17,28 +16,45 @@ pub unsafe fn text(ptr: *const libc::c_char) -> String {
     }
 }
 
-fn err_strings(error: c_ulong) -> (String, String, String) {
-    unsafe {
-        (
-            text(ffi::ERR_lib_error_string(error)),
-            text(ffi::ERR_func_error_string(error)),
-            text(ffi::ERR_reason_error_string(error)),
-        )
+/// Convert an `ErrorStack` into a Python list of (lib, func, reason)
+/// string 3-tuples, matching the format the cffi implementation produced.
+pub fn error_stack_to_list<'py>(
+    py: Python<'py>,
+    stack: &openssl::error::ErrorStack,
+) -> PyResult<Bound<'py, PyList>> {
+    let errors = PyList::empty(py);
+    for error in stack.errors() {
+        errors.append(PyTuple::new(
+            py,
+            [
+                error.library().unwrap_or(""),
+                error.function().unwrap_or(""),
+                error.reason().unwrap_or(""),
+            ],
+        )?)?;
+    }
+    Ok(errors)
+}
+
+/// Build (but do not raise) an exception of the given Python type from an
+/// `ErrorStack`.
+pub fn error_stack_to_exception(
+    py: Python<'_>,
+    exception_type: &Bound<'_, pyo3::types::PyType>,
+    stack: &openssl::error::ErrorStack,
+) -> PyErr {
+    match error_stack_to_list(py, stack) {
+        Ok(errors) => match exception_type.call1((errors,)) {
+            Ok(exc) => PyErr::from_value(exc),
+            Err(e) => e,
+        },
+        Err(e) => e,
     }
 }
 
 /// Drain the OpenSSL error queue into a list of 3-tuples of strings.
 pub fn error_queue<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyList>> {
-    let errors = PyList::empty(py);
-    loop {
-        let error = unsafe { ffi::ERR_get_error() };
-        if error == 0 {
-            break;
-        }
-        let (lib, func, reason) = err_strings(error);
-        errors.append(PyTuple::new(py, [lib, func, reason])?)?;
-    }
-    Ok(errors)
+    error_stack_to_list(py, &openssl::error::ErrorStack::get())
 }
 
 /// Build (but do not raise) an exception of the given Python type from the
@@ -47,13 +63,7 @@ pub fn exception_from_error_queue(
     py: Python<'_>,
     exception_type: &Bound<'_, pyo3::types::PyType>,
 ) -> PyErr {
-    match error_queue(py) {
-        Ok(errors) => match exception_type.call1((errors,)) {
-            Ok(exc) => PyErr::from_value(exc),
-            Err(e) => e,
-        },
-        Err(e) => e,
-    }
+    error_stack_to_exception(py, exception_type, &openssl::error::ErrorStack::get())
 }
 
 #[macro_export]
@@ -106,7 +116,7 @@ pub fn text_to_bytes_and_warn(
     label: &str,
     obj: &Bound<'_, PyAny>,
 ) -> PyResult<Py<PyAny>> {
-    if let Ok(s) = obj.downcast::<pyo3::types::PyString>() {
+    if let Ok(s) = obj.cast::<pyo3::types::PyString>() {
         warn_text_deprecated(py, label)?;
         return Ok(PyBytes::new(py, s.to_cow()?.as_bytes()).into_any().unbind());
     }
@@ -115,7 +125,7 @@ pub fn text_to_bytes_and_warn(
 
 /// Extract a contiguous buffer (bytes, bytearray, memoryview) as a Vec.
 pub fn buffer_to_vec(obj: &Bound<'_, PyAny>) -> PyResult<Vec<u8>> {
-    if let Ok(b) = obj.downcast::<PyBytes>() {
+    if let Ok(b) = obj.cast::<PyBytes>() {
         return Ok(b.as_bytes().to_vec());
     }
     let buf = pyo3::buffer::PyBuffer::<u8>::get(obj)?;
@@ -126,7 +136,7 @@ pub fn buffer_to_vec(obj: &Bound<'_, PyAny>) -> PyResult<Vec<u8>> {
 pub fn path_bytes(py: Python<'_>, s: &Bound<'_, PyAny>) -> PyResult<Vec<u8>> {
     let os = py.import("os")?;
     let b = os.call_method1("fspath", (s,))?;
-    if b.downcast::<pyo3::types::PyString>().is_ok() {
+    if b.cast::<pyo3::types::PyString>().is_ok() {
         let encoded = os.call_method1("fsencode", (&b,))?;
         Ok(encoded.extract::<Vec<u8>>()?)
     } else {
@@ -246,7 +256,7 @@ pub unsafe fn set_asn1_time(
     when: &Bound<'_, PyAny>,
 ) -> PyResult<()> {
     let when = when
-        .downcast::<PyBytes>()
+        .cast::<PyBytes>()
         .map_err(|_| {
             pyo3::exceptions::PyTypeError::new_err("when must be a byte string")
         })?

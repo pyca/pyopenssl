@@ -8,7 +8,7 @@ use pyo3::types::PyBytes;
 #[pyfunction]
 fn add(buffer: &Bound<'_, PyAny>, entropy: &Bound<'_, PyAny>) -> PyResult<()> {
     let buffer = buffer
-        .downcast::<PyBytes>()
+        .cast::<PyBytes>()
         .map_err(|_| {
             pyo3::exceptions::PyTypeError::new_err("buffer must be a byte string")
         })?
