@@ -4,6 +4,21 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
+26.3.0 (UNRELEASED)
+-------------------
+
+Backward-incompatible changes:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Deprecations:
+^^^^^^^^^^^^^
+
+- Deprecated ``OpenSSL.crypto.PKey.generate_key`` and ``OpenSSL.crypto.PKey.check``. The key generation and loading APIs in ``cryptography`` should be used instead.
+- Deprecated ``OpenSSL.crypto.dump_privatekey``. The serialization APIs on ``cryptography`` private key types should be used instead.
+
+Changes:
+^^^^^^^^
+
 26.2.0 (2026-05-04)
 -------------------
 
