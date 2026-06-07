@@ -12,7 +12,7 @@
 
     `pyca/cryptography`_ is likely a better choice than using this module.
     It contains a complete set of cryptographic primitives as well as a significantly better and more powerful X509 API.
-    If necessary you can convert to and from cryptography objects using the ``to_cryptography`` and ``from_cryptography`` methods on ``X509``, ``X509Req``, ``CRL``, and ``PKey``.
+    If necessary you can convert to and from cryptography objects using the ``to_cryptography`` and ``from_cryptography`` methods on ``X509``, ``CRL``, and ``PKey``.
 
 
 Elliptic curves
@@ -41,13 +41,6 @@ Certificates
 .. autofunction:: dump_certificate
 
 .. autofunction:: load_certificate
-
-Certificate signing requests
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autofunction:: dump_certificate_request
-
-.. autofunction:: load_certificate_request
 
 Private keys
 ~~~~~~~~~~~~
@@ -81,16 +74,6 @@ X509Name objects
                :members:
                :special-members:
                :exclude-members: __repr__, __getattr__, __weakref__
-
-.. _openssl-x509req:
-
-X509Req objects
----------------
-
-.. autoclass:: X509Req
-               :members:
-               :special-members:
-               :exclude-members: __weakref__
 
 .. _openssl-x509store:
 

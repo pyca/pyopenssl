@@ -4,6 +4,20 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
+UNRELEASED
+----------
+
+Backward-incompatible changes:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Removed deprecated ``OpenSSL.crypto.X509Req``, ``OpenSSL.crypto.dump_certificate_request``, and ``OpenSSL.crypto.load_certificate_request``. ``cryptography.x509`` should be used instead.
+
+Deprecations:
+^^^^^^^^^^^^^
+
+Changes:
+^^^^^^^^
+
 26.2.0 (2026-05-04)
 -------------------
 
