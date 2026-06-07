@@ -4474,6 +4474,26 @@ class TestMemoryBIO:
 
         self._check_client_ca_list(single_ca)
 
+    def test_get_client_ca_list_as_cryptography(self) -> None:
+        """
+        `Connection.get_client_ca_list` returns a list of
+        `cryptography.x509.Name` when called with ``as_cryptography=True``.
+        """
+        cacert = load_certificate(FILETYPE_PEM, root_cert_pem)
+        expected = [cacert.to_cryptography().subject]
+
+        server_ctx = self._create_server_context()
+        server_ctx.set_client_ca_list([cacert.get_subject()])
+
+        server = self._server(None, server_ctx)
+        client = self._client(None)
+
+        assert client.get_client_ca_list(as_cryptography=True) == []
+        assert server.get_client_ca_list(as_cryptography=True) == expected
+        interact_in_memory(client, server)
+        assert client.get_client_ca_list(as_cryptography=True) == expected
+        assert server.get_client_ca_list(as_cryptography=True) == expected
+
     def test_set_multiple_ca_list(self) -> None:
         """
         If passed a list containing multiple X509Name objects,

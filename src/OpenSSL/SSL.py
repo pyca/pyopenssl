@@ -2643,9 +2643,29 @@ class Connection:
             ciphers.append(_ffi.string(result).decode("utf-8"))
         return ciphers
 
-    def get_client_ca_list(self) -> list[X509Name]:
+    @typing.overload
+    def get_client_ca_list(
+        self, *, as_cryptography: typing.Literal[True]
+    ) -> list[x509.Name]:
+        pass
+
+    @typing.overload
+    def get_client_ca_list(
+        self, *, as_cryptography: typing.Literal[False] = False
+    ) -> list[X509Name]:
+        pass
+
+    def get_client_ca_list(
+        self,
+        *,
+        as_cryptography: typing.Literal[True] | typing.Literal[False] = False,
+    ) -> list[X509Name] | list[x509.Name]:
         """
         Get CAs whose certificates are suggested for client authentication.
+
+        :param bool as_cryptography: Controls whether a list of
+            ``cryptography.x509.Name`` or ``OpenSSL.crypto.X509Name``
+            objects should be returned.
 
         :return: If this is a server connection, the list of certificate
             authorities that will be sent or has been sent to the client, as
@@ -2660,6 +2680,19 @@ class Connection:
         if ca_names == _ffi.NULL:
             # TODO: This is untested.
             return []
+
+        if as_cryptography:
+            names = []
+            for i in range(_lib.sk_X509_NAME_num(ca_names)):
+                name = _lib.sk_X509_NAME_value(ca_names, i)
+                result_buffer = _ffi.new("unsigned char**")
+                encode_result = _lib.i2d_X509_NAME(name, result_buffer)
+                _openssl_assert(encode_result >= 0)
+                der = _ffi.buffer(result_buffer[0], encode_result)[:]
+                _lib.OPENSSL_free(result_buffer[0])
+
+                names.append(x509.Name.from_bytes(der))
+            return names
 
         result = []
         for i in range(_lib.sk_X509_NAME_num(ca_names)):
