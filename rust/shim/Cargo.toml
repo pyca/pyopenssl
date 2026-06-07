@@ -1,0 +1,22 @@
+# Local testing shim: builds the `pyopenssl` crate as a standalone Python
+# extension module (`_pyopenssl_shim`) so the test suite in this repository
+# can run without a patched build of pyca/cryptography. This crate is never
+# published; released pyOpenSSL packages re-export
+# `cryptography.hazmat.bindings._rust.pyopenssl` instead.
+[package]
+name = "pyopenssl-shim"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[lib]
+name = "_pyopenssl_shim"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.28", features = ["extension-module"] }
+pyopenssl = { path = "../pyopenssl" }
+
+[features]
+vendored = ["pyopenssl/vendored"]

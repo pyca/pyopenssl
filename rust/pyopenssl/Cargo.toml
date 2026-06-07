@@ -1,0 +1,29 @@
+# This crate contains the implementation of the `OpenSSL` Python package
+# (pyOpenSSL). It is built as a library so that it can be embedded into
+# another PyO3 extension module. In published pyOpenSSL/cryptography
+# releases, pyca/cryptography's `_rust` extension depends on this crate and
+# exposes it as `cryptography.hazmat.bindings._rust.pyopenssl`, so that a
+# single copy of OpenSSL is shared between cryptography and pyOpenSSL. For
+# in-repo testing, the `pyopenssl-shim` crate builds it as a standalone
+# extension module instead.
+[package]
+name = "pyopenssl"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = true
+
+[lib]
+name = "pyopenssl"
+
+[dependencies]
+pyo3 = { version = "0.28" }
+openssl = "0.10.80"
+openssl-sys = "0.9"
+foreign-types-shared = "0.1"
+libc = "0.2"
+
+[features]
+# Compile a copy of OpenSSL and statically link it, for platforms without a
+# system OpenSSL (e.g. Windows test runs of the local shim).
+vendored = ["openssl/vendored"]

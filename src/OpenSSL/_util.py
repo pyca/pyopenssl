@@ -1,129 +1,55 @@
+"""
+Backwards-compatibility helpers for code (and tests) which used the cffi
+based ``OpenSSL._util`` module. The OpenSSL binding now lives in Rust (see
+the ``pyopenssl`` crate in this repository), so only a minimal shim is
+provided here.
+"""
+
 from __future__ import annotations
 
 import os
 import sys
-import warnings
-from typing import Any, Callable, NoReturn, Union
+from typing import Union
 
-from cryptography.hazmat.bindings.openssl.binding import Binding
+from OpenSSL._rust import _util as _mod
 
 if sys.version_info >= (3, 9):
     StrOrBytesPath = Union[str, bytes, os.PathLike[str], os.PathLike[bytes]]
 else:
     StrOrBytesPath = Union[str, bytes, os.PathLike]
 
-binding = Binding()
-ffi = binding.ffi
-lib: Any = binding.lib
 
-
-# This is a special CFFI allocator that does not bother to zero its memory
-# after allocation. This has vastly better performance on large allocations and
-# so should be used whenever we don't need the memory zeroed out.
-no_zero_allocator = ffi.new_allocator(should_clear_after_alloc=False)
-
-
-def text(charp: Any) -> str:
+class _Lib:
     """
-    Get a native string type representing of the given CFFI ``char*`` object.
-
-    :param charp: A C-style string represented using CFFI.
-
-    :return: :class:`str`
+    A tiny stand-in for the old cffi ``lib`` object, providing only what is
+    needed to interact with the OpenSSL error queue.
     """
-    if not charp:
-        return ""
-    return ffi.string(charp).decode("utf-8")
+
+    ERR_LIB_EVP = _mod.ERR_LIB_EVP
+
+    @staticmethod
+    def ERR_put_error(
+        lib: int, func: int, reason: int, file: bytes, line: int
+    ) -> None:
+        _mod.ERR_put_error(lib, func, reason, file, line)
 
 
-def exception_from_error_queue(exception_type: type[Exception]) -> NoReturn:
+lib = _Lib()
+
+
+def exception_from_error_queue(exception_type: type[Exception]) -> None:
     """
     Convert an OpenSSL library failure into a Python exception.
-
-    When a call to the native OpenSSL library fails, this is usually signalled
-    by the return value, and an error code is stored in an error queue
-    associated with the current thread. The err library provides functions to
-    obtain these error codes and textual error messages.
     """
-    errors = []
-
-    while True:
-        error = lib.ERR_get_error()
-        if error == 0:
-            break
-        errors.append(
-            (
-                text(lib.ERR_lib_error_string(error)),
-                text(lib.ERR_func_error_string(error)),
-                text(lib.ERR_reason_error_string(error)),
-            )
-        )
-
-    raise exception_type(errors)
-
-
-def make_assert(error: type[Exception]) -> Callable[[bool], Any]:
-    """
-    Create an assert function that uses :func:`exception_from_error_queue` to
-    raise an exception wrapped by *error*.
-    """
-
-    def openssl_assert(ok: bool) -> None:
-        """
-        If *ok* is not True, retrieve the error from OpenSSL and raise it.
-        """
-        if ok is not True:
-            exception_from_error_queue(error)
-
-    return openssl_assert
+    _mod.exception_from_error_queue(exception_type)
 
 
 def path_bytes(s: StrOrBytesPath) -> bytes:
-    """
-    Convert a Python path to a :py:class:`bytes` for the path which can be
-    passed into an OpenSSL API accepting a filename.
-
-    :param s: A path (valid for os.fspath).
-
-    :return: An instance of :py:class:`bytes`.
-    """
     b = os.fspath(s)
-
     if isinstance(b, str):
         return b.encode(sys.getfilesystemencoding())
-    else:
-        return b
+    return b
 
 
 def byte_string(s: str) -> bytes:
     return s.encode("charmap")
-
-
-# A marker object to observe whether some optional arguments are passed any
-# value or not.
-UNSPECIFIED = object()
-
-_TEXT_WARNING = "str for {0} is no longer accepted, use bytes"
-
-
-def text_to_bytes_and_warn(label: str, obj: Any) -> Any:
-    """
-    If ``obj`` is text, emit a warning that it should be bytes instead and try
-    to convert it to bytes automatically.
-
-    :param str label: The name of the parameter from which ``obj`` was taken
-        (so a developer can easily find the source of the problem and correct
-        it).
-
-    :return: If ``obj`` is the text string type, a ``bytes`` object giving the
-        UTF-8 encoding of that text is returned.  Otherwise, ``obj`` itself is
-        returned.
-    """
-    if isinstance(obj, str):
-        warnings.warn(
-            _TEXT_WARNING.format(label),
-            category=DeprecationWarning,
-            stacklevel=3,
-        )
-        return obj.encode("utf-8")
-    return obj

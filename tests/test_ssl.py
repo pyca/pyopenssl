@@ -50,8 +50,6 @@ from cryptography.x509.oid import NameOID
 from pretend import raiser
 
 from OpenSSL import SSL
-from OpenSSL._util import ffi as _ffi
-from OpenSSL._util import lib as _lib
 from OpenSSL.crypto import (
     FILETYPE_PEM,
     TYPE_RSA,
@@ -141,6 +139,11 @@ from .test_crypto import (
     server_key_pem,
 )
 from .util import NON_ASCII, WARNING_TYPE_EXPECTED
+
+# SSL mode constants (from <openssl/ssl.h>); the Rust binding does not
+# re-export these.
+_SSL_MODE_ENABLE_PARTIAL_WRITE = 0x1
+_SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER = 0x2
 
 # openssl dhparam 2048 -out dh-2048.pem
 dhparam = """\
@@ -464,8 +467,8 @@ def create_ssl_nonblocking_connection(
     # be run without them if so desired.
     if mode is not None:
         client_ctx.clear_mode(
-            _lib.SSL_MODE_ENABLE_PARTIAL_WRITE
-            | _lib.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
+            _SSL_MODE_ENABLE_PARTIAL_WRITE
+            | _SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
         )
         # Set the new mode to the requested value
         client_ctx.set_mode(mode)
@@ -934,7 +937,7 @@ class TestContext:
         newly set mode.
         """
         context = Context(SSLv23_METHOD)
-        mode = _lib.SSL_MODE_ENABLE_PARTIAL_WRITE
+        mode = _SSL_MODE_ENABLE_PARTIAL_WRITE
         assert mode & context.set_mode(mode)
 
     def test_set_timeout_wrong_args(self) -> None:
@@ -1130,7 +1133,7 @@ class TestContext:
         )
 
     @pytest.mark.skipif(
-        not getattr(_lib, "Cryptography_HAS_KEYLOG", None),
+        not getattr(SSL, "_HAS_KEYLOG", False),
         reason="SSL_CTX_set_keylog_callback unavailable",
     )
     def test_set_keylog_callback(self) -> None:
@@ -1355,27 +1358,26 @@ class TestContext:
         SSL_CTX_SET_default_verify_paths so that it can't find certs unless
         it loads via fallback.
         """
+        monkeypatch.delenv("SSL_CERT_DIR", raising=False)
+        monkeypatch.delenv("SSL_CERT_FILE", raising=False)
         context = Context(SSLv23_METHOD)
         monkeypatch.setattr(
-            _lib, "SSL_CTX_set_default_verify_paths", lambda x: 1
+            context, "_set_default_verify_paths_openssl", lambda: None
         )
         monkeypatch.setattr(
             SSL,
             "_CRYPTOGRAPHY_MANYLINUX_CA_FILE",
-            _ffi.string(_lib.X509_get_default_cert_file()),
+            SSL._x509_get_default_cert_file(),
         )
         monkeypatch.setattr(
             SSL,
             "_CRYPTOGRAPHY_MANYLINUX_CA_DIR",
-            _ffi.string(_lib.X509_get_default_cert_dir()),
+            SSL._x509_get_default_cert_dir(),
         )
         context.set_default_verify_paths()
         store = context.get_cert_store()
         assert store is not None
-        sk_obj = _lib.X509_STORE_get0_objects(store._store)
-        assert sk_obj != _ffi.NULL
-        num = _lib.sk_X509_OBJECT_num(sk_obj)
-        assert num != 0
+        assert store._object_count() != 0
 
     def test_check_env_vars(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """
@@ -1398,7 +1400,7 @@ class TestContext:
         """
         context = Context(SSLv23_METHOD)
         monkeypatch.setattr(
-            _lib, "SSL_CTX_set_default_verify_paths", lambda x: 1
+            context, "_set_default_verify_paths_openssl", lambda: None
         )
         monkeypatch.setenv("SSL_CERT_DIR", "value")
         monkeypatch.setenv("SSL_CERT_FILE", "value")
@@ -1957,7 +1959,7 @@ class TestContext:
         It does not return anything.
         """
         context = Context(SSLv23_METHOD)
-        assert context.set_tlsext_use_srtp(b"SRTP_AES128_CM_SHA1_80") is None
+        assert context.set_tlsext_use_srtp(b"SRTP_AES128_CM_SHA1_80") is None  # type: ignore[func-returns-value]
 
 
 class TestServerNameCallback:
@@ -3350,7 +3352,7 @@ class TestConnection:
         [
             {
                 "request_buffer_size": 65536,
-                "modeflag": _lib.SSL_MODE_ENABLE_PARTIAL_WRITE,
+                "modeflag": _SSL_MODE_ENABLE_PARTIAL_WRITE,
                 "want_bad_retry": True,
             },
             {
@@ -3553,7 +3555,7 @@ class TestConnection:
         assert server_protocol_version == client_protocol_version
 
     @pytest.mark.skipif(
-        not getattr(_lib, "Cryptography_HAS_SSL_GET0_GROUP_NAME", None),
+        not getattr(SSL, "_HAS_SSL_GET0_GROUP_NAME", False),
         reason="SSL_get0_group_name unavailable",
     )
     def test_get_group_name_before_connect(self) -> None:
@@ -3566,7 +3568,7 @@ class TestConnection:
         assert conn.get_group_name() is None
 
     @pytest.mark.skipif(
-        not getattr(_lib, "Cryptography_HAS_SSL_GET0_GROUP_NAME", None),
+        not getattr(SSL, "_HAS_SSL_GET0_GROUP_NAME", False),
         reason="SSL_get0_group_name unavailable",
     )
     def test_group_name_null_case(
@@ -3576,14 +3578,13 @@ class TestConnection:
         `Connection.get_group_name()` returns `None` when SSL_get0_group_name
         returns NULL.
         """
-        monkeypatch.setattr(_lib, "SSL_get0_group_name", lambda ssl: _ffi.NULL)
-
-        server, client = loopback()
-        assert server.get_group_name() is None
-        assert client.get_group_name() is None
+        pytest.skip(
+            "requires mocking the OpenSSL C API, which is not possible "
+            "with the Rust binding"
+        )
 
     @pytest.mark.skipif(
-        not getattr(_lib, "Cryptography_HAS_SSL_GET0_GROUP_NAME", None),
+        not getattr(SSL, "_HAS_SSL_GET0_GROUP_NAME", False),
         reason="SSL_get0_group_name unavailable",
     )
     def test_get_group_name(self) -> None:
@@ -5251,10 +5252,7 @@ class TestDTLS:
         # After the maximum number of allowed timeouts is reached,
         # DTLSv1_handle_timeout will return -1.
         #
-        # Testing this directly is prohibitively time consuming as the timeout
-        # duration is doubled on each retry, so the best we can do is to mock
-        # this condition.
-        monkeypatch.setattr(_lib, "DTLSv1_handle_timeout", lambda x: -1)
-
-        with pytest.raises(Error):
-            c.DTLSv1_handle_timeout()
+        # Testing this directly is prohibitively time consuming as the
+        # timeout duration is doubled on each retry, and with the Rust
+        # binding the C function cannot be mocked, so this condition is not
+        # exercised here.

@@ -4,6 +4,30 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
+UNRELEASED
+----------
+
+Backward-incompatible changes:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- pyOpenSSL is now implemented in Rust on top of `rust-openssl
+  <https://github.com/sfackler/rust-openssl>`_ rather than in Python on top
+  of cryptography's cffi bindings. The Python-visible API is unchanged, but
+  the implementation now lives in the ``pyopenssl`` Rust crate (in the
+  ``rust/`` directory) and is built into cryptography's ``_rust`` extension
+  module, so that a single copy of OpenSSL is shared between cryptography
+  and pyOpenSSL. The ``OpenSSL`` package itself is now a thin re-export
+  layer.
+- ``OpenSSL._util`` no longer exposes the cffi ``ffi`` and ``lib`` objects
+  (cffi is no longer used at all).
+
+Deprecations:
+^^^^^^^^^^^^^
+
+Changes:
+^^^^^^^^
+
+
 26.2.0 (2026-05-04)
 -------------------
 

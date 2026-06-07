@@ -1,0 +1,17 @@
+# Build configuration for the local testing shim. This package is only used
+# to run pyOpenSSL's test suite in this repository; it is never published.
+# Released pyOpenSSL packages re-export the implementation from
+# `cryptography.hazmat.bindings._rust.pyopenssl` instead.
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "pyopenssl-shim"
+version = "26.2.0"
+description = "Local test build of pyOpenSSL's Rust implementation"
+requires-python = ">=3.8"
+classifiers = ["Private :: Do Not Upload"]
+
+[tool.maturin]
+module-name = "_pyopenssl_shim"

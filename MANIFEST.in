@@ -1,5 +1,7 @@
 include             LICENSE MANIFEST.in *.rst noxfile.py .coveragerc src/OpenSSL/py.typed
 exclude             .readthedocs.yml mypy.ini
 recursive-include   tests           *.py
+include             Cargo.toml Cargo.lock
+recursive-include   rust            *.rs *.toml *.md
 recursive-include   doc             *
 prune               doc/_build

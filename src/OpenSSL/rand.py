@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import warnings
 
-from OpenSSL._util import lib as _lib
+from OpenSSL._rust import _rand as _mod
 
 warnings.warn(
     "OpenSSL.rand is deprecated - you should use os.urandom instead",
@@ -14,37 +14,7 @@ warnings.warn(
     stacklevel=3,
 )
 
+add = _mod.add
+status = _mod.status
 
-def add(buffer: bytes, entropy: int) -> None:
-    """
-    Mix bytes from *string* into the PRNG state.
-
-    The *entropy* argument is (the lower bound of) an estimate of how much
-    randomness is contained in *string*, measured in bytes.
-
-    For more information, see e.g. :rfc:`1750`.
-
-    This function is only relevant if you are forking Python processes and
-    need to reseed the CSPRNG after fork.
-
-    :param buffer: Buffer with random data.
-    :param entropy: The entropy (in bytes) measurement of the buffer.
-
-    :return: :obj:`None`
-    """
-    if not isinstance(buffer, bytes):
-        raise TypeError("buffer must be a byte string")
-
-    if not isinstance(entropy, int):
-        raise TypeError("entropy must be an integer")
-
-    _lib.RAND_add(buffer, len(buffer), entropy)
-
-
-def status() -> int:
-    """
-    Check whether the PRNG has been seeded with enough data.
-
-    :return: 1 if the PRNG is seeded enough, 0 otherwise.
-    """
-    return _lib.RAND_status()
+__all__ = ["add", "status"]

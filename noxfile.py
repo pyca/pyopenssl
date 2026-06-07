@@ -1,3 +1,5 @@
+import sys
+
 import nox
 
 nox.options.reuse_existing_virtualenvs = True
@@ -46,6 +48,15 @@ def tests(session: nox.Session) -> None:
     if cryptography_version == "main":
         session.install("git+https://github.com/pyca/cryptography.git")
 
+    # Build the local Rust shim so that `OpenSSL._rust` has an
+    # implementation to import (released cryptography versions do not yet
+    # provide `cryptography.hazmat.bindings._rust.pyopenssl`). On platforms
+    # without a system OpenSSL, build a vendored copy into the shim.
+    shim_env = {}
+    if sys.platform == "win32":
+        shim_env["MATURIN_PEP517_ARGS"] = "--features vendored"
+    session.install("./rust/shim", env=shim_env)
+
     session.run("openssl", "version", external=True)
     session.run("coverage", "run", "--parallel", "-m", "OpenSSL.debug")
     session.run(
@@ -63,6 +74,7 @@ def lint(session: nox.Session) -> None:
 @nox.session
 def mypy(session: nox.Session) -> None:
     session.install("-e", ".[test]")
+    session.install("./rust/shim")
     session.install("mypy")
     session.run("mypy", "src/", "tests/")
 

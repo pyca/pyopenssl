@@ -93,11 +93,10 @@ if __name__ == "__main__":
         packages=find_packages(where="src"),
         package_dir={"": "src"},
         install_requires=[
+            # The implementation of pyOpenSSL lives in the `pyopenssl` Rust
+            # crate (in this repository), which is built into cryptography's
+            # `_rust` extension module and re-exported by this package.
             "cryptography>=46.0.0,<49",
-            (
-                "typing-extensions>=4.9; "
-                "python_version < '3.13' and python_version >= '3.8'"
-            ),
         ],
         extras_require={
             "test": ["pytest-rerunfailures", "pretend", "pytest>=3.0.1"],

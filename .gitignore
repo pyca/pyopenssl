@@ -11,4 +11,5 @@ doc/_build/
 examples/simple/*.cert
 examples/simple/*.pkey
 .cache
-.mypy_cache
+.mypy_cachetarget/
+*.so
