@@ -13,6 +13,11 @@ from sys import platform
 from typing import Any, Callable, Optional, TypeVar
 from weakref import WeakValueDictionary
 
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
+
 from cryptography import x509
 from cryptography.hazmat.primitives.asymmetric import ec
 
@@ -847,6 +852,11 @@ class Session:
     """
 
     _session: Any
+    # The Context the Connection this Session came from was using. OpenSSL
+    # requires that a session only be re-used with a compatible SSL_CTX, but
+    # doesn't verify it, so we pin the Context here and enforce identity in
+    # Connection.set_session.
+    _context: Context
 
 
 F = TypeVar("F", bound=Callable[..., Any])
@@ -1016,6 +1026,11 @@ class Context:
             FILETYPE_PEM, wrapper, more_args=True, truncate=True
         )
 
+    @deprecated(
+        "Context.set_passwd_cb is deprecated. You should decrypt and load "
+        "your private key yourself, with cryptography's key loading APIs, "
+        "and then use Context.use_privatekey instead."
+    )
     @_require_not_used
     def set_passwd_cb(
         self,
@@ -3032,11 +3047,17 @@ class Connection:
 
         pysession = Session.__new__(Session)
         pysession._session = _ffi.gc(session, _lib.SSL_SESSION_free)
+        pysession._context = self._context
         return pysession
 
     def set_session(self, session: Session) -> None:
         """
         Set the session to be used when the TLS/SSL connection is established.
+
+        The session must have been obtained, via :meth:`get_session`, from a
+        :class:`Connection` that was using the same :class:`Context` as this
+        one. OpenSSL requires (but does not verify) that sessions only be
+        re-used with a compatible ``SSL_CTX``, so this is enforced here.
 
         :param session: A Session instance representing the session to use.
         :returns: None
@@ -3045,6 +3066,12 @@ class Connection:
         """
         if not isinstance(session, Session):
             raise TypeError("session must be a Session instance")
+
+        if session._context is not self._context:
+            raise ValueError(
+                "session must have been created by a Connection using the "
+                "same Context as this one"
+            )
 
         result = _lib.SSL_set_session(self._ssl, session._session)
         _openssl_assert(result == 1)

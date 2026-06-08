@@ -4,16 +4,22 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
-UNRELEASED
-----------
+26.3.0 (UNRELEASED)
+-------------------
 
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Removed deprecated ``OpenSSL.crypto.X509Req``, ``OpenSSL.crypto.dump_certificate_request``, and ``OpenSSL.crypto.load_certificate_request``. ``cryptography.x509`` should be used instead.
+- ``OpenSSL.SSL.Connection.set_session`` now raises ``ValueError`` if the ``Session`` was obtained from a ``Connection`` that was using a different ``Context`` than this one. OpenSSL requires (but does not verify) that sessions only be re-used with a compatible ``SSL_CTX``, so this contract is now enforced.
 
 Deprecations:
 ^^^^^^^^^^^^^
+
+- Deprecated ``OpenSSL.crypto.PKey.generate_key`` and ``OpenSSL.crypto.PKey.check``. The key generation and loading APIs in ``cryptography`` should be used instead.
+- Deprecated ``OpenSSL.crypto.dump_privatekey``. The serialization APIs on ``cryptography`` private key types should be used instead.
+- Deprecated all the mutable APIs on ``OpenSSL.crypto.X509``: ``set_version``, ``set_pubkey``, ``sign``, ``set_serial_number``, ``gmtime_adj_notAfter``, ``gmtime_adj_notBefore``, ``set_notBefore``, ``set_notAfter``, ``set_issuer``, and ``set_subject``. ``cryptography.x509.CertificateBuilder`` should be used instead.
+- Deprecated ``OpenSSL.SSL.Context.set_passwd_cb``. Users should decrypt and load their private keys themselves, with ``cryptography``'s key loading APIs, and then call ``OpenSSL.SSL.Context.use_privatekey``.
 
 Changes:
 ^^^^^^^^

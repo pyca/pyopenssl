@@ -3108,12 +3108,22 @@ class TestConnection:
             server.set_accept_state()
             return server
 
-        originalServer, originalClient = loopback(server_factory=makeServer)
+        clientCtx = Context(SSLv23_METHOD)
+
+        def makeOriginalClient(socket: socket) -> Connection:
+            client = Connection(clientCtx, socket)
+            client.set_connect_state()
+            return client
+
+        originalServer, originalClient = loopback(
+            server_factory=makeServer, client_factory=makeOriginalClient
+        )
         originalSession = originalClient.get_session()
         assert originalSession is not None
 
         def makeClient(socket: socket) -> Connection:
-            client = loopback_client_factory(socket)
+            client = Connection(clientCtx, socket)
+            client.set_connect_state()
             client.set_session(originalSession)
             return client
 
@@ -3129,18 +3139,15 @@ class TestConnection:
         # connections is the same, the session was re-used!
         assert originalServer.master_key() == resumedServer.master_key()
 
-    def test_set_session_wrong_method(self) -> None:
+    def test_set_session_wrong_context(self) -> None:
         """
-        If `Connection.set_session` is passed a `Session` instance associated
-        with a context using a different SSL method than the `Connection`
-        is using, a `OpenSSL.SSL.Error` is raised.
+        If `Connection.set_session` is passed a `Session` instance that was
+        created by a `Connection` using a different `Context` than the
+        `Connection` is using, a `ValueError` is raised.
         """
-        v1 = TLSv1_2_METHOD
-        v2 = TLSv1_METHOD
-
         key = load_privatekey(FILETYPE_PEM, server_key_pem)
         cert = load_certificate(FILETYPE_PEM, server_cert_pem)
-        ctx = Context(v1)
+        ctx = Context(TLSv1_2_METHOD)
         ctx.use_privatekey(key)
         ctx.use_certificate(cert)
         ctx.set_session_id(b"unity-test")
@@ -3150,26 +3157,15 @@ class TestConnection:
             server.set_accept_state()
             return server
 
-        def makeOriginalClient(socket: socket) -> Connection:
-            client = Connection(Context(v1), socket)
-            client.set_connect_state()
-            return client
-
-        _, originalClient = loopback(
-            server_factory=makeServer, client_factory=makeOriginalClient
-        )
+        _, originalClient = loopback(server_factory=makeServer)
         originalSession = originalClient.get_session()
         assert originalSession is not None
 
-        def makeClient(socket: socket) -> Connection:
-            # Intentionally use a different, incompatible method here.
-            client = Connection(Context(v2), socket)
-            client.set_connect_state()
+        # Intentionally use a different Context here.
+        client = Connection(Context(SSLv23_METHOD), None)
+        client.set_connect_state()
+        with pytest.raises(ValueError):
             client.set_session(originalSession)
-            return client
-
-        with pytest.raises(Error):
-            loopback(client_factory=makeClient, server_factory=makeServer)
 
     def test_wantWriteError(self) -> None:
         """
