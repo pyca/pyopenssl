@@ -852,6 +852,11 @@ class Session:
     """
 
     _session: Any
+    # The Context the Connection this Session came from was using. OpenSSL
+    # requires that a session only be re-used with a compatible SSL_CTX, but
+    # doesn't verify it, so we pin the Context here and enforce identity in
+    # Connection.set_session.
+    _context: Context
 
 
 F = TypeVar("F", bound=Callable[..., Any])
@@ -3042,11 +3047,17 @@ class Connection:
 
         pysession = Session.__new__(Session)
         pysession._session = _ffi.gc(session, _lib.SSL_SESSION_free)
+        pysession._context = self._context
         return pysession
 
     def set_session(self, session: Session) -> None:
         """
         Set the session to be used when the TLS/SSL connection is established.
+
+        The session must have been obtained, via :meth:`get_session`, from a
+        :class:`Connection` that was using the same :class:`Context` as this
+        one. OpenSSL requires (but does not verify) that sessions only be
+        re-used with a compatible ``SSL_CTX``, so this is enforced here.
 
         :param session: A Session instance representing the session to use.
         :returns: None
@@ -3055,6 +3066,12 @@ class Connection:
         """
         if not isinstance(session, Session):
             raise TypeError("session must be a Session instance")
+
+        if session._context is not self._context:
+            raise ValueError(
+                "session must have been created by a Connection using the "
+                "same Context as this one"
+            )
 
         result = _lib.SSL_set_session(self._ssl, session._session)
         _openssl_assert(result == 1)
