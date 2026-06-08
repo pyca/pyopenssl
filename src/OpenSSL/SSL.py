@@ -13,6 +13,11 @@ from sys import platform
 from typing import Any, Callable, Optional, TypeVar
 from weakref import WeakValueDictionary
 
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
+
 from cryptography import x509
 from cryptography.hazmat.primitives.asymmetric import ec
 
@@ -1016,6 +1021,11 @@ class Context:
             FILETYPE_PEM, wrapper, more_args=True, truncate=True
         )
 
+    @deprecated(
+        "Context.set_passwd_cb is deprecated. You should decrypt and load "
+        "your private key yourself, with cryptography's key loading APIs, "
+        "and then use Context.use_privatekey instead."
+    )
     @_require_not_used
     def set_passwd_cb(
         self,
