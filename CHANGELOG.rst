@@ -10,6 +10,8 @@ The third digit is only for regressions.
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- ``OpenSSL.SSL.Connection.set_session`` now raises ``ValueError`` if the ``Session`` was obtained from a ``Connection`` that was using a different ``Context`` than this one. OpenSSL requires (but does not verify) that sessions only be re-used with a compatible ``SSL_CTX``, so this contract is now enforced.
+
 Deprecations:
 ^^^^^^^^^^^^^
 
