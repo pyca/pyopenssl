@@ -1011,6 +1011,10 @@ class X509:
         der = crypto_cert.public_bytes(Encoding.DER)
         return load_certificate(FILETYPE_ASN1, der)
 
+    @deprecated(
+        "X509.set_version is deprecated. You should use "
+        "cryptography's CertificateBuilder instead."
+    )
     def set_version(self, version: int) -> None:
         """
         Set the version number of the certificate. Note that the
@@ -1050,6 +1054,10 @@ class X509:
         pkey._only_public = True
         return pkey
 
+    @deprecated(
+        "X509.set_pubkey is deprecated. You should use "
+        "cryptography's CertificateBuilder instead."
+    )
     def set_pubkey(self, pkey: PKey) -> None:
         """
         Set the public key of the certificate.
@@ -1065,6 +1073,10 @@ class X509:
         set_result = _lib.X509_set_pubkey(self._x509, pkey._pkey)
         _openssl_assert(set_result == 1)
 
+    @deprecated(
+        "X509.sign is deprecated. You should use "
+        "cryptography's CertificateBuilder instead."
+    )
     def sign(self, pkey: PKey, digest: str) -> None:
         """
         Sign the certificate with this key and digest type.
@@ -1152,6 +1164,10 @@ class X509:
         """
         return _lib.X509_subject_name_hash(self._x509)
 
+    @deprecated(
+        "X509.set_serial_number is deprecated. You should use "
+        "cryptography's CertificateBuilder instead."
+    )
     def set_serial_number(self, serial: int) -> None:
         """
         Set the serial number of the certificate.
@@ -1200,6 +1216,10 @@ class X509:
         finally:
             _lib.BN_free(bignum_serial)
 
+    @deprecated(
+        "X509.gmtime_adj_notAfter is deprecated. You should use "
+        "cryptography's CertificateBuilder instead."
+    )
     def gmtime_adj_notAfter(self, amount: int) -> None:
         """
         Adjust the time stamp on which the certificate stops being valid.
@@ -1214,6 +1234,10 @@ class X509:
         notAfter = _lib.X509_getm_notAfter(self._x509)
         _lib.X509_gmtime_adj(notAfter, amount)
 
+    @deprecated(
+        "X509.gmtime_adj_notBefore is deprecated. You should use "
+        "cryptography's CertificateBuilder instead."
+    )
     def gmtime_adj_notBefore(self, amount: int) -> None:
         """
         Adjust the timestamp on which the certificate starts being valid.
@@ -1265,6 +1289,10 @@ class X509:
     ) -> None:
         return _set_asn1_time(which(self._x509), when)
 
+    @deprecated(
+        "X509.set_notBefore is deprecated. You should use "
+        "cryptography's CertificateBuilder instead."
+    )
     def set_notBefore(self, when: bytes) -> None:
         """
         Set the timestamp at which the certificate starts being valid.
@@ -1291,6 +1319,10 @@ class X509:
         """
         return self._get_boundary_time(_lib.X509_getm_notAfter)
 
+    @deprecated(
+        "X509.set_notAfter is deprecated. You should use "
+        "cryptography's CertificateBuilder instead."
+    )
     def set_notAfter(self, when: bytes) -> None:
         """
         Set the timestamp at which the certificate stops being valid.
@@ -1337,6 +1369,10 @@ class X509:
         self._issuer_invalidator.add(name)
         return name
 
+    @deprecated(
+        "X509.set_issuer is deprecated. You should use "
+        "cryptography's CertificateBuilder instead."
+    )
     def set_issuer(self, issuer: X509Name) -> None:
         """
         Set the issuer of this certificate.
@@ -1365,6 +1401,10 @@ class X509:
         self._subject_invalidator.add(name)
         return name
 
+    @deprecated(
+        "X509.set_subject is deprecated. You should use "
+        "cryptography's CertificateBuilder instead."
+    )
     def set_subject(self, subject: X509Name) -> None:
         """
         Set the subject of this certificate.
