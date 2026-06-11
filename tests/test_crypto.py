@@ -37,7 +37,6 @@ from OpenSSL.crypto import (
     Error,
     PKey,
     X509Name,
-    X509Req,
     X509Store,
     X509StoreContext,
     X509StoreContextError,
@@ -46,13 +45,11 @@ from OpenSSL.crypto import (
     _Key,
     _PrivateKey,
     dump_certificate,
-    dump_certificate_request,
     dump_privatekey,
     dump_publickey,
     get_elliptic_curve,
     get_elliptic_curves,
     load_certificate,
-    load_certificate_request,
     load_privatekey,
     load_publickey,
 )
@@ -491,19 +488,6 @@ DWjBuR73/r5Bj+ktRoD4V2SFdO6loJwH6B8rsBjD0NbAGs9otKvy+Q==
 """
 )
 
-cleartextCertificateRequestPEM = b"""-----BEGIN CERTIFICATE REQUEST-----
-MIIBnjCCAQcCAQAwXjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAklMMRAwDgYDVQQH
-EwdDaGljYWdvMRcwFQYDVQQKEw5NeSBDb21wYW55IEx0ZDEXMBUGA1UEAxMORnJl
-ZGVyaWNrIERlYW4wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBANp6Y17WzKSw
-BsUWkXdqg6tnXy8H8hA1msCMWpc+/2KJ4mbv5NyD6UD+/SqagQqulPbF/DFea9nA
-E0zhmHJELcM8gUTIlXv/cgDWnmK4xj8YkjVUiCdqKRAKeuzLG1pGmwwF5lGeJpXN
-xQn5ecR0UYSOWj6TTGXB9VyUMQzCClcBAgMBAAGgADANBgkqhkiG9w0BAQUFAAOB
-gQAAJGuF/R/GGbeC7FbFW+aJgr9ee0Xbl6nlhu7pTe67k+iiKT2dsl2ti68MVTnu
-Vrb3HUNqOkiwsJf6kCtq5oPn3QVYzTa76Dt2y3Rtzv6boRSlmlfrgS92GNma8JfR
-oICQk3nAudi6zl1Dix3BCv1pUp5KMtGn3MeDEi6QFGy2rA==
------END CERTIFICATE REQUEST-----
-"""
-
 encryptedPrivateKeyPEM = b"""-----BEGIN RSA PRIVATE KEY-----
 Proc-Type: 4,ENCRYPTED
 DEK-Info: DES-EDE3-CBC,9573604A18579E9E
@@ -805,13 +789,10 @@ def x509_data() -> tuple[PKey, X509]:
     # Basic setup stuff to generate a certificate
     pkey = PKey()
     pkey.generate_key(TYPE_RSA, 2048)
-    req = X509Req()
-    req.set_pubkey(pkey)
-    # Authority good you have.
-    req.get_subject().commonName = "Yoda root CA"
     x509 = X509()
     subject = x509.get_subject()
-    subject.commonName = req.get_subject().commonName
+    # Authority good you have.
+    subject.commonName = "Yoda root CA"
     x509.set_issuer(subject)
     x509.set_pubkey(pkey)
     now = datetime.now()
@@ -1391,170 +1372,6 @@ class TestX509Name:
             setattr(name, "O", b"x" * 512)
 
 
-class TestX509Req:
-    """
-    Tests for `OpenSSL.crypto.X509Req`.
-    """
-
-    def test_sign_with_ungenerated(self) -> None:
-        """
-        `X509Req.sign` raises `ValueError` when passed a `PKey` with no parts.
-        """
-        request = X509Req()
-        key = PKey()
-        with pytest.raises(ValueError):
-            request.sign(key, GOOD_DIGEST)
-
-    def test_sign_with_public_key(self) -> None:
-        """
-        `X509Req.sign` raises `ValueError` when passed a `PKey` with no private
-        part as the signing key.
-        """
-        request = X509Req()
-        key = PKey()
-        key.generate_key(TYPE_RSA, 2048)
-        request.set_pubkey(key)
-        pub = request.get_pubkey()
-        with pytest.raises(ValueError):
-            request.sign(pub, GOOD_DIGEST)
-
-    def test_sign_with_unknown_digest(self) -> None:
-        """
-        `X509Req.sign` raises `ValueError` when passed a digest name which is
-        not known.
-        """
-        request = X509Req()
-        key = PKey()
-        key.generate_key(TYPE_RSA, 2048)
-        with pytest.raises(ValueError):
-            request.sign(key, BAD_DIGEST)
-
-    def test_sign(self) -> None:
-        """
-        `X509Req.sign` succeeds when passed a private key object and a
-        valid digest function. `X509Req.verify` can be used to check
-        the signature.
-        """
-        request = X509Req()
-        key = PKey()
-        key.generate_key(TYPE_RSA, 2048)
-        request.set_pubkey(key)
-        request.sign(key, GOOD_DIGEST)
-        # If the type has a verify method, cover that too.
-        if getattr(request, "verify", None) is not None:
-            pub = request.get_pubkey()
-            assert request.verify(pub)
-            # Make another key that won't verify.
-            key = PKey()
-            key.generate_key(TYPE_RSA, 2048)
-            with pytest.raises(Error):
-                request.verify(key)
-
-    def test_construction(self) -> None:
-        """
-        `X509Req` takes no arguments and returns an `X509Req` instance.
-        """
-        request = X509Req()
-        assert isinstance(request, X509Req)
-
-    def test_version(self) -> None:
-        """
-        `X509Req.set_version` sets the X.509 version of the certificate
-        request. `X509Req.get_version` returns the X.509 version of the
-        certificate request. The only defined version is 0.
-        """
-        request = X509Req()
-        assert request.get_version() == 0
-        request.set_version(0)
-        assert request.get_version() == 0
-
-    def test_version_wrong_args(self) -> None:
-        """
-        `X509Req.set_version` raises `TypeError` if called with a non-`int`
-        argument.
-        """
-        request = X509Req()
-        with pytest.raises(TypeError):
-            request.set_version("foo")  # type: ignore[arg-type]
-        with pytest.raises(ValueError):
-            request.set_version(2)
-
-    def test_get_subject(self) -> None:
-        """
-        `X509Req.get_subject` returns an `X509Name` for the subject of the
-        request and which is valid even after the request object is
-        otherwise dead.
-        """
-        request = X509Req()
-        subject = request.get_subject()
-        assert isinstance(subject, X509Name)
-        subject.commonName = "foo"
-        assert request.get_subject().commonName == "foo"
-        del request
-        subject.commonName = "bar"
-        assert subject.commonName == "bar"
-
-    def test_verify_wrong_args(self) -> None:
-        """
-        `X509Req.verify` raises `TypeError` if passed anything other than a
-        `PKey` instance as its single argument.
-        """
-        request = X509Req()
-        with pytest.raises(TypeError):
-            request.verify(object())  # type: ignore[arg-type]
-
-    def test_verify_uninitialized_key(self) -> None:
-        """
-        `X509Req.verify` raises `OpenSSL.crypto.Error` if called with a
-        `OpenSSL.crypto.PKey` which contains no key data.
-        """
-        request = X509Req()
-        pkey = PKey()
-        with pytest.raises(Error):
-            request.verify(pkey)
-
-    def test_verify_wrong_key(self) -> None:
-        """
-        `X509Req.verify` raises `OpenSSL.crypto.Error` if called with a
-        `OpenSSL.crypto.PKey` which does not represent the public part of the
-        key which signed the request.
-        """
-        request = X509Req()
-        pkey = load_privatekey(FILETYPE_PEM, root_key_pem)
-        request.set_pubkey(pkey)
-        request.sign(pkey, GOOD_DIGEST)
-        another_pkey = load_privatekey(FILETYPE_PEM, client_key_pem)
-        with pytest.raises(Error):
-            request.verify(another_pkey)
-
-    def test_verify_success(self) -> None:
-        """
-        `X509Req.verify` returns `True` if called with a `OpenSSL.crypto.PKey`
-        which represents the public part of the key which signed the request.
-        """
-        request = X509Req()
-        pkey = load_privatekey(FILETYPE_PEM, root_key_pem)
-        request.set_pubkey(pkey)
-        request.sign(pkey, GOOD_DIGEST)
-        assert request.verify(pkey)
-
-    def test_convert_from_cryptography(self) -> None:
-        crypto_req = x509.load_pem_x509_csr(cleartextCertificateRequestPEM)
-        req = X509Req.from_cryptography(crypto_req)
-        assert isinstance(req, X509Req)
-
-    def test_convert_from_cryptography_unsupported_type(self) -> None:
-        with pytest.raises(TypeError):
-            X509Req.from_cryptography(object())  # type: ignore[arg-type]
-
-    def test_convert_to_cryptography_key(self) -> None:
-        req = load_certificate_request(
-            FILETYPE_PEM, cleartextCertificateRequestPEM
-        )
-        crypto_req = req.to_cryptography()
-        assert isinstance(crypto_req, x509.CertificateSigningRequest)
-
-
 class TestX509:
     """
     Tests for `OpenSSL.crypto.X509`.
@@ -1598,8 +1415,7 @@ class TestX509:
     def test_sign(self) -> None:
         """
         `X509.sign` succeeds when passed a private key object and a
-        valid digest function. `X509Req.verify` can be used to check
-        the signature.
+        valid digest function.
         """
         cert = X509()
         key = PKey()
@@ -2528,26 +2344,6 @@ class TestFunction:
         with pytest.raises(ValueError):
             dump_publickey(FILETYPE_TEXT, key)
 
-    def test_dump_certificate_request(self) -> None:
-        """
-        `dump_certificate_request` writes a PEM, DER, and text.
-        """
-        req = load_certificate_request(
-            FILETYPE_PEM, cleartextCertificateRequestPEM
-        )
-        dumped_pem = dump_certificate_request(FILETYPE_PEM, req)
-        assert dumped_pem == cleartextCertificateRequestPEM
-        dumped_der = dump_certificate_request(FILETYPE_ASN1, req)
-        good_der = _runopenssl(dumped_pem, b"req", b"-outform", b"DER")
-        assert dumped_der == good_der
-        req2 = load_certificate_request(FILETYPE_ASN1, dumped_der)
-        dumped_pem2 = dump_certificate_request(FILETYPE_PEM, req2)
-        assert dumped_pem2 == cleartextCertificateRequestPEM
-        dumped_text = dump_certificate_request(FILETYPE_TEXT, req)
-        assert len(dumped_text) > 500
-        with pytest.raises(ValueError):
-            dump_certificate_request(100, req)
-
     def test_dump_privatekey_passphrase_callback(self) -> None:
         """
         `dump_privatekey` writes an encrypted PEM when given a callback
@@ -2636,16 +2432,14 @@ class TestFunction:
 
 class TestLoadCertificate:
     """
-    Tests for `load_certificate_request`.
+    Tests for `load_certificate`.
     """
 
     def test_bad_file_type(self) -> None:
         """
-        If the file type passed to `load_certificate_request` is neither
+        If the file type passed to `load_certificate` is neither
         `FILETYPE_PEM` nor `FILETYPE_ASN1` then `ValueError` is raised.
         """
-        with pytest.raises(ValueError):
-            load_certificate_request(object(), b"")  # type: ignore[arg-type]
         with pytest.raises(ValueError):
             load_certificate(object(), b"")  # type: ignore[arg-type]
 
