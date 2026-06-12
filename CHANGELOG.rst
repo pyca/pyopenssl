@@ -26,6 +26,9 @@ Deprecations:
 Changes:
 ^^^^^^^^
 
+- ``OpenSSL.SSL.Connection.get_client_ca_list`` now takes an ``as_cryptography`` keyword-argument. When ``True`` is passed then ``cryptography.x509.Name`` are returned, instead of ``OpenSSL.crypto.X509Name``. In the future, passing ``False`` (the default) will be deprecated.
+
+
 26.2.0 (2026-05-04)
 -------------------
 
