@@ -77,7 +77,6 @@ if __name__ == "__main__":
             "Operating System :: Microsoft :: Windows",
             "Operating System :: POSIX",
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10",
             "Programming Language :: Python :: 3.11",
@@ -89,15 +88,12 @@ if __name__ == "__main__":
             "Topic :: Software Development :: Libraries :: Python Modules",
             "Topic :: System :: Networking",
         ],
-        python_requires=">=3.8",
+        python_requires=">=3.9",
         packages=find_packages(where="src"),
         package_dir={"": "src"},
         install_requires=[
-            "cryptography>=46.0.0,<49",
-            (
-                "typing-extensions>=4.9; "
-                "python_version < '3.13' and python_version >= '3.8'"
-            ),
+            "cryptography>=49.0.0,<50",
+            "typing-extensions>=4.9; python_version < '3.13'",
         ],
         extras_require={
             "test": ["pytest-rerunfailures", "pretend", "pytest>=3.0.1"],
