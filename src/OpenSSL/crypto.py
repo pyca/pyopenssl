@@ -579,6 +579,10 @@ def get_elliptic_curve(name: str) -> _EllipticCurve:
     raise ValueError("unknown curve name", name)
 
 
+@deprecated(
+    "X509Name support in pyOpenSSL is deprecated. You should use the "
+    "APIs in cryptography."
+)
 @functools.total_ordering
 class X509Name:
     """
@@ -1154,7 +1158,9 @@ class X509:
         return self._set_boundary_time(_lib.X509_getm_notAfter, when)
 
     def _get_name(self, which: Any) -> X509Name:
-        name = X509Name.__new__(X509Name)
+        # Bypass X509Name.__new__, which warns that X509Name is deprecated;
+        # callers that should warn are decorated individually.
+        name = object.__new__(X509Name)
         name._name = which(self._x509)
         _openssl_assert(name._name != _ffi.NULL)
 
@@ -1170,6 +1176,10 @@ class X509:
         set_result = which(self._x509, name._name)
         _openssl_assert(set_result == 1)
 
+    @deprecated(
+        "X509.get_issuer is deprecated. You should use "
+        "cryptography's X.509 APIs instead."
+    )
     def get_issuer(self) -> X509Name:
         """
         Return the issuer of this certificate.
@@ -1202,6 +1212,10 @@ class X509:
         self._set_name(_lib.X509_set_issuer_name, issuer)
         self._issuer_invalidator.clear()
 
+    @deprecated(
+        "X509.get_subject is deprecated. You should use "
+        "cryptography's X.509 APIs instead."
+    )
     def get_subject(self) -> X509Name:
         """
         Return the subject of this certificate.
