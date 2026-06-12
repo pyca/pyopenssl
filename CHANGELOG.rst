@@ -4,7 +4,7 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
-26.3.0 (UNRELEASED)
+26.3.0 (2026-06-12)
 -------------------
 
 Backward-incompatible changes:
