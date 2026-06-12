@@ -22,6 +22,7 @@ Deprecations:
 - Deprecated ``OpenSSL.crypto.dump_privatekey``. The serialization APIs on ``cryptography`` private key types should be used instead.
 - Deprecated all the mutable APIs on ``OpenSSL.crypto.X509``: ``set_version``, ``set_pubkey``, ``sign``, ``set_serial_number``, ``gmtime_adj_notAfter``, ``gmtime_adj_notBefore``, ``set_notBefore``, ``set_notAfter``, ``set_issuer``, and ``set_subject``. ``cryptography.x509.CertificateBuilder`` should be used instead.
 - Deprecated ``OpenSSL.SSL.Context.set_passwd_cb``. Users should decrypt and load their private keys themselves, with ``cryptography``'s key loading APIs, and then call ``OpenSSL.SSL.Context.use_privatekey``.
+- Deprecated ``OpenSSL.crypto.X509Name``, as well as the remaining APIs that consume or return it: ``OpenSSL.crypto.X509.get_issuer``, ``OpenSSL.crypto.X509.get_subject``, and ``OpenSSL.SSL.Context.set_client_ca_list``. The APIs in ``cryptography.x509`` should be used instead.
 
 Changes:
 ^^^^^^^^

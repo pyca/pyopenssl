@@ -1542,6 +1542,10 @@ class Context:
             _lib.SSL_CTX_set_ciphersuites(self._context, ciphersuites) == 1
         )
 
+    @deprecated(
+        "Context.set_client_ca_list is deprecated. X509Name support in "
+        "pyOpenSSL is deprecated."
+    )
     @_require_not_used
     def set_client_ca_list(
         self, certificate_authorities: Sequence[X509Name]
@@ -2700,7 +2704,9 @@ class Connection:
             copy = _lib.X509_NAME_dup(name)
             _openssl_assert(copy != _ffi.NULL)
 
-            pyname = X509Name.__new__(X509Name)
+            # Bypass X509Name.__new__, which warns that X509Name is
+            # deprecated -- this method is not itself deprecated.
+            pyname = object.__new__(X509Name)
             pyname._name = _ffi.gc(copy, _lib.X509_NAME_free)
             result.append(pyname)
         return result
