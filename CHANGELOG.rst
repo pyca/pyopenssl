@@ -10,6 +10,8 @@ The third digit is only for regressions.
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- Dropped support for Python 3.8.
+- The minimum ``cryptography`` version is now 49.0.0.
 - Removed deprecated ``OpenSSL.crypto.X509Req``, ``OpenSSL.crypto.dump_certificate_request``, and ``OpenSSL.crypto.load_certificate_request``. ``cryptography.x509`` should be used instead.
 - ``OpenSSL.SSL.Connection.set_session`` now raises ``ValueError`` if the ``Session`` was obtained from a ``Connection`` that was using a different ``Context`` than this one. OpenSSL requires (but does not verify) that sessions only be re-used with a compatible ``SSL_CTX``, so this contract is now enforced.
 

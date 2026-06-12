@@ -16,11 +16,6 @@ from typing import (
 
 if sys.version_info >= (3, 13):
     from warnings import deprecated
-elif sys.version_info < (3, 8):
-    _T = typing.TypeVar("T")
-
-    def deprecated(msg: str, **kwargs: object) -> Callable[[_T], _T]:
-        return lambda f: f
 else:
     from typing_extensions import deprecated
 
