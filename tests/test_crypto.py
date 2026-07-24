@@ -2004,13 +2004,7 @@ def _runopenssl(pem: bytes, *args: bytes) -> bytes:
     the given PEM to its stdin.  Not safe for quotes.
     """
     proc = Popen([b"openssl", *list(args)], stdin=PIPE, stdout=PIPE)
-    assert proc.stdin is not None
-    assert proc.stdout is not None
-    proc.stdin.write(pem)
-    proc.stdin.close()
-    output = proc.stdout.read()
-    proc.stdout.close()
-    proc.wait()
+    output, _ = proc.communicate(pem)
     return output
 
 
