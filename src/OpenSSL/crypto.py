@@ -203,12 +203,14 @@ def _get_asn1_time(timestamp: Any) -> bytes | None:
         format.  Or C{None} if the object contains no time value.
     """
     string_timestamp = _ffi.cast("ASN1_STRING*", timestamp)
-    if _lib.ASN1_STRING_length(string_timestamp) == 0:
+    string_length = _lib.ASN1_STRING_length(string_timestamp)
+    if string_length == 0:
         return None
     elif (
         _lib.ASN1_STRING_type(string_timestamp) == _lib.V_ASN1_GENERALIZEDTIME
     ):
-        return _ffi.string(_lib.ASN1_STRING_get0_data(string_timestamp))
+        string_data = _lib.ASN1_STRING_get0_data(string_timestamp)
+        return _ffi.buffer(string_data, string_length)[:]
     else:
         generalized_timestamp = _ffi.new("ASN1_GENERALIZEDTIME**")
         _lib.ASN1_TIME_to_generalizedtime(timestamp, generalized_timestamp)
@@ -216,7 +218,8 @@ def _get_asn1_time(timestamp: Any) -> bytes | None:
 
         string_timestamp = _ffi.cast("ASN1_STRING*", generalized_timestamp[0])
         string_data = _lib.ASN1_STRING_get0_data(string_timestamp)
-        string_result = _ffi.string(string_data)
+        string_length = _lib.ASN1_STRING_length(string_timestamp)
+        string_result = _ffi.buffer(string_data, string_length)[:]
         _lib.ASN1_GENERALIZEDTIME_free(generalized_timestamp[0])
         return string_result
 
