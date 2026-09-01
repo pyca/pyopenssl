@@ -1471,6 +1471,19 @@ class TestX509:
         certificate.set_serial_number(2**128 + 1)
         assert certificate.get_serial_number() == 2**128 + 1
 
+    def test_negative_serial_number(self) -> None:
+        """
+        `X509.set_serial_number` accepts a negative serial number, which
+        `X509.get_serial_number` then returns unchanged.
+        """
+        certificate = X509()
+        certificate.set_serial_number(-1)
+        assert certificate.get_serial_number() == -1
+        certificate.set_serial_number(-255)
+        assert certificate.get_serial_number() == -255
+        certificate.set_serial_number(-(2**128 + 1))
+        assert certificate.get_serial_number() == -(2**128 + 1)
+
     def _setBoundTest(
         self,
         get: typing.Callable[[X509], bytes | None],

@@ -4,6 +4,22 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
+26.5.0 (UNRELEASED)
+-------------------
+
+Backward-incompatible changes:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Deprecations:
+^^^^^^^^^^^^^
+
+Changes:
+^^^^^^^^
+
+- Fixed a segfault in ``OpenSSL.crypto.X509.set_serial_number()`` when it was passed a negative serial number.
+  [`#1534 <https://github.com/pyca/pyopenssl/pull/1534>`_]
+
+
 26.4.0 (2026-08-01)
 -------------------
 
