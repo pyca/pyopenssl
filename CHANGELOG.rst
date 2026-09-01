@@ -4,6 +4,24 @@ Changelog
 Versions are year-based with a strict backward-compatibility policy.
 The third digit is only for regressions.
 
+26.5.0 (UNRELEASED)
+-------------------
+
+Backward-incompatible changes:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- ``OpenSSL.crypto.X509.set_serial_number()`` now raises ``ValueError`` for a negative serial number, which
+  `RFC 5280 section 4.1.2.2 <https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.2>`_ does not permit.
+  Passing one previously crashed the interpreter.
+  [`#1534 <https://github.com/pyca/pyopenssl/pull/1534>`_]
+
+Deprecations:
+^^^^^^^^^^^^^
+
+Changes:
+^^^^^^^^
+
+
 26.4.0 (2026-08-01)
 -------------------
 

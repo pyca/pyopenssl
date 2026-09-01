@@ -1004,14 +1004,23 @@ class X509:
         if not isinstance(serial, int):
             raise TypeError("serial must be an integer")
 
-        hex_serial = hex(serial)[2:]
+        # RFC 5280 section 4.1.2.2 requires the serial number to be a
+        # positive integer. Negative values also crashed: hex(serial)
+        # renders them as "-0x...", so slicing off two characters left a
+        # stray "x" that BN_hex2bn could not parse.
+        if serial < 0:
+            raise ValueError("serial must be non-negative")
+
+        hex_serial = f"{serial:x}"
         hex_serial_bytes = hex_serial.encode("ascii")
 
         bignum_serial = _ffi.new("BIGNUM**")
 
-        # BN_hex2bn stores the result in &bignum.
+        # BN_hex2bn stores the result in &bignum and returns the number of
+        # characters consumed, or 0 on error. It does not return a pointer,
+        # so it must not be compared against NULL.
         result = _lib.BN_hex2bn(bignum_serial, hex_serial_bytes)
-        _openssl_assert(result != _ffi.NULL)
+        _openssl_assert(result != 0)
 
         asn1_serial = _lib.BN_to_ASN1_INTEGER(bignum_serial[0], _ffi.NULL)
         _lib.BN_free(bignum_serial[0])
