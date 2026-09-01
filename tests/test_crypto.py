@@ -1473,16 +1473,20 @@ class TestX509:
 
     def test_negative_serial_number(self) -> None:
         """
-        `X509.set_serial_number` accepts a negative serial number, which
-        `X509.get_serial_number` then returns unchanged.
+        `X509.set_serial_number` rejects a negative serial number, which
+        RFC 5280 section 4.1.2.2 does not permit. Before this was checked,
+        a negative value crashed the interpreter.
         """
         certificate = X509()
-        certificate.set_serial_number(-1)
-        assert certificate.get_serial_number() == -1
-        certificate.set_serial_number(-255)
-        assert certificate.get_serial_number() == -255
-        certificate.set_serial_number(-(2**128 + 1))
-        assert certificate.get_serial_number() == -(2**128 + 1)
+        for serial in [-1, -255, -(2**128 + 1)]:
+            with pytest.raises(ValueError):
+                certificate.set_serial_number(serial)
+
+        # A serial that was set earlier is left alone by the rejected call.
+        certificate.set_serial_number(1)
+        with pytest.raises(ValueError):
+            certificate.set_serial_number(-1)
+        assert certificate.get_serial_number() == 1
 
     def _setBoundTest(
         self,

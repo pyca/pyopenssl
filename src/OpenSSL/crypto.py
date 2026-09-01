@@ -1004,9 +1004,13 @@ class X509:
         if not isinstance(serial, int):
             raise TypeError("serial must be an integer")
 
-        # hex(serial) renders negative values as "-0x...", so slicing off a
-        # two-character prefix would leave a stray "x". Format the digits
-        # directly instead; BN_hex2bn understands a leading "-".
+        # RFC 5280 section 4.1.2.2 requires the serial number to be a
+        # positive integer. Negative values also crashed: hex(serial)
+        # renders them as "-0x...", so slicing off two characters left a
+        # stray "x" that BN_hex2bn could not parse.
+        if serial < 0:
+            raise ValueError("serial must be non-negative")
+
         hex_serial = f"{serial:x}"
         hex_serial_bytes = hex_serial.encode("ascii")
 
