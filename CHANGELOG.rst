@@ -10,6 +10,11 @@ The third digit is only for regressions.
 Backward-incompatible changes:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- ``OpenSSL.crypto.X509.set_serial_number()`` now raises ``ValueError`` for a negative serial number, which
+  `RFC 5280 section 4.1.2.2 <https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.2>`_ does not permit.
+  Passing one previously crashed the interpreter.
+  [`#1534 <https://github.com/pyca/pyopenssl/pull/1534>`_]
+
 Deprecations:
 ^^^^^^^^^^^^^
 
@@ -18,8 +23,6 @@ Changes:
 
 - Fixed a race in which an exception raised by a verify, ALPN selection, OCSP, or DTLS cookie callback for one ``Connection`` could be raised on an unrelated ``Connection`` created from the same ``Context`` and used concurrently from another thread. Exceptions from these callbacks are now tracked per ``Connection``. Discovered and reported by SecDim Security Research.
 - Fixed exceptions raised by a verify callback registered with ``Connection.set_verify`` being swallowed instead of being propagated to the caller.
-- Fixed a segfault in ``OpenSSL.crypto.X509.set_serial_number()`` when it was passed a negative serial number.
-  [`#1534 <https://github.com/pyca/pyopenssl/pull/1534>`_]
 
 
 26.4.0 (2026-08-01)

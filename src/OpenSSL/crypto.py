@@ -1004,17 +1004,16 @@ class X509:
         if not isinstance(serial, int):
             raise TypeError("serial must be an integer")
 
-        # hex(serial) renders negative values as "-0x...", so slicing off a
-        # two-character prefix would leave a stray "x". Format the digits
-        # directly instead; BN_hex2bn understands a leading "-".
+        if serial < 0:
+            raise ValueError("serial must be non-negative")
+
         hex_serial = f"{serial:x}"
         hex_serial_bytes = hex_serial.encode("ascii")
 
         bignum_serial = _ffi.new("BIGNUM**")
 
-        # BN_hex2bn stores the result in &bignum and returns the number of
-        # characters consumed, or 0 on error. It does not return a pointer,
-        # so it must not be compared against NULL.
+        # BN_hex2bn returns the count of characters consumed, or 0 on error --
+        # not a pointer, so it must not be compared against NULL.
         result = _lib.BN_hex2bn(bignum_serial, hex_serial_bytes)
         _openssl_assert(result != 0)
 
