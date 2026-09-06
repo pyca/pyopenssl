@@ -466,43 +466,13 @@ class SysCallError(Error):
     pass
 
 
-class _CallbackExceptionHelper:
-    """
-    A base class for wrapper classes that allow for intelligent exception
-    handling in OpenSSL callbacks.
-
-    :ivar list _problems: Any exceptions that occurred while executing in a
-        context where they could not be raised in the normal way.  Typically
-        this is because OpenSSL has called into some Python code and requires a
-        return value.  The exceptions are saved to be raised later when it is
-        possible to do so.
-    """
-
-    def __init__(self) -> None:
-        self._problems: list[Exception] = []
-
-    def raise_if_problem(self) -> None:
-        """
-        Raise an exception from the OpenSSL error queue or that was previously
-        captured whe running a callback.
-        """
-        if self._problems:
-            try:
-                _raise_current_error()
-            except Error:
-                pass
-            raise self._problems.pop(0)
-
-
-class _VerifyHelper(_CallbackExceptionHelper):
+class _VerifyHelper:
     """
     Wrap a callback such that it can be used as a certificate verification
     callback.
     """
 
     def __init__(self, callback: _VerifyCallback) -> None:
-        _CallbackExceptionHelper.__init__(self)
-
         @wraps(callback)
         def wrapper(ok, store_ctx):  # type: ignore[no-untyped-def]
             x509 = _lib.X509_STORE_CTX_get_current_cert(store_ctx)
@@ -520,7 +490,7 @@ class _VerifyHelper(_CallbackExceptionHelper):
                     connection, cert, error_number, error_depth, ok
                 )
             except Exception as e:
-                self._problems.append(e)
+                connection._callback_problems.append(e)
                 return 0
             else:
                 if result:
@@ -534,19 +504,16 @@ class _VerifyHelper(_CallbackExceptionHelper):
         )
 
 
-class _ALPNSelectHelper(_CallbackExceptionHelper):
+class _ALPNSelectHelper:
     """
     Wrap a callback such that it can be used as an ALPN selection callback.
     """
 
     def __init__(self, callback: _ALPNSelectCallback) -> None:
-        _CallbackExceptionHelper.__init__(self)
-
         @wraps(callback)
         def wrapper(ssl, out, outlen, in_, inlen, arg):  # type: ignore[no-untyped-def]
+            conn = Connection._reverse_mapping[ssl]
             try:
-                conn = Connection._reverse_mapping[ssl]
-
                 # The string passed to us is made up of multiple
                 # length-prefixed bytestrings. We need to split that into a
                 # list.
@@ -583,19 +550,26 @@ class _ALPNSelectHelper(_CallbackExceptionHelper):
                     return _lib.SSL_TLSEXT_ERR_NOACK
                 return _lib.SSL_TLSEXT_ERR_OK
             except Exception as e:
-                self._problems.append(e)
+                conn._callback_problems.append(e)
                 return _lib.SSL_TLSEXT_ERR_ALERT_FATAL
 
+        # If an exception ever escapes ``wrapper`` (it should not: the only
+        # statement outside its ``try`` is the connection lookup, which cannot
+        # fail for an SSL object owned by a Connection), cffi prints it and
+        # returns this value instead of the default 0, which would be
+        # SSL_TLSEXT_ERR_OK and make OpenSSL read the never-assigned ``out``
+        # and ``outlen`` parameters.
         self.callback = _ffi.callback(
             (
                 "int (*)(SSL *, unsigned char **, unsigned char *, "
                 "const unsigned char *, unsigned int, void *)"
             ),
             wrapper,
+            error=_lib.SSL_TLSEXT_ERR_ALERT_FATAL,
         )
 
 
-class _OCSPServerCallbackHelper(_CallbackExceptionHelper):
+class _OCSPServerCallbackHelper:
     """
     Wrap a callback such that it can be used as an OCSP callback for the server
     side.
@@ -618,13 +592,10 @@ class _OCSPServerCallbackHelper(_CallbackExceptionHelper):
     """
 
     def __init__(self, callback: _OCSPServerCallback[Any]) -> None:
-        _CallbackExceptionHelper.__init__(self)
-
         @wraps(callback)
         def wrapper(ssl, cdata):  # type: ignore[no-untyped-def]
+            conn = Connection._reverse_mapping[ssl]
             try:
-                conn = Connection._reverse_mapping[ssl]
-
                 # Extract the data if any was provided.
                 if cdata != _ffi.NULL:
                     data = _ffi.from_handle(cdata)
@@ -656,13 +627,13 @@ class _OCSPServerCallbackHelper(_CallbackExceptionHelper):
 
                 return 0
             except Exception as e:
-                self._problems.append(e)
+                conn._callback_problems.append(e)
                 return 2  # SSL_TLSEXT_ERR_ALERT_FATAL
 
         self.callback = _ffi.callback("int (*)(SSL *, void *)", wrapper)
 
 
-class _OCSPClientCallbackHelper(_CallbackExceptionHelper):
+class _OCSPClientCallbackHelper:
     """
     Wrap a callback such that it can be used as an OCSP callback for the client
     side.
@@ -685,13 +656,10 @@ class _OCSPClientCallbackHelper(_CallbackExceptionHelper):
     """
 
     def __init__(self, callback: _OCSPClientCallback[Any]) -> None:
-        _CallbackExceptionHelper.__init__(self)
-
         @wraps(callback)
         def wrapper(ssl, cdata):  # type: ignore[no-untyped-def]
+            conn = Connection._reverse_mapping[ssl]
             try:
-                conn = Connection._reverse_mapping[ssl]
-
                 # Extract the data if any was provided.
                 if cdata != _ffi.NULL:
                     data = _ffi.from_handle(cdata)
@@ -714,23 +682,21 @@ class _OCSPClientCallbackHelper(_CallbackExceptionHelper):
                 return int(bool(valid))
 
             except Exception as e:
-                self._problems.append(e)
+                conn._callback_problems.append(e)
                 # Return negative value if an exception is hit.
                 return -1
 
         self.callback = _ffi.callback("int (*)(SSL *, void *)", wrapper)
 
 
-class _CookieGenerateCallbackHelper(_CallbackExceptionHelper):
+class _CookieGenerateCallbackHelper:
     def __init__(self, callback: _CookieGenerateCallback) -> None:
-        _CallbackExceptionHelper.__init__(self)
-
         max_cookie_len = getattr(_lib, "DTLS1_COOKIE_LENGTH", 255)
 
         @wraps(callback)
         def wrapper(ssl, out, outlen):  # type: ignore[no-untyped-def]
+            conn = Connection._reverse_mapping[ssl]
             try:
-                conn = Connection._reverse_mapping[ssl]
                 cookie = callback(conn)
                 if len(cookie) > max_cookie_len:
                     raise ValueError(
@@ -741,7 +707,7 @@ class _CookieGenerateCallbackHelper(_CallbackExceptionHelper):
                 outlen[0] = len(cookie)
                 return 1
             except Exception as e:
-                self._problems.append(e)
+                conn._callback_problems.append(e)
                 # "a zero return value can be used to abort the handshake"
                 return 0
 
@@ -751,17 +717,15 @@ class _CookieGenerateCallbackHelper(_CallbackExceptionHelper):
         )
 
 
-class _CookieVerifyCallbackHelper(_CallbackExceptionHelper):
+class _CookieVerifyCallbackHelper:
     def __init__(self, callback: _CookieVerifyCallback) -> None:
-        _CallbackExceptionHelper.__init__(self)
-
         @wraps(callback)
         def wrapper(ssl, c_cookie, cookie_len):  # type: ignore[no-untyped-def]
+            conn = Connection._reverse_mapping[ssl]
             try:
-                conn = Connection._reverse_mapping[ssl]
                 return callback(conn, bytes(c_cookie[0:cookie_len]))
             except Exception as e:
-                self._problems.append(e)
+                conn._callback_problems.append(e)
                 return 0
 
         self.callback = _ffi.callback(
@@ -2003,6 +1967,16 @@ class Connection:
         # avoid them getting freed.
         self._alpn_select_callback_args: Any = None
 
+        # Exceptions raised by callbacks (verify, ALPN selection, OCSP, DTLS
+        # cookies) while OpenSSL was calling into Python on behalf of this
+        # connection. They cannot be raised from inside the callback, so they
+        # are recorded here and raised by the next method that OpenSSL
+        # returns control to. They are kept on the connection rather than on
+        # the (context-wide, shared) callback wrapper so that a connection
+        # driven concurrently from another thread can never be handed an
+        # exception that belongs to a different connection.
+        self._callback_problems: list[Exception] = []
+
         # Reference the verify_callback of the Context. This ensures that if
         # set_verify is called again after the SSL object has been created we
         # do not point to a dangling reference
@@ -2046,13 +2020,22 @@ class Connection:
         else:
             return getattr(self._socket, name)
 
+    def _raise_callback_problem(self) -> None:
+        """
+        Raise an exception that was captured while running a callback on
+        behalf of this connection, if there is one, after discarding whatever
+        OpenSSL left on its error queue as a consequence of the callback
+        failing.
+        """
+        if self._callback_problems:
+            try:
+                _raise_current_error()
+            except Error:
+                pass
+            raise self._callback_problems.pop(0)
+
     def _raise_ssl_error(self, ssl: Any, result: int) -> None:
-        if self._context._verify_helper is not None:
-            self._context._verify_helper.raise_if_problem()
-        if self._context._alpn_select_helper is not None:
-            self._context._alpn_select_helper.raise_if_problem()
-        if self._context._ocsp_helper is not None:
-            self._context._ocsp_helper.raise_if_problem()
+        self._raise_callback_problem()
 
         error = _lib.SSL_get_error(ssl, result)
         if error == _lib.SSL_ERROR_WANT_READ:
@@ -2561,10 +2544,7 @@ class Connection:
         # ClientHello with valid cookie, but keep trying'. So basically
         # WantReadError. But it doesn't work correctly with _raise_ssl_error.
         # So we raise it manually instead.
-        if self._cookie_generate_helper is not None:
-            self._cookie_generate_helper.raise_if_problem()
-        if self._cookie_verify_helper is not None:
-            self._cookie_verify_helper.raise_if_problem()
+        self._raise_callback_problem()
         if result == 0:
             raise WantReadError()
         if result < 0:

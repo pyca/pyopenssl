@@ -2399,6 +2399,46 @@ class TestApplicationLayerProtoNegotiation:
             interact_in_memory(server, client)
         assert select_args == [(server, [b"http/1.1", b"spdy/2"])]
 
+    def test_alpn_callback_exception_stays_with_its_connection(self) -> None:
+        """
+        An exception raised by the ALPN select callback while serving one
+        connection is only ever raised on that connection, even though every
+        connection created from the same `Context` shares the callback
+        wrapper. Otherwise, with connections driven from several threads, an
+        unrelated connection could be handed another connection's exception.
+        """
+
+        def select(conn: Connection, options: list[bytes]) -> bytes:
+            return options[0]
+
+        server_context = Context(SSLv23_METHOD)
+        server_context.set_alpn_select_callback(select)
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, server_key_pem)
+        )
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, server_cert_pem)
+        )
+
+        client_context = Context(SSLv23_METHOD)
+        client_context.set_alpn_protos([b"http/1.1"])
+
+        failing = Connection(server_context, None)
+        other = Connection(server_context, None)
+        client = Connection(client_context, None)
+
+        # Simulate the callback having raised on ``failing`` in another
+        # thread that has not yet had the chance to surface the exception.
+        failing._callback_problems.append(ValueError("belongs to failing"))
+
+        # The unrelated connection is unaffected...
+        handshake_in_memory(client, other)
+        assert other.get_alpn_proto_negotiated() == b"http/1.1"
+
+        # ...and the exception is still delivered to the right connection.
+        with pytest.raises(ValueError, match="belongs to failing"):
+            failing.do_handshake()
+
 
 class TestSession:
     """
@@ -3011,6 +3051,32 @@ class TestConnection:
 
         with pytest.raises(TypeError):
             conn.set_verify(VERIFY_PEER, "not a callable")  # type: ignore[arg-type]
+
+    def test_set_verify_callback_exception(self) -> None:
+        """
+        If the verify callback passed to `Connection.set_verify` raises an
+        exception, verification fails and the exception is propagated to the
+        caller of `Connection.do_handshake`.
+        """
+        server_context = Context(SSLv23_METHOD)
+        server_context.use_privatekey(
+            load_privatekey(FILETYPE_PEM, root_key_pem)
+        )
+        server_context.use_certificate(
+            load_certificate(FILETYPE_PEM, root_cert_pem)
+        )
+        server = Connection(server_context, None)
+
+        def verify_callback(
+            conn: Connection, cert: X509, err: int, depth: int, ok: int
+        ) -> bool:
+            raise KeyError("silly verify failure")
+
+        client = Connection(Context(SSLv23_METHOD), None)
+        client.set_verify(VERIFY_PEER, verify_callback)
+
+        with pytest.raises(KeyError, match="silly verify failure"):
+            handshake_in_memory(client, server)
 
     def test_set_verify_callback_reference(self) -> None:
         """
