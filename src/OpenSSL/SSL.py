@@ -2028,10 +2028,7 @@ class Connection:
         failing.
         """
         if self._callback_problems:
-            try:
-                _raise_current_error()
-            except Error:
-                pass
+            _lib.ERR_clear_error()
             raise self._callback_problems.pop(0)
 
     def _raise_ssl_error(self, ssl: Any, result: int) -> None:
