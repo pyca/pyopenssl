@@ -1107,7 +1107,12 @@ class X509:
 
             YYYYMMDDhhmmssZ
 
-        :return: A timestamp string, or ``None`` if there is none.
+        ``None`` indicates an empty ASN.1 time value, for example on a newly
+        created :class:`X509` before its validity period has been set. It does
+        not indicate that the validity bound is optional, nor is it a general
+        indicator of an invalid timestamp.
+
+        :return: Timestamp bytes, or ``None`` if the ASN.1 time is empty.
         :rtype: bytes or NoneType
         """
         return self._get_boundary_time(_lib.X509_getm_notBefore)
@@ -1142,7 +1147,12 @@ class X509:
 
             YYYYMMDDhhmmssZ
 
-        :return: A timestamp string, or ``None`` if there is none.
+        ``None`` indicates an empty ASN.1 time value, for example on a newly
+        created :class:`X509` before its validity period has been set. It does
+        not indicate that the validity bound is optional, nor is it a general
+        indicator of an invalid timestamp.
+
+        :return: Timestamp bytes, or ``None`` if the ASN.1 time is empty.
         :rtype: bytes or NoneType
         """
         return self._get_boundary_time(_lib.X509_getm_notAfter)
