@@ -46,6 +46,7 @@ from OpenSSL._util import (
     text_to_bytes_and_warn as _text_to_bytes_and_warn,
 )
 from OpenSSL.crypto import (
+    FILETYPE_ASN1,
     FILETYPE_PEM,
     X509,
     PKey,
@@ -60,6 +61,8 @@ __all__ = [
     "DTLS_CLIENT_METHOD",
     "DTLS_METHOD",
     "DTLS_SERVER_METHOD",
+    "FILETYPE_ASN1",
+    "FILETYPE_PEM",
     "MODE_RELEASE_BUFFERS",
     "NO_OVERLAPPING_PROTOCOLS",
     "OPENSSL_BUILT_ON",

@@ -49,7 +49,7 @@ from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from cryptography.x509.oid import NameOID
 from pretend import raiser
 
-from OpenSSL import SSL
+from OpenSSL import SSL, crypto
 from OpenSSL._util import ffi as _ffi
 from OpenSSL._util import lib as _lib
 from OpenSSL.crypto import (
@@ -67,6 +67,7 @@ from OpenSSL.crypto import (
 )
 from OpenSSL.SSL import (
     DTLS_METHOD,
+    FILETYPE_ASN1,
     NO_OVERLAPPING_PROTOCOLS,
     OP_COOKIE_EXCHANGE,
     OP_NO_COMPRESSION,
@@ -4118,6 +4119,17 @@ class TestConstants:
     OpenSSL APIs.  The only assertions it seems can be made about them is
     their values.
     """
+
+    def test_filetype_asn1(self) -> None:
+        """
+        `OpenSSL.SSL.FILETYPE_ASN1` is exported and matches the crypto
+        constant documented for `use_certificate_file` /
+        `use_privatekey_file`.
+        """
+        assert FILETYPE_ASN1 is SSL.FILETYPE_ASN1
+        assert FILETYPE_ASN1 == crypto.FILETYPE_ASN1
+        assert "FILETYPE_ASN1" in SSL.__all__
+        assert "FILETYPE_PEM" in SSL.__all__
 
     @pytest.mark.skipif(
         OP_NO_QUERY_MTU is None,
