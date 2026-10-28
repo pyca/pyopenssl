@@ -1932,9 +1932,9 @@ class Context:
 
 
 class Connection:
-    _reverse_mapping: typing.MutableMapping[Any, Connection] = (
-        WeakValueDictionary()
-    )
+    _reverse_mapping: typing.ClassVar[
+        typing.MutableMapping[Any, Connection]
+    ] = WeakValueDictionary()
 
     def __init__(
         self, context: Context, socket: socket.socket | None = None
