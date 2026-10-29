@@ -4325,8 +4325,13 @@ class TestMemoryBIO:
         # speaking any more.
         assert interact_in_memory(client_conn, server_conn) is None
 
-        # Now that the handshake is done, there should be a key and nonces.
-        assert server_conn.master_key() is not None
+        # Now that the handshake is done, there should be nonces. For TLS <=
+        # 1.2 there is also a master secret; TLS 1.3 has none, so master_key()
+        # may be None there (it is with OpenSSL 4.1+) and must not raise.
+        if server_conn.get_protocol_version() < TLS1_3_VERSION:
+            assert server_conn.master_key() is not None
+        else:
+            server_conn.master_key()
         assert server_conn.client_random() is not None
         assert server_conn.server_random() is not None
         assert server_conn.client_random() == client_conn.client_random()
