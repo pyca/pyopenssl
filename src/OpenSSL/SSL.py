@@ -2780,14 +2780,17 @@ class Connection:
         """
         Retrieve the value of the master key for this session.
 
-        :return: A string representing the state
+        :return: The master key, or :obj:`None` if there is no session or the
+            connection uses TLS 1.3, which has no master secret.
         """
         session = _lib.SSL_get_session(self._ssl)
         if session == _ffi.NULL:
             return None
 
         length = _lib.SSL_SESSION_get_master_key(session, _ffi.NULL, 0)
-        _openssl_assert(length > 0)
+        # TLS 1.3 has no master secret, so the length is 0.
+        if length == 0:
+            return None
         outp = _no_zero_allocator("unsigned char[]", length)
         _lib.SSL_SESSION_get_master_key(session, outp, length)
         return _ffi.buffer(outp, length)[:]
